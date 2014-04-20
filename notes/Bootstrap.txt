@@ -1,0 +1,39 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-04-20T10:26:59+01:00
+
+====== Bootstrap ======
+Created Sunday 20 April 2014
+
+Just getting started with a new project is quite interesting, because you need to do quite a bit before you can start to structure and document what you're doing.
+
+This is a Rails project, which means Ruby and Gem are needed, and it makes sense to use a good tool to control versions.  Clearly source code control will use git, but we also need something to manage Ruby versions.  The Rails project now recommends rbenv as a more lightweight manager, but I'm used to rvm and you seem to have to add lots of bits to rbenv to get the same necessary functionality.  rvm used to have a few nasty side effects, but they do seem to have tidied those up a bit.  It also seems to be the one generally used, despite RoR's recommendation.
+
+So, the first step is to install the latest rvm - just follow the instructions on the web site.  If you already have a version of rvm you can just do "rvm get stable".
+
+Next you need to install ruby - I'm using the latest version so it's 2.1.1.
+
+'''
+rvm install ruby-2.1.1
+rvm use 2.1.1
+rvm gemset create scheduler
+'''
+
+
+Note that the rvm "best practices" section recommends creating a gemset per project, rather than one per version of Rails.
+
+'''
+rvm gemset use scheduler
+gem install rails --version 4.1
+'''
+
+
+and after a while you should have an installation of Rails ready to use.  Now you can create your project directory.  Navigate to the parent directory where you intend to create it, then use Rails to create the project directory.  I use ''~/Work/Coding'' for my coding work.
+
+'''
+cd ~/Work/Coding
+rails new scheduler
+'''
+
+
+and again there will be a short delay whilst things are set up for you, after which you'll have a new directory called scheduler.  Then I create a directory called "notes" within that, and point Zim at that as its working directory.  Now I'm in a position to start documenting things as I work.

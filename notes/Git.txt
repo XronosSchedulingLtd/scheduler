@@ -1,0 +1,18 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-04-20T10:46:28+01:00
+
+====== Git ======
+Created Sunday 20 April 2014
+
+I need a source code control system for my project, and git is the obvious choice.  Historically I have used gitosis for my server, and whilst gitosis is no longer being developed I see no need to change at the moment.  I already have a gitosis server set up on git.sinodun.org.uk.
+
+Having created the project directory, go into it and type:
+
+'''
+git init
+git add .
+git commit
+'''
+
+This sets things up.  There is already a default ''.gitignore'' file provided by Rails.
