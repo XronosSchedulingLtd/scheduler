@@ -12,7 +12,48 @@ Having created the project directory, go into it and type:
 '''
 git init
 git add .
-git commit
+git commit -m "Initial commit"
 '''
 
 This sets things up.  There is already a default ''.gitignore'' file provided by Rails.
+
+Next we need to connect this up to our git server.
+
+To add a new repository on git.sinodun.org.uk you first need to check out the gitosis configuration tree.
+
+'''
+$ git clone gitosis@git.sinodun.org.uk:gitosis-admin
+'''
+
+Then within that project you edit gitosis.conf and add your new repository.  Currently I have a single group of users (called for historic reasons, "markbook") and I add all the project areas to that group.  The section reads currently:
+
+'''
+[group markbook]
+writable = markbook Wiki sample_app
+members = john@liberty john@nimbus john@remote john@duplo john@zeitgeist john@cephalopod jhw@schoolmac john@knight john@acerrevo john@g5 john@sheeva2 john@data john@pragma john@hydra john@amtrak john@squeezeguest
+'''
+
+Add any extra repositories to the end of the second line there.  Then check the file back in again.
+
+'''
+$ git add gitosis.conf
+$ git commit -m "Added scheduler repository"
+$ git push origin
+'''
+
+Now move to your application source directory, and set it up as a git repository.
+
+'''
+$ git remote add origin gitosis@git.sinodun.org.uk:sample_app.git
+$ git push origin master
+$ git branch --set-upstream master origin/master
+'''
+
+and then all is hunky.  Interestingly though, that isn't enough to get the new project to appear in gitweb.  What else is needed?  Ah, on the server do the following:
+
+'''
+cd /var/cache/git
+ln -s /srv/gitosis/repositories/sample_app.git
+'''
+
+and it will then appear.

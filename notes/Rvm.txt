@@ -1,0 +1,31 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-04-20T11:19:06+01:00
+
+====== Rvm ======
+Created Sunday 20 April 2014
+
+Initial installation of Rvm was done in the [[:Bootstrap|Bootstrap]] section, but then I want to make sure I get the right version of things all the time.  Traditionally one put a ''.rvmrc'' file in the root directory of one's project containing:
+
+'''
+rvm use 2.1.1@scheduler
+'''
+
+
+but this now produces warning messages about incompatibility and deprecation.  It still works, but apparently we should now be using a .ruby-version file instead.  Let's try that.  Rvm provides a conversion command:
+
+'''
+rvm rvmrc to .ruby-version
+'''
+
+
+and what that seems to have done is to remove the .rvmrc file and replace it with two files called ''.ruby-version'' and ''.ruby-gemset'', containing the relevant information.
+
+Finally, just installing Ruby 2.1.0 seems to have caused Rvm to make it my default Ruby, which I don't want.  The command to switch back to the system Ruby as the default is:
+
+'''
+$ rvm --default use system
+'''
+
+
+The correct version of Ruby now seems to be selected automatically.

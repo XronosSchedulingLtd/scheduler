@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-04-20T18:37:33+01:00
+
+====== Thoughts ======
+Created Sunday 20 April 2014
+
+A thought on the overall user interface design, if it can be achieved.  The main view is of a calendar, and we then need the means to adjust things - either adjust what we've viewing, or adjust what is scheduled.
+
+Can I have a series of pull-down blinds at the top, like tabs in a web browser, but when you click on one an interactive form of some sort slides down.  Some people would have more blinds than others.  The left most one might be "View" offering to change the view you have on the schedule.  Then more for creating events.  Does any of the existing toolkits offer such a widget?  JQuery-UI does have a "Blind" effect, which might do what I want.  There could also be a search box to the right of that, 
