@@ -70,7 +70,7 @@
 // $shiny-edge-color: rgba(#fff, .5);
 // $shiny-edge-active-color: rgba(#000, .2);
 
-$column-gutter: rem-calc(60);
+$column-gutter: rem-calc(30);
 
 // Media Query Ranges
 // $small-range: (0em, 40em);
@@ -1180,7 +1180,7 @@ $topbar-bg-color: #212D48;
 // $topbar-title-font-size: rem-calc(17);
 
 // Style the top bar dropdown elements
-// $topbar-dropdown-bg: #333;
+$topbar-dropdown-bg: #212D48;
 // $topbar-dropdown-link-color: #fff;
 // $topbar-dropdown-link-bg: #333;
 // $topbar-dropdown-link-weight: normal;
