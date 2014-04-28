@@ -1,0 +1,25 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-04-28T13:25:37+01:00
+
+====== Monday 28 Apr 2014 ======
+
+About to make a start on laying down some actual code.  I intend to use:
+
+Zurb Foundation for the layout
+Jquery and Jquery-UI for the support
+Full Calendar 2.0 for the calendar
+MomentJS to handle dates.
+
+I will pull the code for handling groups from Xronos.  To start with, I could create a scaffold for some model item, just to give me something visual to play with.  Later I would like to have pull-down dialogues for amending things, all appearing on top of my central calendar view.
+
+I seem already to have added foundation-rails to my Gemfile.  Let's take another look at the RailsCast for Foundation and see if I can make up the means to create and edit Eras.  Fairly simple item which simply has a name, a start date and an end date.  Note that the convention of making end dates exclusive seems to be becoming generally accepted.  The Railscast is no. 417 (currently the last one he's done - he seems not to be doing them at present) and covers Foundation 4 instead of 5.  There are already some differences in how to incorporate it.  See [[:Plugins:Foundation]] for details of how to install.  I seem to have done those steps already.
+
+Then create some scaffolding with
+
+'''
+rails g scaffold era name starts_on:date ends_on:date --skip-stylesheets
+rake db:migrate
+'''
+
+OK - worked through the RailsCast and got my basic layout looking quite nice.  It occurs to me to avoid all the pop-downs for now - have simple navigation from the title bar, with the ability to click on the main title to go back to the calendar view.  How can I get a pull-down menu in Zurb Foundation?

@@ -1,0 +1,13 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-04-28T13:38:37+01:00
+
+====== Foundation ======
+Created Monday 28 April 2014
+
+I am using Foundation version 5.0.  Instructions on how to install can be found at http://foundation.zurb.com/docs/applications.html but in essence you need to:
+
+* Add "gem  'foundation-rails'" to your Gemfile and run bundle
+* Do "rails g foundation:install"
+
+

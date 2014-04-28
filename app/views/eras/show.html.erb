@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Name:</strong>
+  <%= @era.name %>
+</p>
+
+<p>
+  <strong>Starts on:</strong>
+  <%= @era.starts_on %>
+</p>
+
+<p>
+  <strong>Ends on:</strong>
+  <%= @era.ends_on %>
+</p>
+
+<%= link_to 'Edit', edit_era_path(@era) %> |
+<%= link_to 'Back', eras_path %>

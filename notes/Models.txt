@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-04-28T13:31:06+01:00
+
+====== Models ======
+Created Monday 28 April 2014
+
+The models in this application are:
+
+Era:		Specifies a span of time to which things belong.  In our case, it's a school year.

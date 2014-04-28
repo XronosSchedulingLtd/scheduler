@@ -12,8 +12,37 @@
   </head>
 
   <body>
-
-    <%= yield %>
+  <nav class="top-bar">
+    <ul class="title-area">
+      <li class="name">
+        <h1><%= link_to "Scheduler" %></h1>
+      </li>
+    </ul>
+    <section class="top-bar-section">
+      <ul class="right">
+        <li class="divider"></li>
+        <li><%= link_to "Eras", eras_path %></li>
+        <li class="divider"></li>
+        <li><%= link_to "Baker" %></li>
+        <li class="divider"></li>
+        <li><%= link_to "Charlie" %></li>
+        <li class="divider"></li>
+        <li><%= link_to "Dennis" %></li>
+      </ul>
+    </section>
+  </nav>
+    <div class="row">
+      <div class="large-8 columns"><%= yield %></div>
+      <div class="large-4 columns">
+        <h2>About us</h2>
+        This column isn't really meant to be here, but I'm testing to see
+        how Zurb Foundation works.
+        This column isn't really meant to be here, but I'm testing to see
+        how Zurb Foundation works.
+        This column isn't really meant to be here, but I'm testing to see
+        how Zurb Foundation works.
+      </div>
+    </div>
     <%= javascript_include_tag "application" %>
   </body>
 </html>

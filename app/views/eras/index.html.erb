@@ -1,0 +1,29 @@
+<h1>Listing eras</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Starts on</th>
+      <th>Ends on</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @eras.each do |era| %>
+      <tr>
+        <td><%= era.name %></td>
+        <td><%= era.starts_on %></td>
+        <td><%= era.ends_on %></td>
+        <td><%= link_to 'Show', era %></td>
+        <td><%= link_to 'Edit', edit_era_path(era) %></td>
+        <td><%= link_to 'Destroy', era, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Era', new_era_path, class: "button radius" %>

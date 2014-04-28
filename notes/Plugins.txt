@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-04-28T13:29:30+01:00
+
+====== Plugins ======
+Created Monday 28 April 2014
+
+The plugins which I am using in this application are:
+
+foundation-rails	To give me Zurb Foundation 5.0

@@ -1,0 +1,12 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-04-28T13:31:49+01:00
+
+====== Era ======
+Created Monday 28 April 2014
+
+===== Fields =====
+
+Name		String
+Starts		Date
+Ends		Date
