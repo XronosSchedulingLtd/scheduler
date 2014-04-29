@@ -26,3 +26,8 @@ $(document).ready ->
     defaultView: "agendaWeek"
     minTime: 6
     firstHour: 8
+  $('#datepicker').datepicker
+    showOtherMonths: true
+    selectOtherMonths: true
+    dateFormat: 'yy-mm-dd'
+

@@ -41,3 +41,4 @@ gem 'spring',        group: :development
 gem 'foundation-rails'
 gem 'momentjs-rails'
 gem 'fullcalendar2-rails'
+gem 'jquery-ui-rails'
