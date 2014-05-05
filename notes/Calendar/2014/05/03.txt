@@ -1,0 +1,45 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-03T08:47:39+01:00
+
+====== Saturday 03 May 2014 ======
+
+I've discovered quite a bit.  I need to do a bit more investigation to see when exactly things do and don't work, and then document how to set up a production server.
+
+There are several things which are needed to get a production version running, over and above the Nginx/Passenger setup, which aren't needed for development mode.
+
+I've now reached the point where production mode works under Passenger, but doesn't if you do a simple:
+
+'''
+RAILS_ENV=production rails server
+'''
+
+
+which uses Webrick.  The latter version can't find its resources.  Points to be aware of in getting a production mode going, over and above the instructions on the page referenced yesterday.
+
+* You need to set up a secure key in secrets.yml
+* You need to pre-compile the assets with:
+* ''RAILS_ENV=production bundle exec rake assets:precompile''
+* Webrick then still won't find the assets, but Passenger will.
+
+I think I've found a config item which would change that, but I'll test it with my test app first, then document it here.  Then I'll write up a fresh page giving blow-by-blow instructions on how to do a live deployment.  Yes, setting the relevant variable gets Webrick to work in production mode.  See [[:Deployment|Deployment]] for details of how to set everything up.
+
+Now, can I do all of that on Mach2?  I suspect I'm going to hit problems with the firewall.  How about re-directing via Nimbus as I did for Knight?  Try it.   Aaargh.  Secvpn seems to have disappeared from Jessie.  Annoying.  It is suggested one should upgrade to openvpn.  What does that involve?  It does seem to be available in all of Squeeze, Wheezy and Jessie.  Can it exist alongside secvpn?  I need to be careful not to kill my connection to Dad's PC.  The obvious machine on which to install it first is this one, since I have direct access to it.  At least the packages don't clash.  There's some documentation at:
+
+https://wiki.debian.org/OpenVPN
+
+which seems to cover how to set it up.  Ah - problem.  Since openvpn does not piggy-back on ssh, it won't run through the firewall hole which I have already set up.  It needs another port number.
+
+Can I install secvpn from Wheezy on Jessie?  Just as if it's left over from when the same host ran Wheezy?  It seems to have installed.  Now running.  Openvpn does look nicer, but I can't use it yet.
+
+Now, I need some configuration on Mach2 to divert https requests out via Nimbus.  Already put the necessary on Nimbus I think.  I've done it before on Knight, so copy from Knight's backup on Guardian (as Knight is switched off).  The setfw script there is quite long and most of it is not needed.
+
+Done.  It works, although I ended up having to forward both 443 and 80 to get all the installation steps to work.
+
+I have set up Mach2 to be backed up by Guardian too.
+
+I think my next task must be to get the Era controller to recognise when it gets an Ajax request and send back only a partial and not all the periphery of the page.  I'm pretty certain I've done something like this before in markbook, when editing an event.  The request goes to the events controller with an action of addresource.  The action code doesn't seem any different, but the view does a page.replace.  Presumably one can detect in the controller whether it's an Ajax request or not, and act accordingly.
+
+Tomorrow I go back to doing some application code.  There seems to be some sort of issue with the Foundation reveals.  They work fine if you've come fresh to the page, but not if you're re-visiting the page after having been somewhere else.
+
+I've just noticed that the pop-downs don't work either when I come *back* to a page.  Presumably something isn't being properly initialised at that point.  Perhaps I should try using Foundation 4 instead and see whether it has the same problem.

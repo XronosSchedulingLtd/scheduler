@@ -63,3 +63,7 @@ Now let's remove Apache2 from Hydra and replace it with Squid, configured as for
 How about some code.  Can I use a date picker in my Eras dialogue instead of the current cludgy way?  I am already achieving this in Xronos, but using formtastic.  Can I do it without.
 
 Change the date_select field in my form to a text_field, and give it an id of datepicker.  Ah, that's interesting.  If I want two datepicker fields in the same form, they can't both have an id of datepicker.  Also, Rails tends to use ids too, and mine has displaced theirs.  Can I do it by way of a class?  I can certainly specify a class, now can I arrange for it to become a datepicker?
+
+Datepickers working - although the date isn't as nicely formatted as I would like.
+
+Moved on to trying to get a pop-up dialogue going.  Sort of managed it - it looks cool, but doesn't work quite correctly.  Stopping for now though.  The dialogue has a menu bar at the top, which isn't what I intended, but looks really good.  I might keep the bar there, even if it doesn't do anything.

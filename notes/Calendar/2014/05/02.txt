@@ -1,0 +1,50 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-02T10:53:43+01:00
+
+====== Friday 02 May 2014 ======
+
+Today I think I will try to get deployment working - "Deploy early; deploy often" - using a combination of Nginx and Passenger.  Nginx because I read good things about it, and Passenger because I've used it before.
+
+There are lots of other options available, but the main thing is to ensure that I have a known good deployment path.
+
+Instructions for Phusion Passenger and Nginx can be found at:
+
+http://www.modrails.com/documentation/Users%20guide%20Nginx.html#install_on_debian_ubuntu
+
+That assumes you will use packages downloaded from Phusion's own repository, but Debian also seems to provide them.  It might be tidier to use Debian's own.  I have used Passenger before - did I keep notes?  Yes, they're in the notes for markbook under the date 2009-07-04.  They use yet another way - install Passenger as a Gem.
+
+It's not clear how you use rvm for a live deployment.  The rvm pages say it can be done, but they're not clear how.
+
+If Nginx (or Apache2) is running as a system process, how does it know to use my rvm installation to find the right version of ruby, gem etc.?  Can I get ruby 2.1.1 on my target system natively, and forget using rvm there?  I can in fact get the exact same version of Ruby on Jessie as I have installed via rvm.  The problem then is that one needs to install all your gems as root, since they are being installed system wide.  The Rails stuff tends to assume you can do it yourself.  Tricky problem.
+
+Ah - this page:
+
+http://rvm.io/integration/passenger
+
+Says that passenger does in fact understand rvm, and so it should be easy.
+
+Suggested initial strategy - install nginx and passenger from Debian standard packages.
+
+Let's try setting up a spare VM to do a test deployment.  I'll put Jessie on it to match the live target environment.  Need a Jessie installation CD available on black.
+
+I'm having difficulty installing Debian Jessie in a KVM VM.  It gets as far as trying to scan the installation CD (so a fair way through the installation process) and then hangs.  The VM is still working - I can get to a console - but the installation process just stops.  Try installing from the latest Wheezy CD instead.  That passes that point with no problem.  It is quite an old Jessie CD image, so it may well have been fixed by now.
+
+Remove Desktop from the list of packages, and add in ssh-server.  Upgrade from Wheezy to Jessie.  OK - got a working Jessie system.  Added Rvm, Ruby 2.1 and Rails 4.1.  Cloned my source from gitosis.  Added Node.js
+
+Installed Nginx and ruby-passenger as Debian packages.  The documentation provided seems to be simply a copy of that on Phusion's web-site with no extra information about how it should be set up on Debian.
+
+Let's try using the Phusion documentation, on the assumption I now have the packages installed.
+
+It recommends installing nginx-extras, as that includes the passenger modules.  Happily the standard Debian repository also includes that.  Installing nginx-extras causes nginx-full to be removed.  Now it says to edit [[/etc/nginx/nginx.conf]] to uncomment the passenger lines.  Unfortunately, these point passenger to the system ruby, which isn't necessarily what I want.  Let's make sure Nginx points to Ruby 2.1
+
+Unfortunately the nginx from the package doesn't understand the passenger_root directive.  Silly to have it then.  Perhaps I should try to use Phusion's packages, but can my school machine retrieve them over https?  Test.  No, I can't - and in any case, Phusion does not offer a package set for Jessie.
+
+Looking at the documentation for the Debian ruby-passenger package, it seems to be assuming that you will use Apache2 and not Nginx.  Damn.  Time to sleep on it.
+
+Just found this page:
+
+http://www.rosehosting.com/blog/how-to-install-ruby-on-rails-with-nginx-and-passenger/
+
+Which claims to show you how to do exactly what I want to do.
+

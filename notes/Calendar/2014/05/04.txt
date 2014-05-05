@@ -1,0 +1,20 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-04T19:42:30+01:00
+
+====== Sunday 04 May 2014 ======
+
+Plan for tomorrow.
+
+Start with a plain HTML page and add:
+
+* Foundation structure
+* Menu bar
+* Pop-down menus with sub-items
+* A modal text box
+* A modal form
+* Fullcalendar in the page
+
+Checking at each stage that everything works correctly, including navigating away by link to an adjoining page, and then back again.  If I can get all that working, then compare with my Rails app to see what I'm doing differently.  I suspect I am failing to initialise something properly.
+
+Another point of note is that Chrome's console throws some error messages relating to my JavaScript.  I could try to understand what those mean.

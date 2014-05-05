@@ -1,0 +1,47 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-05T10:08:35+01:00
+
+====== Monday 05 May 2014 ======
+
+My problem is currently that if I load my page, then pop up a completely vanilla modal, all is well.  It can come and go as many times as I like.  If however I navigate away from the page and then back, it will still appear, but will only partially go away.  The screen behind remains greyed out and the links etc. no longer work.
+
+After the same bit of navigation (load fresh, navigate away and then back) the pop-down menu also no longer works.
+
+Note that when I say "navigate back" I don't mean using the back button in the browser.  I take a link to leave the page, and then another link to come back.
+
+Taking a look at my existing Scheduler page.  It's noticeable that currently my Modal div appears after all the JavaScript has been included.  The order goes:
+
+* Stylesheets (in header)
+* Modernizr.js (in header)
+* Body HTML
+* Button to click for reveal (in body)
+* Loads of Javascript (in body)
+* Div for modal (in body)
+
+And within the Javascript files, the order is:
+
+* jquery
+* jquery_ujs (unobtrusive JavaScript)
+* Foundation
+* Turbolinks
+* Moment
+* FullCalendar
+* Jquery-ui
+* Eras.js
+* Schedule.js
+* Application.js
+
+Note that both the module-specific js files (Eras and Schedule) appear all the time.
+
+The first logical thing to try would seem to be to move the Javascript to last.
+
+Hmmm.  I'm calling document.ready (jquery thing) three times, and possibly not in the right order.  Looking at jquery documentation, they will all get called and in the order which they were set up.  *But* it is possible that an exception in one will prevent subsequent ones from being called.  Back to looking at errors in my javascript console?
+
+Tried putting an alert in each of the functions, and they do all seem to be being called.  It does mean however that foundation is being initialised last.  Try making each of the subsidiary files just create a function, then the application file does all the initialisation in one go.
+
+Ah!  The problem is turbolinks.  That's a tool which tries to save re-initialising a page.  Take that out and it all works beautifully.  Once you know that it's the combination of Foundation 5 and Turbolinks, you find references to it all over the 'net.  There are workarounds, but for now I don't feel I really need Turbolinks, so I'll just take it out.
+
+There remains the additional point that, since I'm loading a whole new page inside my dialogue, and re-initialising Foundation, the parent page loses all its functionality.  That I can fix by turning it into a partial.
+
+For now I intend to refresh my memory of CoffeeScript by re-reading the book which I have.
