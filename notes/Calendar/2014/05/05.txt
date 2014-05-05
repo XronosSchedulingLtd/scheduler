@@ -45,3 +45,20 @@ Ah!  The problem is turbolinks.  That's a tool which tries to save re-initialisi
 There remains the additional point that, since I'm loading a whole new page inside my dialogue, and re-initialising Foundation, the parent page loses all its functionality.  That I can fix by turning it into a partial.
 
 For now I intend to refresh my memory of CoffeeScript by re-reading the book which I have.
+
+Moved on to thinking about how to get a modal dialogue to work.  Foundation and Rails have two different views on how this should happen.
+
+Foundation expects to send up a request for some HTML to the server, using a specified URL.  When the HTML comes back it will splat it into the indicated <div> and then make the modal appear.  All it wants Rails to do is to send back an un-adorned html fragment (*not* a whole page with stylesheets etc.)
+
+Rails on the other hand expects to do more of the work.  It expects an Ajaxy request, to which it will respond with some Javascript, and the javascript will do the work of updating a div in the page.
+
+Presumably I could do it either way, but which is better?  Lots of things are needing refreshing in my memory.
+
+Ah - you can do:
+
+'''
+render :layout=>false if request.xhr?
+'''
+
+
+ in the Rails host to cause it to send back just the html bit.  That seems to work beautifully.  Now can I get the thing to do the entire conversation within the modal dialogue?

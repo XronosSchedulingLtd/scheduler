@@ -11,16 +11,7 @@
   </thead>
 
   <tbody>
-    <% @eras.each do |era| %>
-      <tr>
-        <td><%= era.name %></td>
-        <td><%= era.starts_on %></td>
-        <td><%= era.ends_on %></td>
-        <td><%= link_to 'Show', era %></td>
-        <td><%= link_to 'Edit', edit_era_path(era) %></td>
-        <td><%= link_to 'Destroy', era, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
-    <% end %>
+    <%= render @eras %>
   </tbody>
 </table>
 

@@ -5,6 +5,11 @@ class ErasController < ApplicationController
   # GET /eras.json
   def index
     @eras = Era.all
+    if request.xhr?
+      render :layout => false
+    else
+      render
+    end
   end
 
   # GET /eras/1
