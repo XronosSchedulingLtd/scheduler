@@ -11,12 +11,46 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140428124444) do
+ActiveRecord::Schema.define(version: 20140509135527) do
 
   create_table "eras", force: true do |t|
     t.string   "name"
     t.date     "starts_on"
     t.date     "ends_on"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "eventcategories", force: true do |t|
+    t.string   "name"
+    t.integer  "pecking_order"
+    t.boolean  "schoolwide"
+    t.boolean  "publish"
+    t.boolean  "public"
+    t.boolean  "for_users"
+    t.boolean  "unimportant"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "events", force: true do |t|
+    t.text     "body"
+    t.integer  "eventcategory_id",                 null: false
+    t.integer  "eventsource_id",                   null: false
+    t.integer  "owner_id"
+    t.datetime "starts_at"
+    t.datetime "ends_at"
+    t.boolean  "approximate",      default: false
+    t.boolean  "non_existent",     default: false
+    t.boolean  "private",          default: false
+    t.integer  "reference_id"
+    t.string   "reference_type"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "eventsources", force: true do |t|
+    t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

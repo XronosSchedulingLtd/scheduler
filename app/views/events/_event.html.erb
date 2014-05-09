@@ -1,0 +1,10 @@
+<tr>
+  <td><%= event.body %></td>
+  <td><%= event.eventcategory.name %></td>
+  <td><%= event.eventsource.name %></td>
+  <td><%= event.starts_at.strftime("%d/%m/%Y %H:%M") %></td>
+  <td><%= event.ends_at.strftime("%d/%m/%Y %H:%M") %></td>
+  <td><%= link_to 'Show', event %></td>
+  <td><%= link_to 'Edit', edit_event_path(event) %></td>
+  <td><%= link_to 'Destroy', event, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+</tr>

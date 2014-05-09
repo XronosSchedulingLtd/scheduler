@@ -1,0 +1,56 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-09T11:33:20+01:00
+
+====== Friday 09 May 2014 ======
+
+Today is my first scheduled programming day of the week, which leaves me with a frustration about not having made any progress this week.  To add to that, I was meant to be teaching just for period 1, but minor niggling admin things have held me up so I only get to start just before lunch.  However, I have a plan.
+
+I'm going to leave my fancy pop-up dialogues for now - they really are just eye-candy, although I believe they will ease the comprehension of the app.  I've established it's possible, and the good book advocates developing a non-Ajax version of everything first anyway.  Today (and on?) I intend to:
+
+* Create [[:Models:EventCategory|EventCategory]] records
+* Create [[:Models:EventSource|EventSource]] records
+* Create [[:Models:Event|Event]] records
+* Link event records to the displayed calendar
+* Load the school's existing calendar
+* Get navigating through time working.
+
+Probably more than half a day's work, but it is at least a little bit of progress.
+
+Let's see if we can generate something.  Put a link to eventcategories in my main page header.
+
+I don't like Rails's trick of sending you to the show page after you edit something - you should go back to the listing page.  Done that.  It's noticeable that notices are set but do not appear.  I need to read up on Foundation to see how to create forms and how to make notifications appear, ideally in a transitory way.
+
+http://guides.rubyonrails.org looks interesting.  I've been directed there a few times, but never really looked at it in detail.
+
+I've had a thought - I really want a default layout which applies to all the pages of my application, //except// the schedule page.  It then needs its own special one which uses the full width.  Can I have an include file in my layout to allow the header to be specified only once?  Yes, it seems I can.  Let's try to create a header file now.
+
+Seems to work.  Now I can have a default application.html.erb and a single special one called schedule.html.erb used only for the schedule page.  Done that - seems to work.
+
+Now I could do to tidy up my form, and the error messages which appear if there's a validation issue.  Foundation seems to offer the means to highlight fields, and this used to work in the default rails scaffolding, so how do I get it going?  Not sure.  Leave it for now - it too is eye candy.
+
+On to the event source type.  This simply needs a name.
+
+And now the events.  For these I will take my initial cue from what Markbook has, plus the reference to the event source.
+
+An old philosophical problem - is there really a difference between an "all day" event and an "untimed" event?  How long does an "all day" event last.  It's easy to record an "all day" event without needing any special fields - just have it run from 00:00:00 on one day to 00:00:00 on the next.  Code can check for this and act accordingly.  I have in the past however had an "untimed" flag, and I believe there is a difference, but having both confuses people.  It originated when my event record had separate date and time fields, before I realised this was an error.  It indicated that the time fields were irrelevant. You can use it to indicate something which has no duration, but happens on a particular day or days.
+
+Come to think of it, you can still do it without that field.  An "all day" event runs for exactly 24 hours, from midnight to midnight, whilst an untimed event has no duration - start and end datetime fields contain the same value - and has a time of midnight.  I therefore take the decision to remove the "untimed" flag.
+
+Too much choice when it comes to date time pickers.  Date pickers seem to be uncontroversial (there's one in Jquery) but if you want date and time then life is more complicated.
+
+There's a Jquery timepicker, which looks much like Google Calendar (used in conjunction with the Jquery-ui datepicker) but it means having two fields and processing them back into my record on receipt.  This could presumably be done by the model.
+
+https://github.com/jonthornton/jquery-timepicker
+
+A chap called Trent Richardson has enhanced the Jquery-ui datepicker to make it do both date and time.  Somehow I kind of like that one, although it doesn't seem to be packaged for Rails.  Nothing to stop me downloading it though.
+
+http://trentrichardson.com/examples/timepicker/
+
+Golly - it works!  Rails is interpreting everything as UTC though - it shows times as UTC, and interprets the text it gets back the same way.  Ah - I need to set config.time_zone in config/application.rb.  I seem to have set this to London in my previous app.
+
+Setting that has had some effect, but not enough.  Rails is now interpreting input times as local time, but it's formatting them still as UTC when it puts them into a field, with the result that each time I edit an event, it moves back in time by an hour.
+
+I need rails to output and input in local time, and the widget to simply behave naively.  I'd also quite like the slider to move in increments of 5 mins instead of 1 min.
+
+Oddly - Rails is outputting in UTC, but expecting the time back in BST.  It seems to be solely Rails's output function at fault.  I've a feeling I've played with this before.  I think I did a lot in the Xronos app.  Ah no, it may have been just dates which I was messing about with there.  I just wanted dates on which people joined and left groups, without worrying about times.

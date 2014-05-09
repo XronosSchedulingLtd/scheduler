@@ -1,0 +1,8 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-09T14:16:56+01:00
+
+====== EventSource ======
+Created Friday 09 May 2014
+
+An event source simply has a name.  It exists to allow us to categorise the events in our database by where they came from.  Each event will reference and event source record, which will enable us to tell what to purge if we need to reload from a particular source.

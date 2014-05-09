@@ -1,0 +1,53 @@
+<p id="notice"><%= notice %></p>
+
+<table>
+  <tr>
+    <td><strong>Description:</strong></td>
+    <td><%= @event.body %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Event category:</strong></td>
+    <td><%= @event.eventcategory.name %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Event source:</strong></td>
+    <td><%= @event.eventsource.name %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Owner:</strong></td>
+    <td><%= @event.owner_id == nil || @event.owner_id = 0 ?
+            "None" :
+            @event.owner.name %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Starts at:</strong></td>
+    <td><%= @event.starts_at %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Ends at:</strong></td>
+    <td><%= @event.ends_at %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Approximate:</strong></td>
+    <td><%= @event.approximate %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Non existent:</strong></td>
+    <td><%= @event.non_existent %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Private:</strong></td>
+    <td><%= @event.private %></td>
+  </tr>
+</table>
+
+<%= link_to 'Edit', edit_event_path(@event) %> |
+<%= link_to 'Back', events_path %>

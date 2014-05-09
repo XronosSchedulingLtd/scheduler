@@ -1,0 +1,102 @@
+<%= form_for(@event) do |f| %>
+  <% if @event.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@event.errors.count, "error") %> prohibited this event from being saved:</h2>
+
+      <ul>
+      <% @event.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :description, class: "right inline" %>
+    </div>
+    <div class="small-9 columns">
+      <%= f.text_area :body %>
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :eventcategory_id, class: "right inline" %>
+    </div>
+    <div class="small-5 columns">
+      <%= f.collection_select(:eventcategory_id,
+                              Eventcategory.all.sort,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
+    </div>
+    <div class="small-4 columns"></div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :eventsource_id, class: "right inline" %>
+    </div>
+    <div class="small-5 columns">
+    <%= f.collection_select(:eventsource_id,
+                            Eventsource.all.sort,
+                            :id,
+                            :name,
+                            { :prompt => true }) %>
+    </div>
+    <div class="small-4 columns"></div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :starts_at, class: "right inline" %>
+    </div>
+    <div class="small-5 columns">
+      <%= f.text_field :starts_at,
+                       :value => @event.starts_at.strftime("%d/%m/%Y %H:%M"),
+                       :class => :datetimepicker %>
+    </div>
+    <div class="small-4 columns"></div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :ends_at, class: "right inline" %>
+    </div>
+    <div class="small-5 columns">
+      <%= f.text_field :ends_at,
+                       :value => @event.ends_at.strftime("%d/%m/%Y %H:%M"),
+                       :class => :datetimepicker %>
+    </div>
+    <div class="small-4 columns"></div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :approximate, class: "right" %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :approximate %>
+    </div>
+    <div class="small-8 columns"></div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :non_existent, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :non_existent %>
+    </div>
+    <div class="small-8 columns"></div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :private, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :private %>
+    </div>
+    <div class="small-8 columns"></div>
+  </div>
+  <div class="row">
+    <div class="small-9 small-offset-3 columns">
+      <%= f.submit %>
+    </div>
+  </div>
+<% end %>

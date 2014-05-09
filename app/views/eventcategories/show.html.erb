@@ -1,0 +1,39 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Name:</strong>
+  <%= @eventcategory.name %>
+</p>
+
+<p>
+  <strong>Pecking order:</strong>
+  <%= @eventcategory.pecking_order %>
+</p>
+
+<p>
+  <strong>Schoolwide:</strong>
+  <%= @eventcategory.schoolwide %>
+</p>
+
+<p>
+  <strong>Publish:</strong>
+  <%= @eventcategory.publish %>
+</p>
+
+<p>
+  <strong>Public:</strong>
+  <%= @eventcategory.public %>
+</p>
+
+<p>
+  <strong>Forusers:</strong>
+  <%= @eventcategory.for_users %>
+</p>
+
+<p>
+  <strong>Unimportant:</strong>
+  <%= @eventcategory.unimportant %>
+</p>
+
+<%= link_to 'Edit', edit_eventcategory_path(@eventcategory) %> |
+<%= link_to 'Back', eventcategories_path %>

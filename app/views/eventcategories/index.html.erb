@@ -1,0 +1,37 @@
+<h1>Listing eventcategories</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Pecking order</th>
+      <th>Schoolwide</th>
+      <th>Publish</th>
+      <th>Public</th>
+      <th>Forusers</th>
+      <th>Unimportant</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @eventcategories.each do |eventcategory| %>
+      <tr>
+        <td><%= eventcategory.name %></td>
+        <td><%= eventcategory.pecking_order %></td>
+        <td><%= eventcategory.schoolwide %></td>
+        <td><%= eventcategory.publish %></td>
+        <td><%= eventcategory.public %></td>
+        <td><%= eventcategory.for_users %></td>
+        <td><%= eventcategory.unimportant %></td>
+        <td><%= link_to 'Show', eventcategory %></td>
+        <td><%= link_to 'Edit', edit_eventcategory_path(eventcategory) %></td>
+        <td><%= link_to 'Destroy', eventcategory, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Eventcategory', new_eventcategory_path, class: "button radius" %>

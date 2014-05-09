@@ -1,0 +1,27 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  body: MyText
+  eventcategory_id: 1
+  eventsource_id: 1
+  owner_id: 1
+  starts_at: 2014-05-09 14:55:27
+  ends_at: 2014-05-09 14:55:27
+  approximate: false
+  non_existent: false
+  private: false
+  reference_id: 1
+  reference_type: MyString
+
+two:
+  body: MyText
+  eventcategory_id: 1
+  eventsource_id: 1
+  owner_id: 1
+  starts_at: 2014-05-09 14:55:27
+  ends_at: 2014-05-09 14:55:27
+  approximate: false
+  non_existent: false
+  private: false
+  reference_id: 1
+  reference_type: MyString

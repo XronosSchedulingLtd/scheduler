@@ -1,0 +1,26 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-09T14:26:47+01:00
+
+====== Event ======
+Created Friday 09 May 2014
+
+Fields for an event:
+
+body			text		Body text - description of the event
+eventcategory_id	integer	Id of the event's event category.
+eventsource_id	integer	Id of the event's event source.
+owner_id		integer	Id of the event's owner.
+starts_at			datetime	Start
+ends_at			datetime	End
+approximate		boolean	Flag indicating that the event's datetime is not precise.
+non_existent		boolean	Flag indicating that the event does not exist (e.g. a lesson not happening due to
+						  study leave).  These are useful for arranging invigilation.
+private			boolean	Visible only to the owner.
+reference_id		integer	These two exist so that an event can reference something else - for example
+reference_type	string	an exam module.  Usually they are not used.
+
+
+I have removed the "tentative" flag for now.  I believe the tentative quality which we need to apply is expressed more by whether all the commitments to the event have been approved.
+
+Let's go with it like that.

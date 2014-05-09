@@ -1,0 +1,92 @@
+<%= form_for(@eventcategory) do |f| %>
+  <% if @eventcategory.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@eventcategory.errors.count, "error") %> prohibited this eventcategory from being saved:</h2>
+
+      <ul>
+      <% @eventcategory.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :name, class: "right inline" %><br>
+    </div>
+    <div class="small-9 columns">
+      <%= f.text_field :name %>
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :pecking_order, class: "right inline" %><br>
+    </div>
+    <div class="small-2 columns">
+      <%= f.number_field :pecking_order %>
+    </div>
+    <div class="small-7 columns"></div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :schoolwide, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :schoolwide %>
+    </div>
+    <div class="small-8 columns annotation">
+      Appears on all calendars.
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :publish, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :publish %>
+    </div>
+    <div class="small-8 columns annotation">
+      Included in ical exports - e.g. to Google Calendar.
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :public, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :public %>
+    </div>
+    <div class="small-8 columns annotation">
+      Appears on public calendar - shown to those who are not logged in.
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :for_users, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :for_users %>
+    </div>
+    <div class="small-8 columns annotation">
+      Appears on schedules for individual users, even if they are not explicitly
+      involved - e.g. breaks.
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :unimportant, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :unimportant %>
+    </div>
+    <div class="small-8 columns annotation">
+      Not important enough to prevent use for cover - e.g. assemblies.
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-9 small-offset-3 columns">
+      <%= f.submit %>
+    </div>
+  </div>
+<% end %>
