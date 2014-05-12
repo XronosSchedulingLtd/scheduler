@@ -21,7 +21,7 @@ class EventsControllerTest < ActionController::TestCase
       post :create, event: { approximate: @event.approximate, body: @event.body, ends_at: @event.ends_at, eventcategory_id: @event.eventcategory_id, eventsource_id: @event.eventsource_id, non_existent: @event.non_existent, owner_id: @event.owner_id, private: @event.private, reference_id: @event.reference_id, reference_type: @event.reference_type, starts_at: @event.starts_at }
     end
 
-    assert_redirected_to event_path(assigns(:event))
+    assert_redirected_to events_path
   end
 
   test "should show event" do
@@ -36,7 +36,7 @@ class EventsControllerTest < ActionController::TestCase
 
   test "should update event" do
     patch :update, id: @event, event: { approximate: @event.approximate, body: @event.body, ends_at: @event.ends_at, eventcategory_id: @event.eventcategory_id, eventsource_id: @event.eventsource_id, non_existent: @event.non_existent, owner_id: @event.owner_id, private: @event.private, reference_id: @event.reference_id, reference_type: @event.reference_type, starts_at: @event.starts_at }
-    assert_redirected_to event_path(assigns(:event))
+    assert_redirected_to events_path
   end
 
   test "should destroy event" do
