@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   resources :eventcategories
 
   get 'schedule/show'
+  get 'schedule/events'
 
   resources :eras
 

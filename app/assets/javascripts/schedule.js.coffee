@@ -25,7 +25,12 @@ $(document).ready ->
       day: 'dddd Do MMM, YYYY'
     defaultView: "agendaWeek"
     minTime: 6
-    firstHour: 8
+    firstHour: 8,
+    viewDisplay: (view) ->
+      $('#datepicker').datepicker('setDate', view.start)
+    eventSources: [{
+      url: 'schedule/events'
+    }]
   $('#datepicker').datepicker
     showOtherMonths: true
     selectOtherMonths: true
