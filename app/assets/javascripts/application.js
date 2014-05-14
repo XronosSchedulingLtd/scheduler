@@ -13,9 +13,9 @@
 //= require jquery
 //= require jquery_ujs
 //= require foundation
+//= require jquery.ui.all
 //= require moment
 //= require fullcalendar
-//= require jquery.ui.all
 //= require jquery-ui-timepicker-addon
 //= require_tree .
 

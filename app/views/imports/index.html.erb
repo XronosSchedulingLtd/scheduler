@@ -1,0 +1,27 @@
+<h1>Files</h1>
+
+<table>
+  <tbody>
+    <% @files.each do |file| %>
+      <tr>
+        <td>
+          <%= file %>
+        </td>
+        <td>Import</td>
+        <td><%= link_to "Delete",
+                        imports_delete_path(:params => {:name => file }),
+                        :method => :delete,
+                        data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<h2>Upload file</h2>
+
+<%= form_tag({action: :upload}, multipart: true) do %>
+  <%= file_field_tag 'incoming' %>
+  <%= submit_tag 'Upload' %>
+<% end %>
+
+

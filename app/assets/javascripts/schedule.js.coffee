@@ -9,6 +9,12 @@
 #});
 #`
 $(document).ready ->
+  $('#datepicker').datepicker
+    showOtherMonths: true
+    selectOtherMonths: true
+    dateFormat: 'yy-mm-dd',
+    onSelect: (dateText, inst) ->
+      $('#fullcalendar').fullCalendar( 'gotoDate', new Date(dateText))
   $('#fullcalendar').fullCalendar
     currentTimezone: 'Europe/London'
     columnFormat:
@@ -26,12 +32,8 @@ $(document).ready ->
     defaultView: "agendaWeek"
     minTime: 6
     firstHour: 8,
-    viewDisplay: (view) ->
-      $('#datepicker').datepicker('setDate', view.start)
+    viewRender: (view, element) ->
+      $('#datepicker').datepicker('setDate', view.start.toDate())
     eventSources: [{
       url: 'schedule/events'
     }]
-  $('#datepicker').datepicker
-    showOtherMonths: true
-    selectOtherMonths: true
-    dateFormat: 'yy-mm-dd'

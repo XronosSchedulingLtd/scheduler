@@ -8,6 +8,11 @@ Rails.application.routes.draw do
   get 'schedule/show'
   get 'schedule/events'
 
+  resources :imports
+
+  post 'imports/upload'
+  delete 'imports/delete'
+
   resources :eras
 
   root 'schedule#show'

@@ -36,7 +36,12 @@
           </ul>
         </li>
         <li class="divider"></li>
-        <li><%= link_to "Baker" %></li>
+        <li class="has-dropdown">
+          <a href="#" data-dropdown="drop2" data-options="is_hover:true">Import</a>
+          <ul id="drop2" class="f-dropdown" data-dropdown-content>
+            <li><%= link_to "Files", imports_path %></li>
+          </ul>
+        </li>
         <li class="divider"></li>
         <li><%= link_to "Charlie" %></li>
         <li class="divider"></li>

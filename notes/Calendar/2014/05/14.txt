@@ -1,0 +1,25 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-14T14:43:20+01:00
+
+====== Wednesday 14 May 2014 ======
+
+Last night I got my first events to appear.  Next I'm going to try to upload the calendar (exported from http://calendar.abingdon.org.uk) and import it.  Unstructured for now - just the events.
+
+I previously used the ical (.ics) export from the calendar, but there are a couple of problems with this:
+
+* You can only export the lot - not just a selected range
+* The file is now so big that the calendar program keeps needing more time to produce it.
+* The file produced is actually invalid (refers to a time zone without defining it) and so needs tweaking before it can be used.
+
+I am therefore going to try taking a CSV file instead.  It doesn't contain quite as much information (like who owns the event) but I don't currently use that information anyway.
+
+I would however like to make it a purely web interface - you download the file from the calendar, then upload it to my web site.  At a later date, it might even be possible to link the two directly.
+
+First - file uploading.  This seems to be a standard Rails feature.
+
+This is ridiculous - I have somehow made my pull-down menus stop working, and yet I don't seem to have changed anything relevant.  My few events have also stopped appearing, which suggests a failure in the initialisation somewhere.  My calendar and datepicker still appear though.  Could this be because of my attempts this morning to make the date function navigate for me?  Clicking on my datepicker moves me through the calendar, but not vice versa.  Yes - that is the problem.  Shall I fix that bit whilst I'm here - I seem to have found a meaningful error message in the Chrome console.
+
+Yes - Fullcalendar now returns its start as a Moment object instead of a Date object, so you need to pass it to Datepicker with ''view.start.toDate()''
+
+At least that's sorted - back to trying to upload a file.
