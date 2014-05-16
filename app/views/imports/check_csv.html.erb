@@ -1,0 +1,71 @@
+<h1>Parsed input file</h1>
+
+<table>
+  <tbody>
+    <tr>
+      <td>File name:</td>
+      <td><%= @name %></td>
+    </tr>
+    <tr>
+      <td>Entries:</td>
+      <td><%= @entries %></td>
+    </tr>
+    <tr>
+      <td>Earliest entry:</td>
+      <td><%= @earliest_date ? @earliest_date.strftime("%d/%m/%Y") : "None" %></td>
+    </tr>
+    <tr>
+      <td>Latest entry:</td>
+      <td><%= @latest_date ? @latest_date.strftime("%d/%m/%Y") : "None" %></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Confirm data import</h2>
+<%= form_tag({action: :commit_csv}) do %>
+<%= hidden_field_tag(:name, @name, :readonly => true) %>
+<table>
+  <tbody>
+    <tr>
+      <td>Data source:</td>
+      <td>
+        <%= select_tag(:eventsource,
+                       options_from_collection_for_select(Eventsource.all.sort,
+                                                          :id,
+                                                          :name)) %>
+      </td>
+    </tr>
+    <tr>
+      <td>Start date:</td>
+      <td>
+        <%= text_field_tag(:first_date,
+                           @earliest_date ?
+                           @earliest_date.strftime("%d/%m/%Y") :
+                           "",
+                           :class => :datepicker) %>
+      </td>
+    </tr>
+    <tr>
+      <td>End date:</td>
+      <td>
+        <%= text_field_tag(:last_date,
+                           @latest_date ?
+                           @latest_date.strftime("%d/%m/%Y") :
+                           "",
+                           :class => :datepicker) %>
+      </td>
+    </tr>
+    <tr>
+      <td>Purge previous:</td>
+      <td>
+        <%= check_box_tag(:do_purge, 'yes', true) %>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td><%= submit_tag 'Start' %></td>
+    </tr>
+  </tbody>
+</table>
+<% end %>
+

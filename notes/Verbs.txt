@@ -1,0 +1,11 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-16T10:45:51+01:00
+
+====== Verbs ======
+Created Friday 16 May 2014
+
+Get		Retrieve something
+Put		Update something
+Post	Create something
+Delete	Delete something

@@ -7,6 +7,15 @@ class Event < ActiveRecord::Base
   validates :eventcategory_id, presence: true
   validates :eventsource_id, presence: true
 
+  #
+  #  These may look slightly surprising.  We use them to specify
+  #  events FROM date UNTIL date, and it seems at first sight that
+  #  we're using the wrong date fields.  Think about it the other
+  #  way around though - we *don't* want events that end before our
+  #  start date, or start after our end date.  All others we want.
+  #
+  scope :beginning, lambda {|date| where("ends_at >= ?", date) }
+  scope :until, lambda {|date| where("starts_at < ?", date) }
   def starts_at_text
     starts_at ? starts_at.strftime("%d/%m/%Y %H:%M") : ""
   end

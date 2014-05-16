@@ -5,7 +5,10 @@ class ScheduleController < ApplicationController
   end
 
   def events
-    @events = Event.all
+#    raise params.inspect
+    start_date = params[:start]
+    end_date   = params[:end]
+    @events = Event.beginning(Date.parse(start_date)).until(Date.parse(end_date))
     respond_to do |format|
       format.json { render json: @events }
     end

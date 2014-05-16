@@ -1,4 +1,5 @@
 <h1>Files</h1>
+<p id="notice"><%= notice %></p>
 
 <table>
   <tbody>
@@ -7,7 +8,8 @@
         <td>
           <%= file %>
         </td>
-        <td>Import</td>
+        <td><%= link_to "Import",
+                        imports_check_csv_path(:params => {:name => file }) %></td>
         <td><%= link_to "Delete",
                         imports_delete_path(:params => {:name => file }),
                         :method => :delete,

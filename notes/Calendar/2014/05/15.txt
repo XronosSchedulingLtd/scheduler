@@ -1,0 +1,13 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-15T17:03:12+01:00
+
+====== Thursday 15 May 2014 ======
+
+Just fiddling with why FullCalendar doesn't quite display correctly.  In the week view, the divisions between days don't appear except in the all-day section, and the day highlight behaves likewise - only there in the top part of the display.
+
+The crucial point seems to be whether or not foundation-and-overrides gets included.  If it's not there then all is well, but if it is then things go wrong.  Going further, if you remove the "import foundation" call from the end of foundation-and-overrides then you can also cure the problem.
+
+Could try importing foundation bit by bit.  ISTR this can be done.
+
+foundation/components/tables is enough to do the damage.  Can everything else be included?  Yes, it's just foundation/component/tables which does it.  Why?

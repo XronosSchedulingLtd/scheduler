@@ -22,4 +22,6 @@ This is ridiculous - I have somehow made my pull-down menus stop working, and ye
 
 Yes - Fullcalendar now returns its start as a Moment object instead of a Date object, so you need to pass it to Datepicker with ''view.start.toDate()''
 
-At least that's sorted - back to trying to upload a file.
+At least that's sorted - back to trying to upload a file.  Done.
+
+My next thought is that you pick an uploaded file and choose import.  We do some initial parsing to check the start and end dates of the file, and to count the records (and to check it has all the fields we need).  We then display a form showing the number of records, prompting for dates to use (defaulting to the dates in the file) and ask for confirmation to process.  There will be a tick box (defaulting to ticked) to indicate whether existing events are to be purged, and a selection box to choose the EventSource to use.

@@ -1,0 +1,17 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-16T10:35:50+01:00
+
+====== Friday 16 May 2014 ======
+
+I have created a small demonstration of the FullCalendar rendering issue and raised a ticket on it.  We'll see whether it leads anywhere.
+
+Back to trying to import the calendar.  First I need to do an initial parsing of the CSV file.  Let's try using FasterCSV which seemed to get a lot of recommendations on a comparison site.  Add that to my gemfile.
+
+Hah!  I promptly get an error message telling me to go back to using the standard CSV library.  FasterCSV has apparently been ported back in for later versions of Ruby, then enhanced for multi-lingualisation. (m17n).
+
+Fine up until I try to read the file, when I get an error "invalid byte sequence in UTF-8", only it doesn't say what the invalid sequence is.  Try a smaller version of the file.  The error is at line 168, where there are some of Microsoft's horrible fake quote characters on an entry for "A Midsummer Night's Dream".  I need to make my code resilient against this.  How?
+
+Found something called charlock_holmes, which claims to be able to detect encodings and write stuff out potentially with another encoding.  Let's see what that does to my file.  Ah - problem installing it.  Why?  It wants libicu-dev.  Now it seems to install.
+
+That thinks the encoding is ISO-8859-1, but with a confidence of only 44%.:q
