@@ -15,6 +15,11 @@ class CalendarEntry
   #    Description - generally empty, but sometimes used for ancillary
   #                  information.
   #
+  #
+  #  Note that the import file claims to contain zone information, but it's
+  #  lying.  We need to assume all text will be for what we think the
+  #  zone is.
+  #
   REQUIRED_COLUMNS = [["Subject",       :subject],
                       ["Start Date",    :start_date],
                       ["Start Time",    :start_time],
@@ -26,13 +31,13 @@ class CalendarEntry
     @description = description
     @all_day = (all_day == "True")
     if @all_day
-      @starts_at = DateTime.parse("#{start_date}")
-      @ends_at   = DateTime.parse("#{end_date.empty? ?
+      @starts_at = Time.zone.parse("#{start_date}")
+      @ends_at   = Time.zone.parse("#{end_date.empty? ?
                                      start_date :
                                      end_date}")
     else
-      @starts_at = DateTime.parse("#{start_date} #{start_time}")
-      @ends_at   = DateTime.parse("#{end_date.empty? ?
+      @starts_at = Time.zone.parse("#{start_date} #{start_time}")
+      @ends_at   = Time.zone.parse("#{end_date.empty? ?
                                      start_date :
                                      end_date} #{end_time}")
     end
@@ -165,45 +170,65 @@ class ImportsController < ApplicationController
 #    raise params.inspect
     eventsource = Eventsource.find(params[:eventsource])
     eventcategory = Eventcategory.find_by_name("Calendar")
-    name = params[:name]
-    if name
-      @name = File.basename(name)
+    start_date = Date.parse(params[:first_date])
+    end_date   = Date.parse(params[:last_date]) + 1.day
+    do_purge   = (params[:do_purge] == 'yes')
+    do_load    = (params[:do_load] == 'yes')
+    #
+    #  Should do some validation of the input parameters here.
+    #
+#    raise do_purge.inspect
+    if do_purge
       #
-      #  For now we can process only CSV files.
-      #  The CSV library is strangely fragile, in that it will simply
-      #  error out if it encounters a character which it doesn't think
-      #  should be there, even though it doesn't affect the structure
-      #  of the file.  I therefore need to pre-process to avoid run-time
-      #  errors.
+      #  Need to purge all events for the indicated interval from this
+      #  event source.  Want to purge anything with a presence within this
+      #  period.  This is the same philosophy as we use when loading - anything
+      #  which has any part of its duration within the indicated period
+      #  gets loaded.
       #
-      if File.extname(@name).downcase == '.csv'
-        contents = File.read(Rails.root.join(IMPORT_DIR, @name))
-        detection = CharlockHolmes::EncodingDetector.detect(contents)
-        utf8_encoded_contents =
-          CharlockHolmes::Converter.convert(contents,
-                                            detection[:encoding],
-                                            'UTF-8')
-        parsed = CSV.parse(utf8_encoded_contents)
-        entries, message = CalendarEntry.array_from_csv_data(parsed)
-        if entries
-          entries.each do |entry|
-            event = Event.new
-            event.starts_at = entry.starts_at
-            event.ends_at   = entry.ends_at
-            event.body      = entry.description
-            event.eventcategory = eventcategory
-            event.eventsource   = eventsource
-            event.save!
+      Event.beginning(start_date).until(end_date).source_id(eventsource.id).destroy_all
+    end
+    if do_load
+      name = params[:name]
+      if name
+        @name = File.basename(name)
+        #
+        #  For now we can process only CSV files.
+        #  The CSV library is strangely fragile, in that it will simply
+        #  error out if it encounters a character which it doesn't think
+        #  should be there, even though it doesn't affect the structure
+        #  of the file.  I therefore need to pre-process to avoid run-time
+        #  errors.
+        #
+        if File.extname(@name).downcase == '.csv'
+          contents = File.read(Rails.root.join(IMPORT_DIR, @name))
+          detection = CharlockHolmes::EncodingDetector.detect(contents)
+          utf8_encoded_contents =
+            CharlockHolmes::Converter.convert(contents,
+                                              detection[:encoding],
+                                              'UTF-8')
+          parsed = CSV.parse(utf8_encoded_contents)
+          entries, message = CalendarEntry.array_from_csv_data(parsed)
+          if entries
+            entries.each do |entry|
+              event = Event.new
+              event.starts_at = entry.starts_at
+              event.ends_at   = entry.ends_at
+              event.body      = entry.description
+              event.eventcategory = eventcategory
+              event.eventsource   = eventsource
+              event.save!
+            end
+          else
+            redirect_to import_index_path, message
           end
         else
-          redirect_to import_index_path, message
+          redirect_to imports_index_path,
+                      notice: 'Currently we can process only CSV files.'
         end
       else
-        redirect_to imports_index_path,
-                    notice: 'Currently we can process only CSV files.'
+        redirect_to imports_index_path
       end
-    else
-      redirect_to imports_index_path
     end
   end
 end

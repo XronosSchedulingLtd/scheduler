@@ -16,6 +16,7 @@ class Event < ActiveRecord::Base
   #
   scope :beginning, lambda {|date| where("ends_at >= ?", date) }
   scope :until, lambda {|date| where("starts_at < ?", date) }
+  scope :source_id, lambda {|id| where("eventsource_id == ?", id) }
   def starts_at_text
     starts_at ? starts_at.strftime("%d/%m/%Y %H:%M") : ""
   end
@@ -29,7 +30,7 @@ class Event < ActiveRecord::Base
       :id        => "Event #{id}",
       :title     => body,
       :start     => starts_at.rfc822,
-      :end       => ends_at.rfc822,
+      :end       => starts_at == ends_at ? nil : ends_at.rfc822,
       :allDay    => all_day,
       :recurring => false,
       :editable  => false
