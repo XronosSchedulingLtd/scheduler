@@ -57,7 +57,7 @@ class Event < ActiveRecord::Base
   #
   scope :beginning, lambda {|date| where("ends_at >= ?", date) }
   scope :until, lambda {|date| where("starts_at < ?", date) }
-  scope :source_id, lambda {|id| where("eventsource_id == ?", id) }
+  scope :source_id, lambda {|id| where("eventsource_id = ?", id) }
 
   def starts_at_text
     if all_day

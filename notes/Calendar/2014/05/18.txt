@@ -17,4 +17,8 @@ Since the end date is empty, I am executing:
 
 Time.zone.parse("2014-3-22 12:00:00 AM")
 
-Ah - it's interpreting it as midnight, but midnight at the start of the 22nd.  Hence the problem.  The supplying program is being inconsistent - if it's 12 AM, then the date is different too.  I will need some special case code to handle this.
+Ah - it's interpreting it as midnight, but midnight at the start of the 22nd.  Hence the problem.  The supplying program is being inconsistent - if it's 12 AM, then the date is different too.  I will need some special case code to handle this.  Done.
+
+I think it's probably time I moved my d/b to MySql - I suspect it would be faster for the kind of mass data loading which I'm doing.  I could perhaps test it on this computer.  Mach2 is comparatively very slow.
+
+How long does a complete purge and re-load currently take on Midnight, using Sqlite3?  About 14 seconds.  That's running on an SSD.  And if I switch to MySql?  5 seconds.  Sounds worthwhile to me.
