@@ -13,6 +13,7 @@ eventsource_id	integer	Id of the event's event source.
 owner_id		integer	Id of the event's owner.
 starts_at			datetime	Start
 ends_at			datetime	End
+all_day			boolean	All day event
 approximate		boolean	Flag indicating that the event's datetime is not precise.
 non_existent		boolean	Flag indicating that the event does not exist (e.g. a lesson not happening due to
 						  study leave).  These are useful for arranging invigilation.
@@ -23,4 +24,24 @@ reference_type	string	an exam module.  Usually they are not used.
 
 I have removed the "tentative" flag for now.  I believe the tentative quality which we need to apply is expressed more by whether all the commitments to the event have been approved.
 
-Let's go with it like that.
+A note on what combinations of starts_at, ends_at and all_day are acceptable, and what they mean.
+
+All events must have a starts_at.  Since I use a single datetime field (to make selecting ranges of events from the database feasible) we inevitably have both a date and a time in this field.  If no time is provided by the input source - just a date - then we set it to midnight.
+
+The ends_at field is optional.  If it doesn't exist then all_day events by implication last one day, and non-all_day events have no particular duration.
+
+FullCalendar/Moment share a convention of using exclusive end dates.  This only makes a difference for all-day events.  An one day all-day event has a start date of, say, 12th Jun 00:00, and an end date of 13th Jun 00:00.  Unfortunately, this isn't how a user would expect to enter it - they would expect to enter just 12th Jun.  Likewise for a multi-day event, they would expect to enter the dates as inclusive.  A 3 day event would have a start date of 12th Jun and an end date of 14th Jun.
+
+I initially tried to store the information in my model in the FullCalendar/Moment style, but found it too complicated to process.  You need to change it each time the record is displayed for editing, then convert it back in a versatile way each time the editing is completed.  There doesn't seem to be a good place to hook that in so I'm adopting the convention of storing the dates internally in the way the user would expect, then modifying them when passing them to FullCalendar.  Note that FullCalendar expects momentary events (e.g. 9 a.m. on Friday) to be passed without an end date at all, but it expects single day all-day events to have an end date of the following day.
+
+Valid combinations stored in my d/b:
+
+* All_day true.  Has both starts_at and ends_at, with  ends_at >= starts_at. Event starts on the starts_at date, and ends on the end date.  Some jiggery-pokery needed as we pass the event to FullCalendar.
+* All_day false.  ends_at == starts_at.  Happens on the indicated day at the indicated time.  Has no particular duration.  It is important to pass only one date and time to FullCalendar, because given two the same it will display a thin line for the event.
+* All_day false.  A starts_at and an ends_at.  ends_at > starts_at.  An event lasting the indicated time.  If it goes over more than two days, we need to be slightly clever in how we pass it to FullCalendar.
+
+Note that every event record *must* have both a starts_at and an ends_at field, because otherwise they will fail to be detected when doing a d/b select for a range of dates.
+
+I can do a small amount of correction work in my validation code, provided it is not something which will hurt if done twice.  Thus I can add an end_date as appropriate, but I can't modify a date.
+
+The input file from the existing school calendar may pass a starting date and time, but only an ending time, in which case we use the same starting date.

@@ -14,4 +14,8 @@ Fine up until I try to read the file, when I get an error "invalid byte sequence
 
 Found something called charlock_holmes, which claims to be able to detect encodings and write stuff out potentially with another encoding.  Let's see what that does to my file.  Ah - problem installing it.  Why?  It wants libicu-dev.  Now it seems to install.
 
-That thinks the encoding is ISO-8859-1, but with a confidence of only 44%.:q
+That thinks the encoding is ISO-8859-1, but with a confidence of only 44%.
+
+Charlock_holmes did the trick.  Excellent.  Doing the import on the live system takes a long time - there is a danger the browser will time out.  Would it be faster to use MySql?  Probably.  My Ruby task is spending a very long time in a wait state.  It did finish in the end though.
+
+All seems OK-ish, but there is a certain amount of tweaking to do.

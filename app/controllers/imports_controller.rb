@@ -40,7 +40,89 @@ class CalendarEntry
       @ends_at   = Time.zone.parse("#{end_date.empty? ?
                                      start_date :
                                      end_date} #{end_time}")
+      #
+      #  A little frig is needed to cope with an error in the program
+      #  generating our input file.  Where an event finishes on the same
+      #  day as it starts, the generator leaves the end_date field empty
+      #  and simply provides an end time.  *But*, if the event finishes
+      #  at midnight it provides a time field of "12:00:00 AM", which
+      #  of course parses as being midnight at the *start* of the same day
+      #  It should provide a date in this particular circumstance.
+      #
+      if end_date.empty? && end_time == "12:00:00 AM"
+        @ends_at += 1.day
+      end
     end
+    #
+    #  Now - do we need to adjust the end date and description?
+    #
+    Rails.logger.info "Checking \"#{@description}\""
+    newdescription, inner = check_end_date(@description)
+    if inner
+      Rails.logger.info "Adjusting \"#{@description}\""
+      orgdate = @ends_at ? @ends_at : @starts_at
+      Rails.logger.info "orgdate = #{orgdate}"
+
+      begin
+        parseddate = Date.parse(inner)
+        if parseddate
+          
+          newdate = Time.zone.parse("#{orgdate.year}-#{parseddate.month}-#{parseddate.day} #{orgdate.hour}:#{orgdate.min}:#{orgdate.sec}")
+#          newdate = DateTime.new(orgdate.year,
+#                                 parseddate.month,
+#                                 parseddate.day,
+#                                 orgdate.hour,
+#                                 orgdate.min,
+#                                 orgdate.sec)
+        end
+        Rails.logger.info "New date is #{newdate} (#{newdate.class})"
+        if newdate < @starts_at
+#          puts "Negative duration detected for #{eventoccurence.summary}."
+          #
+          #  Need to advance by a year.
+          #
+#          puts "Newdate starts as #{newdate.to_s}"
+          newdate = newdate + 1.year
+#          puts "Newdate finishes as #{newdate.to_s}"
+        end
+        #
+        #  Let's keep this sane.  We may have got it hopelessly wrong.
+        #
+        if newdate - @starts_at < 2.months
+          @ends_at     = newdate
+          @description = newdescription
+          #
+          #  I used to preserve the provided times, but for a multi-day
+          #  event they were almost always wrong.  Force any such
+          #  multi-day event to be also an all-day event.
+          #
+          @all_day     = true
+        end
+
+      rescue Exception
+        Rails.logger.info "\"#{inner}\" can't be understood as a date - #{$!}"
+      end
+    end
+  end
+
+  #
+  #  If this entry describes a week then return A or B.  If not, return nil.
+  #
+  def week_letter
+    if self.description =~ /^WEEK\b/
+      weekletter = self.description.split(" ")[1]
+      if weekletter && (weekletter == "A" || weekletter == "B")
+        weekletter
+      else
+        nil
+      end
+    else
+      nil
+    end
+  end
+
+  def <=>(other)
+    self.starts_at <=> other.starts_at
   end
 
   def self.array_from_csv_data(csv_data)
@@ -74,6 +156,31 @@ class CalendarEntry
       return entries, ""
     end
   end
+
+  private
+
+  #
+  #  Check an event summary to see whether it contains an embedded end
+  #  date.
+  #
+  def check_end_date(description)
+    #
+    #  Regexes are powerful, but it's very hard to see what the code
+    #  is doing.  Here we are checking for an embedded occurence of
+    #  "(until <date>)".  If found, we strip it out of the summary string
+    #  and return both the modified summary and the "<date>" bit.
+    #
+    if description =~ /\(until.*?\)/
+#      puts "Found #{$&}"
+      newdescription = "#{$`}#{$'}"
+      inner = $&.sub(/^\(until\s*/, '').sub(/\)$/, '')
+#      puts "inner = \"#{inner}\""
+      [newdescription, inner]
+    else
+      [description, nil]
+    end
+  end
+
 
 end
 
@@ -170,10 +277,15 @@ class ImportsController < ApplicationController
 #    raise params.inspect
     eventsource = Eventsource.find(params[:eventsource])
     eventcategory = Eventcategory.find_by_name("Calendar")
-    start_date = Date.parse(params[:first_date])
-    end_date   = Date.parse(params[:last_date]) + 1.day
+    start_date = Time.zone.parse(params[:first_date])
+    #
+    #  Since we are purging events, we want all events up to midnight at
+    #  the start of the day *after* the indicated day.
+    #
+    end_date   = Time.zone.parse(params[:last_date]) + 1.day
     do_purge   = (params[:do_purge] == 'yes')
     do_load    = (params[:do_load] == 'yes')
+    @failures  = []
     #
     #  Should do some validation of the input parameters here.
     #
@@ -210,14 +322,82 @@ class ImportsController < ApplicationController
           parsed = CSV.parse(utf8_encoded_contents)
           entries, message = CalendarEntry.array_from_csv_data(parsed)
           if entries
+            weekletterentries = []
             entries.each do |entry|
-              event = Event.new
-              event.starts_at = entry.starts_at
-              event.ends_at   = entry.ends_at
-              event.body      = entry.description
-              event.eventcategory = eventcategory
-              event.eventsource   = eventsource
-              event.save!
+              if entry.week_letter
+                #
+                #  We save these up and process them at the end.
+                #
+                weekletterentries << entry
+              else
+                event = Event.new
+                event.starts_at = entry.starts_at
+                event.ends_at   = entry.ends_at
+                event.all_day   = entry.all_day
+                event.body      = entry.description
+                event.eventcategory = eventcategory
+                event.eventsource   = eventsource
+                unless event.save
+                  @failures << "Event #{entry.description} was invalid."
+                end
+              end
+            end
+            if weekletterentries.size > 0
+              currentweekletter = nil
+              currentweekstart  = nil
+              currentweekend    = nil
+              weekletterentries.sort.each do |wle|
+    #            puts "Processing WEEK #{
+    #                                wle.weekletter
+    #                              } on #{
+    #                                wle.dtstart.to_formatted_s(:dmy)}"
+                if wle.week_letter == currentweekletter
+                  #
+                  #  The week continues
+                  #
+                  currentweekend = wle.ends_at
+                else
+                  if currentweekletter
+                    #
+                    #  Need to flush this one to the d/b.
+                    #
+    #                puts "Trying to save #{
+    #                        currentweekstart.to_formatted_s(:dmy)
+    #                      } to #{
+    #                        currentweekend.to_formatted_s(:dmy)
+    #                      }"
+                    event = Event.new
+                    event.starts_at = currentweekstart
+                    event.ends_at   = currentweekend
+                    event.all_day   = true
+                    event.body      = "WEEK #{currentweekletter}"
+                    event.eventcategory = eventcategory
+                    event.eventsource   = eventsource
+                    unless event.save
+                      @failures << "Event #{entry.description} was invalid."
+                    end
+                  end
+                  currentweekletter = wle.week_letter
+                  currentweekstart  = wle.starts_at
+                  currentweekend    = wle.ends_at
+                end
+              end # Looping through week letters.
+              if currentweekletter
+                #
+                #  Need to flush this final one to the d/b.
+                #
+                event = Event.new
+                event.starts_at = currentweekstart
+                event.ends_at   = currentweekend
+                event.all_day   = true
+                event.body      = "WEEK #{currentweekletter}"
+                event.eventcategory = eventcategory
+                event.eventsource   = eventsource
+                unless event.save
+                  @failures << "Event #{entry.description} was invalid."
+                end
+              end
+            
             end
           else
             redirect_to import_index_path, message

@@ -1,0 +1,20 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-18T12:08:18+01:00
+
+====== Sunday 18 May 2014 ======
+
+Been tidying up my date processing and adding some validation.  A couple of small wrinkles in the input file have come to light.
+
+'''
+"Rugby: Touchliners Leaving Dinner, CMR/Dining Hall","2013-12-7","7:00:00 PM","","12:00:00 AM","False","",""
+"Hockey Club Dinner and Awards Evening","2014-3-22","7:00:00 PM","","12:00:00 AM","False","",""
+'''
+
+The issue would seem to be in the interpretation of "12:00:00 AM".  Historically that would have meant noon, but more recently it has come to mean midnight.  Clearly the generating program takes it to mean midnight, but how is the Rails/Ruby code interpreting it?
+
+Since the end date is empty, I am executing:
+
+Time.zone.parse("2014-3-22 12:00:00 AM")
+
+Ah - it's interpreting it as midnight, but midnight at the start of the 22nd.  Hence the problem.  The supplying program is being inconsistent - if it's 12 AM, then the date is different too.  I will need some special case code to handle this.

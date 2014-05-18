@@ -21,6 +21,7 @@ $(document).ready ->
       month: 'ddd'
       week: 'ddd D/M'
       day: 'dddd D/M'
+    timeFormat: 'H:mm',
     header:
       left: 'prev,next today'
       center: 'title'
