@@ -28,7 +28,11 @@ class CalendarEntry
                       ["All day event", :all_day]]
 
   def initialize(description, start_date, start_time, end_date, end_time, all_day)
-    @description = description
+    @description = description.encode("utf-8",
+                                      "binary",
+                                      :invalid => :replace,
+                                      :undef => :replace,
+                                      :replace => "")
     @all_day = (all_day == "True")
     if @all_day
       @starts_at = Time.zone.parse("#{start_date}")
