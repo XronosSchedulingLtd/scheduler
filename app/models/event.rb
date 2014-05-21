@@ -99,15 +99,50 @@ class Event < ActiveRecord::Base
     end
   end
 
+  def new_start=(new_value)
+    new_starts_at = Time.zone.parse(new_value)
+    duration = ends_at - starts_at
+    if all_day
+      self.starts_at = new_starts_at.to_date
+    else
+      self.starts_at = new_starts_at
+    end
+    self.ends_at   = starts_at + duration
+  end
+
+  #
+  #  Only a tiny bit different from writing directly to ends_at, but
+  #  as the data are coming from FC, we need to take account of all day
+  #  events.
+  #
+  def new_end=(new_value)
+    new_ends_at = Time.zone.parse(new_value)
+    if all_day
+      self.ends_at = new_ends_at - 1.day
+    else
+      self.ends_at = new_ends_at
+    end
+  end
+
+  #
+  #  Can the current user edit this event?
+  #
+  def can_edit?
+    #
+    #  This algorithm needs to be made slightly more sophisticated.
+    #
+    true
+  end
+
   def as_json(options = {})
     {
-      :id        => "Event #{id}",
+      :id        => "#{id}",
       :title     => body,
       :start     => starts_at_for_fc,
       :end       => ends_at_for_fc,
       :allDay    => all_day,
       :recurring => false,
-      :editable  => false
+      :editable  => can_edit?
     }
   end
 

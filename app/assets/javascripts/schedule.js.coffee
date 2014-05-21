@@ -38,3 +38,29 @@ $(document).ready ->
     eventSources: [{
       url: 'schedule/events'
     }]
+    eventDrop: (event, revertFunc) ->
+      jQuery.ajax
+        url:  "events/" + event.id
+        type: "PUT"
+        dataType: "json"
+        error: (jqXHR, textStatus, errorThrown) ->
+          alert("Failed: " + textStatus)
+          revertFunc()
+        success: (data, textStatus, jqXHR) ->
+          alert("Succeeded: " + textStatus)
+        data:
+          event:
+            new_start: event.start.format()
+    eventResize: (event, revertFunc) ->
+      jQuery.ajax
+        url:  "events/" + event.id
+        type: "PUT"
+        dataType: "json"
+        error: (jqXHR, textStatus, errorThrown) ->
+          alert("Failed: " + textStatus)
+          revertFunc()
+        success: (data, textStatus, jqXHR) ->
+          alert("Succeeded: " + textStatus)
+        data:
+          event:
+            new_end: event.end.format()

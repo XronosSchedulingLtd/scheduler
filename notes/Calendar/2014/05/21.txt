@@ -1,0 +1,17 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-21T14:42:22+01:00
+
+====== Wednesday 21 May 2014 ======
+
+A few tidying up activities first today.
+
+Added a can_edit? method to the event model, so that we can decide on the fly whether the current user has permissions to edit any particular event.  For now it just returns true.
+
+Then I found a fix to stop events being too small to read - you can apparently set a minimum height for an event using a style sheet.  Let's try that too.  If it works, I would like to set a minimum height such at least the time and first bit of text are always visible.  It might be possible to reduce text size and/or the top gap to keep this as small as possible.  Yes, it definitely works, but it also makes everything that height, which I may not want.  18px seems to be just enough.  20px is OK too, but I'll keep it as small as possible for now.  At least FC has the intelligence to realise that space is type.  Given an event timed as 08:45 - 09:00 with description text, it puts "08:45 - Text..." on the first row.  Only when it judges the event long enough does it move the descriptive text to a second row and put 08:45 - 10:00 at the top.
+
+Got some HTML code from a fullcalendar page neatly formatted so I can look and see how it works.
+
+Can I put a hover box (tool tip?) on each event to show fuller details?  Clicking on an event should let me edit it.
+
+Let's see whether we can make graphical editing work first.  Dragging an event on the calendar should send an update back to the server.  The server should check edit permissions and update the event if permitted.

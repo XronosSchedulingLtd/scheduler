@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
   get 'schedule/show'
   get 'schedule/events'
+  put 'schedule/change_time'
 
 #  resources :imports
 
