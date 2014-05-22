@@ -128,7 +128,7 @@ class Event < ActiveRecord::Base
         #  Assume a duration of 1 day for now.
         #
         self.starts_at = new_starts_at.to_date
-        self.ends_at   = self.starts_at + 1.day
+        self.ends_at   = self.starts_at
         self.all_day   = true
       else
         #

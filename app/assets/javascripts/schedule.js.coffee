@@ -38,6 +38,8 @@ $(document).ready ->
     eventSources: [{
       url: 'schedule/events'
     }]
+    eventClick: (event, jsEvent, view) ->
+      $('#eventModal').foundation('reveal', 'open')
     eventDrop: (event, revertFunc) ->
       jQuery.ajax
         url:  "events/" + event.id + "/moved"
