@@ -15,3 +15,5 @@ Got some HTML code from a fullcalendar page neatly formatted so I can look and s
 Can I put a hover box (tool tip?) on each event to show fuller details?  Clicking on an event should let me edit it.
 
 Let's see whether we can make graphical editing work first.  Dragging an event on the calendar should send an update back to the server.  The server should check edit permissions and update the event if permitted.
+
+Dragging and dropping seems to work.  Slight problem if I drag an event from the all day slot to a timed slot though.  Clearly, more processing is needed.

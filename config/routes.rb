@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
-  resources :events
+  resources :events do
+    member do
+      put 'moved'
+    end
+  end
 
   resources :eventsources
 

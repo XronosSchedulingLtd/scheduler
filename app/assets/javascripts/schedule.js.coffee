@@ -40,17 +40,16 @@ $(document).ready ->
     }]
     eventDrop: (event, revertFunc) ->
       jQuery.ajax
-        url:  "events/" + event.id
+        url:  "events/" + event.id + "/moved"
         type: "PUT"
         dataType: "json"
         error: (jqXHR, textStatus, errorThrown) ->
           alert("Failed: " + textStatus)
           revertFunc()
-        success: (data, textStatus, jqXHR) ->
-          alert("Succeeded: " + textStatus)
         data:
           event:
             new_start: event.start.format()
+            all_day: !event.start.hasTime()
     eventResize: (event, revertFunc) ->
       jQuery.ajax
         url:  "events/" + event.id
@@ -59,8 +58,6 @@ $(document).ready ->
         error: (jqXHR, textStatus, errorThrown) ->
           alert("Failed: " + textStatus)
           revertFunc()
-        success: (data, textStatus, jqXHR) ->
-          alert("Succeeded: " + textStatus)
         data:
           event:
             new_end: event.end.format()

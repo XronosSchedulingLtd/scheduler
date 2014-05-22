@@ -99,15 +99,45 @@ class Event < ActiveRecord::Base
     end
   end
 
-  def new_start=(new_value)
-    new_starts_at = Time.zone.parse(new_value)
-    duration = ends_at - starts_at
+  def set_timing(new_start, new_all_day)
+    current_duration = ends_at - starts_at
+    new_starts_at = Time.zone.parse(new_start)
     if all_day
-      self.starts_at = new_starts_at.to_date
+      if new_all_day
+        #
+        #  Remaining an all_day event.  Just change the start time and
+        #  leave the duration alone.
+        #
+        self.starts_at = new_starts_at.to_date
+        self.ends_at   = starts_at + current_duration
+      else
+        #
+        #  Was an all_day event, but becoming a timed event.  Since there
+        #  is no way of indicating the required duration with a single
+        #  drag, we start with a nil duration.  The user can change this
+        #  with another drag if required.
+        #
+        self.starts_at = new_starts_at
+        self.ends_at   = new_starts_at
+        self.all_day   = false
+      end
     else
-      self.starts_at = new_starts_at
+      if new_all_day
+        #
+        #  Moving from being a timed event to being an all_day event.
+        #  Assume a duration of 1 day for now.
+        #
+        self.starts_at = new_starts_at.to_date
+        self.ends_at   = self.starts_at + 1.day
+        self.all_day   = true
+      else
+        #
+        #  Remaining a timed event.
+        #
+        self.starts_at = new_starts_at
+        self.ends_at   = starts_at + current_duration
+      end
     end
-    self.ends_at   = starts_at + duration
   end
 
   #
