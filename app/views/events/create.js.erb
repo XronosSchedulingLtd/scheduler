@@ -1,0 +1,6 @@
+<% if @success %>
+$('#eventModal').foundation('reveal', 'close')
+$('#fullcalendar').fullCalendar('refetchEvents')
+<% else %>
+$('#for_errors').html("<%=j render "error_msgs" %>")
+<% end %>

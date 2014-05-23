@@ -43,6 +43,10 @@ $(document).ready ->
     eventSources: [{
       url: 'schedule/events'
     }]
+    dayClick: (date, jsEvent, view) ->
+      $('#eventModal').foundation('reveal', 'open', {
+        url: '/events/new?date=' + date.format("YYYY-MM-DD HH:mm")
+      })
     eventClick: (event, jsEvent, view) ->
       if event.editable
         $('#eventModal').foundation('reveal', 'open', {
