@@ -31,8 +31,9 @@ $(document).ready ->
       week: 'Do MMM, YYYY'
       day: 'dddd Do MMM, YYYY'
     defaultView: "agendaWeek"
-    minTime: 6
-    firstHour: 8,
+    snapDuration: "00:05"
+    minTime: "06:00"
+    scrollTime: "08:00"
     viewRender: (view, element) ->
       $('#datepicker').datepicker('setDate', view.start.toDate())
     eventSources: [{
