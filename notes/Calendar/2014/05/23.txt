@@ -24,7 +24,7 @@ Done pagination, but just spotted another problem.  My form doesn't have any dat
 
 Three things to do:
 
-[ ] Explicit initialisation of date fields.
+[*] Explicit initialisation of date fields.
 [*] Get the host end to return success/failure for the Ajax request, and not redirect to the events index.
 [*] Have the event update in FullCalendar after a successful edit.
 
