@@ -1,0 +1,35 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-23T06:38:23+01:00
+
+====== Friday 23 May 2014 ======
+
+Today I would like to add the means to show, edit and delete events (permissions permitting) in a pop-up window.  Then the next task will be to suck data out of SchoolBase.
+
+I think I'll start by adding a skeletal form to the schedule pop-up, and a second pop-up to see whether I'm allowed two.  Yes, I seem to be.
+
+Got a fair way with my interactive editing form, but I'm wondering whether this is the best way to do it.
+
+Currently I'm creating a skeletal form (which Rails thinks is for creating a new event) when the page is initially sent out to the browser, by including it in the main view.  Then when the user wants to edit the event I'm patching a whole lot of variables in the form using JavaScript.  I'm sure it could be done that way, but perhaps it's too fiddly.
+
+The alternative would be to have an empty div, as I did in my earlier experiments, and then populate it using an Ajax call.  That has the advantage that I can then set up everything correctly on the host, *and* I should be able to ensure the submit request also comes back using Ajax.  That then makes it easier to cope with success/failure statuses.  A failure to save should result in the form being re-displayed, whilst a success should cause the single event on the calendar view to be adjusted.
+
+Does Rails still offer a form type for Ajax submission?  ISTR something like that in the past.  It's something like '':remote => true'' somewhere in the form.  I'm going to stash my current work as a branch (jsdialogue) and try again with an Ajax request and submission.
+
+Seems to be coming together quite well.  It was a lot less work, and if at a later date I need to add more fields, or completely redesign the form, changes will be needed only on the host.  Continue with this approach at least for now.
+
+Now - when I submit my edit form I want either to go back to the calendar (if the edit is successful) or stay in the form (if the edit fails).  How to do it?  Seem to have managed to make the form use an Ajax request when submitted, which then results in my host application doing hundreds of SELECTs on the eventcategories table.  I wonder why.  Ah - apparently it's because it's trying to display all my events again.  Some adjustment to the processing needed.  Can I make it stop doing all these SELECTs too?  For now, let's just limit the number of events it will list that way.  Use a paginator gem, but which one?  There seem to be dozens.  will_paginate is mentioned in my book, so go with that for now.
+
+Done pagination, but just spotted another problem.  My form doesn't have any date selector popups.  This of course is because the fields weren't there when the page was first loaded and jquery initialised.  I'll need to put some explicit initialisation in the client end.  How can I tell when Foundation has got the data back?
+
+Three things to do:
+
+[ ] Explicit initialisation of date fields.
+[*] Get the host end to return success/failure for the Ajax request, and not redirect to the events index.
+[*] Have the event update in FullCalendar after a successful edit.
+
+Apparently I need to provide processing for "format.js" to handle Ajax requests.  Try it.  It seems it sends back some JavaScript, which is promptly executed.  So, on success I want simply to close the dialogue.  Hey!  It works.  I could also add some JavaScript here to update the relevant event, and to display an error message in the dialogue if things have failed.
+
+For now I am simply getting FC to re-fetch the data for //all// its visible events after an edit.  It seems fast enough, and saves trying to pick out an individual one.
+
+Now I just need to get the date pop-downs working.

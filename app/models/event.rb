@@ -59,6 +59,11 @@ class Event < ActiveRecord::Base
   scope :until, lambda {|date| where("starts_at < ?", date) }
   scope :source_id, lambda {|id| where("eventsource_id = ?", id) }
 
+  #
+  #  For pagination.
+  #
+  self.per_page = 20
+
   def starts_at_text
     if all_day
       starts_at ? starts_at.strftime("%d/%m/%Y") : ""

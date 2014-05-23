@@ -15,6 +15,10 @@ $(document).ready ->
     dateFormat: 'yy-mm-dd',
     onSelect: (dateText, inst) ->
       $('#fullcalendar').fullCalendar( 'gotoDate', new Date(dateText))
+  $(document).on('opened', '[data-reveal]', ->
+    $('.datetimepicker').datetimepicker
+      dateFormat: "dd/mm/yy"
+      stepMinute: 5)
   $('#fullcalendar').fullCalendar
     currentTimezone: 'Europe/London'
     columnFormat:
@@ -40,7 +44,14 @@ $(document).ready ->
       url: 'schedule/events'
     }]
     eventClick: (event, jsEvent, view) ->
-      $('#eventModal').foundation('reveal', 'open')
+      if event.editable
+        $('#eventModal').foundation('reveal', 'open', {
+          url: '/events/' + event.id + '/edit'
+        })
+      else
+        $('#eventModal').foundation('reveal',
+                                    'open',
+                                    '/events/' + event.id)
     eventDrop: (event, revertFunc) ->
       jQuery.ajax
         url:  "events/" + event.id + "/moved"

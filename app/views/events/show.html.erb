@@ -1,3 +1,6 @@
+<% if @minimal %>
+<a class="close-reveal-modal">&#215;</a>
+<% end %>
 <p id="notice"><%= notice %></p>
 
 <table>
@@ -54,5 +57,7 @@
   </tr>
 </table>
 
+<% if !@minimal %>
 <%= link_to 'Edit', edit_event_path(@event) %> |
 <%= link_to 'Back', events_path %>
+<% end %>

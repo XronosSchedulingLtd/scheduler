@@ -16,4 +16,13 @@ Can I put a hover box (tool tip?) on each event to show fuller details?  Clickin
 
 Let's see whether we can make graphical editing work first.  Dragging an event on the calendar should send an update back to the server.  The server should check edit permissions and update the event if permitted.
 
-Dragging and dropping seems to work.  Slight problem if I drag an event from the all day slot to a timed slot though.  Clearly, more processing is needed.
+Dragging and dropping seems to work.  Slight problem if I drag an event from the all day slot to a timed slot though.  Clearly, more processing is needed.  Done.
+
+Now - on to allowing the editing of events.  It appears that if I enable Qtips for my events, I can potentially put a dialogue in those.  Thus I can do it much like Google Calendar.  Small edits (or deletion) in the Qtip dialogue, and then an "edit" link there to get a larger dialogue.
+
+There are two apparent Gems available:
+
+* qtip2-jquery-rails
+* jquery-qtip2-rails
+
+and it's not clear what the difference if any is between them.  qtip2-jquery-rails seems to have significantly more recent versions.  Ah - looking at the documentation for q-j-r it says it is based on j-q-r, which is no longer maintained.  Decision taken.

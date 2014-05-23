@@ -1,6 +1,11 @@
+<% if @minimal %>
+<a class="close-reveal-modal">&#215;</a>
+<% end %>
 <h1>Editing event</h1>
 
 <%= render 'form' %>
 
+<% if !@minimal %>
 <%= link_to 'Show', @event %> |
 <%= link_to 'Back', events_path %>
+<% end %>

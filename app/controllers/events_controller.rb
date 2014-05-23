@@ -4,12 +4,19 @@ class EventsController < ApplicationController
   # GET /events
   # GET /events.json
   def index
-    @events = Event.all
+    @events = Event.page(params[:page])
   end
 
   # GET /events/1
   # GET /events/1.json
   def show
+    if request.xhr?
+      @minimal = true
+      render :layout => false
+    else
+      @minimal = false
+      render
+    end
   end
 
   # GET /events/new
@@ -19,6 +26,13 @@ class EventsController < ApplicationController
 
   # GET /events/1/edit
   def edit
+    if request.xhr?
+      @minimal = true
+      render :layout => false
+    else
+      @minimal = false
+      render
+    end
   end
 
   # POST /events
@@ -42,11 +56,15 @@ class EventsController < ApplicationController
   def update
     respond_to do |format|
       if @event.update(event_params)
+        @success = true
         format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
         format.json { render :show, status: :ok, location: @event }
+        format.js
       else
+        @success = false
         format.html { render :edit }
         format.json { render json: @event.errors, status: :unprocessable_entity }
+        format.js
       end
     end
   end

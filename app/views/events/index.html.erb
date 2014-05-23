@@ -1,6 +1,7 @@
 <h1>Listing events</h1>
 <p id="notice"><%= notice %></p>
 
+<%= will_paginate @events %>
 <table>
   <thead>
     <tr>
@@ -18,6 +19,7 @@
     <%= render @events %>
   </tbody>
 </table>
+<%= will_paginate @events %>
 
 <br>
 
