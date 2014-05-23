@@ -161,7 +161,11 @@ class Event < ActiveRecord::Base
     #
     #  This algorithm needs to be made slightly more sophisticated.
     #
-    true
+    if starts_at.hour < 12
+      true
+    else
+      false
+    end
   end
 
   def as_json(options = {})
