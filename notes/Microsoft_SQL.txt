@@ -1,0 +1,85 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-25T13:40:27+01:00
+
+====== Microsoft SQL ======
+Created Sunday 25 May 2014
+
+I need to do a bit of jiggery-pokery to access the SchoolBase data, which are held on a Microsoft SQL server.  I've been granted read access (only) to the relevant tables.
+
+To do this, I need to install some additional tools on Linux.
+
+I seem to have installed freetds-bin, freetds-common, freetds-dev, unixodbc and tdsodbc.  Then I created two configuration files:
+
+tds.driver.template
+'''
+[FreeTDS]
+Description = FreeTDS with protocol 7.2
+Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so
+'''
+
+Note that this next file now includes the necessary specification of TDS_Version, which was missing to start with.  Discussion below of sorting out that problem.
+
+tds.datasource.template
+'''
+[Schoolbase]
+Driver = FreeTDS
+Description = Accessing SchoolBase's database
+Trace = No
+Server = 172.16.0.47
+Port = 1433
+Database = Schoolbase
+TDS_Version = 8.0
+'''
+
+
+and then added them in with:
+
+'''
+sudo odbcinst -i -d -f tds.driver.template
+odbcinst -i s -f tds.datasource.template
+'''
+
+
+Note that the first one is done as root, whilst the second one is done as an individual user.
+
+And then I seem to be able to connect with:
+
+'''
+isql -v Schoolbase winters trondheim
+'''
+
+
+Ah - found the error.  It is:
+
+'''
+[37000][FreeTDS][SQL Server]Unicode data in a Unicode-only collation or ntext data cannot be sent to clients using DB-Library (such as ISQL) or ODBC version 3.7 or earlier.
+[ISQL]ERROR: Could not SQLExecute
+'''
+
+
+There's an article at http://www.ubuntitis.com/?p=64 which addresses this particular issue.  It references a helpful page at http://lucasmanual.com/mywiki/unixODBC which goes through the installation steps, and in particular makes it clear that you need "TDS_Version" at not "tds version" in your [[/etc/freetds/freetds.conf]] file.
+
+Need a command which demonstrates the problem.
+
+''select top 3 * from curriculum;''
+
+seems to do it.  Now try changing the freetds.conf file.  Makes no difference - still can't do it.  Perhaps it should go in my datasource.template file?  Yes, it seems it should.  I can easily edit it, but how do I re-install it?
+
+'''
+odbcinst -u -s -n Schoolbase
+odbcinst -q -s
+'''
+
+
+Seems to do it.  Now edit my template to add the protocol version (7.2) and re-install it.  Or perhaps I should use 8.0 as all the instructions say that.  Try 8.0.  And now I can retrieve my data.  Excellent.
+
+Here's a magic incantation to dump the whole of a table to a file.
+
+'''
+john@mach2:~/testsql$ cat curriculum.sql 
+select * from curriculum;
+john@mach2:~/testsql$ isql Schoolbase winters trondheim -b -d, -q -c < curriculum.sql >curriculum.csv
+'''
+
+

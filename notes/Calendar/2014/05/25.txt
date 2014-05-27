@@ -1,0 +1,26 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-25T08:18:09+01:00
+
+====== Sunday 25 May 2014 ======
+
+Next I think I need to tackle the problem of getting data out of SchoolBase.  I seem to have read access to the relevant tables, and have successfully logged on from my Linux box.  I did have some issues with not being able to retrieve some data - IIRC an error message about stuff being utf-8 encoded and me not having quite the right libraries.
+
+According to my reading so far, Rails doesn't seem to be that good at talking to two different databases at the same time.  I'm therefore thinking in terms of using some kind of separate executable (or Ruby script) which reads the required data from SchoolBase and saves it to a file.  I can then open and process the file to load it into my system.  For now it could be driven from the Import web pages, with the option to automate in the future.
+
+I would like to be able to identify SchoolBase records, so I can avoid changing mine if the SchoolBase ones haven't changed.
+
+The whole thing is an ambitious target, but I've achieved much larger in the past.
+
+Taking a look at the SchoolBase tables, the central one seems to be called Timetable.  It contains references to other tables, but essentially contains the timetable.
+
+The more I think about it, the more I like the idea of writing a few simple scripts which just dump the required fields from SchoolBase into some CSV files.  Then some more scripts to load the same into dedicated tables in my database.  From there, I can access them freely from Rails and construct whatever I need.
+
+Where can I find documentation the capabilities of isql?
+
+Here's a thought - can I access the database externally?  Route queries through Mach2 and use graphical tools from here?  Alternatively, I could take my laptop into school and use tools on that.
+
+Of course, the major advantage of the file approach is that I can do a single dump at school, then bring the files home and work on them here.  I think that's enough to make me go that way at least to start with.  I may smooth things out later on.
+
+I am tempted to make a whole lot of tables in my database, mirroring SB's, but set up to access from Rails.
+

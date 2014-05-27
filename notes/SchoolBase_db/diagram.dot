@@ -1,0 +1,24 @@
+digraph tables {
+  rankdir=BT;
+  node [shape=box, style="filled,rounded", fillcolor=lightskyblue2];
+  
+    "AcademicRecord" -> "AcademicYear";
+    "AcademicRecord" -> "Pupil";
+    "AcademicRecord" -> "Groups";
+    "AcademicRecord" -> "Curriculum";
+    "Curriculum"     -> "AcademicYear";
+    "Curriculum"     -> "Years";
+    "Curriculum"     -> "Subjects";
+    "Groups"         -> "Staff";
+    "PeriodTimes"    -> "Period";
+    "Pupil"          -> "House";
+    "Pupil"          -> "Years";
+    "TutorGroup"     -> "Pupil";
+    "TutorGroup"     -> "Staff";
+    "TutorGroup"     -> "Years";
+    "Groups"         -> "Timetable" [dir=back];
+    "Staff"          -> "Timetable" [dir=back];
+    "Room"           -> "Timetable" [dir=back];
+    "Period"         -> "Timetable" [dir=back];
+    "AcademicYear"   -> "Timetable" [dir=back];
+  }

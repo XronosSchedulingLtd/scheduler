@@ -1,0 +1,29 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-27T09:37:06+01:00
+
+====== Staff ======
+Created Tuesday 27 May 2014
+
+The Staff record - any person who is a member of staff and might be associated with an event.
+
+Fields:
+
+id			Rails's id for the individual
+name		Display name of staff member
+initials		Initials of staff member
+surname		Surname on its own
+title			Title - e.g. Mr, Mrs, Miss, Dr
+forename	Given name on its own
+email		E-mail address
+source_id	Id from the source system
+active		Flag indicating whether the user is active 
+
+
+These records will be created by means of an import from SB.  I anticipate this running nightly.  The import process will try to find a record with the right source_id.  If it can't find it will create it, and if it can find it it will update any fields which have changed.
+
+The "active" field is special.  Since we can't be sure which records from SB are actually wanted, we will use a best-guess algorithm to set this field on initial record creation (Does the entry have an @abingdon.org.uk e-mail address?) but then leave it alone.  Maintenance on my system will let me set and unset it, and that setting will then persist through subsequent imports.
+
+If active is not set, then the record will take play no part in subsequent searches etc.  Perhaps it could stop the staff member having an Element record?
+
+Need the main key on the id field, plus an additional index on the source_id field.

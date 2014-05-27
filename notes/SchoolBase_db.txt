@@ -1,0 +1,337 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-26T10:18:53+01:00
+
+====== SchoolBase db ======
+Created Monday 26 May 2014
+
+Tables in the SchoolBase database which I need to use.  Note that there seems to be some inconsistency in the table naming - some are singular and some are plural.
+
+* AcademicRecord
+* AcademicYear
+* Curriculum
+* Groups
+* House
+* Period
+* PeriodTimes
+* Pupil
+* Room
+* Staff
+* Subjects
+* Timetable
+* TutorGroup
+* Years
+
+{{./diagram.png?type=diagram}}
+
+==== AcademicRecord ====
+
+This is the record which ties pupils to academic groups.  The equivalent of my (more aptly named) Membership record.  I presume there's one of these for each student who is a member of a group.  Currently 32852 of them in the SB database.  Useful fields are:
+
+AcrIdent		Identifier for the record
+AcYearIdent	Identifies the relevant academic year
+PupOrigNum	Identifies the pupil
+CurrIdent	Identifies the curriculum entry (subject)
+GroupIdent	Identifies the group
+
+There are two other fields, but they currently seem to be unused.  Might as well do a "SELECT *" on this table.
+
+==== AcademicYear ====
+
+Simply gives a name to the academic year.
+
+AcYearIdent	Identifier
+AcYearName	Name (e.g. 2013/14)
+
+Again, a "SELECT *" will be fine for this table.
+
+==== Curriculum ====
+
+Identifies subjects, but only by a short name like "Gg".  It appears that the same such name may occur many times, although it always references the same Subject.  The third and sixth fields in this record vary.  They are "YearIdent" (different from AcYearIdent) and CurrSets.
+
+The whole list of fields for this one is:
+
+'''
+CurrIdent,AcYearIdent,YearIdent,SubjectIdent,CurrCarousel,CurrSets,
+CurrOccur,CurrOption,CurrReportOn,CurName,CopiedFromCurrIdent,CurrColour,
+CurrNote
+'''
+
+Of these I have so far identified the following as being useful for my purposes.
+
+CurrIdent	Ident for this record
+AcYearIdent	Points to the academic year
+YearIdent	Points to the year group record
+SubjectIdent	Points to the subject
+
+==== Groups ====
+
+One of these for each teaching (or other) kind of group.  Clearly a bit of a Topsy table, and not normalised.  Full list of fields are:
+
+'''
+StaffIdent,StaffIdent2,GroupIdent,GroupName,YearIdent,CurrIdent,
+GroupRep,ClassIdent,StaffIdent3,StaffIdent4,SubIdent,GroupNameFull,
+GroupMarker,SCTIdent,GroupDay,GroupStart,GroupEnd,RoomIdent,
+GroupRota,GroupSlotTime,GroupCapacity,PEv,CopiedFromGroupIdent,
+GroupStartDate,GroupEndDate,GroupCurrent,MaxInGroup,SessionPrice,
+TermPrice,ChargeChk,Charge,SetNumber,Set,ActivitySlotTimeSetIdent,
+GroupIsProtected,GroupShowOnline,GroupRotaAsGroup,Qan,GroupRegSession
+'''
+
+
+Useful for me are:
+
+GroupIdent	Identifies the group
+GroupName	Name of group
+
+
+I wonder whether Furlong would like to buy a book on database design.  I shall select these explicitly when dumping data.
+
+==== House ====
+
+Records the houses which the boys might belong to.  Fields are:
+
+'''
+HouseIdent,HouseName,PType,UserIdent,UserIdent2,
+UserIdent3,TransferKey,StaffTransferKey
+'''
+
+
+Oddly, they seem to create a new house record when the name changes, and update all the students to point to the new record.  It would seem more logical simply to change the name.  Perhaps they need the old record for historic reasons.
+
+HouseIdent	Identifier for this house
+HouseName	Name of house
+PType		40 for prep school, 60 for main school
+
+
+==== Period ====
+
+Identifies periods by name.  Gives the day on which they occur, but not the times.  Note that these are not just teaching periods - they're all sorts of slots during the day, including break.  Total fields are:
+
+'''
+Period,DayName,StartTime,EndTime,BreakAfter,LunchAfter,
+AMPM,PeriodName,PeriodDayCount,PeriodShow,PeriodWkLogic,
+TeachingPeriod,PeriodTimetableNumber,PeriodWeek
+'''
+
+
+Useful for me are:
+
+Period			Identifies the period (should be called PeriodIdent for consistency)
+DayName		Day of the week
+TeachingPeriod	Flag indicating whether this is a teaching period
+PeriodWeek		1 or 2, for week A or B
+
+The StartTime and EndTime fields always seem to be 0, and oddly the Period table does not seem to reference the PeriodTimes table.  Perhaps the other way around?
+
+==== PeriodTimes ====
+
+Gives the times of the periods.  Not clear why this is in a separate table.  There do seem to be instances of a single Period record being referenced by two or more PeriodTimes records, but it's not clear why.
+
+Total fields are:
+
+'''
+PeriodTimesIdent,PeriodTimeStart,PeriodTimeEnd,Period,
+PeriodTimeSetIdent,PeriodTimesRegNeed,PeriodCoverValue
+'''
+
+
+Useful ones for me are:
+
+PeriodTimesIdent		Identifies this record
+PeriodTimeStart		Start time for period (minutes since midnight)
+PeriodTimeEnd		End time for period (minutes since midnight)
+Period				Pointer to corresponding period record.
+
+
+==== Pupil ====
+
+Record describing a pupil.  Here I will have to be sensitive about what I export - just the minimum fields needed to complete the job.  There are lots to choose from:
+
+'''
+Pu_CompNo,Pu_Surname,Pu_Firstname,Pu_GivenName,Pu_Dob,Pu_Gender,
+Pu_Doe,Pu_CandNo,Pu_LastSchoolId,Pu_Schol,Pu_SchDetails,Pu_Info,
+Pu_PSHouse,Pu_OFConnection,Pu_Tutor,PupSecondName,PupThirdName,
+BoarderIdent,RelIdent,GPNum,PType,StageOfProspect,PupProposedDateIn,
+PupProposedYear,PupH1,PupH2,PTg1,LeftToGoToCode,PupLeftToGoTo,
+PupHowHear,PupDateArchived,FTime,PupOrigNum,YearIdent,ClassIdent,
+UserIdent,PupEntScore1,PupEntScore2,PupEntScore3,PupEntScore4,
+PupEntScore5,PupEntNum,PupEntGroup,PupBurReq,PupScholReq,PupIntNote,
+PupMedNote,PupForestEntIdent,OfferIdent,PupNewForm,NatIdent,
+PupGCSEMean,PupGCSESubs,PupGCSEScore,PupA1Subs,PupA1Score,
+PupA2Subs,PupA2Score,PupAltRoll,PupAdded,PupFullSurname,PupTransferKey,
+PupUCI,PupUPN,PupRefTake,House2Ident,PupMobile,PupEmail,PupCohort,
+PupSibPos,PupTransKey2,TutGpIdent,PupSpecial1,PupSpecial2,FeedAgentIdent,
+Pu_Form,PupYear,DormIdent,PupTransKey3,PupReportName,PupSpecial3,
+pupWorkperson,LanIdent,PupNew,PupExamName,PupFeeNote,EthIdent,
+PupNote,PupSpecial4,ClassIdent2,PupUpDated,PupLastExport,NatIdent2,
+PupPassNo,PupPassIssuePlace,PupPassIssued,PupPassExpires,PupVisaExpires,
+PupNHNo,PupDater,PupTempPType,PupLastClass,PupTransKey4,PupImportName,
+PupCare,PupCareTemp,HouseIdent,ShadowPType,ShadowUserIdent,
+ShadowClassIdent,ShadowYearIdent,ShadowHouseIdent,ShadowHouse2Ident,
+PupXTime,PupLastHouse,PupLastTutor,PupLastYear,CentreNo,PupAltUCI,
+PupEmail2,PupULN,PupADSname,PupProbLeaveDate,PupHashName,PupPadre,
+PupMadre,PupShield,PupVisaNo,PupVisaIssued,PupVisaType,
+PoliceRegistrationCode,FinPaymentPlanIdent,ShadowBoarderIdent,ExtCand,
+PupEmailExam,PupilDisplayName,BloodTypeIdent,PassportType,PupEHIC,PupCAS,
+PupDetailsChecked,PupRSQtyTemp,PupBoardingNotes,PupSQARegister,PupFL1,
+PupFL2,PupFL3,PupFL4,PupFL5,AuthTypeIdent,PupPassword,PupInitialPassword,
+PupLogonLocked,PupLogonAttemptCount,PupLearningSupportCode,
+PupEnrolStatus,PupBoarder,PupNCYearGrp,PupSenProv,PupSenType,PupExCat,
+PupExReason,PupLang,PupLearningAimS,PupLearningAimO,PupServiceChild,
+PupFundedHours,PupHoursAtSetting,PupFormerUPN,PupFormerSurname,
+PupInCareIndicator,PupSenUnitMem,SenResourcedProvision,PupDateofLeaving,
+PupPartIndicator,PupYSSA,PupNCY,PupTransKeyBeforeRS,DuplicatePupOrigNum,
+TranskeyBeforeRS,TranskeyBeforeRs2,TranskeyBeforeRs3,SenStartDate,
+PupMedAlert,PupSENAlert,PU_CTImported,PU_CTUpdated,PupInterAgree,
+PupNoInvoice,PupStaffChild,PupTopUpFundingIndicator,PupAdoptedFromCare,
+PupShadowNoInvoice,PupShadowSibPos,PupNumberOfYearsAtSchool,PupEHICExpires
+'''
+
+
+
+And fields I am going to use:
+
+PupOrigNum		Unique identifier for the pupil (I hope)
+Pu_Surname		Pupil surname
+Pu_Firstname		Pupil's actual first name
+Pu_GivenName	Not the usual meaning.  Seems to be used for our oriental students.
+PupilDisplayName	Name to be displayed for this pupil
+PupEmail			Pupil's e-mail address.
+Pu_CandNo		Pupil's candidate number
+YearIdent		What year group this pupil is currently in
+
+Ah - Pu_Tutor seems to be empty.  Where else might the tutor information be?  There is a table called TutorGroup but it seems to have 13244 records, which seems too many.  Ah - there's a record for each pupil, and it contains his house and which tutor group within the house.  It doesn't seem to contain who the tutor is, but I could set up my own lookup table for that somewhere.  Or ignore it and use the new terminology which SB is forcing on us.
+
+==== Room ====
+
+Bookable spaces, including classrooms.  Fields:
+
+'''
+RoomIdent,Room,RoomName,BuildIdent,RoomCapacity,RoomCurrent,
+RoomExportCode,DepIdent,RoomPhoneNo,UserIdent,RoomBookable,
+TransferKey,RoomDetails,OnlyBookableByOwner
+'''
+
+
+RoomIdent		Unique identifier
+Room			Short name for room (e.g. SC-SH)
+RoomName		Long name for room (e.g. Sports Hall)
+
+==== Staff ====
+
+Another one with a vast number of fields:
+
+'''
+UserIdent,UserName,UserMnemonic,UserSurname,UserTitle,UserForename,
+UserSalutation,UserAddressName,UserSuffix,UserHolAd,UserHomeTel,
+UserHolTel,UserFax,UserMob,UserTelExt,UserDateJoin,UserDateLeft,UserDOB,
+UserPosition,UserLeft,UserTeach,UserAccessLevel,UserLastSchool,UserQualif,
+RoomIdent,PType,UserEmail,UserEmailAlt,UserMenu,UserLeftReason,
+UserLeftNewEmp,UserLeftOldDept,UserNote,UserEmerg,UserEmNum,UserMiddle,
+UserCalled,RelIdent,HouseIdent,UserExnt2,UserDD,UserFullTime,UserDoesCover,
+UserCovers,CanViewSecureDocs,UserTimeTabled,UserTTMinPerDay,UserTTMaxPerDay,
+UserTTWeeklyQuota,UserExportCode,UserSpecial1,HourlyPaid,UserCarReg,
+UserCarType,UserDfesNo,UserPayNo,UserNINo,UserPrevSurname,UserFTE,
+UserLastAppraisal,UserLastChange,UserFirstTeach,EthIdent,UserExtra1,
+UserPwdLastChange,UserTopSecure,StaffPartner,StaffJointSalut,
+StaffJointAdName,UserPrefName,HoursWorked,StaffADLoginName,UserFullMenu,
+StaffChildren,UserProtected,UserCanViewProtected,UserLockTime,
+UserAccountStatus,OpsLanguageIdent,UserReturnEmail,UserUsesFBSMail,
+UserLastDataChecker,UserLastDataCheckedOn,UserEmNum2,UserEmNotes,
+StaffDisplayName,UserHomeTelPublish,UserMobPublish,UserHolTelPublish,
+UserEmailAltPublish,UserHomeAdPublish,UserHomeAdP1,UserHomeAdP2,UserHomeAd,
+UserGivenName,StaffEmailSig,StaffMenuOption,MarStat,NatIdent,HRHolTypeIdent,
+AuthTypeIdent,UserLogonLocked,UserLogonAttemptCount,TRnumber,FMTransferKey,
+UserTransferKey,UserDisability,UserQTStatus,UserHTLAStatus,UserQTSRoute,
+UserContractType,UserOrigin,UserDestination,UserDailyRate,UserGenderCode,
+UserGender
+'''
+
+
+And another one which calls for sensitivity in the selection of fields.  I need little more than the name.  Looking at the fields, it suggests that the table used to be called User or Users and things have been carried through.  No idea why they think it a good idea to precede all the field names with the name of the table.  They clearly don't understand namespaces.
+
+Fields to use:
+
+UserIdent		Unique identifier
+UserName		Full name of staff member
+UserMnemonic	Initials of staff member
+UserSurname		Surname
+UserTitle		Mr, Mrs, Dr
+UserForename	Given name
+UserEmail		Email address
+
+
+==== Subjects ====
+
+A table giving all the subjects potentially taught within the school(s).
+
+'''
+SubCode,SubName,SubIdent,SubPriority,SubFree,SubCurrent,
+SubExportCode,SubOf,SubLevelPriority,SCTIdent,DepIdent,
+SubColour,SubGovCode,SubGovCodeActivity
+'''
+
+
+And from these:
+
+SubCode		Short code for subject, e.g. Gn for German
+SubName	Subject name
+SubIdent		Unique identifier for subject
+
+
+==== Timetable ====
+
+This table as far as I can tell pulls together all the other components and makes up the actual timetable.  Note that it still doesn't tell me what happens on any particular date - just what happens on which days of the timetable fortnight.  There also seem to be a lot of gash records in this table - those that reference a member of staff, but no group or room.  Interesting to see what they signify.
+
+All fields:
+
+'''
+TimetableIdent,GroupIdent,StaffIdent,RoomIdent,Period,
+AcYearIdent,Occurence,TimeFreeIdent,TimeMark,TimeTeachProb,
+TimeRoomProb,TimeNote,PupOrigNum,TimeOverIsGroup,
+TimeOverRepNeeded,ImportOrder
+'''
+
+
+And I currently propose to use:
+
+TimetableIdent	Unique identifier for this event
+GroupIdent		Identifier for teaching group involved
+StaffIdent		Identifier for staff member involved
+RoomIdent		Identifier for location involved
+Period			Identifies the period in which the event occurs
+AcYearIdent		Identity of relevant academic year.  Use to filter to only our year.
+
+
+==== TutorGroup ====
+
+This is a slightly odd record, in that it doesn't actually link together the members of a tutor group.  One would expect there to be a tutorgroup record, recording the existence of the tutor group, then membership records to link individual students to the tutorgroup record.  Instead there's just one of these for each student, giving the name of the tutor group.  Nothing links the students together, except the fact that they all have the same text for the tutor group name.  If you want to rename a tutor group, you need to change all the relevant records in this table, instead of just the one record as it should be.
+
+Total fields:
+
+'''
+UserIdent,ClassIdent,YearIdent,PupOrigNum,
+Pu_House,Pu_Form
+'''
+
+
+UserIdent	The identifier of the staff member in charge of the tutor group
+YearIdent	The year group of the pupil
+PupOrigNum	Unique identifier for the pupil.
+
+
+==== Years ====
+
+Year groups for the boys to belong to.
+
+'''
+YearDesc1,YearIdent,YearDesc,YearName,Ptype,HeadOfYear,
+FinType,YearImport,StaffTransferKey,YearGovCode
+'''
+
+
+YearIdent	Unique identifier for the year group
+YearDesc	Numeric value for year group.  National standard.  9 = 3rd year.
+YearName	Text name of year - "Third year"
+Ptype		60 for main school.  40 for prep school.

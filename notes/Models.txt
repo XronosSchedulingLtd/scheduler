@@ -5,6 +5,19 @@ Creation-Date: 2014-04-28T13:31:06+01:00
 ====== Models ======
 Created Monday 28 April 2014
 
+The following diagram gives a slightly simplified view of how the models fit together.  Each Event has one or more Commitments, connecting up Elements (Resources) which the event needs.  Each Element represents some kind of entity, the possible entities being:
+
+* Pupil
+* Staff
+* TeachingGroup
+* TutorGroup
+* Location
+* Supply
+
+Of these, four are atomic (can't be broken down further) and the two groups actually consist of collections of elements, possibly themselves being groups.  Each group-type item has an underlying Group model which takes care of the actual membership bit.  Connected to the Group model are Membership models, each of which points to an Element which is a member of the group.
+
+
+{{./diagram.png?type=diagram}}
 The models in this application are:
 
 Era:		Specifies a span of time to which things belong.  In our case, it's a school year.

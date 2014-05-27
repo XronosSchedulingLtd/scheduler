@@ -17,3 +17,6 @@
 
 # Ignore any files in the staging directory
 /staging/*
+
+# And any in the import directory
+/import/*

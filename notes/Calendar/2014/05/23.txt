@@ -34,4 +34,6 @@ For now I am simply getting FC to re-fetch the data for //all// its visible even
 
 Now I just need to get the date pop-downs working.  And finally managed it.  Trying to initialise the fields as soon as the Ajax call is successful is too soon.  You have to hook in to the "opened" event which Foundation generates.
 
-Now I suppose I should make it possible to create an event by clicking on the background of the calendar.  The new event should get a default date matching the click (somehow).
+Now I suppose I should make it possible to create an event by clicking on the background of the calendar.  The new event should get a default date matching the click (somehow).  Done that too.
+
+Also need the means to delete an event.  Not sure about the interface for that.
