@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :pupils
+
   resources :staffs
 
   resources :events do

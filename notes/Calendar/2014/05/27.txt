@@ -100,3 +100,5 @@ rails runner 'Import.say_hello'
 
 
 or the like.  There's also a school of thought which would have me turn it into a Rake task.  Done a bit of reading, but found no conclusive arguments.  I think I'll just create a directory called lib/import and put everything there.
+
+Got staff loading working satisfactorily.  I guess tutor groups are next, so I can lead up to loading the pupils.

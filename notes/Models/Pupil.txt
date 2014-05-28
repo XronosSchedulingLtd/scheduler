@@ -1,0 +1,30 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-28T08:56:31+01:00
+
+====== Pupil ======
+Created Wednesday 28 May 2014
+
+A record for each pupil in the school.
+
+Fields:
+
+id			integer	Rails's id for the individual
+name		string	Display name of the pupil
+surname		string	Surname on its own
+forename	string	Given name on its own
+known_as	string	Extra name for oriental students
+email		string	E-mail address
+candidate_no	string	Exam candidate number
+start_year	integer	Effective start year (when student would have entered 1st form)
+source_id	integer	Id from the source system
+active		boolean	Flag indicating whether the pupil is active 
+
+
+'''
+rails g scaffold pupil name surname forename givenname \
+email candidate_no start_year:integer source_id:integer \
+--skip-stylesheets
+'''
+
+

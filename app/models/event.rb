@@ -62,7 +62,7 @@ class Event < ActiveRecord::Base
   #
   #  For pagination.
   #
-  self.per_page = 20
+  self.per_page = 15
 
   def starts_at_text
     if all_day

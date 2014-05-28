@@ -10,7 +10,7 @@
 #  timeout: 5000
 
 default: &default
-  adapter: mysql
+  adapter: mysql2
   username: scheduler
   password: scpasswd
   host: localhost

@@ -4,7 +4,7 @@ class StaffsController < ApplicationController
   # GET /staffs
   # GET /staffs.json
   def index
-    @staffs = Staff.all
+    @staffs = Staff.page(params[:page]).order('surname')
   end
 
   # GET /staffs/1

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140527095339) do
+ActiveRecord::Schema.define(version: 20140528080143) do
 
   create_table "elements", force: true do |t|
     t.string   "name"
@@ -65,6 +65,21 @@ ActiveRecord::Schema.define(version: 20140527095339) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "pupils", force: true do |t|
+    t.string   "name"
+    t.string   "surname"
+    t.string   "forename"
+    t.string   "known_as"
+    t.string   "email"
+    t.string   "candidate_no"
+    t.integer  "start_year"
+    t.integer  "source_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "pupils", ["source_id"], name: "index_pupils_on_source_id", using: :btree
 
   create_table "staffs", force: true do |t|
     t.string   "name"

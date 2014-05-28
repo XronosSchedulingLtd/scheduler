@@ -1,0 +1,40 @@
+<h1>Listing pupils</h1>
+<p id="notice"><%= notice %></p>
+
+<%= will_paginate @pupils %>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Surname</th>
+      <th>Forename</th>
+      <th>Known as</th>
+      <th>Candidate no</th>
+      <th>Start year</th>
+      <th>Source</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @pupils.each do |pupil| %>
+      <tr>
+        <td><%= pupil.name %></td>
+        <td><%= pupil.surname %></td>
+        <td><%= pupil.forename %></td>
+        <td><%= pupil.known_as %></td>
+        <td><%= pupil.candidate_no %></td>
+        <td><%= pupil.start_year %></td>
+        <td><%= pupil.source_id %></td>
+        <td><%= link_to 'Show', pupil %></td>
+        <td><%= link_to 'Edit', edit_pupil_path(pupil) %></td>
+        <td><%= link_to 'Destroy', pupil, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= will_paginate @pupils %>
+
+<br>
+
+<%= link_to 'New Pupil', new_pupil_path %>

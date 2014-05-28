@@ -1,6 +1,6 @@
 class EntityObserver < ActiveRecord::Observer
 
-  observe Staff
+  observe Pupil, Staff
 
   #  This should be called each time one of my observed entities has
   #  been saved to the database.

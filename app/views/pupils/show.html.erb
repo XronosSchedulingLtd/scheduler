@@ -1,0 +1,44 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Name:</strong>
+  <%= @pupil.name %>
+</p>
+
+<p>
+  <strong>Surname:</strong>
+  <%= @pupil.surname %>
+</p>
+
+<p>
+  <strong>Forename:</strong>
+  <%= @pupil.forename %>
+</p>
+
+<p>
+  <strong>Givenname:</strong>
+  <%= @pupil.known_as %>
+</p>
+
+<p>
+  <strong>Email:</strong>
+  <%= @pupil.email %>
+</p>
+
+<p>
+  <strong>Candidate no:</strong>
+  <%= @pupil.candidate_no %>
+</p>
+
+<p>
+  <strong>Start year:</strong>
+  <%= @pupil.start_year %>
+</p>
+
+<p>
+  <strong>Source:</strong>
+  <%= @pupil.source_id %>
+</p>
+
+<%= link_to 'Edit', edit_pupil_path(@pupil) %> |
+<%= link_to 'Back', pupils_path %>
