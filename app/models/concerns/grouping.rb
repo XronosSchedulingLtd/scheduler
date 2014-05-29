@@ -1,5 +1,3 @@
-require 'activesupport/concern'
-
 module Grouping
   extend ActiveSupport::Concern
 
