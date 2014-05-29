@@ -1,0 +1,12 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-28T12:39:24+01:00
+
+====== Group ======
+Created Wednesday 28 May 2014
+
+The Group model is imported from Xronos, but it has some important changes.
+
+The most significant of these is that it never exists on its own - it has no name field, and always exists attached to another record which specifies the actual type of the group - Tutorgroup or Teachinggroup initially.
+
+I need a word for what the group record calls its associated record.  Parent?  Guardian?  Parent is not a good word because I already use that in the hierarchy of groups.  Go for visible_group for now.

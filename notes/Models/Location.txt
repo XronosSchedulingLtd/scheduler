@@ -1,0 +1,17 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-28T10:42:36+01:00
+
+====== Location ======
+Created Wednesday 28 May 2014
+
+What SB calls a Room, but it covers more than rooms.
+
+Fields
+
+id			integer	Rails's id for the location
+short_name	string	Short name for the location (e.g. CMR)
+name		string	Longer name (e.g. Charles Maude Room)
+source_id	integer	Id from the source system
+active		boolean	Flag indicating whether the location is active
+

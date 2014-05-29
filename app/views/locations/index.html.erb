@@ -1,0 +1,34 @@
+<h1>Listing locations</h1>
+<p id="notice"><%= notice %></p>
+
+<%= will_paginate @locations %>
+<table>
+  <thead>
+    <tr>
+      <th>Short name</th>
+      <th>Name</th>
+      <th>Source</th>
+      <th>Active</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @locations.each do |location| %>
+      <tr>
+        <td><%= location.short_name %></td>
+        <td><%= location.name %></td>
+        <td><%= location.source_id %></td>
+        <td><%= location.active %></td>
+        <td><%= link_to 'Show', location %></td>
+        <td><%= link_to 'Edit', edit_location_path(location) %></td>
+        <td><%= link_to 'Destroy', location, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= will_paginate @locations %>
+
+<br>
+
+<%= link_to 'New Location', new_location_path %>

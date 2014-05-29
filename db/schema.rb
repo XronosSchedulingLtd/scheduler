@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140528080143) do
+ActiveRecord::Schema.define(version: 20140528181306) do
 
   create_table "elements", force: true do |t|
     t.string   "name"
@@ -65,6 +65,39 @@ ActiveRecord::Schema.define(version: 20140528080143) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "groups", force: true do |t|
+    t.date     "starts_on",  null: false
+    t.date     "ends_on"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "locations", force: true do |t|
+    t.string   "short_name"
+    t.string   "name"
+    t.integer  "source_id"
+    t.boolean  "active"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "locations", ["source_id"], name: "index_locations_on_source_id", using: :btree
+
+  create_table "memberships", force: true do |t|
+    t.integer  "group_id",   null: false
+    t.integer  "element_id", null: false
+    t.date     "starts_on",  null: false
+    t.date     "ends_on"
+    t.date     "as_at"
+    t.boolean  "inverse",    null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "role_id"
+  end
+
+  add_index "memberships", ["element_id"], name: "index_memberships_on_element_id", using: :btree
+  add_index "memberships", ["group_id"], name: "index_memberships_on_group_id", using: :btree
 
   create_table "pupils", force: true do |t|
     t.string   "name"

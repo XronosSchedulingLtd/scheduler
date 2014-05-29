@@ -25,3 +25,17 @@ If I examine the record from the Rails console, just loading it from the databas
 Ah - the database is returning the field as ASCII-8BIT, whilst the one I have in memory is (as I intended) UTF-8.  But surely that should make all my comparisons fail?  Why only that one?
 
 I've found a reference to this being a problem with the mysql database library, and a suggestion to use mysql2 instead.  Try switching to mysql2.  Yes, that seems to fix it.  Had to alter them Gemfile to install mysql2 instead of mysql.
+
+How about loading locations next - I need those too before I can have the timetable.  Those are in room.csv
+
+Interesting problem with locations.  Quite a few have been entered with just a truncated name in the short name field.  The name field is blank.  My first inclination was to ignore them, but they include such important places as the Amey Theatre and the Chapel.  ("AmeyThe" and "Chapel").  It's also noticeable that some places have been entered twice.  The Amey Theatre Foyer appears as
+
+302,"ATF","Amey Theatre Foyer"
+
+and as
+
+309, "ATFoyer",
+
+I think I have to follow the convention of being driven by SchoolBase, but making sure that if the data in SB are ever corrected, mine will automatically get corrected too.  For now, if I have one name but not the other I will make them the same.  If I have neither name I will ignore the record.
+
+OK - locations loaded.  Tutorgroups are probably next.  A tutor group has one member of staff associated with it (//not// a member of it), plus various members.  This is my first group object to be implemented, and I'm inclined to try to use concerns to get it to link in to a Group record.

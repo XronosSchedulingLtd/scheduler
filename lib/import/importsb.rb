@@ -79,6 +79,32 @@ module Slurper
 end
 
 
+class SB_Location
+  FILE_NAME = "room.csv"
+  REQUIRED_COLUMNS = [Column["RoomIdent", :room_ident, true],
+                      Column["Room",      :short_name, false],
+                      Column["RoomName",  :name,       false]]
+
+  include Slurper
+
+  def adjust
+    if self.name.blank? && !self.short_name.blank?
+      self.name = self.short_name
+    elsif self.short_name.blank? && !self.name.blank?
+      self.short_name = self.name
+    end
+  end
+
+  def wanted?
+    !(self.name.blank? || self.short_name.blank?)
+  end
+
+  def active
+    true
+  end
+end
+
+
 class SB_Pupil
   FILE_NAME = "pupil.csv"
   REQUIRED_COLUMNS = [Column["PupOrigNum",       :pupil_ident,  true],
@@ -242,7 +268,6 @@ if pupils && years
     if year
       dbrecord = Pupil.find_by_source_id(pupil.pupil_ident)
       if dbrecord
-        changed = false
         changed = check_and_update(dbrecord, pupil, [:name,
                                                      :forename,
                                                      :known_as,
@@ -300,31 +325,12 @@ if msg.blank?
       #  Staff record already exists.  Any changes?
       #
       pre_existing_count += 1
-      changed = false
-      if dbrecord.name != s.name
-        dbrecord.name = s.name
-        changed = true
-      end
-      if dbrecord.initials != s.initials
-        dbrecord.initials = s.initials
-        changed = true
-      end
-      if dbrecord.surname != s.surname
-        dbrecord.surname = s.surname
-        changed = true
-      end
-      if dbrecord.title != s.title
-        dbrecord.title = s.title
-        changed = true
-      end
-      if dbrecord.forename != s.forename
-        dbrecord.forename = s.forename
-        changed = true
-      end
-      if dbrecord.email != s.email
-        dbrecord.email = s.email
-        changed = true
-      end
+      changed = check_and_update(dbrecord, s, [:name,
+                                               :initials,
+                                               :surname,
+                                               :title,
+                                               :forename,
+                                               :email])
       #
       #  Note that, although we originally set the "active" flag, we make
       #  no attempt to amend it subsequently.
@@ -362,3 +368,43 @@ if msg.blank?
 else
   puts "Staff: #{msg}"
 end
+
+locations, msg = SB_Location.slurp
+if msg.blank?
+  puts "Read #{locations.size} locations."
+  locations_changed_count   = 0
+  locations_unchanged_count = 0
+  locations_loaded_count    = 0
+  locations.each do |location|
+    dbrecord = Location.find_by_source_id(location.room_ident)
+    if dbrecord
+      changed = check_and_update(dbrecord, location, [:short_name, :name])
+      if changed
+        if dbrecord.save
+          locations_changed_count += 1
+        else
+          puts "Failed to save amended location record for #{location.name}"
+        end
+      else
+        locations_unchanged_count += 1
+      end
+    else
+      dbrecord = Location.new
+      dbrecord.short_name = location.short_name
+      dbrecord.name       = location.name
+      dbrecord.source_id  = location.room_ident
+      dbrecord.active     = location.active
+      if dbrecord.save
+        locations_loaded_count += 1
+      else
+        puts "Failed to save new location record for #{location.name}"
+      end
+    end
+  end
+  puts "#{locations_changed_count} location records amended."
+  puts "#{locations_unchanged_count} location records untouched."
+  puts "#{locations_loaded_count} location records created."
+else
+  puts "Locations: #{msg}"
+end
+
