@@ -8,8 +8,7 @@ class Tutorgroup < ActiveRecord::Base
   belongs_to :staff
   belongs_to :era
 
-  has_one :element, :as => :entity, :dependent => :destroy
-
+  include Elemental
   include Grouping
 
   self.per_page = 15

@@ -2,7 +2,7 @@ class Pupil < ActiveRecord::Base
 
   validates :name, presence: true
 
-  has_one :element, :as => :entity, :dependent => :destroy
+  include Elemental
 
   self.per_page = 15
 

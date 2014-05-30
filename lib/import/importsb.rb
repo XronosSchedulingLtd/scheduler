@@ -582,8 +582,8 @@ if pupils && years && tutorgroupentries
 #      puts "Year = #{year.inspect}"
 #      puts "Pupil = #{pupil.inspect}"
 #      puts "tg = #{tg.inspect}"
-    elsif staff && year
-      puts "#{tge.inspect} nearly made it."
+#    elsif staff && year
+#      puts "#{tge.inspect} nearly made it."
     end
   end
   puts "Removed #{tgmember_removed_count} pupils from tutor groups."

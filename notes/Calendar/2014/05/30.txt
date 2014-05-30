@@ -13,3 +13,11 @@ But from the point of view of client code, we're really only interested in the V
 There could potentially be a flag on a method call indicating that you do want to get the intermediate types back.
 
 As part of this, I also need to re-implement the Entity<=>Element relationship as a Concern.
+
+I will need to take care to ensure that where I change the calling interface of any existing methods, existing calls on those (which can only originate in my group, membership and element models) are changed to match.
+
+Found my first issue.  When recursing down through nested groups, I test whether the member of a group is itself of type Group.  It won't now be of type Group, but it will be linked to a group.
+
+Ah - if you get the class of the object and then call the method "included_modules" then you get a list of the modules which it includes, which should include Grouping.  That should do as a test.  Implement it as a class method on Group to make the test central.
+
+Finished that change, and everything still seems to load.  On to loading teaching groups.

@@ -224,6 +224,9 @@ class Group < ActiveRecord::Base
   # code and the code here should confine itself to setting given_date
   # to Date.today, and then returning [] if it's out of range.
   #
+  #
+  #  Note that this method returns *entities* - of whatever type.
+  #
   def members(given_date = nil, recurse = true, exclude_groups = false)
     if given_date
       # We have been given an explicit date.  If that's outside the range
@@ -245,9 +248,9 @@ class Group < ActiveRecord::Base
       active_memberships = self.memberships.active_on(given_date)
       excludes, includes = active_memberships.partition {|am| am.inverse}
       group_includes, atomic_includes =
-        includes.partition {|m| m.element.entity.class == Group}
+        includes.partition {|m| Group.visible_instance?(m.element.entity)}
       group_excludes, atomic_excludes =
-        excludes.partition {|m| m.element.entity.class == Group}
+        excludes.partition {|m| Group.visible_instance?(m.element.entity)}
       #
       #  Now build a list of includes and excludes, and subtract one from
       #  the other.
@@ -271,11 +274,12 @@ class Group < ActiveRecord::Base
                                             exclude_groups)
         }.flatten.uniq
       included_atomically =
-        atomic_includes.collect {|membership| membership.element}
+        atomic_includes.collect {|membership| membership.element.entity}
       excluded_atomically =
-        atomic_excludes.collect {|membership| membership.element}
+        atomic_excludes.collect {|membership| membership.element.entity}
       #
-      #  See the Zim documentation for an explanation of these priorities.
+      #  See the Zim documentation for Xronos for an explanation of
+      #  these priorities.
       #
       ((included_by_group - excluded_by_group) + included_atomically) - excluded_atomically
     else
@@ -288,14 +292,16 @@ class Group < ActiveRecord::Base
       #  at the exclusion records.
       #
       self.memberships.active_on(given_date).inclusions.select {|m|
-        m.element.entity.class != Group || !exclude_groups
-      }.collect {|m| m.element}
+        !Group.visible_instance?(m.element.entity) || !exclude_groups
+      }.collect {|m| m.element.entity}
     end
   end
 
   #
-  #  A bit like the members, method above, but provides a list of elements
+  #  A bit like the members, method above, but provides a list of entities
   #  which are explicitly excluded from membership of this group.
+  #
+  #  Again, we return *entities*, not elements.
   #
   def outcasts(given_date = nil, recurse = true)
     given_date ||= Date.today
@@ -303,19 +309,15 @@ class Group < ActiveRecord::Base
       exclusions = self.memberships.exclusions.active_on(given_date)
       excluded_elements =
         exclusions.collect { |membership|
-          if membership.element.entity.class == Group
-            if recurse
-              #  Note that we call members here, and not outcasts.
-              [membership.element] +
-              membership.element.entity.members(
-                membership.as_at ?
-                membership.as_at :
-                given_date)
-            else
-              membership.element
-            end
+          if Group.visible_instance?(membership.element.entity) && recurse
+            #  Note that we call members here, and not outcasts.
+            [membership.element.entity] +
+            membership.element.entity.members(
+              membership.as_at ?
+              membership.as_at :
+              given_date)
           else
-            membership.element
+            membership.element.entity
           end
         }.flatten.uniq
     else
@@ -338,6 +340,10 @@ class Group < ActiveRecord::Base
   #  of some of its parent groups, by dint of having once been a member
   #  of this group.
   #
+  #  Note that this method is intended for internal use by the group
+  #  processing code and so returns an array of "Group" objects, and not
+  #  the overlying visible groups.
+  #
   def parents_for(element, given_date)
     result = self.visible_group.element.memberships.inclusions.collect {|membership|
       membership.group.parents_for(element, given_date)
@@ -348,28 +354,36 @@ class Group < ActiveRecord::Base
     result.uniq
   end
 
-  # Decide whether the indicated element is a member of the group.
+  # Decide whether the indicated entity is a member of the group.
   def member?(item, given_date = nil, recurse = true)
     if item.instance_of?(Element)
-      element = item
+      entity = item.entity
     else
-      element = item.element
+      entity = item
     end
-    self.members(given_date, recurse).include?(element)
+    self.members(given_date, recurse).include?(entity)
   end
 
   def outcast?(item, given_date = nil, recurse = true)
     if item.instance_of?(Element)
-      element = item
+      entity = item.entity
     else
-      element = item.element
+      entity = item
     end
-    self.outcasts(given_date, recurse).include?(element)
+    self.outcasts(given_date, recurse).include?(entity)
   end
 
   def active_on(date)
     self.starts_on <= date &&
     (self.ends_on == nil || self.ends_on >= date)
+  end
+
+  #
+  #  A class method to test whether another class has linked itself
+  #  to a Group with the Grouping module.
+  #
+  def self.visible_instance?(candidate)
+    candidate.class.included_modules.include? Grouping
   end
 
   private

@@ -16,6 +16,8 @@ class Element < ActiveRecord::Base
   #  we are a member, and not just those for the indicated date.  This is
   #  because recursion may specify a different date to think about.
   #
+  #  Returns and array of *Visible Group* objects.
+  #
   def groups(given_date = nil, recurse = true)
     given_date ||= Date.today
     if recurse
@@ -26,7 +28,7 @@ class Element < ActiveRecord::Base
       #  then check which ones of these we are actually a member of on
       #  the indicated date.  The latter step could be done by a sledgehammer
       #  approach (call member?) for each of the relevant groups, but that
-      #  might be a bit inefficient.  I'm hoping to do it as be reverse
+      #  might be a bit inefficient.  I'm hoping to do it as we reverse
       #  down the recursion tree.
       #
       #  When working our way up the tree we have to include *all*
@@ -50,13 +52,13 @@ class Element < ActiveRecord::Base
       #
       self.memberships.inclusions.collect {|membership| 
         membership.group.parents_for(self, given_date)
-      }.flatten.uniq
+      }.flatten.uniq.collect {|g| g.visible_group}
     else
       #
       #  If recursion is not required then we just return a list of the
       #  groups of which this element is an immediate member.
       #
-      self.memberships.active_on(given_date).inclusions.collect {|m| m.group}
+      self.memberships.active_on(given_date).inclusions.collect {|m| m.group.visible_group}
     end
   end
 

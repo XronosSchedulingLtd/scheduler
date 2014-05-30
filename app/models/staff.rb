@@ -2,10 +2,13 @@ class Staff < ActiveRecord::Base
 
   validates :name, presence: true
 
-  has_one :element, :as => :entity, :dependent => :destroy
+  include Elemental
+
   has_one :tutorgroup 
 
   self.per_page = 15
+
+  scope :active, -> { where(active: true) }
 
   def element_name
     #

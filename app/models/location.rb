@@ -3,9 +3,11 @@ class Location < ActiveRecord::Base
   validates :name, presence: true
   validates :short_name, presence: true
 
-  has_one :element, :as => :entity, :dependent => :destroy
+  include Elemental
 
   self.per_page = 15
+
+  scope :active, -> { where(active: true) }
 
   def element_name
     #
