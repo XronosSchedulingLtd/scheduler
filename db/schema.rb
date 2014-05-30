@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140528181306) do
+ActiveRecord::Schema.define(version: 20140529085643) do
 
   create_table "elements", force: true do |t|
     t.string   "name"
@@ -67,10 +67,12 @@ ActiveRecord::Schema.define(version: 20140528181306) do
   end
 
   create_table "groups", force: true do |t|
-    t.date     "starts_on",  null: false
+    t.date     "starts_on",          null: false
     t.date     "ends_on"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "visible_group_id"
+    t.string   "visible_group_type"
   end
 
   create_table "locations", force: true do |t|
@@ -80,6 +82,7 @@ ActiveRecord::Schema.define(version: 20140528181306) do
     t.boolean  "active"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "current",    default: false
   end
 
   add_index "locations", ["source_id"], name: "index_locations_on_source_id", using: :btree
@@ -110,6 +113,7 @@ ActiveRecord::Schema.define(version: 20140528181306) do
     t.integer  "source_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "current",      default: false
   end
 
   add_index "pupils", ["source_id"], name: "index_pupils_on_source_id", using: :btree
@@ -125,8 +129,20 @@ ActiveRecord::Schema.define(version: 20140528181306) do
     t.boolean  "active"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "current",    default: false
   end
 
   add_index "staffs", ["source_id"], name: "index_staffs_on_source_id", using: :btree
+
+  create_table "tutorgroups", force: true do |t|
+    t.string   "name"
+    t.string   "house"
+    t.integer  "staff_id"
+    t.integer  "era_id"
+    t.integer  "start_year"
+    t.boolean  "current"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
 end

@@ -12,6 +12,7 @@
       <th>Forename</th>
       <th>Source</th>
       <th>Active</th>
+      <th>Current</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -26,6 +27,7 @@
         <td><%= staff.forename %></td>
         <td><%= staff.source_id %></td>
         <td><%= staff.active %></td>
+        <td><%= staff.current %></td>
         <td><%= link_to 'Show', staff %></td>
         <td><%= link_to 'Edit', edit_staff_path(staff) %></td>
         <td><%= link_to 'Destroy', staff, method: :delete, data: { confirm: 'Are you sure?' } %></td>

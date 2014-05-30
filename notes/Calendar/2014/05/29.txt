@@ -1,0 +1,76 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-29T08:35:46+01:00
+
+====== Thursday 29 May 2014 ======
+
+Yesterday I got the basic infrastructure of groups working - today I would like to implement and load Tutorgroups.
+
+Ah - just had a thought.  I have implemented an "active" flag, which controls whether entities get element records, and thus whether they will turn up in predictive searches.  I've just realised that this is trying to express two different things.
+
+For staff loading from SchoolBase, I use the active flag to indicate whether I really want them or not.  As I can't control what SchoolBase sends, I create records for all of them, but mark many as inactive.  They thus don't get element records, and can't be members of groups.
+
+Active flag controls:
+
+* Can be a member of a group
+* Shows up in searches
+
+However, for tutorgroups it gets more interesting. I don't anticipate having to load any non-existent tutor groups - I'll just have the right set - but they vary year-by-year.  I would really like only this year's (current era) to show up in casual searches, but the others (from previous years) need to remain in existence for the historical record.  If I were to set them as inactive they would immediately lose their element records, and thus lose all the corresponding membership records.
+
+Likewise pupils.  If they leave (which they will) I don't want to throw away all the historic membership information.  I do however want to be able to flag them as no longer current pupils.  We thus need degrees of interactive search.
+
+By default, typing in my predictive search box we should get:
+
+* Current pupils
+* Current staff
+* Groups for the current year
+
+but it should also be possible to specify that we want to be able to get historic items too.  Predictive searches don't want to do dozens of related database queries, so I suspect I need a "current" flag in items too, which gets propagated to the element record.  Items which are not "active" don't get an element record.  Items which are "active" do, but the record then gets a copy of their "current" flag too.  The default search box will not find anything which isn't "current".
+
+Setting and unsetting current can be done as a bit of end-of-year processing.  Note also that this new approach to tutor groups means I can keep historic information about which groups a pupil was in.
+
+I need to go back and add the "current" field to all the records which I've created so far.  As before, it will be set by SB when it loads a record, but won't be amended subsequently.
+
+Got to the point where I can create all my tutorgroups, but none of them seems to have acquired an underlying group.  Why?  I'm sure I got one when I did it manually.  Possibly because I failed to set a starts_on value, but in that case the whole creation should surely have failed?  Or it should have used today's date?
+
+Yes, that's definitely the cause.  First fix my code to use today's date if none is provided, then provide a date.
+
+I'm realising that the entity<=>element relationship should also be implemented with a Concern.  That way I could get automatic methods in the entities too.
+
+There is something wrong with the "inclusions" scope defined in memberships.rb.  Need to look into what it is.
+
+Succeeded in adding 953 pupils (plus 1 in the first run) to tutor groups.  Interestingly, that seems to leave one pupil with no tutor group, since I have 955 in my database.
+
+The syntax for specifying a scope seems to have changed between Rails 3.x and Rails 4.  In my existing code I have:
+
+'''
+scope :exclusions, where(:inverse => true)
+'''
+
+
+but this apparently isn't right any more.  It should now be something like:
+
+'''
+scope :exclusions, -> { where(inverse: true) }
+'''
+
+It's not totally clear, but let's try that.  Yes, seems to work.  Do I have any other scopes which need the same treatment?  No - all the others seem to be explicit lambdas already.  (Lambdae?)
+
+Now - why does one of my students not have a tutor group?  Who is it?
+
+Pupil id 2864.  Source id 12640.  Rahul Ghandinesen.  He claims to be in the 2nd year, but doesn't show up as a valid pupil.  I wonder whether there's another field I can check to identify his invalidity.
+
+Seem to have Pu_Doe and PupDateofLeaving (don't you just love consistent field naming?)
+
+I now make it a requirement that pupils have a date of entry field before they get in.  Interestingly, that takes me down to 951 pupils in my d/b, suggesting that two other pupils have tutor records, but no date of entry.
+
+How many pupils does SB think we have?  Check on the web i/f.  954.  What fun!  Pupil_idents are:
+
+5983		Jack Gu									No date of entry
+10427		Josh Braithwaite							No date of entry
+12454		Jason Fan (duplicate entry - also 12453)		No date of entry
+12640		Rahul Ghandinesen
+
+Raised a query with Lou.
+
+It takes a surprisingly long time to process the tutor group entry records.  There are much the same number as there are pupils, but it takes much longer.  Why?

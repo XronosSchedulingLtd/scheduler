@@ -12,6 +12,7 @@
       <th>Candidate no</th>
       <th>Start year</th>
       <th>Source</th>
+      <th>Current</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -26,6 +27,7 @@
         <td><%= pupil.candidate_no %></td>
         <td><%= pupil.start_year %></td>
         <td><%= pupil.source_id %></td>
+        <td><%= pupil.current %></td>
         <td><%= link_to 'Show', pupil %></td>
         <td><%= link_to 'Edit', edit_pupil_path(pupil) %></td>
         <td><%= link_to 'Destroy', pupil, method: :delete, data: { confirm: 'Are you sure?' } %></td>

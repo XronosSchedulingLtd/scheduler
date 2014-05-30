@@ -339,7 +339,7 @@ class Group < ActiveRecord::Base
   #  of this group.
   #
   def parents_for(element, given_date)
-    result = self.element.memberships.inclusions.collect {|membership|
+    result = self.visible_group.element.memberships.inclusions.collect {|membership|
       membership.group.parents_for(element, given_date)
     }.flatten
     if self.member?(element, given_date)

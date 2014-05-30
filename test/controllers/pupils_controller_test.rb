@@ -18,7 +18,7 @@ class PupilsControllerTest < ActionController::TestCase
 
   test "should create pupil" do
     assert_difference('Pupil.count') do
-      post :create, pupil: { candidate_no: @pupil.candidate_no, email: @pupil.email, forename: @pupil.forename, known_as: @pupil.known_as, name: @pupil.name, source_id: @pupil.source_id, start_year: @pupil.start_year, surname: @pupil.surname }
+      post :create, pupil: { candidate_no: @pupil.candidate_no, email: @pupil.email, forename: @pupil.forename, known_as: @pupil.known_as, name: @pupil.name, source_id: @pupil.source_id, start_year: @pupil.start_year, surname: @pupil.surname, current: @pupil.current }
     end
 
     assert_redirected_to pupil_path(assigns(:pupil))
@@ -35,7 +35,7 @@ class PupilsControllerTest < ActionController::TestCase
   end
 
   test "should update pupil" do
-    patch :update, id: @pupil, pupil: { candidate_no: @pupil.candidate_no, email: @pupil.email, forename: @pupil.forename, known_as: @pupil.known_as, name: @pupil.name, source_id: @pupil.source_id, start_year: @pupil.start_year, surname: @pupil.surname }
+    patch :update, id: @pupil, pupil: { candidate_no: @pupil.candidate_no, email: @pupil.email, forename: @pupil.forename, known_as: @pupil.known_as, name: @pupil.name, source_id: @pupil.source_id, start_year: @pupil.start_year, surname: @pupil.surname, current: @pupil.current }
     assert_redirected_to pupil_path(assigns(:pupil))
   end
 

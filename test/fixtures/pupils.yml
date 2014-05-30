@@ -9,6 +9,7 @@ one:
   candidate_no: MyString
   start_year: 1
   source_id: 1
+  current: false
 
 two:
   name: MyString
@@ -19,3 +20,4 @@ two:
   candidate_no: MyString
   start_year: 1
   source_id: 1
+  current: false

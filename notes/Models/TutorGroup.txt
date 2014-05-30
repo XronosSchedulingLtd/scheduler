@@ -1,0 +1,21 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-29T08:36:26+01:00
+
+====== TutorGroup ======
+Created Thursday 29 May 2014
+
+Tutorgroups list all the pupils in a particular tutor's care.
+
+
+Fields
+
+name		string	Textual name of the tutor group (e.g. 3JHW)
+house		string	Name of house
+staff_id		integer	Id of the staff member responsible
+era_id		integer	Id of the Era the group exists in
+start_year	integer	The intended start year of boys in this group
+current		boolean	Is this group current (only current year's groups should show up in search).
+
+
+I don't anticipate having such a thing as an inactive tutor group, so "active" doesn't need to be a database field.  It can be implemented as a method.

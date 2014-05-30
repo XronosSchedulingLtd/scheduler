@@ -4,6 +4,12 @@ require 'charlock_holmes'
 #
 #  A script to load in the CSV files which I've exported from SchoolBase.
 #
+#  We could really do with some sort of run-time flag to indicate whether
+#  this is an original loading, in which case dates should probably be
+#  taken as running from the start of the year, or a daily update, in
+#  which case we should use today's date to indicate when a membership
+#  started or finished.
+#
 
 IMPORT_DIR = 'import'
 
@@ -18,6 +24,7 @@ module Slurper
     parent::REQUIRED_COLUMNS.each do |column|
       attr_accessor column[:attr_name]
     end
+    attr_accessor :db_id
     parent.send :extend, ClassMethods
   end
 
@@ -102,19 +109,26 @@ class SB_Location
   def active
     true
   end
+
+  def current
+    true
+  end
 end
 
 
 class SB_Pupil
   FILE_NAME = "pupil.csv"
-  REQUIRED_COLUMNS = [Column["PupOrigNum",       :pupil_ident,  true],
-                      Column["Pu_Surname",       :surname,      false],
-                      Column["Pu_Firstname",     :forename,     false],
-                      Column["Pu_GivenName",     :known_as,     false],
-                      Column["PupilDisplayName", :name,         false],
-                      Column["PupEmail",         :email,        false],
-                      Column["Pu_CandNo",        :candidate_no, false],
-                      Column["YearIdent",        :year_ident,   true]]
+  REQUIRED_COLUMNS = [Column["PupOrigNum",       :pupil_ident,     true],
+                      Column["Pu_Surname",       :surname,         false],
+                      Column["Pu_Firstname",     :forename,        false],
+                      Column["Pu_GivenName",     :known_as,        false],
+                      Column["PupReportName",    :name,            false],
+                      Column["PupEmail",         :email,           false],
+                      Column["Pu_CandNo",        :candidate_no,    false],
+                      Column["YearIdent",        :year_ident,      true],
+                      Column["Pu_Doe",           :date_of_entry,   false],
+                      Column["PupDateofLeaving", :date_of_leaving, false],
+                      Column["PType",            :ptype,           true]]
 
   include Slurper
 
@@ -125,8 +139,17 @@ class SB_Pupil
   end
 
   def wanted?
+    #
+    #  He must have a date of entry.
+    #
+    self.ptype == 60
+#    !self.date_of_entry.blank?
+  end
+
+  def current
     true
   end
+
 end
 
 
@@ -161,14 +184,19 @@ class SB_Staff
     true
   end
 
+  def current
+    self.active
+  end
+
 end
 
 
-class SB_Tutorgroup
+class SB_Tutorgroupentry
   FILE_NAME = "tutorgroup.csv"
-  REQUIRED_COLUMNS = [Column["UserIdent",    :user_ident, true],
-                      Column["YearIdent",    :year_ident, true],
-                      Column["PupOrigNum",   :pupil_ident, true]]
+  REQUIRED_COLUMNS = [Column["UserIdent",    :user_ident,  true],
+                      Column["YearIdent",    :year_ident,  true],
+                      Column["PupOrigNum",   :pupil_ident, true],
+                      Column["Pu_House",     :house,       false]]
 
   include Slurper
 
@@ -179,10 +207,18 @@ class SB_Tutorgroup
   end
 
   def wanted?
-    true
+    self.user_ident != 0 &&
+    self.year_ident != 0 &&
+    self.pupil_ident != 0 &&
+    self.pupil_ident != -1
   end
 end
 
+
+class SB_Tutorgroup
+  attr_accessor :name, :house, :staff_id, :era_id, :start_year, :db_id
+
+end
 
 class SB_Year
   FILE_NAME = "years.csv"
@@ -234,16 +270,20 @@ def check_and_update(dbrecord, sbrecord, fields)
   changed
 end
 
-tutorgroups, msg = SB_Tutorgroup.slurp
+tutorgroupentries, msg = SB_Tutorgroupentry.slurp
 if msg.blank?
-  puts "Read #{tutorgroups.size} tutor groups."
+  puts "Read #{tutorgroupentries.size} tutor groups."
 else
-  puts "Tutorgroups: #{msg}"
+  puts "Tutorgroupentries: #{msg}"
 end
 
 years, msg = SB_Year.slurp
 if msg.blank?
   puts "Read #{years.size} years."
+  year_hash = {}
+  years.each do |year|
+    year_hash[year.year_ident] = year
+  end
 else
   puts "Years: #{msg}"
 end
@@ -251,15 +291,15 @@ end
 pupils, msg = SB_Pupil.slurp
 if msg.blank?
   puts "Read #{pupils.size} pupils."
+  pupil_hash = {}
+  pupils.each do |pupil|
+    pupil_hash[pupil.pupil_ident] = pupil
+  end
 else
   puts "Pupils: #{msg}"
 end
 
 if pupils && years
-  year_hash = {}
-  years.each do |year|
-    year_hash[year.year_ident] = year
-  end
   pupils_changed_count   = 0
   pupils_unchanged_count = 0
   pupils_loaded_count    = 0
@@ -268,6 +308,7 @@ if pupils && years
     if year
       dbrecord = Pupil.find_by_source_id(pupil.pupil_ident)
       if dbrecord
+        pupil.db_id = dbrecord.id
         changed = check_and_update(dbrecord, pupil, [:name,
                                                      :forename,
                                                      :known_as,
@@ -296,8 +337,10 @@ if pupils && years
         dbrecord.candidate_no = pupil.candidate_no
         dbrecord.start_year   = year.start_year
         dbrecord.source_id    = pupil.pupil_ident
+        dbrecord.current      = pupil.current
         if dbrecord.save
           pupils_loaded_count += 1
+          pupil.db_id = dbrecord.id
         else
           puts "Failed to save new pupil record for #{pupil.name}"
         end
@@ -311,6 +354,10 @@ end
 
 staff, msg = SB_Staff.slurp
 if msg.blank?
+  staff_hash = {}
+  staff.each do |s|
+    staff_hash[s.sb_ident] = s
+  end
   #
   #  Should now have an array of Staff records ready to load into the
   #  database.
@@ -321,6 +368,7 @@ if msg.blank?
   staff.each do |s|
     dbrecord = Staff.find_by_source_id(s.sb_ident)
     if dbrecord
+      s.db_id = dbrecord.id
       #
       #  Staff record already exists.  Any changes?
       #
@@ -355,7 +403,9 @@ if msg.blank?
       dbrecord.email     = s.email
       dbrecord.source_id = s.sb_ident
       dbrecord.active    = s.active
+      dbrecord.current   = s.current
       if dbrecord.save
+        s.db_id = dbrecord.id
         loaded_count += 1
       else
         puts "Failed to save new staff record for \"#{s.name}\", sb_ident #{s.sb_ident}"
@@ -372,12 +422,17 @@ end
 locations, msg = SB_Location.slurp
 if msg.blank?
   puts "Read #{locations.size} locations."
+  location_hash = {}
+  locations.each do |location|
+    location_hash[location.room_ident] = location
+  end
   locations_changed_count   = 0
   locations_unchanged_count = 0
   locations_loaded_count    = 0
   locations.each do |location|
     dbrecord = Location.find_by_source_id(location.room_ident)
     if dbrecord
+      location.db_id = dbrecord.id
       changed = check_and_update(dbrecord, location, [:short_name, :name])
       if changed
         if dbrecord.save
@@ -394,7 +449,9 @@ if msg.blank?
       dbrecord.name       = location.name
       dbrecord.source_id  = location.room_ident
       dbrecord.active     = location.active
+      dbrecord.current    = location.current
       if dbrecord.save
+        location.db_id = dbrecord.id
         locations_loaded_count += 1
       else
         puts "Failed to save new location record for #{location.name}"
@@ -408,3 +465,128 @@ else
   puts "Locations: #{msg}"
 end
 
+if pupils && years && tutorgroupentries
+  puts "Attempting to construct tutor groups."
+
+  tutorgroups = []
+  tg_hash = {}
+  tge_accepted_count = 0
+  tge_ignored_count = 0
+  era = Era.first
+  tutorgroupentries.each do |tge|
+    staff = staff_hash[tge.user_ident]
+    year  = year_hash[tge.year_ident]
+    pupil = pupil_hash[tge.pupil_ident]
+    if staff && year && pupil && staff.db_id && staff.active
+      tge_accepted_count += 1
+      unless tg_hash[tge.user_ident]
+        tg = SB_Tutorgroup.new
+        tg.name       = "#{year.year_num - 6}#{staff.initials}"
+        tg.house      = tge.house
+        tg.staff_id   = staff.db_id
+        tg.era_id     = era.id
+        tg.start_year = year.start_year
+        tg_hash[tge.user_ident] = tg
+      end
+    else
+      tge_ignored_count += 1
+    end
+  end
+  puts "Accepted #{tge_accepted_count} tutor group entries."
+  puts "Ignored #{tge_ignored_count} tutor group entries."
+  puts "Constructed #{tg_hash.size} tutor groups."
+  tg_changed_count   = 0
+  tg_unchanged_count = 0
+  tg_loaded_count    = 0
+  tg_hash.each do |key, tg|
+    dbrecord = Tutorgroup.find_by_staff_id(tg.staff_id)
+    if dbrecord
+      tg.db_id = dbrecord.id
+      changed = check_and_update(dbrecord, tg, [:name,
+                                                :house,
+                                                :era_id,
+                                                :start_year])
+      if changed
+        if dbrecord.save
+          tg_changed_count += 1
+        else
+          puts "Failed to save amended tutorgroup record for #{tg.name}"
+        end
+      else
+        tg_unchanged_count += 1
+      end
+    else
+      dbrecord = Tutorgroup.new
+      dbrecord.name       = tg.name
+      dbrecord.house      = tg.house
+      dbrecord.staff_id   = tg.staff_id
+      dbrecord.era_id     = tg.era_id
+      dbrecord.start_year = tg.start_year
+      dbrecord.current    = true
+      dbrecord.starts_on  = era.starts_on
+      dbrecord.ends_on    = era.ends_on
+      if dbrecord.save
+        tg.db_id = dbrecord.id
+        tg_loaded_count += 1
+      else
+        puts "Failed to save new tutorgroup record for #{tg.name}"
+      end
+    end
+  end
+  puts "#{tg_changed_count} tutorgroup records amended."
+  puts "#{tg_unchanged_count} tutorgroup records untouched."
+  puts "#{tg_loaded_count} tutorgroup records created."
+  #
+  #  And now can I put each pupil in the correct tutor group?
+  #
+  tgmember_removed_count   = 0
+  tgmember_unchanged_count = 0
+  tgmember_loaded_count    = 0
+  tutorgroupentries.each do |tge|
+    staff = staff_hash[tge.user_ident]
+    year  = year_hash[tge.year_ident]
+    pupil = pupil_hash[tge.pupil_ident]
+    tg    = staff ? tg_hash[staff.sb_ident] : nil
+    if staff && year && pupil && pupil.db_id && tg && staff.active
+      dbpupil = Pupil.find(pupil.db_id)
+      dbtg    = Tutorgroup.find(tg.db_id)
+      if dbpupil && dbtg
+        #
+        #  Is this pupil already a member of the right tutor group?
+        #
+        if dbtg.member?(dbpupil, nil, false)
+          tgmember_unchanged_count += 1
+        else
+          #
+          #  No.  Is he a member of any tutor group?
+          #  If so then take him out.
+          #
+          groups = dbpupil.element.groups
+          tgroups = groups.select {|g| g.visible_group.is_a? Tutorgroup}
+          tgroups.each do |tgroup|
+            puts "Removing #{dbpupil.name} from #{tgroup.name}"
+            tgroup.remove_member(dbpupil)
+            tgmember_removed_count += 1
+          end
+          #
+          #  And now put him in the right tutorgroup
+          #
+          dbtg.add_member(dbpupil)
+          tgmember_loaded_count += 1
+        end
+      else
+        puts "Can't find database record for pupil/tutorgroup. (Shouldn't happen.)"
+      end
+#    else
+#      puts "Staff = #{staff.inspect}"
+#      puts "Year = #{year.inspect}"
+#      puts "Pupil = #{pupil.inspect}"
+#      puts "tg = #{tg.inspect}"
+    elsif staff && year
+      puts "#{tge.inspect} nearly made it."
+    end
+  end
+  puts "Removed #{tgmember_removed_count} pupils from tutor groups."
+  puts "Left #{tgmember_unchanged_count} pupils where they were."
+  puts "Added #{tgmember_loaded_count} pupils to tutor groups."
+end

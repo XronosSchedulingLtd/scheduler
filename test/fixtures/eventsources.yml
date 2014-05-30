@@ -1,7 +1,16 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  name: MyString
+  name: One
 
 two:
-  name: MyString
+  name: Two
+
+calendar:
+  name: Calendar
+
+manual:
+  name: Manual
+
+schoolbase:
+  name: SchoolBase

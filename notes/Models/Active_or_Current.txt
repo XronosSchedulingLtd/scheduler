@@ -1,0 +1,14 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-29T09:31:32+01:00
+
+====== Active or Current ======
+Created Thursday 29 May 2014
+
+An explanation of the Active and Current fields in models.
+
+I have to take data from SchoolBase, some of which I don't want.  In some cases I can filter as part of the import process (e.g. creating records only for real students) but in other cases I can't tell - there are lots and lots of spurious staff records in SchoolBase, and I have no way of telling automatically which are real (from my point of view) and which aren't.  I therefore load all of them, and make a best guess as to which ones I want - the "active" ones.
+
+The "active" flag can then be edited manually, and won't be touched again by the import process.  It sets it when creating a record, but ignores it when updating a record.  Anything which isn't active is effectively ignored by the rest of my system.  It won't show up in searches, and it doesn't get an "Element" record, so can't be part of a group.
+
+The "current" flag on the other hand is applied to records which I do want, but may not be still at the forefront.  Obvious examples are staff and pupils who have left, but another would be tutorgroups from previous years.  I still want them in the system, and they still may be members of historic groups, but they won't show up in the simplest searches - typically produced by typing in a predictive text box.

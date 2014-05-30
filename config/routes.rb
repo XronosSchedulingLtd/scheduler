@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :tutorgroups
+
   resources :locations
 
   resources :pupils

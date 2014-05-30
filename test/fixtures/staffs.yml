@@ -9,6 +9,7 @@ one:
   email: MyString
   source_id: 1
   active: false
+  current: false
 
 two:
   name: MyString
@@ -19,3 +20,4 @@ two:
   email: MyString
   source_id: 1
   active: false
+  current: false

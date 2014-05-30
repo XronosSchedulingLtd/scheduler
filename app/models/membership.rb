@@ -13,8 +13,8 @@ class Membership < ActiveRecord::Base
   scope :starts_by, lambda {|date| where("starts_on <= ?", date) }
   scope :continues_until, lambda {|date| where("ends_on IS NULL OR ends_on >= ?", date) }
   scope :active_on, lambda {|date| starts_by(date).continues_until(date) }
-  scope :exclusions, where(:inverse => true)
-  scope :inclusions, where(:inverse => false)
+  scope :exclusions, -> { where(inverse: true) }
+  scope :inclusions, -> { where(inverse: false) }
 
   #
   #  Can I also have a method with the same name?  It appears I can.

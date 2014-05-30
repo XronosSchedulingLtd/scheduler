@@ -1,0 +1,10 @@
+digraph models {
+  rankdir=BT;
+  node [shape=box, style="filled,rounded", fillcolor=lightskyblue2];
+
+    "Group"         -> "Visible group";
+    "Membership"    -> "Group";
+    "Membership"    -> "Element";
+    "Element"       -> "Entity";
+    
+}

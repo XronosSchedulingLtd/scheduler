@@ -1,6 +1,6 @@
 class Element < ActiveRecord::Base
   belongs_to :entity, :polymorphic => true
-#  has_many :memberships, :dependent => :destroy
+  has_many :memberships, :dependent => :destroy
   
   #
   #  This method is much like the "members" method in the Group model,

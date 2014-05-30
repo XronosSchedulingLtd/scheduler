@@ -3,6 +3,7 @@ class Staff < ActiveRecord::Base
   validates :name, presence: true
 
   has_one :element, :as => :entity, :dependent => :destroy
+  has_one :tutorgroup 
 
   self.per_page = 15
 
