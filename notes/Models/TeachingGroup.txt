@@ -1,0 +1,17 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-30T13:13:19+01:00
+
+====== TeachingGroup ======
+Created Friday 30 May 2014
+
+Although I intend this to function merely for teaching groups, it's difficult to tell these apart from general groups in SB's feed, so for now it's all the groups I get from SB.
+
+I'm currently making no attempt to link them to subjects, although it should be straightforward later.  For now they're just lists of pupils.
+
+Fields
+
+name		string	Textual name of the group
+era_id		integer	Id of the Era the group exists in
+current		boolean	Is this group current (only current year's groups should show up in search).
+source_id	integer	The id of the group in SB

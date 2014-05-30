@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140529085643) do
+ActiveRecord::Schema.define(version: 20140530121636) do
 
   create_table "elements", force: true do |t|
     t.string   "name"
@@ -29,6 +29,7 @@ ActiveRecord::Schema.define(version: 20140529085643) do
     t.date     "ends_on"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "source_id"
   end
 
   create_table "eventcategories", force: true do |t|
@@ -133,6 +134,18 @@ ActiveRecord::Schema.define(version: 20140529085643) do
   end
 
   add_index "staffs", ["source_id"], name: "index_staffs_on_source_id", using: :btree
+
+  create_table "teachinggroups", force: true do |t|
+    t.string   "name"
+    t.integer  "era_id"
+    t.boolean  "current"
+    t.integer  "source_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "teachinggroups", ["era_id"], name: "index_teachinggroups_on_era_id", using: :btree
+  add_index "teachinggroups", ["source_id"], name: "index_teachinggroups_on_source_id", using: :btree
 
   create_table "tutorgroups", force: true do |t|
     t.string   "name"

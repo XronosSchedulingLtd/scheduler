@@ -39,6 +39,14 @@
     </div>
   </div>
   <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :source_id, class: "right inline" %><br>
+    </div>
+    <div class="small-9 columns">
+      <%= f.number_field :source_id %>
+    </div>
+  </div>
+  <div class="row collapse">
     <div class="small-9 small-offset-3 columns"><%= f.submit %></div>
   </div>
 <% end %>

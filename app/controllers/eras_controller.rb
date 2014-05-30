@@ -74,6 +74,6 @@ class ErasController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def era_params
-      params.require(:era).permit(:name, :starts_on, :ends_on)
+      params.require(:era).permit(:name, :starts_on, :ends_on, :source_id)
     end
 end

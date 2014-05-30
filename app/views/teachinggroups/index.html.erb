@@ -1,0 +1,36 @@
+<h1>Listing teachinggroups</h1>
+<p id="notice"><%= notice %></p>
+
+<%= will_paginate @teachinggroups %>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Era</th>
+      <th>Current</th>
+      <th>Source</th>
+      <th>Size</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @teachinggroups.each do |teachinggroup| %>
+      <tr>
+        <td><%= teachinggroup.name %></td>
+        <td><%= teachinggroup.era_id %></td>
+        <td><%= teachinggroup.current %></td>
+        <td><%= teachinggroup.source_id %></td>
+        <td><%= teachinggroup.members.count %></td>
+        <td><%= link_to 'Show', teachinggroup %></td>
+        <td><%= link_to 'Edit', edit_teachinggroup_path(teachinggroup) %></td>
+        <td><%= link_to 'Destroy', teachinggroup, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= will_paginate @teachinggroups %>
+
+<br>
+
+<%= link_to 'New Teachinggroup', new_teachinggroup_path %>

@@ -86,6 +86,57 @@ module Slurper
 end
 
 
+class SB_AcademicRecord
+  FILE_NAME = "academicrecord.csv"
+  REQUIRED_COLUMNS = [Column["AcrIdent",    :acr_ident,     true],
+                      Column["AcYearIdent", :ac_year_ident, true],
+                      Column["PupOrigNum",  :pupil_ident,   true],
+                      Column["CurrIdent",   :curriculum_ident, true],
+                      Column["GroupIdent",  :group_ident,      true]]
+
+  include Slurper
+
+  def adjust
+  end
+
+  def wanted?
+    true
+  end
+
+  def active
+    true
+  end
+
+  def current
+    true
+  end
+end
+
+
+class SB_Group
+  FILE_NAME = "groups.csv"
+  REQUIRED_COLUMNS = [Column["GroupIdent", :group_ident, true],
+                      Column["GroupName",  :name,        false]]
+
+  include Slurper
+
+  def adjust
+  end
+
+  def wanted?
+    true
+  end
+
+  def active
+    true
+  end
+
+  def current
+    true
+  end
+end
+
+
 class SB_Location
   FILE_NAME = "room.csv"
   REQUIRED_COLUMNS = [Column["RoomIdent", :room_ident, true],
@@ -297,6 +348,24 @@ if msg.blank?
   end
 else
   puts "Pupils: #{msg}"
+end
+
+groups, msg = SB_Group.slurp
+if msg.blank?
+  puts "Read #{groups.size} groups."
+  group_hash = {}
+  groups.each do |group|
+    group_hash[group.group_ident] = group
+  end
+else
+  puts "Groups: #{msg}"
+end
+
+ars, msg = SB_AcademicRecord.slurp
+if msg.blank?
+  puts "Read #{ars.size} academic records."
+else
+  puts "Academic records: #{msg}"
 end
 
 if pupils && years
@@ -589,4 +658,71 @@ if pupils && years && tutorgroupentries
   puts "Removed #{tgmember_removed_count} pupils from tutor groups."
   puts "Left #{tgmember_unchanged_count} pupils where they were."
   puts "Added #{tgmember_loaded_count} pupils to tutor groups."
+end
+
+if ars && groups && pupils
+  #
+  #  So, can we load all the teaching groups as well?
+  #  Drive this by the membership records - a group with no members is
+  #  not terribly interesting.
+  #
+  groups_created_count    = 0
+  pupils_added_count      = 0
+  pupils_left_alone_count = 0
+  dbera_hash = {}
+  dbtg_hash = {}
+  dbpupil_hash = {}
+  today = Date.today
+  ars.each do |ar|
+    dbera = (dbera_hash[ar.ac_year_ident] ||= Era.find_by_source_id(ar.ac_year_ident))
+    pupil  = pupil_hash[ar.pupil_ident]
+    group  = group_hash[ar.group_ident]
+    if dbera && pupil && group
+      #
+      #  One to load, or at least, check.
+      #
+      dbgroup = (dbtg_hash[group.group_ident] ||= Teachinggroup.find_by_source_id(group.group_ident))
+      unless dbgroup
+        #
+        #  Doesn't seem to exist.  Can we create it?
+        #
+        dbgroup = Teachinggroup.new
+        dbgroup.name      = group.name
+        dbgroup.era       = dbera
+        dbgroup.current   = true
+        dbgroup.source_id = group.group_ident
+        dbgroup.starts_on = era.starts_on
+        if dbgroup.save
+          groups_created_count += 1
+          dbgroup.reload
+        else
+          dbgroup = nil
+          puts "Failed to create teaching group #{group.name}"
+        end
+      end
+      if dbgroup
+        #
+        #  Is the pupil already a member?
+        #
+        dbpupil = (dbpupil_hash[pupil.pupil_ident] ||= Pupil.find_by_source_id(pupil.pupil_ident))
+        if dbpupil
+          if dbgroup.member?(dbpupil, today, false)
+            pupils_left_alone_count += 1
+          else
+            dbgroup.add_member(dbpupil, dbera.starts_on)
+            pupils_added_count += 1
+          end
+        else
+          puts "Couldn't find pupil #{pupil.name} in the d/b."
+        end
+      end
+#    else
+#      puts "dbera = #{dbera.inspect}"
+#      puts "pupil = #{pupil.inspect}"
+#      puts "group = #{group.inspect}"
+    end
+  end
+  puts "Created #{groups_created_count} teaching groups."
+  puts "Added #{pupils_added_count} to teaching groups."
+  puts "Left #{pupils_left_alone_count} where they were."
 end

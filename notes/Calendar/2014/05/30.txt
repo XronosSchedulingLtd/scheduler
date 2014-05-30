@@ -21,3 +21,5 @@ Found my first issue.  When recursing down through nested groups, I test whether
 Ah - if you get the class of the object and then call the method "included_modules" then you get a list of the modules which it includes, which should include Grouping.  That should do as a test.  Implement it as a class method on Group to make the test central.
 
 Finished that change, and everything still seems to load.  On to loading teaching groups.
+
+Just realised that my group manipulation methods could do with bang and non-bang versions.  Currently they just raise an error if something goes wrong, but they could usefully offer the choice.
