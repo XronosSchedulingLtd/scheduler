@@ -299,7 +299,19 @@ end
 
 
 class SB_Tutorgroup
-  attr_accessor :name, :house, :staff_id, :era_id, :start_year, :db_id
+  attr_accessor :name, :house, :staff_id, :era_id, :start_year, :db_id, :records
+
+  def initialize
+    @records = Array.new
+  end
+
+  def add(record)
+    @records << record
+  end
+
+  def num_pupils
+    @records.size
+  end
 
 end
 
@@ -566,7 +578,7 @@ else
   puts "Locations: #{msg}"
 end
 
-if pupils && years && tutorgroupentries && false
+if pupils && years && tutorgroupentries
   puts "Attempting to construct tutor groups."
 
   tutorgroups = []
@@ -589,6 +601,7 @@ if pupils && years && tutorgroupentries && false
         tg.start_year = year.start_year
         tg_hash[tge.user_ident] = tg
       end
+      tg_hash[tge.user_ident].add(tge)
     else
       tge_ignored_count += 1
     end
@@ -596,13 +609,19 @@ if pupils && years && tutorgroupentries && false
   puts "Accepted #{tge_accepted_count} tutor group entries."
   puts "Ignored #{tge_ignored_count} tutor group entries."
   puts "Constructed #{tg_hash.size} tutor groups."
+  puts "Starting to load tutor groups and members."
   tg_changed_count   = 0
   tg_unchanged_count = 0
   tg_loaded_count    = 0
+  tgmember_removed_count   = 0
+  tgmember_unchanged_count = 0
+  tgmember_loaded_count    = 0
   tg_hash.each do |key, tg|
     dbrecord = Tutorgroup.find_by_staff_id(tg.staff_id)
     if dbrecord
-      tg.db_id = dbrecord.id
+      #
+      #  Need to check the group details still match.
+      #
       changed = check_and_update(dbrecord, tg, [:name,
                                                 :house,
                                                 :era_id,
@@ -617,76 +636,54 @@ if pupils && years && tutorgroupentries && false
         tg_unchanged_count += 1
       end
     else
-      dbrecord = Tutorgroup.new
-      dbrecord.name       = tg.name
-      dbrecord.house      = tg.house
-      dbrecord.staff_id   = tg.staff_id
-      dbrecord.era_id     = tg.era_id
-      dbrecord.start_year = tg.start_year
-      dbrecord.current    = true
-      dbrecord.starts_on  = era.starts_on
-      dbrecord.ends_on    = era.ends_on
-      if dbrecord.save
-        tg.db_id = dbrecord.id
-        tg_loaded_count += 1
-      else
-        puts "Failed to save new tutorgroup record for #{tg.name}"
+      if tg.num_pupils > 0
+        dbrecord = Tutorgroup.new
+        dbrecord.name       = tg.name
+        dbrecord.house      = tg.house
+        dbrecord.staff_id   = tg.staff_id
+        dbrecord.era_id     = tg.era_id
+        dbrecord.start_year = tg.start_year
+        dbrecord.current    = true
+        dbrecord.starts_on  = era.starts_on
+        dbrecord.ends_on    = era.ends_on
+        if dbrecord.save
+          dbrecord.reload
+          tg_loaded_count += 1
+        else
+          puts "Failed to save new tutorgroup record for #{tg.name}"
+          dbrecord = nil
+        end
       end
+    end
+    if dbrecord
+      tg.db_id = dbrecord.id
+      #
+      #  And now sort out the pupils for this tutor group.
+      #
+      db_member_ids = dbrecord.members.collect {|s| s.source_id}
+      sb_member_ids = tg.records.collect {|r| r.pupil_ident}
+      missing_from_db = sb_member_ids - db_member_ids
+      missing_from_db.each do |pupil_id|
+        pupil = pupil_hash[pupil_id]
+        if pupil && pupil.dbrecord
+          dbrecord.add_member(pupil.dbrecord)
+          tgmember_loaded_count += 1
+        end
+      end
+      extra_in_db = db_member_ids - sb_member_ids
+      extra_in_db.each do |pupil_id|
+        pupil = pupil_hash[pupil_id]
+        if pupil && pupil.dbrecord
+          dbgroup.remove_member(pupil.dbrecord)
+          tgmember_removed_count += 1
+        end
+      end
+      tgmember_unchanged_count += (db_member_ids.size - extra_in_db.size)
     end
   end
   puts "#{tg_changed_count} tutorgroup records amended."
   puts "#{tg_unchanged_count} tutorgroup records untouched."
   puts "#{tg_loaded_count} tutorgroup records created."
-  #
-  #  And now can I put each pupil in the correct tutor group?
-  #
-  tgmember_removed_count   = 0
-  tgmember_unchanged_count = 0
-  tgmember_loaded_count    = 0
-  tutorgroupentries.each do |tge|
-    staff = staff_hash[tge.user_ident]
-    year  = year_hash[tge.year_ident]
-    pupil = pupil_hash[tge.pupil_ident]
-    tg    = staff ? tg_hash[staff.sb_ident] : nil
-    if staff && year && pupil && pupil.db_id && tg && staff.active
-      dbpupil = Pupil.find(pupil.db_id)
-      dbtg    = Tutorgroup.find(tg.db_id)
-      if dbpupil && dbtg
-        #
-        #  Is this pupil already a member of the right tutor group?
-        #
-        if dbtg.member?(dbpupil, nil, false)
-          tgmember_unchanged_count += 1
-        else
-          #
-          #  No.  Is he a member of any tutor group?
-          #  If so then take him out.
-          #
-          groups = dbpupil.element.groups
-          tgroups = groups.select {|g| g.visible_group.is_a? Tutorgroup}
-          tgroups.each do |tgroup|
-            puts "Removing #{dbpupil.name} from #{tgroup.name}"
-            tgroup.remove_member(dbpupil)
-            tgmember_removed_count += 1
-          end
-          #
-          #  And now put him in the right tutorgroup
-          #
-          dbtg.add_member(dbpupil)
-          tgmember_loaded_count += 1
-        end
-      else
-        puts "Can't find database record for pupil/tutorgroup. (Shouldn't happen.)"
-      end
-#    else
-#      puts "Staff = #{staff.inspect}"
-#      puts "Year = #{year.inspect}"
-#      puts "Pupil = #{pupil.inspect}"
-#      puts "tg = #{tg.inspect}"
-#    elsif staff && year
-#      puts "#{tge.inspect} nearly made it."
-    end
-  end
   puts "Removed #{tgmember_removed_count} pupils from tutor groups."
   puts "Left #{tgmember_unchanged_count} pupils where they were."
   puts "Added #{tgmember_loaded_count} pupils to tutor groups."
@@ -714,7 +711,10 @@ if ars && groups && pupils
   end
   puts "Finished sorting academic records."
   groups_created_count    = 0
+  groups_amended_count    = 0
+  groups_unchanged_count  = 0
   pupils_added_count      = 0
+  pupils_removed_count    = 0
   pupils_left_alone_count = 0
   empty_tg_count          = 0
   dbera_hash = {}
@@ -725,7 +725,21 @@ if ars && groups && pupils
     #  Can we find this group in the d/b?
     #
     dbgroup = Teachinggroup.find_by_source_id(group.group_ident)
-    unless dbgroup
+    if dbgroup
+      #
+      #  Need to check the group details still match.
+      #
+      changed = check_and_update(dbgroup, group, [:name])
+      if changed
+        if dbgroup.save
+          groups_amended_count += 1
+        else
+          puts "Failed to save amended teaching group record for #{group.name}"
+        end
+      else
+        groups_unchanged_count += 1
+      end
+    else
       #
       #  We only bother to create groups which have members.
       #
@@ -761,63 +775,22 @@ if ars && groups && pupils
         end
       end
       extra_in_db = db_member_ids - sb_member_ids
-      if extra_in_db.size > 0
-        puts "Should remove #{extra_in_db.size} pupils from #{group.name}"
+      extra_in_db.each do |pupil_id|
+        pupil = pupil_hash[pupil_id]
+        if pupil && pupil.dbrecord
+          dbgroup.remove_member(pupil.dbrecord)
+          pupils_removed_count += 1
+        end
       end
+      pupils_left_alone_count += (db_member_ids.size - extra_in_db.size)
     end
   end
-#  ars.each do |ar|
-#    dbera = (dbera_hash[ar.ac_year_ident] ||= Era.find_by_source_id(ar.ac_year_ident))
-#    pupil  = pupil_hash[ar.pupil_ident]
-#    group  = group_hash[ar.group_ident]
-#    if dbera && pupil && group
-#      #
-#      #  One to load, or at least, check.
-#      #
-#      dbgroup = (dbtg_hash[group.group_ident] ||= Teachinggroup.find_by_source_id(group.group_ident))
-#      unless dbgroup
-#        #
-#        #  Doesn't seem to exist.  Can we create it?
-#        #
-#        dbgroup = Teachinggroup.new
-#        dbgroup.name      = group.name
-#        dbgroup.era       = dbera
-#        dbgroup.current   = true
-#        dbgroup.source_id = group.group_ident
-#        dbgroup.starts_on = era.starts_on
-#        if dbgroup.save
-#          groups_created_count += 1
-#          dbgroup.reload
-#        else
-#          dbgroup = nil
-#          puts "Failed to create teaching group #{group.name}"
-#        end
-#      end
-#      if dbgroup
-#        #
-#        #  Is the pupil already a member?
-#        #
-#        dbpupil = (dbpupil_hash[pupil.pupil_ident] ||= Pupil.find_by_source_id(pupil.pupil_ident))
-#        if dbpupil
-#          if dbgroup.member?(dbpupil, today, false)
-#            pupils_left_alone_count += 1
-#          else
-#            dbgroup.add_member(dbpupil, dbera.starts_on)
-#            pupils_added_count += 1
-#          end
-#        else
-#          puts "Couldn't find pupil #{pupil.name} in the d/b."
-#        end
-#      end
-#    else
-#      puts "dbera = #{dbera.inspect}"
-#      puts "pupil = #{pupil.inspect}"
-#      puts "group = #{group.inspect}"
-#    end
-#  end
   puts "Created #{groups_created_count} teaching groups."
+  puts "Amended #{groups_amended_count} teaching groups."
+  puts "#{groups_unchanged_count} teaching groups left untouched."
   puts "#{empty_tg_count} empty teaching groups ignored."
   puts "Added #{pupils_added_count} to teaching groups."
+  puts "Removed #{pupils_removed_count} from teaching groups."
   puts "Left #{pupils_left_alone_count} where they were."
 end
 
