@@ -17,8 +17,8 @@
 
 <p>
   <strong>Pupils:</strong>
-  <% @tutorgroup.members.each do |element| %>
-  <p><%= element.entity.name %></p>
+  <% @tutorgroup.members.each do |pupil| %>
+  <p><%= pupil.name %></p>
   <% end %>
 </p>
 

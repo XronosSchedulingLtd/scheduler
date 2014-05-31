@@ -23,3 +23,9 @@ Ah - if you get the class of the object and then call the method "included_modul
 Finished that change, and everything still seems to load.  On to loading teaching groups.
 
 Just realised that my group manipulation methods could do with bang and non-bang versions.  Currently they just raise an error if something goes wrong, but they could usefully offer the choice.
+
+Speed seems to be an issue.  A full run loading teaching groups on Mach2 took 52:59.  And a re-load?  28:04.
+
+A re-load on Midnight seems to take about 30:39.  Midnight is faster, but it's running in development mode which slows things down quite a bit.
+
+I think I need to re-think the whole process.  Consolidate the sets first, then do the memberships.

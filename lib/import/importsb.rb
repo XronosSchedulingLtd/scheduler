@@ -1,5 +1,6 @@
 require 'csv'
 require 'charlock_holmes'
+#require 'ruby-prof'
 
 #
 #  A script to load in the CSV files which I've exported from SchoolBase.
@@ -120,6 +121,20 @@ class SB_Group
 
   include Slurper
 
+  attr_accessor :records
+
+  def initialize
+    @records = Array.new
+  end
+
+  def add(record)
+    @records << record
+  end
+
+  def num_pupils
+    @records.size
+  end
+
   def adjust
   end
 
@@ -183,6 +198,11 @@ class SB_Pupil
 
   include Slurper
 
+  def initialise
+    @dbrecord = nil
+    @checked_dbrecord = false
+  end
+
   def adjust
     #
     #  Nothing for now.
@@ -199,6 +219,18 @@ class SB_Pupil
 
   def current
     true
+  end
+
+  def dbrecord
+    #
+    #  Don't keep checking the database if it isn't there.
+    #
+    if @checked_dbrecord
+      @dbrecord
+    else
+      @checked_dbrecord = true
+      @dbrecord = Pupil.find_by_source_id(self.pupil_ident)
+    end
   end
 
 end
@@ -534,7 +566,7 @@ else
   puts "Locations: #{msg}"
 end
 
-if pupils && years && tutorgroupentries
+if pupils && years && tutorgroupentries && false
   puts "Attempting to construct tutor groups."
 
   tutorgroups = []
@@ -660,35 +692,47 @@ if pupils && years && tutorgroupentries
   puts "Added #{tgmember_loaded_count} pupils to tutor groups."
 end
 
+#RubyProf.start
+
 if ars && groups && pupils
   #
   #  So, can we load all the teaching groups as well?
   #  Drive this by the membership records - a group with no members is
   #  not terribly interesting.
   #
+  #
+  #  Start by attaching each of the membership records to its associated
+  #  group, then work through the groups one by one checking the membership.
+  #
+  era = Era.first
+  puts "Sorting academic records."
+  ars.each do |ar|
+    pupil = pupil_hash[ar.pupil_ident]
+    if pupil && pupil.dbrecord && (group = group_hash[ar.group_ident])
+      group.add(ar)
+    end
+  end
+  puts "Finished sorting academic records."
   groups_created_count    = 0
   pupils_added_count      = 0
   pupils_left_alone_count = 0
+  empty_tg_count          = 0
   dbera_hash = {}
-  dbtg_hash = {}
-  dbpupil_hash = {}
   today = Date.today
-  ars.each do |ar|
-    dbera = (dbera_hash[ar.ac_year_ident] ||= Era.find_by_source_id(ar.ac_year_ident))
-    pupil  = pupil_hash[ar.pupil_ident]
-    group  = group_hash[ar.group_ident]
-    if dbera && pupil && group
+  puts "Starting working through #{groups.size} teaching groups."
+  groups.each do |group|
+    #
+    #  Can we find this group in the d/b?
+    #
+    dbgroup = Teachinggroup.find_by_source_id(group.group_ident)
+    unless dbgroup
       #
-      #  One to load, or at least, check.
+      #  We only bother to create groups which have members.
       #
-      dbgroup = (dbtg_hash[group.group_ident] ||= Teachinggroup.find_by_source_id(group.group_ident))
-      unless dbgroup
-        #
-        #  Doesn't seem to exist.  Can we create it?
-        #
+      if group.num_pupils > 0
         dbgroup = Teachinggroup.new
         dbgroup.name      = group.name
-        dbgroup.era       = dbera
+        dbgroup.era       = era
         dbgroup.current   = true
         dbgroup.source_id = group.group_ident
         dbgroup.starts_on = era.starts_on
@@ -700,29 +744,91 @@ if ars && groups && pupils
           puts "Failed to create teaching group #{group.name}"
         end
       end
-      if dbgroup
-        #
-        #  Is the pupil already a member?
-        #
-        dbpupil = (dbpupil_hash[pupil.pupil_ident] ||= Pupil.find_by_source_id(pupil.pupil_ident))
-        if dbpupil
-          if dbgroup.member?(dbpupil, today, false)
-            pupils_left_alone_count += 1
-          else
-            dbgroup.add_member(dbpupil, dbera.starts_on)
-            pupils_added_count += 1
-          end
-        else
-          puts "Couldn't find pupil #{pupil.name} in the d/b."
+    end
+    if dbgroup
+      #
+      #  How do the memberships compare?  The key identifier is the id
+      #  of the pupil record as provided by SB.
+      #
+      db_member_ids = dbgroup.members.collect {|s| s.source_id}
+      sb_member_ids = group.records.collect {|r| r.pupil_ident}
+      missing_from_db = sb_member_ids - db_member_ids
+      missing_from_db.each do |pupil_id|
+        pupil = pupil_hash[pupil_id]
+        if pupil && pupil.dbrecord
+          dbgroup.add_member(pupil.dbrecord)
+          pupils_added_count += 1
         end
       end
+      extra_in_db = db_member_ids - sb_member_ids
+      if extra_in_db.size > 0
+        puts "Should remove #{extra_in_db.size} pupils from #{group.name}"
+      end
+    end
+  end
+#  ars.each do |ar|
+#    dbera = (dbera_hash[ar.ac_year_ident] ||= Era.find_by_source_id(ar.ac_year_ident))
+#    pupil  = pupil_hash[ar.pupil_ident]
+#    group  = group_hash[ar.group_ident]
+#    if dbera && pupil && group
+#      #
+#      #  One to load, or at least, check.
+#      #
+#      dbgroup = (dbtg_hash[group.group_ident] ||= Teachinggroup.find_by_source_id(group.group_ident))
+#      unless dbgroup
+#        #
+#        #  Doesn't seem to exist.  Can we create it?
+#        #
+#        dbgroup = Teachinggroup.new
+#        dbgroup.name      = group.name
+#        dbgroup.era       = dbera
+#        dbgroup.current   = true
+#        dbgroup.source_id = group.group_ident
+#        dbgroup.starts_on = era.starts_on
+#        if dbgroup.save
+#          groups_created_count += 1
+#          dbgroup.reload
+#        else
+#          dbgroup = nil
+#          puts "Failed to create teaching group #{group.name}"
+#        end
+#      end
+#      if dbgroup
+#        #
+#        #  Is the pupil already a member?
+#        #
+#        dbpupil = (dbpupil_hash[pupil.pupil_ident] ||= Pupil.find_by_source_id(pupil.pupil_ident))
+#        if dbpupil
+#          if dbgroup.member?(dbpupil, today, false)
+#            pupils_left_alone_count += 1
+#          else
+#            dbgroup.add_member(dbpupil, dbera.starts_on)
+#            pupils_added_count += 1
+#          end
+#        else
+#          puts "Couldn't find pupil #{pupil.name} in the d/b."
+#        end
+#      end
 #    else
 #      puts "dbera = #{dbera.inspect}"
 #      puts "pupil = #{pupil.inspect}"
 #      puts "group = #{group.inspect}"
-    end
-  end
+#    end
+#  end
   puts "Created #{groups_created_count} teaching groups."
+  puts "#{empty_tg_count} empty teaching groups ignored."
   puts "Added #{pupils_added_count} to teaching groups."
   puts "Left #{pupils_left_alone_count} where they were."
 end
+
+#results = RubyProf.stop
+#File.open("profile-graph.html", 'w') do |file|
+#  RubyProf::GraphHtmlPrinter.new(results).print(file)
+#end
+#File.open("profile-flat.txt", 'w') do |file|
+#  RubyProf::FlatPrinter.new(results).print(file)
+#end
+#File.open("profile-tree.prof", 'w') do |file|
+#  RubyProf::CallTreePrinter.new(results).print(file)
+#end
+
