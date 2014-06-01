@@ -751,7 +751,7 @@ else
   puts "Locations: #{msg}"
 end
 
-if pupils && years && tutorgroupentries && false
+if pupils && years && tutorgroupentries
   puts "Attempting to construct tutor groups."
 
   tutorgroups = []
@@ -864,7 +864,7 @@ end
 
 #RubyProf.start
 
-if ars && groups && pupils && false
+if ars && groups && pupils
   #
   #  So, can we load all the teaching groups as well?
   #  Drive this by the membership records - a group with no members is
