@@ -11,3 +11,5 @@ With tutor groups back in, a full check on Midnight takes 1:33, so that's about 
 Does my code successfully remove spurious students from teaching groups?  Add one in to test.  Yes, it seems to have removed it.  Neat.
 
 Used the same algorithm for tutor groups.  A checking run, complete with tutor groups, now takes 1:02.  Excellent.  Does loading still work?  Delete all the tutor groups and teaching groups and try a complete re-load.  3:15 for a complete load.  Excellent.
+
+So how long does a load and a check now take on Mach2.  Loads are slower (because it has an old HDD) and checks are generally faster (because it's running in production mode).  Load take 21:49.  Check takes 0:55.

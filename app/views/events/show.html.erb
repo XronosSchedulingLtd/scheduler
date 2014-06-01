@@ -37,6 +37,15 @@
   </tr>
 
   <tr>
+    <td><strong>Resources:</strong></td>
+    <td>
+      <% @event.resources.each do |resource| %>
+        <%= resource.name %><br/>
+      <% end %>
+    </td>
+  </tr>
+
+  <tr>
     <td><strong>All day:</strong></td>
     <td><%= @event.all_day %></td>
   </tr>

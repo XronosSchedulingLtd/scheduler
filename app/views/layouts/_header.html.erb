@@ -25,14 +25,15 @@
           <a href="#" data-dropdown="drop1" data-options="is_hover:true">Models</a>
           <ul id="drop1" class="f-dropdown" data-dropdown-content>
             <li><%= link_to "Eras", eras_path %></li>
-            <li><%= link_to "EventCategories", eventcategories_path %></li>
-            <li><%= link_to "EventSources", eventsources_path %></li>
             <li><%= link_to "Events", events_path %></li>
+            <li><%= link_to "Categories", eventcategories_path %></li>
+            <li><%= link_to "Sources", eventsources_path %></li>
             <li><%= link_to "Locations", locations_path %></li>
             <li><%= link_to "Pupils", pupils_path %></li>
             <li><%= link_to "Staff", staffs_path %></li>
-            <li><%= link_to "Teaching groups", teachinggroups_path %></li>
-            <li><%= link_to "Tutor groups", tutorgroups_path %></li>
+            <li>Groups</li>
+            <li><%= link_to "Teaching", teachinggroups_path %></li>
+            <li><%= link_to "Tutor", tutorgroups_path %></li>
           </ul>
         </li>
         <li class="divider"></li>

@@ -11,7 +11,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140530121636) do
+ActiveRecord::Schema.define(version: 20140531200136) do
+
+  create_table "commitments", force: true do |t|
+    t.integer "event_id"
+    t.integer "element_id"
+    t.integer "covering_id"
+  end
+
+  add_index "commitments", ["covering_id"], name: "index_commitments_on_covering_id", using: :btree
+  add_index "commitments", ["element_id"], name: "index_commitments_on_element_id", using: :btree
+  add_index "commitments", ["event_id"], name: "index_commitments_on_event_id", using: :btree
 
   create_table "elements", force: true do |t|
     t.string   "name"

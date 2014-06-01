@@ -63,6 +63,17 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= f.label :resources, class: "right inline" %>
+    </div>
+    <div class="small-5 columns">
+      <% @event.resources.each do |resource| %>
+        <%= resource.name %><br/>
+      <% end %>
+    </div>
+    <div class="small-4 columns"></div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       <%= f.label :all_day, class: "right" %>
     </div>
     <div class="small-1 columns">

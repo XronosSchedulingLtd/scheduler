@@ -41,6 +41,8 @@ class Event < ActiveRecord::Base
 
   belongs_to :eventcategory
   belongs_to :eventsource
+  has_many :commitments, :dependent => :destroy
+  has_many :elements, :through => :commitments
 
   validates :body, presence: true
   validates :eventcategory, presence: true
@@ -171,6 +173,13 @@ class Event < ActiveRecord::Base
     else
       false
     end
+  end
+
+  #
+  #  What resources are involved in this event?
+  #
+  def resources
+    self.elements.collect {|e| e.entity}
   end
 
   def as_json(options = {})

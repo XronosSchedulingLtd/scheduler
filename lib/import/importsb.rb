@@ -45,7 +45,7 @@ module Slurper
                                           'UTF-8')
       contents = CSV.parse(utf8_encoded_raw_contents)
 #      contents = CSV.read(Rails.root.join(IMPORT_DIR, self::FILE_NAME))
-      puts "Read in #{contents.size} lines."
+#      puts "Read in #{contents.size} lines."
       #
       #  Do we have the necessary columns?
       #
@@ -125,7 +125,22 @@ class SB_Group
 
   def initialize
     @records = Array.new
+    @dbrecord = nil
+    @checked_dbrecord = false
   end
+
+  def dbrecord
+    #
+    #  Don't keep checking the database if it isn't there.
+    #
+    if @checked_dbrecord
+      @dbrecord
+    else
+      @checked_dbrecord = true
+      @dbrecord = Teachinggroup.find_by_source_id(self.group_ident)
+    end
+  end
+
 
   def add(record)
     @records << record
@@ -160,6 +175,23 @@ class SB_Location
 
   include Slurper
 
+  def initialise
+    @dbrecord = nil
+    @checked_dbrecord = false
+  end
+
+  def dbrecord
+    #
+    #  Don't keep checking the database if it isn't there.
+    #
+    if @checked_dbrecord
+      @dbrecord
+    else
+      @checked_dbrecord = true
+      @dbrecord = Location.find_by_source_id(self.room_ident)
+    end
+  end
+
   def adjust
     if self.name.blank? && !self.short_name.blank?
       self.name = self.short_name
@@ -170,6 +202,77 @@ class SB_Location
 
   def wanted?
     !(self.name.blank? || self.short_name.blank?)
+  end
+
+  def active
+    true
+  end
+
+  def current
+    true
+  end
+end
+
+
+class SB_Period
+  FILE_NAME = "period.csv"
+  REQUIRED_COLUMNS = [Column["Period",         :period_ident,    true],
+                      Column["DayName",        :day_name,        false],
+                      Column["TeachingPeriod", :teaching_period, true],
+                      Column["PeriodWeek",     :week_id,         true]]
+
+  include Slurper
+
+  attr_accessor :time
+
+  def adjust
+    if @teaching_period == 1
+      @teaching_period = true
+    else
+      @teaching_period = false
+    end
+  end
+
+  def week_letter
+    @week_id == 1 ? "A" : "B"
+  end
+
+  def wanted?
+    true
+  end
+
+  def active
+    true
+  end
+
+  def current
+    true
+  end
+end
+
+
+class SB_PeriodTime
+  FILE_NAME = "periodtimes.csv"
+  REQUIRED_COLUMNS = [Column["PeriodTimesIdent", :period_time_ident, true],
+                      Column["PeriodTimeStart",  :start_mins,        true],
+                      Column["PeriodTimeEnd",    :end_mins,          true],
+                      Column["Period",           :period_ident,      true]]
+
+  include Slurper
+
+  attr_reader :starts_at, :ends_at
+
+  def adjust
+    #
+    #  Create textual times from the minutes-since-midnight which we
+    #  receive.
+    #
+    @starts_at = sprintf("%02d:%02d", @start_mins / 60, @start_mins % 60)
+    @ends_at   = sprintf("%02d:%02d", @end_mins / 60,   @end_mins % 60)
+  end
+
+  def wanted?
+    true
   end
 
   def active
@@ -238,16 +341,33 @@ end
 
 class SB_Staff
   FILE_NAME = "staff.csv"
-  REQUIRED_COLUMNS = [Column["UserIdent",    :sb_ident, true],
-                      Column["UserName",     :name,     false],
-                      Column["UserMnemonic", :initials, false],
-                      Column["UserSurname",  :surname,  false],
-                      Column["UserTitle",    :title,    false],
-                      Column["UserForename", :forename, false],
-                      Column["UserEmail",    :email,    false]]
+  REQUIRED_COLUMNS = [Column["UserIdent",    :staff_ident, true],
+                      Column["UserName",     :name,        false],
+                      Column["UserMnemonic", :initials,    false],
+                      Column["UserSurname",  :surname,     false],
+                      Column["UserTitle",    :title,       false],
+                      Column["UserForename", :forename,    false],
+                      Column["UserEmail",    :email,       false]]
   attr_accessor :active
 
   include Slurper
+
+  def initialise
+    @dbrecord = nil
+    @checked_dbrecord = false
+  end
+
+  def dbrecord
+    #
+    #  Don't keep checking the database if it isn't there.
+    #
+    if @checked_dbrecord
+      @dbrecord
+    else
+      @checked_dbrecord = true
+      @dbrecord = Staff.find_by_source_id(self.staff_ident)
+    end
+  end
 
   def adjust
     #
@@ -271,6 +391,34 @@ class SB_Staff
     self.active
   end
 
+end
+
+
+class SB_Timetableentry
+  FILE_NAME = "timetable.csv"
+  REQUIRED_COLUMNS = [Column["TimetableIdent", :timetable_ident, true],
+                      Column["GroupIdent",     :group_ident,     true],
+                      Column["StaffIdent",     :staff_ident,     true],
+                      Column["RoomIdent",      :room_ident,      true],
+                      Column["Period",         :period_ident,    true],
+                      Column["AcYearIdent",    :ac_year_ident,   true]]
+
+  include Slurper
+
+  def adjust
+  end
+
+  def wanted?
+    true
+  end
+
+  def active
+    true
+  end
+
+  def current
+    true
+  end
 end
 
 
@@ -412,6 +560,31 @@ else
   puts "Academic records: #{msg}"
 end
 
+timetable_entries, msg = SB_Timetableentry.slurp
+if msg.blank?
+  puts "Read #{timetable_entries.size} timetable records."
+else
+  puts "Timetable entry records: #{msg}"
+end
+
+periods, msg = SB_Period.slurp
+if msg.blank?
+  puts "Read #{periods.size} period records."
+  period_hash = {}
+  periods.each do |period|
+    period_hash[period.period_ident] = period
+  end
+else
+  puts "Period records: #{msg}"
+end
+
+period_times, msg = SB_PeriodTime.slurp
+if msg.blank?
+  puts "Read #{period_times.size} period time records."
+else
+  puts "Period time records: #{msg}"
+end
+
 if pupils && years
   pupils_changed_count   = 0
   pupils_unchanged_count = 0
@@ -469,7 +642,7 @@ staff, msg = SB_Staff.slurp
 if msg.blank?
   staff_hash = {}
   staff.each do |s|
-    staff_hash[s.sb_ident] = s
+    staff_hash[s.staff_ident] = s
   end
   #
   #  Should now have an array of Staff records ready to load into the
@@ -479,7 +652,7 @@ if msg.blank?
   loaded_count = 0
   amended_count = 0
   staff.each do |s|
-    dbrecord = Staff.find_by_source_id(s.sb_ident)
+    dbrecord = Staff.find_by_source_id(s.staff_ident)
     if dbrecord
       s.db_id = dbrecord.id
       #
@@ -514,14 +687,14 @@ if msg.blank?
       dbrecord.title     = s.title
       dbrecord.forename  = s.forename
       dbrecord.email     = s.email
-      dbrecord.source_id = s.sb_ident
+      dbrecord.source_id = s.staff_ident
       dbrecord.active    = s.active
       dbrecord.current   = s.current
       if dbrecord.save
         s.db_id = dbrecord.id
         loaded_count += 1
       else
-        puts "Failed to save new staff record for \"#{s.name}\", sb_ident #{s.sb_ident}"
+        puts "Failed to save new staff record for \"#{s.name}\", staff_ident #{s.staff_ident}"
       end
     end
   end
@@ -578,7 +751,7 @@ else
   puts "Locations: #{msg}"
 end
 
-if pupils && years && tutorgroupentries
+if pupils && years && tutorgroupentries && false
   puts "Attempting to construct tutor groups."
 
   tutorgroups = []
@@ -691,7 +864,7 @@ end
 
 #RubyProf.start
 
-if ars && groups && pupils
+if ars && groups && pupils && false
   #
   #  So, can we load all the teaching groups as well?
   #  Drive this by the membership records - a group with no members is
@@ -794,6 +967,103 @@ if ars && groups && pupils
   puts "Left #{pupils_left_alone_count} where they were."
 end
 
+if timetable_entries && periods && period_times
+  #
+  #  Sort by week and day of the week.
+  #
+  KNOWN_DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+  period_times.each do |period_time|
+    if period = period_hash[period_time.period_ident]
+      period.time = period_time
+    end
+  end
+  periods_by_week = {}
+  periods_by_week["A"] = {}
+  periods_by_week["B"] = {}
+  KNOWN_DAY_NAMES.each do |day_name|
+    periods_by_week["A"][day_name] = []
+    periods_by_week["B"][day_name] = []
+  end
+  puts "Sorting timetable entries by week and day"
+  timetable_entries.each do |te|
+    period = period_hash[te.period_ident]
+    if period.time && KNOWN_DAY_NAMES.include?(period.day_name)
+      periods_by_week[period.week_letter][period.day_name] << te
+    end
+  end
+  #
+  #  For now I'm going to load just a specific week.
+  #
+  starts_on   = Date.parse("2014-06-02")
+  ends_on     = Date.parse("2014-06-06")
+  week_letter = "B"
+  puts "Loading events from #{starts_on} to #{ends_on}"
+  starts_on.upto(ends_on) do |date|
+    lessons = periods_by_week[week_letter][date.strftime("%A")]
+    ec = Eventcategory.find_by_name("Lesson")
+    es = Eventsource.find_by_name("SchoolBase")
+    if lessons && ec && es
+      #
+      #  For each of these, identify the staff, teaching group and room
+      #  involved.  Create an event and then attach the resources.
+      #
+      lessons.each do |lesson|
+        if group = group_hash[lesson.group_ident]
+          dbgroup = group.dbrecord
+        end
+        if staff = staff_hash[lesson.staff_ident]
+          dbstaff = staff.dbrecord
+        end
+        if location = location_hash[lesson.room_ident]
+          dblocation = location.dbrecord
+        end
+        period = period_hash[lesson.period_ident]
+        if period && dbgroup
+          event = Event.new
+          event.body          = dbgroup.name
+          event.eventcategory = ec
+          event.eventsource   = es
+          event.starts_at     =
+            Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+          event.ends_at       =
+            Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+          event.approximate   = false
+          event.non_existent  = false
+          event.private       = false
+          event.all_day       = false
+          if event.save
+            event.reload
+            #
+            #  And add the resources.
+            #
+            if dbgroup
+              c = Commitment.new
+              c.event = event
+              c.element = dbgroup.element
+              c.save
+            end
+            if dbstaff
+              c = Commitment.new
+              c.event = event
+              c.element = dbstaff.element
+              c.save
+            end
+            if dblocation
+              c = Commitment.new
+              c.event = event
+              c.element = dblocation.element
+              c.save
+            end
+          else
+            puts "Failed to save event #{event.inspect}"
+          end
+        end
+      end
+    else
+      puts "Couldn't find lesson entries for #{date.strftime("%A")} of week #{week_letter}."
+    end
+  end
+end
 #results = RubyProf.stop
 #File.open("profile-graph.html", 'w') do |file|
 #  RubyProf::GraphHtmlPrinter.new(results).print(file)
