@@ -182,6 +182,121 @@ class Event < ActiveRecord::Base
     self.elements.collect {|e| e.entity}
   end
 
+  # Returns an array of events for the indicated category, resource
+  # and dates.
+  # If no date is given, return today's events.
+  # The dates passed in are *inclusive* so we need to adjust slightly.
+  #
+  #  This method is intended to be the core one which does all the
+  #  work.  Similarly named methods in other models should call this
+  #  one rather than re-implementing the same functionality.
+  #
+  #  eventcategories and resources can be passed either as a string,
+  #  naming the item, or as the item itself.  Passing anything else
+  #  will cause an empty array to be returned - because we can't find
+  #  any events matching the specified criteria.  Likewise, passing
+  #  a name which doesn't match an existing eventcategory or resource
+  #  will result in an empty array.
+  #
+  #  For the resource you can also pass any object which is a type of
+  #  resource.
+  #
+  def self.events_on(startdate     = nil,
+                     enddate       = nil,
+                     eventcategory = nil,
+                     resource      = nil,
+                     include_nonexistent = false)
+    duffparameter = false
+    #
+    #  Might be passed startdate and enddate as:
+    #
+    #    A Date
+    #    A String
+    #    A Time
+    #    A TimeWithZone
+    #
+    #  Fortunately, all of these provide a to_date action.
+    #
+    startdate = startdate ? startdate.to_date   : Date.today
+    dateafter = enddate   ? enddate.to_date + 1 : startdate + 1
+    ec = nil
+    if eventcategory
+      if eventcategory.instance_of?(String)
+        ec = Eventcategory.find_by_name(eventcategory)
+      elsif eventcategory.instance_of?(Eventcategory)
+        ec = eventcategory
+      end
+      duffparameter = true unless ec
+    end
+    res = nil
+    if resource
+      if resource.instance_of?(String)
+        res = Element.find_by_name(resource)
+      elsif resource.instance_of?(Element)
+        res = resource
+      elsif resource.respond_to?(:element) &&
+            resource.element.instance_of?(Element)
+        res = resource.element
+      end
+      duffparameter = true unless res
+    end
+    if duffparameter
+      events = []
+    else
+      if include_nonexistent
+        filter = ""
+        joinfilter = ""
+      else
+        filter     = " and not non_existent"
+        joinfilter = " and not non_existent"
+      end
+      if ec
+        if res
+          #
+          #  Have been given both an event category and a resource.
+          #
+          events =
+            Event.joins(:commitments).
+                  where("commitments.element_id = ? and events.starts_at < ? and events.ends_at >= ? and events.eventcategory_id = ?" + joinfilter,
+                        res.id,
+                        Time.zone.parse("00:00:00", dateafter),
+                        Time.zone.parse("00:00:00", startdate),
+                        ec.id)
+        else
+          #
+          #  An event category, but no resource.
+          #
+          events =
+            Event.where("starts_at < ? and ends_at >= ? and eventcategory_id = ?" + filter,
+                        Time.zone.parse("00:00:00", dateafter),
+                        Time.zone.parse("00:00:00", startdate),
+                        ec.id)
+        end
+      else
+        if res
+          #
+          #  Resource specified, but no event category.
+          #
+          events =
+            Event.joins(:commitments).
+                  where("commitments.element_id = ? and events.starts_at < ? and events.ends_at >= ?" + joinfilter,
+                        res.id,
+                        Time.zone.parse("00:00:00", dateafter),
+                        Time.zone.parse("00:00:00", startdate))
+        else
+          #
+          #  Neither specified.
+          #
+          events =
+            Event.where("starts_at < ? and ends_at >= ?" + filter,
+                        Time.zone.parse("00:00:00", dateafter),
+                        Time.zone.parse("00:00:00", startdate))
+        end
+      end
+    end
+    events
+  end
+
   def as_json(options = {})
     {
       :id        => "#{id}",
@@ -190,7 +305,8 @@ class Event < ActiveRecord::Base
       :end       => ends_at_for_fc,
       :allDay    => all_day,
       :recurring => false,
-      :editable  => can_edit?
+      :editable  => can_edit?,
+      :color     => compound ? "Red" : "Blue"
     }
   end
 
