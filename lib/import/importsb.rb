@@ -1,5 +1,6 @@
 require 'csv'
 require 'charlock_holmes'
+require 'digest/md5'
 #require 'ruby-prof'
 
 #
@@ -69,7 +70,12 @@ module Slurper
             self::REQUIRED_COLUMNS.each do |column|
               attr_name = column[:attr_name]
               if column.numeric
-                entry.send("#{attr_name}=", row[column_hash[attr_name]].to_i)
+                #
+                #  Leave as nil if nothing provided.
+                #
+                unless row[column_hash[attr_name]].blank?
+                  entry.send("#{attr_name}=", row[column_hash[attr_name]].to_i)
+                end
               else
                 entry.send("#{attr_name}=", row[column_hash[attr_name]])
               end
@@ -176,7 +182,7 @@ class SB_Location
   include Slurper
 
   def initialise
-    @dbrecord = nil
+    dbrecord = nil
     @checked_dbrecord = false
   end
 
@@ -405,11 +411,29 @@ class SB_Timetableentry
 
   include Slurper
 
+  attr_accessor :compound,
+                :source_hash,
+                :staff_idents,
+                :group_idents,
+                :room_idents
+
+  def initialize
+    @compound = false
+    @source_hash = ""
+    @staff_idents = []
+    @group_idents = []
+    @room_idents  = []
+  end
+
   def adjust
   end
 
   def wanted?
-    true
+    #
+    #  For now we don't want any events that don't involve any kind
+    #  of teaching group.
+    #
+    !!@group_ident
   end
 
   def active
@@ -419,6 +443,78 @@ class SB_Timetableentry
   def current
     true
   end
+
+  def <=>(other)
+    self.timetable_ident <=> other.timetable_ident
+  end
+
+  def description
+    #
+    #  A one-line description of this timetable entry.
+    #
+    "Period #{
+      self.period_ident
+     }, group #{
+      self.group_ident ? self.group_ident : "nil"
+     }, staff #{
+      self.staff_ident ? self.staff_ident : "nil"
+     }, room #{
+      self.room_ident ? self.room_ident : "nil"
+     }"
+  end
+
+  #
+  #  Passed an array of Timetableentries, we sort them and identify any
+  #  that can be merged into a single event.
+  #
+  def self.sort_and_merge(ttes)
+#    puts "Entering sort_and_merge"
+    #
+    #  We are looking for events which share the same period_ident, and
+    #  either the same group_ident or the same room_ident (or both).  Any
+    #  set of such which we find can be merged into a single event.
+    #
+    result = []
+    rest = ttes
+    while rest.size > 0
+#      puts "rest.size = #{rest.size}"
+      sample = rest[0]
+      matching, rest = rest.partition {|tte|
+        tte == sample ||
+        (tte.period_ident == sample.period_ident &&
+         ((tte.group_ident && (tte.group_ident == sample.group_ident)) ||
+          (tte.room_ident  && (tte.room_ident  == sample.room_ident))))
+      }
+      if matching.size > 1
+#        puts "Merging the following events."
+#        matching.each do |tte|
+#          puts "  #{tte.description}"
+#        end
+        compounded = matching[0].clone
+        compounded.compound = true
+        compounded.source_hash = SB_Timetableentry.generate_hash(matching)
+        compounded.staff_idents = matching.collect {|tte| tte.staff_ident}.uniq
+        compounded.group_idents = matching.collect {|tte| tte.group_ident}.uniq
+        compounded.room_idents  = matching.collect {|tte| tte.room_ident}.uniq
+#        puts "Combined #{matching.size} events with digest #{compounded.source_hash}."
+        result << compounded
+      else
+        result << matching[0]
+      end
+    end
+#    puts "Leaving sort_and_merge"
+    result
+  end
+
+  #
+  #  Generate a hash from a set of timetablentries, using just their
+  #  timetable_idents to drive it.
+  #
+  def self.generate_hash(ttes)
+    Digest::MD5.hexdigest(
+      ttes.sort.collect {|tte| tte.timetable_ident.to_s}.join("/"))
+  end
+
 end
 
 
@@ -560,13 +656,6 @@ else
   puts "Academic records: #{msg}"
 end
 
-timetable_entries, msg = SB_Timetableentry.slurp
-if msg.blank?
-  puts "Read #{timetable_entries.size} timetable records."
-else
-  puts "Timetable entry records: #{msg}"
-end
-
 periods, msg = SB_Period.slurp
 if msg.blank?
   puts "Read #{periods.size} period records."
@@ -574,15 +663,30 @@ if msg.blank?
   periods.each do |period|
     period_hash[period.period_ident] = period
   end
+  period_times, msg = SB_PeriodTime.slurp
+  if msg.blank?
+    puts "Read #{period_times.size} period time records."
+    period_times.each do |period_time|
+      if period = period_hash[period_time.period_ident]
+        period.time = period_time
+      end
+    end
+  else
+    puts "Period time records: #{msg}"
+  end
 else
   puts "Period records: #{msg}"
 end
 
-period_times, msg = SB_PeriodTime.slurp
+timetable_entries, msg = SB_Timetableentry.slurp
 if msg.blank?
-  puts "Read #{period_times.size} period time records."
+  puts "Read #{timetable_entries.size} timetable records."
+  tte_hash = {}
+  timetable_entries.each do |tte|
+    tte_hash[tte.timetable_ident] = tte
+  end
 else
-  puts "Period time records: #{msg}"
+  puts "Timetable entry records: #{msg}"
 end
 
 if pupils && years
@@ -751,7 +855,7 @@ else
   puts "Locations: #{msg}"
 end
 
-if pupils && years && tutorgroupentries
+if pupils && years && tutorgroupentries && false
   puts "Attempting to construct tutor groups."
 
   tutorgroups = []
@@ -864,7 +968,7 @@ end
 
 #RubyProf.start
 
-if ars && groups && pupils
+if ars && groups && pupils && false
   #
   #  So, can we load all the teaching groups as well?
   #  Drive this by the membership records - a group with no members is
@@ -914,9 +1018,10 @@ if ars && groups && pupils
       end
     else
       #
-      #  We only bother to create groups which have members.
+      #  We only bother to create groups which have members, or which look
+      #  like actual teaching groups.
       #
-      if group.num_pupils > 0
+      if group.num_pupils > 0 || /\A[1234567]/ =~ group.name
         dbgroup = Teachinggroup.new
         dbgroup.name      = group.name
         dbgroup.era       = era
@@ -972,11 +1077,6 @@ if timetable_entries && periods && period_times
   #  Sort by week and day of the week.
   #
   KNOWN_DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-  period_times.each do |period_time|
-    if period = period_hash[period_time.period_ident]
-      period.time = period_time
-    end
-  end
   periods_by_week = {}
   periods_by_week["A"] = {}
   periods_by_week["B"] = {}
@@ -991,74 +1091,221 @@ if timetable_entries && periods && period_times
       periods_by_week[period.week_letter][period.day_name] << te
     end
   end
+#  ["A", "B"].each do |week_letter|
+#    KNOWN_DAY_NAMES.each do |day_name|
+#      periods_by_week[week_letter][day_name] = 
+#        SB_Timetableentry.sort_and_merge(periods_by_week[week_letter][day_name])
+#    end
+#  end
   #
   #  For now I'm going to load just a specific week.
   #
   starts_on   = Date.parse("2014-06-02")
-  ends_on     = Date.parse("2014-06-06")
+  ends_on     = Date.parse("2014-06-15")
   week_letter = "B"
   puts "Loading events from #{starts_on} to #{ends_on}"
   starts_on.upto(ends_on) do |date|
+    puts "Processing #{date}"
     lessons = periods_by_week[week_letter][date.strftime("%A")]
+    #
+    #  This is very nasty.  Saturday will cause us to switch to week A.
+    #
+    if lessons == nil && week_letter == "B"
+      week_letter = "A"
+    end
     ec = Eventcategory.find_by_name("Lesson")
     es = Eventsource.find_by_name("SchoolBase")
     if lessons && ec && es
       #
-      #  For each of these, identify the staff, teaching group and room
-      #  involved.  Create an event and then attach the resources.
+      #  New approach which mimics the way we do it for group membership.
+      #  Find all the database entries for the same day, then see what matches.
       #
-      lessons.each do |lesson|
-        if group = group_hash[lesson.group_ident]
-          dbgroup = group.dbrecord
+      #  Things which are in the d/b only get deleted
+      #  Things which are in our memory records only get added.
+      #  Things which are in both get checked and if necessary are adjusted.
+      #
+      #
+      #  We have to process compound and non-compound events separately.
+      #
+      dbevents = Event.events_on(date, nil, ec, es, nil, true)
+      puts "Found #{dbevents.size} database events on that day."
+      dbcompound, dbatomic = dbevents.partition {|dbe| dbe.compound}
+      puts "#{dbcompound.size} of these are compound and #{dbatomic.size} atomic."
+      sbcompound, sbatomic = lessons.partition {|sbe| sbe.compound}
+      puts "Have #{lessons.size} lessons from SB."
+      puts "#{sbcompound.size} of these are compound and #{sbatomic.size} atomic."
+      #
+      #  First we'll do the atomic ones.
+      #
+      dbids = dbatomic.collect {|dba| dba.source_id}
+      sbids = sbatomic.collect {|sba| sba.timetable_ident}
+      dbonly = dbids - sbids
+      if dbonly.size > 0
+        puts "Deleting #{dbonly.size} atomic events."
+        #
+        #  These I'm afraid have to go.
+        #
+        dbonly.each do |dbo|
+          Event.find_by_source_id(dbo).destroy
         end
-        if staff = staff_hash[lesson.staff_ident]
-          dbstaff = staff.dbrecord
-        end
-        if location = location_hash[lesson.room_ident]
-          dblocation = location.dbrecord
-        end
-        period = period_hash[lesson.period_ident]
-        if period && dbgroup
-          event = Event.new
-          event.body          = dbgroup.name
-          event.eventcategory = ec
-          event.eventsource   = es
-          event.starts_at     =
-            Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
-          event.ends_at       =
-            Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
-          event.approximate   = false
-          event.non_existent  = false
-          event.private       = false
-          event.all_day       = false
-          if event.save
-            event.reload
-            #
-            #  And add the resources.
-            #
-            if dbgroup
-              c = Commitment.new
-              c.event = event
-              c.element = dbgroup.element
-              c.save
-            end
-            if dbstaff
-              c = Commitment.new
-              c.event = event
-              c.element = dbstaff.element
-              c.save
-            end
-            if dblocation
-              c = Commitment.new
-              c.event = event
-              c.element = dblocation.element
-              c.save
+      end
+      sbonly = sbids - dbids
+      if sbonly.size > 0
+        puts "Adding #{sbonly.size} atomic events."
+        sbonly.each do |sbo|
+          lesson = tte_hash[sbo]
+          #
+          #  For each of these, identify the staff, teaching group and room
+          #  involved.  Create an event and then attach the resources.
+          #
+          if group = group_hash[lesson.group_ident]
+            dbgroup = group.dbrecord
+          else
+            dbgroup = nil
+          end
+          if staff = staff_hash[lesson.staff_ident]
+            dbstaff = staff.dbrecord
+          else
+            dbstaff = nil
+          end
+          if location = location_hash[lesson.room_ident]
+            dblocation = location.dbrecord
+          else
+            dblocation = nil
+          end
+          period = period_hash[lesson.period_ident]
+          if period && dbgroup
+            event = Event.new
+            event.body          = dbgroup.name
+            event.eventcategory = ec
+            event.eventsource   = es
+            event.starts_at     =
+              Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+            event.ends_at       =
+              Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+            event.approximate   = false
+            event.non_existent  = false
+            event.private       = false
+            event.all_day       = false
+            event.source_id     = lesson.timetable_ident
+            if event.save
+              event.reload
+              #
+              #  And add the resources.
+              #
+              if dbgroup
+                c = Commitment.new
+                c.event = event
+                c.element = dbgroup.element
+                c.save
+              end
+              if dbstaff
+                c = Commitment.new
+                c.event = event
+                c.element = dbstaff.element
+                c.save
+              end
+              if dblocation
+                c = Commitment.new
+                c.event = event
+                c.element = dblocation.element
+                c.save
+              end
+            else
+              puts "Failed to save event #{event.inspect}"
             end
           else
-            puts "Failed to save event #{event.inspect}"
+            puts "Not loading - lesson = #{lesson.timetable_ident}, dbgroup = #{dbgroup ? dbgroup.name : "Not found"}"
           end
         end
       end
+      #
+      #  And any which need adjusting?
+      #
+
+      #
+      #  And now the compound events.
+      #
+      dbhashes = dbcompound.collect {|dbc| dbc.source_hash}
+      sbhashes = sbcompound.collect {|sbc| sbc.source_hash}
+      dbonly = dbhashes - sbhashes
+      if dbonly.size > 0
+        puts "Deleting #{dbonly.size} compound events."
+        #
+        #  These I'm afraid have to go.
+        #
+        dbonly.each do |dbo|
+          Event.find_by_source_hash(dbo).destroy
+        end
+      end
+      sbonly = sbhashes - dbhashes
+      if sbonly.size > 0
+        puts "Adding #{sbonly.size} compound events."
+        sbonly.each do |sbo_hash|
+          lesson = lessons.detect {|tte| tte.source_hash == sbo_hash}
+          period = period_hash[lesson.period_ident]
+          if lesson && period
+            event = Event.new
+            event.body          = "Merged event"
+            event.eventcategory = ec
+            event.eventsource   = es
+            event.starts_at     =
+              Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+            event.ends_at       =
+              Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+            event.approximate   = false
+            event.non_existent  = false
+            event.private       = false
+            event.all_day       = false
+            event.compound      = true
+            event.source_hash   = sbo_hash
+            if event.save
+              event.reload
+              #
+              #  And now add the resources.
+              #
+              lesson.group_idents.each do |gi|
+                if group = group_hash[gi]
+                  dbgroup = group.dbrecord
+                  if dbgroup
+                    c = Commitment.new
+                    c.event = event
+                    c.element = dbgroup.element
+                    c.save
+                  end
+                end
+              end
+              lesson.staff_idents.each do |si|
+                if staff = staff_hash[si]
+                  dbstaff = staff.dbrecord
+                  if dbstaff
+                    c = Commitment.new
+                    c.event = event
+                    c.element = dbstaff.element
+                    c.save
+                  end
+                end
+              end
+              lesson.room_idents.each do |ri|
+                if location = location_hash[ri]
+                  dblocation = location.dbrecord
+                  if dblocation
+                    c = Commitment.new
+                    c.event = event
+                    c.element = dblocation.element
+                    c.save
+                  end
+                end
+              end
+            else
+              puts "Failed to save event #{event.inspect}"
+            end
+          else
+            puts "Not loading - lesson = #{lesson.timetable_ident}, dbgroup = #{dbgroup ? dbgroup.name : "Not found"}"
+          end
+        end
+      end
+
     else
       puts "Couldn't find lesson entries for #{date.strftime("%A")} of week #{week_letter}."
     end
