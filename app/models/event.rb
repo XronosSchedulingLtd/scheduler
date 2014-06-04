@@ -204,6 +204,7 @@ class Event < ActiveRecord::Base
   def self.events_on(startdate     = nil,
                      enddate       = nil,
                      eventcategory = nil,
+                     eventsource   = nil,
                      resource      = nil,
                      include_nonexistent = false)
     duffparameter = false
@@ -228,6 +229,15 @@ class Event < ActiveRecord::Base
       end
       duffparameter = true unless ec
     end
+    es = nil
+    if eventsource
+      if eventsource.instance_of?(String)
+        es = Eventsource.find_by_name(eventsource)
+      elsif eventsource.instance_of?(Eventsource)
+        es = eventsource
+      end
+      duffparameter = true unless es
+    end
     res = nil
     if resource
       if resource.instance_of?(String)
@@ -241,60 +251,53 @@ class Event < ActiveRecord::Base
       duffparameter = true unless res
     end
     if duffparameter
-      events = []
+      []
     else
-      if include_nonexistent
-        filter = ""
-        joinfilter = ""
-      else
-        filter     = " and not non_existent"
-        joinfilter = " and not non_existent"
-      end
+      query_hash = {}
+      query_string_parts = []
+      #
+      #  We have to specify a start and end date.  The way the dates are
+      #  used here may look a trifle odd, but think about it the other
+      #  way around.  We *don't* want events which end before the beginning
+      #  of our date range, or those which start after the end of our
+      #  date range.  The selection for events to exclude would therefore
+      #  be:
+      #
+      #    If starts_at >= dateafter || ends_at < startdate
+      #
+      #  and if you negate that then by De Morgan's law you get:
+      #
+      #    If starts_at < dateafter && ends_at >= startdate
+      #
+      query_string_parts << "starts_at < :dateafter"
+      query_hash[:dateafter] = Time.zone.parse("00:00:00", dateafter)
+      query_string_parts << "ends_at >= :startdate"
+      query_hash[:startdate] = Time.zone.parse("00:00:00", startdate)
       if ec
-        if res
-          #
-          #  Have been given both an event category and a resource.
-          #
-          events =
-            Event.joins(:commitments).
-                  where("commitments.element_id = ? and events.starts_at < ? and events.ends_at >= ? and events.eventcategory_id = ?" + joinfilter,
-                        res.id,
-                        Time.zone.parse("00:00:00", dateafter),
-                        Time.zone.parse("00:00:00", startdate),
-                        ec.id)
-        else
-          #
-          #  An event category, but no resource.
-          #
-          events =
-            Event.where("starts_at < ? and ends_at >= ? and eventcategory_id = ?" + filter,
-                        Time.zone.parse("00:00:00", dateafter),
-                        Time.zone.parse("00:00:00", startdate),
-                        ec.id)
-        end
-      else
-        if res
-          #
-          #  Resource specified, but no event category.
-          #
-          events =
-            Event.joins(:commitments).
-                  where("commitments.element_id = ? and events.starts_at < ? and events.ends_at >= ?" + joinfilter,
-                        res.id,
-                        Time.zone.parse("00:00:00", dateafter),
-                        Time.zone.parse("00:00:00", startdate))
-        else
-          #
-          #  Neither specified.
-          #
-          events =
-            Event.where("starts_at < ? and ends_at >= ?" + filter,
-                        Time.zone.parse("00:00:00", dateafter),
-                        Time.zone.parse("00:00:00", startdate))
-        end
+        query_string_parts << "eventcategory_id = :eventcategory_id"
+        query_hash[:eventcategory_id] = ec.id
       end
+      if es
+        query_string_parts << "eventsource_id = :eventsource_id"
+        query_hash[:eventsource_id] = es.id
+      end
+      if res
+        query_string_parts << "commitments.element_id = :element_id"
+        query_hash[:element_id] = res.id
+      end
+      unless include_nonexistent
+        query_string_parts << "not non_existent"
+      end
+      #
+      #  And now for the actual database hit.  Do we need a join?
+      #
+      if res
+        eventer = Event.joins(:commitments)
+      else
+        eventer = Event
+      end
+      eventer.where(query_string_parts.join(" and "), query_hash)
     end
-    events
   end
 
   def as_json(options = {})
