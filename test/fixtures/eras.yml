@@ -1,11 +1,11 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  name: MyString
-  starts_on: 2014-04-28
-  ends_on: 2014-04-28
+eraone:
+  name: "Academic Year 2013/14"
+  starts_on: 2013-09-01
+  ends_on: 2014-08-31
 
-two:
+eratwo:
   name: MyString
   starts_on: 2014-04-28
   ends_on: 2014-04-28

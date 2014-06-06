@@ -1,0 +1,21 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-06-06T08:23:15+01:00
+
+====== LocationAlias ======
+Created Friday 06 June 2014
+
+LocationAliases exist to allow various sources to load their information, referencing Locations by names which may vary a bit.  I should perhaps remove the source_id column from Locations at the same time, since they will be accessed by loading programs purely through Aliases.
+
+If the Alias contains the source_id, then it's possible that two separate Aliases will need to exist with the same name, where two external systems happen to use exactly the same name for a Location.  That shouldn't arise at the moment though, because importing from the calendar has no source_id.  I will search by source_id when loading from SB, but by name when loading from the calendar.
+
+Note that all locations will have at least one location alias, containing (probably) the same name as that held in the location.  This is so that the loading code doesn't have to check in both places.  Display code will check just Locations and not LocationAliases.
+
+I have been tempted to put an EventSource connection in LocationAlias too, but am refraining for now, as the only place from which I'll automatically load locations is SB.
+
+Fields
+
+id			integer	Rails's id for the LocationAlias
+name		string	Name of this alias
+source_id	integer	Id of this item on the source system
+location_id	integer	Id of the location for which this is an alias.

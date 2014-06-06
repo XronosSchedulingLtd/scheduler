@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :locationaliases
+
   resources :teachinggroups
 
   resources :tutorgroups

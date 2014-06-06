@@ -9,3 +9,37 @@ two:
   name: MyString
   entity_id: 1
   entity_type: MyString
+
+pupiloneelement:
+  name: PupilOne
+  entity: pupilone (Pupil)
+
+pupiltwoelement:
+  name: PupilOne
+  entity: pupiltwo (Pupil)
+
+staffoneelement:
+  name: StaffOne
+  entity: staffone (Staff)
+
+stafftwoelement:
+  name: StaffTwo
+  entity: stafftwo (Staff)
+
+teachingoneelement:
+  name: TeachingOne
+  entity: teachingone (Teachinggroup)
+
+teachingtwoelement:
+  name: TeachingTwo
+  entity: teachingtwo (Teachinggroup)
+
+tutoroneelement:
+  name: TutorOne
+  entity: tutorone (Tutorgroup)
+
+tutortwoelement:
+  name: TutorTwo
+  entity: tutortwo (Tutorgroup)
+
+

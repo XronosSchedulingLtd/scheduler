@@ -1,17 +1,17 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
+tutorone:
   name: MyString
   house: MyString
-  staff_id: 1
-  era_id: 1
+  staff: staffone
+  era: eraone
   start_year: 1
-  current: false
+  current: true
 
-two:
+tutortwo:
   name: MyString
   house: MyString
-  staff_id: 1
-  era_id: 1
+  staff: stafftwo
+  era: eraone
   start_year: 1
-  current: false
+  current: true

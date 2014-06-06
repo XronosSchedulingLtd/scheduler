@@ -1,0 +1,47 @@
+<%= form_for(@locationalias) do |f| %>
+  <% if @locationalias.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@locationalias.errors.count, "error") %> prohibited this locationalias from being saved:</h2>
+
+      <ul>
+      <% @locationalias.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :name, class: "right inline" %>
+    </div>
+    <div class="small-9 columns">
+      <%= f.text_field :name %>
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :source_id, class: "right inline" %>
+    </div>
+    <div class="small-9 columns">
+      <%= f.number_field :source_id %>
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :location, class: "right inline" %>
+    </div>
+    <div class="small-9 columns">
+      <%= f.collection_select(:location_id,
+                              Location.all.sort,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
+    </div>
+  </div>
+  <div class="row">
+    <div class="small-9 small-offset-3 columns">
+      <%= f.submit %>
+    </div>
+  </div>
+<% end %>

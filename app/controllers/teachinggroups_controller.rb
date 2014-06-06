@@ -25,6 +25,7 @@ class TeachinggroupsController < ApplicationController
   # POST /teachinggroups.json
   def create
     @teachinggroup = Teachinggroup.new(teachinggroup_params)
+    @teachinggroup.starts_on ||= Date.today
 
     respond_to do |format|
       if @teachinggroup.save

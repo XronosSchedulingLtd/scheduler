@@ -1,6 +1,6 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
+staffone:
   name: MyString
   initials: MyString
   surname: MyString
@@ -11,7 +11,7 @@ one:
   active: false
   current: false
 
-two:
+stafftwo:
   name: MyString
   initials: MyString
   surname: MyString

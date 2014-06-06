@@ -42,4 +42,16 @@ module Elemental
     self.element.groups(given_date, recurse)
   end
 
+  def events_on(start_date = nil,
+                end_date = nil,
+                eventcategory = nil,
+                eventsource = nil,
+                include_nonexistent = false)
+    Event.events_on(start_date,
+                    end_date,
+                    eventcategory,
+                    eventsource,
+                    self.element,
+                    include_nonexistent)
+  end
 end

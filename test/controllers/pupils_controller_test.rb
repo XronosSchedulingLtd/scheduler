@@ -2,7 +2,7 @@ require 'test_helper'
 
 class PupilsControllerTest < ActionController::TestCase
   setup do
-    @pupil = pupils(:one)
+    @pupil = pupils(:pupilone)
   end
 
   test "should get index" do

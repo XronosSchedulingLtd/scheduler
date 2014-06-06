@@ -20,8 +20,12 @@
     <%= f.text_field :house %>
   </div>
   <div class="field">
-    <%= f.label :staff_id %><br>
-    <%= f.number_field :staff_id %>
+    <%= f.label :staff %><br>
+      <%= f.collection_select(:staff_id,
+                              Staff.active.sort,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
   </div>
   <div class="field">
     <%= f.label :era_id %><br>

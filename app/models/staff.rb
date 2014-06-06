@@ -4,7 +4,7 @@ class Staff < ActiveRecord::Base
 
   include Elemental
 
-  has_one :tutorgroup 
+  has_one :tutorgroup, dependent: :destroy
 
   self.per_page = 15
 

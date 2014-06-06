@@ -2,7 +2,7 @@ require 'test_helper'
 
 class TutorgroupsControllerTest < ActionController::TestCase
   setup do
-    @tutorgroup = tutorgroups(:one)
+    @tutorgroup = tutorgroups(:tutorone)
   end
 
   test "should get index" do
@@ -36,7 +36,7 @@ class TutorgroupsControllerTest < ActionController::TestCase
 
   test "should update tutorgroup" do
     patch :update, id: @tutorgroup, tutorgroup: { current: @tutorgroup.current, era_id: @tutorgroup.era_id, house: @tutorgroup.house, name: @tutorgroup.name, staff_id: @tutorgroup.staff_id, start_year: @tutorgroup.start_year }
-    assert_redirected_to tutorgroup_path(assigns(:tutorgroup))
+    assert_redirected_to tutorgroups_path
   end
 
   test "should destroy tutorgroup" do

@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Name:</strong>
+  <%= @locationalias.name %>
+</p>
+
+<p>
+  <strong>Source:</strong>
+  <%= @locationalias.source_id %>
+</p>
+
+<p>
+  <strong>Location:</strong>
+  <%= @locationalias.location_id %>
+</p>
+
+<%= link_to 'Edit', edit_locationalias_path(@locationalias) %> |
+<%= link_to 'Back', locationaliases_path %>

@@ -3,13 +3,11 @@
 one:
   short_name: MyString
   name: MyString
-  source_id: 1
   active: false
   current: false
 
 two:
   short_name: MyString
   name: MyString
-  source_id: 1
   active: false
   current: false

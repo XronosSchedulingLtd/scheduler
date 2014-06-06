@@ -3,6 +3,8 @@ class Location < ActiveRecord::Base
   validates :name, presence: true
   validates :short_name, presence: true
 
+  has_many :locationaliases, :dependent => :nullify
+
   include Elemental
 
   self.per_page = 15

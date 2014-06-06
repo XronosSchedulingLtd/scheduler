@@ -1,0 +1,22 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+groupone:
+  starts_on: 2013-09-01
+  ends_on: 2014-08-31
+  visible_group: teachingone (Teachinggroup)
+
+grouptwo:
+  starts_on: 2013-09-01
+  ends_on: 2014-08-31
+  visible_group: teachingtwo (Teachinggroup)
+
+groupthree:
+  starts_on: 2013-09-01
+  ends_on: 2014-08-31
+  visible_group: tutorone (Tutorgroup)
+
+groupfour:
+  starts_on: 2013-09-01
+  ends_on: 2014-08-31
+  visible_group: tutortwo (Tutorgroup)
+

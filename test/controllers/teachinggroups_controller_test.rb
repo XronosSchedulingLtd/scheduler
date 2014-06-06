@@ -2,7 +2,7 @@ require 'test_helper'
 
 class TeachinggroupsControllerTest < ActionController::TestCase
   setup do
-    @teachinggroup = teachinggroups(:one)
+    @teachinggroup = teachinggroups(:teachingone)
   end
 
   test "should get index" do
@@ -18,7 +18,7 @@ class TeachinggroupsControllerTest < ActionController::TestCase
 
   test "should create teachinggroup" do
     assert_difference('Teachinggroup.count') do
-      post :create, teachinggroup: { current: @teachinggroup.current, era_id: @teachinggroup.era_id, name: @teachinggroup.name, source_id: @teachinggroup.source_id }
+      post :create, teachinggroup: { current: @teachinggroup.current, era_id: @teachinggroup.era_id, name: "Banana", source_id: @teachinggroup.source_id }
     end
 
     assert_redirected_to teachinggroup_path(assigns(:teachinggroup))

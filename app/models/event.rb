@@ -308,8 +308,7 @@ class Event < ActiveRecord::Base
       :end       => ends_at_for_fc,
       :allDay    => all_day,
       :recurring => false,
-      :editable  => can_edit?,
-      :color     => compound ? "Red" : "Blue"
+      :editable  => can_edit?
     }
   end
 

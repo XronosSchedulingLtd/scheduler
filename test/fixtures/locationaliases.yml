@@ -1,13 +1,11 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-teachingone:
+one:
   name: MyString
-  era: eraone
-  current: true
   source_id: 1
+  location_id: 1
 
-teachingtwo:
+two:
   name: MyString
-  era: eraone
-  current: true
   source_id: 1
+  location_id: 1

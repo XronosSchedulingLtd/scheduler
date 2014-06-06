@@ -1,0 +1,21 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-06-05T17:52:45+01:00
+
+====== Thursday 05 Jun 2014 ======
+
+SB's naming of locations is pretty screwed up, and I may well want other aliases for a location to exist as well.
+
+How's this for a plan?
+
+Each location has a canonical name which is stored in the Location record.  It can also have an arbitrary number of aliases.  Each of these points to the original Location record, and has a source_id field for use with SB.
+
+When SB causes a new Location record to be created, it sets the names from its own fields, but also creates an Alias record at the same time, which gets the same names and the source_id.  Subsequently when looking for its own records, it only searches the Alias records.  If I manually edit the main name, then the edit will persist.  I also need the means to take two Locations created by SB, each with its alias record, and merge them into a single Location with two separate alias records.  This will be used where SB has two entries for the same location.
+
+I also potentially want to be able to orphan an alias record, where SB has a record for a non-existent location (e.g. Assembly).  SB then won't re-create it, and any events which reference it won't get an erroneous location.  The SB loading code needs to know to leave the location off if it finds an orphaned Alias.  The "nullify" option to ActiveRecord's links should come in handy here.
+
+I can also use Aliases to cope with odd names used in the Calendar.  There I will need to create the Alias records manually, but the Calendar code should also search for Aliases and not Locations when doing a load.
+
+Aliases will *not* be apparent to users of my system.  It's really important that they see only one name for each location.  They are purely to accommodate slightly iffy input data.
+
+Perhaps Aliases should contain just a name, and not two names.  Also, EventSource is slightly mis-named.  I think it's turning into ExternalSource, since I will want to record the sources of my Aliases too.

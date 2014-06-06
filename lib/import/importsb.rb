@@ -26,7 +26,6 @@ module Slurper
     parent::REQUIRED_COLUMNS.each do |column|
       attr_accessor column[:attr_name]
     end
-    attr_accessor :db_id
     parent.send :extend, ClassMethods
   end
 
@@ -93,6 +92,106 @@ module Slurper
 end
 
 
+module DatabaseAccess
+
+  def self.included(base)
+    @dbrecord = nil
+    @checked_dbrecord = false
+  end
+
+  #
+  #  Compares selected fields in a database record and a memory record,
+  #  and updates any which differ.  If anything is changed, then saves
+  #  the record back to the database.  Gives the calling code a chance
+  #  to add changes too.
+  #
+  def check_and_update(extras = nil)
+    #
+    #  For this first reference, we call the dbrecord method, rather than
+    #  accessing the instance variable directly.  This is in order to cause
+    #  it to be initialised if it isn't already.
+    #
+    return false unless dbrecord
+    changed = false
+    self.class.const_get(:FIELDS_TO_UPDATE).each do |field_name|
+      if @dbrecord[field_name] != self.instance_variable_get("@#{field_name}")
+        puts "Field #{field_name} differs for #{self.name}"
+#        @dbrecord[field_name] = self.instance_variable_get("@#{field_name}")
+#                entry.send("#{attr_name}=", row[column_hash[attr_name]])
+         @dbrecord.send("#{field_name}=",
+                        self.instance_variable_get("@#{field_name}"))
+        changed = true
+      end
+    end
+    if extras
+      #
+      #  extras should be a hash of additional things to change.
+      #
+      extras.each do |key, value|
+        if @dbrecord.send("#{key}") != value
+          @dbrecord.send("#{key}=", value)
+          changed = true
+        end
+      end
+    end
+    if changed
+      if @dbrecord.save
+        true
+      else
+        puts "Failed to save #{self.class} record #{self.name}"
+        false
+      end
+    else
+      false
+    end
+  end
+
+  def save_to_db(extras = nil)
+    if dbrecord
+      puts "Attempt to re-create d/b record of type #{self.class.const_get(:DB_CLASS)} for #{self.source_id}"
+      false
+    else
+      newrecord = self.class.const_get(:DB_CLASS).new
+      newrecord.source_id = self.source_id
+      self.class.const_get(:FIELDS_TO_CREATE).each do |field_name|
+         newrecord.send("#{field_name}=",
+                        self.instance_variable_get("@#{field_name}"))
+      end
+      if extras
+        extras.each do |key, value|
+          newrecord.send("#{key}=", value)
+        end
+      end
+      if newrecord.save
+        newrecord.reload
+        @dbrecord = newrecord
+        @checked_dbrecord = true
+        true
+      else
+        puts "Failed to create d/b record of type #{self.class.const_get(:DB_CLAS)} for #{self.source_id}"
+        false
+      end
+    end
+  end
+
+  def dbrecord
+    #
+    #  Don't keep checking the database if it isn't there.
+    #
+    if @checked_dbrecord
+      @dbrecord
+    else
+      @checked_dbrecord = true
+      key_field = self.class.const_get(:DB_KEY_FIELD)
+      find_hash = { key_field => self.send("#{key_field}") }
+      @dbrecord =
+        self.class.const_get(:DB_CLASS).find_by(find_hash)
+#        self.class.const_get(:DB_CLASS).find_by_source_id(self.source_id)
+    end
+  end
+
+end
+
 class SB_AcademicRecord
   FILE_NAME = "academicrecord.csv"
   REQUIRED_COLUMNS = [Column["AcrIdent",    :acr_ident,     true],
@@ -125,28 +224,19 @@ class SB_Group
   REQUIRED_COLUMNS = [Column["GroupIdent", :group_ident, true],
                       Column["GroupName",  :name,        false]]
 
+  FIELDS_TO_UPDATE = [:name]
+  FIELDS_TO_CREATE = [:name, :current]
+  DB_CLASS = Teachinggroup
+  DB_KEY_FIELD = :source_id
+
   include Slurper
+  include DatabaseAccess
 
   attr_accessor :records
 
   def initialize
     @records = Array.new
-    @dbrecord = nil
-    @checked_dbrecord = false
   end
-
-  def dbrecord
-    #
-    #  Don't keep checking the database if it isn't there.
-    #
-    if @checked_dbrecord
-      @dbrecord
-    else
-      @checked_dbrecord = true
-      @dbrecord = Teachinggroup.find_by_source_id(self.group_ident)
-    end
-  end
-
 
   def add(record)
     @records << record
@@ -170,6 +260,11 @@ class SB_Group
   def current
     true
   end
+
+  def source_id
+    @group_ident
+  end
+
 end
 
 
@@ -178,25 +273,13 @@ class SB_Location
   REQUIRED_COLUMNS = [Column["RoomIdent", :room_ident, true],
                       Column["Room",      :short_name, false],
                       Column["RoomName",  :name,       false]]
+  FIELDS_TO_UPDATE = [:name]
+  DB_CLASS = Locationalias
+  FIELDS_TO_CREATE = [:name, :short_name]
+  DB_KEY_FIELD = :source_id
 
   include Slurper
-
-  def initialise
-    dbrecord = nil
-    @checked_dbrecord = false
-  end
-
-  def dbrecord
-    #
-    #  Don't keep checking the database if it isn't there.
-    #
-    if @checked_dbrecord
-      @dbrecord
-    else
-      @checked_dbrecord = true
-      @dbrecord = Location.find_by_source_id(self.room_ident)
-    end
-  end
+  include DatabaseAccess
 
   def adjust
     if self.name.blank? && !self.short_name.blank?
@@ -217,6 +300,11 @@ class SB_Location
   def current
     true
   end
+
+  def source_id
+    @room_ident
+  end
+
 end
 
 
@@ -304,13 +392,24 @@ class SB_Pupil
                       Column["Pu_Doe",           :date_of_entry,   false],
                       Column["PupDateofLeaving", :date_of_leaving, false],
                       Column["PType",            :ptype,           true]]
+  FIELDS_TO_UPDATE = [:name,
+                      :surname,
+                      :forename,
+                      :known_as,
+                      :email,
+                      :candidate_no]
+  DB_CLASS = Pupil
+  DB_KEY_FIELD = :source_id
+  FIELDS_TO_CREATE = [:name,
+                      :surname,
+                      :forename,
+                      :known_as,
+                      :email,
+                      :candidate_no,
+                      :current]
 
   include Slurper
-
-  def initialise
-    @dbrecord = nil
-    @checked_dbrecord = false
-  end
+  include DatabaseAccess
 
   def adjust
     #
@@ -330,16 +429,8 @@ class SB_Pupil
     true
   end
 
-  def dbrecord
-    #
-    #  Don't keep checking the database if it isn't there.
-    #
-    if @checked_dbrecord
-      @dbrecord
-    else
-      @checked_dbrecord = true
-      @dbrecord = Pupil.find_by_source_id(self.pupil_ident)
-    end
+  def source_id
+    @pupil_ident
   end
 
 end
@@ -354,26 +445,27 @@ class SB_Staff
                       Column["UserTitle",    :title,       false],
                       Column["UserForename", :forename,    false],
                       Column["UserEmail",    :email,       false]]
+  FIELDS_TO_UPDATE = [:name,
+                      :initials,
+                      :surname,
+                      :title,
+                      :forename,
+                      :email]
+  DB_CLASS = Staff
+  DB_KEY_FIELD = :source_id
+  FIELDS_TO_CREATE = [:name,
+                      :initials,
+                      :surname,
+                      :title,
+                      :forename,
+                      :email,
+                      :active,
+                      :current]
+
   attr_accessor :active
 
   include Slurper
-
-  def initialise
-    @dbrecord = nil
-    @checked_dbrecord = false
-  end
-
-  def dbrecord
-    #
-    #  Don't keep checking the database if it isn't there.
-    #
-    if @checked_dbrecord
-      @dbrecord
-    else
-      @checked_dbrecord = true
-      @dbrecord = Staff.find_by_source_id(self.staff_ident)
-    end
-  end
+  include DatabaseAccess
 
   def adjust
     #
@@ -395,6 +487,10 @@ class SB_Staff
 
   def current
     self.active
+  end
+
+  def source_id
+    @staff_ident
   end
 
 end
@@ -543,7 +639,15 @@ end
 
 
 class SB_Tutorgroup
-  attr_accessor :name, :house, :staff_id, :era_id, :start_year, :db_id, :records
+  FIELDS_TO_UPDATE = [:name, :house, :era_id, :start_year]
+  DB_CLASS = Tutorgroup
+  DB_KEY_FIELD = :staff_id
+  FIELDS_TO_CREATE = [:name, :house, :staff_id, :era_id, :start_year, :current]
+
+  include DatabaseAccess
+
+  attr_accessor :name, :house, :staff_id, :era_id, :start_year, :records
+
 
   def initialize
     @records = Array.new
@@ -557,6 +661,9 @@ class SB_Tutorgroup
     @records.size
   end
 
+  def current
+    true
+  end
 end
 
 class SB_Year
@@ -668,7 +775,7 @@ if msg.blank?
     puts "Read #{period_times.size} period time records."
     period_times.each do |period_time|
       if period = period_hash[period_time.period_ident]
-        period.time = period_time
+        period.time ||= period_time
       end
     end
   else
@@ -696,43 +803,16 @@ if pupils && years
   pupils.each do |pupil|
     year = year_hash[pupil.year_ident]
     if year
-      dbrecord = Pupil.find_by_source_id(pupil.pupil_ident)
+      dbrecord = pupil.dbrecord
       if dbrecord
-        pupil.db_id = dbrecord.id
-        changed = check_and_update(dbrecord, pupil, [:name,
-                                                     :forename,
-                                                     :known_as,
-                                                     :email,
-                                                     :candidate_no])
-        if dbrecord.start_year != year.start_year
-          dbrecord.start_year = year.start_year
-          changed = true
-        end
-        if changed
-          if dbrecord.save
-            pupils_changed_count += 1
-          else
-            puts "Failed to save amended pupil record for #{pupil.name}"
-          end
+        if pupil.check_and_update({start_year: year.start_year})
+          pupils_changed_count += 1
         else
           pupils_unchanged_count += 1
         end
       else
-        dbrecord = Pupil.new
-        dbrecord.name         = pupil.name
-        dbrecord.surname      = pupil.surname
-        dbrecord.forename     = pupil.forename
-        dbrecord.known_as     = pupil.known_as
-        dbrecord.email        = pupil.email
-        dbrecord.candidate_no = pupil.candidate_no
-        dbrecord.start_year   = year.start_year
-        dbrecord.source_id    = pupil.pupil_ident
-        dbrecord.current      = pupil.current
-        if dbrecord.save
+        if pupil.save_to_db({start_year: year.start_year})
           pupils_loaded_count += 1
-          pupil.db_id = dbrecord.id
-        else
-          puts "Failed to save new pupil record for #{pupil.name}"
         end
       end
     end
@@ -756,49 +836,21 @@ if msg.blank?
   loaded_count = 0
   amended_count = 0
   staff.each do |s|
-    dbrecord = Staff.find_by_source_id(s.staff_ident)
+    dbrecord = s.dbrecord
     if dbrecord
-      s.db_id = dbrecord.id
       #
       #  Staff record already exists.  Any changes?
       #
       pre_existing_count += 1
-      changed = check_and_update(dbrecord, s, [:name,
-                                               :initials,
-                                               :surname,
-                                               :title,
-                                               :forename,
-                                               :email])
-      #
-      #  Note that, although we originally set the "active" flag, we make
-      #  no attempt to amend it subsequently.
-      #
-      if changed
-        if dbrecord.save
-          amended_count += 1
-        else
-          puts "Failed to save amended staff record for #{s.name}"
-        end
+      if s.check_and_update
+        amended_count += 1
       end
     else
       #
       #  d/b record does not yet exist.
       #
-      dbrecord = Staff.new
-      dbrecord.name      = s.name
-      dbrecord.initials  = s.initials
-      dbrecord.surname   = s.surname
-      dbrecord.title     = s.title
-      dbrecord.forename  = s.forename
-      dbrecord.email     = s.email
-      dbrecord.source_id = s.staff_ident
-      dbrecord.active    = s.active
-      dbrecord.current   = s.current
-      if dbrecord.save
-        s.db_id = dbrecord.id
+      if s.save_to_db
         loaded_count += 1
-      else
-        puts "Failed to save new staff record for \"#{s.name}\", staff_ident #{s.staff_ident}"
       end
     end
   end
@@ -820,31 +872,16 @@ if msg.blank?
   locations_unchanged_count = 0
   locations_loaded_count    = 0
   locations.each do |location|
-    dbrecord = Location.find_by_source_id(location.room_ident)
+    dbrecord = location.dbrecord
     if dbrecord
-      location.db_id = dbrecord.id
-      changed = check_and_update(dbrecord, location, [:short_name, :name])
-      if changed
-        if dbrecord.save
-          locations_changed_count += 1
-        else
-          puts "Failed to save amended location record for #{location.name}"
-        end
+      if location.check_and_update
+        locations_changed_count += 1
       else
         locations_unchanged_count += 1
       end
     else
-      dbrecord = Location.new
-      dbrecord.short_name = location.short_name
-      dbrecord.name       = location.name
-      dbrecord.source_id  = location.room_ident
-      dbrecord.active     = location.active
-      dbrecord.current    = location.current
-      if dbrecord.save
-        location.db_id = dbrecord.id
+      if location.save_to_db
         locations_loaded_count += 1
-      else
-        puts "Failed to save new location record for #{location.name}"
       end
     end
   end
@@ -855,7 +892,7 @@ else
   puts "Locations: #{msg}"
 end
 
-if pupils && years && tutorgroupentries && false
+if pupils && years && tutorgroupentries
   puts "Attempting to construct tutor groups."
 
   tutorgroups = []
@@ -867,13 +904,13 @@ if pupils && years && tutorgroupentries && false
     staff = staff_hash[tge.user_ident]
     year  = year_hash[tge.year_ident]
     pupil = pupil_hash[tge.pupil_ident]
-    if staff && year && pupil && staff.db_id && staff.active
+    if staff && year && pupil && staff.dbrecord && staff.active
       tge_accepted_count += 1
       unless tg_hash[tge.user_ident]
         tg = SB_Tutorgroup.new
         tg.name       = "#{year.year_num - 6}#{staff.initials}"
         tg.house      = tge.house
-        tg.staff_id   = staff.db_id
+        tg.staff_id   = staff.dbrecord.id
         tg.era_id     = era.id
         tg.start_year = year.start_year
         tg_hash[tge.user_ident] = tg
@@ -894,46 +931,25 @@ if pupils && years && tutorgroupentries && false
   tgmember_unchanged_count = 0
   tgmember_loaded_count    = 0
   tg_hash.each do |key, tg|
-    dbrecord = Tutorgroup.find_by_staff_id(tg.staff_id)
+    dbrecord = tg.dbrecord
     if dbrecord
       #
       #  Need to check the group details still match.
       #
-      changed = check_and_update(dbrecord, tg, [:name,
-                                                :house,
-                                                :era_id,
-                                                :start_year])
-      if changed
-        if dbrecord.save
-          tg_changed_count += 1
-        else
-          puts "Failed to save amended tutorgroup record for #{tg.name}"
-        end
+      if tg.check_and_update
+        tg_changed_count += 1
       else
         tg_unchanged_count += 1
       end
     else
       if tg.num_pupils > 0
-        dbrecord = Tutorgroup.new
-        dbrecord.name       = tg.name
-        dbrecord.house      = tg.house
-        dbrecord.staff_id   = tg.staff_id
-        dbrecord.era_id     = tg.era_id
-        dbrecord.start_year = tg.start_year
-        dbrecord.current    = true
-        dbrecord.starts_on  = era.starts_on
-        dbrecord.ends_on    = era.ends_on
-        if dbrecord.save
-          dbrecord.reload
+        if tg.save_to_db(starts_on: era.starts_on, ends_on: era.ends_on)
+          dbrecord = tg.dbrecord
           tg_loaded_count += 1
-        else
-          puts "Failed to save new tutorgroup record for #{tg.name}"
-          dbrecord = nil
         end
       end
     end
     if dbrecord
-      tg.db_id = dbrecord.id
       #
       #  And now sort out the pupils for this tutor group.
       #
@@ -968,7 +984,7 @@ end
 
 #RubyProf.start
 
-if ars && groups && pupils && false
+if ars && groups && pupils
   #
   #  So, can we load all the teaching groups as well?
   #  Drive this by the membership records - a group with no members is
@@ -1001,18 +1017,13 @@ if ars && groups && pupils && false
     #
     #  Can we find this group in the d/b?
     #
-    dbgroup = Teachinggroup.find_by_source_id(group.group_ident)
+    dbgroup = group.dbrecord
     if dbgroup
       #
       #  Need to check the group details still match.
       #
-      changed = check_and_update(dbgroup, group, [:name])
-      if changed
-        if dbgroup.save
-          groups_amended_count += 1
-        else
-          puts "Failed to save amended teaching group record for #{group.name}"
-        end
+      if group.check_and_update
+        groups_amended_count += 1
       else
         groups_unchanged_count += 1
       end
@@ -1022,18 +1033,9 @@ if ars && groups && pupils && false
       #  like actual teaching groups.
       #
       if group.num_pupils > 0 || /\A[1234567]/ =~ group.name
-        dbgroup = Teachinggroup.new
-        dbgroup.name      = group.name
-        dbgroup.era       = era
-        dbgroup.current   = true
-        dbgroup.source_id = group.group_ident
-        dbgroup.starts_on = era.starts_on
-        if dbgroup.save
+        if group.save_to_db(era: era, starts_on: era.starts_on)
+          dbgroup = group.dbrecord
           groups_created_count += 1
-          dbgroup.reload
-        else
-          dbgroup = nil
-          puts "Failed to create teaching group #{group.name}"
         end
       end
     end
@@ -1208,20 +1210,49 @@ if timetable_entries && periods && period_times
               if dblocation
                 c = Commitment.new
                 c.event = event
-                c.element = dblocation.element
+                c.element = dblocation.location.element
                 c.save
               end
             else
               puts "Failed to save event #{event.inspect}"
             end
           else
-            puts "Not loading - lesson = #{lesson.timetable_ident}, dbgroup = #{dbgroup ? dbgroup.name : "Not found"}"
+#            puts "Not loading - lesson = #{lesson.timetable_ident}, dbgroup = #{dbgroup ? dbgroup.name : "Not found"}"
           end
         end
       end
       #
       #  And any which need adjusting?
       #
+      shared = sbids - sbonly
+      if shared.size > 0
+        puts "#{shared.size} existing events to check."
+        shared.each do |sl|
+          lesson = tte_hash[sl]
+          dbrecord = Event.find_by_source_id(sl)
+          if lesson && dbrecord
+            changed = false
+            period = period_hash[lesson.period_ident]
+            starts_at = Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+            ends_at   = Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+            if dbrecord.starts_at != starts_at
+              dbrecord.starts_at = starts_at
+              changed = true
+            end
+            if dbrecord.ends_at != ends_at
+              dbrecord.ends_at = ends_at
+              changed = true
+            end
+            if changed
+              unless dbrecord.save
+                puts "Failed to save amended event record."
+              end
+            end
+          else
+            puts "Couldn't find existing lesson to check."
+          end
+        end
+      end
 
       #
       #  And now the compound events.

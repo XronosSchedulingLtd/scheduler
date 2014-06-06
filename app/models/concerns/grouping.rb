@@ -26,9 +26,17 @@ module Grouping
       #  Use the bang version, so if creation of the Group fails
       #  then the error will propagate back up.
       #
-      Group.create!(:visible_group => self,
-                    :starts_on => self.starts_on,
-                    :ends_on   => self.ends_on)
+      #  There is a problem in that I'm not sure how to propagate
+      #  the error message back up too.
+      #
+      begin
+        group = Group.create!(:visible_group => self,
+                              :starts_on => self.starts_on,
+                              :ends_on   => self.ends_on)
+      rescue
+        errors[:base] << "Group: #{$!.to_s}"
+        raise $!
+      end
     end
   end
 

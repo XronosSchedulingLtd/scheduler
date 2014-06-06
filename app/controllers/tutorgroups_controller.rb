@@ -25,6 +25,7 @@ class TutorgroupsController < ApplicationController
   # POST /tutorgroups.json
   def create
     @tutorgroup = Tutorgroup.new(tutorgroup_params)
+    @tutorgroup.starts_on ||= Date.today
 
     respond_to do |format|
       if @tutorgroup.save
@@ -42,7 +43,7 @@ class TutorgroupsController < ApplicationController
   def update
     respond_to do |format|
       if @tutorgroup.update(tutorgroup_params)
-        format.html { redirect_to @tutorgroup, notice: 'Tutorgroup was successfully updated.' }
+        format.html { redirect_to tutorgroups_path, notice: 'Tutorgroup was successfully updated.' }
         format.json { render :show, status: :ok, location: @tutorgroup }
       else
         format.html { render :edit }

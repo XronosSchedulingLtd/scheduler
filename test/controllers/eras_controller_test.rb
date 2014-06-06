@@ -2,7 +2,7 @@ require 'test_helper'
 
 class ErasControllerTest < ActionController::TestCase
   setup do
-    @era = eras(:one)
+    @era = eras(:eraone)
   end
 
   test "should get index" do

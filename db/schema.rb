@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140531200136) do
+ActiveRecord::Schema.define(version: 20140606082947) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -69,6 +69,9 @@ ActiveRecord::Schema.define(version: 20140531200136) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean  "all_day",          default: false
+    t.boolean  "compound",         default: false
+    t.integer  "source_id",        default: 0
+    t.string   "source_hash"
   end
 
   create_table "eventsources", force: true do |t|
@@ -86,17 +89,22 @@ ActiveRecord::Schema.define(version: 20140531200136) do
     t.string   "visible_group_type"
   end
 
+  create_table "locationaliases", force: true do |t|
+    t.string   "name"
+    t.integer  "source_id"
+    t.integer  "location_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "locations", force: true do |t|
     t.string   "short_name"
     t.string   "name"
-    t.integer  "source_id"
     t.boolean  "active"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean  "current",    default: false
   end
-
-  add_index "locations", ["source_id"], name: "index_locations_on_source_id", using: :btree
 
   create_table "memberships", force: true do |t|
     t.integer  "group_id",   null: false
