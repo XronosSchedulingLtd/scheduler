@@ -346,19 +346,40 @@ class SB_Period
   end
 end
 
+PT_Correction = Struct.new(:wrong_start, :wrong_end, :right_start, :right_end)
 
 class SB_PeriodTime
   FILE_NAME = "periodtimes.csv"
   REQUIRED_COLUMNS = [Column["PeriodTimesIdent", :period_time_ident, true],
                       Column["PeriodTimeStart",  :start_mins,        true],
                       Column["PeriodTimeEnd",    :end_mins,          true],
-                      Column["Period",           :period_ident,      true]]
+                      Column["Period",           :period_ident,      true],
+                      Column["PeriodTimeSetIdent", :period_time_set_ident, true]]
+  TIME_CORRECTIONS = [PT_Correction[510, 540, 515, 535],  # 08:35 - 08:55
+                      PT_Correction[540, 595, 540, 590],  # 09:00 - 09:50
+                      PT_Correction[670, 730, 670, 725],  # 11:10 - 12:05
+                      PT_Correction[730, 790, 730, 785],  # 12:10 - 13:05
+                      PT_Correction[840, 900, 840, 895],  # 14:00 - 14:55
+                      PT_Correction[900, 960, 900, 955],  # 15:00 - 15:55
+                      PT_Correction[825, 885, 825, 880],  # 13:45 - 14:40
+                      PT_Correction[730, 770, 730, 765],  # 12:10 - 12:45
+                      PT_Correction[770, 810, 770, 805]]  # 12:50 - 13:25
 
   include Slurper
 
   attr_reader :starts_at, :ends_at
 
   def adjust
+    #
+    #  SB has some of the period times recorded wrongly.
+    #
+    correction = TIME_CORRECTIONS.detect do |tc|
+      tc.wrong_start == @start_mins && tc.wrong_end == @end_mins
+    end
+    if correction
+      @start_mins = correction.right_start
+      @end_mins   = correction.right_end
+    end
     #
     #  Create textual times from the minutes-since-midnight which we
     #  receive.
@@ -368,7 +389,7 @@ class SB_PeriodTime
   end
 
   def wanted?
-    true
+    @period_time_set_ident == 2
   end
 
   def active
@@ -970,7 +991,7 @@ if pupils && years && tutorgroupentries
       extra_in_db.each do |pupil_id|
         pupil = pupil_hash[pupil_id]
         if pupil && pupil.dbrecord
-          dbgroup.remove_member(pupil.dbrecord)
+          dbrecord.remove_member(pupil.dbrecord)
           tgmember_removed_count += 1
         end
       end

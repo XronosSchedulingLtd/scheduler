@@ -95,3 +95,5 @@ And then on the staging system:
 Full load: 36m 43s
 Check: 1m 37s
 
+Filtering now to just the times which I want.  How about fixing the wrong times too.  I had a note of them somewhere.  Done that too.
+
