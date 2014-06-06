@@ -152,7 +152,9 @@ module DatabaseAccess
       false
     else
       newrecord = self.class.const_get(:DB_CLASS).new
-      newrecord.source_id = self.source_id
+      key_field = self.class.const_get(:DB_KEY_FIELD)
+      newrecord.send("#{key_field}=",
+                     self.send("#{key_field}"))
       self.class.const_get(:FIELDS_TO_CREATE).each do |field_name|
          newrecord.send("#{field_name}=",
                         self.instance_variable_get("@#{field_name}"))
@@ -642,7 +644,7 @@ class SB_Tutorgroup
   FIELDS_TO_UPDATE = [:name, :house, :era_id, :start_year]
   DB_CLASS = Tutorgroup
   DB_KEY_FIELD = :staff_id
-  FIELDS_TO_CREATE = [:name, :house, :staff_id, :era_id, :start_year, :current]
+  FIELDS_TO_CREATE = [:name, :house, :era_id, :start_year, :current]
 
   include DatabaseAccess
 
@@ -664,6 +666,7 @@ class SB_Tutorgroup
   def current
     true
   end
+
 end
 
 class SB_Year
@@ -1207,7 +1210,7 @@ if timetable_entries && periods && period_times
                 c.element = dbstaff.element
                 c.save
               end
-              if dblocation
+              if dblocation && dblocation.location
                 c = Commitment.new
                 c.event = event
                 c.element = dblocation.location.element
@@ -1320,10 +1323,10 @@ if timetable_entries && periods && period_times
               lesson.room_idents.each do |ri|
                 if location = location_hash[ri]
                   dblocation = location.dbrecord
-                  if dblocation
+                  if dblocation && dblocation.location
                     c = Commitment.new
                     c.event = event
-                    c.element = dblocation.element
+                    c.element = dblocation.location.element
                     c.save
                   end
                 end

@@ -25,6 +25,7 @@ class LocationaliasesController < ApplicationController
   # POST /locationaliases.json
   def create
     @locationalias = Locationalias.new(locationalias_params)
+    @locationalias.short_name ||= @locationalias.name
 
     respond_to do |format|
       if @locationalias.save

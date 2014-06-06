@@ -32,6 +32,7 @@ Back to trying to load my SB data in a neater fashion.  Start by deleting everyt
 * Teachingroups
 * Tutorgroups
 * Locations
+* Locationaliases
 
 Pupils then seem to load OK.  Fails on locations, which is hardly surprising.  Can I have my loading code concern itself entirely with location aliases and then have the locations created automatically?  Should be possible.  Done it.
 
@@ -83,3 +84,8 @@ PeriodTimesIdent,PeriodTimeStart,PeriodTimeEnd,Period
 which seems to place them both as running from 08:30 for 30 minutes.  Where then am I getting the other time from?  13:25 to 13:30 would have minute values of 805 to 810.  Is there such a period time?  Yes, there is, and it too points to period 2.  How does one decide which of the two to use?  As a first guess, I could just take the first effort at each one which I find.  Try it.  That does seem to have been tolerably successful.  And it gave an opportunity to test my code which adjusts existing events.
 
 Ah - there is a column in the period times which isn't in my current export.  It's called PeriodTimeSetIdent and it contains 2 for the time which I want, and 3 for the one which I don't.  Add that to my export and start filtering.
+
+Doing a test commit of what I've done.  Testing a full load and a full check before I deploy it to the staging server.
+
+Full load: 4m 55s
+Check: 1m 23s
