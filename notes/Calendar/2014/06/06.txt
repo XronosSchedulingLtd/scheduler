@@ -89,3 +89,9 @@ Doing a test commit of what I've done.  Testing a full load and a full check bef
 
 Full load: 4m 55s
 Check: 1m 23s
+
+And then on the staging system:
+
+Full load: 36m 43s
+Check: 1m 37s
+

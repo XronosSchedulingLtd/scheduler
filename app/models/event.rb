@@ -50,6 +50,8 @@ class Event < ActiveRecord::Base
   validates :starts_at, presence: true
   validates_with DurationValidator
 
+  @@lesson_category = nil
+
   #
   #  These may look slightly surprising.  We use them to specify
   #  events FROM date UNTIL date, and it seems at first sight that
@@ -300,6 +302,14 @@ class Event < ActiveRecord::Base
     end
   end
 
+  def colour
+    if eventcategory.id == Event.lesson_category.id
+      "#225599"
+    else
+      "green"
+    end
+  end
+
   def as_json(options = {})
     {
       :id        => "#{id}",
@@ -308,8 +318,13 @@ class Event < ActiveRecord::Base
       :end       => ends_at_for_fc,
       :allDay    => all_day,
       :recurring => false,
-      :editable  => can_edit?
+      :editable  => can_edit?,
+      :color     => colour
     }
+  end
+
+  def self.lesson_category
+    @@lesson_category ||= Eventcategory.find_by_name("Lesson")
   end
 
   #
