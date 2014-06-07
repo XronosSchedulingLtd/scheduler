@@ -50,7 +50,8 @@ class Event < ActiveRecord::Base
   validates :starts_at, presence: true
   validates_with DurationValidator
 
-  @@lesson_category = nil
+  @@lesson_category     = nil
+  @@weekletter_category = nil
 
   #
   #  These may look slightly surprising.  We use them to specify
@@ -305,6 +306,8 @@ class Event < ActiveRecord::Base
   def colour
     if eventcategory.id == Event.lesson_category.id
       "#225599"
+    elsif eventcategory.id == Event.weekletter_category.id
+      "pink"
     else
       "green"
     end
@@ -325,6 +328,10 @@ class Event < ActiveRecord::Base
 
   def self.lesson_category
     @@lesson_category ||= Eventcategory.find_by_name("Lesson")
+  end
+
+  def self.weekletter_category
+    @@weekletter_category ||= Eventcategory.find_by_name("Week letter")
   end
 
   #

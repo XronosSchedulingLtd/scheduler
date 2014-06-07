@@ -280,139 +280,146 @@ class ImportsController < ApplicationController
   def commit_csv
 #    raise params.inspect
     eventsource = Eventsource.find(params[:eventsource])
-    eventcategory = Eventcategory.find_by_name("Calendar")
-    start_date = Time.zone.parse(params[:first_date])
-    #
-    #  Since we are purging events, we want all events up to midnight at
-    #  the start of the day *after* the indicated day.
-    #
-    end_date   = Time.zone.parse(params[:last_date]) + 1.day
-    do_purge   = (params[:do_purge] == 'yes')
-    do_load    = (params[:do_load] == 'yes')
-    @failures  = []
-    #
-    #  Should do some validation of the input parameters here.
-    #
-#    raise do_purge.inspect
-    if do_purge
+    calendarcategory = Eventcategory.find_by_name("Calendar")
+    weeklettercategory = Eventcategory.find_by_name("Week letter")
+    dutycategory = Eventcategory.find_by_name("Duty")
+    if calendarcategory && weeklettercategory && dutycategory
+      start_date = Time.zone.parse(params[:first_date])
       #
-      #  Need to purge all events for the indicated interval from this
-      #  event source.  Want to purge anything with a presence within this
-      #  period.  This is the same philosophy as we use when loading - anything
-      #  which has any part of its duration within the indicated period
-      #  gets loaded.
+      #  Since we are purging events, we want all events up to midnight at
+      #  the start of the day *after* the indicated day.
       #
-      Event.beginning(start_date).until(end_date).source_id(eventsource.id).destroy_all
-    end
-    if do_load
-      name = params[:name]
-      if name
-        @name = File.basename(name)
+      end_date   = Time.zone.parse(params[:last_date]) + 1.day
+      do_purge   = (params[:do_purge] == 'yes')
+      do_load    = (params[:do_load] == 'yes')
+      @failures  = []
+      #
+      #  Should do some validation of the input parameters here.
+      #
+  #    raise do_purge.inspect
+      if do_purge
         #
-        #  For now we can process only CSV files.
-        #  The CSV library is strangely fragile, in that it will simply
-        #  error out if it encounters a character which it doesn't think
-        #  should be there, even though it doesn't affect the structure
-        #  of the file.  I therefore need to pre-process to avoid run-time
-        #  errors.
+        #  Need to purge all events for the indicated interval from this
+        #  event source.  Want to purge anything with a presence within this
+        #  period.  This is the same philosophy as we use when loading - anything
+        #  which has any part of its duration within the indicated period
+        #  gets loaded.
         #
-        if File.extname(@name).downcase == '.csv'
-          contents = File.read(Rails.root.join(IMPORT_DIR, @name))
-          detection = CharlockHolmes::EncodingDetector.detect(contents)
-          utf8_encoded_contents =
-            CharlockHolmes::Converter.convert(contents,
-                                              detection[:encoding],
-                                              'UTF-8')
-          parsed = CSV.parse(utf8_encoded_contents)
-          entries, message = CalendarEntry.array_from_csv_data(parsed)
-          if entries
-            weekletterentries = []
-            entries.each do |entry|
-              if entry.week_letter
-                #
-                #  We save these up and process them at the end.
-                #
-                weekletterentries << entry
-              else
-                event = Event.new
-                event.starts_at = entry.starts_at
-                event.ends_at   = entry.ends_at
-                event.all_day   = entry.all_day
-                event.body      = entry.description
-                event.eventcategory = eventcategory
-                event.eventsource   = eventsource
-                unless event.save
-                  @failures << "Event #{entry.description} was invalid."
-                end
-              end
-            end
-            if weekletterentries.size > 0
-              currentweekletter = nil
-              currentweekstart  = nil
-              currentweekend    = nil
-              weekletterentries.sort.each do |wle|
-    #            puts "Processing WEEK #{
-    #                                wle.weekletter
-    #                              } on #{
-    #                                wle.dtstart.to_formatted_s(:dmy)}"
-                if wle.week_letter == currentweekletter
+        Event.beginning(start_date).until(end_date).source_id(eventsource.id).destroy_all
+      end
+      if do_load
+        name = params[:name]
+        if name
+          @name = File.basename(name)
+          #
+          #  For now we can process only CSV files.
+          #  The CSV library is strangely fragile, in that it will simply
+          #  error out if it encounters a character which it doesn't think
+          #  should be there, even though it doesn't affect the structure
+          #  of the file.  I therefore need to pre-process to avoid run-time
+          #  errors.
+          #
+          if File.extname(@name).downcase == '.csv'
+            contents = File.read(Rails.root.join(IMPORT_DIR, @name))
+            detection = CharlockHolmes::EncodingDetector.detect(contents)
+            utf8_encoded_contents =
+              CharlockHolmes::Converter.convert(contents,
+                                                detection[:encoding],
+                                                'UTF-8')
+            parsed = CSV.parse(utf8_encoded_contents)
+            entries, message = CalendarEntry.array_from_csv_data(parsed)
+            if entries
+              weekletterentries = []
+              entries.each do |entry|
+                if entry.week_letter
                   #
-                  #  The week continues
+                  #  We save these up and process them at the end.
                   #
-                  currentweekend = wle.ends_at
+                  weekletterentries << entry
                 else
-                  if currentweekletter
-                    #
-                    #  Need to flush this one to the d/b.
-                    #
-    #                puts "Trying to save #{
-    #                        currentweekstart.to_formatted_s(:dmy)
-    #                      } to #{
-    #                        currentweekend.to_formatted_s(:dmy)
-    #                      }"
-                    event = Event.new
-                    event.starts_at = currentweekstart
-                    event.ends_at   = currentweekend
-                    event.all_day   = true
-                    event.body      = "WEEK #{currentweekletter}"
-                    event.eventcategory = eventcategory
-                    event.eventsource   = eventsource
-                    unless event.save
-                      @failures << "Event #{entry.description} was invalid."
-                    end
+                  event = Event.new
+                  event.starts_at = entry.starts_at
+                  event.ends_at   = entry.ends_at
+                  event.all_day   = entry.all_day
+                  event.body      = entry.description
+                  event.eventcategory = calendarcategory
+                  event.eventsource   = eventsource
+                  unless event.save
+                    @failures << "Event #{entry.description} was invalid."
                   end
-                  currentweekletter = wle.week_letter
-                  currentweekstart  = wle.starts_at
-                  currentweekend    = wle.ends_at
-                end
-              end # Looping through week letters.
-              if currentweekletter
-                #
-                #  Need to flush this final one to the d/b.
-                #
-                event = Event.new
-                event.starts_at = currentweekstart
-                event.ends_at   = currentweekend
-                event.all_day   = true
-                event.body      = "WEEK #{currentweekletter}"
-                event.eventcategory = eventcategory
-                event.eventsource   = eventsource
-                unless event.save
-                  @failures << "Event #{entry.description} was invalid."
                 end
               end
-            
+              if weekletterentries.size > 0
+                currentweekletter = nil
+                currentweekstart  = nil
+                currentweekend    = nil
+                weekletterentries.sort.each do |wle|
+      #            puts "Processing WEEK #{
+      #                                wle.weekletter
+      #                              } on #{
+      #                                wle.dtstart.to_formatted_s(:dmy)}"
+                  if wle.week_letter == currentweekletter
+                    #
+                    #  The week continues
+                    #
+                    currentweekend = wle.ends_at
+                  else
+                    if currentweekletter
+                      #
+                      #  Need to flush this one to the d/b.
+                      #
+      #                puts "Trying to save #{
+      #                        currentweekstart.to_formatted_s(:dmy)
+      #                      } to #{
+      #                        currentweekend.to_formatted_s(:dmy)
+      #                      }"
+                      event = Event.new
+                      event.starts_at = currentweekstart
+                      event.ends_at   = currentweekend
+                      event.all_day   = true
+                      event.body      = "WEEK #{currentweekletter}"
+                      event.eventcategory = weeklettercategory
+                      event.eventsource   = eventsource
+                      unless event.save
+                        @failures << "Event #{entry.description} was invalid."
+                      end
+                    end
+                    currentweekletter = wle.week_letter
+                    currentweekstart  = wle.starts_at
+                    currentweekend    = wle.ends_at
+                  end
+                end # Looping through week letters.
+                if currentweekletter
+                  #
+                  #  Need to flush this final one to the d/b.
+                  #
+                  event = Event.new
+                  event.starts_at = currentweekstart
+                  event.ends_at   = currentweekend
+                  event.all_day   = true
+                  event.body      = "WEEK #{currentweekletter}"
+                  event.eventcategory = weeklettercategory
+                  event.eventsource   = eventsource
+                  unless event.save
+                    @failures << "Event #{entry.description} was invalid."
+                  end
+                end
+              
+              end
+            else
+              redirect_to import_index_path, message
             end
           else
-            redirect_to import_index_path, message
+            redirect_to imports_index_path,
+                        notice: 'Currently we can process only CSV files.'
           end
         else
-          redirect_to imports_index_path,
-                      notice: 'Currently we can process only CSV files.'
+          redirect_to imports_index_path
         end
-      else
-        redirect_to imports_index_path
       end
+    else
+      redirect_to imports_index_path,
+                  notice: "Can't find necessary event categories." 
     end
   end
 end

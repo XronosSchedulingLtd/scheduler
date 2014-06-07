@@ -18,7 +18,7 @@ class LocationsControllerTest < ActionController::TestCase
 
   test "should create location" do
     assert_difference('Location.count') do
-      post :create, location: { active: @location.active, current: @location.current, name: @location.name, short_name: @location.short_name }
+      post :create, location: { active: @location.active, current: @location.current, name: @location.name }
     end
 
     assert_redirected_to location_path(assigns(:location))
@@ -35,12 +35,13 @@ class LocationsControllerTest < ActionController::TestCase
   end
 
   test "should update location" do
-    patch :update, id: @location, location: { active: @location.active, current: @location.current, name: @location.name, short_name: @location.short_name }
+    patch :update, id: @location, location: { active: @location.active, current: @location.current, name: @location.name }
     assert_redirected_to location_path(assigns(:location))
   end
 
   test "should destroy location" do
     assert_difference('Location.count', -1) do
+      request.env["HTTP_REFERER"] = locations_path
       delete :destroy, id: @location
     end
 

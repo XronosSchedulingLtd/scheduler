@@ -1,11 +1,13 @@
 <h1>Listing locationaliases</h1>
+<p id="notice"><%= notice %></p>
 
+<%= will_paginate @locationaliases %>
 <table>
   <thead>
     <tr>
-      <th>Name</th>
-      <th>Source</th>
-      <th>Location</th>
+      <th>Alias</th>
+      <th>Location name</th>
+      <th>Source id</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -14,8 +16,12 @@
     <% @locationaliases.each do |locationalias| %>
       <tr>
         <td><%= locationalias.name %></td>
+        <% if locationalias.location %>
+          <td><%= locationalias.location.name %></td>
+        <% else %>
+          <td>None</td>
+        <% end %>
         <td><%= locationalias.source_id %></td>
-        <td><%= locationalias.location_id %></td>
         <td><%= link_to 'Show', locationalias %></td>
         <td><%= link_to 'Edit', edit_locationalias_path(locationalias) %></td>
         <td><%= link_to 'Destroy', locationalias, method: :delete, data: { confirm: 'Are you sure?' } %></td>
@@ -23,6 +29,7 @@
     <% end %>
   </tbody>
 </table>
+<%= will_paginate @locationaliases %>
 
 <br>
 

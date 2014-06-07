@@ -5,10 +5,10 @@
 <table>
   <thead>
     <tr>
-      <th>Short name</th>
       <th>Name</th>
       <th>Active</th>
       <th>Current</th>
+      <th>Aliases</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -16,10 +16,10 @@
   <tbody>
     <% @locations.each do |location| %>
       <tr>
-        <td><%= location.short_name %></td>
         <td><%= location.name %></td>
         <td><%= location.active %></td>
         <td><%= location.current %></td>
+        <td><%= location.locationaliases.size %></td>
         <td><%= link_to 'Show', location %></td>
         <td><%= link_to 'Edit', edit_location_path(location) %></td>
         <td><%= link_to 'Destroy', location, method: :delete, data: { confirm: 'Are you sure?' } %></td>

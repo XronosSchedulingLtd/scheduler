@@ -4,7 +4,7 @@ class LocationaliasesController < ApplicationController
   # GET /locationaliases
   # GET /locationaliases.json
   def index
-    @locationaliases = Locationalias.all
+    @locationaliases = Locationalias.page(params[:page]).order('name')
   end
 
   # GET /locationaliases/1
@@ -19,13 +19,13 @@ class LocationaliasesController < ApplicationController
 
   # GET /locationaliases/1/edit
   def edit
+    session[:editing_locationalias_from] = request.env['HTTP_REFERER']
   end
 
   # POST /locationaliases
   # POST /locationaliases.json
   def create
     @locationalias = Locationalias.new(locationalias_params)
-    @locationalias.short_name ||= @locationalias.name
 
     respond_to do |format|
       if @locationalias.save
@@ -43,7 +43,7 @@ class LocationaliasesController < ApplicationController
   def update
     respond_to do |format|
       if @locationalias.update(locationalias_params)
-        format.html { redirect_to @locationalias, notice: 'Locationalias was successfully updated.' }
+        format.html { redirect_to session[:editing_locationalias_from], notice: 'Locationalias was successfully updated.' }
         format.json { render :show, status: :ok, location: @locationalias }
       else
         format.html { render :edit }
@@ -70,6 +70,6 @@ class LocationaliasesController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def locationalias_params
-      params.require(:locationalias).permit(:name, :source_id, :location_id)
+      params.require(:locationalias).permit(:name, :source_id, :location_id, :display, :friendly)
     end
 end

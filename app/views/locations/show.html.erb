@@ -1,24 +1,33 @@
 <p id="notice"><%= notice %></p>
 
-<p>
-  <strong>Short name:</strong>
-  <%= @location.short_name %>
-</p>
+<table>
+  <tr>
+    <td><strong>Name:</strong></td>
+    <td><%= @location.name %></td>
+  </tr>
 
-<p>
-  <strong>Name:</strong>
-  <%= @location.name %>
-</p>
+  <% if @location.locationaliases.size > 0 %>
+  <tr>
+    <td><strong>Aliases:</strong></td>
+    <td>
+      <% @location.locationaliases.each do |locationalias| %>
+        <%= locationalias.name %><br/>
+      <% end %>
+    </td>
+  </tr>
 
-<p>
-  <strong>Active:</strong>
-  <%= @location.active %>
-</p>
+  <% end %>
 
-<p>
-  <strong>Current:</strong>
-  <%= @location.current %>
-</p>
+  <tr>
+    <td><strong>Active:</strong></td>
+    <td><%= @location.active %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Current:</strong></td>
+    <td><%= @location.current %></td>
+  </tr>
+</table>
 
 <%= link_to 'Edit', edit_location_path(@location) %> |
 <%= link_to 'Back', locations_path %>

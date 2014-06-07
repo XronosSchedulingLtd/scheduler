@@ -170,7 +170,7 @@ module DatabaseAccess
         @checked_dbrecord = true
         true
       else
-        puts "Failed to create d/b record of type #{self.class.const_get(:DB_CLAS)} for #{self.source_id}"
+        puts "Failed to create d/b record of type #{self.class.const_get(:DB_CLASS)} for #{self.source_id}"
         false
       end
     end
@@ -277,7 +277,7 @@ class SB_Location
                       Column["RoomName",  :name,       false]]
   FIELDS_TO_UPDATE = [:name]
   DB_CLASS = Locationalias
-  FIELDS_TO_CREATE = [:name, :short_name]
+  FIELDS_TO_CREATE = [:name]
   DB_KEY_FIELD = :source_id
 
   include Slurper
@@ -305,6 +305,50 @@ class SB_Location
 
   def source_id
     @room_ident
+  end
+
+  #
+  #  We have to have our own saving method because we're slightly
+  #  weird.
+  #
+  def save_location_to_db(extras = nil)
+    if dbrecord
+      puts "Attempt to re-create d/b record of type #{self.class.const_get(:DB_CLASS)} for #{self.source_id}"
+      false
+    else
+      newrecord = Locationalias.new
+      newrecord.name      = self.short_name
+      newrecord.source_id = self.source_id
+      newrecord.display   = false
+      newrecord.friendly  = false
+      if newrecord.save
+        newrecord.reload
+        @dbrecord = newrecord
+        @checked_dbrecord = true
+        if self.name == self.short_name
+          true
+        else
+          #
+          #  Need to create a second one for the other name.
+          #
+          newrecord = Locationalias.new
+          newrecord.name      = self.name
+          newrecord.location  = @dbrecord.location
+          newrecord.source_id = self.source_id
+          newrecord.display   = false
+          newrecord.friendly  = false
+          if newrecord.save
+            true
+          else
+            puts "Failed to create d/b record of type #{DB_CLASS} for #{self.source_id}"
+            false
+          end
+        end
+      else
+        puts "Failed to create d/b record of type #{DB_CLASS} for #{self.source_id}"
+        false
+      end
+    end
   end
 
 end
@@ -721,25 +765,6 @@ class SB_Year
   end
 end
 
-#
-#  Compares selected fields in a database record and a memory record,
-#  and updates any which differ.  Returns true if anything was updated
-#  and false otherwise.
-#
-def check_and_update(dbrecord, sbrecord, fields)
-  changed = false
-  fields.each do |field_name|
-    if dbrecord[field_name] != sbrecord.instance_variable_get("@#{field_name}")
-      puts "Field #{field_name} differs for #{sbrecord.name}"
-#      puts "Database: #{dbrecord[field_name]} encoding #{dbrecord[field_name].encoding}"
-#      puts "Memory:   #{sbrecord.instance_variable_get("@#{field_name}")} encoding #{sbrecord.instance_variable_get("@#{field_name}").encoding}"
-      dbrecord[field_name] = sbrecord.instance_variable_get("@#{field_name}")
-      changed = true
-    end
-  end
-  changed
-end
-
 tutorgroupentries, msg = SB_Tutorgroupentry.slurp
 if msg.blank?
   puts "Read #{tutorgroupentries.size} tutor groups."
@@ -892,25 +917,24 @@ if msg.blank?
   locations.each do |location|
     location_hash[location.room_ident] = location
   end
-  locations_changed_count   = 0
-  locations_unchanged_count = 0
   locations_loaded_count    = 0
   locations.each do |location|
     dbrecord = location.dbrecord
-    if dbrecord
-      if location.check_and_update
-        locations_changed_count += 1
-      else
-        locations_unchanged_count += 1
-      end
-    else
-      if location.save_to_db
+    #
+    #  We're not actually terribly interested in SB's idea of what
+    #  places are called.  Naming in SB is a mess.  As long as we can
+    #  identify where is meant, we leave well alone.
+    #
+    unless dbrecord
+      #
+      #  Don't seem to have anything for this location yet.  We need
+      #  to be slightly circuitous in how we do our save.
+      #
+      if location.save_location_to_db
         locations_loaded_count += 1
       end
     end
   end
-  puts "#{locations_changed_count} location records amended."
-  puts "#{locations_unchanged_count} location records untouched."
   puts "#{locations_loaded_count} location records created."
 else
   puts "Locations: #{msg}"

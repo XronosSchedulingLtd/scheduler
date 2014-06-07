@@ -10,7 +10,8 @@ What SB calls a Room, but it covers more than rooms.
 Fields
 
 id			integer	Rails's id for the location
-short_name	string	Short name for the location (e.g. CMR)
-name		string	Longer name (e.g. Charles Maude Room)
+name		string	Short name for the location
 active		boolean	Flag indicating whether the location is active
 
+
+Longer names, when required, are stored in LocationAlias records.

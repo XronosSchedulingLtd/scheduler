@@ -1,13 +1,11 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  short_name: MyString
   name: MyString
   active: false
   current: false
 
 two:
-  short_name: MyString
   name: MyString
   active: false
   current: false

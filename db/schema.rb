@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140606082947) do
+ActiveRecord::Schema.define(version: 20140607114648) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -95,10 +95,11 @@ ActiveRecord::Schema.define(version: 20140606082947) do
     t.integer  "location_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "display",     default: false
+    t.boolean  "friendly",    default: false
   end
 
   create_table "locations", force: true do |t|
-    t.string   "short_name"
     t.string   "name"
     t.boolean  "active"
     t.datetime "created_at"

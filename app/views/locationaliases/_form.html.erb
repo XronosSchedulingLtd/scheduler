@@ -39,6 +39,22 @@
                               { :prompt => true }) %>
     </div>
   </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :display, class: "right inline" %>
+    </div>
+    <div class="small-9 columns">
+      <%= f.check_box :display %>
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :friendly, class: "right inline" %>
+    </div>
+    <div class="small-9 columns">
+      <%= f.check_box :friendly %>
+    </div>
+  </div>
   <div class="row">
     <div class="small-9 small-offset-3 columns">
       <%= f.submit %>

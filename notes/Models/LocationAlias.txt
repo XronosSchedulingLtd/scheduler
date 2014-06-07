@@ -19,3 +19,5 @@ id			integer	Rails's id for the LocationAlias
 name		string	Name of this alias
 source_id	integer	Id of this item on the source system
 location_id	integer	Id of the location for which this is an alias.
+display		boolean	Should this alias be included in the predictive text name for the location.
+friendly		boolean	Should this alias be used in preference to the original name in long messages.

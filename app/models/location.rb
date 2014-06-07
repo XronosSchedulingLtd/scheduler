@@ -1,7 +1,6 @@
 class Location < ActiveRecord::Base
 
   validates :name, presence: true
-  validates :short_name, presence: true
 
   has_many :locationaliases, :dependent => :nullify
 
@@ -15,11 +14,20 @@ class Location < ActiveRecord::Base
     #
     #  A constructed name to pass to our element record.
     #
-    if self.name == self.short_name
-      "#{self.name}"
+    #  We use the name which we have (should be a short name), plus any
+    #  aliases flagged as of type "display", with any flagged as "friendly"
+    #  last.
+    #
+    displayaliases = locationaliases.where(display: true).sort
+    if displayaliases.size > 0
+      ([self.name] + displayaliases.collect {|da| da.name}).join(" / ")
     else
-      "#{self.name} (#{self.short_name})"
+      self.name
     end
+  end
+
+  def <=>(other)
+    self.name <=> other.name
   end
 
 end

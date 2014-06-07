@@ -19,6 +19,7 @@ class LocationsController < ApplicationController
 
   # GET /locations/1/edit
   def edit
+    session[:editing_location_from] = request.env['HTTP_REFERER']
   end
 
   # POST /locations
@@ -42,7 +43,7 @@ class LocationsController < ApplicationController
   def update
     respond_to do |format|
       if @location.update(location_params)
-        format.html { redirect_to @location, notice: 'Location was successfully updated.' }
+        format.html { redirect_to session[:editing_location_from], notice: 'Location was successfully updated.' }
         format.json { render :show, status: :ok, location: @location }
       else
         format.html { render :edit }
@@ -56,7 +57,7 @@ class LocationsController < ApplicationController
   def destroy
     @location.destroy
     respond_to do |format|
-      format.html { redirect_to locations_url }
+      format.html { redirect_to :back }
       format.json { head :no_content }
     end
   end
@@ -69,6 +70,6 @@ class LocationsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def location_params
-      params.require(:location).permit(:short_name, :name, :active, :current)
+      params.require(:location).permit(:name, :active, :current)
     end
 end

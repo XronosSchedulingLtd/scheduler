@@ -3,12 +3,48 @@ class Locationalias < ActiveRecord::Base
   validates :name, presence: true
   belongs_to :location
 
-  attr_accessor :short_name
-
   after_create :create_corresponding_location
 
-  def after_initialize
-    @short_name = nil
+  self.per_page = 15
+
+  #
+  #  Sorting location aliases is interesting.  I really want aliases
+  #  for the same location to appear together, and I want those without
+  #  locations in a lump.  Within aliases for the same location, I want
+  #  the friendly one(s) last, and otherwise in alphabetical order.
+  #
+  #  Note comparison of ids where possible to avoid unnecessary d/b
+  #  hits.
+  #
+  def <=>(other)
+    if self.location_id == other.location_id
+      #
+      #  Two aliases for the same location. (Or two orphaned aliases.)
+      #
+      if self.friendly == other.friendly
+        #
+        #  Both of the same friendliness.
+        #
+        self.name <=> other.name
+      else
+        #
+        #  Friendly one goes last.
+        #
+        if self.friendly
+          1
+        else
+          -1
+        end
+      end
+    else
+      if self.location_id && other.location_id
+        self.location <=> other.location
+      elsif self.location_id
+        -1
+      else
+        1
+      end
+    end
   end
 
   def create_corresponding_location
@@ -19,9 +55,9 @@ class Locationalias < ActiveRecord::Base
     #
     unless self.location
       location = Location.new
-      location.short_name = self.short_name
       location.name       = self.name
       location.active     = true
+      location.current    = true
       begin
         location.save!
         self.location = location
