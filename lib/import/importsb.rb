@@ -85,7 +85,11 @@ module Slurper
             end
           end
         end
-        return entries, nil
+        if entries.size > 0
+          return entries, nil
+        else
+          return nil, "File #{self::FILE_NAME} is empty."
+        end
       end
     end
   end
