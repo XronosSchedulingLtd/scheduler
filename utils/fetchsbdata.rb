@@ -58,17 +58,21 @@ class SchoolBaseTable
   end
 
   def get_password
-    begin
-      print 'Password: '
-      # We hide the entered characters before to ask for the password
-      system 'stty -echo'
-      @@password = $stdin.gets.chomp
-      system 'stty echo'
-    rescue NoMethodError, Interrupt
-      # When the process is exited, we display the characters again
-      # And we exit
-      system 'stty echo'
-      exit
+    if ENV["PASSWORD"]
+      @@password = ENV["PASSWORD"]
+    else
+      begin
+        print 'Password: '
+        # We hide the entered characters before to ask for the password
+        system 'stty -echo'
+        @@password = $stdin.gets.chomp
+        system 'stty echo'
+      rescue NoMethodError, Interrupt
+        # When the process is exited, we display the characters again
+        # And we exit
+        system 'stty echo'
+        exit
+      end
     end
   end
 
