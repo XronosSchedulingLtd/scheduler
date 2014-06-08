@@ -1,0 +1,17 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-06-08T05:53:24+01:00
+
+====== Sunday 08 Jun 2014 ======
+
+A real weirdism this morning.  I left a cron job to run overnight on Mach2, importing data from SB, and it failed, complaining that it couldn't find a JavaScript runtime.  Not in itself surprising because the path supplied to the cron job is just:
+
+[[/bin:/usr/bin]]
+
+The weird thing though is that it worked yesterday, as a cron job.  This is not just my hazy memory - I have the e-mail which I received from cron telling me it had worked.  What has changed?
+
+Even odder, I've added ". [[/etc/profile"]] to the script and it now has a fuller path, but it still can't find the JavaScript runtime.  What happens if I run it interactively?  That fails too.  What has changed since yesterday?  Is my app still working, since that needs the JavaScript runtime too.  Seems to be.  However, I can't get into my Rails console any more.  Same problem.  Node seems to be there and working fine though.
+
+The only thing I can think of is a package upgrade last night has left things in an inconsistent state.  That or it's something to do with me setting up an rvm alias, which happens to have the same name as my gem set.
+
+Try a re-boot - which may well stop my live app from working.  Seems to have got me back in to the console at least.  And the app is working.  Try the cron job again.  Seems to work now.  Odd.

@@ -53,15 +53,24 @@ class Locationalias < ActiveRecord::Base
     #  a corresponding location.  We may have been linked to an existing
     #  location as part of the creation process.
     #
-    unless self.location
+    if self.location
+      self.location.update_element
+    else
       location = Location.new
       location.name       = self.name
       location.active     = true
       location.current    = true
       begin
+        #
+        #  Slight repetitiveness here.  We have to save the location
+        #  record before we can link to it, but then we need to save it
+        #  again to make sure its element name is correctly updated.
+        #
         location.save!
         self.location = location
         self.save
+        location.reload
+        location.update_element
       rescue
         location.errors.full_messages.each do |msg|
           errors[:base] << "Location: #{msg}"
