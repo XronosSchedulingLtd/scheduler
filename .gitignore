@@ -20,3 +20,7 @@
 
 # And any in the import directory
 /import/*
+
+# Some zim files change too much
+notes/.zim/
+
