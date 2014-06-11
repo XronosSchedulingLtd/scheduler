@@ -1,3 +1,6 @@
+require 'tempfile'
+require 'ri_cal'
+
 class StaffsController < ApplicationController
   before_action :set_staff, only: [:show, :edit, :update, :destroy]
 
@@ -58,6 +61,39 @@ class StaffsController < ApplicationController
     respond_to do |format|
       format.html { redirect_to staffs_url }
       format.json { head :no_content }
+    end
+  end
+
+  #  Not sure if one can set up a route for this.
+  # GET /staffs/<initials>/ical
+  def ical
+    staff = Staff.find_by_initials(params[:id].upcase)
+    era = Era.first
+    if staff && era
+      starts_on = era.starts_on
+      ends_on   = era.ends_on
+      dbevents = staff.events_on(starts_on, ends_on)
+      tf = Tempfile.new(["#{staff.initials}", ".ics"])
+      RiCal.Calendar do |cal|
+        cal.add_x_property("X-WR-CALNAME", staff.initials)
+        cal.add_x_property("X-WR-CALDESC", "#{staff.name}'s timetable")
+        dbevents.each do |dbevent|
+          cal.event do |event|
+            event.summary = dbevent.body
+            if dbevent.all_day
+              event.dtstart = dbevent.starts_at.to_date
+              event.dtend   = dbevent.ends_at.to_date + 1
+            else
+              event.dtstart = dbevent.starts_at
+              event.dtend   = dbevent.ends_at
+            end
+          end
+        end
+      end.export(tf)
+      tf.close
+      send_file(tf.path, :type => "application/ics")
+    else
+      redirect_to "/"
     end
   end
 

@@ -9,7 +9,11 @@ Rails.application.routes.draw do
 
   resources :pupils
 
-  resources :staffs
+  resources :staffs do
+    member do
+      get :ical
+    end
+  end
 
   resources :events do
     member do
