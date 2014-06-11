@@ -1174,8 +1174,9 @@ class SB_Loader
   end
 
   def do_timetable
-    puts "Loading events from #{@era.starts_on} to #{@era.ends_on}" if @verbose
-    @era.starts_on.upto(@era.ends_on) do |date|
+    start_date = @full_load ? @era.starts_on : Date.today
+    puts "Loading events from #{start_date} to #{@era.ends_on}" if @verbose
+    start_date.upto(@era.ends_on) do |date|
       puts "Processing #{date}" if @verbose
       week_letter = get_week_letter(date)
       if week_letter
@@ -1455,7 +1456,7 @@ begin
     loader.do_staff
     loader.do_locations
     loader.do_tutorgroups
-#    loader.do_teachinggroups
+    loader.do_teachinggroups
     loader.do_timetable
   end
 rescue RuntimeError => e
