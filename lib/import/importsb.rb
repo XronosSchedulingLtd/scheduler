@@ -1,7 +1,17 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'ostruct'
 require 'csv'
 require 'charlock_holmes'
 require 'digest/md5'
 #require 'ruby-prof'
+
+#
+#  The following line means I can just run this as a Ruby script, rather
+#  than having to do "rails r <script name>"
+#
+require_relative '../../config/environment'
 
 #
 #  A script to load in the CSV files which I've exported from SchoolBase.
@@ -120,6 +130,7 @@ module DatabaseAccess
     self.class.const_get(:FIELDS_TO_UPDATE).each do |field_name|
       if @dbrecord[field_name] != self.instance_variable_get("@#{field_name}")
         puts "Field #{field_name} differs for #{self.name}"
+        puts "d/b: \"#{@dbrecord[field_name]}\" SB: \"#{self.instance_variable_get("@#{field_name}")}\""
 #        @dbrecord[field_name] = self.instance_variable_get("@#{field_name}")
 #                entry.send("#{attr_name}=", row[column_hash[attr_name]])
          @dbrecord.send("#{field_name}=",
@@ -197,6 +208,7 @@ module DatabaseAccess
   end
 
 end
+
 
 class SB_AcademicRecord
   FILE_NAME = "academicrecord.csv"
@@ -769,639 +781,685 @@ class SB_Year
   end
 end
 
-tutorgroupentries, msg = SB_Tutorgroupentry.slurp
-if msg.blank?
-  puts "Read #{tutorgroupentries.size} tutor groups."
-else
-  puts "Tutorgroupentries: #{msg}"
-end
+class SB_Loader
 
-years, msg = SB_Year.slurp
-if msg.blank?
-  puts "Read #{years.size} years."
-  year_hash = {}
-  years.each do |year|
-    year_hash[year.year_ident] = year
-  end
-else
-  puts "Years: #{msg}"
-end
+  KNOWN_DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
-pupils, msg = SB_Pupil.slurp
-if msg.blank?
-  puts "Read #{pupils.size} pupils."
-  pupil_hash = {}
-  pupils.each do |pupil|
-    pupil_hash[pupil.pupil_ident] = pupil
-  end
-else
-  puts "Pupils: #{msg}"
-end
+  InputSource = Struct.new(:array_name, :loader_class, :hash_prefix, :key_field)
 
-groups, msg = SB_Group.slurp
-if msg.blank?
-  puts "Read #{groups.size} groups."
-  group_hash = {}
-  groups.each do |group|
-    group_hash[group.group_ident] = group
-  end
-else
-  puts "Groups: #{msg}"
-end
+  INPUT_SOURCES = [InputSource[:tutorgroupentries, SB_Tutorgroupentry],
+                   InputSource[:years, SB_Year, :year, :year_ident],
+                   InputSource[:pupils, SB_Pupil, :pupil, :pupil_ident],
+                   InputSource[:staff, SB_Staff, :staff, :staff_ident],
+                   InputSource[:locations, SB_Location, :location, :room_ident],
+                   InputSource[:groups, SB_Group, :group, :group_ident],
+                   InputSource[:ars, SB_AcademicRecord, nil, nil],
+                   InputSource[:periods, SB_Period, :period, :period_ident],
+                   InputSource[:period_times, SB_PeriodTime],
+                   InputSource[:timetable_entries, SB_Timetableentry, :tte,
+                               :timetable_ident]]
 
-ars, msg = SB_AcademicRecord.slurp
-if msg.blank?
-  puts "Read #{ars.size} academic records."
-else
-  puts "Academic records: #{msg}"
-end
-
-periods, msg = SB_Period.slurp
-if msg.blank?
-  puts "Read #{periods.size} period records."
-  period_hash = {}
-  periods.each do |period|
-    period_hash[period.period_ident] = period
-  end
-  period_times, msg = SB_PeriodTime.slurp
-  if msg.blank?
-    puts "Read #{period_times.size} period time records."
-    period_times.each do |period_time|
-      if period = period_hash[period_time.period_ident]
+  def initialize(options)
+    @verbose   = options.verbose
+    @full_load = options.full_load
+    raise "An era name must be specified." unless options.era
+    @era = Era.find_by_name(options.era)
+    raise "Era #{options.era} not found in d/b." unless @era
+    puts "Reading data files." if @verbose
+    INPUT_SOURCES.each do |is|
+      array, msg = is.loader_class.slurp
+      if msg.blank?
+        #
+        #  It's legitimate to use instance_variable_set because I'm fiddling
+        #  with my own instance variables.
+        #
+        if array.size <= 1
+          raise "Input file for #{is.array_name} contains no data."
+        end
+        puts "Read #{array.size} records as #{is.array_name}." if @verbose
+        self.instance_variable_set("@#{is.array_name}", array)
+        if is.key_field
+          tmphash = Hash.new
+          array.each do |item|
+            #
+            #  Now I'm accessing another class's internals so I need to
+            #  send a message.
+            #
+            tmphash[item.send(is.key_field)] = item
+          end
+          self.instance_variable_set("@#{is.hash_prefix}_hash", tmphash)
+        end
+      else
+        raise "Failed to read #{is.array_name}."
+      end
+    end
+    #
+    #  If we get this far then all the files have been succesfully read.
+    #  We can perform initial organisation on our data.
+    #
+    puts "Performing initial organisation." if @verbose
+    @period_times.each do |period_time|
+      if period = @period_hash[period_time.period_ident]
         period.time ||= period_time
       end
     end
-  else
-    puts "Period time records: #{msg}"
+    puts "Attempting to construct tutor groups." if @verbose
+    @tutorgroups = []
+    @tg_hash = {}
+    tge_accepted_count = 0
+    tge_ignored_count = 0
+    @tutorgroupentries.each do |tge|
+      staff = @staff_hash[tge.user_ident]
+      year  = @year_hash[tge.year_ident]
+      pupil = @pupil_hash[tge.pupil_ident]
+      if staff && year && pupil && staff.dbrecord && staff.active
+        tge_accepted_count += 1
+        unless @tg_hash[tge.user_ident]
+          tg = SB_Tutorgroup.new
+          tg.name       = "#{year.year_num - 6}#{staff.initials}"
+          tg.house      = tge.house
+          tg.staff_id   = staff.dbrecord.id
+          tg.era_id     = @era.id
+          tg.start_year = year.start_year
+          @tg_hash[tge.user_ident] = tg
+        end
+        @tg_hash[tge.user_ident].add(tge)
+      else
+        tge_ignored_count += 1
+      end
+    end
+    puts "Accepted #{tge_accepted_count} tutor group entries." if @verbose
+    puts "Ignored #{tge_ignored_count} tutor group entries." if @verbose
+    puts "Constructed #{@tg_hash.size} tutor groups." if @verbose
+    puts "Sorting academic records into teaching groups." if @verbose
+    @ars.each do |ar|
+      pupil = @pupil_hash[ar.pupil_ident]
+      if pupil && pupil.dbrecord && (group = @group_hash[ar.group_ident])
+        group.add(ar)
+      end
+    end
+    puts "Finished sorting academic records." if @verbose
+    puts "Sorting periods by week and day." if @verbose
+    #
+    #  Sort by week and day of the week.
+    #
+    @periods_by_week = {}
+    @periods_by_week["A"] = {}
+    @periods_by_week["B"] = {}
+    KNOWN_DAY_NAMES.each do |day_name|
+      @periods_by_week["A"][day_name] = []
+      @periods_by_week["B"][day_name] = []
+    end
+    @timetable_entries.each do |te|
+      period = @period_hash[te.period_ident]
+      if period.time && KNOWN_DAY_NAMES.include?(period.day_name)
+        @periods_by_week[period.week_letter][period.day_name] << te
+      end
+    end
+    @week_letter_category = Eventcategory.find_by_name("Week letter")
+    raise "Can't find event category for week letters." unless @week_letter_category
+    @lesson_category = Eventcategory.find_by_name("Lesson")
+    raise "Can't find event category for lessons." unless @lesson_category
+    @event_source = Eventsource.find_by_name("SchoolBase")
+    raise "Can't find event source \"SchoolBase\"." unless @event_source
+    puts "Finished data initialisation." if @verbose
+    yield self if block_given?
   end
-else
-  puts "Period records: #{msg}"
-end
 
-timetable_entries, msg = SB_Timetableentry.slurp
-if msg.blank?
-  puts "Read #{timetable_entries.size} timetable records."
-  tte_hash = {}
-  timetable_entries.each do |tte|
-    tte_hash[tte.timetable_ident] = tte
-  end
-else
-  puts "Timetable entry records: #{msg}"
-end
-
-if pupils && years
-  pupils_changed_count   = 0
-  pupils_unchanged_count = 0
-  pupils_loaded_count    = 0
-  pupils.each do |pupil|
-    year = year_hash[pupil.year_ident]
-    if year
-      dbrecord = pupil.dbrecord
-      if dbrecord
-        if pupil.check_and_update({start_year: year.start_year})
-          pupils_changed_count += 1
+  #
+  #  Note that none of these methods needs to check whether data have
+  #  been read successfully.  We can't get here unless they have been.
+  #
+  def do_pupils
+    pupils_changed_count   = 0
+    pupils_unchanged_count = 0
+    pupils_loaded_count    = 0
+    @pupils.each do |pupil|
+      year = @year_hash[pupil.year_ident]
+      if year
+        dbrecord = pupil.dbrecord
+        if dbrecord
+          if pupil.check_and_update({start_year: year.start_year})
+            pupils_changed_count += 1
+          else
+            pupils_unchanged_count += 1
+          end
         else
-          pupils_unchanged_count += 1
-        end
-      else
-        if pupil.save_to_db({start_year: year.start_year})
-          pupils_loaded_count += 1
+          if pupil.save_to_db({start_year: year.start_year})
+            pupils_loaded_count += 1
+          end
         end
       end
     end
+    if @verbose || pupils_changed_count > 0
+      puts "#{pupils_changed_count} pupil record(s) amended."
+    end
+    if @verbose || pupils_loaded_count > 0
+      puts "#{pupils_loaded_count} pupil record(s) created."
+    end
+    if @verbose
+      puts "#{pupils_unchanged_count} pupil record(s) untouched."
+    end
   end
-  puts "#{pupils_changed_count} pupil records amended."
-  puts "#{pupils_unchanged_count} pupil records untouched."
-  puts "#{pupils_loaded_count} pupil records created."
-end
 
-staff, msg = SB_Staff.slurp
-if msg.blank?
-  staff_hash = {}
-  staff.each do |s|
-    staff_hash[s.staff_ident] = s
-  end
-  #
-  #  Should now have an array of Staff records ready to load into the
-  #  database.
-  #
-  pre_existing_count = 0
-  loaded_count = 0
-  amended_count = 0
-  staff.each do |s|
-    dbrecord = s.dbrecord
-    if dbrecord
-      #
-      #  Staff record already exists.  Any changes?
-      #
-      pre_existing_count += 1
-      if s.check_and_update
-        amended_count += 1
-      end
-    else
-      #
-      #  d/b record does not yet exist.
-      #
-      if s.save_to_db
-        loaded_count += 1
-      end
-    end
-  end
-  puts "#{pre_existing_count} staff records were already there."
-  puts "#{amended_count} of these were amended."
-  puts "#{loaded_count} new records created."
-else
-  puts "Staff: #{msg}"
-end
-
-locations, msg = SB_Location.slurp
-if msg.blank?
-  puts "Read #{locations.size} locations."
-  location_hash = {}
-  locations.each do |location|
-    location_hash[location.room_ident] = location
-  end
-  locations_loaded_count    = 0
-  locations.each do |location|
-    dbrecord = location.dbrecord
-    #
-    #  We're not actually terribly interested in SB's idea of what
-    #  places are called.  Naming in SB is a mess.  As long as we can
-    #  identify where is meant, we leave well alone.
-    #
-    unless dbrecord
-      #
-      #  Don't seem to have anything for this location yet.  We need
-      #  to be slightly circuitous in how we do our save.
-      #
-      if location.save_location_to_db
-        locations_loaded_count += 1
-      end
-    end
-  end
-  puts "#{locations_loaded_count} location records created."
-else
-  puts "Locations: #{msg}"
-end
-
-if pupils && years && tutorgroupentries
-  puts "Attempting to construct tutor groups."
-
-  tutorgroups = []
-  tg_hash = {}
-  tge_accepted_count = 0
-  tge_ignored_count = 0
-  era = Era.first
-  tutorgroupentries.each do |tge|
-    staff = staff_hash[tge.user_ident]
-    year  = year_hash[tge.year_ident]
-    pupil = pupil_hash[tge.pupil_ident]
-    if staff && year && pupil && staff.dbrecord && staff.active
-      tge_accepted_count += 1
-      unless tg_hash[tge.user_ident]
-        tg = SB_Tutorgroup.new
-        tg.name       = "#{year.year_num - 6}#{staff.initials}"
-        tg.house      = tge.house
-        tg.staff_id   = staff.dbrecord.id
-        tg.era_id     = era.id
-        tg.start_year = year.start_year
-        tg_hash[tge.user_ident] = tg
-      end
-      tg_hash[tge.user_ident].add(tge)
-    else
-      tge_ignored_count += 1
-    end
-  end
-  puts "Accepted #{tge_accepted_count} tutor group entries."
-  puts "Ignored #{tge_ignored_count} tutor group entries."
-  puts "Constructed #{tg_hash.size} tutor groups."
-  puts "Starting to load tutor groups and members."
-  tg_changed_count   = 0
-  tg_unchanged_count = 0
-  tg_loaded_count    = 0
-  tgmember_removed_count   = 0
-  tgmember_unchanged_count = 0
-  tgmember_loaded_count    = 0
-  tg_hash.each do |key, tg|
-    dbrecord = tg.dbrecord
-    if dbrecord
-      #
-      #  Need to check the group details still match.
-      #
-      if tg.check_and_update
-        tg_changed_count += 1
-      else
-        tg_unchanged_count += 1
-      end
-    else
-      if tg.num_pupils > 0
-        if tg.save_to_db(starts_on: era.starts_on, ends_on: era.ends_on)
-          dbrecord = tg.dbrecord
-          tg_loaded_count += 1
-        end
-      end
-    end
-    if dbrecord
-      #
-      #  And now sort out the pupils for this tutor group.
-      #
-      db_member_ids = dbrecord.members.collect {|s| s.source_id}
-      sb_member_ids = tg.records.collect {|r| r.pupil_ident}
-      missing_from_db = sb_member_ids - db_member_ids
-      missing_from_db.each do |pupil_id|
-        pupil = pupil_hash[pupil_id]
-        if pupil && pupil.dbrecord
-          dbrecord.add_member(pupil.dbrecord)
-          tgmember_loaded_count += 1
-        end
-      end
-      extra_in_db = db_member_ids - sb_member_ids
-      extra_in_db.each do |pupil_id|
-        pupil = pupil_hash[pupil_id]
-        if pupil && pupil.dbrecord
-          dbrecord.remove_member(pupil.dbrecord)
-          tgmember_removed_count += 1
-        end
-      end
-      tgmember_unchanged_count += (db_member_ids.size - extra_in_db.size)
-    end
-  end
-  puts "#{tg_changed_count} tutorgroup records amended."
-  puts "#{tg_unchanged_count} tutorgroup records untouched."
-  puts "#{tg_loaded_count} tutorgroup records created."
-  puts "Removed #{tgmember_removed_count} pupils from tutor groups."
-  puts "Left #{tgmember_unchanged_count} pupils where they were."
-  puts "Added #{tgmember_loaded_count} pupils to tutor groups."
-end
-
-#RubyProf.start
-
-if ars && groups && pupils
-  #
-  #  So, can we load all the teaching groups as well?
-  #  Drive this by the membership records - a group with no members is
-  #  not terribly interesting.
-  #
-  #
-  #  Start by attaching each of the membership records to its associated
-  #  group, then work through the groups one by one checking the membership.
-  #
-  era = Era.first
-  puts "Sorting academic records."
-  ars.each do |ar|
-    pupil = pupil_hash[ar.pupil_ident]
-    if pupil && pupil.dbrecord && (group = group_hash[ar.group_ident])
-      group.add(ar)
-    end
-  end
-  puts "Finished sorting academic records."
-  groups_created_count    = 0
-  groups_amended_count    = 0
-  groups_unchanged_count  = 0
-  pupils_added_count      = 0
-  pupils_removed_count    = 0
-  pupils_left_alone_count = 0
-  empty_tg_count          = 0
-  dbera_hash = {}
-  today = Date.today
-  puts "Starting working through #{groups.size} teaching groups."
-  groups.each do |group|
-    #
-    #  Can we find this group in the d/b?
-    #
-    dbgroup = group.dbrecord
-    if dbgroup
-      #
-      #  Need to check the group details still match.
-      #
-      if group.check_and_update
-        groups_amended_count += 1
-      else
-        groups_unchanged_count += 1
-      end
-    else
-      #
-      #  We only bother to create groups which have members, or which look
-      #  like actual teaching groups.
-      #
-      if group.num_pupils > 0 || /\A[1234567]/ =~ group.name
-        if group.save_to_db(era: era, starts_on: era.starts_on)
-          dbgroup = group.dbrecord
-          groups_created_count += 1
-        end
-      end
-    end
-    if dbgroup
-      #
-      #  How do the memberships compare?  The key identifier is the id
-      #  of the pupil record as provided by SB.
-      #
-      db_member_ids = dbgroup.members.collect {|s| s.source_id}
-      sb_member_ids = group.records.collect {|r| r.pupil_ident}
-      missing_from_db = sb_member_ids - db_member_ids
-      missing_from_db.each do |pupil_id|
-        pupil = pupil_hash[pupil_id]
-        if pupil && pupil.dbrecord
-          dbgroup.add_member(pupil.dbrecord)
-          pupils_added_count += 1
-        end
-      end
-      extra_in_db = db_member_ids - sb_member_ids
-      extra_in_db.each do |pupil_id|
-        pupil = pupil_hash[pupil_id]
-        if pupil && pupil.dbrecord
-          dbgroup.remove_member(pupil.dbrecord)
-          pupils_removed_count += 1
-        end
-      end
-      pupils_left_alone_count += (db_member_ids.size - extra_in_db.size)
-    end
-  end
-  puts "Created #{groups_created_count} teaching groups."
-  puts "Amended #{groups_amended_count} teaching groups."
-  puts "#{groups_unchanged_count} teaching groups left untouched."
-  puts "#{empty_tg_count} empty teaching groups ignored."
-  puts "Added #{pupils_added_count} to teaching groups."
-  puts "Removed #{pupils_removed_count} from teaching groups."
-  puts "Left #{pupils_left_alone_count} where they were."
-end
-
-if timetable_entries && periods && period_times
-  #
-  #  Sort by week and day of the week.
-  #
-  KNOWN_DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-  periods_by_week = {}
-  periods_by_week["A"] = {}
-  periods_by_week["B"] = {}
-  KNOWN_DAY_NAMES.each do |day_name|
-    periods_by_week["A"][day_name] = []
-    periods_by_week["B"][day_name] = []
-  end
-  puts "Sorting timetable entries by week and day"
-  timetable_entries.each do |te|
-    period = period_hash[te.period_ident]
-    if period.time && KNOWN_DAY_NAMES.include?(period.day_name)
-      periods_by_week[period.week_letter][period.day_name] << te
-    end
-  end
-#  ["A", "B"].each do |week_letter|
-#    KNOWN_DAY_NAMES.each do |day_name|
-#      periods_by_week[week_letter][day_name] = 
-#        SB_Timetableentry.sort_and_merge(periods_by_week[week_letter][day_name])
-#    end
-#  end
-  #
-  #  For now I'm going to load just a specific week.
-  #
-  starts_on   = Date.parse("2014-06-02")
-  ends_on     = Date.parse("2014-06-15")
-  week_letter = "B"
-  puts "Loading events from #{starts_on} to #{ends_on}"
-  starts_on.upto(ends_on) do |date|
-    puts "Processing #{date}"
-    lessons = periods_by_week[week_letter][date.strftime("%A")]
-    #
-    #  This is very nasty.  Saturday will cause us to switch to week A.
-    #
-    if lessons == nil && week_letter == "B"
-      week_letter = "A"
-    end
-    ec = Eventcategory.find_by_name("Lesson")
-    es = Eventsource.find_by_name("SchoolBase")
-    if lessons && ec && es
-      #
-      #  New approach which mimics the way we do it for group membership.
-      #  Find all the database entries for the same day, then see what matches.
-      #
-      #  Things which are in the d/b only get deleted
-      #  Things which are in our memory records only get added.
-      #  Things which are in both get checked and if necessary are adjusted.
-      #
-      #
-      #  We have to process compound and non-compound events separately.
-      #
-      dbevents = Event.events_on(date, nil, ec, es, nil, true)
-      puts "Found #{dbevents.size} database events on that day."
-      dbcompound, dbatomic = dbevents.partition {|dbe| dbe.compound}
-      puts "#{dbcompound.size} of these are compound and #{dbatomic.size} atomic."
-      sbcompound, sbatomic = lessons.partition {|sbe| sbe.compound}
-      puts "Have #{lessons.size} lessons from SB."
-      puts "#{sbcompound.size} of these are compound and #{sbatomic.size} atomic."
-      #
-      #  First we'll do the atomic ones.
-      #
-      dbids = dbatomic.collect {|dba| dba.source_id}
-      sbids = sbatomic.collect {|sba| sba.timetable_ident}
-      dbonly = dbids - sbids
-      if dbonly.size > 0
-        puts "Deleting #{dbonly.size} atomic events."
+  def do_staff
+    staff_changed_count   = 0
+    staff_unchanged_count = 0
+    staff_loaded_count    = 0
+    @staff.each do |s|
+      dbrecord = s.dbrecord
+      if dbrecord
         #
-        #  These I'm afraid have to go.
+        #  Staff record already exists.  Any changes?
         #
-        dbonly.each do |dbo|
-          Event.find_by_source_id(dbo).destroy
+        if s.check_and_update
+          staff_changed_count += 1
+        else
+          staff_unchanged_count += 1
+        end
+      else
+        #
+        #  d/b record does not yet exist.
+        #
+        if s.save_to_db
+          staff_loaded_count += 1
         end
       end
-      sbonly = sbids - dbids
-      if sbonly.size > 0
-        puts "Adding #{sbonly.size} atomic events."
-        sbonly.each do |sbo|
-          lesson = tte_hash[sbo]
-          #
-          #  For each of these, identify the staff, teaching group and room
-          #  involved.  Create an event and then attach the resources.
-          #
-          if group = group_hash[lesson.group_ident]
+    end
+    if @verbose || staff_changed_count > 0
+      puts "#{staff_changed_count} staff record(s) amended."
+    end
+    if @verbose || staff_loaded_count > 0
+      puts "#{staff_loaded_count} staff record(s) created."
+    end
+    if @verbose
+      puts "#{staff_unchanged_count} staff record(s) untouched."
+    end
+  end
+
+  def do_locations
+    locations_loaded_count    = 0
+    @locations.each do |location|
+      dbrecord = location.dbrecord
+      #
+      #  We're not actually terribly interested in SB's idea of what
+      #  places are called.  Naming in SB is a mess.  As long as we can
+      #  identify where is meant, we leave well alone.
+      #
+      unless dbrecord
+        #
+        #  Don't seem to have anything for this location yet.  We need
+        #  to be slightly circuitous in how we do our save.
+        #
+        if location.save_location_to_db
+          locations_loaded_count += 1
+        end
+      end
+    end
+    if @verbose || locations_loaded_count > 0
+      puts "#{locations_loaded_count} location records created."
+    end
+  end
+
+  def do_tutorgroups
+    tg_changed_count   = 0
+    tg_unchanged_count = 0
+    tg_loaded_count    = 0
+    tgmember_removed_count   = 0
+    tgmember_unchanged_count = 0
+    tgmember_loaded_count    = 0
+    @tg_hash.each do |key, tg|
+      dbrecord = tg.dbrecord
+      if dbrecord
+        #
+        #  Need to check the group details still match.
+        #
+        if tg.check_and_update
+          tg_changed_count += 1
+        else
+          tg_unchanged_count += 1
+        end
+      else
+        if tg.num_pupils > 0
+          if tg.save_to_db(starts_on: @era.starts_on, ends_on: @era.ends_on)
+            dbrecord = tg.dbrecord
+            tg_loaded_count += 1
+          end
+        end
+      end
+      if dbrecord
+        #
+        #  And now sort out the pupils for this tutor group.
+        #
+        db_member_ids = dbrecord.members.collect {|s| s.source_id}
+        sb_member_ids = tg.records.collect {|r| r.pupil_ident}
+        missing_from_db = sb_member_ids - db_member_ids
+        missing_from_db.each do |pupil_id|
+          pupil = @pupil_hash[pupil_id]
+          if pupil && pupil.dbrecord
+            dbrecord.add_member(pupil.dbrecord)
+            tgmember_loaded_count += 1
+          end
+        end
+        extra_in_db = db_member_ids - sb_member_ids
+        extra_in_db.each do |pupil_id|
+          pupil = @pupil_hash[pupil_id]
+          if pupil && pupil.dbrecord
+            dbrecord.remove_member(pupil.dbrecord)
+            tgmember_removed_count += 1
+          end
+        end
+        tgmember_unchanged_count += (db_member_ids.size - extra_in_db.size)
+      end
+    end
+    if @verbose || tg_changed_count > 0
+      puts "#{tg_changed_count} tutorgroup records amended."
+    end
+    if @verbose
+      puts "#{tg_unchanged_count} tutorgroup records untouched."
+    end
+    if @verbose || tg_loaded_count > 0
+      puts "#{tg_loaded_count} tutorgroup records created."
+    end
+    if @verbose || tgmember_removed_count > 0
+      puts "Removed #{tgmember_removed_count} pupils from tutor groups."
+    end
+    if @verbose
+      puts "Left #{tgmember_unchanged_count} pupils where they were."
+    end
+    if @verbose || tgmember_loaded_count > 0
+      puts "Added #{tgmember_loaded_count} pupils to tutor groups."
+    end
+  end
+
+  def do_teachinggroups
+    groups_created_count    = 0
+    groups_amended_count    = 0
+    groups_unchanged_count  = 0
+    pupils_added_count      = 0
+    pupils_removed_count    = 0
+    pupils_left_alone_count = 0
+    empty_tg_count          = 0
+    dbera_hash = {}
+    today = Date.today
+    puts "Starting working through #{@groups.size} teaching groups." if @verbose
+    @groups.each do |group|
+      #
+      #  Can we find this group in the d/b?
+      #
+      dbgroup = group.dbrecord
+      if dbgroup
+        #
+        #  Need to check the group details still match.
+        #
+        if group.check_and_update
+          groups_amended_count += 1
+        else
+          groups_unchanged_count += 1
+        end
+      else
+        #
+        #  We only bother to create groups which have members, or which look
+        #  like actual teaching groups.
+        #
+        if group.num_pupils > 0 || /\A[1234567]/ =~ group.name
+          if group.save_to_db(era: @era,
+                              starts_on: @full_load ? @era.starts_on : today)
             dbgroup = group.dbrecord
-          else
-            dbgroup = nil
-          end
-          if staff = staff_hash[lesson.staff_ident]
-            dbstaff = staff.dbrecord
-          else
-            dbstaff = nil
-          end
-          if location = location_hash[lesson.room_ident]
-            dblocation = location.dbrecord
-          else
-            dblocation = nil
-          end
-          period = period_hash[lesson.period_ident]
-          if period && dbgroup
-            event = Event.new
-            event.body          = dbgroup.name
-            event.eventcategory = ec
-            event.eventsource   = es
-            event.starts_at     =
-              Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
-            event.ends_at       =
-              Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
-            event.approximate   = false
-            event.non_existent  = false
-            event.private       = false
-            event.all_day       = false
-            event.source_id     = lesson.timetable_ident
-            if event.save
-              event.reload
-              #
-              #  And add the resources.
-              #
-              if dbgroup
-                c = Commitment.new
-                c.event = event
-                c.element = dbgroup.element
-                c.save
-              end
-              if dbstaff
-                c = Commitment.new
-                c.event = event
-                c.element = dbstaff.element
-                c.save
-              end
-              if dblocation && dblocation.location
-                c = Commitment.new
-                c.event = event
-                c.element = dblocation.location.element
-                c.save
-              end
-            else
-              puts "Failed to save event #{event.inspect}"
-            end
-          else
-#            puts "Not loading - lesson = #{lesson.timetable_ident}, dbgroup = #{dbgroup ? dbgroup.name : "Not found"}"
+            groups_created_count += 1
           end
         end
       end
-      #
-      #  And any which need adjusting?
-      #
-      shared = sbids - sbonly
-      if shared.size > 0
-        puts "#{shared.size} existing events to check."
-        shared.each do |sl|
-          lesson = tte_hash[sl]
-          dbrecord = Event.find_by_source_id(sl)
-          if lesson && dbrecord
-            changed = false
-            period = period_hash[lesson.period_ident]
-            starts_at = Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
-            ends_at   = Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
-            if dbrecord.starts_at != starts_at
-              dbrecord.starts_at = starts_at
-              changed = true
-            end
-            if dbrecord.ends_at != ends_at
-              dbrecord.ends_at = ends_at
-              changed = true
-            end
-            if changed
-              unless dbrecord.save
-                puts "Failed to save amended event record."
-              end
-            end
-          else
-            puts "Couldn't find existing lesson to check."
+      if dbgroup
+        #
+        #  How do the memberships compare?  The key identifier is the id
+        #  of the pupil record as provided by SB.
+        #
+        db_member_ids = dbgroup.members.collect {|s| s.source_id}
+        sb_member_ids = group.records.collect {|r| r.pupil_ident}
+        missing_from_db = sb_member_ids - db_member_ids
+        missing_from_db.each do |pupil_id|
+          pupil = @pupil_hash[pupil_id]
+          if pupil && pupil.dbrecord
+            dbgroup.add_member(pupil.dbrecord,
+                               @full_load ? @era.starts_on : today)
+            pupils_added_count += 1
           end
         end
+        extra_in_db = db_member_ids - sb_member_ids
+        extra_in_db.each do |pupil_id|
+          pupil = @pupil_hash[pupil_id]
+          if pupil && pupil.dbrecord
+            dbgroup.remove_member(pupil.dbrecord)
+            pupils_removed_count += 1
+          end
+        end
+        pupils_left_alone_count += (db_member_ids.size - extra_in_db.size)
       end
+    end
+    if @verbose || groups_created_count > 0
+      puts "Created #{groups_created_count} teaching groups."
+    end
+    if @verbose || groups_amended_count > 0
+      puts "Amended #{groups_amended_count} teaching groups."
+    end
+    if @verbose
+      puts "#{groups_unchanged_count} teaching groups left untouched."
+      puts "#{empty_tg_count} empty teaching groups ignored."
+    end
+    if @verbose || pupils_added_count > 0
+      puts "Added #{pupils_added_count} to teaching groups."
+    end
+    if @verbose || pupils_removed_count > 0
+      puts "Removed #{pupils_removed_count} from teaching groups."
+    end
+    if @verbose
+      puts "Left #{pupils_left_alone_count} where they were."
+    end
+  end
 
-      #
-      #  And now the compound events.
-      #
-      dbhashes = dbcompound.collect {|dbc| dbc.source_hash}
-      sbhashes = sbcompound.collect {|sbc| sbc.source_hash}
-      dbonly = dbhashes - sbhashes
-      if dbonly.size > 0
-        puts "Deleting #{dbonly.size} compound events."
-        #
-        #  These I'm afraid have to go.
-        #
-        dbonly.each do |dbo|
-          Event.find_by_source_hash(dbo).destroy
-        end
+  def get_week_letter(date)
+    events = @week_letter_category.events_on(date)
+    if events.size == 1
+      if events[0].body == "WEEK A"
+        "A"
+      elsif events[0].body == "WEEK B"
+        "B"
+      else
+        nil
       end
-      sbonly = sbhashes - dbhashes
-      if sbonly.size > 0
-        puts "Adding #{sbonly.size} compound events."
-        sbonly.each do |sbo_hash|
-          lesson = lessons.detect {|tte| tte.source_hash == sbo_hash}
-          period = period_hash[lesson.period_ident]
-          if lesson && period
-            event = Event.new
-            event.body          = "Merged event"
-            event.eventcategory = ec
-            event.eventsource   = es
-            event.starts_at     =
-              Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
-            event.ends_at       =
-              Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
-            event.approximate   = false
-            event.non_existent  = false
-            event.private       = false
-            event.all_day       = false
-            event.compound      = true
-            event.source_hash   = sbo_hash
-            if event.save
-              event.reload
+    else
+      nil
+    end
+  end
+
+  def do_timetable
+    puts "Loading events from #{@era.starts_on} to #{@era.ends_on}" if @verbose
+    @era.starts_on.upto(@era.ends_on) do |date|
+      puts "Processing #{date}" if @verbose
+      week_letter = get_week_letter(date)
+      if week_letter
+        lessons = @periods_by_week[week_letter][date.strftime("%A")]
+        if lessons
+          #
+          #  We have to process compound and non-compound events separately.
+          #
+          dbevents = Event.events_on(date,
+                                     nil,
+                                     @lesson_category,
+                                     @event_source,
+                                     nil,
+                                     true)
+#          puts "Found #{dbevents.size} database events on that day."
+          dbcompound, dbatomic = dbevents.partition {|dbe| dbe.compound}
+#          puts "#{dbcompound.size} of these are compound and #{dbatomic.size} atomic."
+          sbcompound, sbatomic = lessons.partition {|sbe| sbe.compound}
+#          puts "Have #{lessons.size} lessons from SB."
+#          puts "#{sbcompound.size} of these are compound and #{sbatomic.size} atomic."
+          #
+          #  First we'll do the atomic ones.
+          #
+          dbids = dbatomic.collect {|dba| dba.source_id}
+          sbids = sbatomic.collect {|sba| sba.timetable_ident}
+          dbonly = dbids - sbids
+          if dbonly.size > 0
+            puts "Deleting #{dbonly.size} atomic events." if @verbose
+            #
+            #  These I'm afraid have to go.
+            #
+            dbonly.each do |dbo|
+              Event.find_by_source_id(dbo).destroy
+            end
+          end
+          sbonly = sbids - dbids
+          if sbonly.size > 0
+            puts "Adding #{sbonly.size} atomic events." if @verbose
+            sbonly.each do |sbo|
+              lesson = @tte_hash[sbo]
               #
-              #  And now add the resources.
+              #  For each of these, identify the staff, teaching group and room
+              #  involved.  Create an event and then attach the resources.
               #
-              lesson.group_idents.each do |gi|
-                if group = group_hash[gi]
-                  dbgroup = group.dbrecord
+              if group = @group_hash[lesson.group_ident]
+                dbgroup = group.dbrecord
+              else
+                dbgroup = nil
+              end
+              if staff = @staff_hash[lesson.staff_ident]
+                dbstaff = staff.dbrecord
+              else
+                dbstaff = nil
+              end
+              if location = @location_hash[lesson.room_ident]
+                dblocation = location.dbrecord
+              else
+                dblocation = nil
+              end
+              period = @period_hash[lesson.period_ident]
+              if period && dbgroup
+                event = Event.new
+                event.body          = dbgroup.name
+                event.eventcategory = @lesson_category
+                event.eventsource   = @event_source
+                event.starts_at     =
+                  Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+                event.ends_at       =
+                  Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+                event.approximate   = false
+                event.non_existent  = false
+                event.private       = false
+                event.all_day       = false
+                event.source_id     = lesson.timetable_ident
+                if event.save
+                  event.reload
+                  #
+                  #  And add the resources.
+                  #
                   if dbgroup
                     c = Commitment.new
                     c.event = event
                     c.element = dbgroup.element
                     c.save
                   end
-                end
-              end
-              lesson.staff_idents.each do |si|
-                if staff = staff_hash[si]
-                  dbstaff = staff.dbrecord
                   if dbstaff
                     c = Commitment.new
                     c.event = event
                     c.element = dbstaff.element
                     c.save
                   end
-                end
-              end
-              lesson.room_idents.each do |ri|
-                if location = location_hash[ri]
-                  dblocation = location.dbrecord
                   if dblocation && dblocation.location
                     c = Commitment.new
                     c.event = event
                     c.element = dblocation.location.element
                     c.save
                   end
+                else
+                  puts "Failed to save event #{event.inspect}"
                 end
+              else
+    #            puts "Not loading - lesson = #{lesson.timetable_ident}, dbgroup = #{dbgroup ? dbgroup.name : "Not found"}"
               end
-            else
-              puts "Failed to save event #{event.inspect}"
             end
-          else
-            puts "Not loading - lesson = #{lesson.timetable_ident}, dbgroup = #{dbgroup ? dbgroup.name : "Not found"}"
           end
-        end
-      end
+          #
+          #  And any which need adjusting?
+          #
+          shared = sbids - sbonly
+          if shared.size > 0
+            puts "#{shared.size} existing events to check." if @verbose
+            shared.each do |sl|
+              lesson = @tte_hash[sl]
+              dbrecord = Event.find_by_source_id(sl)
+              if lesson && dbrecord
+                changed = false
+                period = @period_hash[lesson.period_ident]
+                starts_at =
+                  Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+                ends_at   =
+                  Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+                if dbrecord.starts_at != starts_at
+                  dbrecord.starts_at = starts_at
+                  changed = true
+                end
+                if dbrecord.ends_at != ends_at
+                  dbrecord.ends_at = ends_at
+                  changed = true
+                end
+                if changed
+                  unless dbrecord.save
+                    puts "Failed to save amended event record."
+                  end
+                end
+              else
+                puts "Couldn't find existing lesson to check."
+              end
+            end
+          end
+if false
+          #
+          #  And now the compound events.
+          #
+          dbhashes = dbcompound.collect {|dbc| dbc.source_hash}
+          sbhashes = sbcompound.collect {|sbc| sbc.source_hash}
+          dbonly = dbhashes - sbhashes
+          if dbonly.size > 0
+            puts "Deleting #{dbonly.size} compound events."
+            #
+            #  These I'm afraid have to go.
+            #
+            dbonly.each do |dbo|
+              Event.find_by_source_hash(dbo).destroy
+            end
+          end
+          sbonly = sbhashes - dbhashes
+          if sbonly.size > 0
+            puts "Adding #{sbonly.size} compound events."
+            sbonly.each do |sbo_hash|
+              lesson = lessons.detect {|tte| tte.source_hash == sbo_hash}
+              period = period_hash[lesson.period_ident]
+              if lesson && period
+                event = Event.new
+                event.body          = "Merged event"
+                event.eventcategory = ec
+                event.eventsource   = es
+                event.starts_at     =
+                  Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+                event.ends_at       =
+                  Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+                event.approximate   = false
+                event.non_existent  = false
+                event.private       = false
+                event.all_day       = false
+                event.compound      = true
+                event.source_hash   = sbo_hash
+                if event.save
+                  event.reload
+                  #
+                  #  And now add the resources.
+                  #
+                  lesson.group_idents.each do |gi|
+                    if group = group_hash[gi]
+                      dbgroup = group.dbrecord
+                      if dbgroup
+                        c = Commitment.new
+                        c.event = event
+                        c.element = dbgroup.element
+                        c.save
+                      end
+                    end
+                  end
+                  lesson.staff_idents.each do |si|
+                    if staff = staff_hash[si]
+                      dbstaff = staff.dbrecord
+                      if dbstaff
+                        c = Commitment.new
+                        c.event = event
+                        c.element = dbstaff.element
+                        c.save
+                      end
+                    end
+                  end
+                  lesson.room_idents.each do |ri|
+                    if location = location_hash[ri]
+                      dblocation = location.dbrecord
+                      if dblocation && dblocation.location
+                        c = Commitment.new
+                        c.event = event
+                        c.element = dblocation.location.element
+                        c.save
+                      end
+                    end
+                  end
+                else
+                  puts "Failed to save event #{event.inspect}"
+                end
+              else
+                puts "Not loading - lesson = #{lesson.timetable_ident}, dbgroup = #{dbgroup ? dbgroup.name : "Not found"}"
+              end
+            end
+          end
+end
 
-    else
-      puts "Couldn't find lesson entries for #{date.strftime("%A")} of week #{week_letter}."
+        else
+          puts "Couldn't find lesson entries for #{date.strftime("%A")} of week #{week_letter}."
+        end
+      else
+        puts "No week letter for #{date}" if @verbose
+      end
     end
   end
+
+  def dummy
+
+    if timetable_entries && periods && period_times
+    #  ["A", "B"].each do |week_letter|
+    #    KNOWN_DAY_NAMES.each do |day_name|
+    #      periods_by_week[week_letter][day_name] = 
+    #        SB_Timetableentry.sort_and_merge(periods_by_week[week_letter][day_name])
+    #    end
+    #  end
+    end
+  end
+
 end
-#results = RubyProf.stop
-#File.open("profile-graph.html", 'w') do |file|
-#  RubyProf::GraphHtmlPrinter.new(results).print(file)
-#end
-#File.open("profile-flat.txt", 'w') do |file|
-#  RubyProf::FlatPrinter.new(results).print(file)
-#end
-#File.open("profile-tree.prof", 'w') do |file|
-#  RubyProf::CallTreePrinter.new(results).print(file)
-#end
+
+begin
+  options = OpenStruct.new
+  options.verbose   = false
+  options.full_load = false
+  options.era       = nil
+  OptionParser.new do |opts|
+    opts.banner = "Usage: importsb.rb [options]"
+
+    opts.on("-v", "--verbose", "Run verbosely") do |v|
+      options.verbose = v
+    end
+
+    opts.on("-f", "--full",
+            "Do a full load",
+            "(as opposed to incremental.  Doesn't",
+            "actually affect what gets loaded, but",
+            "does affect when it's loaded from.)") do |f|
+      options.full_load = f
+    end
+
+    opts.on("-e", "--era [ERA NAME]",
+            "Specify the era to load data into.") do |era|
+      options.era = era
+    end
+
+  end.parse!
+
+  SB_Loader.new(options) do |loader|
+    loader.do_pupils
+    loader.do_staff
+    loader.do_locations
+    loader.do_tutorgroups
+#    loader.do_teachinggroups
+    loader.do_timetable
+  end
+rescue RuntimeError => e
+  puts e
+end
+
 
