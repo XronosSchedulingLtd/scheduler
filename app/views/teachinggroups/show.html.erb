@@ -22,7 +22,7 @@
 
 <p>
   <strong>Pupils:</strong>
-  <% @teachinggroup.members.each do |member| %>
+  <% @teachinggroup.members.sort.each do |member| %>
   <br/><%= member.name %>
   <% end %>
 </p>

@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
+require 'optparse/date'
 require 'ostruct'
 require 'csv'
 require 'charlock_holmes'
@@ -805,6 +806,7 @@ class SB_Loader
     raise "An era name must be specified." unless options.era
     @era = Era.find_by_name(options.era)
     raise "Era #{options.era} not found in d/b." unless @era
+    @start_date = options.start_date
     puts "Reading data files." if @verbose
     INPUT_SOURCES.each do |is|
       array, msg = is.loader_class.slurp
@@ -1081,7 +1083,13 @@ class SB_Loader
     pupils_left_alone_count = 0
     empty_tg_count          = 0
     dbera_hash = {}
-    today = Date.today
+    if @start_date
+      starts_on = @start_date
+    elsif @full_load
+      starts_on = @era.starts_on
+    else
+      starts_on = Date.today
+    end
     puts "Starting working through #{@groups.size} teaching groups." if @verbose
     @groups.each do |group|
       #
@@ -1104,7 +1112,7 @@ class SB_Loader
         #
         if group.num_pupils > 0 || /\A[1234567]/ =~ group.name
           if group.save_to_db(era: @era,
-                              starts_on: @full_load ? @era.starts_on : today)
+                              starts_on: starts_on)
             dbgroup = group.dbrecord
             groups_created_count += 1
           end
@@ -1121,8 +1129,8 @@ class SB_Loader
         missing_from_db.each do |pupil_id|
           pupil = @pupil_hash[pupil_id]
           if pupil && pupil.dbrecord
-            dbgroup.add_member(pupil.dbrecord,
-                               @full_load ? @era.starts_on : today)
+            puts "Adding #{pupil.dbrecord.name} to #{dbgroup.name}" unless @full_load
+            dbgroup.add_member(pupil.dbrecord, starts_on)
             pupils_added_count += 1
           end
         end
@@ -1130,6 +1138,7 @@ class SB_Loader
         extra_in_db.each do |pupil_id|
           pupil = @pupil_hash[pupil_id]
           if pupil && pupil.dbrecord
+            puts "Removing #{pupil.dbrecord.name} from #{dbgroup.name}" unless @full_load
             dbgroup.remove_member(pupil.dbrecord)
             pupils_removed_count += 1
           end
@@ -1174,7 +1183,13 @@ class SB_Loader
   end
 
   def do_timetable
-    start_date = @full_load ? @era.starts_on : Date.today
+    if @start_date
+      start_date = @start_date
+    elsif @full_load
+      start_date = @era.starts_on
+    else
+      start_date = Date.today
+    end
     puts "Loading events from #{start_date} to #{@era.ends_on}" if @verbose
     start_date.upto(@era.ends_on) do |date|
       puts "Processing #{date}" if @verbose
@@ -1191,17 +1206,46 @@ class SB_Loader
                                      @event_source,
                                      nil,
                                      true)
-#          puts "Found #{dbevents.size} database events on that day."
+          #
+          #  A little bit of correction code.  Earlier I managed to reach
+          #  the situation where two instances of the same event (from SB's
+          #  point of view) were occuring on the same day.  If this happens,
+          #  arbitrarily delete one of them before continuing.
+          #
           dbcompound, dbatomic = dbevents.partition {|dbe| dbe.compound}
-#          puts "#{dbcompound.size} of these are compound and #{dbatomic.size} atomic."
+          dbids = dbatomic.collect {|dba| dba.source_id}.uniq
+          if dbids.size < dbatomic.size
+            puts "Deleting #{dbatomic.size - dbids.size} duplicate events." if @verbose
+            dbids.each do |dbid|
+              idsevents = dbatomic.select {|dba| dba.source_id == dbid}
+              if idsevents.size > 1
+                #
+                #  We have one or more duplicates.
+                #
+                idsevents.each_with_index do |dbevent, i|
+                  if i > 0
+                    dbevent.destroy
+                  end
+                end
+              end
+            end
+            #
+            #  And read again from the database.
+            #
+            dbevents = Event.events_on(date,
+                                       nil,
+                                       @lesson_category,
+                                       @event_source,
+                                       nil,
+                                       true)
+            dbcompound, dbatomic = dbevents.partition {|dbe| dbe.compound}
+            dbids = dbatomic.collect {|dba| dba.source_id}.uniq
+          end
           sbcompound, sbatomic = lessons.partition {|sbe| sbe.compound}
-#          puts "Have #{lessons.size} lessons from SB."
-#          puts "#{sbcompound.size} of these are compound and #{sbatomic.size} atomic."
+          sbids = sbatomic.collect {|sba| sba.timetable_ident}
           #
           #  First we'll do the atomic ones.
           #
-          dbids = dbatomic.collect {|dba| dba.source_id}
-          sbids = sbatomic.collect {|sba| sba.timetable_ident}
           dbonly = dbids - sbids
           if dbonly.size > 0
             puts "Deleting #{dbonly.size} atomic events." if @verbose
@@ -1290,7 +1334,7 @@ class SB_Loader
             puts "#{shared.size} existing events to check." if @verbose
             shared.each do |sl|
               lesson = @tte_hash[sl]
-              dbrecord = Event.find_by_source_id(sl)
+              dbrecord = dbevents.detect {|dbevent| dbevent.source_id == sl}
               if lesson && dbrecord
                 changed = false
                 period = @period_hash[lesson.period_ident]
@@ -1426,9 +1470,10 @@ end
 
 begin
   options = OpenStruct.new
-  options.verbose   = false
-  options.full_load = false
-  options.era       = nil
+  options.verbose    = false
+  options.full_load  = false
+  options.era        = nil
+  options.start_date = nil
   OptionParser.new do |opts|
     opts.banner = "Usage: importsb.rb [options]"
 
@@ -1447,6 +1492,12 @@ begin
     opts.on("-e", "--era [ERA NAME]",
             "Specify the era to load data into.") do |era|
       options.era = era
+    end
+
+    opts.on("-s", "--start [DATE]", Date,
+            "Specify an over-riding start date",
+            "for loading events.") do |date|
+      options.start_date = date
     end
 
   end.parse!
