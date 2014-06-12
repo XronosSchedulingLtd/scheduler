@@ -1,0 +1,9 @@
+#!/bin/bash
+. /etc/profile
+. ~/etc/sbauth
+cd ~/Work/Coding/scheduler
+#echo $PATH
+utils/fetchsbdata.rb
+RAILS_ENV=production
+export RAILS_ENV
+~/.rvm/wrappers/scheduler/ruby lib/import/importsb.rb --era "Academic Year 2013/14"

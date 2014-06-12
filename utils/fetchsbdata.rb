@@ -53,7 +53,7 @@ class SchoolBaseTable
 #    puts "Command is:"
 #    puts command
 #    puts "Temporary file contains:"
-    system "cat #{tf.path}"
+#    system "cat #{tf.path}"
     system command
   end
 
