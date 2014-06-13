@@ -46,7 +46,7 @@ module Slurper
   end
 
   module ClassMethods
-    def slurp
+    def slurp(loader)
       #
       #  Slurp in a file full of records and return them as an array.
       #
@@ -96,7 +96,7 @@ module Slurper
               end
             end
             entry.adjust
-            if entry.wanted?
+            if entry.wanted?(loader)
               entries << entry
             end
           end
@@ -229,7 +229,7 @@ class SB_AcademicRecord
   def adjust
   end
 
-  def wanted?
+  def wanted?(loader)
     true
   end
 
@@ -240,6 +240,48 @@ class SB_AcademicRecord
   def current
     true
   end
+end
+
+
+class SB_AcademicYear
+  FILE_NAME = "academicyear.csv"
+  REQUIRED_COLUMNS = [Column["AcYearIdent", :ac_year_ident, true],
+                      Column["AcYearName",  :ac_year_name,  false]]
+
+  include Slurper
+
+  def adjust
+  end
+
+  def wanted?(loader)
+    #
+    #  Only want the one.
+    #
+    @ac_year_ident == loader.send("era").source_id
+  end
+
+end
+
+
+class SB_Curriculum
+  FILE_NAME = "curriculum.csv"
+  REQUIRED_COLUMNS = [Column["CurrIdent",    :curriculum_ident, true],
+                      Column["AcYearIdent",  :ac_year_ident,    true],
+                      Column["YearIdent",    :year_ident,       true],
+                      Column["SubjectIdent", :subject_ident,    true]]
+
+  include Slurper
+
+  def adjust
+  end
+
+  def wanted?(loader)
+    #
+    #  Only want those for our academic year.
+    #
+    @ac_year_ident == loader.send("era").source_id
+  end
+
 end
 
 
@@ -265,7 +307,7 @@ class SB_Date
     @date = Date.parse(@date_text) unless @date_text.blank?
   end
 
-  def wanted?
+  def wanted?(loader)
     !!@date
   end
 
@@ -278,8 +320,9 @@ end
 
 class SB_Group
   FILE_NAME = "groups.csv"
-  REQUIRED_COLUMNS = [Column["GroupIdent", :group_ident, true],
-                      Column["GroupName",  :name,        false]]
+  REQUIRED_COLUMNS = [Column["GroupIdent", :group_ident,      true],
+                      Column["GroupName",  :name,             false],
+                      Column["CurrIdent",  :curriculum_ident, true]]
 
   FIELDS_TO_UPDATE = [:name]
   FIELDS_TO_CREATE = [:name, :current]
@@ -306,8 +349,15 @@ class SB_Group
   def adjust
   end
 
-  def wanted?
-    true
+  def wanted?(loader)
+    #
+    #  We only want groups related to our current academic year.
+    #  Note that groups must be loaded from file after curriculum and
+    #  academic year, or they'll all get rejected.
+    #
+    curriculum = loader.send("curriculum_hash")[@curriculum_ident]
+    era = loader.send("era")
+    !!(curriculum && curriculum.ac_year_ident == era.source_id)
   end
 
   def active
@@ -346,7 +396,7 @@ class SB_Location
     end
   end
 
-  def wanted?
+  def wanted?(loader)
     !(self.name.blank? || self.short_name.blank?)
   end
 
@@ -432,7 +482,7 @@ class SB_Period
     @week_id == 1 ? "A" : "B"
   end
 
-  def wanted?
+  def wanted?(loader)
     true
   end
 
@@ -487,7 +537,7 @@ class SB_PeriodTime
     @ends_at   = sprintf("%02d:%02d", @end_mins / 60,   @end_mins % 60)
   end
 
-  def wanted?
+  def wanted?(loader)
     @period_time_set_ident == 2
   end
 
@@ -539,7 +589,7 @@ class SB_Pupil
     #
   end
 
-  def wanted?
+  def wanted?(loader)
     #
     #  He must have a date of entry.
     #
@@ -603,7 +653,7 @@ class SB_Staff
     self.active = !!(self.email =~ /\@abingdon\.org\.uk$/)
   end
 
-  def wanted?
+  def wanted?(loader)
     true
   end
 
@@ -635,7 +685,7 @@ class SB_StaffAbLine
   def adjust
   end
 
-  def wanted?
+  def wanted?(loader)
     true
   end
 
@@ -666,7 +716,7 @@ class SB_StaffAbsence
   def adjust
   end
 
-  def wanted?
+  def wanted?(loader)
     true
   end
 
@@ -695,7 +745,7 @@ class SB_StaffCover
   def adjust
   end
 
-  def wanted?
+  def wanted?(loader)
     true
   end
 
@@ -737,12 +787,13 @@ class SB_Timetableentry
   def adjust
   end
 
-  def wanted?
+  def wanted?(loader)
     #
     #  For now we don't want any events that don't involve any kind
     #  of teaching group.
     #
-    !!@group_ident
+    @ac_year_ident == loader.send("era").source_id &&
+    @group_ident != nil
   end
 
   def active
@@ -842,7 +893,7 @@ class SB_Tutorgroupentry
     #
   end
 
-  def wanted?
+  def wanted?(loader)
     self.user_ident != 0 &&
     self.year_ident != 0 &&
     self.pupil_ident != 0 &&
@@ -895,7 +946,7 @@ class SB_Year
     #
   end
 
-  def wanted?
+  def wanted?(loader)
     #
     #  60 seems to be the main school, whilst 40 is the prep school.
     #
@@ -917,7 +968,10 @@ class SB_Loader
 
   InputSource = Struct.new(:array_name, :loader_class, :hash_prefix, :key_field)
 
-  INPUT_SOURCES = [InputSource[:tutorgroupentries, SB_Tutorgroupentry],
+  INPUT_SOURCES = [InputSource[:academicyears, SB_AcademicYear],
+                   InputSource[:curriculums, SB_Curriculum, :curriculum,
+                               :curriculum_ident],
+                   InputSource[:tutorgroupentries, SB_Tutorgroupentry],
                    InputSource[:years, SB_Year, :year, :year_ident],
                    InputSource[:pupils, SB_Pupil, :pupil, :pupil_ident],
                    InputSource[:staff, SB_Staff, :staff, :staff_ident],
@@ -935,6 +989,8 @@ class SB_Loader
                    InputSource[:staffcovers, SB_StaffCover],
                    InputSource[:dates, SB_Date, :date, :date_ident]]
 
+  attr_reader :era, :curriculum_hash
+
   def initialize(options)
     @verbose   = options.verbose
     @full_load = options.full_load
@@ -944,13 +1000,13 @@ class SB_Loader
     @start_date = options.start_date
     puts "Reading data files." if @verbose
     INPUT_SOURCES.each do |is|
-      array, msg = is.loader_class.slurp
+      array, msg = is.loader_class.slurp(self)
       if msg.blank?
         #
         #  It's legitimate to use instance_variable_set because I'm fiddling
         #  with my own instance variables.
         #
-        if array.size <= 1
+        if array.size == 0
           raise "Input file for #{is.array_name} contains no data."
         end
         puts "Read #{array.size} records as #{is.array_name}." if @verbose
@@ -974,6 +1030,9 @@ class SB_Loader
     #  If we get this far then all the files have been succesfully read.
     #  We can perform initial organisation on our data.
     #
+    if @academicyears.size != 1
+      raise "SchoolBase doesn't have an academic year #{@era.source_ident}"
+    end
     puts "Performing initial organisation." if @verbose
     @period_times.each do |period_time|
       if period = @period_hash[period_time.period_ident]
@@ -1613,7 +1672,7 @@ end
         if date && date.date >= start_date
           staff_covering = @staff_hash[sc.staff_ident]
           if sal && date && staff_covering
-  #          puts "#{sc.staff_name} on #{date.date} links up."
+#            puts "#{sc.staff_name} on #{date.date} links up."
             #
             #  Now can we find the lesson he or she is meant to be covering?
             #
@@ -1622,7 +1681,7 @@ end
               if sal.timetable_ident
                 staff_covered = @staff_hash[sa.staff_ident]
                 if staff_covered
-                  puts "#{staff_covering.name} covering #{staff_covered.name} on #{date.date} for lesson #{sal.timetable_ident}"
+                  puts "#{staff_covering.name} covering #{staff_covered.name} on #{date.date} for lesson #{sal.timetable_ident}" if @verbose
                   #
                   #  Can we actually add this to the d/b (assuming it isn't
                   #  already there)?
@@ -1638,7 +1697,7 @@ end
                                    eventcategory_id(@lesson_category.id).
                                    source_id(sal.timetable_ident)[0]
                   if dblesson
-                    puts "Found the corresponding lesson."
+#                    puts "Found the corresponding lesson."
                     #
                     #  Need to find the commitment by the covered teacher
                     #  to the indicated lesson.
@@ -1646,21 +1705,21 @@ end
                     original_commitment =
                       Commitment.by(staff_covered.dbrecord).to(dblesson)[0]
                     if original_commitment
-                      puts "Found commitment."
+#                      puts "Found commitment."
                       #
                       #  Now - does the cover exist already?
                       #
                       if original_commitment.covered
-                        puts "Cover is there already."
+#                        puts "Cover is there already."
                         #
                         #  Is the right person doing it?
                         #
-                        if original_commitment.covered.element.entity.id ==
-                           staff_covering.dbrecord.id
-                          puts "And by the right person."
-                        else
-                          puts "But the wrong person."
-                        end
+#                        if original_commitment.covered.element.entity.id ==
+#                           staff_covering.dbrecord.id
+#                          puts "And by the right person."
+#                        else
+#                          puts "But the wrong person."
+#                        end
                       else
                         cover_commitment = Commitment.new
                         cover_commitment.event = original_commitment.event
@@ -1682,7 +1741,7 @@ end
                   puts "Can't find covered staff."
                 end
               else
-                puts "An invigilation slot for #{staff_covering.name} on #{date.date}."
+                puts "An invigilation slot for #{staff_covering.name} on #{date.date}." if @verbose
                 #
                 #  Is it already in the database?
                 #
@@ -1692,9 +1751,9 @@ end
                         eventcategory_id(@invigilation_category.id).
                         source_id(sal.staff_ab_line_ident)[0]
                 if dbinvigilation
-                  puts "Invigilation already in the d/b."
+#                  puts "Invigilation already in the d/b."
                 else
-                  puts "Creating invigilation event."
+#                  puts "Creating invigilation event."
                   period = @period_hash[sal.period]
                   if period && period.time
                     starts_at =
@@ -1774,12 +1833,12 @@ begin
   end.parse!
 
   SB_Loader.new(options) do |loader|
-#    loader.do_pupils
-#    loader.do_staff
-#    loader.do_locations
-#    loader.do_tutorgroups
-#    loader.do_teachinggroups
-#    loader.do_timetable
+    loader.do_pupils
+    loader.do_staff
+    loader.do_locations
+    loader.do_tutorgroups
+    loader.do_teachinggroups
+    loader.do_timetable
     loader.do_cover
   end
 rescue RuntimeError => e
