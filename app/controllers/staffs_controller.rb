@@ -72,7 +72,8 @@ class StaffsController < ApplicationController
     if staff && era
       starts_on = era.starts_on
       ends_on   = era.ends_on
-      dbevents = staff.events_on(starts_on, ends_on)
+      dbevents = staff.events_on(starts_on, ends_on) +
+                 Event.weekletter_category.events_on(starts_on, ends_on)
       tf = Tempfile.new(["#{staff.initials}", ".ics"])
       RiCal.Calendar do |cal|
         cal.add_x_property("X-WR-CALNAME", staff.initials)
