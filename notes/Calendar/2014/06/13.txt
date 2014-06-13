@@ -1,0 +1,11 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-06-13T08:35:19+01:00
+
+====== Friday 13 Jun 2014 ======
+
+Let's see if we can parse and load the cover information.
+
+Interesting.  Invigilations seem to appear as cover for Abeda Choudhury and have no corresponding timetable_ident.  It should still be possible to work out where they go though.  Do they explicitly reference Abeda, or is it happening by default?  Yes, they do explicitly reference her user ident - 2.  This is interesting, because there's an obvious dummy entry with an ident of 1.  Perhaps they meant to use that.
+
+Anyway, I think I can identify them more objectively by noting the fact that the timetable_ident is missing.

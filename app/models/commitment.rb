@@ -26,6 +26,9 @@ class Commitment < ActiveRecord::Base
 	     :foreign_key => :covering_id,
 	     :dependent   => :destroy
 
+  scope :by, lambda {|entity| where("element_id = ?", entity.element.id) }
+  scope :to, lambda {|event| where("event_id = ?", event.id) }
+
   def self.cover_commitments(after = nil)
     after ||= Date.today
     #

@@ -1,3 +1,8 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2014 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+
 class Group < ActiveRecord::Base
   belongs_to :visible_group, :polymorphic => true
   has_many :memberships, :dependent => :destroy

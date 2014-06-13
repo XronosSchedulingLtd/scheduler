@@ -1,4 +1,9 @@
 #!/usr/bin/env ruby
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2014 John Winters
+# Portions Copyright (C) 2014 Abindon School
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
 
 require 'optparse'
 require 'optparse/date'
@@ -235,6 +240,39 @@ class SB_AcademicRecord
   def current
     true
   end
+end
+
+
+class SB_Date
+  #
+  #  This is an idiotic table.  Why have a look-up table for dates instead
+  #  of simply storing dates?!?
+  #
+  FILE_NAME = "days.csv"
+  REQUIRED_COLUMNS =
+    [Column["Days",      :date_text,  false],
+     Column["DateIdent", :date_ident, true]]
+
+  include Slurper
+
+  attr_reader :date
+
+  def initialize
+    @date = nil
+  end
+
+  def adjust
+    @date = Date.parse(@date_text) unless @date_text.blank?
+  end
+
+  def wanted?
+    !!@date
+  end
+
+  def source_id
+    @date_ident
+  end
+
 end
 
 
@@ -580,6 +618,97 @@ class SB_Staff
 end
 
 
+class SB_StaffAbLine
+  FILE_NAME = "staffabline.csv"
+  REQUIRED_COLUMNS =
+    [Column["StaffAbLineIdent", :staff_ab_line_ident, true],
+     Column["StaffAbIdent",     :staff_ab_ident,      true],
+     Column["StaffAbsenceDate", :absence_date,        true],
+     Column["Period",           :period,              true],
+     Column["StaffAbCoverNeed", :cover_needed,        true],
+     Column["UserIdent",        :staff_ident,         true],
+     Column["RoomIdent",        :room_ident,          true],
+     Column["TimetableIdent",   :timetable_ident,     true]]
+
+  include Slurper
+
+  def adjust
+  end
+
+  def wanted?
+    true
+  end
+
+  def current
+    self.active
+  end
+
+  def source_id
+    @staff_ab_line_ident
+  end
+
+end
+
+
+class SB_StaffAbsence
+  FILE_NAME = "staffabsence.csv"
+  REQUIRED_COLUMNS =
+    [Column["StaffAbIdent",      :staff_ab_ident, true],
+     Column["StaffAbsenceDate",  :absence_date,   true],
+     Column["Period",            :period,         true],
+     Column["StaffAbsenceDate2", :absence_date2,  true],
+     Column["Period2",           :period2,        true],
+     Column["UserIdent",         :staff_ident,    true]]
+
+
+  include Slurper
+
+  def adjust
+  end
+
+  def wanted?
+    true
+  end
+
+  def current
+    self.active
+  end
+
+  def source_id
+    @staff_ab_ident
+  end
+
+end
+
+
+class SB_StaffCover
+  FILE_NAME = "staffcovers.csv"
+  REQUIRED_COLUMNS =
+    [Column["StaffAbLineIdent", :staff_ab_line_ident, true],
+     Column["AbsenceDate",      :absence_date,        true],
+     Column["UserIdent",        :staff_ident,         true],
+     Column["Staff",            :staff_name,          false],
+     Column["PType",            :ptype,               true]]
+
+  include Slurper
+
+  def adjust
+  end
+
+  def wanted?
+    true
+  end
+
+  def current
+    self.active
+  end
+
+  def source_id
+  end
+
+end
+
+
 class SB_Timetableentry
   FILE_NAME = "timetable.csv"
   REQUIRED_COLUMNS = [Column["TimetableIdent", :timetable_ident, true],
@@ -794,11 +923,17 @@ class SB_Loader
                    InputSource[:staff, SB_Staff, :staff, :staff_ident],
                    InputSource[:locations, SB_Location, :location, :room_ident],
                    InputSource[:groups, SB_Group, :group, :group_ident],
-                   InputSource[:ars, SB_AcademicRecord, nil, nil],
+                   InputSource[:ars, SB_AcademicRecord],
                    InputSource[:periods, SB_Period, :period, :period_ident],
                    InputSource[:period_times, SB_PeriodTime],
                    InputSource[:timetable_entries, SB_Timetableentry, :tte,
-                               :timetable_ident]]
+                               :timetable_ident],
+                   InputSource[:staffablines, SB_StaffAbLine, :sal,
+                               :staff_ab_line_ident],
+                   InputSource[:staffabsences, SB_StaffAbsence, :sa,
+                               :staff_ab_ident],
+                   InputSource[:staffcovers, SB_StaffCover],
+                   InputSource[:dates, SB_Date, :date, :date_ident]]
 
   def initialize(options)
     @verbose   = options.verbose
@@ -832,7 +967,7 @@ class SB_Loader
           self.instance_variable_set("@#{is.hash_prefix}_hash", tmphash)
         end
       else
-        raise "Failed to read #{is.array_name}."
+        raise "Failed to read #{is.array_name} - #{msg}."
       end
     end
     #
@@ -902,6 +1037,8 @@ class SB_Loader
     raise "Can't find event category for week letters." unless @week_letter_category
     @lesson_category = Eventcategory.find_by_name("Lesson")
     raise "Can't find event category for lessons." unless @lesson_category
+    @invigilation_category = Eventcategory.find_by_name("Exam invigilation")
+    raise "Can't find event category for invigilations." unless @invigilation_category
     @event_source = Eventsource.find_by_name("SchoolBase")
     raise "Can't find event source \"SchoolBase\"." unless @event_source
     puts "Finished data initialisation." if @verbose
@@ -1454,15 +1591,149 @@ end
     end
   end
 
-  def dummy
-
-    if timetable_entries && periods && period_times
-    #  ["A", "B"].each do |week_letter|
-    #    KNOWN_DAY_NAMES.each do |day_name|
-    #      periods_by_week[week_letter][day_name] = 
-    #        SB_Timetableentry.sort_and_merge(periods_by_week[week_letter][day_name])
-    #    end
-    #  end
+  #
+  #  Add cover to existing lessons.
+  #
+  def do_cover
+    covers_added = 0
+    if @start_date
+      start_date = @start_date
+    elsif @full_load
+      start_date = @era.starts_on
+    else
+      start_date = Date.today
+    end
+    #
+    #  Let's see if we can make any sense of it first.
+    #
+    @staffcovers.each do |sc|
+      if sc.ptype == 60
+        sal = @sal_hash[sc.staff_ab_line_ident]
+        date = @date_hash[sc.absence_date]
+        if date && date.date >= start_date
+          staff_covering = @staff_hash[sc.staff_ident]
+          if sal && date && staff_covering
+  #          puts "#{sc.staff_name} on #{date.date} links up."
+            #
+            #  Now can we find the lesson he or she is meant to be covering?
+            #
+            sa = @sa_hash[sal.staff_ab_ident]
+            if sa
+              if sal.timetable_ident
+                staff_covered = @staff_hash[sa.staff_ident]
+                if staff_covered
+                  puts "#{staff_covering.name} covering #{staff_covered.name} on #{date.date} for lesson #{sal.timetable_ident}"
+                  #
+                  #  Can we actually add this to the d/b (assuming it isn't
+                  #  already there)?
+                  #
+                  #
+                  #  Specify:
+                  #    Date
+                  #    Eventsource
+                  #    Eventcategory
+                  #    source id
+                  dblesson = Event.on(date.date).
+                                   eventsource_id(@event_source.id).
+                                   eventcategory_id(@lesson_category.id).
+                                   source_id(sal.timetable_ident)[0]
+                  if dblesson
+                    puts "Found the corresponding lesson."
+                    #
+                    #  Need to find the commitment by the covered teacher
+                    #  to the indicated lesson.
+                    #
+                    original_commitment =
+                      Commitment.by(staff_covered.dbrecord).to(dblesson)[0]
+                    if original_commitment
+                      puts "Found commitment."
+                      #
+                      #  Now - does the cover exist already?
+                      #
+                      if original_commitment.covered
+                        puts "Cover is there already."
+                        #
+                        #  Is the right person doing it?
+                        #
+                        if original_commitment.covered.element.entity.id ==
+                           staff_covering.dbrecord.id
+                          puts "And by the right person."
+                        else
+                          puts "But the wrong person."
+                        end
+                      else
+                        cover_commitment = Commitment.new
+                        cover_commitment.event = original_commitment.event
+                        cover_commitment.element = staff_covering.dbrecord.element
+                        cover_commitment.covering = original_commitment
+                        if cover_commitment.save
+                          covers_added += 1
+                        else
+                          puts "Failed to save cover."
+                        end
+                      end
+                    else
+                      puts "Can't find commitment."
+                    end
+                  else
+                    puts "Can't find the lesson."
+                  end
+                else
+                  puts "Can't find covered staff."
+                end
+              else
+                puts "An invigilation slot for #{staff_covering.name} on #{date.date}."
+                #
+                #  Is it already in the database?
+                #
+                dbinvigilation =
+                  Event.on(date.date).
+                        eventsource_id(@event_source.id).
+                        eventcategory_id(@invigilation_category.id).
+                        source_id(sal.staff_ab_line_ident)[0]
+                if dbinvigilation
+                  puts "Invigilation already in the d/b."
+                else
+                  puts "Creating invigilation event."
+                  period = @period_hash[sal.period]
+                  if period && period.time
+                    starts_at =
+                      Time.zone.parse("#{date.date.to_s} #{period.time.starts_at}")
+                    ends_at   =
+                      Time.zone.parse("#{date.date.to_s} #{period.time.ends_at}")
+                    event = Event.new
+                    event.body          = "Invigilation"
+                    event.eventcategory = @invigilation_category
+                    event.eventsource   = @event_source
+                    event.starts_at     = starts_at
+                    event.ends_at       = ends_at
+                    event.approximate   = false
+                    event.non_existent  = false
+                    event.private       = false
+                    event.all_day       = false
+                    event.compound      = false
+                    event.source_id     = sal.staff_ab_line_ident
+                    if event.save
+                      event.reload
+                      c = Commitment.new
+                      c.event = event
+                      c.element = staff_covering.dbrecord.element
+                      c.save
+                    end
+                  end
+                end
+              end
+            else
+              puts "Can't find staff absence record."
+            end
+          else
+            puts "#{sc.staff_name} on #{date ? date.date : "unknown date"} doesn't link up."
+          end
+        end
+      end
+    end
+    if covers_added > 0 || @verbose
+      puts "Added #{covers_added} instances of cover."
     end
   end
 
@@ -1503,12 +1774,13 @@ begin
   end.parse!
 
   SB_Loader.new(options) do |loader|
-    loader.do_pupils
-    loader.do_staff
-    loader.do_locations
-    loader.do_tutorgroups
-    loader.do_teachinggroups
-    loader.do_timetable
+#    loader.do_pupils
+#    loader.do_staff
+#    loader.do_locations
+#    loader.do_tutorgroups
+#    loader.do_teachinggroups
+#    loader.do_timetable
+    loader.do_cover
   end
 rescue RuntimeError => e
   puts e

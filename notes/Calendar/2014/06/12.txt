@@ -1,0 +1,22 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-06-12T15:19:50+01:00
+
+====== Thursday 12 Jun 2014 ======
+
+I have a small problem to fix from last night, where existing events got shuffled through the calendar to the last fortnight of the year.  I know why it happened though.  Enhance code to fix.
+
+What could I usefully do tomorrow?
+
+* Implement login
+* Add resource usage to calendar entries
+* Load duty slots
+* Check and adjust resources associated with existing events during loading
+* Load cover information from SB
+* Add week letters to ical export
+* Take account of study leave when loading events
+* Provide a fast-select on the left to view the timetable of other resources.
+* Printable timetable for any resource
+* Preps?
+
+I surely have to try to parse the cover records first?

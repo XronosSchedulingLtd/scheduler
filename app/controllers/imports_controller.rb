@@ -60,12 +60,12 @@ class CalendarEntry
     #
     #  Now - do we need to adjust the end date and description?
     #
-    Rails.logger.info "Checking \"#{@description}\""
+#    Rails.logger.info "Checking \"#{@description}\""
     newdescription, inner = check_end_date(@description)
     if inner
-      Rails.logger.info "Adjusting \"#{@description}\""
+#      Rails.logger.info "Adjusting \"#{@description}\""
       orgdate = @ends_at ? @ends_at : @starts_at
-      Rails.logger.info "orgdate = #{orgdate}"
+#      Rails.logger.info "orgdate = #{orgdate}"
 
       begin
         parseddate = Date.parse(inner)
@@ -79,7 +79,7 @@ class CalendarEntry
 #                                 orgdate.min,
 #                                 orgdate.sec)
         end
-        Rails.logger.info "New date is #{newdate} (#{newdate.class})"
+#        Rails.logger.info "New date is #{newdate} (#{newdate.class})"
         if newdate < @starts_at
 #          puts "Negative duration detected for #{eventoccurence.summary}."
           #
@@ -305,7 +305,7 @@ class ImportsController < ApplicationController
         #  which has any part of its duration within the indicated period
         #  gets loaded.
         #
-        Event.beginning(start_date).until(end_date).source_id(eventsource.id).destroy_all
+        Event.beginning(start_date).until(end_date).eventsource_id(eventsource.id).destroy_all
       end
       if do_load
         name = params[:name]

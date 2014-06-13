@@ -50,8 +50,9 @@ class Event < ActiveRecord::Base
   validates :starts_at, presence: true
   validates_with DurationValidator
 
-  @@lesson_category     = nil
-  @@weekletter_category = nil
+  @@invigilation_category = nil
+  @@lesson_category       = nil
+  @@weekletter_category   = nil
 
   #
   #  These may look slightly surprising.  We use them to specify
@@ -62,7 +63,11 @@ class Event < ActiveRecord::Base
   #
   scope :beginning, lambda {|date| where("ends_at >= ?", date) }
   scope :until, lambda {|date| where("starts_at < ?", date) }
-  scope :source_id, lambda {|id| where("eventsource_id = ?", id) }
+  scope :eventcategory_id, lambda {|id| where("eventcategory_id = ?", id) }
+  scope :eventsource_id, lambda {|id| where("eventsource_id = ?", id) }
+  scope :on, lambda {|date| where("starts_at >= ? and ends_at < ?",
+                                  date, date + 1.day)}
+  scope :source_id, lambda {|id| where("source_id = ?", id) }
 
   #
   #  For pagination.
@@ -309,11 +314,30 @@ class Event < ActiveRecord::Base
   def colour
     if eventcategory.id == Event.lesson_category.id
       "#225599"
+    elsif eventcategory.id == Event.invigilation_category.id
+      "red"
     elsif eventcategory.id == Event.weekletter_category.id
       "pink"
     else
       "green"
     end
+  end
+
+  # Is the indicated resource providing cover for this event?
+  def covered_by?(item)
+    if item.instance_of?(Element)
+      resource = item
+    else
+      resource = item.element
+    end
+    result = false
+    self.commitments.each do |commitment|
+      if commitment.element == resource &&
+         commitment.covering
+        result = true
+      end
+    end
+    result
   end
 
   def as_json(options = {})
@@ -327,6 +351,10 @@ class Event < ActiveRecord::Base
       :editable  => can_edit?,
       :color     => colour
     }
+  end
+
+  def self.invigilation_category
+    @@invigilation_category ||= Eventcategory.find_by_name("Exam invigilation")
   end
 
   def self.lesson_category
