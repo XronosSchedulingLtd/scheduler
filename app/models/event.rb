@@ -177,6 +177,7 @@ class Event < ActiveRecord::Base
     #  This algorithm needs to be made slightly more sophisticated.
     #
     if self.eventcategory.id == Event.lesson_category.id ||
+       self.eventcategory.id == Event.invigilation_category.id ||
        self.eventcategory.id == Event.weekletter_category.id
       false
     elsif starts_at.hour < 12

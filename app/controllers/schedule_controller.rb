@@ -39,6 +39,9 @@ class ScheduleController < ApplicationController
   end
 
   def show
+    if params[:initials]
+      session[:initials] = params[:initials].upcase
+    end
   end
 
   def events
@@ -47,11 +50,27 @@ class ScheduleController < ApplicationController
     end_date   = Time.zone.parse(params[:end]) - 1.day
     cc = Eventcategory.find_by_name("Calendar")
     wlc = Eventcategory.find_by_name("Week letter")
-    resource = Staff.find_by_initials("JHW")
-    @events =
-      (resource.events_on(start_date, end_date) +
-       (cc ? cc.events_on(start_date, end_date) : []) +
-       (wlc ? wlc.events_on(start_date, end_date) : [])).uniq
+    if session[:initials]
+      resource = Staff.find_by_initials(session[:initials])
+    else
+      resource = Staff.find_by_initials("JHW")
+    end
+    if resource
+      if session[:initials]
+        @events =
+          (resource.events_on(start_date, end_date) +
+           (wlc ? wlc.events_on(start_date, end_date) : [])).uniq
+      else
+        @events =
+          (resource.events_on(start_date, end_date) +
+           (cc ? cc.events_on(start_date, end_date) : []) +
+           (wlc ? wlc.events_on(start_date, end_date) : [])).uniq
+      end
+    else
+      @events =
+        ((cc ? cc.events_on(start_date, end_date) : []) +
+         (wlc ? wlc.events_on(start_date, end_date) : [])).uniq
+    end
 #    @events = Event.events_on(Time.zone.parse(start_date),
 #                              Time.zone.parse(end_date) - 1.day)
     #@events = Event.beginning(Time.zone.parse(start_date)).until(Time.zone.parse(end_date))
