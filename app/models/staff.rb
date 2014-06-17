@@ -9,6 +9,7 @@ class Staff < ActiveRecord::Base
   self.per_page = 15
 
   scope :active, -> { where(active: true) }
+  scope :current, -> { where(current: true) }
 
   def element_name
     #
@@ -17,4 +18,10 @@ class Staff < ActiveRecord::Base
     "#{self.name} (Staff)"
   end
 
+  def self.set_currency
+    Staff.active.each do |s|
+      s.current = true
+      s.save
+    end
+  end
 end

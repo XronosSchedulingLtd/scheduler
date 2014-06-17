@@ -277,12 +277,50 @@ class ImportsController < ApplicationController
     end
   end
 
+  def add_event(starts_at,
+                ends_at,
+                all_day,
+                body,
+                category,
+                source,
+                resources = nil)
+    event = Event.new
+    event.starts_at     = starts_at
+    event.ends_at       = ends_at
+    event.all_day       = all_day
+    event.body          = body
+    event.eventcategory = category
+    event.eventsource   = source
+    if event.save
+      event.reload
+      if resources
+        resources.each do |resource|
+          c = Commitment.new
+          c.event = event
+          c.element = resource.element
+          c.save
+        end
+      end
+      true
+    else
+      false
+    end
+  end
+
+  def find_relevant_staff(description, known_staff)
+    known_staff.select {|ks|
+      Rails.logger.info("Checking #{ks.name}")
+      description =~ Regexp.new("#{ks.title}\\s#{ks.surname}", "i")
+    }
+  end
+
   def commit_csv
 #    raise params.inspect
     eventsource = Eventsource.find(params[:eventsource])
     calendarcategory = Eventcategory.find_by_name("Calendar")
     weeklettercategory = Eventcategory.find_by_name("Week letter")
     dutycategory = Eventcategory.find_by_name("Duty")
+    known_staff = Staff.active.current
     if calendarcategory && weeklettercategory && dutycategory
       start_date = Time.zone.parse(params[:first_date])
       #
@@ -336,15 +374,33 @@ class ImportsController < ApplicationController
                   #  We save these up and process them at the end.
                   #
                   weekletterentries << entry
+                elsif entry.description =~ /^Duty Masters/
+                  relevant_staff = find_relevant_staff(entry.description,
+                                                       known_staff)
+                  unless relevant_staff.size == 2
+                    @failures << "Couldn't identify staff \"#{entry.description}\""
+                    if relevant_staff.size == 1
+                      @failures << "Found: #{relevant_staff[0].name}"
+                    else
+                      relevant_staff = nil
+                    end
+                  end
+                  unless add_event(entry.starts_at,
+                                   entry.ends_at,
+                                   entry.all_day,
+                                   entry.description,
+                                   dutycategory,
+                                   eventsource,
+                                   relevant_staff)
+                    @failures << "Event #{entry.description} was invalid."
+                  end
                 else
-                  event = Event.new
-                  event.starts_at = entry.starts_at
-                  event.ends_at   = entry.ends_at
-                  event.all_day   = entry.all_day
-                  event.body      = entry.description
-                  event.eventcategory = calendarcategory
-                  event.eventsource   = eventsource
-                  unless event.save
+                  unless add_event(entry.starts_at,
+                                   entry.ends_at,
+                                   entry.all_day,
+                                   entry.description,
+                                   calendarcategory,
+                                   eventsource)
                     @failures << "Event #{entry.description} was invalid."
                   end
                 end
@@ -373,14 +429,12 @@ class ImportsController < ApplicationController
       #                      } to #{
       #                        currentweekend.to_formatted_s(:dmy)
       #                      }"
-                      event = Event.new
-                      event.starts_at = currentweekstart
-                      event.ends_at   = currentweekend
-                      event.all_day   = true
-                      event.body      = "WEEK #{currentweekletter}"
-                      event.eventcategory = weeklettercategory
-                      event.eventsource   = eventsource
-                      unless event.save
+                      unless add_event(currentweekstart,
+                                       currentweekend,
+                                       true,
+                                       "WEEK #{currentweekletter}",
+                                       weeklettercategory,
+                                       eventsource)
                         @failures << "Event #{entry.description} was invalid."
                       end
                     end
@@ -393,14 +447,12 @@ class ImportsController < ApplicationController
                   #
                   #  Need to flush this final one to the d/b.
                   #
-                  event = Event.new
-                  event.starts_at = currentweekstart
-                  event.ends_at   = currentweekend
-                  event.all_day   = true
-                  event.body      = "WEEK #{currentweekletter}"
-                  event.eventcategory = weeklettercategory
-                  event.eventsource   = eventsource
-                  unless event.save
+                  unless add_event(currentweekstart,
+                                   currentweekend,
+                                   true,
+                                   "WEEK #{currentweekletter}",
+                                   weeklettercategory,
+                                   eventsource)
                     @failures << "Event #{entry.description} was invalid."
                   end
                 end

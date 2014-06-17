@@ -50,6 +50,7 @@ class Event < ActiveRecord::Base
   validates :starts_at, presence: true
   validates_with DurationValidator
 
+  @@duty_category         = nil
   @@invigilation_category = nil
   @@lesson_category       = nil
   @@weekletter_category   = nil
@@ -176,7 +177,8 @@ class Event < ActiveRecord::Base
     #
     #  This algorithm needs to be made slightly more sophisticated.
     #
-    if self.eventcategory.id == Event.lesson_category.id ||
+    if self.eventcategory.id == Event.duty_category.id ||
+       self.eventcategory.id == Event.lesson_category.id ||
        self.eventcategory.id == Event.invigilation_category.id ||
        self.eventcategory.id == Event.weekletter_category.id
       false
@@ -352,6 +354,10 @@ class Event < ActiveRecord::Base
       :editable  => can_edit?,
       :color     => colour
     }
+  end
+
+  def self.duty_category
+    @@duty_category ||= Eventcategory.find_by_name("Duty")
   end
 
   def self.invigilation_category
