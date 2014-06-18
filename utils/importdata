@@ -7,3 +7,5 @@ utils/fetchsbdata.rb
 RAILS_ENV=production
 export RAILS_ENV
 ~/.rvm/wrappers/scheduler/ruby lib/import/importsb.rb --era "Academic Year 2013/14"
+cd import
+/bin/tar cvf - *.csv | gzip -9c >archive/`date +%Y%m%d`.tar.gz
