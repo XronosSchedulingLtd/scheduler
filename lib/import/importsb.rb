@@ -1655,6 +1655,8 @@ end
   #
   def do_cover
     covers_added = 0
+    invigilations_added = 0
+    invigilations_amended = 0
     if @start_date
       start_date = @start_date
     elsif @full_load
@@ -1752,6 +1754,18 @@ end
                         source_id(sal.staff_ab_line_ident)[0]
                 if dbinvigilation
 #                  puts "Invigilation already in the d/b."
+                  #
+                  #  Is it the right person?
+                  #
+                  if dbinvigilation.commitments
+                    commitment = dbinvigilation.commitments[0]
+                    if commitment.element !=
+                       staff_covering.dbrecord.element
+                      commitment.element = staff_covering.dbrecord.element
+                      commitment.save
+                      invigilations_amended += 1
+                    end
+                  end
                 else
 #                  puts "Creating invigilation event."
                   period = @period_hash[sal.period]
@@ -1778,6 +1792,7 @@ end
                       c.event = event
                       c.element = staff_covering.dbrecord.element
                       c.save
+                      invigilations_added += 1
                     end
                   end
                 end
@@ -1793,6 +1808,12 @@ end
     end
     if covers_added > 0 || @verbose
       puts "Added #{covers_added} instances of cover."
+    end
+    if invigilations_added > 0 || @verbose
+      puts "Added #{invigilations_added} instances of invigilation."
+    end
+    if invigilations_amended > 0 || @verbose
+      puts "Changed #{invigilations_amended} instances of invigilation."
     end
   end
 
