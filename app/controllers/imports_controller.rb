@@ -1,6 +1,121 @@
 require 'csv'
 require 'charlock_holmes'
 
+class Locator
+  #
+  #  A class which tries to identify the locations used by an event.
+  #
+
+  def initialize
+    #
+    #  We need to get a list of all location aliases in the database
+    #  which point to an active location, and put them in a lookup table.
+    #
+    #  If there are two location aliases with the same name, we can handle
+    #  only one of them.  Raise an error message for the other.
+    #
+    @location_hash = {}
+    Locationalias.where("location_id IS NOT NULL").each do |la|
+      if la.location && la.location.active
+        @location_hash[la.name.downcase] = la
+      end
+    end
+  end
+
+  def check_for_locations(description)
+    #
+    #  Some summaries end with "(tbc)" or "(TBC)" which interferes
+    #  with location identification.  Strip it off if present and put
+    #  it back later.
+    #
+    orgdescription = description
+    if description =~ /\s*\((TBC|tbc)\)\s*$/
+      description = $`
+      tbc = true
+    else
+      tbc = false
+    end
+    #
+    #  Split the description at commas, ignoring white space either side
+    #  of the commas.
+    #
+    found_something = false
+    unused = Array.new
+    locations = Array.new
+    broken = description.split(/\s*,\s*/)
+    broken.each do |chunk|
+      location = @location_hash[chunk.downcase]
+      if location
+        found_something = true
+        Rails.logger.info "Found #{location.name} in \"#{description}\"."
+        locations << location
+      else
+        #
+        #  Sometimes a chunk contains more than one location,
+        #  joined/separated by "/", "and", "&" or "then".  There is
+        #  a limit to what we can process, but have a go.
+        #
+        sublocations = try_to_split(chunk)
+        if sublocations.size > 0
+          found_something = true
+          locations += sublocations
+        else
+          unused << chunk
+        end
+      end
+    end
+    if found_something
+      Rails.logger.info("LOC: \"#{orgdescription}\" yields:")
+      locations.each do |la|
+        Rails.logger.info("LOC:    #{la.name}")
+      end
+      ["#{unused.join(", ")}#{tbc ? " (tbc)" : ""}",
+       locations.collect {|la| la.location}]
+    else
+      Rails.logger.info("LOC: No locations: \"#{orgdescription}\"")
+      [orgdescription, []]
+    end
+  end
+
+  private
+
+  #
+  #  See whether a chunk can be split up into more than one location.
+  #
+  def try_to_split(chunk)
+#      puts "Trying to split \"#{chunk}\"."
+    subchunks =
+      chunk.split(/\s*(\/|&|then|and)\s*/) - ["/", "&", "then", "and"]
+#      puts "Turned into \"#{subchunks.join("\", \"")}\"."
+    if subchunks.size > 1
+      #
+      #  All must be identifiable locations for us to accept it.
+      #
+      failed_any = false
+      locations = []
+      subchunks.each do |sc|
+        location = @location_hash[sc.downcase]
+        if location
+#            puts "Found #{location.name}"
+          locations << location
+        else
+#            puts "\"#{sc}\" couldn't be identified."
+          failed_any = true
+        end
+      end
+      if failed_any
+        []
+      else
+        locations
+      end
+    else
+#        puts "Too few subchunks to work."
+      []
+    end
+  end
+
+end
+
 class CalendarEntry
 
   attr_reader :starts_at, :ends_at, :description, :all_day
@@ -376,7 +491,9 @@ class ImportsController < ApplicationController
         #  any less strict, so we have failed.
         #
         @failures << "Couldn't identify staff \"#{description}\""
-        @failures << "Found: #{relevant_staff[0].name}"
+        if candidates.size > 0
+          @failures << "Found: #{candidates[0].name}"
+        end
         if candidates.size > 0
           candidates
         else
@@ -440,13 +557,15 @@ class ImportsController < ApplicationController
             entries, message = CalendarEntry.array_from_csv_data(parsed)
             if entries
               weekletterentries = []
+              locator = Locator.new
               entries.each do |entry|
                 if entry.week_letter
                   #
                   #  We save these up and process them at the end.
                   #
                   weekletterentries << entry
-                elsif entry.description =~ /^Duty Masters/
+                elsif entry.description =~ /^Duty Masters/ ||
+                      entry.description =~ /^Detention.*aster/i
                   relevant_staff = find_relevant_staff(entry.description,
                                                        known_staff)
                   unless add_event(entry.starts_at,
@@ -459,12 +578,15 @@ class ImportsController < ApplicationController
                     @failures << "Event #{entry.description} was invalid."
                   end
                 else
+                  description, locations =
+                    locator.check_for_locations(entry.description)
                   unless add_event(entry.starts_at,
                                    entry.ends_at,
                                    entry.all_day,
-                                   entry.description,
+                                   description,
                                    calendarcategory,
-                                   eventsource)
+                                   eventsource,
+                                   locations)
                     @failures << "Event #{entry.description} was invalid."
                   end
                 end

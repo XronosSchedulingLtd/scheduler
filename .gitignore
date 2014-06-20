@@ -21,6 +21,8 @@
 # And any in the import directory
 /import/*
 
+/scratch/*
+
 # Some zim files change too much
-notes/.zim/
+notes/.zim/*
 
