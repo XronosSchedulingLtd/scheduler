@@ -1,3 +1,9 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2014 John Winters
+# Portions Copyright (C) 2014 Abindon School
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+
 class Membership < ActiveRecord::Base
   belongs_to :group
   belongs_to :element
@@ -13,8 +19,13 @@ class Membership < ActiveRecord::Base
   scope :starts_by, lambda {|date| where("starts_on <= ?", date) }
   scope :continues_until, lambda {|date| where("ends_on IS NULL OR ends_on >= ?", date) }
   scope :active_on, lambda {|date| starts_by(date).continues_until(date) }
+  scope :active_during, ->(start_date, end_date) {
+                             starts_by(end_date).continues_until(start_date)
+                           }
   scope :exclusions, -> { where(inverse: true) }
   scope :inclusions, -> { where(inverse: false) }
+  scope :by_element, ->(element) { where("element_id = ?", element.id) }
+  scope :of_group,   ->(group)   { where("group_id = ?", group.id) }
 
   #
   #  Can I also have a method with the same name?  It appears I can.
@@ -62,19 +73,26 @@ class Membership < ActiveRecord::Base
     end
   end
 
-  # Can't have all three of group, element and role the same.
-  # This test is cock-eyed - you can too have them the same, just not
-  # at the same time.  Work required.
   #
   #  Note that we particularly want to exclude the possibility of
   #  two otherwise identical membership records, one of which has the
   #  inverse flag set and the other of which doesn't.
   #
+  #  It's not our job to do the manipulation to achieve this (done
+  #  by the controller); it's just our job to make sure it doesn't
+  #  happen.
+  #
   def unique
-    if Membership.find_by_group_id_and_element_id_and_role_id(
-         group_id,
-         element_id,
-         role_id) != nil
+    if self.ends_on
+      clashes = Membership.by_element(self.element).
+                           of_group(self.group).
+                           active_during(self.starts_on, self.ends_on)
+    else
+      clashes = Membership.by_element(self.element).
+                           of_group(self.group).
+                           continues_until(self.starts_on)
+    end
+    if clashes.size > 0
       errors.add(:overall, "Duplicate memberships are not allowed.")
     end
   end

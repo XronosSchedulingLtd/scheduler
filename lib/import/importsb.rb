@@ -1235,8 +1235,13 @@ class SB_Loader
         missing_from_db.each do |pupil_id|
           pupil = @pupil_hash[pupil_id]
           if pupil && pupil.dbrecord
-            dbrecord.add_member(pupil.dbrecord)
-            tgmember_loaded_count += 1
+            begin
+              dbrecord.add_member(pupil.dbrecord)
+              tgmember_loaded_count += 1
+            rescue ActiveRecord::RecordInvalid => e
+              puts "Failed to add #{pupil.name} to tutorgroup #{tg.name}"
+              puts e
+            end
           end
         end
         extra_in_db = db_member_ids - sb_member_ids
