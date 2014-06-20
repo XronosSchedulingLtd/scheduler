@@ -308,10 +308,82 @@ class ImportsController < ApplicationController
   end
 
   def find_relevant_staff(description, known_staff)
-    known_staff.select {|ks|
-      Rails.logger.info("Checking #{ks.name}")
-      description =~ Regexp.new("#{ks.title}\\s#{ks.surname}", "i")
+    #
+    #  Check for the key word "and" in the description.  If it's there
+    #  then we expect two staff, otherwise just one.
+    #
+    if description =~ /\band\b/
+      expecting = 2
+    else
+      expecting = 1
+    end
+    #
+    #  Do an initial selection *just* by surname.
+    #
+    candidates = known_staff.select {|ks|
+      description =~ Regexp.new("\\b#{ks.surname}\\b", "i")
     }
+    #
+    #  Can't just check we have the right number.  We might have a
+    #  description containing "Mr J Taylor and Mr Fred Bloggs" and
+    #  have found both Mr Taylors in the database, but no Fred Bloggs.
+    #
+    if candidates.size == expecting &&
+       candidates.collect {|c| c.surname}.uniq.size == expecting
+      #
+      #  Good enough
+      #
+      candidates
+    else
+      if candidates.size >= expecting
+        #
+        #  Too many (or just enough, but not unique surnames).
+        #  Surprisingly often the description goes "Mr J Taylor and Mr R Taylor"
+        #  which will have failed the previous test but is still good.
+        #
+        #  Tests are as follows:
+        #
+        #    Count how many candidates have a surname containing this
+        #    candidates surname.  If the total is 1 (i.e. himself) then
+        #    he stays in the running.
+        #
+        #    For, for instance, "Fred Bloggs", if "F Bloggs" occurs in
+        #    the description then he stays in.
+        #
+        #    Likewise, if "Mr Bloggs" is there he stays in.
+        #
+        filtered_candidates = candidates.select do |c|
+          (candidates.count {|ic| ic.surname =~ Regexp.new("\\b#{c.surname}\\b")} == 1) ||
+          (description =~ Regexp.new("\\b#{c.forename[0]}\\s#{c.surname}\\b")) ||
+          (description =~ Regexp.new("\\b#{c.title}\\s#{c.surname}\\b"))
+        end
+        #
+        #  Do I now have the right number?
+        #
+        if filtered_candidates.size == expecting
+          filtered_candidates
+        else
+          @failures << "Giving up on \"#{description}\""
+          @failures <<
+            "Have #{filtered_candidates.collect {|fc| fc.name}.join(",")}"
+          @failures <<
+            "Out of #{candidates.collect {|fc| fc.name}.join(",")}"
+          nil
+        end
+      else
+        #
+        #  Too few.  We have no way of making our selection criteria
+        #  any less strict, so we have failed.
+        #
+        @failures << "Couldn't identify staff \"#{description}\""
+        @failures << "Found: #{relevant_staff[0].name}"
+        if candidates.size > 0
+          candidates
+        else
+          nil
+        end
+      end
+    end
   end
 
   def commit_csv
@@ -377,14 +449,6 @@ class ImportsController < ApplicationController
                 elsif entry.description =~ /^Duty Masters/
                   relevant_staff = find_relevant_staff(entry.description,
                                                        known_staff)
-                  unless relevant_staff.size == 2
-                    @failures << "Couldn't identify staff \"#{entry.description}\""
-                    if relevant_staff.size == 1
-                      @failures << "Found: #{relevant_staff[0].name}"
-                    else
-                      relevant_staff = nil
-                    end
-                  end
                   unless add_event(entry.starts_at,
                                    entry.ends_at,
                                    entry.all_day,

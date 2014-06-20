@@ -92,7 +92,9 @@ module Slurper
                   entry.send("#{attr_name}=", row[column_hash[attr_name]].to_i)
                 end
               else
-                entry.send("#{attr_name}=", row[column_hash[attr_name]])
+                entry.send("#{attr_name}=",
+                           row[column_hash[attr_name]] ?
+                           row[column_hash[attr_name]].strip : nil)
               end
             end
             entry.adjust
