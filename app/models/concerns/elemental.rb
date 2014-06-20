@@ -36,6 +36,13 @@ module Elemental
   end
 
   #
+  #  An entity may well want to override this.
+  #
+  def display_name
+    self.name
+  end
+
+  #
   #  And shims to provide access to the instance methods in Element
   #
   def groups(given_date = nil, recurse = true)

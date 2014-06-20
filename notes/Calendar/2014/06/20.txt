@@ -1,0 +1,223 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-06-20T07:22:00+01:00
+
+====== Friday 20 Jun 2014 ======
+
+I had a plan for today which was:
+
+[*] Get recognition of all staff duties in calendar loading working
+[*] Add in recognition of detention master slots
+[*] Add recognition of locations in calendar loading
+[ ] Create login functionality using Google
+[*] Add explicit database dumping code as a cron job so backups are more useful.
+
+and I also noticed last night that a clean load from SB to a blank database doesn't quite work.  Because the staff and students aren't already in my d/b, the tutorgroups don't get created and the teaching groups don't get populated.  The events then end up lacking their resources, and don't later acquire them.  A second run is needed, and that doesn't fully fix things, because the existing code doesn't update the resources for existing events.
+
+TODO: fix event loading code to adjust existing events.  Fix parsing logic to cope with staff and pupils being loaded before trying to construct tutor and teaching groups.
+
+But...   overnight another problem has arisen, although I'm fairly confident I know the cause.  The overnight job failed with a stack dump and this error message.
+
+'''
+/home/john/.rvm/gems/ruby-2.1.1@scheduler/gems/activerecord-4.1.0/lib/active_record/validations.rb:57:in `save!': Validation failed: Overall Duplicate memberships are not allowed. (ActiveRecord::RecordInvalid)
+	from /home/john/.rvm/gems/ruby-2.1.1@scheduler/gems/activerecord-4.1.0/lib/active_record/attribute_methods/dirty.rb:29:in `save!'
+	from /home/john/.rvm/gems/ruby-2.1.1@scheduler/gems/activerecord-4.1.0/lib/active_record/transactions.rb:273:in `block in save!'
+	from /home/john/.rvm/gems/ruby-2.1.1@scheduler/gems/activerecord-4.1.0/lib/active_record/transactions.rb:329:in `block in with_transaction_returning_status'
+	from /home/john/.rvm/gems/ruby-2.1.1@scheduler/gems/activerecord-4.1.0/lib/active_record/connection_adapters/abstract/database_statements.rb:211:in `block in transaction'
+	from /home/john/.rvm/gems/ruby-2.1.1@scheduler/gems/activerecord-4.1.0/lib/active_record/connection_adapters/abstract/database_statements.rb:219:in `within_new_transaction'
+	from /home/john/.rvm/gems/ruby-2.1.1@scheduler/gems/activerecord-4.1.0/lib/active_record/connection_adapters/abstract/database_statements.rb:211:in `transaction'
+	from /home/john/.rvm/gems/ruby-2.1.1@scheduler/gems/activerecord-4.1.0/lib/active_record/transactions.rb:208:in `transaction'
+	from /home/john/.rvm/gems/ruby-2.1.1@scheduler/gems/activerecord-4.1.0/lib/active_record/transactions.rb:326:in `with_transaction_returning_status'
+	from /home/john/.rvm/gems/ruby-2.1.1@scheduler/gems/activerecord-4.1.0/lib/active_record/transactions.rb:273:in `save!'
+	from /home/john/Work/Coding/scheduler/app/models/group.rb:67:in `add_member'
+	from /home/john/Work/Coding/scheduler/app/models/concerns/grouping.rb:48:in `add_member'
+	from lib/import/importsb.rb:1238:in `block (2 levels) in do_tutorgroups'
+	from lib/import/importsb.rb:1235:in `each'
+	from lib/import/importsb.rb:1235:in `block in do_tutorgroups'
+	from lib/import/importsb.rb:1209:in `each'
+	from lib/import/importsb.rb:1209:in `do_tutorgroups'
+	from lib/import/importsb.rb:1860:in `block in <main>'
+	from lib/import/importsb.rb:1104:in `initialize'
+	from lib/import/importsb.rb:1856:in `new'
+	from lib/import/importsb.rb:1856:in `<main>'
+'''
+
+
+I am fairly confident that this is due to a bit of finger trouble in SB the day before yesterday.  Somebody edited Charlie Macpherson's record and changed his tutor from being DCS to being ENFS (who is in fact his housemaster).  My system duly created a new tutor group in the small hours of yesterday morning, and moved Charlie into it.  I then pointed out the problem to Lou, who corrected SB.  This morning my system tried to move him back, but failed because he already had a membership record, albeit an expired one.  The new membership record failed model validation.
+
+There is already a comment on the validation code saying that the validation is wrong.  It currently checks just that there aren't two membership records for the same element and group.  This is wrong - there could easily be two such records, just not at the same time.  So - plan of campaign:
+
+[*] Reproduce the problem on my development system (will require manual intervention to amend my data).
+[*] Fix the loading code so it traps and reports such an error rather than just halting.
+[*] Fix the validation code in the model so that the error doesn't happen.
+
+I also notice looking at the group model code that various filters are effected in the model, rather than being delegated to the database fetch.  It may be possible to improve performance by adding more scopes.
+
+Right - how do I remove CM from his tutor group.  (Don't actually need to add him to a new one.)
+
+Found Charlie's tutorgroup membership and amended it to have an end date of 2014-06-18.  
+
+'''
+p = Pupil.find_by_surname("Macpherson")
+tg = p.element.groups(nil, false)[0]
+tg.remove_member(p, Date.yesterday)
+'''
+
+
+We should now be in a position to reproduce the problem on my test system using today's data files - or indeed, any older ones apart from yesterday's, but to reduce variables it makes sense to use today's.
+
+Running command exactly as on Mach2, and indeed I get the same error.  Good.
+
+Achieved my first objective.  I now get a sensible error message rather than a stack dump.  Now to fix the validation.
+
+My first thought is to check the active dates of existing and new membership records, but by definition the new one has only a start date.  We don't create records with a pre-existing end date.  I therefore need to check for only membership records active on that date.
+
+Ah no - the validation runs every time a record is saved.  It needs to cope with an end date being adjusted as well (although I can't conceive of why I would want to do that).
+
+New code now in place and it seems to work, but I've noticed one other thing.  Although Charlie Macpherson has now been added back into his old tutor group, I suspect he is still listed as being a member of the fictional tutor group.  Check.  Yes, he is indeed.  This is something I can easily fix manually, but it should be done automatically.  Check the loading code.  Code appears to exist to do it, and yet it isn't happening.  Why?  This is more complicated to set up at home, because I need to make Charlie a members of 5ENFS.
+
+Created 5ENFS manually and made Charlie a member of it.  Now to run the script on my test system again.
+
+Hah!  Worked it out.  The problem is that I don't get any tutor group records from SB - I just get tutorgroup membership records.  Since Charlie is no longer a member of the fictional 5ENFS, I don't get a record and so no processing happens.  If it were a real tutor group with remaining members then I think it would be handled correctly.
+
+How then to handle this situation.  In this particular instance it's due to getting gash information from SB, but presumably it could happen in the future that a tutor group ceases to exist.  I should mark all remaining memberships as terminated on that day (or rather, the day before) and then mark the group as terminating on that day too.  First I need to detect the issue.
+
+Done all that.  We now resume our scheduled activities.
+
+What cases are not currently handled in the calendar loading code?
+
+'''
+Couldn't identify staff "Duty Masters: Miss Lee and Mrs Yarrow"
+Found: Katy Lee
+Couldn't identify staff "Duty Masters: Mr J Taylor and Mr R Taylor"
+Couldn't identify staff "Duty Masters: Dr Steer and Mr Colborn"
+Found: Robert Colborn
+Couldn't identify staff "Duty Masters: Dr Steer and Mrs Fishpool"
+Found: Jenny Fishpool
+Couldn't identify staff "Duty Masters: Mr J Taylor and Ms Hancock"
+Found: Elizabeth Hancock
+Couldn't identify staff "Duty Masters: Mr Swarbrick and Mrs Pradas"
+Found: Andrew Swarbrick
+Couldn't identify staff "Duty Masters: Mr Grills and Mr S Evans"
+Found: Simon Grills
+Couldn't identify staff "Duty Masters: Mrs Muller and Mrs Pradas"
+Found: Cath Muller
+Couldn't identify staff "Duty Masters: Mr Lomax and Mr Fisher"
+Couldn't identify staff "Duty Masters: Dr Steer and Mrs Mansfield"
+Found: Jane Mansfield
+Couldn't identify staff "Duty Masters: Mr Bliss"
+Found: Simon Bliss
+Couldn't identify staff "Duty Masters: Mr Dempsey and Mr Fisher"
+Couldn't identify staff "Duty Masters: Ms Hancock and Mrs Griffiths"
+Couldn't identify staff "Duty Masters: Mr Revill and Ms Lee"
+Found: Nick Revill
+Couldn't identify staff "Duty Masters: Mr J Taylor and Mr Edgar"
+Found: Matthew Edgar
+'''
+
+
+In each case, why was there a problem?
+
+* Rachel Yarrow is in the database as Miss.
+* There are three active "Mr Taylor"s in the d/b, two of whom are current.
+* Simon Steer is "Rev'd Dr" in the d/b
+* Victoria Pradas has a space after her name in the d/b.  Error in SB, but we should cope with it.
+* There are two "Mr Evans"s in the d/b
+* We have two "Mr Fisher"s (and a "Mrs Fisher") in the d/b.
+* Simon Bliss is on duty on his own, which we don't currently cope with.
+* Don't understand the issue with Mr Lomax, Ms Hancock and Mr Dempsey.  All seem fine.
+* We have two "Mrs Griffiths"s - Victoria and Kathleen.
+* Katy Lee is Miss in the d/b.
+
+Let's work on the ones I understand, and see if the explanation of the three oddities comes to light.  I can start by doing a general fix for leading and trailing spaces in data fields coming from S/B.  Ah - there are quite a few such fields in my data.  Does it explain any of the other oddities?  I can't see any at present.  The error carries through in some cases (e.g. "Stephen  Dineen") into having embedded double spaces in a name, but that's SB's problem.
+
+Kath Griffiths is apparently no longer with us, so just set her "current" field to false.
+
+Fixed VP's problem though.  On to my recognition logic.  I need a much more sophisticated algorithm.  First move the logging logic into the find_relevant_staff method.  It can decide how many there are.
+
+Getting there.  I'm now down to just the following errors:
+
+'''
+Giving up on "Duty Masters: Dr Jeffreys and Mr Fletcher-Campbell"
+Have Chris Fletcher-Campbell,Robert Jeffreys,Sue Campbell
+Out of Chris Fletcher-Campbell,Robert Jeffreys,Sue Campbell
+Giving up on "Duty Masters: Mr Colborn and Mrs O'Doherty"
+Have Emily O'Doherty,Jordan Doherty,Robert Colborn
+Out of Emily O'Doherty,Jordan Doherty,Nick O'Doherty,Robert Colborn
+Giving up on "Duty Masters: Mrs O'Doherty and Ms Byrne"
+Have Emily O'Doherty,Jordan Doherty,Kate Byrne
+Out of Emily O'Doherty,Jordan Doherty,Kate Byrne,Nick O'Doherty
+Giving up on "Duty Masters: Mrs Slatford and Mrs O'Doherty"
+Have Emily O'Doherty,Estelle Slatford,Jordan Doherty
+Out of Emily O'Doherty,Estelle Slatford,Jordan Doherty,Nick O'Doherty
+Giving up on "Duty Masters: Mr Haworth and Mr Fletcher-Campbell"
+Have Chris Fletcher-Campbell,David Haworth,Sue Campbell
+Out of Chris Fletcher-Campbell,David Haworth,Sue Campbell
+Giving up on "Duty Masters: Mr Swarbrick and Mrs O'Doherty"
+Have Andrew Swarbrick,Emily O'Doherty,Jordan Doherty
+Out of Andrew Swarbrick,Emily O'Doherty,Jordan Doherty,Nick O'Doherty
+'''
+
+
+Campbell is a sub-string of Fletcher-Campbell
+Doherty is a sub-string of O'Doherty
+
+Note that I've managed to eliminate Nick O'Doherty when looking for Emily, but not Jordan Doherty (whoever that is).
+
+I could mark Jordan Doherty as not current, but that's kind of cheating.  I need to make sure the problem is handled more generally.  I think it's because Doherty is not just a sub-string, it's a whole word, terminated by non-word characters.  I think I need to eliminate people in my list of candidates whose surnames are sub-strings of someone else's.  Note that this still isn't perfect - if Jordan Doherty and Emily O'Doherty were on together we might not cope, but it's an improvement and it might be good enough.  Change the test for a candidates surname being the same as someone else's to being a candidates surname being a sub-string of someone else's.
+
+Done it, and it produced no errors at all.  Let's see if it's got the duty days right.
+
+Not quite - on 4th Sep 2013, we should have Kate Byrne and Jenny Fishpool.  Instead we have Kate Byrne, Jenny Fishpool and Ian Fishpool.  Why?  Ah yes, my initial test is wrong.  Need to test the total is right too.
+
+Added that and now we have some problems again, as follows:
+
+'''
+Giving up on "Duty Masters: Mr Fisher and Mr S Evans"
+Have Matthew Fisher,Richard Fisher,Stuart Evans
+Out of Dean Evans,Lynn Fisher,Matthew Fisher,Richard Fisher,Stuart Evans
+Giving up on "Duty Masters: Mr Fisher and Mr R Taylor"
+Have Matthew Fisher,Richard Fisher,Richard Taylor
+Out of Jeremy Taylor,Lynn Fisher,Matthew Fisher,Richard Fisher,Richard Taylor
+Giving up on "Duty Masters: Mr Lomax and Mr Fisher"
+Have Matthew Fisher,Oliver Lomax,Richard Fisher
+Out of Lynn Fisher,Matthew Fisher,Oliver Lomax,Richard Fisher
+Giving up on "Duty Masters: Mr Dempsey and Mr Fisher"
+Have Mathew Dempsey,Matthew Fisher,Richard Fisher
+Out of Lynn Fisher,Mathew Dempsey,Matthew Fisher,Richard Fisher
+'''
+
+
+4th Sep 2013 is right now though.  :-)
+
+The remaining issues seem to be just down to Matthew and Richard Fisher.  Two Mr Fishers, and no initial in the input file.  Lynn Fisher gets eliminated because she's Mrs.  Not sure who Matthew Fisher is, but he has no timetable so let's mark him as not current.  Back to no errors.  Again we check the actual duty slots.
+
+Checked the whole of the Michaelmas term - all correct.  Let's commit that version of the code and run it on the live system.  Need to do an import run first in order to correct names with trailing spaces.
+
+Code copied over.  Running the import task.  Various names changed.  Have the element records been updated too?  Yes, they seem to have been.  Let's go for the calendar update.  Failed because Joel Taylor is still in there - that's two "Mr J Taylor"s.  Need to stop him being current and then try again.  And now it works!  Excellent.
+
+On to identifying locations automatically in the course of the load.  In Markbook I had some hard-coded locations, but in Scheduler I intend to do it by way of location aliases.  In order to be loaded, a location will need a matching alias in the d/b.
+
+Actually, the existing Markbook code contains a pretty short list of location names which it will handle.  As a starting point I can simply make sure that all of those are in Scheduler.
+
+I've spent quite a while loading and setting data on the live system.  I don't want to have to repeat this on the test one so I dumped the live database and copied it home.  This is done as follows:
+
+'''
+mysqldump -u root -p scheduler_production >scheduler_production.dmp
+gzip -9 scheduler_production.dmp
+(copy file home)
+zcat scheduler_production.dmp.gz | mysql -u root -p scheduler_development
+'''
+
+
+and for safety I restarted my rails server running on my development system.  This is a really quick way to get the whole database copied over.  Now, can I correctly identify locations when loading from the calendar file.
+
+I'm boggled - my code ran first go (nearly) and has done something.  Quite how much that something is needs a little bit of investigating.
+
+OK - some, but by no means all.  I could do to split up the text at "&" and "or" as well.
+
+It's pretty good, and I will never be able to parse all the nonsense which gets typed in, but I think it can still be improved a bit.  Hah!  Looking at my code, it seems to be trying to split on "/", "then", "&" and "and", but it isn't quite working.  Why not.  Hmm.  It is certainly working for some.  Perhaps it's when one of the resulting locations is unknown?  Yes, that seems to be it.  I think that's good enough for now.  That gives rise to another problem in that we have John Cotton and Richard Cotton.  Mike Webb and Barry Webb.  I don't think I know either of the oddities.  Neither Richard Cotton nor Barry Webb has a timetable, so let's mark them as not current.
+
+I now get the calendar load completing without errors, but I don't seem to have any masters attached to the events.  Odd.  I do back in September, but not in the recent ones.  That's because they've changed the text.  Where before it said "Detention Master", now it says "Detention Duty master:"  Irritating.  Let's see if we can come up with a regexp which matches both.  Done that.  One final problem in that the calendar has Robin Southwell-Sander's name wrong.  I can just edit that in my file for now.
+
+OK - am I in a position to run it at school?

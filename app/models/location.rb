@@ -26,6 +26,10 @@ class Location < ActiveRecord::Base
     end
   end
 
+  def display_name
+    self.element_name
+  end
+
   def <=>(other)
     self.name <=> other.name
   end
