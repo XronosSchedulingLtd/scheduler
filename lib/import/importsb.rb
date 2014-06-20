@@ -1206,6 +1206,13 @@ class SB_Loader
     tgmember_removed_count   = 0
     tgmember_unchanged_count = 0
     tgmember_loaded_count    = 0
+    if @start_date
+      starts_on = @start_date
+    elsif @full_load
+      starts_on = @era.starts_on
+    else
+      starts_on = Date.today
+    end
     @tg_hash.each do |key, tg|
       dbrecord = tg.dbrecord
       if dbrecord
@@ -1219,7 +1226,7 @@ class SB_Loader
         end
       else
         if tg.num_pupils > 0
-          if tg.save_to_db(starts_on: @era.starts_on,
+          if tg.save_to_db(starts_on: starts_on,
                            ends_on: @era.ends_on,
                            current: true)
             dbrecord = tg.dbrecord
@@ -1887,13 +1894,13 @@ begin
   end.parse!
 
   SB_Loader.new(options) do |loader|
-#    loader.do_pupils
-#    loader.do_staff
-#    loader.do_locations
+    loader.do_pupils
+    loader.do_staff
+    loader.do_locations
     loader.do_tutorgroups
-#    loader.do_teachinggroups
-#    loader.do_timetable
-#    loader.do_cover
+    loader.do_teachinggroups
+    loader.do_timetable
+    loader.do_cover
   end
 rescue RuntimeError => e
   puts e

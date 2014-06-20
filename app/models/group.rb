@@ -229,26 +229,18 @@ class Group < ActiveRecord::Base
   # code and the code here should confine itself to setting given_date
   # to Date.today, and then returning [] if it's out of range.
   #
+  #  I've come to a conclusion - it should *not* be here.  The results
+  #  are just too surprising.  It's up to presentation code to specify
+  #  a date if it wants to look at the membership of a group some time
+  #  in the past, even if the group now no longer exists.  If you're
+  #  doing a historic view of some sort, specify the date.
+  #
   #
   #  Note that this method returns *entities* - of whatever type.
   #
   def members(given_date = nil, recurse = true, exclude_groups = false)
-    if given_date
-      # We have been given an explicit date.  If that's outside the range
-      # of validity of the group then our effective membership is nobody.
-      return [] unless active_on(given_date)
-    else
-      given_date = Date.today
-      unless active_on(given_date)
-        if given_date < self.starts_on
-          given_date = self.starts_on
-        else
-          # self.ends_on can't be nil because we have established
-          # that given_date falls after it.
-          given_date = self.ends_on
-        end
-      end
-    end
+    given_date ||= Date.today
+    return [] unless active_on(given_date)
     if recurse
       active_memberships = self.memberships.active_on(given_date)
       excludes, includes = active_memberships.partition {|am| am.inverse}
