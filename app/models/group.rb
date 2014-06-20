@@ -384,6 +384,22 @@ class Group < ActiveRecord::Base
   end
 
   #
+  #  Note that we are passed the date on which the deletion occurs, but
+  #  we store the active dates of the group, inclusive.  Thus we set the
+  #  ends_on date to the day before we have been given.  That's the last
+  #  date on which the group was active.
+  #
+  def ceases_existence(date)
+    if self.active_on(date)
+      self.members(date, false, false).each do |member|
+        self.remove_member(member, date)
+      end
+      self.ends_on = date - 1.day
+      self.save!
+    end
+  end
+
+  #
   #  A class method to test whether another class has linked itself
   #  to a Group with the Grouping module.
   #

@@ -8,6 +8,8 @@ class Tutorgroup < ActiveRecord::Base
   belongs_to :staff
   belongs_to :era
 
+  scope :current, -> { where(current: true) }
+
   include Elemental
   include Grouping
 

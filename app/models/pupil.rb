@@ -24,4 +24,13 @@ class Pupil < ActiveRecord::Base
     end
     result
   end
+
+  def tutorgroups(date = nil)
+    self.groups(date, false).select {|g| g.class == Tutorgroup}
+  end
+
+  def teachinggroups(date = nil)
+    self.groups(date, false).select {|g| g.class == Teachinggroup}
+  end
+
 end

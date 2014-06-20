@@ -80,6 +80,10 @@ module Grouping
     group.active_on(date)
   end
 
+  def ceases_existence(date)
+    group.ceases_existence(date)
+  end
+
   #
   #  We need to be able to set the value of starts_on and ends_on before
   #  the group record is created.  Once it exists, we go straight to

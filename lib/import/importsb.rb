@@ -1212,14 +1212,16 @@ class SB_Loader
         #
         #  Need to check the group details still match.
         #
-        if tg.check_and_update
+        if tg.check_and_update(current: true)
           tg_changed_count += 1
         else
           tg_unchanged_count += 1
         end
       else
         if tg.num_pupils > 0
-          if tg.save_to_db(starts_on: @era.starts_on, ends_on: @era.ends_on)
+          if tg.save_to_db(starts_on: @era.starts_on,
+                           ends_on: @era.ends_on,
+                           current: true)
             dbrecord = tg.dbrecord
             tg_loaded_count += 1
           end
@@ -1254,6 +1256,32 @@ class SB_Loader
         end
         tgmember_unchanged_count += (db_member_ids.size - extra_in_db.size)
       end
+    end
+    #
+    #  It's possible that a tutor group has ceased to exist entirely,
+    #  in which case we will still have a record in our d/b for it (possibly
+    #  with members) but we need to record its demise.
+    #
+    tg_deleted_count = 0
+    Tutorgroup.current.each do |dbtg|
+      tg = @tg_hash[dbtg.staff.source_id]
+      unless tg
+        puts "Tutorgroup #{dbtg.name} exists in the d/b but not in the files." if @verbose
+        #
+        #  Need to terminate any remaining memberships, then terminate the
+        #  group.  Note that nothing gets deleted, just marked as over.
+        #
+        dbtg.ceases_existence(Date.today)
+        dbtg.current = false
+        if dbtg.save
+          tg_deleted_count += 1
+        else
+          puts "Failed to deactivate tutorgroup #{dbtg.name}"
+        end
+      end
+    end
+    if @verbose || tg_deleted_count > 0
+      puts "#{tg_deleted_count} tutorgroup records deleted."
     end
     if @verbose || tg_changed_count > 0
       puts "#{tg_changed_count} tutorgroup records amended."
@@ -1859,13 +1887,13 @@ begin
   end.parse!
 
   SB_Loader.new(options) do |loader|
-    loader.do_pupils
-    loader.do_staff
-    loader.do_locations
+#    loader.do_pupils
+#    loader.do_staff
+#    loader.do_locations
     loader.do_tutorgroups
-    loader.do_teachinggroups
-    loader.do_timetable
-    loader.do_cover
+#    loader.do_teachinggroups
+#    loader.do_timetable
+#    loader.do_cover
   end
 rescue RuntimeError => e
   puts e
