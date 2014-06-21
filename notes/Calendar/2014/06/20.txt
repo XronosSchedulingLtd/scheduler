@@ -221,3 +221,13 @@ It's pretty good, and I will never be able to parse all the nonsense which gets 
 I now get the calendar load completing without errors, but I don't seem to have any masters attached to the events.  Odd.  I do back in September, but not in the recent ones.  That's because they've changed the text.  Where before it said "Detention Master", now it says "Detention Duty master:"  Irritating.  Let's see if we can come up with a regexp which matches both.  Done that.  One final problem in that the calendar has Robin Southwell-Sander's name wrong.  I can just edit that in my file for now.
 
 OK - am I in a position to run it at school?
+
+Yes - and it works too.
+
+Things to do next:
+
+[ ] Google login
+[ ] Allow click-and-drag creation of events
+[ ] Ownership of events
+
+Just noticed something interesting - all my non-existent lessons (those which don't occur due to study leave) have no room when they arrive in Scheduler.  An interesting pattern and one that bears investigation.
