@@ -26,15 +26,42 @@
             @event.owner.name %></td>
   </tr>
 
-  <tr>
-    <td><strong>Starts at:</strong></td>
-    <td><%= @event.starts_at %></td>
-  </tr>
+  <% if @event.all_day %>
+    <% if @event.starts_at == @event.ends_at %>
+      <tr>
+        <td><strong>On:</strong></td>
+        <td><%= @event.starts_at.to_date %></td>
+      </tr>
 
-  <tr>
-    <td><strong>Ends at:</strong></td>
-    <td><%= @event.ends_at %></td>
-  </tr>
+    <% else %>
+      <tr>
+        <td><strong>Starts on:</strong></td>
+        <td><%= @event.starts_at.to_date %></td>
+      </tr>
+
+      <tr>
+        <td><strong>Ends on:</strong></td>
+        <td><%= @event.ends_at.to_date %></td>
+      </tr>
+    <% end %>
+  <% else %>
+    <% if @event.starts_at == @event.ends_at %>
+      <tr>
+        <td><strong>At:</strong></td>
+        <td><%= @event.starts_at %></td>
+      </tr>
+    <% else %>
+      <tr>
+        <td><strong>Starts at:</strong></td>
+        <td><%= @event.starts_at %></td>
+      </tr>
+
+      <tr>
+        <td><strong>Ends at:</strong></td>
+        <td><%= @event.ends_at %></td>
+      </tr>
+    <% end %>
+  <% end %>
 
   <tr>
     <td><strong>Resources:</strong></td>
