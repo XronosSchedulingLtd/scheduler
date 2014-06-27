@@ -16,11 +16,16 @@ class ScheduleController < ApplicationController
       @event  = event
       if event.eventcategory_id == Event.lesson_category.id
         if current_user &&
-           current_user.ownerships.size > 0 &&
-           event.covered_by?(current_user.ownerships[0].element.entity)
-          @colour = "red"
+           current_user.ownerships.size > 0
+          if event.covered_by?(current_user.ownerships[0].element)
+            @colour = "red"
+          elsif event.involves?(current_user.ownerships[0].element)
+            @colour = "#225599"
+          else
+            @colour = "gray"
+          end
         else
-          @colour = "#225599"
+          @colour = "gray"
         end
       elsif event.eventcategory_id == Event.invigilation_category.id
         @colour = "red"

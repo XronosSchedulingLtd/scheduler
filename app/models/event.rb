@@ -350,6 +350,15 @@ class Event < ActiveRecord::Base
     result
   end
 
+  def involves?(item)
+    if item.instance_of?(Element)
+      resource = item
+    else
+      resource = item.element
+    end
+    !!self.commitments.detect {|c| c.element == resource}
+  end
+
   def as_json(options = {})
     {
       :id        => "#{id}",
