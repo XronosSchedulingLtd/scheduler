@@ -21,33 +21,37 @@
     <section class="top-bar-section">
       <ul class="right">
         <li class="divider"></li>
-        <li class="has-dropdown">
-          <a href="#" data-dropdown="drop1" data-options="is_hover:true">Models</a>
-          <ul id="drop1" class="f-dropdown" data-dropdown-content>
-            <li><%= link_to "Eras", eras_path %></li>
-            <li><%= link_to "Events", events_path %></li>
-            <li><%= link_to "Categories", eventcategories_path %></li>
-            <li><%= link_to "Sources", eventsources_path %></li>
-            <li><%= link_to "Locations", locations_path %></li>
-            <li><%= link_to "Aliases", locationaliases_path %></li>
-            <li><%= link_to "Pupils", pupils_path %></li>
-            <li><%= link_to "Staff", staffs_path %></li>
-            <li>Groups</li>
-            <li><%= link_to "Teaching", teachinggroups_path %></li>
-            <li><%= link_to "Tutor", tutorgroups_path %></li>
-          </ul>
-        </li>
-        <li class="divider"></li>
-        <li class="has-dropdown">
-          <a href="#" data-dropdown="drop2" data-options="is_hover:true">Import</a>
-          <ul id="drop2" class="f-dropdown" data-dropdown-content>
-            <li><%= link_to "Files", imports_index_path %></li>
-          </ul>
-        </li>
-        <li class="divider"></li>
-        <li><%= link_to "Charlie" %></li>
-        <li class="divider"></li>
-        <li><%= link_to "Dennis" %></li>
+        <% if current_user %>
+          <li class="has-dropdown">
+            <a href="#" data-dropdown="drop1" data-options="is_hover:true">Models</a>
+            <ul id="drop1" class="f-dropdown" data-dropdown-content>
+              <li><%= link_to "Eras", eras_path %></li>
+              <li><%= link_to "Events", events_path %></li>
+              <li><%= link_to "Categories", eventcategories_path %></li>
+              <li><%= link_to "Sources", eventsources_path %></li>
+              <li><%= link_to "Locations", locations_path %></li>
+              <li><%= link_to "Aliases", locationaliases_path %></li>
+              <li><%= link_to "Pupils", pupils_path %></li>
+              <li><%= link_to "Staff", staffs_path %></li>
+              <li>Groups</li>
+              <li><%= link_to "Teaching", teachinggroups_path %></li>
+              <li><%= link_to "Tutor", tutorgroups_path %></li>
+            </ul>
+          </li>
+          <li class="divider"></li>
+          <li class="has-dropdown">
+            <a href="#" data-dropdown="drop2" data-options="is_hover:true">Import</a>
+            <ul id="drop2" class="f-dropdown" data-dropdown-content>
+              <li><%= link_to "Files", imports_index_path %></li>
+            </ul>
+          </li>
+          <li class="divider"></li>
+          <li><%= current_user.name %></li>
+          <li class="divider"></li>
+          <li><%= link_to "Sign out", signout_path %></li>
+        <% else %>
+          <li><%= link_to "Sign in", signin_path %></li>
+        <% end %>
       </ul>
     </section>
   </nav>
