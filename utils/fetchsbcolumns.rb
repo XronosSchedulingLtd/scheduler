@@ -45,9 +45,9 @@ class SchoolBaseScanner
         type_index = row.index "TABLE_TYPE"
         exit unless name_index && type_index
       else
-        if (row[type_index] == "VIEW")
+        if (row[type_index] == "TABLE")
           table_name = row[name_index]
-          self.invoke_sql("help #{table_name}", "#{TARGET_DIR}#{table_name}.csv")
+          self.invoke_sql("select count(*) from #{table_name};", "#{TARGET_DIR}#{table_name}.count")
         end
       end
     end
