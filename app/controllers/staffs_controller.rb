@@ -74,7 +74,7 @@ class StaffsController < ApplicationController
   # GET /staffs/<initials>/ical
   def ical
     staff = Staff.find_by_initials(params[:id].upcase)
-    era = Era.first
+    era = Era.find_by_name("Academic Year 2014/15")
     if staff && era
       starts_on = era.starts_on
       ends_on   = era.ends_on
