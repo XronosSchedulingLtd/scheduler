@@ -1,0 +1,62 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-07-15T09:40:26+01:00
+
+====== Tuesday 15 Jul 2014 ======
+
+Started trying to make sure that both teaching groups and tutor groups stay with their respective eras.  Try a fresh run.
+
+Amended the loader to look for records by era where appropriate.  Also calculate start year based on the current era, rather than hard coding it.
+
+Making progress.  Now - why do new pupils need a second pass in order to load them into their teaching groups?
+
+Ah yes - I'm assembling my lists of group membership //before// I load pupils into the database, and one of my test criteria for being a member of a group is that the pupil should have a record in the database.  Since he doesn't at the time, he doesn't get into the group.
+
+Why is this a criterion?  Am I not merely manipulating memory records at this point?  What would happen if I were to remove that test?  I can't see a reason for it to be there.  Try taking it out.  Seems OK.  There is still an issue with tutor groups not being created for brand new members of staff without a second pass, but that's more complicated.  The tutor group needs to contain the staff member's unique d/b id, and that doesn't exist until the staff member is created.  I think I'll just put up with that for now.
+
+Now - what about my missing tutor registration periods.  I seem to have a "JAC 4a Assem" and "JAC 4a Chap" in my teaching group list, but no "JAC 4a Tu", which is what I'd need for my periods.  Why not?  It appears to be in the groups.csv file.  Lines as follows:
+
+246,,25805,"JAC 4a Assem",22,4181,1,106,,,378,"JAC 4a Assem",0,,,,,,0,,0,1,,,,1,0,,,0,,,,,0,0,0,,
+246,,25806,"JAC 4a Chap",22,4107,1,106,,,379,"JAC 4a Chap",0,,,,,,0,,0,1,,,,1,0,,,0,,,,,0,0,0,,
+246,,25807,"JAC 4a Tu",22,4116,1,106,,,273,"JAC 4a Tu",0,,,,,,0,,0,1,,,,1,0,,,0,,,,,0,0,0,,
+358,,32227,"JAC 4a Chap",22,5443,1,106,,,379,"JAC 4a Chap",0,,,,,,0,,0,1,,,,1,0,,,0,,,,,0,0,0,,
+358,,32276,"JAC 4a Tu",22,5452,1,106,,,273,"JAC 4a Tu",0,,,,,,0,,0,1,,,,1,0,,,0,,,,,0,0,0,,
+358,,32783,"JAC 4a Assem",22,5512,1,106,,,378,"JAC 4a Assem",0,,,,,,0,,0,1,,,,1,0,,,0,,,,,0,0,0,,
+
+Now, 3 of those should be from last year and 3 from this year.  The sixth field is CurrIdent.  Indirecting through these I find that the first three relate to academic year 14 in SB (2013/14) and the last three relate to academic year 15 (2014/15).  So far, all seems correct.  Does "JAC 4a Tu" have any members?  The third field is the group ident and should be referenced from AcademicRecord.csv  No, it doesn't have any members, which explains the problem.  Perhaps I should allow sets into my database, even if they currently have no members?  How many does that add?  None - there must be another test.  Yes indeed.  Now run it and it adds an extra 19 teaching groups.
+
+And finally, although I have 968 pupils, the new ones don't seem to have tutor groups yet.  Find the name of a pupil with no tutor group, and check him in SB.
+
+Also, my lower sixth further maths set doesn't seem to have made it into the system either.  Presumably also lacks pupils, and Peter has done really silly things with the set names.  Let's see what it's actually called now.  It seems to be called "S6 R FM-2P".
+
+358,,32630,"S6 R FM-2P",18,5489,1,,,,124,"S6 RMaP FM-2P",0,,,,,,0,,0,1,,,,1,0,,,0,,,"2P",,0,0,0,,
+
+Check that this is for the current year by checking 5489 in the Curriculum list.  Yes, it is.  So does it have any members?  32630 in the academicrecord file.  No entries.  Clearly they haven't fixed up the set membership yet, and because it has a silly name it hasn't been loaded.  Let's add that silly name to my acceptable list.  And off we go again.  Added a further 34 teaching groups, and now I seem to have a full calendar.  Check it again against my printed one.  Eeees perfect (except for SB having tutor periods wrong).  Excellent.
+
+Now for a tutor-less pupil.  Presumably late in the file.  At a random choice, try "Charlie White".  No - he doesn't seem to be one of ours.  Be more systematic - look for a pupil with no tutor group in my d/b.  A quick bit of code throws up 262 such pupils.  Interesting.  Restrict myself to current pupils.  Now I have 85.  Is that the right number?  Yes - precisely the right number.  Let's examine some of them.  The first one is Angus Blomfield.  Let's look at him directly in SB.  Interesting.  SB says he is a third year and his tutor is Helen Wenham, who must be new.  Do we have records for Helen Wenham?  Yes, we do.  And I've loaded this data set umpteen times so it should have had time to create the tutor group by now.  Ah!  She doesn't have an e-mail address, and so she's been marked as neither active nor current.  This is probably the problem.  Edit her manually and see if things improve.
+
+Hmmm.  The loading process promptly removes her e-mail address again, but it shouldn't have changed the flags.  It also didn't create an additional tutor group.  Why not?  The flags are still set to true.  What is her user ident?  877.  Does she have any entries in the tutor group file?  Yes, she has 19.  Angus Blomfield is pupil number 2, and yes, he's in her tutor group.  Why haven't I assembled it then.  Have I messed up the code for creating new tutor groups entirely?
+
+No - I'm consulting the wrong active flag.  I'm looking at my in memory flag to decide whether the staff member is active, and that's set to false because she has no e-mail address.  I should instead by checking the d/b flag, because I might want to override the calculated one - as indeed I do in this case.
+
+That's done it - now I have one more tutor group.  Who else lacks a tutor group, and who is the tutor?  Alternatively, who are my recently added members of staff?
+
+[ ] Helen Wenham (HJW)
+[ ] James Golding (JMG)
+[ ] George Draganov (GTD)
+[ ] Matthew Poynter (MJP)
+[ ] Elliot Paige BirkBeck (EPB)
+[ ] Regina Engel-Hart (REH)
+[ ] Maud Cottrell (MFFC)
+
+Steps needed to do the live system.
+
+[ ] Back up the d/b
+[ ] Distribute the new source code
+[ ] Set my seven staff members to active and current
+[ ] Load a fresh set of calendar data
+[ ] Run the script to set TeachingGroups and Pupils to current.
+[ ] Load the data files from SB
+
+
+Ha!  Lesley seems to have added the week letters to the calendar.  See if those work OK.  One Detention Duty Master slot has no name, but that's hardly my problem.  We seem to have our week letters - hurrah!

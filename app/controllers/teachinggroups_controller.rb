@@ -10,7 +10,7 @@ class TeachinggroupsController < ApplicationController
   # GET /teachinggroups
   # GET /teachinggroups.json
   def index
-    @teachinggroups = Teachinggroup.page(params[:page]).order('name')
+    @teachinggroups = Teachinggroup.current.page(params[:page]).order('name')
   end
 
   # GET /teachinggroups/1

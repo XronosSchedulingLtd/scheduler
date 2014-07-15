@@ -97,7 +97,7 @@ module Slurper
                            row[column_hash[attr_name]].strip : nil)
               end
             end
-            entry.adjust
+            entry.adjust(loader)
             if entry.wanted?(loader)
               entries << entry
             end
@@ -118,6 +118,7 @@ module DatabaseAccess
 
   def self.included(base)
     @dbrecord = nil
+    @belongs_to_era = nil
     @checked_dbrecord = false
   end
 
@@ -151,7 +152,10 @@ module DatabaseAccess
       #  extras should be a hash of additional things to change.
       #
       extras.each do |key, value|
-        if @dbrecord.send("#{key}") != value
+        dbvalue = @dbrecord.send("#{key}")
+        if dbvalue != value
+          puts "Field #{key} differs for #{self.name}"
+          puts "d/b: \"#{dbvalue}\"  SB: \"#{value}\""
           @dbrecord.send("#{key}=", value)
           changed = true
         end
@@ -190,6 +194,7 @@ module DatabaseAccess
       if newrecord.save
         newrecord.reload
         @dbrecord = newrecord
+        @belongs_to_era = newrecord.respond_to?(:era)
         @checked_dbrecord = true
         true
       else
@@ -207,10 +212,20 @@ module DatabaseAccess
       @dbrecord
     else
       @checked_dbrecord = true
+      db_class = self.class.const_get(:DB_CLASS)
+      #
+      #  Does this particular database record hang off an era?
+      #
+      @belongs_to_era = db_class.new.respond_to?(:era)
       key_field = self.class.const_get(:DB_KEY_FIELD)
-      find_hash = { key_field => self.send("#{key_field}") }
+      if @belongs_to_era
+        find_hash = { key_field => self.send("#{key_field}"),
+                      :era_id => self.instance_variable_get("@era_id") }
+      else
+        find_hash = { key_field => self.send("#{key_field}") }
+      end
       @dbrecord =
-        self.class.const_get(:DB_CLASS).find_by(find_hash)
+        db_class.find_by(find_hash)
 #        self.class.const_get(:DB_CLASS).find_by_source_id(self.source_id)
     end
   end
@@ -228,20 +243,13 @@ class SB_AcademicRecord
 
   include Slurper
 
-  def adjust
+  def adjust(loader)
   end
 
   def wanted?(loader)
     true
   end
 
-  def active
-    true
-  end
-
-  def current
-    true
-  end
 end
 
 
@@ -252,7 +260,7 @@ class SB_AcademicYear
 
   include Slurper
 
-  def adjust
+  def adjust(loader)
   end
 
   def wanted?(loader)
@@ -274,7 +282,7 @@ class SB_Curriculum
 
   include Slurper
 
-  def adjust
+  def adjust(loader)
   end
 
   def wanted?(loader)
@@ -305,7 +313,7 @@ class SB_Date
     @date = nil
   end
 
-  def adjust
+  def adjust(loader)
     @date = Date.parse(@date_text) unless @date_text.blank?
   end
 
@@ -334,10 +342,11 @@ class SB_Group
   include Slurper
   include DatabaseAccess
 
-  attr_accessor :records
+  attr_accessor :records, :era_id
 
   def initialize
     @records = Array.new
+    @current = true
   end
 
   def add(record)
@@ -348,7 +357,9 @@ class SB_Group
     @records.size
   end
 
-  def adjust
+  def adjust(loader)
+    @era = loader.send("era")
+    @era_id = @era.id
   end
 
   def wanted?(loader)
@@ -358,16 +369,7 @@ class SB_Group
     #  academic year, or they'll all get rejected.
     #
     curriculum = loader.send("curriculum_hash")[@curriculum_ident]
-    era = loader.send("era")
-    !!(curriculum && curriculum.ac_year_ident == era.source_id)
-  end
-
-  def active
-    true
-  end
-
-  def current
-    true
+    !!(curriculum && curriculum.ac_year_ident == @era.source_id)
   end
 
   def source_id
@@ -390,7 +392,7 @@ class SB_Location
   include Slurper
   include DatabaseAccess
 
-  def adjust
+  def adjust(loader)
     if self.name.blank? && !self.short_name.blank?
       self.name = self.short_name
     elsif self.short_name.blank? && !self.name.blank?
@@ -400,14 +402,6 @@ class SB_Location
 
   def wanted?(loader)
     !(self.name.blank? || self.short_name.blank?)
-  end
-
-  def active
-    true
-  end
-
-  def current
-    true
   end
 
   def source_id
@@ -472,7 +466,7 @@ class SB_Period
 
   attr_accessor :time
 
-  def adjust
+  def adjust(loader)
     if @teaching_period == 1
       @teaching_period = true
     else
@@ -488,13 +482,6 @@ class SB_Period
     true
   end
 
-  def active
-    true
-  end
-
-  def current
-    true
-  end
 end
 
 PT_Correction = Struct.new(:wrong_start, :wrong_end, :right_start, :right_end)
@@ -520,7 +507,7 @@ class SB_PeriodTime
 
   attr_reader :starts_at, :ends_at
 
-  def adjust
+  def adjust(loader)
     #
     #  SB has some of the period times recorded wrongly.
     #
@@ -543,13 +530,6 @@ class SB_PeriodTime
     @period_time_set_ident == 2
   end
 
-  def active
-    true
-  end
-
-  def current
-    true
-  end
 end
 
 
@@ -585,7 +565,11 @@ class SB_Pupil
   include Slurper
   include DatabaseAccess
 
-  def adjust
+  def initialize
+    @current = true
+  end
+
+  def adjust(loader)
     #
     #  Nothing for now.
     #
@@ -597,10 +581,6 @@ class SB_Pupil
     #
     self.ptype == 60
 #    !self.date_of_entry.blank?
-  end
-
-  def current
-    true
   end
 
   def source_id
@@ -636,12 +616,12 @@ class SB_Staff
                       :active,
                       :current]
 
-  attr_accessor :active
+  attr_accessor :active, :current
 
   include Slurper
   include DatabaseAccess
 
-  def adjust
+  def adjust(loader)
     #
     #  We can perhaps improve the SB data a little?
     #
@@ -653,14 +633,11 @@ class SB_Staff
     #  and which aren't.  We take an initial stab at it.
     #
     self.active = !!(self.email =~ /\@abingdon\.org\.uk$/)
+    self.current = self.active
   end
 
   def wanted?(loader)
     true
-  end
-
-  def current
-    self.active
   end
 
   def source_id
@@ -684,15 +661,11 @@ class SB_StaffAbLine
 
   include Slurper
 
-  def adjust
+  def adjust(loader)
   end
 
   def wanted?(loader)
     true
-  end
-
-  def current
-    self.active
   end
 
   def source_id
@@ -715,15 +688,11 @@ class SB_StaffAbsence
 
   include Slurper
 
-  def adjust
+  def adjust(loader)
   end
 
   def wanted?(loader)
     true
-  end
-
-  def current
-    self.active
   end
 
   def source_id
@@ -744,15 +713,11 @@ class SB_StaffCover
 
   include Slurper
 
-  def adjust
+  def adjust(loader)
   end
 
   def wanted?(loader)
     true
-  end
-
-  def current
-    self.active
   end
 
   def source_id
@@ -786,7 +751,7 @@ class SB_Timetableentry
     @room_idents  = []
   end
 
-  def adjust
+  def adjust(loader)
   end
 
   def wanted?(loader)
@@ -796,14 +761,6 @@ class SB_Timetableentry
     #
     @ac_year_ident == loader.send("era").source_id &&
     @group_ident != nil
-  end
-
-  def active
-    true
-  end
-
-  def current
-    true
   end
 
   def <=>(other)
@@ -889,7 +846,7 @@ class SB_Tutorgroupentry
 
   include Slurper
 
-  def adjust
+  def adjust(loader)
     #
     #  Nothing for now.
     #
@@ -905,7 +862,7 @@ end
 
 
 class SB_Tutorgroup
-  FIELDS_TO_UPDATE = [:name, :house, :era_id, :start_year]
+  FIELDS_TO_UPDATE = [:name, :house, :era_id, :start_year, :current]
   DB_CLASS = Tutorgroup
   DB_KEY_FIELD = :staff_id
   FIELDS_TO_CREATE = [:name, :house, :era_id, :start_year, :current]
@@ -917,6 +874,7 @@ class SB_Tutorgroup
 
   def initialize
     @records = Array.new
+    @current = true
   end
 
   def add(record)
@@ -925,10 +883,6 @@ class SB_Tutorgroup
 
   def num_pupils
     @records.size
-  end
-
-  def current
-    true
   end
 
 end
@@ -942,10 +896,11 @@ class SB_Year
 
   include Slurper
 
-  def adjust
+  def adjust(loader)
     #
     #  Nothing for now.
     #
+    @era = loader.send("era")
   end
 
   def wanted?(loader)
@@ -957,10 +912,13 @@ class SB_Year
 
   def start_year
     #
-    #  This is a bit hard-coded for now.
-    #  If this is 2013/14 then someone in year 9 started in 2011.
+    #  year_num is the conventional UK academic year number.  Thus
+    #  a 1st former is in year 7, and an upper sixth is in year 13.
     #
-    2020 - self.year_num
+    #  We want to know what year he would effectively have started at
+    #  the school, if he had started in the 1st year.
+    #
+    @era.starts_on.year + 7 - self.year_num
   end
 end
 
@@ -1050,7 +1008,7 @@ class SB_Loader
       staff = @staff_hash[tge.user_ident]
       year  = @year_hash[tge.year_ident]
       pupil = @pupil_hash[tge.pupil_ident]
-      if staff && year && pupil && staff.dbrecord && staff.active
+      if staff && year && pupil && staff.dbrecord && staff.dbrecord.active
         tge_accepted_count += 1
         unless @tg_hash[tge.user_ident]
           tg = SB_Tutorgroup.new
@@ -1072,7 +1030,7 @@ class SB_Loader
     puts "Sorting academic records into teaching groups." if @verbose
     @ars.each do |ar|
       pupil = @pupil_hash[ar.pupil_ident]
-      if pupil && pupil.dbrecord && (group = @group_hash[ar.group_ident])
+      if pupil && (group = @group_hash[ar.group_ident])
         group.add(ar)
       end
     end
@@ -1114,6 +1072,7 @@ class SB_Loader
     pupils_changed_count   = 0
     pupils_unchanged_count = 0
     pupils_loaded_count    = 0
+    original_pupil_count = Pupil.current.count
     @pupils.each do |pupil|
       year = @year_hash[pupil.year_ident]
       if year
@@ -1131,14 +1090,33 @@ class SB_Loader
         end
       end
     end
+    #
+    #  Need to check for pupils who have now left.
+    #
+    pupils_left_count = 0
+    Pupil.current.each do |dbpupil|
+      pupil = @pupil_hash[dbpupil.source_id]
+      unless pupil
+        dbpupil.current = false
+        dbpupil.save!
+        pupils_left_count += 1
+      end
+    end
+    final_pupil_count = Pupil.current.count
     if @verbose || pupils_changed_count > 0
       puts "#{pupils_changed_count} pupil record(s) amended."
     end
     if @verbose || pupils_loaded_count > 0
       puts "#{pupils_loaded_count} pupil record(s) created."
     end
+    if @verbose || pupils_left_count > 0
+      puts "#{pupils_left_count} pupil record(s) marked as left."
+    end
     if @verbose
       puts "#{pupils_unchanged_count} pupil record(s) untouched."
+      if original_pupil_count != final_pupil_count
+        puts "Started with #{original_pupil_count} current pupils and finished with #{final_pupil_count}."
+      end
     end
   end
 
@@ -1208,6 +1186,7 @@ class SB_Loader
     tgmember_removed_count   = 0
     tgmember_unchanged_count = 0
     tgmember_loaded_count    = 0
+    tg_at_start = Tutorgroup.current.count
     if @start_date
       starts_on = @start_date
     elsif @full_load
@@ -1221,7 +1200,7 @@ class SB_Loader
         #
         #  Need to check the group details still match.
         #
-        if tg.check_and_update(current: true)
+        if tg.check_and_update
           tg_changed_count += 1
         else
           tg_unchanged_count += 1
@@ -1229,8 +1208,7 @@ class SB_Loader
       else
         if tg.num_pupils > 0
           if tg.save_to_db(starts_on: starts_on,
-                           ends_on: @era.ends_on,
-                           current: true)
+                           ends_on: @era.ends_on)
             dbrecord = tg.dbrecord
             tg_loaded_count += 1
           end
@@ -1274,8 +1252,8 @@ class SB_Loader
     tg_deleted_count = 0
     Tutorgroup.current.each do |dbtg|
       tg = @tg_hash[dbtg.staff.source_id]
-      unless tg
-        puts "Tutorgroup #{dbtg.name} exists in the d/b but not in the files." if @verbose
+      unless dbtg.era_id == @era.id && tg
+        puts "Tutor group #{dbtg.name} exists in the d/b but not in the files." if @verbose
         #
         #  Need to terminate any remaining memberships, then terminate the
         #  group.  Note that nothing gets deleted, just marked as over.
@@ -1285,21 +1263,22 @@ class SB_Loader
         if dbtg.save
           tg_deleted_count += 1
         else
-          puts "Failed to deactivate tutorgroup #{dbtg.name}"
+          puts "Failed to deactivate tutor group #{dbtg.name}"
         end
       end
     end
+    tg_at_end = Tutorgroup.current.count
     if @verbose || tg_deleted_count > 0
-      puts "#{tg_deleted_count} tutorgroup records deleted."
+      puts "#{tg_deleted_count} tutor group records deleted."
     end
     if @verbose || tg_changed_count > 0
-      puts "#{tg_changed_count} tutorgroup records amended."
+      puts "#{tg_changed_count} tutor group records amended."
     end
     if @verbose
-      puts "#{tg_unchanged_count} tutorgroup records untouched."
+      puts "#{tg_unchanged_count} tutor group records untouched."
     end
     if @verbose || tg_loaded_count > 0
-      puts "#{tg_loaded_count} tutorgroup records created."
+      puts "#{tg_loaded_count} tutor group records created."
     end
     if @verbose || tgmember_removed_count > 0
       puts "Removed #{tgmember_removed_count} pupils from tutor groups."
@@ -1309,6 +1288,9 @@ class SB_Loader
     end
     if @verbose || tgmember_loaded_count > 0
       puts "Added #{tgmember_loaded_count} pupils to tutor groups."
+    end
+    if @verbose && tg_at_start != tg_at_end
+      puts "Started with #{tg_at_start} tutor groups and finished with #{tg_at_end}."
     end
   end
 
@@ -1321,6 +1303,7 @@ class SB_Loader
     pupils_left_alone_count = 0
     empty_tg_count          = 0
     dbera_hash = {}
+    groups_at_start = Teachinggroup.current.count
     if @start_date
       starts_on = @start_date
     elsif @full_load
@@ -1346,9 +1329,14 @@ class SB_Loader
       else
         #
         #  We only bother to create groups which have members, or which look
-        #  like actual teaching groups.
+        #  like actual teaching or tutor groups.
         #
-        if group.num_pupils > 0 || /\A[1234567]/ =~ group.name
+        if group.num_pupils > 0 ||
+           /\A[1234567]/ =~ group.name ||
+           /\AS[1234567]/ =~ group.name ||
+           / Tu\Z/ =~ group.name ||
+           / Chap\Z/ =~ group.name ||
+           / Assem\Z/ =~ group.name
           if group.save_to_db(era: @era,
                               starts_on: starts_on)
             dbgroup = group.dbrecord
@@ -1384,11 +1372,38 @@ class SB_Loader
         pupils_left_alone_count += (db_member_ids.size - extra_in_db.size)
       end
     end
+    #
+    #  It's possible that a teaching group has ceased to exist entirely,
+    #  in which case we will still have a record in our d/b for it (possibly
+    #  with members) but we need to record its demise.
+    #
+    groups_deleted_count = 0
+    Teachinggroup.current.each do |dbgroup|
+      group = @group_hash[dbgroup.source_id]
+      unless group
+        puts "Teaching group #{dbgroup.name} exists in the d/b but not in the files." if @verbose
+        #
+        #  Need to terminate any remaining memberships, then terminate the
+        #  group.  Note that nothing gets deleted, just marked as over.
+        #
+        dbgroup.ceases_existence(Date.today)
+        dbgroup.current = false
+        if dbgroup.save
+          groups_deleted_count += 1
+        else
+          puts "Failed to deactivate teaching group #{dbgroup.name}"
+        end
+      end
+    end
+    groups_at_end = Teachinggroup.current.count
     if @verbose || groups_created_count > 0
       puts "Created #{groups_created_count} teaching groups."
     end
     if @verbose || groups_amended_count > 0
       puts "Amended #{groups_amended_count} teaching groups."
+    end
+    if @verbose || groups_deleted_count > 0
+      puts "Deactivated #{groups_deleted_count} teaching groups."
     end
     if @verbose
       puts "#{groups_unchanged_count} teaching groups left untouched."
@@ -1402,6 +1417,9 @@ class SB_Loader
     end
     if @verbose
       puts "Left #{pupils_left_alone_count} where they were."
+      if groups_at_start != groups_at_end
+        puts "Started with #{groups_at_start} teaching groups and ended with #{groups_at_end}."
+      end
     end
   end
 

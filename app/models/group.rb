@@ -381,13 +381,25 @@ class Group < ActiveRecord::Base
   #  ends_on date to the day before we have been given.  That's the last
   #  date on which the group was active.
   #
+  #  If the calling code specifies an end date which is the same as
+  #  the start date (or earlier) then things are a bit weird.  It's a
+  #  situation which shouldn't really arise, but if it does then the
+  #  chances are we really weren't ever wanted at all.
+  #
   def ceases_existence(date)
     if self.active_on(date)
-      self.members(date, false, false).each do |member|
-        self.remove_member(member, date)
+      if self.starts_on == date
+        #
+        #  Need to ensure our visible group goes too.
+        #
+        self.visible_group.destroy!
+      else
+        self.members(date, false, false).each do |member|
+          self.remove_member(member, date)
+        end
+        self.ends_on = date - 1.day
+        self.save!
       end
-      self.ends_on = date - 1.day
-      self.save!
     end
   end
 
@@ -405,7 +417,7 @@ class Group < ActiveRecord::Base
     if ends_on &&
        starts_on &&
        ends_on < starts_on
-      errors.add(:ends_on, "must be no earlier than start date")
+      errors.add(:ends_on, "(#{ends_on.to_s}) must be no earlier than start date (#{starts_on.to_s}). Group #{self.id}")
     end
   end
 

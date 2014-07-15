@@ -1,0 +1,89 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-07-14T08:51:46+01:00
+
+====== Monday 14 Jul 2014 ======
+
+08:52 on Monday 14th July (Bastille Day) and I'm getting started - I hope.
+
+My first warm-up task is to work out why, when I import the new year's data from SB I don't seem to get my registration and tutor periods appearing.  I've already had to amend the code to allow each teacher to have more than one tutor group, although ideally he should have only one per year (era).
+
+It would also be a good thing to mark all the tutor groups and teaching groups from last year as no longer current.  Then make the usual listing pages display only current ones.
+
+Let's get a fresh copy of the live database, and a fresh copy of the SB export files and test an import operation.
+
+I've added ''fetchdb'' and ''loaddb'' scripts in the import directory.  These quickly take a snapshot of the live database and load it into my development system.
+
+Now - where should the amendment of existing teaching and tutor groups be to make them no longer current.  I suspect it should be done by the loading utility.  Not every time though.  Add an extra switch.
+
+Ah - it appears that the relevant functionality may already be there.  I am already setting at least tutorgroups to an "over" state, if they no longer appear in the current input, and they won't if they are for a past era.  Note however that the current code will fail miserably if you try to go back to an old era, after having loaded a new one.  Do teaching groups have the same functionality?  No - only tutor groups.  Let's fix that before I try a load.
+
+Interesting problem - how do we tell what era tutor groups relate to?  Perhaps they appear only once anyway.
+
+Ready for my first test run.  Set to verbose, and keep a log of all that happens.  Running.  Lots of output because it's logging the addition of every single pupil to a teaching group.  Completed.  Let's have a browse.
+
+Interesting to note that it's read in 13336 tutor group entry records, but accepted only 883 of them, which sounds about right.  What are the selection criteria?  Ah - each tutor group entry includes information about the year to which it relates, and I'm filtering on that so we should be getting the right list.  How many pupils does SB think we have?  Hmmm - 968 when I look at it now.  The thing is, 968 seems rather too many, even under the current regime.  Perhaps not - I've just checked markbook and there seem to have been 956 in the past academic year.  968 does not seem unreasonable, so why do I get only 883.  85 missing.  Perhaps they have not all been assigned to tutor groups yet.  I do have 968 pupil records in my input.  Got 74 tutor groups.
+
+Just thought of something - I may be short some staff.  Another thought.  Pupils who are no longer in the input should also be marked as not current when the data are loaded.  And indeed staff (although I don't think staff ever disappear from SB's records.)
+
+Ah - interesting point.  My code is finding existing tutor groups and amending them, rather than creating new ones for the new academic year.  Thus, 5MEE is being renamed to 3MEE because Mark Earnshaw is wrapping round from being a 5th year tutor to being a 3rd year one.  This isn't quite right - I want the existing tutor group to remain in place (but marked as no longer current) and a new one to be created.
+
+Interesting distinction - in many ways, my tutor group this year is the same one as I had last year.  It's the same boys with the same tutor.  If there were a change in membership then it would be merely incremental (the odd boy in or out), but it's largely the same group.  The name changes, and the academic year changes, but that's sort of it.  In that sense, it would be nice to have some continuity from year to year.  On the other hand, when I move from being a 5th year tutor back to a 3rd year (or 4th year in the new regime) it's very much not the same tutor group.  The entire membership changes.  Nobody would think of it being the same tutor group, even though it has the same tutor in the same house.
+
+To implement the continuity however would involve changing my models quite a bit, and rendering them less general.  Better I think to stick to what I have - each tutor group belongs to just one era, and although there is continuity from year to year (sometimes) it is not reflected in my data structures.  Need to amend my code to stop picking up tutor groups from the wrong era.
+
+What happens if I run the loading utility a second time?  Oddly, it does a lot more of adding pupils to teaching groups.  I need to investigate why these were not added the first time.  Perhaps because they were newly added to the pupil database and thus got missed for some reason?  I think that could well be it.
+
+Ah - none of my teaching groups was deactivated because currently none of them is marked as current.  That needs amending in the loading code too.  The problem is that my record creation code looks for an instance variable called "@current" and I'm currently not providing it.  Instead I have a method called "current()", but that's ignored.  General fix needed, plus some frigging code to amend existing cases.
+
+Which of my database records has a "current" field?
+
+* Location
+* Pupil
+* Staff
+* Teachinggroup
+* Tutorgroup
+
+And of these, which has so far been given any meaningful value?
+
+* All locations are current
+* No pupils are current
+* 300 staff (out of 901) are current
+* No teaching groups are current
+* All but one tutor groups (79 out of 80) are current.
+
+Ah - the spurious tutor group is 5ENFS which was created by mistake in SB during the course of last term.  ISTR this is when I sorted out the processing for the current flag in tutor group records.  Arguably, when I amend the loading code, all these will be straightened out, but to test things fully I think I need to do some global changes first.  I need to set current to true for all of:
+
+* Pupils
+* Teaching groups
+
+Done that.  Now get my loading code to do the necessary updates.  Try another run.
+
+And a quick look through the output file.  Ah - the utility crashed with a validation error.  Where exactly, and why?  It was working through teaching groups, and the error apparently was:
+
+Validation failed: Ends on must be no earlier than start date.  It was apparently dealing with a group called "1st Orchestra (Th8)".  Let's take a look at it.  A lot of teaching groups have gone from being current to being not current.  Ah - that one seems to have been updated successfully.  Which one was it trying to change then?
+
+It appears to have finished doing the outdated teaching groups.  All the teachinggroups attached to era 1 are now no longer current.  What was it moving on to then?  That error could have been generated for either a group or a membership.  It appears to have been a group, for which we were trying to cease existence.
+
+Let's try adding a bit more information to the error which is generated.  Hmm.  I seem to be trying to terminate a group which I have only just created.  Several things to fix then:
+
+[*] The error message should give the group id
+[*] The ceases_existence method should be more intelligent in this circumstance.
+[*] The utility code shouldn't do this.
+
+Ah - the very first teaching group in the new era is indeed "1st Orchestra (Th8)".  Why though am I trying to terminate it?  It has source id of 26825.  Am I perhaps creating the hash using strings rather than integers for the keys?
+
+How in fact do I tell which teaching groups are relevant to the current academic year?  It doesn't seem to be a column in the group record.  Ah - we have to indirect through the list of curriculum records, but we are indeed doing that.  My rogue record has a curriculum ident of 4655, which puts us in academic year 15, which is the new one so we shouldn't be trying to end this teaching group.  I'm looking in the wrong hash!  I'm looking at tg_hash (the tutor group one) instead of in group_hash.  OK, implement the changes in order so that each can be tested.
+
+
+
+
+To do
+
+[*] Fix the hard-coding of pupil start years in my utility.  Now I'm processing 2014/15.
+[ ] Track down pupils missing from tutor groups
+[*] Mark pupils who have left as no longer current.
+[*] Don't re-use old tutor groups from previous eras - create new ones.
+[*] Cope with adding new pupils and making them members of teaching groups all in one pass.
+[*] Why do my registration/tutor periods not appear?
+[*] Why are teaching groups created with current set to nil?

@@ -10,7 +10,8 @@ class TutorgroupsController < ApplicationController
   # GET /tutorgroups
   # GET /tutorgroups.json
   def index
-    @tutorgroups = Tutorgroup.page(params[:page]).order('start_year DESC')
+    @tutorgroups =
+      Tutorgroup.current.page(params[:page]).order('start_year DESC')
   end
 
   # GET /tutorgroups/1

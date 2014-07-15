@@ -15,6 +15,7 @@ class Location < ActiveRecord::Base
   self.per_page = 15
 
   scope :active, -> { where(active: true) }
+  scope :current, -> { where(current: true) }
 
   def element_name
     #

@@ -10,7 +10,10 @@ class Staff < ActiveRecord::Base
 
   include Elemental
 
-  has_one :tutorgroup, dependent: :destroy
+  #
+  #  Has only one per year, but in terms of data structues, has many.
+  #
+  has_many :tutorgroups, dependent: :destroy
 
   self.per_page = 15
 

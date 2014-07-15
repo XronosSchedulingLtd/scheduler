@@ -12,6 +12,8 @@ class Pupil < ActiveRecord::Base
 
   self.per_page = 15
 
+  scope :current, -> { where(current: true) }
+
   def active
     true
   end
@@ -37,6 +39,22 @@ class Pupil < ActiveRecord::Base
 
   def teachinggroups(date = nil)
     self.groups(date, false).select {|g| g.class == Teachinggroup}
+  end
+
+  #
+  #  A temporary maintenance method.
+  #
+  def self.set_all_current
+    count = 0
+    Pupil.all.each do |p|
+      unless p.current
+        p.current = true
+        p.save
+        count += 1
+      end
+    end
+    puts "Amended #{count} pupil records."
+    nil
   end
 
 end
