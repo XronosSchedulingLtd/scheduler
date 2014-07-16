@@ -1587,7 +1587,7 @@ class SB_Loader
   end
 
   def do_timetable
-    puts "Loading events from #{start_date} to #{@era.ends_on}" if @verbose
+    puts "Loading events from #{@start_date} to #{@era.ends_on}" if @verbose
     @start_date.upto(@era.ends_on) do |date|
       puts "Processing #{date}" if @verbose
       week_letter = get_week_letter(date)
@@ -2023,6 +2023,9 @@ end
     puts "Processing Other Half" if @verbose
     puts "#{@other_half.count} events to process." if @verbose
     oh_events_added_count = 0
+    oh_events_retimed_count = 0
+    oh_event_commitments_added_count = 0
+    oh_event_commitments_removed_count = 0
     @other_half.sort.each do |oh|
 #      puts "#{oh.activity_name} from #{oh.starts_at.to_s} to #{oh.ends_at.to_s}"
 #      unless oh.staff.empty?
@@ -2045,6 +2048,7 @@ end
           modified = true
         end
         if modified
+          oh_events_retimed_count += 1
           unless event.save
             puts "Failed to update timing for #{oh.activity_name}"
           end
@@ -2103,12 +2107,14 @@ end
         c.event      = event
         c.element_id = sbid
         c.save
+        oh_event_commitments_added_count += 1
       end
       event.reload
       if db_only.size > 0
         event.commitments.each do |c|
           if db_only.include?(c.element_id)
             c.destroy
+            oh_event_commitments_removed_count += 1
           end
         end
       end
@@ -2132,6 +2138,15 @@ end
     end
     if @verbose || oh_events_added_count > 0
       puts "Added #{oh_events_added_count} other half events."
+    end
+    if @verbose || oh_events_retimed_count > 0
+      puts "Retimed #{oh_events_retimed_count} other half events."
+    end
+    if @verbose || oh_event_commitments_added_count > 0
+      puts "Added #{oh_event_commitments_added_count} commitments to other half events."
+    end
+    if @verbose || oh_event_commitments_removed_count > 0
+      puts "Removed #{oh_event_commitments_removed_count} commitments to other half events."
     end
     if @verbose || oh_events_deleted_count > 0
       puts "Deleted #{oh_events_deleted_count} other half events."
@@ -2175,13 +2190,13 @@ begin
   end.parse!
 
   SB_Loader.new(options) do |loader|
-#    loader.do_pupils
-#    loader.do_staff
-#    loader.do_locations
-#    loader.do_tutorgroups
-#    loader.do_teachinggroups
-#    loader.do_timetable
-#    loader.do_cover
+    loader.do_pupils
+    loader.do_staff
+    loader.do_locations
+    loader.do_tutorgroups
+    loader.do_teachinggroups
+    loader.do_timetable
+    loader.do_cover
     loader.do_other_half
   end
 rescue RuntimeError => e
