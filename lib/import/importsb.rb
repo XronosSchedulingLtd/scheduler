@@ -334,7 +334,7 @@ class SB_Group
                       Column["GroupName",  :name,             false],
                       Column["CurrIdent",  :curriculum_ident, true]]
 
-  FIELDS_TO_UPDATE = [:name]
+  FIELDS_TO_UPDATE = [:name, :current]
   FIELDS_TO_CREATE = [:name, :current]
   DB_CLASS = Teachinggroup
   DB_KEY_FIELD = :source_id
@@ -450,6 +450,110 @@ class SB_Location
         false
       end
     end
+  end
+
+end
+
+
+class SB_OtherHalfOccurence
+  FILE_NAME = "rtrwgroups.csv"
+  REQUIRED_COLUMNS = [Column["RTRWGroupsIdent", :oh_occurence_ident, true],
+                      Column["RTRotaWeekIdent", :rota_week_ident,    true],
+                      Column["GroupIdent",      :group_ident,        true],
+                      Column["GroupDay",        :day_of_week,        true],
+                      Column["GroupStart",      :start_mins,         true],
+                      Column["GroupEnd",        :end_mins,           true],
+                      Column["RoomIdent",       :room_ident,         true],
+                      Column["StaffIdent",      :staff_ident1,       true],
+                      Column["StaffIdent2",     :staff_ident2,       true],
+                      Column["UserIdent3",      :staff_ident3,       true],
+                      Column["UserIdent4",      :staff_ident4,       true],
+                      Column["GroupName",       :activity_name,      false],
+                      Column["DateIdent",       :date_ident,         true]]
+
+  include Slurper
+
+  attr_reader :oh_occurence_ident,
+              :starts_at,
+              :ends_at,
+              :activity_name,
+              :staff,
+              :group,
+              :location
+
+  def adjust(loader)
+    got_time = false
+    got_staff = false
+    got_pupils = false
+    got_location = false
+    #
+    #  Can we establish when this is occuring?
+    #
+    if @date_ident && loader.date_hash[@date_ident] && @day_of_week
+      occurence_date = loader.date_hash[@date_ident].date.beginning_of_week(:sunday) + @day_of_week.days
+    elsif @rota_week_ident && loader.rota_week_hash[@rota_week_ident] && @day_of_week
+      occurence_date =
+        loader.rota_week_hash[@rota_week_ident].start_date + @day_of_week.days
+    else
+      occurence_date = nil
+    end
+    if occurence_date && @start_mins && @end_mins
+      start_time = sprintf("%02d:%02d", @start_mins / 60, @start_mins % 60)
+      end_time   = sprintf("%02d:%02d", @end_mins / 60,   @end_mins % 60)
+#      puts "Occurence date is #{occurence_date.to_s}"
+#      puts "Start time is #{start_time}"
+#      puts "End time is #{end_time}"
+      @starts_at =
+        Time.zone.parse("#{occurence_date.to_s} #{start_time}")
+      @ends_at =
+        Time.zone.parse("#{occurence_date.to_s} #{end_time}")
+      got_time = true
+    end
+    #
+    #  And which staff are involved?
+    #
+    @staff = []
+    [@staff_ident1, @staff_ident2, @staff_ident3, @staff_ident4].each do |si|
+      if si && loader.staff_hash[si]
+        @staff << loader.staff_hash[si]
+      end
+    end
+    @staff.uniq!
+    got_staff = !@staff.empty?
+    #
+    #  And which group of pupils?
+    #
+    if @group_ident && loader.group_hash[@group_ident]
+      @group = loader.group_hash[@group_ident]
+      got_pupils = true
+    end
+    #
+    #  And where?
+    #
+    if @room_ident && loader.location_hash[@room_ident]
+      @location = loader.location_hash[@room_ident]
+      got_location = true
+    end
+    @complete = got_time && (got_staff || got_pupils)
+#    if !@complete && loader.verbose
+#      puts "Other half activity #{@activity_name} rejected because:"
+#      puts "  No time" unless got_time
+#      puts "  No staff" unless got_staff
+#      puts "  No pupils" unless got_pupils
+#      puts "  No location" unless got_location
+#    end
+  end
+
+  def wanted?(loader)
+    @complete &&
+    !@activity_name.empty? &&
+    @starts_at >= loader.era.starts_on &&
+    @starts_at <= loader.era.ends_on &&
+    @starts_at <= @ends_at
+  end
+
+  def <=>(other)
+    self.starts_at <=> other.starts_at
   end
 
 end
@@ -585,6 +689,38 @@ class SB_Pupil
 
   def source_id
     @pupil_ident
+  end
+
+end
+
+
+class SB_RotaWeek
+  FILE_NAME = "rtrotaweek.csv"
+  REQUIRED_COLUMNS = [Column["RTRotaWeekIdent", :rota_week_ident, true],
+                      Column["DateIdent",       :date_ident,      true]]
+
+  include Slurper
+
+  attr_reader :start_date
+
+  def adjust(loader)
+    #
+    #  Let's find out what date this week starts on.  SB seems to go
+    #  for the Monday on which it starts, but I've no guarantee of that.
+    #  Also, calculations are simpler if you go for the Sunday, as then
+    #  you can add the day number to the date to get individual day dates.
+    #
+    date_hash = loader.send("date_hash")
+    indicated_date = date_hash[@date_ident]
+    if indicated_date
+      @start_date = indicated_date.date.beginning_of_week(:sunday)
+    else
+      @start_date = nil
+    end
+  end
+
+  def wanted?(loader)
+    @start_date != nil
   end
 
 end
@@ -947,9 +1083,20 @@ class SB_Loader
                    InputSource[:staffabsences, SB_StaffAbsence, :sa,
                                :staff_ab_ident],
                    InputSource[:staffcovers, SB_StaffCover],
-                   InputSource[:dates, SB_Date, :date, :date_ident]]
+                   InputSource[:dates, SB_Date, :date, :date_ident],
+                   InputSource[:rtrotaweek, SB_RotaWeek,
+                               :rota_week, :rota_week_ident],
+                   InputSource[:other_half, SB_OtherHalfOccurence,
+                               :other_half, :oh_occurence_ident]]
 
-  attr_reader :era, :curriculum_hash
+  attr_reader :era,
+              :curriculum_hash,
+              :date_hash,
+              :group_hash,
+              :location_hash,
+              :rota_week_hash,
+              :staff_hash,
+              :verbose
 
   def initialize(options)
     @verbose   = options.verbose
@@ -957,7 +1104,20 @@ class SB_Loader
     raise "An era name must be specified." unless options.era
     @era = Era.find_by_name(options.era)
     raise "Era #{options.era} not found in d/b." unless @era
-    @start_date = options.start_date
+    #
+    #  If an explicit date has been specified then we use that.
+    #  Otherwise, if a full load has been specified then we use
+    #  the start date of the era.
+    #  Otherwise, we use either today's date, or the start date of
+    #  the era, whichever is the later.
+    #
+    if options.start_date
+      @start_date = options.start_date
+    elsif @full_load || Date.today < @era.starts_on
+      @start_date = @era.starts_on
+    else
+      @start_date = Date.today
+    end
     puts "Reading data files." if @verbose
     INPUT_SOURCES.each do |is|
       array, msg = is.loader_class.slurp(self)
@@ -1058,6 +1218,8 @@ class SB_Loader
     raise "Can't find event category for lessons." unless @lesson_category
     @invigilation_category = Eventcategory.find_by_name("Exam invigilation")
     raise "Can't find event category for invigilations." unless @invigilation_category
+    @other_half_category = Eventcategory.find_by_name("Other Half")
+    raise "Can't find event category for Other Half." unless @other_half_category
     @event_source = Eventsource.find_by_name("SchoolBase")
     raise "Can't find event source \"SchoolBase\"." unless @event_source
     puts "Finished data initialisation." if @verbose
@@ -1187,13 +1349,6 @@ class SB_Loader
     tgmember_unchanged_count = 0
     tgmember_loaded_count    = 0
     tg_at_start = Tutorgroup.current.count
-    if @start_date
-      starts_on = @start_date
-    elsif @full_load
-      starts_on = @era.starts_on
-    else
-      starts_on = Date.today
-    end
     @tg_hash.each do |key, tg|
       dbrecord = tg.dbrecord
       if dbrecord
@@ -1207,7 +1362,7 @@ class SB_Loader
         end
       else
         if tg.num_pupils > 0
-          if tg.save_to_db(starts_on: starts_on,
+          if tg.save_to_db(starts_on: @start_date,
                            ends_on: @era.ends_on)
             dbrecord = tg.dbrecord
             tg_loaded_count += 1
@@ -1304,13 +1459,6 @@ class SB_Loader
     empty_tg_count          = 0
     dbera_hash = {}
     groups_at_start = Teachinggroup.current.count
-    if @start_date
-      starts_on = @start_date
-    elsif @full_load
-      starts_on = @era.starts_on
-    else
-      starts_on = Date.today
-    end
     puts "Starting working through #{@groups.size} teaching groups." if @verbose
     @groups.each do |group|
       #
@@ -1338,7 +1486,7 @@ class SB_Loader
            / Chap\Z/ =~ group.name ||
            / Assem\Z/ =~ group.name
           if group.save_to_db(era: @era,
-                              starts_on: starts_on)
+                              starts_on: @start_date)
             dbgroup = group.dbrecord
             groups_created_count += 1
           end
@@ -1356,7 +1504,7 @@ class SB_Loader
           pupil = @pupil_hash[pupil_id]
           if pupil && pupil.dbrecord
             puts "Adding #{pupil.dbrecord.name} to #{dbgroup.name}" unless @full_load
-            dbgroup.add_member(pupil.dbrecord, starts_on)
+            dbgroup.add_member(pupil.dbrecord, @start_date)
             pupils_added_count += 1
           end
         end
@@ -1439,15 +1587,8 @@ class SB_Loader
   end
 
   def do_timetable
-    if @start_date
-      start_date = @start_date
-    elsif @full_load
-      start_date = @era.starts_on
-    else
-      start_date = Date.today
-    end
     puts "Loading events from #{start_date} to #{@era.ends_on}" if @verbose
-    start_date.upto(@era.ends_on) do |date|
+    @start_date.upto(@era.ends_on) do |date|
       puts "Processing #{date}" if @verbose
       week_letter = get_week_letter(date)
       if week_letter
@@ -1509,7 +1650,9 @@ class SB_Loader
             #  These I'm afraid have to go.
             #
             dbonly.each do |dbo|
-              Event.find_by_source_id(dbo).destroy
+              Event.find_by(source_id:        dbo,
+                            eventcategory_id: @lesson_category.id,
+                            eventsource_id:   @event_source.id).destroy
             end
           end
           sbonly = sbids - dbids
@@ -1585,6 +1728,10 @@ class SB_Loader
           #
           #  And any which need adjusting?
           #
+          #  Note that we're currently adjusting only the time.  If a timetable
+          #  event changes its resources then we currently fail to update
+          #  it.  Work needed.
+          #
           shared = sbids - sbonly
           if shared.size > 0
             puts "#{shared.size} existing events to check." if @verbose
@@ -1629,7 +1776,9 @@ if false
             #  These I'm afraid have to go.
             #
             dbonly.each do |dbo|
-              Event.find_by_source_hash(dbo).destroy
+              Event.find_by(source_hash:      dbo,
+                            eventcategory_id: @lesson_category.id,
+                            eventsource_id:   @event_source.id).destroy
             end
           end
           sbonly = sbhashes - dbhashes
@@ -1717,13 +1866,6 @@ end
     covers_added = 0
     invigilations_added = 0
     invigilations_amended = 0
-    if @start_date
-      start_date = @start_date
-    elsif @full_load
-      start_date = @era.starts_on
-    else
-      start_date = Date.today
-    end
     #
     #  Let's see if we can make any sense of it first.
     #
@@ -1731,7 +1873,7 @@ end
       if sc.ptype == 60
         sal = @sal_hash[sc.staff_ab_line_ident]
         date = @date_hash[sc.absence_date]
-        if date && date.date >= start_date
+        if date && date.date >= @start_date
           staff_covering = @staff_hash[sc.staff_ident]
           if sal && date && staff_covering
 #            puts "#{sc.staff_name} on #{date.date} links up."
@@ -1877,6 +2019,125 @@ end
     end
   end
 
+  def do_other_half
+    puts "Processing Other Half" if @verbose
+    puts "#{@other_half.count} events to process." if @verbose
+    oh_events_added_count = 0
+    @other_half.sort.each do |oh|
+#      puts "#{oh.activity_name} from #{oh.starts_at.to_s} to #{oh.ends_at.to_s}"
+#      unless oh.staff.empty?
+#        puts "With #{oh.staff.collect {|s| s.name}.join(", ")}"
+#      end
+      event = Event.find_by(source_id: oh.oh_occurence_ident,
+                            eventcategory_id: @other_half_category.id,
+                            eventsource_id: @event_source.id)
+      if event
+        #
+        #  The event seems to be there OK.  Is its timing right?
+        #
+        modified = false
+        if event.starts_at != oh.starts_at
+          event.starts_at = oh.starts_at
+          modified = true
+        end
+        if event.ends_at != oh.ends_at
+          event.ends_at = oh.ends_at
+          modified = true
+        end
+        if modified
+          unless event.save
+            puts "Failed to update timing for #{oh.activity_name}"
+          end
+          event.reload
+        end
+      else
+        #
+        #  Event does not yet exist.  Need to create it.
+        #
+        event = Event.new
+        event.body          = oh.activity_name
+        event.eventcategory = @other_half_category
+        event.eventsource   = @event_source
+        event.starts_at     = oh.starts_at
+        event.ends_at       = oh.ends_at
+        event.approximate   = false
+        event.non_existent  = false
+        event.private       = false
+        event.all_day       = false
+        event.compound      = false
+        event.source_id     = oh.oh_occurence_ident
+        if event.save
+          oh_events_added_count += 1
+          event.reload
+        else
+          puts "Failed to save OH event #{oh.activity_name}"
+        end
+      end
+      #
+      #  Event is now in the database.  Need to ensure it has the
+      #  right staff, group and location.  Treat all resources just as
+      #  resources.
+      #
+      #  Use the element id as a unique identifier.
+      #
+      sb_element_ids = Array.new
+      oh.staff.each do |s|
+        if s.dbrecord && s.dbrecord.active && s.dbrecord.element
+          sb_element_ids << s.dbrecord.element.id
+        end
+      end
+      if oh.group && oh.group.dbrecord
+        sb_element_ids << oh.group.dbrecord.element.id
+      end
+      if oh.location &&
+         oh.location.dbrecord &&
+         oh.location.dbrecord.location &&
+         oh.location.dbrecord.location.active
+        sb_element_ids << oh.location.dbrecord.location.element.id
+      end
+      db_element_ids = event.commitments.collect {|c| c.element_id}
+      db_only = db_element_ids - sb_element_ids
+      sb_only = sb_element_ids - db_element_ids
+      sb_only.each do |sbid|
+        c = Commitment.new
+        c.event      = event
+        c.element_id = sbid
+        c.save
+      end
+      event.reload
+      if db_only.size > 0
+        event.commitments.each do |c|
+          if db_only.include?(c.element_id)
+            c.destroy
+          end
+        end
+      end
+    end
+    #
+    #  How do we go about deleting OH activites which have been deleted
+    #  from SB?
+    #
+    events = Event.eventsource_id(@event_source.id).
+                   eventcategory_id(@other_half_category.id).
+                   beginning(@era.starts_on).
+                   until(@era.ends_on)
+    puts "Checking #{events.size} other half events for possible deletion." if @verbose
+    oh_events_deleted_count = 0
+    events.each do |event|
+      unless @other_half_hash[event.source_id]
+        #event.destroy
+        puts "Would have destroyed #{event.body}"
+        oh_events_deleted_count += 1
+      end
+    end
+    if @verbose || oh_events_added_count > 0
+      puts "Added #{oh_events_added_count} other half events."
+    end
+    if @verbose || oh_events_deleted_count > 0
+      puts "Deleted #{oh_events_deleted_count} other half events."
+    end
+  end
+
 end
 
 begin
@@ -1914,13 +2175,14 @@ begin
   end.parse!
 
   SB_Loader.new(options) do |loader|
-    loader.do_pupils
-    loader.do_staff
-    loader.do_locations
-    loader.do_tutorgroups
-    loader.do_teachinggroups
-    loader.do_timetable
-    loader.do_cover
+#    loader.do_pupils
+#    loader.do_staff
+#    loader.do_locations
+#    loader.do_tutorgroups
+#    loader.do_teachinggroups
+#    loader.do_timetable
+#    loader.do_cover
+    loader.do_other_half
   end
 rescue RuntimeError => e
   puts e

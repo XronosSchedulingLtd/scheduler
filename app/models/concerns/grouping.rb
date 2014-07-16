@@ -70,6 +70,10 @@ module Grouping
     group.members(given_date, recurse, exclude_groups)
   end
 
+  def final_members(given_date = nil, recurse = true, exclude_groups = false)
+    group.final_members(given_date, recurse, exclude_groups)
+  end
+
   def outcasts(given_date = nil, recurse = true)
     group.outcasts(given_date, recurse)
   end

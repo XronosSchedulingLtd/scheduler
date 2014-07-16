@@ -235,6 +235,7 @@ class Group < ActiveRecord::Base
   #  in the past, even if the group now no longer exists.  If you're
   #  doing a historic view of some sort, specify the date.
   #
+  #  See also the helper method final_members
   #
   #  Note that this method returns *entities* - of whatever type.
   #
@@ -292,6 +293,20 @@ class Group < ActiveRecord::Base
         !Group.visible_instance?(m.element.entity) || !exclude_groups
       }.collect {|m| m.element.entity}
     end
+  end
+
+  #
+  #  Like members, but if the date falls outside the lifetime of the group
+  #  then list the members just before the group ended.
+  #
+  def final_members(given_date = nil, recurse = true, exclude_groups = false)
+    given_date ||= Date.today
+    if given_date < self.starts_on
+      given_date = self.starts_on
+    elsif self.ends_on != nil && given_date > self.ends_on
+      given_date = self.ends_on
+    end
+    members(given_date, recurse, exclude_groups)
   end
 
   #

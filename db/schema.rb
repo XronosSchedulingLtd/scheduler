@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140627100046) do
+ActiveRecord::Schema.define(version: 20140716112630) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -73,6 +73,8 @@ ActiveRecord::Schema.define(version: 20140627100046) do
     t.integer  "source_id",        default: 0
     t.string   "source_hash"
   end
+
+  add_index "events", ["source_id"], name: "index_events_on_source_id", using: :btree
 
   create_table "eventsources", force: true do |t|
     t.string   "name"

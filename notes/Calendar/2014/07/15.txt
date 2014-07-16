@@ -41,22 +41,182 @@ No - I'm consulting the wrong active flag.  I'm looking at my in memory flag to 
 
 That's done it - now I have one more tutor group.  Who else lacks a tutor group, and who is the tutor?  Alternatively, who are my recently added members of staff?
 
-[ ] Helen Wenham (HJW)
-[ ] James Golding (JMG)
-[ ] George Draganov (GTD)
-[ ] Matthew Poynter (MJP)
-[ ] Elliot Paige BirkBeck (EPB)
-[ ] Regina Engel-Hart (REH)
-[ ] Maud Cottrell (MFFC)
+[*] Helen Wenham (HJW)
+[*] James Golding (JMG)
+[*] George Draganov (GTD)
+[*] Matthew Poynter (MJP)
+[*] Elliot Paige BirkBeck (EPB)
+[*] Regina Engel-Hart (REH)
+[*] Maud Cottrell (MFFC)
 
 Steps needed to do the live system.
 
-[ ] Back up the d/b
-[ ] Distribute the new source code
-[ ] Set my seven staff members to active and current
-[ ] Load a fresh set of calendar data
-[ ] Run the script to set TeachingGroups and Pupils to current.
+[*] Back up the d/b
+[*] Distribute the new source code
+[*] Set my seven staff members to active and current
+[*] Load a fresh set of calendar data
+[*] Run the script to set TeachingGroups and Pupils to current.
 [ ] Load the data files from SB
 
 
 Ha!  Lesley seems to have added the week letters to the calendar.  See if those work OK.  One Detention Duty Master slot has no name, but that's hardly my problem.  We seem to have our week letters - hurrah!
+
+The big load is now running on Mach2.  I wonder how long it will take.
+
+I'm inclined to try to get other half things in next.  Currently all the groups are empty, so they're not being imported.  ISTR I had worked out where in the database the events were being scheduled.
+
+Eventually it finished - it took 107m 29.618 s.  How long will a re-run using the same data take?
+1m 53s.  No issues raised.  Now let's try running a complete SB query and load.  That has actually produced quite a lot of set changes.  Boys moving between sets in various years.  8 new teaching groups.  379 moved into groups and 73 moved out.  Took 2m 41s in total, including the time taken to dump from SB.  Excellent.
+
+Back to working on my development machine.  Can I find where the Other Half activities are scheduled?
+
+rtrwgroups.csv rings a bit of a bell.  It certainly seems to contain entries for other half activities.  Can I use these to establish when other half things are happening.
+
+I don't think SAE has put the schedule for next term into SB yet, but I can look for last term's.  SB shows me taking Computer Programming in M111 from 13:15 to 14:55 each Monday.  Can I find that in the file, and link it to that day and time?
+
+There seem to be lots of lines for Computer Programming.  Perhaps there is one per occurence?  Ah, there are also entries for "Computer Programming (M5/6)", which is about the right time, and whilst the M5/6 bit doesn't appear in the SB display, there is clearly something on the next line which their pathetic schedule display code is failing to display.
+
+RTRWGroupsIdent,RTRotaWeekIdent,GroupIdent,GroupDay,GroupStart,GroupEnd,SCTIdent,RoomIdent,GroupRota,GroupSlotTime,StaffIdent,StaffIdent2,GroupName,DateIdent,RTGroupChecked,RTProtectedGroupClash,UserIdent3,UserIdent4
+14047,218,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4060,0,0,,
+14157,220,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4067,0,0,,
+14557,225,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4074,0,0,,
+14841,229,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4081,0,0,,
+14932,232,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4088,0,0,,
+15220,236,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4095,0,0,,
+15621,241,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4109,0,0,,
+15854,245,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4116,0,0,,
+15992,248,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4123,0,0,,
+16233,252,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4130,0,0,,
+16394,255,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4137,0,0,,
+17968,278,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4165,0,0,358,
+18092,281,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4172,0,0,358,
+18174,284,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4179,0,0,358,
+18537,289,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4186,0,0,358,
+18621,292,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4193,0,0,358,
+18876,296,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4207,0,0,358,
+19119,300,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4214,0,0,358,
+19297,304,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4221,0,0,358,
+19548,308,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4228,0,0,358,
+19818,312,10792,1,795,895,13,287,0,100,743,358,"Computer Programming (M5/6)",4235,0,0,358,
+
+Can we link this to anything?  The third field is meant to be a group ident, and it's always 10792.  What is group 10792?  It's the group of the same name.  Good start.  Now, note we have StaffIdent, StaffIdent2, UserIdent3, UserIdent4.  (The Staff table was clearly called User at one point, and has been partially renamed.)  Anyone we can identify?
+
+358 is me, so it looks like I was added at the tail end to just some of them.
+743 is VDP
+358 is me again - I'm in two different fields.
+
+GroupDay contains 1 every time.  Monday?
+GroupStart is 795
+GroupEnd is 895
+
+795 / 60 = 13.25.  or 13 hours 15 minutes
+895 / 60 = 14.9166666 or 14 hours 55 minutes
+
+Clearly the duration.
+
+RoomIdent is 287 - M111.
+
+It'll have to be RTRotaWeekIdent which tells us the week surely?  First few values are:
+
+218, 220, 225
+
+These give me corresponding DateIdents of:
+
+4060, 4067, 4074
+
+which in turn are:
+
+6/1/2014, 13/1/2014, 20/1/2014
+
+Those are in fact Mondays, but given the naming convention they might be intended merely to convey the start of the relevant week.  Need to check another activity which isn't on a Monday.  Martin has had Robotics Club on a Friday.  Do the same test for a couple of those entries.
+
+14051,218,10786,5,810,885,13,268,0,75,473,473,"Robotics Club (F5/6)",4060,0,0,,
+14139,220,10786,5,810,885,13,268,0,75,473,473,"Robotics Club (F5/6)",4067,0,0,,
+14556,225,10786,5,810,885,13,268,0,75,473,473,"Robotics Club (F5/6)",4074,0,0,,
+
+We have 218, 220, 225 - exactly as for Computer Programming on the Monday.  Yes, we clearly are going by the start of the week - the Monday.  Then the GroupDay field tells you what day in that week.  Half-arsed or what?
+
+I've just discovered something odd.  Although the rtrwgroups record references a group, (which should tell us which pupils are involved in an activity) we also have the rtrwpupils file, which has a lot of entries and seems to be trying to link pupils to activities too.  I wonder whether these could be registration records?
+
+Taking the first RTRWGroupIdent from Computer Programming - 14047 - I get the following records from the rtrwpupils file.
+
+210988,66,14047,,795,895,1,0,0,0,0,
+210989,117,14047,,795,895,1,0,0,0,0,
+210990,158,14047,,795,895,1,0,0,0,0,
+210991,212,14047,,795,895,1,0,0,0,0,
+210992,260,14047,,795,895,1,0,0,0,0,
+210993,261,14047,,795,895,1,0,0,0,0,
+210994,605,14047,,795,895,1,0,0,0,0,
+210995,2632,14047,,795,895,1,0,0,0,0,
+210996,3297,14047,,795,895,1,0,0,0,0,
+210997,3617,14047,,795,895,1,0,0,0,0,
+210998,4398,14047,,795,895,1,0,0,0,0,
+210999,4727,14047,,795,895,1,0,0,0,0,
+
+with the second field being the PupOrigNum or pupil identifier.  These pupils are:
+
+Alexander Mannix
+Silas Gill
+Joseph Curtis
+James Kennedy
+Lewis Wu
+Piers Clark
+etc.
+
+However, I have no idea who would have attended that activity.  Let's try mine back in January.
+
+For "Computer Project (F8)" I get:
+
+14041,218,10898,5,960,1020,13,288,0,60,358,,"Computer Project (F8)",4060,0,0,,
+14161,220,10898,5,960,1020,13,288,0,60,358,,"Computer Project (F8)",4067,0,0,,
+14549,225,10898,5,960,1020,13,288,0,60,358,,"Computer Project (F8)",4074,0,0,,
+14866,229,10898,5,960,1020,13,288,0,60,358,,"Computer Project (F8)",4081,0,0,,
+14948,232,10898,5,960,1020,13,288,0,60,358,,"Computer Project (F8)",4088,0,0,,
+15222,236,10898,5,960,1020,13,288,0,60,358,,"Computer Project (F8)",4095,0,0,,
+15634,241,10898,5,960,1020,13,288,0,60,358,,"Computer Project (F8)",4109,0,0,,
+15846,245,10898,5,960,1020,13,288,0,60,358,,"Computer Project (F8)",4116,0,0,,
+16006,248,10898,5,960,1020,13,288,0,60,358,,"Computer Project (F8)",4123,0,0,,
+16228,252,10898,5,960,1020,13,288,0,60,358,,"Computer Project (F8)",4130,0,0,,
+16386,255,10898,5,960,1020,13,288,0,60,358,,"Computer Project (F8)",4137,0,0,,
+
+Notice the week idents start at 218 again, and the day is 5 (Friday).  Looking now for 14041 in the pupils file I get:
+
+210946,88,14041,1,960,1020,5,0,0,0,0,358
+210947,212,14041,,960,1020,5,0,0,0,0,
+210948,260,14041,1,960,1020,5,0,0,0,0,358
+210949,445,14041,,960,1020,5,0,0,0,0,
+210950,605,14041,1,960,1020,5,0,0,0,0,358
+210951,738,14041,1,960,1020,5,0,0,0,0,358
+210952,740,14041,1,960,1020,5,0,0,0,0,358
+210953,2864,14041,1,960,1020,5,0,0,0,0,358
+210954,3130,14041,1,960,1020,5,0,0,0,0,358
+210955,3583,14041,1,960,1020,5,0,0,0,0,358
+210956,3863,14041,1,960,1020,5,0,0,0,0,358
+210957,4333,14041,,960,1020,5,0,0,0,0,
+210958,12461,14041,1,960,1020,5,0,0,0,0,358
+
+and this yields the following pupils:
+
+Oliver Moody
+James Kennedy
+Lewis Wu
+Jack Bowen
+Alex Taylor
+Julian Ting
+Yegor Pomazounov
+Jake Drew
+Marcus Green
+Ivan Leung
+Dmitry Muravyev
+Jai Sidpra
+Aidan Grenville
+
+all of whom might have been there, but I'd be surprised to get the lot at the same time.  Could these be registration records for all those who //could// be there, and perhaps that fourth field contains a 1 if they were?  It's called RTPupAttend, so perhaps it is.  What does the corresponding group indicate as the membership?  Group 10898 is Computer Project.  Can I find its membership?  Perhaps through my application.  Found it - it used to have 11 members.  Much the same people too.
+
+OK - I think I know how this goes now.  Presumably I just need to create a calendar entry for each of these entries.  I could do with a new category (to ease purging) and I can identify them by source_id.
+
+Proposed strategy.
+
+First read in all the rtrotaweek records and index them, sorting out their dates.  Each can be an object which is capable of providing an actual date when given a day number.
+
+Then read in the rtrwgroups records, link to the corresponding staff, teachinggroup, and room, and record the correct date for it.  Then process them in date order, starting at whenever we currently start.

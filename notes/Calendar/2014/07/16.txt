@@ -1,0 +1,45 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-07-16T07:28:08+01:00
+
+====== Wednesday 16 Jul 2014 ======
+
+Today I propose to try to get other half activities into the schedule.  I suspect that they haven't actually been entered for next year by SAE yet, so I'll need to test by loading last year's.  That should still be feasible on my test system, albeit perhaps messing up some other things.  It will revert groups to last year's groups, but that's not the end of the world.
+
+First I need to load the rtrotaweek file and sort its contents.  Index it by RTRotaWeekIdent.
+
+Just noticed that the rtrwgroups record includes a DateIdent field as well, so it indicates its date twice.  Don't you just love Furlong's crap data analysis?  Which should take precedence?  I think I'll go for the explicit date first.
+
+Interesting debating point.  Currently I don't load groups which are empty and don't look like teaching groups.  This leaves some OH activities bereft of their groups.  But what is the difference between an OH activity with no group attached, and one with an empty group.  If boys are added to the group later then the group will get created and be attached to the event.  That should be fine.
+
+Since I'm going to step back to a previous academic year (purely for testing) it occurs to me that I should reactivate existing teaching and tutor groups rather than creating them afresh.  Make sure my code does this.  Note that this won't fully restore the groups - they'll still have a termination date, and all this year's groups will get terminated too, but it's enough for testing.  In general, going back to a previous academic year does not work.
+
+Ah - taking a look at the data which I have, it seems that there are some OH activities in place for next term.  I won't need to revert after all.  I have 2144 other half activities which apparently relate to next year.  Let's see whether I can load them.
+
+Create a new Event Category called "Other Half".
+
+It's just occurred to me that it would probably speed processing if I added an index on source_id for events.  How long does the run take at present?  Actually, it's only 9.138s.  It was much slower with logging.  The index should be there anyway.  With the index it takes 9.552s.  Ho hum.
+
+Now - can we add the resources to our events?
+
+Interesting thought - when I load locations from SB, I connect them to LocationAliases, which in turn cause my own Location records to be created.  When I subsequently load the timetable I want the events to point to the Location, not to the LocationAlias.  How and where do I achieve this?  I must be doing it because events link to elements, and a LocationAlias isn't an element (or an entity).  I do it at the final step when adding resources to an event.  It's noteable that my loader does not at present cope with timetable events which are still there but have changed their resources.  It will adjust the time, but not any of the resources.  That needs attending to at some point.
+
+OK - we have other half activities loading up to a point, with a couple of little oddities.
+
+Jan has tennis every Monday afternoon, even though he's teaching then.  Also, some weeks they seem to appear as invigilations, rather than as tennis - same time slot, same location, but the category is wrong.  Why?
+
+If I look at JSW's timetable in SB, what do I see?  The relevant commitment is not appearing on the SB timetable screen.  Is it genuinely in the file then?  Could it perhaps be a hang over from the previous year?
+
+Was it there as an invigilation *before* I started loading other half activities?  Doesn't show up in Jan's calendar feed.  No - definitely not there.  How on earth can I have loaded it with a category of Invigilation?  Invigilations never have any resources attached to them apart from the member of staff, so it can't be the invigilation code.  Somehow I'm putting it in the wrong category.  But OTOH, the word Invigilation only gets added in the Invigilation loading code.  This is really weird.  Got it!  It's another existing event which happens to have the same source id!  I need to be more selective in finding existing events.
+
+Hang on.  This tennis slot is called "Tennis (W7)", which suggests it should be on a Wednesday.  Why am I putting it on the Monday?  Let's find an actual instance and work back through its original record.
+
+First instance has a source id of 21911, and I have it on 1st Sep, 2014.  In the file its line looks like this:
+
+21911,316,33073,3,870,990,7,335,0,0,309,,"Tennis (W7)",4298,0,0,,
+
+Note the weekday number of 3, and the date id of 4298.  4298 is 1st Sep 2014.  Clearly the given date is just the date of the start of the week as well.  Ho hum.  Correct my code and see whether we can move all those events automatically.  Yes, we do seem to have succeeded in amending the events in situ.  Hurrah!
+
+Let's get a fresh copy of the database from school and do a fresh run from scratch.  Job running.  7 seconds - far too fast.  What went wrong?  No Other Half event category.  Second run took 3m 11.846s.  It seems to have been very successful.  Excellent.
+
+
