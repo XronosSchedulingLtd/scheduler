@@ -241,14 +241,26 @@ class Event < ActiveRecord::Base
     #
     startdate = startdate ? startdate.to_date   : Date.today
     dateafter = enddate   ? enddate.to_date + 1 : startdate + 1
-    ec = nil
+    ecs = []
     if eventcategory
-      if eventcategory.instance_of?(String)
-        ec = Eventcategory.find_by_name(eventcategory)
-      elsif eventcategory.instance_of?(Eventcategory)
-        ec = eventcategory
+      #
+      #  We allow a single eventcategory, or an array.
+      #
+      if eventcategory.instance_of?(Array)
+        eca = eventcategory
+      else
+        eca = [eventcategory]
       end
-      duffparameter = true unless ec
+      eca.each do |ec|
+        if ec.instance_of?(String)
+          ec = Eventcategory.find_by_name(ec)
+        end
+        if ec.instance_of?(Eventcategory)
+          ecs << ec
+        else
+          duffparameter = true
+        end
+      end
     end
     es = nil
     if eventsource
@@ -294,9 +306,23 @@ class Event < ActiveRecord::Base
       query_hash[:dateafter] = Time.zone.parse("00:00:00", dateafter)
       query_string_parts << "ends_at >= :startdate"
       query_hash[:startdate] = Time.zone.parse("00:00:00", startdate)
-      if ec
-        query_string_parts << "eventcategory_id = :eventcategory_id"
-        query_hash[:eventcategory_id] = ec.id
+      if ecs.size > 0
+        if ecs.size == 1
+          query_string_parts << "eventcategory_id = :eventcategory_id"
+          query_hash[:eventcategory_id] = ecs[0].id
+        else
+          #
+          #  Aiming for "(event_category_id = :eci1 OR event_category_id = :ec2)"
+          #
+          query_string_parts << "(#{
+            ecs.collect {|ec|
+              "eventcategory_id = :ec#{ec.id}"
+            }.join(" or ")
+          })"
+          ecs.each do |ec|
+            query_hash[:"ec#{ec.id}"] = ec.id
+          end
+        end
       end
       if es
         query_string_parts << "eventsource_id = :eventsource_id"

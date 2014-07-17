@@ -120,6 +120,7 @@ module DatabaseAccess
     @dbrecord = nil
     @belongs_to_era = nil
     @checked_dbrecord = false
+    @element_id = nil
   end
 
   #
@@ -228,6 +229,32 @@ module DatabaseAccess
         db_class.find_by(find_hash)
 #        self.class.const_get(:DB_CLASS).find_by_source_id(self.source_id)
     end
+  end
+
+  #
+  #  A defensive (and cached) way to get this item's element id.
+  #
+  def element_id
+    unless @element_id
+      dbr = dbrecord
+      if dbr
+        #
+        #  Special processing needed for locations.
+        #
+        if dbr.class == Locationalias
+          if dbr.location
+            if dbr.location.element
+              @element_id = dbr.location.element.id
+            end
+          end
+        else
+          if dbr.element
+            @element_id = dbr.element.id
+          end
+        end
+      end
+    end
+    @element_id
   end
 
 end
@@ -902,6 +929,14 @@ class SB_Timetableentry
     self.timetable_ident <=> other.timetable_ident
   end
 
+  def meeting?
+    #
+    #  Lessons have a teaching group.  Meetings have a title (@time_note).
+    #  Which is the definitive decider?
+    #
+    @group_ident == nil && @group_idents.size == 0
+  end
+
   def description
     #
     #  A one-line description of this timetable entry.
@@ -928,6 +963,9 @@ class SB_Timetableentry
     #  either the same group_ident or the same room_ident (or both).  Any
     #  set of such which we find can be merged into a single event.
     #
+    #  Above comment temporarily suspended.  For now I'm doing a merge
+    #  solely for meetings, which means the period and time_note must match.
+    #
     result = []
     rest = ttes
     while rest.size > 0
@@ -935,9 +973,12 @@ class SB_Timetableentry
       sample = rest[0]
       matching, rest = rest.partition {|tte|
         tte == sample ||
-        (tte.period_ident == sample.period_ident &&
-         ((tte.group_ident && (tte.group_ident == sample.group_ident)) ||
-          (tte.room_ident  && (tte.room_ident  == sample.room_ident))))
+        (sample.group_ident == nil &&
+         !sample.time_note.blank? &&
+         tte.period_ident == sample.period_ident &&
+         tte.time_note == sample.time_note)
+#         ((tte.group_ident && (tte.group_ident == sample.group_ident)) ||
+#          (tte.room_ident  && (tte.room_ident  == sample.room_ident))))
       }
       if matching.size > 1
 #        puts "Merging the following events."
@@ -947,10 +988,14 @@ class SB_Timetableentry
         compounded = matching[0].clone
         compounded.compound = true
         compounded.source_hash = SB_Timetableentry.generate_hash(matching)
-        compounded.staff_idents = matching.collect {|tte| tte.staff_ident}.uniq
-        compounded.group_idents = matching.collect {|tte| tte.group_ident}.uniq
-        compounded.room_idents  = matching.collect {|tte| tte.room_ident}.uniq
+        compounded.staff_idents =
+          matching.collect {|tte| tte.staff_ident}.uniq.compact
+        compounded.group_idents =
+          matching.collect {|tte| tte.group_ident}.uniq.compact
+        compounded.room_idents  =
+          matching.collect {|tte| tte.room_ident}.uniq.compact
 #        puts "Combined #{matching.size} events with digest #{compounded.source_hash}."
+#        puts "Event is #{compounded.time_note} and involves #{compounded.staff_idents.size} staff."
         result << compounded
       else
         result << matching[0]
@@ -964,9 +1009,16 @@ class SB_Timetableentry
   #  Generate a hash from a set of timetablentries, using just their
   #  timetable_idents to drive it.
   #
+  #  In the case of meetings, the unique identifier is simply the
+  #  text and the period id.
+  #
   def self.generate_hash(ttes)
-    Digest::MD5.hexdigest(
-      ttes.sort.collect {|tte| tte.timetable_ident.to_s}.join("/"))
+    if ttes[0].meeting?
+      Digest::MD5.hexdigest("#{ttes[0].time_note}/#{ttes[0].period_ident}")
+    else
+      Digest::MD5.hexdigest(
+        ttes.sort.collect {|tte| tte.timetable_ident.to_s}.join("/"))
+    end
   end
 
 end
@@ -1121,14 +1173,14 @@ class SB_Loader
     INPUT_SOURCES.each do |is|
       array, msg = is.loader_class.slurp(self)
       if msg.blank?
-        #
-        #  It's legitimate to use instance_variable_set because I'm fiddling
-        #  with my own instance variables.
-        #
         if array.size == 0
           raise "Input file for #{is.array_name} contains no data."
         end
         puts "Read #{array.size} records as #{is.array_name}." if @verbose
+        #
+        #  It's legitimate to use instance_variable_set because I'm fiddling
+        #  with my own instance variables.
+        #
         self.instance_variable_set("@#{is.array_name}", array)
         if is.key_field
           tmphash = Hash.new
@@ -1194,6 +1246,17 @@ class SB_Loader
       end
     end
     puts "Finished sorting academic records." if @verbose
+    puts "Merging compound timetable entries." if @verbose
+    puts "#{@timetable_entries.size} timetable entries before merge." if @verbose
+    @timetable_entries = SB_Timetableentry.sort_and_merge(@timetable_entries)
+    puts "#{@timetable_entries.size} timetable entries after merge." if @verbose
+    #
+    #  Let's have a separate hash for finding compound ttes.
+    #
+    @ctte_hash = Hash.new
+    @timetable_entries.select {|tte| tte.compound}.each do |ctte|
+      @ctte_hash[ctte.source_hash] = ctte
+    end
     puts "Sorting periods by week and day." if @verbose
     #
     #  Sort by week and day of the week.
@@ -1589,6 +1652,14 @@ class SB_Loader
 
   def do_timetable
     puts "Loading events from #{@start_date} to #{@era.ends_on}" if @verbose
+    atomic_event_created_count = 0
+    atomic_event_deleted_count = 0
+    atomic_event_retimed_count = 0
+    compound_event_created_count = 0
+    compound_event_deleted_count = 0
+    compound_event_retimed_count = 0
+    resources_added_count      = 0
+    resources_removed_count    = 0
     @start_date.upto(@era.ends_on) do |date|
       puts "Processing #{date}" if @verbose
       week_letter = get_week_letter(date)
@@ -1600,20 +1671,23 @@ class SB_Loader
           #
           dbevents = Event.events_on(date,
                                      nil,
-                                     @lesson_category,
+                                     [@lesson_category, @meeting_category],
                                      @event_source,
                                      nil,
                                      true)
+          dbcompound, dbatomic = dbevents.partition {|dbe| dbe.compound}
+          dbids = dbatomic.collect {|dba| dba.source_id}.uniq
+          dbhashes = dbcompound.collect {|dbc| dbc.source_hash}.uniq
           #
           #  A little bit of correction code.  Earlier I managed to reach
           #  the situation where two instances of the same event (from SB's
           #  point of view) were occuring on the same day.  If this happens,
           #  arbitrarily delete one of them before continuing.
           #
-          dbcompound, dbatomic = dbevents.partition {|dbe| dbe.compound}
-          dbids = dbatomic.collect {|dba| dba.source_id}.uniq
+          deleted_something = false
           if dbids.size < dbatomic.size
             puts "Deleting #{dbatomic.size - dbids.size} duplicate events." if @verbose
+            deleted_something = true
             dbids.each do |dbid|
               idsevents = dbatomic.select {|dba| dba.source_id == dbid}
               if idsevents.size > 1
@@ -1627,66 +1701,100 @@ class SB_Loader
                 end
               end
             end
+          end
+          if dbhashes.size < dbcompound.size
+            puts "Deleting #{dbcompound.size - dbhashes.size} duplicate events." if @verbose
+            deleted_something = true
+            dbhashes.each do |dbhash|
+              hashesevents = dbcompound.select {|dbc| dbc.source_hash == dbhash}
+              if hashesevents.size > 1
+                #
+                #  We have one or more duplicates.
+                #
+                hashesevents.each_with_index do |dbevent, i|
+                  if i > 0
+                    dbevent.destroy
+                  end
+                end
+              end
+            end
+          end
+          if deleted_something
             #
             #  And read again from the database.
             #
             dbevents = Event.events_on(date,
                                        nil,
-                                       @lesson_category,
+                                       [@lesson_category, @meeting_category],
                                        @event_source,
                                        nil,
                                        true)
             dbcompound, dbatomic = dbevents.partition {|dbe| dbe.compound}
             dbids = dbatomic.collect {|dba| dba.source_id}.uniq
+            dbhashes = dbcompound.collect {|dbc| dbc.source_hash}.uniq
           end
           sbcompound, sbatomic = lessons.partition {|sbe| sbe.compound}
           sbids = sbatomic.collect {|sba| sba.timetable_ident}
+          sbhashes = sbcompound.collect {|sbc| sbc.source_hash}
+#          puts "#{sbatomic.size} atomic events in SB and #{dbatomic.size} in the d/b."
+#          puts "#{sbcompound.size} compound events in SB and #{dbcompound.size} in the d/b."
           #
           #  First we'll do the atomic ones.
+          #
+          #  Anything in the database, but not in the SB files?
           #
           dbonly = dbids - sbids
           if dbonly.size > 0
             puts "Deleting #{dbonly.size} atomic events." if @verbose
             #
-            #  These I'm afraid have to go.
+            #  These I'm afraid have to go.  Given only the source
+            #  id we don't have enough to find the record in the d/b
+            #  (because they repeat every fortnight) but happily we
+            #  already have the relevant d/b record in memory.
             #
             dbonly.each do |dbo|
-              Event.find_by(source_id:        dbo,
-                            eventcategory_id: @lesson_category.id,
-                            eventsource_id:   @event_source.id).destroy
+#              puts "Deleting record with id #{dbo}"
+              dbrecord = dbatomic.find {|dba| dba.source_id == dbo}
+              if dbrecord
+#                puts "d/b record id is #{dbrecord.id}"
+                dbrecord.destroy
+              end
+              atomic_event_deleted_count += 1
+#              Event.find_by(source_id:        dbo,
+#                            eventcategory_id: @lesson_category.id,
+#                            eventsource_id:   @event_source.id).destroy
             end
           end
+          #
+          #  And now anything in the SB files which isn't in the d/b?
+          #
           sbonly = sbids - dbids
           if sbonly.size > 0
             puts "Adding #{sbonly.size} atomic events." if @verbose
             sbonly.each do |sbo|
               lesson = @tte_hash[sbo]
               #
-              #  For each of these, identify the staff, teaching group and room
-              #  involved.  Create an event and then attach the resources.
+              #  For each of these, just create the event.  Resources
+              #  will be handled later.
               #
-              if lesson.group_ident && (group = @group_hash[lesson.group_ident])
-                dbgroup = group.dbrecord
-              else
-                dbgroup = nil
-              end
-              if staff = @staff_hash[lesson.staff_ident]
-                dbstaff = staff.dbrecord
-              else
-                dbstaff = nil
-              end
-              if location = @location_hash[lesson.room_ident]
-                dblocation = location.dbrecord
-              else
-                dblocation = nil
-              end
               period = @period_hash[lesson.period_ident]
-              if period && (dbgroup || !lesson.time_note.blank?)
+              #
+              #  Although we're not going to attach the teachinggroup
+              #  at the moment, we may need to find it to use its name
+              #  as the event name.
+              #
+              dbgroup = nil
+              unless lesson.meeting?
+                if group = @group_hash[lesson.group_ident]
+                  dbgroup = group.dbrecord
+                end
+              end
+              if period && (lesson.meeting? || dbgroup)
                 event = Event.new
                 event.body          =
-                  lesson.time_note.blank? ? dbgroup.name : lesson.time_note
+                  lesson.meeting? ? lesson.time_note : dbgroup.name
                 event.eventcategory =
-                  dbgroup ? @lesson_category : @meeting_category
+                  lesson.meeting? ? @meeting_category : @lesson_category
                 event.eventsource   = @event_source
                 event.starts_at     =
                   Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
@@ -1696,30 +1804,15 @@ class SB_Loader
                 event.non_existent  = false
                 event.private       = false
                 event.all_day       = false
+                event.compound      = false
                 event.source_id     = lesson.timetable_ident
                 if event.save
+                  atomic_event_created_count += 1
                   event.reload
                   #
-                  #  And add the resources.
+                  #  Add it to our array of events which are in the d/b.
                   #
-                  if dbgroup
-                    c = Commitment.new
-                    c.event = event
-                    c.element = dbgroup.element
-                    c.save
-                  end
-                  if dbstaff
-                    c = Commitment.new
-                    c.event = event
-                    c.element = dbstaff.element
-                    c.save
-                  end
-                  if dblocation && dblocation.location
-                    c = Commitment.new
-                    c.event = event
-                    c.element = dblocation.location.element
-                    c.save
-                  end
+                  dbatomic << event
                 else
                   puts "Failed to save event #{event.inspect}"
                 end
@@ -1729,72 +1822,132 @@ class SB_Loader
             end
           end
           #
-          #  And any which need adjusting?
+          #  All the right atomic events should now be in the database.
+          #  Run through them making sure they have the right time and
+          #  the right resources.
           #
-          #  Note that we're currently adjusting only the time.  If a timetable
-          #  event changes its resources then we currently fail to update
-          #  it.  Work needed.
-          #
-          shared = sbids - sbonly
-          if shared.size > 0
-            puts "#{shared.size} existing events to check." if @verbose
-            shared.each do |sl|
-              lesson = @tte_hash[sl]
-              dbrecord = dbevents.detect {|dbevent| dbevent.source_id == sl}
-              if lesson && dbrecord
-                changed = false
-                period = @period_hash[lesson.period_ident]
-                starts_at =
-                  Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
-                ends_at   =
-                  Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
-                if dbrecord.starts_at != starts_at
-                  dbrecord.starts_at = starts_at
-                  changed = true
+          sbatomic.each do |lesson|
+            if event = dbatomic.detect {
+              |dba| dba.source_id == lesson.timetable_ident
+            }
+              #
+              #  Now have a d/b record (event) and a SB record (lesson).
+              #
+              changed = false
+              period = @period_hash[lesson.period_ident]
+              starts_at =
+                Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+              ends_at   =
+                Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+              if event.starts_at != starts_at
+                event.starts_at = starts_at
+                changed = true
+              end
+              if event.ends_at != ends_at
+                event.ends_at = ends_at
+                changed = true
+              end
+              if changed
+                if event.save
+                  atomic_event_retimed_count += 1
+                else
+                  puts "Failed to save amended event record."
                 end
-                if dbrecord.ends_at != ends_at
-                  dbrecord.ends_at = ends_at
-                  changed = true
-                end
-                if changed
-                  unless dbrecord.save
-                    puts "Failed to save amended event record."
+              end
+              #
+              #  And what about the resources?  We use our d/b element ids
+              #  as unique identifiers.
+              #
+              sb_element_ids = Array.new
+              if group = @group_hash[lesson.group_ident]
+                sb_element_ids << group.element_id
+              end
+              if staff = @staff_hash[lesson.staff_ident]
+                sb_element_ids << staff.element_id
+              end
+              if location = @location_hash[lesson.room_ident]
+                sb_element_ids << location.element_id
+              end
+              #
+              #  The element_id method can return nil
+              #
+              sb_element_ids.compact!
+              db_element_ids = event.commitments.collect {|c| c.element_id}
+              db_only = db_element_ids - sb_element_ids
+              sb_only = sb_element_ids - db_element_ids
+              sb_only.each do |sbid|
+                c = Commitment.new
+                c.event      = event
+                c.element_id = sbid
+                c.save
+                resources_added_count += 1
+              end
+              event.reload
+              if db_only.size > 0
+                event.commitments.each do |c|
+                  if db_only.include?(c.element_id)
+                    c.destroy
+                    resources_removed_count += 1
                   end
                 end
-              else
-                puts "Couldn't find existing lesson to check."
               end
+            else
+              puts "Very odd - d/b record #{lesson.timetable_ident} has disappeared."
             end
           end
-if false
           #
-          #  And now the compound events.
+          #  And now on to the compound events.
           #
-          dbhashes = dbcompound.collect {|dbc| dbc.source_hash}
-          sbhashes = sbcompound.collect {|sbc| sbc.source_hash}
+          #  Anything in the database, but not in the SB files?
+          #
           dbonly = dbhashes - sbhashes
           if dbonly.size > 0
-            puts "Deleting #{dbonly.size} compound events."
+            puts "Deleting #{dbonly.size} compound events." if @verbose
             #
-            #  These I'm afraid have to go.
+            #  These I'm afraid have to go.  Given only the source
+            #  hash we don't have enough to find the record in the d/b
+            #  (because they repeat every fortnight) but happily we
+            #  already have the relevant d/b record in memory.
             #
             dbonly.each do |dbo|
-              Event.find_by(source_hash:      dbo,
-                            eventcategory_id: @lesson_category.id,
-                            eventsource_id:   @event_source.id).destroy
+              dbrecord = dbcompound.find {|dbc| dbc.source_hash == dbo}
+              if dbrecord
+                dbrecord.destroy
+              end
+              compound_event_deleted_count += 1
             end
           end
+          #
+          #  And now anything in the SB files which isn't in the d/b?
+          #
           sbonly = sbhashes - dbhashes
           if sbonly.size > 0
-            puts "Adding #{sbonly.size} compound events."
-            sbonly.each do |sbo_hash|
-              lesson = lessons.detect {|tte| tte.source_hash == sbo_hash}
-              period = period_hash[lesson.period_ident]
-              if lesson && period
+            puts "Adding #{sbonly.size} compound events." if @verbose
+            sbonly.each do |sbo|
+              lesson = @ctte_hash[sbo]
+              #
+              #  For each of these, just create the event.  Resources
+              #  will be handled later.
+              #
+              period = @period_hash[lesson.period_ident]
+              #
+              #  Although we're not going to attach the teachinggroup
+              #  at the moment, we may need to find it to use its name
+              #  as the event name.
+              #
+              dbgroup = nil
+              unless lesson.meeting?
+                if group = @group_hash[lesson.group_ident]
+                  dbgroup = group.dbrecord
+                end
+              end
+              if period && (lesson.meeting? || dbgroup)
                 event = Event.new
-                event.body          = "Merged event"
-                event.eventcategory = ec
-                event.eventsource   = es
+                event.body          =
+                  lesson.meeting? ? lesson.time_note : dbgroup.name
+                event.eventcategory =
+                  lesson.meeting? ? @meeting_category : @lesson_category
+                event.eventsource   = @event_source
                 event.starts_at     =
                   Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
                 event.ends_at       =
@@ -1804,54 +1957,106 @@ if false
                 event.private       = false
                 event.all_day       = false
                 event.compound      = true
-                event.source_hash   = sbo_hash
+                event.source_hash   = lesson.source_hash
                 if event.save
+                  compound_event_created_count += 1
                   event.reload
                   #
-                  #  And now add the resources.
+                  #  Add it to our array of events which are in the d/b.
                   #
-                  lesson.group_idents.each do |gi|
-                    if group = group_hash[gi]
-                      dbgroup = group.dbrecord
-                      if dbgroup
-                        c = Commitment.new
-                        c.event = event
-                        c.element = dbgroup.element
-                        c.save
-                      end
-                    end
-                  end
-                  lesson.staff_idents.each do |si|
-                    if staff = staff_hash[si]
-                      dbstaff = staff.dbrecord
-                      if dbstaff
-                        c = Commitment.new
-                        c.event = event
-                        c.element = dbstaff.element
-                        c.save
-                      end
-                    end
-                  end
-                  lesson.room_idents.each do |ri|
-                    if location = location_hash[ri]
-                      dblocation = location.dbrecord
-                      if dblocation && dblocation.location
-                        c = Commitment.new
-                        c.event = event
-                        c.element = dblocation.location.element
-                        c.save
-                      end
-                    end
-                  end
+                  dbcompound << event
                 else
                   puts "Failed to save event #{event.inspect}"
                 end
               else
-                puts "Not loading - lesson = #{lesson.timetable_ident}, dbgroup = #{dbgroup ? dbgroup.name : "Not found"}"
+                puts "Not loading - lesson = #{lesson.source_hash}"
+                puts "  period = #{period}"
+                puts "  lesson.meeting = #{lesson.meeting?}"
+                puts "  dbgroup = #{dbgroup}"
+    #            puts "Not loading - lesson = #{lesson.timetable_ident}, dbgroup = #{dbgroup ? dbgroup.name : "Not found"}"
               end
             end
           end
-end
+          #
+          #  All the right compound events should now be in the database.
+          #  Run through them making sure they have the right time and
+          #  the right resources.
+          #
+          sbcompound.each do |lesson|
+            if event = dbcompound.detect {
+              |dbc| dbc.source_hash == lesson.source_hash
+            }
+              #
+              #  Now have a d/b record (event) and a SB record (lesson).
+              #
+              changed = false
+              period = @period_hash[lesson.period_ident]
+              starts_at =
+                Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+              ends_at   =
+                Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+              if event.starts_at != starts_at
+                event.starts_at = starts_at
+                changed = true
+              end
+              if event.ends_at != ends_at
+                event.ends_at = ends_at
+                changed = true
+              end
+              if changed
+                if event.save
+                  compound_event_retimed_count += 1
+                else
+                  puts "Failed to save amended compound event record."
+                end
+              end
+              #
+              #  And what about the resources?  We use our d/b element ids
+              #  as unique identifiers.
+              #
+              sb_element_ids = Array.new
+              lesson.group_idents.each do |gi|
+                if group = @group_hash[gi]
+                  sb_element_ids << group.element_id
+                end
+              end
+              lesson.staff_idents.each do |si|
+                if staff = @staff_hash[si]
+                  sb_element_ids << staff.element_id
+                end
+              end
+              lesson.room_idents.each do |ri|
+                if location = @location_hash[ri]
+                  sb_element_ids << location.element_id
+                end
+              end
+              #
+              #  The element_id method can return nil
+              #
+              sb_element_ids.compact!
+              db_element_ids = event.commitments.collect {|c| c.element_id}
+              db_only = db_element_ids - sb_element_ids
+              sb_only = sb_element_ids - db_element_ids
+              sb_only.each do |sbid|
+                c = Commitment.new
+                c.event      = event
+                c.element_id = sbid
+                c.save
+                resources_added_count += 1
+              end
+              event.reload
+              if db_only.size > 0
+                event.commitments.each do |c|
+                  if db_only.include?(c.element_id)
+                    c.destroy
+                    resources_removed_count += 1
+                  end
+                end
+              end
+            else
+              puts "Very odd - d/b record #{lesson.source_hash} has disappeared."
+            end
+          end
 
         else
           puts "Couldn't find lesson entries for #{date.strftime("%A")} of week #{week_letter}."
@@ -1859,6 +2064,30 @@ end
       else
         puts "No week letter for #{date}" if @verbose
       end
+    end
+    if atomic_event_created_count > 0 || @verbose
+      puts "#{atomic_event_created_count} atomic timetable events added."
+    end
+    if atomic_event_deleted_count > 0 || @verbose
+      puts "#{atomic_event_deleted_count} atomic timetable events deleted."
+    end
+    if atomic_event_retimed_count > 0 || @verbose
+      puts "#{atomic_event_retimed_count} atomic timetable events re-timed."
+    end
+    if compound_event_created_count > 0 || @verbose
+      puts "#{atomic_event_created_count} compound timetable events added."
+    end
+    if compound_event_deleted_count > 0 || @verbose
+      puts "#{atomic_event_deleted_count} compound timetable events deleted."
+    end
+    if compound_event_retimed_count > 0 || @verbose
+      puts "#{atomic_event_retimed_count} compound timetable events re-timed."
+    end
+    if resources_added_count > 0 || @verbose
+      puts "#{resources_added_count} resources added to timetable events."
+    end
+    if resources_removed_count > 0 || @verbose
+      puts "#{resources_removed_count} resources removed from timetable events."
     end
   end
 
@@ -2134,8 +2363,7 @@ end
     oh_events_deleted_count = 0
     events.each do |event|
       unless @other_half_hash[event.source_id]
-        #event.destroy
-        puts "Would have destroyed #{event.body}"
+        event.destroy
         oh_events_deleted_count += 1
       end
     end
@@ -2160,12 +2388,17 @@ end
 
 begin
   options = OpenStruct.new
-  options.verbose    = false
-  options.full_load  = false
-  options.era        = nil
-  options.start_date = nil
+  options.verbose         = false
+  options.full_load       = false
+  options.just_initialise = false
+  options.era             = nil
+  options.start_date      = nil
   OptionParser.new do |opts|
     opts.banner = "Usage: importsb.rb [options]"
+
+    opts.on("-i", "--initialise", "Initialise only") do |i|
+      options.just_initialise = i
+    end
 
     opts.on("-v", "--verbose", "Run verbosely") do |v|
       options.verbose = v
@@ -2193,14 +2426,16 @@ begin
   end.parse!
 
   SB_Loader.new(options) do |loader|
-    loader.do_pupils
-    loader.do_staff
-    loader.do_locations
-    loader.do_tutorgroups
-    loader.do_teachinggroups
-    loader.do_timetable
-    loader.do_cover
-    loader.do_other_half
+    unless options.just_initialise
+      loader.do_pupils
+      loader.do_staff
+      loader.do_locations
+      loader.do_tutorgroups
+      loader.do_teachinggroups
+      loader.do_timetable
+      loader.do_cover
+      loader.do_other_half
+    end
   end
 rescue RuntimeError => e
   puts e
