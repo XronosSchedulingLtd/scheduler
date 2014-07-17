@@ -473,10 +473,8 @@ class SB_OtherHalfOccurence
 
   include Slurper
 
-  attr_reader :oh_occurence_ident,
-              :starts_at,
+  attr_reader :starts_at,
               :ends_at,
-              :activity_name,
               :staff,
               :group,
               :location
@@ -546,7 +544,7 @@ class SB_OtherHalfOccurence
 
   def wanted?(loader)
     @complete &&
-    !@activity_name.empty? &&
+    !@activity_name.blank? &&
     @starts_at >= loader.era.starts_on &&
     @starts_at <= loader.era.ends_on &&
     @starts_at <= @ends_at
@@ -869,7 +867,8 @@ class SB_Timetableentry
                       Column["StaffIdent",     :staff_ident,     true],
                       Column["RoomIdent",      :room_ident,      true],
                       Column["Period",         :period_ident,    true],
-                      Column["AcYearIdent",    :ac_year_ident,   true]]
+                      Column["AcYearIdent",    :ac_year_ident,   true],
+                      Column["TimeNote",       :time_note,       false]]
 
   include Slurper
 
@@ -892,11 +891,11 @@ class SB_Timetableentry
 
   def wanted?(loader)
     #
-    #  For now we don't want any events that don't involve any kind
-    #  of teaching group.
+    #  For now we require either that they involve a teaching group
+    #  (a normal lesson) or they have a time_note (usually a meeting).
     #
-    @ac_year_ident == loader.send("era").source_id &&
-    @group_ident != nil
+    @ac_year_ident == loader.era.source_id &&
+    (@group_ident != nil || !@time_note.blank?)
   end
 
   def <=>(other)
@@ -1216,6 +1215,8 @@ class SB_Loader
     raise "Can't find event category for week letters." unless @week_letter_category
     @lesson_category = Eventcategory.find_by_name("Lesson")
     raise "Can't find event category for lessons." unless @lesson_category
+    @meeting_category = Eventcategory.find_by_name("Meeting")
+    raise "Can't find event category for meetings." unless @meeting_category
     @invigilation_category = Eventcategory.find_by_name("Exam invigilation")
     raise "Can't find event category for invigilations." unless @invigilation_category
     @other_half_category = Eventcategory.find_by_name("Other Half")
@@ -1664,7 +1665,7 @@ class SB_Loader
               #  For each of these, identify the staff, teaching group and room
               #  involved.  Create an event and then attach the resources.
               #
-              if group = @group_hash[lesson.group_ident]
+              if lesson.group_ident && (group = @group_hash[lesson.group_ident])
                 dbgroup = group.dbrecord
               else
                 dbgroup = nil
@@ -1680,10 +1681,12 @@ class SB_Loader
                 dblocation = nil
               end
               period = @period_hash[lesson.period_ident]
-              if period && dbgroup
+              if period && (dbgroup || !lesson.time_note.blank?)
                 event = Event.new
-                event.body          = dbgroup.name
-                event.eventcategory = @lesson_category
+                event.body          =
+                  lesson.time_note.blank? ? dbgroup.name : lesson.time_note
+                event.eventcategory =
+                  dbgroup ? @lesson_category : @meeting_category
                 event.eventsource   = @event_source
                 event.starts_at     =
                   Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
