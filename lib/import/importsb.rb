@@ -911,6 +911,7 @@ class SB_Timetableentry
     @staff_idents = []
     @group_idents = []
     @room_idents  = []
+    @body_text = nil
   end
 
   def adjust(loader)
@@ -959,25 +960,77 @@ class SB_Timetableentry
   end
 
   #
+  #  Provides body text for this event when loaded into the d/b.
+  #
+  def body_text(loader)
+    unless @body_text
+      if meeting?
+        @body_text = self.time_note
+      else
+        if loader.group_hash[self.group_ident]
+          @body_text = loader.group_hash[self.group_ident].name
+        else
+          @body_text = "Unknown"
+        end
+        if @compound && / Assem\Z/ =~ @body_text
+          @body_text = "Assembly"
+        elsif @compound && / Chap\Z/ =~ @body_text
+          @body_text = "Chapel"
+        end
+      end
+    end
+    @body_text
+  end
+  #
   #  A method to encapsulate the code which decides whether two entries
   #  are sufficiently similar to be merged.
   #
-  def can_merge?(other)
-    #
-    #  Currently we allow only meetings to be merged.
-    #
-    self.atomic? && other.atomic? &&
-    (self.meeting? &&
-     other.meeting? &&
-     self.period_ident == other.period_ident &&
-     self.time_note == other.time_note)
+  def can_merge?(loader, other)
+    if self.group_ident && loader.group_hash[self.group_ident]
+      own_group_name = loader.group_hash[self.group_ident].name
+    else
+      own_group_name = ""
+    end
+    if other.group_ident && loader.group_hash[other.group_ident]
+      other_group_name = loader.group_hash[other.group_ident].name
+    else
+      other_group_name = ""
+    end
+    self.atomic? && other.atomic? && self.period_ident == other.period_ident &&
+    (
+      #
+      #  Lots of people at a single meeting?
+      #
+      (self.meeting? &&
+       other.meeting? &&
+       self.time_note == other.time_note) ||
+      #
+      #  An assembly?
+      #
+      (!self.meeting? && !other.meeting? &&
+       / Assem\Z/ =~ own_group_name &&
+       / Assem\Z/ =~ other_group_name) ||
+      #
+      #  Or chapel?
+      #
+      (!self.meeting? && !other.meeting? &&
+       / Chap\Z/ =~ own_group_name &&
+       / Chap\Z/ =~ other_group_name) ||
+      #
+      #  Or sport?  Note that for sport, the two should boast the same
+      #  group, not just ones with similar names.
+      #
+      (!self.meeting? && !other.meeting? &&
+       / Spt\Z/ =~ own_group_name &&
+       self.group_ident == other.group_ident)
+    )
   end
 
   #
   #  Passed an array of Timetableentries, we sort them and identify any
   #  that can be merged into a single event.
   #
-  def self.sort_and_merge(ttes)
+  def self.sort_and_merge(loader, ttes)
 #    puts "Entering sort_and_merge"
     #
     #  We are looking for events which share the same period_ident, and
@@ -993,7 +1046,7 @@ class SB_Timetableentry
 #      puts "rest.size = #{rest.size}"
       sample = rest[0]
       matching, rest = rest.partition {|tte|
-        tte == sample || sample.can_merge?(tte)
+        tte == sample || sample.can_merge?(loader, tte)
       }
       if matching.size > 1
 #        puts "Merging the following events."
@@ -1263,7 +1316,8 @@ class SB_Loader
     puts "Finished sorting academic records." if @verbose
     puts "Merging compound timetable entries." if @verbose
     puts "#{@timetable_entries.size} timetable entries before merge." if @verbose
-    @timetable_entries = SB_Timetableentry.sort_and_merge(@timetable_entries)
+    @timetable_entries =
+      SB_Timetableentry.sort_and_merge(self, @timetable_entries)
     puts "#{@timetable_entries.size} timetable entries after merge." if @verbose
     #
     #  Let's have a separate hash for finding compound ttes.
@@ -1793,21 +1847,9 @@ class SB_Loader
               #  will be handled later.
               #
               period = @period_hash[lesson.period_ident]
-              #
-              #  Although we're not going to attach the teachinggroup
-              #  at the moment, we may need to find it to use its name
-              #  as the event name.
-              #
-              dbgroup = nil
-              unless lesson.meeting?
-                if group = @group_hash[lesson.group_ident]
-                  dbgroup = group.dbrecord
-                end
-              end
-              if period && (lesson.meeting? || dbgroup)
+              if period
                 event = Event.new
-                event.body          =
-                  lesson.meeting? ? lesson.time_note : dbgroup.name
+                event.body          = lesson.body_text(self)
                 event.eventcategory =
                   lesson.meeting? ? @meeting_category : @lesson_category
                 event.eventsource   = @event_source
@@ -1860,6 +1902,10 @@ class SB_Loader
               end
               if event.ends_at != ends_at
                 event.ends_at = ends_at
+                changed = true
+              end
+              if event.body != lesson.body_text(self)
+                event.body = lesson.body_text(self)
                 changed = true
               end
               if changed
@@ -1958,8 +2004,7 @@ class SB_Loader
               end
               if period && (lesson.meeting? || dbgroup)
                 event = Event.new
-                event.body          =
-                  lesson.meeting? ? lesson.time_note : dbgroup.name
+                event.body          = lesson.body_text(self)
                 event.eventcategory =
                   lesson.meeting? ? @meeting_category : @lesson_category
                 event.eventsource   = @event_source
@@ -2016,6 +2061,10 @@ class SB_Loader
               end
               if event.ends_at != ends_at
                 event.ends_at = ends_at
+                changed = true
+              end
+              if event.body != lesson.body_text(self)
+                event.body = lesson.body_text(self)
                 changed = true
               end
               if changed
@@ -2087,16 +2136,16 @@ class SB_Loader
       puts "#{atomic_event_deleted_count} atomic timetable events deleted."
     end
     if atomic_event_retimed_count > 0 || @verbose
-      puts "#{atomic_event_retimed_count} atomic timetable events re-timed."
+      puts "#{atomic_event_retimed_count} atomic timetable events amended."
     end
     if compound_event_created_count > 0 || @verbose
-      puts "#{atomic_event_created_count} compound timetable events added."
+      puts "#{compound_event_created_count} compound timetable events added."
     end
     if compound_event_deleted_count > 0 || @verbose
-      puts "#{atomic_event_deleted_count} compound timetable events deleted."
+      puts "#{compound_event_deleted_count} compound timetable events deleted."
     end
     if compound_event_retimed_count > 0 || @verbose
-      puts "#{atomic_event_retimed_count} compound timetable events re-timed."
+      puts "#{compound_event_retimed_count} compound timetable events amended."
     end
     if resources_added_count > 0 || @verbose
       puts "#{resources_added_count} resources added to timetable events."
