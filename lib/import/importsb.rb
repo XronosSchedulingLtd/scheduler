@@ -929,10 +929,16 @@ class SB_Timetableentry
     self.timetable_ident <=> other.timetable_ident
   end
 
+  def atomic?
+    !@compound
+  end
+
   def meeting?
     #
     #  Lessons have a teaching group.  Meetings have a title (@time_note).
-    #  Which is the definitive decider?
+    #  Which is the definitive decider?  Not sure, but since we've already
+    #  rejected records which have neither group_ident nor time_note, this
+    #  test should be OK.
     #
     @group_ident == nil && @group_idents.size == 0
   end
@@ -950,6 +956,21 @@ class SB_Timetableentry
      }, room #{
       self.room_ident ? self.room_ident : "nil"
      }"
+  end
+
+  #
+  #  A method to encapsulate the code which decides whether two entries
+  #  are sufficiently similar to be merged.
+  #
+  def can_merge?(other)
+    #
+    #  Currently we allow only meetings to be merged.
+    #
+    self.atomic? && other.atomic? &&
+    (self.meeting? &&
+     other.meeting? &&
+     self.period_ident == other.period_ident &&
+     self.time_note == other.time_note)
   end
 
   #
@@ -972,13 +993,7 @@ class SB_Timetableentry
 #      puts "rest.size = #{rest.size}"
       sample = rest[0]
       matching, rest = rest.partition {|tte|
-        tte == sample ||
-        (sample.group_ident == nil &&
-         !sample.time_note.blank? &&
-         tte.period_ident == sample.period_ident &&
-         tte.time_note == sample.time_note)
-#         ((tte.group_ident && (tte.group_ident == sample.group_ident)) ||
-#          (tte.room_ident  && (tte.room_ident  == sample.room_ident))))
+        tte == sample || sample.can_merge?(tte)
       }
       if matching.size > 1
 #        puts "Merging the following events."

@@ -75,6 +75,8 @@ class Event < ActiveRecord::Base
   scope :on, lambda {|date| where("starts_at >= ? and ends_at < ?",
                                   date, date + 1.day)}
   scope :source_id, lambda {|id| where("source_id = ?", id) }
+  scope :atomic, lambda { where("compound = false") }
+  scope :compound, lambda { where("compound = true") }
 
   #
   #  For pagination.
@@ -197,10 +199,27 @@ class Event < ActiveRecord::Base
   end
 
   #
-  #  What resources are involved in this event?
+  #  What resources are directly involved in this event?
   #
   def resources
     self.elements.collect {|e| e.entity}
+  end
+
+  #
+  #  These need enhancing to take account of the fact that particular
+  #  types of resource might be involved in an event by dint of being
+  #  members of a group.  Pupils especially, but it could apply to anything.
+  #
+  def locations
+    self.resources.select {|r| r.instance_of?(Location)}
+  end
+
+  def pupils
+    self.resources.select {|r| r.instance_of?(Pupil)}
+  end
+
+  def staff
+    self.resources.select {|r| r.instance_of?(Staff)}
   end
 
   # Returns an array of events for the indicated category, resource

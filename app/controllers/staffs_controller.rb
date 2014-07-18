@@ -94,6 +94,10 @@ class StaffsController < ApplicationController
               event.dtstart = dbevent.starts_at
               event.dtend   = dbevent.ends_at
             end
+            locations = dbevent.locations
+            if locations.size > 0
+              event.location = locations.collect {|l| l.name}.join(",")
+            end
           end
         end
       end.export(tf)
