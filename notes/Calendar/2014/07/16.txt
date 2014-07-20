@@ -42,4 +42,40 @@ Note the weekday number of 3, and the date id of 4298.  4298 is 1st Sep 2014.  C
 
 Let's get a fresh copy of the database from school and do a fresh run from scratch.  Job running.  7 seconds - far too fast.  What went wrong?  No Other Half event category.  Second run took 3m 11.846s.  It seems to have been very successful.  Excellent.
 
+Let's look at someone different.  How about SAE himself?  He seems fine too - he has Rugby on Tue, Wed and Thu.
 
+Steps to get this on to the live system:
+
+[*] Backup database
+[*] export RAILS_ENV=production
+[*] Propagate new code
+[*] rake db:migrate
+[*] touch tmp/restart.txt
+[*] Access the app (to make sure it's restarted)
+[*] Do a full data load.
+
+Just remembered that I've crippled the loading utility.  Better re-enable it and test it again before I send the code out.
+
+Started the data load at 14:52.  Took about 6 minutes, so pretty fast.  Try downloading SAE's calendar.  Yes - it seems to contain his OH commitments.
+
+Now looking for meetings.  My UserId is 358.  There are lots of events for 358 which don't involve any teaching groups - up to now I've been ignoring them.
+
+E.g.
+
+TimetableIdent,GroupIdent,StaffIdent,RoomIdent,Period,AcYearIdent
+287676,,358,,27,14
+291957,,358,,3,14
+291958,,358,,15,14
+291959,,358,,46,14
+291960,,358,,52,14
+291961,,358,,102,14
+291962,,358,,114,14
+291972,,358,,80,14
+291973,,358,,40,14
+293324,,358,,8,14
+
+Let's check out some of those periods.  None of them seems to be my Thursday meeting.  They all lack both a group and a room, but then so do the meetings.  I can't tell how they'd be attached to a week, and there seem to be far too many for me.  Time for a break I think.
+
+Maths Dept Meeting occurs in period 27.  Apparently it's Tuesday of Week A.
+
+Ah - that was year 14.  We are now in year 15.

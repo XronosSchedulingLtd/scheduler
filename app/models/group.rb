@@ -15,6 +15,7 @@ class Group < ActiveRecord::Base
   #  Item can be any kind of entity, or an element.
   #
   def add_member(item, as_of = nil)
+    Rails.logger.info("Entering add_member for #{item.name}")
     if item.instance_of?(Element)
       element = item
     else
@@ -29,7 +30,7 @@ class Group < ActiveRecord::Base
       m.element_id == element.id
     }
     if existing_membership
-      #logger.info("Found existing membership.")
+      Rails.logger.info("Found existing membership.")
       if existing_membership.inverse
         #
         #  Currently explicitly excluded from the group at this date.
@@ -55,7 +56,7 @@ class Group < ActiveRecord::Base
         #
       end
     else
-      #logger.info("No existing membership.")
+      Rails.logger.info("No existing membership.")
       #
       #  No existing membership record.  Create one.
       #
@@ -65,7 +66,7 @@ class Group < ActiveRecord::Base
       membership.starts_on = as_of
       membership.inverse = false
       membership.save!
-      #logger.info("Created new membership record.")
+      Rails.logger.info("Created new membership record.")
     end
   end
 
@@ -237,10 +238,23 @@ class Group < ActiveRecord::Base
   #
   #  See also the helper method final_members
   #
+  #  And after some further thought and experience, I've changed my mind
+  #  The logic now is that if you specify a date, that date takes
+  #  effect.  If you *don't* specify a date you get today's date, or the
+  #  first or last date of the groups existence if its existence period
+  #  does not include today.
+  #
   #  Note that this method returns *entities* - of whatever type.
   #
   def members(given_date = nil, recurse = true, exclude_groups = false)
-    given_date ||= Date.today
+    unless given_date
+      given_date = Date.today
+      if given_date < self.starts_on
+        given_date = self.starts_on
+      elsif self.ends_on != nil && given_date > self.ends_on
+        given_date = self.ends_on
+      end
+    end
     return [] unless active_on(given_date)
     if recurse
       active_memberships = self.memberships.active_on(given_date)
@@ -391,6 +405,30 @@ class Group < ActiveRecord::Base
   end
 
   #
+  #  A bit of a maintenance method.  Used to adjust the start date
+  #  of a group (and any of its membership records) to a new date.
+  #
+  def set_start_date(new_starts_on)
+    old_starts_on = self.starts_on
+    if old_starts_on != new_starts_on
+      self.starts_on = new_starts_on
+      if self.ends_on != nil &&
+         self.ends_on < self.starts_on
+        self.ends_on = self.starts_on
+      end
+      self.save!
+    end
+    #
+    #  Need to check our membership records, even if we haven't changed
+    #  our start date.  It might be there was already a rogue (starts
+    #  too early) one there.
+    #
+    self.memberships.each do |membership|
+      membership.set_start_date(old_starts_on, new_starts_on)
+    end
+  end
+
+  #
   #  Note that we are passed the date on which the deletion occurs, but
   #  we store the active dates of the group, inclusive.  Thus we set the
   #  ends_on date to the day before we have been given.  That's the last
@@ -429,10 +467,10 @@ class Group < ActiveRecord::Base
   private
 
   def not_backwards
-    if ends_on &&
-       starts_on &&
-       ends_on < starts_on
-      errors.add(:ends_on, "(#{ends_on.to_s}) must be no earlier than start date (#{starts_on.to_s}). Group #{self.id}")
+    if self.ends_on &&
+       self.starts_on &&
+       self.ends_on < self.starts_on
+      errors.add(:ends_on, "(#{self.ends_on.to_s}) must be no earlier than start date (#{self.starts_on.to_s}). Group #{self.id}")
     end
   end
 

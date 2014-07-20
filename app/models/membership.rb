@@ -63,12 +63,47 @@ class Membership < ActiveRecord::Base
   def role_name=(newname)
   end
 
+  #
+  #  Called when our parent group has changed its start date.  Adjust ours
+  #  to match.  If we previously started exactly on the groups start date
+  #  then we carry on doing that.  Otherwise, if we started before the new
+  #  start date then we adjust to starting on it, and if we started after
+  #  the new start date then we stay where we were.
+  #
+  #  Might need to adjust our end date to match.  It's possible we will
+  #  cease to exist entirely.
+  #
+  #
+  def set_start_date(old_group_start, new_group_start)
+    if self.starts_on > new_group_start
+      #
+      #  We start later than the new group start.  No action needed, unless
+      #  we used to start exactly on the old group start.
+      #
+      if self.starts_on == old_group_start
+        self.starts_on = new_group_start
+        self.save!
+      end
+    elsif self.starts_on < new_group_start
+      self.starts_on = new_group_start
+      if self.ends_on == nil || self.ends_on >= self.starts_on
+        self.save!
+      else
+        #
+        #  Our new start date is now after our end date.
+        #  Self-destruct.
+        #
+        self.destroy!
+      end
+    end
+  end
+
   private
 
   def not_backwards
-    if ends_on &&
-       starts_on &&
-       ends_on < starts_on
+    if self.ends_on &&
+       self.starts_on &&
+       self.ends_on < self.starts_on
       errors.add(:ends_on, "must be no earlier than start date")
     end
   end

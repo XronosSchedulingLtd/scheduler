@@ -1506,14 +1506,14 @@ class SB_Loader
         #
         #  And now sort out the pupils for this tutor group.
         #
-        db_member_ids = dbrecord.members.collect {|s| s.source_id}
+        db_member_ids = dbrecord.members(@start_date).collect {|s| s.source_id}
         sb_member_ids = tg.records.collect {|r| r.pupil_ident}
         missing_from_db = sb_member_ids - db_member_ids
         missing_from_db.each do |pupil_id|
           pupil = @pupil_hash[pupil_id]
           if pupil && pupil.dbrecord
             begin
-              dbrecord.add_member(pupil.dbrecord)
+              dbrecord.add_member(pupil.dbrecord, @start_date)
               tgmember_loaded_count += 1
             rescue ActiveRecord::RecordInvalid => e
               puts "Failed to add #{pupil.name} to tutorgroup #{tg.name}"
@@ -1630,7 +1630,7 @@ class SB_Loader
         #  How do the memberships compare?  The key identifier is the id
         #  of the pupil record as provided by SB.
         #
-        db_member_ids = dbgroup.members.collect {|s| s.source_id}
+        db_member_ids = dbgroup.members(@start_date).collect {|s| s.source_id}
         sb_member_ids = group.records.collect {|r| r.pupil_ident}
         missing_from_db = sb_member_ids - db_member_ids
         missing_from_db.each do |pupil_id|
