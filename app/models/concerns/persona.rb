@@ -4,11 +4,11 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-module Grouping
+module Persona
   extend ActiveSupport::Concern
 
   included do
-    has_one :group, :as => :visible_group, :dependent => :destroy
+    has_one :group, :as => :persona, :dependent => :destroy
 
     after_initialize :set_flags
     after_save       :update_group

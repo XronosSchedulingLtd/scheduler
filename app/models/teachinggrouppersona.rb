@@ -4,9 +4,9 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Teachinggroup < ActiveRecord::Base
+class Teachinggrouppersona < ActiveRecord::Base
 
-  include Grouping
+  include Persona
 
   self.per_page = 15
 

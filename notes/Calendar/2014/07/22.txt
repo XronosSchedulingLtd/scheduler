@@ -1,0 +1,59 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-07-22T07:28:22+01:00
+
+====== Tuesday 22 Jul 2014 ======
+
+Just had a thought - if a group is renamed, any corresponding timetable event should also be renamed, since timetable events derive their names from the teaching group involved.
+
+This could be done either by an after_save method in the teaching group, or by extra logic in the loading code.  Arguably the former is preferable, since it will then happen regardless of the cause of the renaming.  I could do that as part of today's re-factoring.
+
+What data items are going to move between models?  What needs updating?
+
+From tutor/teaching group into the group proper we have:
+
+* name
+* era_id
+* current
+
+Each of these needs copying over.
+Note that the group will now refer the era, rather than the visible group doing it.
+
+Each group will gain its own element id, and all commitments should be shifted from the visible group to the group proper.  Better rather to have the existing element re-directed.  Need to make sure the tutor/teaching groups don't accidentally regain their elements due to after_save processing.
+
+My idea is to take an up to date copy of the live database and try to convert it in situ.  If I fail, I can revert things later.
+
+Steps:
+
+[*] Dump live system d/b
+[*] Copy home
+[*] Load
+[*] Disable the "update_element" method in the elemental concern
+[*] Add extra fields (listed above) to the group record
+[*] Write and run method to copy over the relevant contents
+[*] Modify group so it understands belonging to an era (and era, likewise)
+[*] Make each group elemental
+[*] Write and run method to move existing element records to point at group rather than visible group
+[*] Stop visible groups being elemental
+[*] Re-enable update_element
+[*] Tag code as turning-point
+[*] Remove relevant fields from tutorgroup and teachinggroup
+[*] Dump database (A)
+[*] Modify era to let it find tutor and teachinggroups still
+[*] Rename visible group models and tables to free up the names
+[*] Dump database (B)
+[*] Modify group records to point to new personae
+[*] Dump database (C)
+[ ] Tag code as "renamed"
+[ ] See what runs
+[ ] Invert the logic of group creation - we now create a Group and give it a persona
+[ ] General trawl through the code to change anything which expects to indirect to find a group
+[ ] Dynamic code to make groups respond to visible group attributes
+[ ] Make sure loading code (creating new groups) still works
+[ ] Possibly implement a Tutorgroup.new/Teachinggroup.new shim
+
+Plenty to keep me busy.  May or may not work.  Probably will hit some nasty bump in the road.
+
+The rename is quite interesting.  I'm tempted to turn TutorGroup into TutorPersona, etc.  The only issue there is with plurals - Rails thinks the plural of Persona is Personas.  I can fix that, but perhaps it would be better simply to avoid the problem?  Sod it - let's go for it.
+
+I will need to write another method to change all the group records again.

@@ -20,11 +20,22 @@ Steps to get all my current changes on to the live system.
 [*] Refresh my d/b from the live dump from Fri (18/7)
 [*] Run the era.fix_all_groups method
 [*] Load the latest data files - check for issues.
-[ ] Check in the latest code and send to nimbus
-[ ] Dump live d/b
-[ ] Latest code to live system
-[ ] Restart live system
-[ ] export RAILS_ENV=production
-[ ] Run era.fix_all_groups
-[ ] Do a test run with latest data (which should do nothing).
+[*] Check in the latest code and send to nimbus
+[*] Dump live d/b
+[*] Latest code to live system
+[*] Restart live system
+[*] export RAILS_ENV=production
+[*] Run era.fix_all_groups
+[*] Do a test run with latest data (which should do nothing).
 
+Then I need to tag my git tree to give me a point to which I can come back later if needs be.
+
+Now, the model structure wants to change from this:
+
+{{./diagram.png?type=diagram}}
+
+to this:
+
+{{./diagram001.png?type=diagram}}
+
+Group Persona - good term?

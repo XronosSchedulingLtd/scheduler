@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140722081333) do
+ActiveRecord::Schema.define(version: 20140722092701) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -83,15 +83,15 @@ ActiveRecord::Schema.define(version: 20140722081333) do
   end
 
   create_table "groups", force: true do |t|
-    t.date     "starts_on",                          null: false
+    t.date     "starts_on",                    null: false
     t.date     "ends_on"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "visible_group_id"
-    t.string   "visible_group_type"
+    t.integer  "persona_id"
+    t.string   "persona_type"
     t.string   "name"
     t.integer  "era_id"
-    t.boolean  "current",            default: false
+    t.boolean  "current",      default: false
   end
 
   add_index "groups", ["era_id"], name: "index_groups_on_era_id", using: :btree
@@ -168,25 +168,18 @@ ActiveRecord::Schema.define(version: 20140722081333) do
 
   add_index "staffs", ["source_id"], name: "index_staffs_on_source_id", using: :btree
 
-  create_table "teachinggroups", force: true do |t|
-    t.string   "name"
-    t.integer  "era_id"
-    t.boolean  "current"
+  create_table "teachinggrouppersonae", force: true do |t|
     t.integer  "source_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  add_index "teachinggroups", ["era_id"], name: "index_teachinggroups_on_era_id", using: :btree
-  add_index "teachinggroups", ["source_id"], name: "index_teachinggroups_on_source_id", using: :btree
+  add_index "teachinggrouppersonae", ["source_id"], name: "index_teachinggrouppersonae_on_source_id", using: :btree
 
-  create_table "tutorgroups", force: true do |t|
-    t.string   "name"
+  create_table "tutorgrouppersonae", force: true do |t|
     t.string   "house"
     t.integer  "staff_id"
-    t.integer  "era_id"
     t.integer  "start_year"
-    t.boolean  "current"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

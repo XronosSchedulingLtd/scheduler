@@ -5,7 +5,7 @@
 
 class Group < ActiveRecord::Base
   belongs_to :era
-  belongs_to :visible_group, :polymorphic => true
+  belongs_to :persona, :polymorphic => true
   has_many :memberships, :dependent => :destroy
 
   validates :starts_on, presence: true
@@ -20,6 +20,10 @@ class Group < ActiveRecord::Base
 
   def element_name
     name
+  end
+
+  def active
+    true
   end
 
   #
@@ -508,6 +512,27 @@ class Group < ActiveRecord::Base
       end
     end
     puts "Moved #{grabbed_count} element records."
+    nil
+  end
+
+  def self.move_to_personae
+    moved_count = 0
+    failed_count = 0
+    Group.all.each do |g|
+      if g.persona_type == "Tutorgroup"
+        g.persona_type = "Tutorgrouppersona"
+        g.save!
+        moved_count += 1
+      elsif g.persona_type == "Teachinggroup"
+        g.persona_type = "Teachinggrouppersona"
+        g.save!
+        moved_count += 1
+      else
+        failed_count += 1
+      end
+    end
+    puts "Moved #{moved_count} groups to personae."
+    puts "Couldn't move #{failed_count} groups."
     nil
   end
 

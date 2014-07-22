@@ -6,16 +6,19 @@
 
 class Era < ActiveRecord::Base
 
-  has_many :teachinggroups, dependent: :destroy
-  has_many :tutorgroups,    dependent: :destroy
   has_many :groups,         dependent: :destroy
 
+  def teachinggroups
+    self.groups.select {|g| g.visible_group_type == "Teachinggroup"}
+  end
+
+  def tutorgroups
+    self.groups.select {|g| g.visible_group_type == "Tutorgroup"}
+  end
+
   def fix_all_groups
-    self.teachinggroups.each do |tg|
-      tg.group.set_start_date(self.starts_on)
-    end
-    self.tutorgroups.each do |tg|
-      tg.group.set_start_date(self.starts_on)
+    self.groups.each do |g|
+      g.set_start_date(self.starts_on)
     end
     nil
   end

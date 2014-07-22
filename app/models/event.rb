@@ -222,6 +222,10 @@ class Event < ActiveRecord::Base
     self.resources.select {|r| r.instance_of?(Staff)}
   end
 
+  def groups
+    self.resources.select {|r| r.instance_of?(Group)}
+  end
+
   # Returns an array of events for the indicated category, resource
   # and dates.
   # If no date is given, return today's events.

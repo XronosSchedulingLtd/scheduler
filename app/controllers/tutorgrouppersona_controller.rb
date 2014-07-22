@@ -4,7 +4,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class TutorgroupsController < ApplicationController
+class TutorgrouppersonaController < ApplicationController
   before_action :set_tutorgroup, only: [:show, :edit, :update, :destroy]
 
   # GET /tutorgroups

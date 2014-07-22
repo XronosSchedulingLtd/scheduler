@@ -4,14 +4,14 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Tutorgroup < ActiveRecord::Base
+class Tutorgrouppersona < ActiveRecord::Base
 
   validates :house, presence: true
   validates :staff, presence: true
 
   belongs_to :staff
 
-  include Grouping
+  include Persona
 
   self.per_page = 15
   def active

@@ -25,4 +25,5 @@ Created Monday 14 July 2014
 [ ] Click through to browse through resources.
 [ ] Set lists feed for markbook
 [ ] Customisable calendar feeds
-[ ] Public calendar feeds
+[ ] Public calendar feeds - in and out
+[ ] Personal calendars

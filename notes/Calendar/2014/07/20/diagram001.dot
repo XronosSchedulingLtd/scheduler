@@ -1,0 +1,17 @@
+digraph models {
+  rankdir=TB;
+  scale=0.5;
+  node [shape=box, style="filled,rounded", fillcolor=lightskyblue2];
+
+    "Element"       -> "Pupil";
+    "Element"       -> "Staff";
+    "Element"       -> "Location";
+    "Element"       -> "Supply";
+    "Element"       -> "Group";
+    "Membership"    -> "Element";
+    "Membership"    -> "Group";
+    "Group"         -> "TutorGroup";
+    "Group" -> "TeachingGroup";
+    "Commitment"    -> "Element";
+    "Event"         -> "Commitment" [dir=back];
+}
