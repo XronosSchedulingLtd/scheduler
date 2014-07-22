@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140718123610) do
+ActiveRecord::Schema.define(version: 20140722081333) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -83,13 +83,18 @@ ActiveRecord::Schema.define(version: 20140718123610) do
   end
 
   create_table "groups", force: true do |t|
-    t.date     "starts_on",          null: false
+    t.date     "starts_on",                          null: false
     t.date     "ends_on"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "visible_group_id"
     t.string   "visible_group_type"
+    t.string   "name"
+    t.integer  "era_id"
+    t.boolean  "current",            default: false
   end
+
+  add_index "groups", ["era_id"], name: "index_groups_on_era_id", using: :btree
 
   create_table "locationaliases", force: true do |t|
     t.string   "name"

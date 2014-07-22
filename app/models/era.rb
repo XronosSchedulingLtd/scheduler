@@ -7,7 +7,8 @@
 class Era < ActiveRecord::Base
 
   has_many :teachinggroups, dependent: :destroy
-  has_many :tutorgroups, dependent: :destroy
+  has_many :tutorgroups,    dependent: :destroy
+  has_many :groups,         dependent: :destroy
 
   def fix_all_groups
     self.teachinggroups.each do |tg|

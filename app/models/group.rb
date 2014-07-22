@@ -4,12 +4,23 @@
 # for more information.
 
 class Group < ActiveRecord::Base
+  belongs_to :era
   belongs_to :visible_group, :polymorphic => true
   has_many :memberships, :dependent => :destroy
 
-  validates :starts_on, :presence => true
+  validates :starts_on, presence: true
+  validates :name,      presence: true
+  validates :era,       presence: true
 
   validate :not_backwards
+
+  scope :current, -> { where(current: true) }
+
+  include Elemental
+
+  def element_name
+    name
+  end
 
   #
   #  Item can be any kind of entity, or an element.
@@ -462,6 +473,42 @@ class Group < ActiveRecord::Base
   #
   def self.visible_instance?(candidate)
     candidate.class.included_modules.include? Grouping
+  end
+
+  #
+  #  A maintenance method to move existing stuff from visible groups.
+  #
+  def self.grab_fields_from_visible
+    copied_count = 0
+    Group.all.each do |g|
+      if g.visible_group
+        g.name    = g.visible_group.name
+        g.era_id  = g.visible_group.era_id
+        g.current = g.visible_group.current
+        g.save!
+        copied_count += 1
+      else
+        puts "Group #{g.id} has no visible group."
+      end
+    end
+    puts "Copied #{copied_count} sets of details."
+    nil
+  end
+
+  def self.grab_element_records
+    grabbed_count = 0
+    Group.all.each do |g|
+      if g.visible_group
+        element = g.visible_group.element
+        element.entity = g
+        element.save!
+        grabbed_count += 1
+      else
+        puts "Group #{g.id} has no visible group."
+      end
+    end
+    puts "Moved #{grabbed_count} element records."
+    nil
   end
 
   private
