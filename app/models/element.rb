@@ -60,13 +60,13 @@ class Element < ActiveRecord::Base
       #
       self.memberships.inclusions.collect {|membership| 
         membership.group.parents_for(self, given_date)
-      }.flatten.uniq.collect {|g| g.visible_group}
+      }.flatten.uniq
     else
       #
       #  If recursion is not required then we just return a list of the
       #  groups of which this element is an immediate member.
       #
-      self.memberships.active_on(given_date).inclusions.collect {|m| m.group.visible_group}
+      self.memberships.active_on(given_date).inclusions.collect {|m| m.group}
     end
   end
 

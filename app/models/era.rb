@@ -9,11 +9,11 @@ class Era < ActiveRecord::Base
   has_many :groups,         dependent: :destroy
 
   def teachinggroups
-    self.groups.select {|g| g.visible_group_type == "Teachinggroup"}
+    self.groups.select {|g| g.persona_type == "Teachinggrouppersona"}
   end
 
   def tutorgroups
-    self.groups.select {|g| g.visible_group_type == "Tutorgroup"}
+    self.groups.select {|g| g.persona_type == "Tutorgrouppersona"}
   end
 
   def fix_all_groups

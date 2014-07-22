@@ -5,12 +5,13 @@
 
 class Group < ActiveRecord::Base
   belongs_to :era
-  belongs_to :persona, :polymorphic => true
+  belongs_to :persona, :polymorphic => true, :dependent => :destroy
   has_many :memberships, :dependent => :destroy
 
   validates :starts_on, presence: true
   validates :name,      presence: true
   validates :era,       presence: true
+  validates :persona,   presence: true
 
   validate :not_backwards
 
@@ -24,6 +25,13 @@ class Group < ActiveRecord::Base
 
   def active
     true
+  end
+
+  #
+  #  What type is this group?
+  #
+  def type
+    self.persona_type.chomp("grouppersona")
   end
 
   #
@@ -275,9 +283,9 @@ class Group < ActiveRecord::Base
       active_memberships = self.memberships.active_on(given_date)
       excludes, includes = active_memberships.partition {|am| am.inverse}
       group_includes, atomic_includes =
-        includes.partition {|m| Group.visible_instance?(m.element.entity)}
+        includes.partition {|m| m.element.entity.class == Group}
       group_excludes, atomic_excludes =
-        excludes.partition {|m| Group.visible_instance?(m.element.entity)}
+        excludes.partition {|m| m.element.entity.class == Group}
       #
       #  Now build a list of includes and excludes, and subtract one from
       #  the other.
@@ -319,7 +327,7 @@ class Group < ActiveRecord::Base
       #  at the exclusion records.
       #
       self.memberships.active_on(given_date).inclusions.select {|m|
-        !Group.visible_instance?(m.element.entity) || !exclude_groups
+        m.element.entity.class != Group || !exclude_groups
       }.collect {|m| m.element.entity}
     end
   end
@@ -350,7 +358,7 @@ class Group < ActiveRecord::Base
       exclusions = self.memberships.exclusions.active_on(given_date)
       excluded_elements =
         exclusions.collect { |membership|
-          if Group.visible_instance?(membership.element.entity) && recurse
+          if membership.element.entity.class == Group && recurse
             #  Note that we call members here, and not outcasts.
             [membership.element.entity] +
             membership.element.entity.members(
@@ -386,7 +394,7 @@ class Group < ActiveRecord::Base
   #  the overlying visible groups.
   #
   def parents_for(element, given_date)
-    result = self.visible_group.element.memberships.inclusions.collect {|membership|
+    result = self.element.memberships.inclusions.collect {|membership|
       membership.group.parents_for(element, given_date)
     }.flatten
     if self.member?(element, given_date)
@@ -458,9 +466,9 @@ class Group < ActiveRecord::Base
     if self.active_on(date)
       if self.starts_on == date
         #
-        #  Need to ensure our visible group goes too.
+        #  Our persona should go automatically.
         #
-        self.visible_group.destroy!
+        self.destroy!
       else
         self.members(date, false, false).each do |member|
           self.remove_member(member, date)
@@ -472,69 +480,61 @@ class Group < ActiveRecord::Base
   end
 
   #
-  #  A class method to test whether another class has linked itself
-  #  to a Group with the Grouping module.
-  #
-  def self.visible_instance?(candidate)
-    candidate.class.included_modules.include? Grouping
-  end
-
-  #
   #  A maintenance method to move existing stuff from visible groups.
   #
-  def self.grab_fields_from_visible
-    copied_count = 0
-    Group.all.each do |g|
-      if g.visible_group
-        g.name    = g.visible_group.name
-        g.era_id  = g.visible_group.era_id
-        g.current = g.visible_group.current
-        g.save!
-        copied_count += 1
-      else
-        puts "Group #{g.id} has no visible group."
-      end
-    end
-    puts "Copied #{copied_count} sets of details."
-    nil
-  end
+#  def self.grab_fields_from_visible
+#    copied_count = 0
+#    Group.all.each do |g|
+#      if g.visible_group
+#        g.name    = g.visible_group.name
+#        g.era_id  = g.visible_group.era_id
+#        g.current = g.visible_group.current
+#        g.save!
+#        copied_count += 1
+#      else
+#        puts "Group #{g.id} has no visible group."
+#      end
+#    end
+#    puts "Copied #{copied_count} sets of details."
+#    nil
+#  end
 
-  def self.grab_element_records
-    grabbed_count = 0
-    Group.all.each do |g|
-      if g.visible_group
-        element = g.visible_group.element
-        element.entity = g
-        element.save!
-        grabbed_count += 1
-      else
-        puts "Group #{g.id} has no visible group."
-      end
-    end
-    puts "Moved #{grabbed_count} element records."
-    nil
-  end
+#  def self.grab_element_records
+#    grabbed_count = 0
+#    Group.all.each do |g|
+#      if g.visible_group
+#        element = g.visible_group.element
+#        element.entity = g
+#        element.save!
+#        grabbed_count += 1
+#      else
+#        puts "Group #{g.id} has no visible group."
+#      end
+#    end
+#    puts "Moved #{grabbed_count} element records."
+#    nil
+#  end
 
-  def self.move_to_personae
-    moved_count = 0
-    failed_count = 0
-    Group.all.each do |g|
-      if g.persona_type == "Tutorgroup"
-        g.persona_type = "Tutorgrouppersona"
-        g.save!
-        moved_count += 1
-      elsif g.persona_type == "Teachinggroup"
-        g.persona_type = "Teachinggrouppersona"
-        g.save!
-        moved_count += 1
-      else
-        failed_count += 1
-      end
-    end
-    puts "Moved #{moved_count} groups to personae."
-    puts "Couldn't move #{failed_count} groups."
-    nil
-  end
+#  def self.move_to_personae
+#    moved_count = 0
+#    failed_count = 0
+#    Group.all.each do |g|
+#      if g.persona_type == "Tutorgroup"
+#        g.persona_type = "Tutorgrouppersona"
+#        g.save!
+#        moved_count += 1
+#      elsif g.persona_type == "Teachinggroup"
+#        g.persona_type = "Teachinggrouppersona"
+#        g.save!
+#        moved_count += 1
+#      else
+#        failed_count += 1
+#      end
+#    end
+#    puts "Moved #{moved_count} groups to personae."
+#    puts "Couldn't move #{failed_count} groups."
+#    nil
+#  end
 
   private
 

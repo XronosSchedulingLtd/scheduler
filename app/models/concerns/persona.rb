@@ -8,7 +8,7 @@ module Persona
   extend ActiveSupport::Concern
 
   included do
-    has_one :group, :as => :persona, :dependent => :destroy
+    has_one :group, :as => :persona
 
     after_initialize :set_flags
     after_save       :update_group
