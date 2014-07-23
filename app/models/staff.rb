@@ -13,7 +13,9 @@ class Staff < ActiveRecord::Base
   #
   #  Has only one per year, but in terms of data structues, has many.
   #
-  has_many :tutorgrouppersonae, dependent: :destroy
+  has_many :tutorgrouppersonae
+
+  after_destroy :delete_tutorgroups
 
   self.per_page = 15
 
@@ -25,6 +27,18 @@ class Staff < ActiveRecord::Base
     #  A constructed name to pass to our element record.
     #
     "#{self.name} (Staff)"
+  end
+
+  #
+  #  Deleting a group deletes its persona, but not the other way around
+  #  because that gives you a stack overflow.  We therefore have to
+  #  do the deletion ourselves rather than relying on a :dependent => :destroy
+  #  declaration on the relationship.
+  #
+  def delete_tutorgroups
+    self.tutorgrouppersonae.each do |tgp|
+      tgp.group.destroy!
+    end
   end
 
   def self.set_currency
