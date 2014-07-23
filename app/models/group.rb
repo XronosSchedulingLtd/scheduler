@@ -6,16 +6,32 @@
 class Group < ActiveRecord::Base
   belongs_to :era
   belongs_to :persona, :polymorphic => true, :dependent => :destroy
+  #
+  #  Since we can't do joins on polymorphic relationships, we need
+  #  explicit ones too.  These should really be defined elsewhere, but
+  #  I'm not sure how just yet.
+  #
+  belongs_to :tutorgrouppersona, -> { where(groups: {persona_type: 'Tutorgrouppersona'}) }, foreign_key: :persona_id
+  belongs_to :teachinggrouppersona, -> { where(groups: {persona_type: 'Teachinggrouppersona'}) }, foreign_key: :persona_id
   has_many :memberships, :dependent => :destroy
 
   validates :starts_on, presence: true
   validates :name,      presence: true
   validates :era,       presence: true
-  validates :persona,   presence: true
 
   validate :not_backwards
+  validate :persona_specified
 
   scope :current, -> { where(current: true) }
+
+  scope :tutorgroups, -> { where(persona_type: 'Tutorgrouppersona') }
+  scope :teachinggroups, -> { where(persona_type: 'Teachinggrouppersona') }
+
+  after_initialize :set_flags
+  before_save      :create_persona
+  after_save       :update_persona
+
+  attr_accessor :persona_class
 
   include Elemental
 
@@ -33,6 +49,77 @@ class Group < ActiveRecord::Base
   def type
     self.persona_type.chomp("grouppersona")
   end
+
+  def method_missing(method_sym, *arguments, &block)
+    #
+    #  How we behave depends on whether or not we already have
+    #  a linked persona record.
+    #
+    if self.persona
+      if self.persona.respond_to?(method_sym)
+        if method_sym.to_s =~ /=$/
+          @persona_needs_saving = true
+        end
+        self.persona.send(method_sym, *arguments)
+      else
+        super
+      end
+    else
+      if self.persona_class && self.persona_class.new.respond_to?(method_sym)
+        if method_sym.to_s =~ /=$/
+          @persona_hash[method_sym.to_s.chomp("=").to_sym] = arguments.first
+        else
+          @persona_hash[method_sym]
+        end
+      else
+        super
+      end
+    end
+  end
+
+  def set_flags
+    @persona_needs_saving = false
+    @persona_hash = {}
+  end
+  
+  def create_persona
+    unless self.persona
+      #
+      #  Use the bang version, so if creation of the Persona fails
+      #  then the error will propagate back up.
+      #
+      begin
+        self.persona = @persona_class.create!(@persona_hash)
+      rescue
+        errors[:base] << "Persona: #{$!.to_s}"
+        raise $!
+      end
+    end
+  end
+
+  def update_persona
+    if self.persona
+      if @persona_needs_saving
+        begin
+          self.persona.save!
+          @persona_needs_saving = false
+        rescue
+          errors[:base] << "Persona: #{$!.to_s}"
+          raise $!
+        end
+      end
+    end
+  end
+
+#
+#================================================================
+#
+#  Everything after this point is to do with managing membership
+#  of the set, rather than getting it to fit in with Rails and
+#  doing dynamic programming for personae.
+#
+#================================================================
+#
 
   #
   #  Item can be any kind of entity, or an element.
@@ -543,6 +630,12 @@ class Group < ActiveRecord::Base
        self.starts_on &&
        self.ends_on < self.starts_on
       errors.add(:ends_on, "(#{self.ends_on.to_s}) must be no earlier than start date (#{self.starts_on.to_s}). Group #{self.id}")
+    end
+  end
+
+  def persona_specified
+    if !self.persona && self.persona_class == nil
+      errors.add(:base, "A persona class must be specified")
     end
   end
 

@@ -13,7 +13,7 @@ class Staff < ActiveRecord::Base
   #
   #  Has only one per year, but in terms of data structues, has many.
   #
-  has_many :tutorgroups, dependent: :destroy
+  has_many :tutorgrouppersonae, dependent: :destroy
 
   self.per_page = 15
 

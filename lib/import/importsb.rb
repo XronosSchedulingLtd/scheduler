@@ -138,9 +138,9 @@ module DatabaseAccess
     return false unless dbrecord
     changed = false
     self.class.const_get(:FIELDS_TO_UPDATE).each do |field_name|
-      if @dbrecord[field_name] != self.instance_variable_get("@#{field_name}")
+      if @dbrecord.send(field_name) != self.instance_variable_get("@#{field_name}")
         puts "Field #{field_name} differs for #{self.name}"
-        puts "d/b: \"#{@dbrecord[field_name]}\" SB: \"#{self.instance_variable_get("@#{field_name}")}\""
+        puts "d/b: \"#{@dbrecord.send(field_name)}\" SB: \"#{self.instance_variable_get("@#{field_name}")}\""
 #        @dbrecord[field_name] = self.instance_variable_get("@#{field_name}")
 #                entry.send("#{attr_name}=", row[column_hash[attr_name]])
          @dbrecord.send("#{field_name}=",

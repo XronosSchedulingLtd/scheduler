@@ -1,0 +1,29 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-07-23T08:51:13+01:00
+
+====== Wednesday 23 Jul 2014 ======
+
+Objectives for today.
+
+[ ] Promote what I've done to the live system (copying data back there).
+[ ] My test suite is now totally FUBARed.  Fix it.
+[ ] Deleting a member of staff should delete his tutor groups and their groups.
+[ ] When a teaching group changes its name, any events derived from it might change too.
+[ ] Get the program to show how many groups each pupil *will* be in.
+[ ] Element records should inherit the current flag from their entities (for speed of searching)
+
+
+And the individual stages for getting what I've done back to the live system are:
+
+[ ] Check in all my current source and add a tag
+[ ] Send to live system
+[ ] Dump database on dev
+[ ] Send to live system
+[ ] Stop web server (and app) on Mach2
+[ ] Dump live database
+[ ] Import new code
+[ ] Load new database contents
+[ ] Start up again
+
+Sounds too easy - I've probably missed something.

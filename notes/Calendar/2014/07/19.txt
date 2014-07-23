@@ -9,7 +9,7 @@ I'm going to go with the "everything starts on the 1st of September" option.  Th
 [*] Utility to fix all my existing groups (tutor and teaching) and memberships
 [*] Restore the previous behaviour of the members function, albeit with the change for an explicit date.
 [ ] Check the working of the groups function - the inverse of the members function
-[ ] Check and fix my loader code to ensure it always specifies a date when creating groups and when setting or querying membership (or indeed, removing members).
+[*] Check and fix my loader code to ensure it always specifies a date when creating groups and when setting or querying membership (or indeed, removing members).
 
 Interesting problem once you allow this behaviour.  It's easy to pick out who will be members of groups (the members method on the groups object) but the other way around is harder.  Having a groups method on an element, we want to pick out the groups for this academic year, even if they haven't started yet, but not all the groups from all the other academic years.
 

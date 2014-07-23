@@ -6,14 +6,14 @@
 
 class Era < ActiveRecord::Base
 
-  has_many :groups,         dependent: :destroy
+  has_many :groups, dependent: :destroy
 
   def teachinggroups
-    self.groups.select {|g| g.persona_type == "Teachinggrouppersona"}
+    self.groups.teachinggroups
   end
 
   def tutorgroups
-    self.groups.select {|g| g.persona_type == "Tutorgrouppersona"}
+    self.groups.tutorgroups
   end
 
   def fix_all_groups

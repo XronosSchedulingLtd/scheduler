@@ -44,16 +44,45 @@ Steps:
 [*] Dump database (B)
 [*] Modify group records to point to new personae
 [*] Dump database (C)
-[ ] Tag code as "renamed"
-[ ] See what runs
-[ ] Invert the logic of group creation - we now create a Group and give it a persona
-[ ] General trawl through the code to change anything which expects to indirect to find a group
-[ ] Dynamic code to make groups respond to visible group attributes
-[ ] Make sure loading code (creating new groups) still works
-[ ] Possibly implement a Tutorgroup.new/Teachinggroup.new shim
+[*] Tag code as "tables_renamed"
+[*] See what runs
+[*] Go through code finding all references to visible_group and correcting them
+[*] Get the dialogues for editing (or at least, displaying) groups working again.
+[*] Tag as group_editing_back
+[*] Dump database (D)
+[*] Invert the logic of group creation - we now create a Group and give it a persona
+[*] General trawl through the code to change anything which expects to indirect to find a group
+[*] Dynamic code to make groups respond to visible group attributes
+[*] Make sure loading code (creating new groups) still works
+[*] Possibly implement a Tutorgroup.new/Teachinggroup.new shim
 
 Plenty to keep me busy.  May or may not work.  Probably will hit some nasty bump in the road.
+
+When we get to actually playing with groups, we now expect to be handling group records all the time - no indirecting through 
 
 The rename is quite interesting.  I'm tempted to turn TutorGroup into TutorPersona, etc.  The only issue there is with plurals - Rails thinks the plural of Persona is Personas.  I can fix that, but perhaps it would be better simply to avoid the problem?  Sod it - let's go for it.
 
 I will need to write another method to change all the group records again.
+
+On the group creation front, I think the best thing is to take a dump of my database, then delete a couple of random groups and try to get the script to re-create them.  It will fail, and I then fix it.  (TDD.  Ha, ha!)
+
+There's convenient - one of the new tutor groups - 3MEE - has gained a house name so the code can exercise itself trying to generate dynamic methods.  Not sure why this didn't happen in last nights run though.  In the d/b on the live system, 3MEE is definitely Franklin's.
+
+Ah - I know.  It's because I haven't yet implemented the relevant reader method either, and so the loader code thinks there is no house name.  I'm accessing my database record using the array indexing technology of Rails, which may be a mistake.  It depends how Rails is implementing it.  I hope that adding the method will get me there.  It seems not.  In any case, I'm probably much better off sending messages than using the array trick - it seems to be a bit of a cheat anyway.
+
+Hit a problem - although I thought I tested the method_defined? on classes with dynamic methods, it now doesn't seem to work.  Odd - it works when I test the fields in a Group, but not in a Tutorgrouppersona.
+
+Subtle - you have to have created an instance of the relevant class once already, and accessed the corresponding method.  It seems that method_defined? doesn't really help.  I will have to do an explicit instantiation.
+
+Have now reached the point where my loading code runs to completion - as long as it doesn't actually do anything.  Let's choose some groups at random to delete, and see whether it can re-recreate them.
+
+Deleted 4JHW and S7 S Hi.  Let's see how well the utility gets on re-creating them.  It seems to have done remarkably well.  Wow!
+
+Now, what were the follow-on objectives here?
+
+[ ] Element records should inherit the current flag from their entities (for speed of searching)
+[ ] When a teaching group changes its name, any events derived from it might change too.
+[ ] Get the program to show how many groups each pupil *will* be in.
+[ ] My test suite is now totally FUBARed.  Fix it.
+
+Carried forward to tomorrow.
