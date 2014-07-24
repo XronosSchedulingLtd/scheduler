@@ -17,4 +17,11 @@ class SessionsController < ApplicationController
     @current_user = nil
     redirect_to root_url, :notice => "Signed out"
   end
+
+  private
+
+  def authorized?(action = action_name, resource = nil)
+    logged_in? || action == 'new' || action == 'create'
+  end
+
 end

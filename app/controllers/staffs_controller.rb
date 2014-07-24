@@ -118,4 +118,10 @@ class StaffsController < ApplicationController
     def staff_params
       params.require(:staff).permit(:name, :initials, :surname, :title, :forename, :email, :source_id, :active, :current)
     end
+
+    def authorized?(action = action_name, resource = nil)
+      (logged_in? && current_user.admin) ||
+      action == 'ical'
+    end
+
 end

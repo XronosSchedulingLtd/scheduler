@@ -83,4 +83,17 @@ class ScheduleController < ApplicationController
       end
     end
   end
+
+  private
+
+  #
+  #  Currently the only two actions which we offer are show and events,
+  #  but list them explicitly in order to fail safe in the case of future
+  #  expansion.
+  #
+  def authorized?(action = action_name, resource = nil)
+    (logged_in? && current_user.admin) ||
+    action == 'show' || action == 'events'
+  end
+
 end

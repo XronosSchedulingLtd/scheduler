@@ -10,4 +10,12 @@ It's noticeable someone keeps trying to get a URL of just "/eak".  Suggests a sc
 
 Hugh Price is ID 2065.  Yes, it was edited at about 02:28 this morning.  Last edit of any sort was on 15/7 and may well have been me.  Yes, it was when I was marking staff as active.  Where did the request come from?  188.143.232.211.  Does not translate to a real domain.  There were 25 requests of various sorts from there.  It's interesting how it's still being found, despite the removal of the menus.  I've had no-one register an account apart from school staff, which suggests that the links are being remembered somehow.
 
-First check is to make sure only logged on users can access anything other than just the calendar page.
+First check is to make sure only logged on users can access anything other than just the calendar page.  Block access to everything except the basic page, and the json function needed then to gain events.  Within that function, restrict what events may be accessed.  Also set up a robots.txt file.  Also need to allow access for ical files.
+
+[*] Block everything, except for a logged in administrator
+[*] Allow access to calendar page
+[*] Allow intelligent access for events
+[*] Add robots.txt
+[*] Make sure ical still works.
+[ ] Allow users to log in and out.
+[ ] Deploy
