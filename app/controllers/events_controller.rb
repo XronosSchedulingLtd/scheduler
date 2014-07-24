@@ -27,21 +27,26 @@ class EventsController < ApplicationController
 
   # GET /events/new
   def new
-    @event = Event.new
-    if request.xhr?
-      if params[:date]
-        start_date = Time.zone.parse(params[:date])
-        @event.starts_at = start_date
-        if start_date.hour == 0 &&
-           start_date.min == 0
-          @event.all_day = true
+    if current_user && current_user.known?
+      @event = Event.new
+      if request.xhr?
+        if params[:date]
+          start_date = Time.zone.parse(params[:date])
+          @event.starts_at = start_date
+          if start_date.hour == 0 &&
+             start_date.min == 0
+            @event.all_day = true
+          end
         end
+        @minimal = true
+        render :layout => false
+      else
+        @minimal = false
+        render
       end
-      @minimal = true
-      render :layout => false
     else
-      @minimal = false
-      render
+      @minimal = true
+      render :youcant, :layout => false
     end
   end
 
@@ -126,6 +131,11 @@ class EventsController < ApplicationController
   end
 
   private
+    def authorized?(action = action_name, resource = nil)
+      (logged_in? && current_user.admin) ||
+      action == 'show' || action == 'new'
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_event
       @event = Event.find(params[:id])

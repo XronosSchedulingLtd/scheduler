@@ -3,7 +3,10 @@
     <div id="datepicker"></div>
   </div>
   <div class="large-10 columns">
-    <div id="fullcalendar"></div>
+    <div id="fullcalendar"<%
+      if current_user && current_user.known?
+        %> class="withedit"<%
+      end %>></div>
   </div>
 </div>
 <div id="eventModal" class="reveal-modal" data-reveal>

@@ -17,5 +17,11 @@ First check is to make sure only logged on users can access anything other than 
 [*] Allow intelligent access for events
 [*] Add robots.txt
 [*] Make sure ical still works.
-[ ] Allow users to log in and out.
-[ ] Deploy
+[*] Allow users to log in and out.
+[*] Deploy
+
+
+That was fine, but more is needed.  It should be possible to display more details for an event, and logged in users should be the only ones capable of creating new events.
+
+[ ] Display details for events (regardless of login state)
+[ ] Disable event creation unless a known user is logged in
