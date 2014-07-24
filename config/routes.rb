@@ -14,6 +14,8 @@ Rails.application.routes.draw do
 
   resources :groups
 
+  resources :tutorgroups
+
   resources :locations
 
   resources :pupils

@@ -1,0 +1,41 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Name:</strong>
+  <%= @tutorgroup.name %>
+</p>
+
+<p>
+  <strong>House:</strong>
+  <%= @tutorgroup.house %>
+</p>
+
+<p>
+  <strong>Staff:</strong>
+  <%= @tutorgroup.staff.initials %>
+</p>
+
+<p>
+  <strong>Pupils:</strong>
+  <% @tutorgroup.members.each do |pupil| %>
+  <p><%= pupil.name %></p>
+  <% end %>
+</p>
+
+<p>
+  <strong>Era:</strong>
+  <%= @tutorgroup.era_id %>
+</p>
+
+<p>
+  <strong>Start year:</strong>
+  <%= @tutorgroup.start_year %>
+</p>
+
+<p>
+  <strong>Current:</strong>
+  <%= @tutorgroup.current %>
+</p>
+
+<%= link_to 'Edit', edit_tutorgroup_path(@tutorgroup) %> |
+<%= link_to 'Back', tutorgroups_path %>

@@ -37,3 +37,5 @@ I am staff id 2146.  I have two tutorgrouppersonae, with ids 246 and 402, pointi
 Interesting - I seem to have two duplicate ownership records for exactly the same relationship.  One was created on 27/6/2014 and the other on 18/7/2014.  I wonder how that happened?  Silly error in my code - I'm creating the ownership record regardless, each time the user record is saved, and not bothering to check whether it's already there.  Because I updated my user record by setting the "admin" flag, I gained a second ownership record.  Just need to get rid of that and fix my code.  Done.
 
 Now, can I cause the deletion of a staff record to delete not the persona, but the underlying group (thus causing the persona to go too)?  Eventually achieved it by putting an explicit after_destroy method in the staff model.  Good.
+
+Realised that I really need to keep the old controllers and views for tutorgroups and teachinggroups.  Although the corresponding real models no longer exist, we do still want to be able to create, view and edit them.

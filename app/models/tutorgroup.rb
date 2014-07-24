@@ -11,9 +11,14 @@
 #
 class Tutorgroup
 
-  def self.new
+  def self.new(params_hash = nil)
     g = Group.new
     g.persona_class = Tutorgrouppersona
+    if params_hash
+      params_hash.each do |key, value|
+        g.send("#{key}=", value)
+      end
+    end
     g
   end
 
@@ -55,5 +60,9 @@ class Tutorgroup
   #
   def self.find_by(given_hash)
     self.where(given_hash).take
+  end
+
+  def self.find(id)
+    Group.find(id)
   end
 end
