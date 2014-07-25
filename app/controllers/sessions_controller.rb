@@ -9,6 +9,7 @@ class SessionsController < ApplicationController
     user = User.find_by_provider_and_uid(auth["provider"], auth["uid"]) ||
            User.create_from_omniauth(auth)
     session[:user_id] = user.id
+    Rails.logger.info("User #{user.email} signed in.")
     redirect_to root_url, :notice => "Signed in"
   end
 

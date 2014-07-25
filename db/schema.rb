@@ -11,12 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140722092701) do
+ActiveRecord::Schema.define(version: 20140724155002) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
     t.integer "element_id"
     t.integer "covering_id"
+    t.boolean "names_event", default: false
   end
 
   add_index "commitments", ["covering_id"], name: "index_commitments_on_covering_id", using: :btree
@@ -29,6 +30,7 @@ ActiveRecord::Schema.define(version: 20140722092701) do
     t.string   "entity_type"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "current",     default: false
   end
 
   add_index "elements", ["entity_id"], name: "index_elements_on_entity_id", using: :btree
@@ -176,10 +178,33 @@ ActiveRecord::Schema.define(version: 20140722092701) do
 
   add_index "teachinggrouppersonae", ["source_id"], name: "index_teachinggrouppersonae_on_source_id", using: :btree
 
+  create_table "teachinggroups", force: true do |t|
+    t.string   "name"
+    t.integer  "era_id"
+    t.boolean  "current"
+    t.integer  "source_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "teachinggroups", ["era_id"], name: "index_teachinggroups_on_era_id", using: :btree
+  add_index "teachinggroups", ["source_id"], name: "index_teachinggroups_on_source_id", using: :btree
+
   create_table "tutorgrouppersonae", force: true do |t|
     t.string   "house"
     t.integer  "staff_id"
     t.integer  "start_year"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "tutorgroups", force: true do |t|
+    t.string   "name"
+    t.string   "house"
+    t.integer  "staff_id"
+    t.integer  "era_id"
+    t.integer  "start_year"
+    t.boolean  "current"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

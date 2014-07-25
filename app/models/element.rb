@@ -9,7 +9,9 @@ class Element < ActiveRecord::Base
   has_many :memberships, :dependent => :destroy
   has_many :commitments, :dependent => :destroy
   has_many :ownerships,  :dependent => :destroy
-  
+ 
+  after_save :rename_affected_events
+
   #
   #  This method is much like the "members" method in the Group model,
   #  except the other way around.  It provides a list of all the groups
@@ -23,8 +25,6 @@ class Element < ActiveRecord::Base
   #  If recursion is required then we have to select *all* groups of which
   #  we are a member, and not just those for the indicated date.  This is
   #  because recursion may specify a different date to think about.
-  #
-  #  Returns and array of *Visible Group* objects.
   #
   def groups(given_date = nil, recurse = true)
     given_date ||= Date.today
@@ -68,6 +68,28 @@ class Element < ActiveRecord::Base
       #
       self.memberships.active_on(given_date).inclusions.collect {|m| m.group}
     end
+  end
+
+  def rename_affected_events
+    self.commitments.names_event.each do |c|
+      if c.event.body != self.name
+        c.event.body = self.name
+        c.event.save!
+      end
+    end
+  end
+
+  def self.copy_current
+    currents_updated_count = 0
+    Element.all.each do |element|
+      if element.current != element.entity.current
+        element.current = element.entity.current
+        element.save!
+        currents_updated_count += 1
+      end
+    end
+    puts "Updated #{currents_updated_count} current flags."
+    nil
   end
 
 end

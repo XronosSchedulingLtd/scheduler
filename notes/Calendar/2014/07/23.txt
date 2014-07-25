@@ -11,7 +11,7 @@ Objectives for today.
 [*] Deleting a member of staff should delete his tutor groups and their groups.
 [ ] When a teaching group changes its name, any events derived from it might change too.
 [ ] Get the program to show how many groups each pupil *will* be in.
-[ ] Element records should inherit the current flag from their entities (for speed of searching)
+[*] Element records should inherit the current flag from their entities (for speed of searching)
 
 
 And the individual stages for getting what I've done back to the live system are:

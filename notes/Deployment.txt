@@ -78,6 +78,7 @@ To deploy a new software version, go onto the server and do:
 git pull <whatever>
 RAILS_ENV=production rake db:migrate
 RAILS_ENV=production bundle exec rake assets:precompile
+touch tmp/restart.txt
 '''
 
-and then probably restart nginx.
+

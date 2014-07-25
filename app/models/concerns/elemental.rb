@@ -23,9 +23,11 @@ module Elemental
   def update_element
     if self.element
       if self.active
-        if self.element.name != self.element_name
-          self.element.name = self.element_name
-          self.element.save
+        if self.element.name != self.element_name ||
+           self.element.current != self.current
+          self.element.name    = self.element_name
+          self.element.current = self.current
+          self.element.save!
         end
       else
         #
@@ -35,8 +37,9 @@ module Elemental
       end
     else
       if self.active
-        Element.create(:name => self.element_name,
-                       :entity => self)
+        Element.create!(:name => self.element_name,
+                        :current => self.current,
+                        :entity => self)
       end
     end
   end

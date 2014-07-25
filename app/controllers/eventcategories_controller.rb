@@ -10,7 +10,7 @@ class EventcategoriesController < ApplicationController
   # GET /eventcategories
   # GET /eventcategories.json
   def index
-    @eventcategories = Eventcategory.all
+    @eventcategories = Eventcategory.all.order("name")
   end
 
   # GET /eventcategories/1

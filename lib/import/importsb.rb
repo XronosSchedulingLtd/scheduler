@@ -944,6 +944,18 @@ class SB_Timetableentry
     @group_ident == nil && @group_idents.size == 0
   end
 
+  def eventcategory(loader)
+    if self.meeting?
+      loader.meeting_category
+    elsif self.body_text(loader) == "Assembly"
+      loader.assembly_category
+    elsif self.body_text(loader) == "Chapel"
+      loader.chapel_category
+    else
+      loader.lesson_category
+    end
+  end
+
   def description
     #
     #  A one-line description of this timetable entry.
@@ -1215,7 +1227,11 @@ class SB_Loader
               :location_hash,
               :rota_week_hash,
               :staff_hash,
-              :verbose
+              :verbose,
+              :lesson_category,
+              :meeting_category,
+              :assembly_category,
+              :chapel_category
 
   def initialize(options)
     @verbose   = options.verbose
@@ -1347,6 +1363,10 @@ class SB_Loader
     raise "Can't find event category for week letters." unless @week_letter_category
     @lesson_category = Eventcategory.find_by_name("Lesson")
     raise "Can't find event category for lessons." unless @lesson_category
+    @assembly_category = Eventcategory.find_by_name("Assembly")
+    raise "Can't find event category for assemblies." unless @assembly_category
+    @chapel_category = Eventcategory.find_by_name("Chapel")
+    raise "Can't find event category for chapel." unless @chapel_category
     @meeting_category = Eventcategory.find_by_name("Meeting")
     raise "Can't find event category for meetings." unless @meeting_category
     @invigilation_category = Eventcategory.find_by_name("Exam invigilation")
@@ -1525,7 +1545,7 @@ class SB_Loader
         extra_in_db.each do |pupil_id|
           pupil = @pupil_hash[pupil_id]
           if pupil && pupil.dbrecord
-            dbrecord.remove_member(pupil.dbrecord)
+            dbrecord.remove_member(pupil.dbrecord, @start_date)
             tgmember_removed_count += 1
           end
         end
@@ -1646,7 +1666,7 @@ class SB_Loader
           pupil = @pupil_hash[pupil_id]
           if pupil && pupil.dbrecord
             puts "Removing #{pupil.dbrecord.name} from #{dbgroup.name}" unless @full_load
-            dbgroup.remove_member(pupil.dbrecord)
+            dbgroup.remove_member(pupil.dbrecord, @start_date)
             pupils_removed_count += 1
           end
         end
@@ -1721,14 +1741,18 @@ class SB_Loader
 
   def do_timetable
     puts "Loading events from #{@start_date} to #{@era.ends_on}" if @verbose
-    atomic_event_created_count = 0
-    atomic_event_deleted_count = 0
-    atomic_event_retimed_count = 0
-    compound_event_created_count = 0
-    compound_event_deleted_count = 0
-    compound_event_retimed_count = 0
-    resources_added_count      = 0
-    resources_removed_count    = 0
+    atomic_event_created_count         = 0
+    atomic_event_deleted_count         = 0
+    atomic_event_retimed_count         = 0
+    atomic_event_recategorized_count   = 0
+    compound_event_created_count       = 0
+    compound_event_deleted_count       = 0
+    compound_event_retimed_count       = 0
+    compound_event_recategorized_count = 0
+    resources_added_count              = 0
+    resources_removed_count            = 0
+    set_to_naming_count                = 0
+    set_to_not_naming_count            = 0
     @start_date.upto(@era.ends_on) do |date|
       puts "Processing #{date}" if @verbose
       week_letter = get_week_letter(date)
@@ -1740,7 +1764,10 @@ class SB_Loader
           #
           dbevents = Event.events_on(date,
                                      nil,
-                                     [@lesson_category, @meeting_category],
+                                     [@lesson_category,
+                                      @meeting_category,
+                                      @assembly_category,
+                                      @chapel_category],
                                      @event_source,
                                      nil,
                                      true)
@@ -1794,7 +1821,10 @@ class SB_Loader
             #
             dbevents = Event.events_on(date,
                                        nil,
-                                       [@lesson_category, @meeting_category],
+                                       [@lesson_category,
+                                        @meeting_category,
+                                        @assembly_category,
+                                        @chapel_category],
                                        @event_source,
                                        nil,
                                        true)
@@ -1850,8 +1880,7 @@ class SB_Loader
               if period
                 event = Event.new
                 event.body          = lesson.body_text(self)
-                event.eventcategory =
-                  lesson.meeting? ? @meeting_category : @lesson_category
+                event.eventcategory = lesson.eventcategory(self)
                 event.eventsource   = @event_source
                 event.starts_at     =
                   Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
@@ -1904,6 +1933,11 @@ class SB_Loader
                 event.ends_at = ends_at
                 changed = true
               end
+              if event.eventcategory_id != lesson.eventcategory(self).id
+                event.eventcategory = lesson.eventcategory(self)
+                atomic_event_recategorized_count += 1
+                changed = true
+              end
               if event.body != lesson.body_text(self)
                 event.body = lesson.body_text(self)
                 changed = true
@@ -1920,8 +1954,15 @@ class SB_Loader
               #  as unique identifiers.
               #
               sb_element_ids = Array.new
+              sb_group_element_id = nil
               if group = @group_hash[lesson.group_ident]
                 sb_element_ids << group.element_id
+                #
+                #  Atomic events only ever have one group, and if they have
+                #  a group then they are lessons, and the group names the
+                #  event.
+                #
+                sb_group_element_id = group.element_id
               end
               if staff = @staff_hash[lesson.staff_ident]
                 sb_element_ids << staff.element_id
@@ -1938,8 +1979,11 @@ class SB_Loader
               sb_only = sb_element_ids - db_element_ids
               sb_only.each do |sbid|
                 c = Commitment.new
-                c.event      = event
-                c.element_id = sbid
+                c.event       = event
+                c.element_id  = sbid
+                if sbid == sb_group_element_id
+                  c.names_event = true
+                end
                 c.save
                 resources_added_count += 1
               end
@@ -1949,6 +1993,27 @@ class SB_Loader
                   if db_only.include?(c.element_id)
                     c.destroy
                     resources_removed_count += 1
+                  end
+                end
+              end
+              #
+              #  Just temporary
+              #
+              shared = sb_element_ids - sb_only
+              if shared.size > 0
+                event.commitments.each do |c|
+                  if shared.include?(c.element_id)
+                    if c.names_event && c.element_id != sb_group_element_id
+                      puts "#{event.body} disagrees on event naming (A)" if @verbose
+                      c.names_event = false
+                      c.save
+                      set_to_not_naming_count += 1
+                    elsif !c.names_event && c.element_id == sb_group_element_id
+                      puts "#{event.body} disagrees on event naming (B)" if @verbose
+                      c.names_event = true
+                      c.save
+                      set_to_naming_count += 1
+                    end
                   end
                 end
               end
@@ -2005,8 +2070,7 @@ class SB_Loader
               if period && (lesson.meeting? || dbgroup)
                 event = Event.new
                 event.body          = lesson.body_text(self)
-                event.eventcategory =
-                  lesson.meeting? ? @meeting_category : @lesson_category
+                event.eventcategory = lesson.eventcategory(self)
                 event.eventsource   = @event_source
                 event.starts_at     =
                   Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
@@ -2061,6 +2125,11 @@ class SB_Loader
               end
               if event.ends_at != ends_at
                 event.ends_at = ends_at
+                changed = true
+              end
+              if event.eventcategory_id != lesson.eventcategory(self).id
+                event.eventcategory = lesson.eventcategory(self)
+                compound_event_recategorized_count += 1
                 changed = true
               end
               if event.body != lesson.body_text(self)
@@ -2138,6 +2207,9 @@ class SB_Loader
     if atomic_event_retimed_count > 0 || @verbose
       puts "#{atomic_event_retimed_count} atomic timetable events amended."
     end
+    if atomic_event_recategorized_count > 0 || @verbose
+      puts "#{atomic_event_recategorized_count} atomic timetable events re-categorized."
+    end
     if compound_event_created_count > 0 || @verbose
       puts "#{compound_event_created_count} compound timetable events added."
     end
@@ -2147,11 +2219,20 @@ class SB_Loader
     if compound_event_retimed_count > 0 || @verbose
       puts "#{compound_event_retimed_count} compound timetable events amended."
     end
+    if compound_event_recategorized_count > 0 || @verbose
+      puts "#{compound_event_recategorized_count} compound timetable events re-categorized."
+    end
     if resources_added_count > 0 || @verbose
       puts "#{resources_added_count} resources added to timetable events."
     end
     if resources_removed_count > 0 || @verbose
       puts "#{resources_removed_count} resources removed from timetable events."
+    end
+    if set_to_naming_count > 0 || @verbose
+      puts "#{set_to_naming_count} commitments set as naming events."
+    end
+    if set_to_not_naming_count > 0 || @verbose
+      puts "#{set_to_not_naming_count} commitments set as not naming events."
     end
   end
 
