@@ -9,7 +9,8 @@ class Element < ActiveRecord::Base
   has_many :memberships, :dependent => :destroy
   has_many :commitments, :dependent => :destroy
   has_many :ownerships,  :dependent => :destroy
- 
+
+  scope :current, -> { where(current: true) }
   after_save :rename_affected_events
 
   #

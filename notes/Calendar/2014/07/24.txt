@@ -70,13 +70,25 @@ It seems to have worked.  As far as the utility was concerned, it just amended a
 
 Now I need to work out the steps needed to put all this back on to the live system.
 
-[ ] Dump live database
-[ ] Stop nginx
-[ ] Get new code on to live system
-[ ] rake db:migrate
-[ ] export RAILS_ENV=production
-[ ] rails c
-[ ] Element.copy_current
-[ ] Commitment.set_names_event_flags
-[ ] exit
-[ ] run importsb to check things and amend event categories
+[*] Dump live database
+[*] screen
+[*] Stop nginx
+[*] Get new code on to live system
+[*] export RAILS_ENV=production
+[*] bundle exec rake db:migrate
+[*] rails c
+[*] Element.copy_current
+[*] Commitment.set_names_event_flags
+[*] exit
+[*] run importsb to check things and amend event categories
+[*] Restart nginx
+
+One really puzzling thing happened when I tried to run rake - it claimed not to be able to find it.  I ran bundle install and a whole pile of gems were installed - but they should all have been there before.
+
+Could it be because I am running under "screen"?  The Gemfile has not changed since 27th June.  Having done a little bit of reading, I strongly suspect the problem is caused by an interaction between rvm and screen.  Hope nothing has been broken.
+
+Started the long-winded job at 15:15.  See how long it takes.
+
+I killed it after 2hrs 15 mins because it had got so large it was spending all its time swapping.  Just exiting the ruby interpreter took several minutes.
+
+How long would it take to process 1 month?  Sep 2013.  Started at 17:36.  Only about a minute.  Let's do it that way.  Of course the early ones have been done.  It will be interesting to see how far the first run got.  The first interval taking any significant time is Sep 2014, where 521 flags were set.  Then in October it did 4766 flags.  It starts to look like it had done a whole year and was part way through September2013 when it started really running out of space.  Let's on and do to the end of December. 7518 in November, then just 3759 in December.

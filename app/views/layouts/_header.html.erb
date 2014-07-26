@@ -47,7 +47,7 @@
             </li>
             <li class="divider"></li>
           <% end %>
-          <li><%= current_user.name %></li>
+          <li><%= link_to current_user.name %></li>
           <li class="divider"></li>
           <li><%= link_to "Sign out", signout_path %></li>
         <% else %>
