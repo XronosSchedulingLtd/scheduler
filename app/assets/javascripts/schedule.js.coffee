@@ -42,7 +42,7 @@ $(document).ready ->
       viewRender: (view, element) ->
         $('#datepicker').datepicker('setDate', view.start.toDate())
       eventSources: [{
-        url: 'schedule/events'
+        url: '/schedule/events'
       }]
       dayClick: (date, jsEvent, view) ->
         $('#eventModal').foundation('reveal', 'open', {
@@ -59,7 +59,7 @@ $(document).ready ->
                                       '/events/' + event.id)
       eventDrop: (event, revertFunc) ->
         jQuery.ajax
-          url:  "events/" + event.id + "/moved"
+          url:  "/events/" + event.id + "/moved"
           type: "PUT"
           dataType: "json"
           error: (jqXHR, textStatus, errorThrown) ->
@@ -71,7 +71,7 @@ $(document).ready ->
               all_day: !event.start.hasTime()
       eventResize: (event, revertFunc) ->
         jQuery.ajax
-          url:  "events/" + event.id
+          url:  "/events/" + event.id
           type: "PUT"
           dataType: "json"
           error: (jqXHR, textStatus, errorThrown) ->
@@ -101,7 +101,7 @@ $(document).ready ->
       minTime: "06:00"
       scrollTime: "08:00"
       eventSources: [{
-        url: 'schedule/events'
+        url: '/schedule/events'
       }]
       eventClick: (event, jsEvent, view) ->
         $('#eventModal').foundation('reveal',
