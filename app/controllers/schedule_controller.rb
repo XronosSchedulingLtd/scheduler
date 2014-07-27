@@ -61,10 +61,12 @@ class ScheduleController < ApplicationController
     cc = Eventcategory.find_by_name("Calendar")
     dc = Eventcategory.find_by_name("Duty")
     wlc = Eventcategory.find_by_name("Week letter")
-    if current_user && current_user.ownerships.size > 0
+    if current_user && current_user.known?
       @events =
         ((current_user.ownerships.collect {|o|
           o.element.entity.events_on(start_date, end_date) }.flatten) +
+         (current_user.interests.collect {|i|
+          i.element.entity.events_on(start_date, end_date) }.flatten) +
          (wlc ? wlc.events_on(start_date, end_date) : [])).uniq
     else
       @events =

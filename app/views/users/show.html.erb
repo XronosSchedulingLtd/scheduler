@@ -1,0 +1,52 @@
+<% if @minimal %>
+<a class="close-reveal-modal">&#215;</a>
+<% end %>
+<p id="notice"><%= notice %></p>
+
+<table>
+  <tr>
+    <td><strong>Name:</strong></td>
+    <td><%= @user.name %></td>
+  </tr>
+
+  <tr>
+    <td><strong>E-mail:</strong></td>
+    <td><%= @user.email %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Provider:</strong></td>
+    <td><%= @user.provider %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Uid:</strong></td>
+    <td><%= @user.uid %></td>
+  </tr>
+
+<% if @user.admin %>
+  <tr>
+    <td><strong>Administrator:</strong></td>
+    <td><%= @user.admin %></td>
+  </tr>
+<% end %>
+</table>
+
+<table>
+  <tr><th>Owns</th></tr>
+  <% @user.ownerships.each do |ownership| %>
+    <tr><td><%= ownership.element.name %></td></tr>
+  <% end %>
+</table>
+
+<table>
+  <tr><th>Monitoring</th></tr>
+  <% @user.interests.each do |interest| %>
+    <tr><td><%= interest.element.name %></td></tr>
+  <% end %>
+
+</table>
+
+<% if !@minimal %>
+<%= link_to 'Edit', edit_user_path(@user) %> |
+<% end %>

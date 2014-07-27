@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140724155002) do
+ActiveRecord::Schema.define(version: 20140727105104) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -97,6 +97,16 @@ ActiveRecord::Schema.define(version: 20140724155002) do
   end
 
   add_index "groups", ["era_id"], name: "index_groups_on_era_id", using: :btree
+
+  create_table "interests", force: true do |t|
+    t.integer  "user_id"
+    t.integer  "element_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "interests", ["element_id"], name: "index_interests_on_element_id", using: :btree
+  add_index "interests", ["user_id"], name: "index_interests_on_user_id", using: :btree
 
   create_table "locationaliases", force: true do |t|
     t.string   "name"

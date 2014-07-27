@@ -1,6 +1,7 @@
 class User < ActiveRecord::Base
 
   has_many :ownerships, :dependent => :destroy
+  has_many :interests,  :dependent => :destroy
 
   after_save :find_matching_resources
 

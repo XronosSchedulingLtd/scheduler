@@ -1,6 +1,28 @@
 <div class="row">
   <div class="large-2 columns">
     <div id="datepicker"></div>
+    <div>
+      <% if current_user && current_user.known? %>
+        <h5>Owned assets</h5>
+        <ul>
+          <% current_user.ownerships.each do |o| %>
+            <li><span style="background-color:#225599;color:white">
+              <%= o.element.name %>
+            </span></li>
+          <% end %>
+        </ul>
+        <h5>Watching</h5>
+        <ul>
+          <% current_user.interests.each do |i| %>
+            <li><span style="background-color:gray;color:white">
+              <%= i.element.name %>
+            </span></li>
+          <% end %>
+        </ul>
+        <h5>Quick add</h5>
+        Field goes here.
+      <% end %>
+    </div>
   </div>
   <div class="large-10 columns">
     <div id="fullcalendar"<%

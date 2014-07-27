@@ -47,7 +47,13 @@
             </li>
             <li class="divider"></li>
           <% end %>
-          <li><%= link_to current_user.name %></li>
+          <li>
+            <% if current_user.known? %>
+              <a href="/users/<%= current_user.id %>" data-reveal-id="eventModal" data-reveal-ajax="true"><%= current_user.name %></a>
+            <% else %>
+              <%= link_to current_user.name %>
+            <% end %>
+            </li>
           <li class="divider"></li>
           <li><%= link_to "Sign out", signout_path %></li>
         <% else %>

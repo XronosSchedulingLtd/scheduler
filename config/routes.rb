@@ -22,6 +22,8 @@ Rails.application.routes.draw do
 
   resources :pupils
 
+  resources :users
+
   resources :staffs do
     member do
       get :ical
