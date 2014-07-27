@@ -10,6 +10,8 @@ Rails.application.routes.draw do
 
   get 'sessions/destroy'
 
+  get '/ical/:id' => 'staffs#ical'
+
   resources :locationaliases
 
   resources :groups
