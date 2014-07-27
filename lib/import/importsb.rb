@@ -11,6 +11,7 @@ require 'ostruct'
 require 'csv'
 require 'charlock_holmes'
 require 'digest/md5'
+require 'yaml'
 #require 'ruby-prof'
 
 #
@@ -1375,6 +1376,22 @@ class SB_Loader
     raise "Can't find event category for Other Half." unless @other_half_category
     @event_source = Eventsource.find_by_name("SchoolBase")
     raise "Can't find event source \"SchoolBase\"." unless @event_source
+    #
+    #  Dump to file(s).
+    #
+    puts "Dumping parsed data." if @verbose
+    File.open(Rails.root.join(IMPORT_DIR, "pupils.yml"), "w") do |file|
+      file.puts YAML::dump(@pupils)
+    end
+    File.open(Rails.root.join(IMPORT_DIR, "groups.yml"), "w") do |file|
+      file.puts YAML::dump(@groups)
+    end
+    File.open(Rails.root.join(IMPORT_DIR, "tutorgroups.yml"), "w") do |file|
+      file.puts YAML::dump(@tg_hash)
+    end
+    File.open(Rails.root.join(IMPORT_DIR, "lessons.yml"), "w") do |file|
+      file.puts YAML::dump(@timetable_entries)
+    end
     puts "Finished data initialisation." if @verbose
     yield self if block_given?
   end
