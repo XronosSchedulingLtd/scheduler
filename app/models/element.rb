@@ -72,6 +72,33 @@ class Element < ActiveRecord::Base
     end
   end
 
+  def events_on(start_date = nil,
+                end_date = nil,
+                eventcategory = nil,
+                eventsource = nil,
+                and_by_group = true,
+                include_nonexistent = false)
+    direct_events = Event.events_on(start_date,
+                                    end_date,
+                                    eventcategory,
+                                    eventsource,
+                                    self,
+                                    include_nonexistent)
+    indirect_events = []
+    if and_by_group && self.memberships.size > 0
+      self.memberships.each do |m|
+        indirect_events =
+          indirect_events + m.group.element.events_on(start_date,
+                                                      end_date,
+                                                      eventcategory,
+                                                      eventsource,
+                                                      and_by_group,
+                                                      include_nonexistent)
+      end
+    end
+    (direct_events + indirect_events).uniq
+  end
+
   def rename_affected_events
     self.commitments.names_event.each do |c|
       if c.event.body != self.name

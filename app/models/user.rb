@@ -40,6 +40,20 @@ class User < ActiveRecord::Base
           end
         end
       end
+      pupil = Pupil.find_by_email(self.email)
+      if pupil
+        #
+        #  This could be made a lot more efficient with scopes and a
+        #  direct d/b query, but since each user is liable to own at most
+        #  about 5 resources, and usually only 1, it isn't really worth it.
+        #
+        unless ownerships.detect {|o| o.element_id == pupil.element.id}
+          Ownership.create! do |ownership|
+            ownership.user_id    = self.id
+            ownership.element_id = pupil.element.id
+          end
+        end
+      end
     end
   end
 

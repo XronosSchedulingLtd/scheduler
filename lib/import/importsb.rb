@@ -386,8 +386,7 @@ class SB_Group
   end
 
   def adjust(loader)
-    @era = loader.send("era")
-    @era_id = @era.id
+    @era_id = loader.era.id
   end
 
   def wanted?(loader)
@@ -397,7 +396,7 @@ class SB_Group
     #  academic year, or they'll all get rejected.
     #
     curriculum = loader.send("curriculum_hash")[@curriculum_ident]
-    !!(curriculum && curriculum.ac_year_ident == @era.source_id)
+    !!(curriculum && curriculum.ac_year_ident == loader.era.source_id)
   end
 
   def source_id

@@ -64,9 +64,9 @@ class ScheduleController < ApplicationController
     if current_user && current_user.known?
       @events =
         ((current_user.ownerships.collect {|o|
-          o.element.entity.events_on(start_date, end_date) }.flatten) +
+          o.element.events_on(start_date, end_date) }.flatten) +
          (current_user.interests.collect {|i|
-          i.element.entity.events_on(start_date, end_date) }.flatten) +
+          i.element.events_on(start_date, end_date) }.flatten) +
          (wlc ? wlc.events_on(start_date, end_date) : [])).uniq
     else
       @events =
