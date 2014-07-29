@@ -1,0 +1,15 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-07-28T08:10:11+01:00
+
+====== Monday 28 Jul 2014 ======
+
+Just had an idea - AutoGroups - a batch job that runs regularly (daily?) and creates and maintains various scripted groups.
+
+All staff (by current flag)
+All tutors per house
+All students per house
+All students per year
+All students
+
+and doubtless I can think of more.  These would have to have some kind of ownership to distinguish them from other groups.  Or could they be identified by Persona?  I'm inclined to think that Persona is orthogonal to source or ownership, but it needs a little thought.
