@@ -1,3 +1,9 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2014 John Winters
+# Portions Copyright (C) 2014 Abindon School
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+
 class User < ActiveRecord::Base
 
   has_many :ownerships, :dependent => :destroy
@@ -7,6 +13,19 @@ class User < ActiveRecord::Base
 
   def known?
     self.ownerships.size > 0
+  end
+
+  #
+  #  Could be made more efficient with an explicit d/b hit, but probably
+  #  not worth it as each user is likely to own only a small number
+  #  of elements.
+  #
+  def owns?(element)
+    !!ownerships.detect {|o| o.element_id == element.id}
+  end
+
+  def groups
+    ownerships.select {|o| o.element.entity_type == "Group"}.collect {|o| o.element.entity}
   end
 
   #

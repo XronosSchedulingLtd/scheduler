@@ -3,6 +3,16 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
+class Vanillagrouppersona
+  #
+  #  This exists just to exist.
+  #  We require any group which is created to have a persona specified,
+  #  but if you specify this one then it won't actually get a linked d/b
+  #  record, and there will be no attributes other than the standard ones.
+  #
+end
+
+
 class Group < ActiveRecord::Base
   belongs_to :era
   belongs_to :persona, :polymorphic => true, :dependent => :destroy
@@ -26,9 +36,15 @@ class Group < ActiveRecord::Base
 
   scope :tutorgroups, -> { where(persona_type: 'Tutorgrouppersona') }
   scope :teachinggroups, -> { where(persona_type: 'Teachinggrouppersona') }
+  scope :vanillagroups, -> { where(persona_type: nil) }
+
+  #
+  #  This next line is enough to get me burnt at the stake.
+  #
+  scope :belonging_to, ->(target_user) { joins(element: {ownerships: :user}).where(users: {id: target_user.id} ) }
 
   after_initialize :set_flags
-  before_save      :create_persona
+  before_create    :create_persona
   after_save       :update_persona
 
   attr_accessor :persona_class
@@ -47,7 +63,11 @@ class Group < ActiveRecord::Base
   #  What type is this group?
   #
   def type
-    self.persona_type.chomp("grouppersona")
+    if self.persona_type
+      self.persona_type.chomp("grouppersona")
+    else
+      "Vanilla"
+    end
   end
 
   def method_missing(method_sym, *arguments, &block)
@@ -83,7 +103,7 @@ class Group < ActiveRecord::Base
   end
   
   def create_persona
-    unless self.persona
+    unless self.persona || @persona_class == Vanillagrouppersona
       #
       #  Use the bang version, so if creation of the Persona fails
       #  then the error will propagate back up.
@@ -634,7 +654,7 @@ class Group < ActiveRecord::Base
   end
 
   def persona_specified
-    if !self.persona && self.persona_class == nil
+    if !self.id && !self.persona && self.persona_class == nil
       errors.add(:base, "A persona class must be specified")
     end
   end

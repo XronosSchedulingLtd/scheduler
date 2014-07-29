@@ -13,3 +13,15 @@ All students per year
 All students
 
 and doubtless I can think of more.  These would have to have some kind of ownership to distinguish them from other groups.  Or could they be identified by Persona?  I'm inclined to think that Persona is orthogonal to source or ownership, but it needs a little thought.
+
+It occurs to me to let Groups have no persona at all.  This would be a vanilla group.  It wouldn't need an additional database record, but it might make sense for it appear to have a persona from the point of view of some client code.
+
+To select groups belonging to a particular user, one needs a long chain of joins.
+
+Group <= Element <= Ownership => User
+
+can this all be expressed in a Rails selection criterion thingy?  A scope, that's it.
+
+Yes it can - wow!
+
+Just realised I need to enhance "events_on" in the element model to take account of memberships varying by date.  When checking for memberships, one needs to take account of their validity dates and select only those active on the specified date.  This may mean fetching things one day at a time when a range is specified, which will slow things up a bit.  Month view could get quite slow.

@@ -10,7 +10,11 @@ class GroupsController < ApplicationController
   # GET /groups
   # GET /groups.json
   def index
-    @groups = Group.current.page(params[:page]).order('name')
+    if current_user.admin
+      @groups = Group.current.page(params[:page]).order('name')
+    else
+      @groups = Group.current.belonging_to(current_user).page(params[:page]).order('name')
+    end
   end
 
   # GET /groups/1
@@ -69,6 +73,10 @@ class GroupsController < ApplicationController
   end
 
   private
+    def authorized?(action = action_name, resource = nil)
+      logged_in? && (current_user.admin || action == 'index')
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_group
       @group = Group.find(params[:id])
