@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140727105104) do
+ActiveRecord::Schema.define(version: 20140731124011) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -146,6 +146,7 @@ ActiveRecord::Schema.define(version: 20140727105104) do
     t.integer  "element_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "equality",   default: false
   end
 
   create_table "pupils", force: true do |t|

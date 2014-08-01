@@ -1,0 +1,14 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-01T08:47:19+01:00
+
+====== Ownership ======
+Created Friday 01 August 2014
+
+There are two different things which tend to be referred to as ownership, but are in fact completely different.
+
+1. Members of staff can have responsibility for individual real resources - e.g. the Amey Theatre guys are responsible for the Amey Theatre, The Foyer, The Ingham Room, The CMR etc.  They have the power to approve use of those resources.  These are represented by Ownership records, and automatically appear in the owner's screen.
+
+2. Users can potentially create their own virtual resources - as far as I can see at the moment just groups - which are private to that user.  They shouldn't appear by default on the user's home screen, but they should appear in the user's searches.  For this reason they are implemented as a field in the Element record, which is either nil (indicating a global resource) or contains the user's id.  This will mean that each such resource can belong to only one user, but I don't think that will prove to be counterintuitive.
+
+These two really have nothing in common - apart from the natural name.

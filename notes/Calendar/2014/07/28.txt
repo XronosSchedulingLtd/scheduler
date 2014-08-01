@@ -25,3 +25,7 @@ can this all be expressed in a Rails selection criterion thingy?  A scope, that'
 Yes it can - wow!
 
 Just realised I need to enhance "events_on" in the element model to take account of memberships varying by date.  When checking for memberships, one needs to take account of their validity dates and select only those active on the specified date.  This may mean fetching things one day at a time when a range is specified, which will slow things up a bit.  Month view could get quite slow.
+
+I wonder whether I could write some similar scopes which do the work of selecting a group of events.  Probably two needed - one to select all relevant groups on the given date, then another to select all events for those groups/elements.
+
+Could one even manage one to identify clashes?  Possibly a bit too far.
