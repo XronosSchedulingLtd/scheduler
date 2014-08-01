@@ -12,7 +12,7 @@ class User < ActiveRecord::Base
   after_save :find_matching_resources
 
   def known?
-    self.ownerships.size > 0
+    self.ownerships.me.size > 0
   end
 
   #

@@ -29,3 +29,7 @@ Just realised I need to enhance "events_on" in the element model to take account
 A thought.  When selecting events for a potentially grouped object for a longish period (e.g. a whole month) one could first select all groups for which the element is a member (or hereditary member) anywhere in the month.  If those memberships last the whole month (or whatever period it is) then one can go for a simpler processing path (which will in general be the norm), and use a fixed set of groups to gather events for the whole month.  Only if any variation occurs will one have to establish separate date ranges and handle them separately.
 
 For a full month, given perhaps 5 resources to look at, one could end up doing 155 (31 * 5) event queries.  With this processing, that would usually be reduced to just 5, and indeed we can further optimise things by allowing events_on to take a range of resources - that way it comes down to a single database hit.  Nice.
+
+I wonder whether I could write some similar scopes which do the work of selecting a group of events.  Probably two needed - one to select all relevant groups on the given date, then another to select all events for those groups/elements.
+
+Could one even manage one to identify clashes?  Possibly a bit too far.
