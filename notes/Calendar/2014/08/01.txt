@@ -1,0 +1,9 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-01T13:50:23+01:00
+
+====== Friday 01 Aug 2014 ======
+
+I think I want to get resource selection working by the time I go to school on Wednesday.  The gem rails3-jquery-autocomplete seems a good bet for a first attempt, although I may want to change things later.
+
+Just discovered something which might be useful - the concept of a resource view for FullCalendar.  Unfortunately this doesn't ever seem to have made it into the mainstream code, but lots of people have done different implementations, so I might be able to achieve something.

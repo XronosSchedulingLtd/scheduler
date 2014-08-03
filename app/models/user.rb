@@ -15,6 +15,10 @@ class User < ActiveRecord::Base
     self.ownerships.me.size > 0
   end
 
+  def own_element
+    self.ownerships.me[0]
+  end
+
   #
   #  Could be made more efficient with an explicit d/b hit, but probably
   #  not worth it as each user is likely to own only a small number

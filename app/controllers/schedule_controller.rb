@@ -12,23 +12,15 @@ class ScheduleController < ApplicationController
   #
   class ScheduleEvent
 
-    def initialize(event, current_user)
+    def initialize(event, current_user, attachment)
       @event  = event
-      if event.eventcategory_id == Event.lesson_category.id
-        if current_user &&
-           current_user.ownerships.size > 0
-          if event.covered_by?(current_user.ownerships[0].element)
-            @colour = "red"
-          elsif event.involves?(current_user.ownerships[0].element)
-            @colour = "#225599"
-          else
-            @colour = "gray"
-          end
+      if current_user && current_user.known? && attachment
+        if event.covered_by?(current_user.own_element) ||
+           event.eventcategory_id == Event.invigilation_category.id
+          @colour = "red"
         else
-          @colour = "gray"
+          @colour = attachment.colour
         end
-      elsif event.eventcategory_id == Event.invigilation_category.id
-        @colour = "red"
       elsif event.eventcategory_id == Event.weekletter_category.id
         @colour = "pink"
       else
@@ -62,23 +54,28 @@ class ScheduleController < ApplicationController
     dc = Eventcategory.find_by_name("Duty")
     wlc = Eventcategory.find_by_name("Week letter")
     if current_user && current_user.known?
-      @events =
-        ((current_user.ownerships.collect {|o|
-          o.element.events_on(start_date, end_date) }.flatten) +
-         (current_user.interests.collect {|i|
-          i.element.events_on(start_date, end_date) }.flatten) +
-         (wlc ? wlc.events_on(start_date, end_date) : [])).uniq
+      @schedule_events =
+        (current_user.ownerships.collect {|o|
+           o.element.events_on(start_date, end_date).collect {|e|
+             ScheduleEvent.new(e, current_user, o)
+           }
+         }.flatten) +
+        (current_user.interests.collect {|i|
+           i.element.events_on(start_date, end_date).collect {|e|
+             ScheduleEvent.new(e, current_user, i)
+           }
+         }.flatten) +
+        ((wlc ? wlc.events_on(start_date, end_date) : []).collect {|e|
+            ScheduleEvent.new(e, current_user, nil)
+         })
     else
-      @events =
+      @schedule_events =
         ((cc ? cc.events_on(start_date, end_date) : []) +
          (dc ? dc.events_on(start_date, end_date) : []) +
-         (wlc ? wlc.events_on(start_date, end_date) : [])).uniq
+         (wlc ? wlc.events_on(start_date, end_date) : [])).collect {|e|
+          ScheduleEvent.new(e, nil, nil)
+        }
     end
-#    @events = Event.events_on(Time.zone.parse(start_date),
-#                              Time.zone.parse(end_date) - 1.day)
-    #@events = Event.beginning(Time.zone.parse(start_date)).until(Time.zone.parse(end_date))
-#    @events = Event.split_multi_day_events(@events)
-    @schedule_events = @events.collect {|e| ScheduleEvent.new(e, current_user)}
     begin
       respond_to do |format|
         format.json { render json: @schedule_events }

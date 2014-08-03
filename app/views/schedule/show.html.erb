@@ -6,7 +6,7 @@
         <h5>Me</h5>
         <ul>
           <% current_user.ownerships.me.each do |o| %>
-            <li><span style="background-color:#225599;color:white">
+            <li><span style="background-color:<%= o.colour %>;color:white">
               <%= o.element.name %>
             </span></li>
           <% end %>
@@ -15,7 +15,7 @@
           <h5>My assets</h5>
           <ul>
             <% current_user.ownerships.notme.each do |o| %>
-              <li><span style="background-color:#225599;color:white">
+              <li><span style="background-color:<%= o.colour %>;color:white">
                 <%= o.element.name %>
               </span></li>
             <% end %>
@@ -24,7 +24,7 @@
         <h5>Watching</h5>
         <ul>
           <% current_user.interests.each do |i| %>
-            <li><span style="background-color:gray;color:white">
+            <li><span style="background-color:<%= i.colour %>;color:white">
               <%= i.element.name %>
             </span></li>
           <% end %>

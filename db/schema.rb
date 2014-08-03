@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140731124011) do
+ActiveRecord::Schema.define(version: 20140801161631) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -103,6 +103,7 @@ ActiveRecord::Schema.define(version: 20140731124011) do
     t.integer  "element_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "colour",     default: "gray"
   end
 
   add_index "interests", ["element_id"], name: "index_interests_on_element_id", using: :btree
@@ -147,6 +148,7 @@ ActiveRecord::Schema.define(version: 20140731124011) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean  "equality",   default: false
+    t.string   "colour",     default: "#225599"
   end
 
   create_table "pupils", force: true do |t|
