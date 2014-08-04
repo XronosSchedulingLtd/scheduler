@@ -40,6 +40,10 @@ Rails.application.routes.draw do
 
   resources :eventcategories
 
+  resources :elements do
+    get :autocomplete_element_name, :on => :collection
+  end
+
   get 'schedule/show'
   get 'schedule/events'
   put 'schedule/change_time'

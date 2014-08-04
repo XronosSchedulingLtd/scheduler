@@ -30,7 +30,10 @@
           <% end %>
         </ul>
         <h5>Quick add</h5>
-        Field goes here.
+        <% @element = Element.new %>
+        <%= form_for @element do |f| %>
+          <%= f.autocomplete_field :name, autocomplete_element_name_elements_path %>
+        <% end %>
       <% end %>
     </div>
   </div>

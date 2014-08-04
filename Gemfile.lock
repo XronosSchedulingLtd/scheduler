@@ -103,6 +103,8 @@ GEM
       sprockets-rails (~> 2.0)
     rails-observers (0.1.2)
       activemodel (~> 4.0)
+    rails3-jquery-autocomplete (1.0.14)
+      rails (>= 3.0)
     railties (4.1.0)
       actionpack (= 4.1.0)
       activesupport (= 4.1.0)
@@ -163,6 +165,7 @@ DEPENDENCIES
   omniauth-google-oauth2
   rails (= 4.1.0)
   rails-observers
+  rails3-jquery-autocomplete
   ri_cal
   ruby-prof
   sass-rails (~> 4.0.3)
