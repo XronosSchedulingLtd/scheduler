@@ -6,6 +6,21 @@
 
 class User < ActiveRecord::Base
 
+  DECENT_COLOURS = ["#B8860B",      # DarkGoldenRod
+                    "#556B2F",      # DarkOliveGreen
+                    "#483D8B",      # DarkSlateBlue
+                    "#2F4F4F",      # DarkSlateGray
+                    "#CD5C5C",      # IndianRed
+                    "#3CB371",      # MediumSeaGreen
+                    "#7B68EE",      # MediumSlateBlue
+                    "#808000",      # Olive
+                    "#6B8E23",      # OliveDrab
+                    "#DB7093",      # PaleVioletRed
+                    "#2E8B57",      # SeaGreen
+                    "#A0522D",      # Sienna
+                    "#008080",      # Teal
+                    "#FF6347"]      # Tomato
+
   has_many :ownerships, :dependent => :destroy
   has_many :interests,  :dependent => :destroy
 
@@ -30,6 +45,15 @@ class User < ActiveRecord::Base
 
   def groups
     ownerships.select {|o| o.element.entity_type == "Group"}.collect {|o| o.element.entity}
+  end
+
+  def free_colour
+    available = DECENT_COLOURS - self.interests.collect {|i| i.colour}
+    if available.size > 0
+      available[0]
+    else
+      "Gray"
+    end
   end
 
   #

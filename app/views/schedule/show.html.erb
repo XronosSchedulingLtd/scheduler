@@ -1,41 +1,11 @@
 <div class="row">
   <div class="large-2 columns">
     <div id="datepicker"></div>
-    <div>
-      <% if current_user && current_user.known? %>
-        <h5>Me</h5>
-        <ul>
-          <% current_user.ownerships.me.each do |o| %>
-            <li><span style="background-color:<%= o.colour %>;color:white">
-              <%= o.element.name %>
-            </span></li>
-          <% end %>
-        </ul>
-        <% if current_user.ownerships.notme.size > 0 %>
-          <h5>My assets</h5>
-          <ul>
-            <% current_user.ownerships.notme.each do |o| %>
-              <li><span style="background-color:<%= o.colour %>;color:white">
-                <%= o.element.name %>
-              </span></li>
-            <% end %>
-          </ul>
-        <% end %>
-        <h5>Watching</h5>
-        <ul>
-          <% current_user.interests.each do |i| %>
-            <li><span style="background-color:<%= i.colour %>;color:white">
-              <%= i.element.name %>
-            </span></li>
-          <% end %>
-        </ul>
-        <h5>Quick add</h5>
-        <% @element = Element.new %>
-        <%= form_for @element do |f| %>
-          <%= f.autocomplete_field :name, autocomplete_element_name_elements_path %>
-        <% end %>
-      <% end %>
-    </div>
+    <% if current_user && current_user.known? %>
+      <div id="current_user">
+        <%= render current_user %>
+      </div>
+    <% end %>
   </div>
   <div class="large-10 columns">
     <div id="fullcalendar"<%

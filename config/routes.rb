@@ -40,6 +40,8 @@ Rails.application.routes.draw do
 
   resources :eventcategories
 
+  resources :interests
+
   resources :elements do
     get :autocomplete_element_name, :on => :collection
   end

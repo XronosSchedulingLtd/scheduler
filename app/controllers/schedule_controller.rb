@@ -44,6 +44,12 @@ class ScheduleController < ApplicationController
   end
 
   def show
+    @interest = Interest.new
+    #
+    #  This next one needs to go as soon as I get Interest creation
+    #  working correctly.
+    #
+    @element  = Element.new
   end
 
   def events
