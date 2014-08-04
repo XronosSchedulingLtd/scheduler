@@ -700,8 +700,12 @@ class SB_Pupil
 
   def adjust(loader)
     #
-    #  Nothing for now.
+    #  Whoever enters e-mail address into SB puts in random capitalisation.
+    #  Take it out again.
     #
+    unless self.email.blank?
+      self.email.downcase!
+    end
   end
 
   def wanted?(loader)
@@ -788,6 +792,13 @@ class SB_Staff
     #
     if self.name.blank? && !(self.surname.blank? && self.forename.blank?)
       self.name = "#{self.forename} #{self.surname}"
+    end
+    #
+    #  Whoever enters e-mail address into SB puts in random capitalisation.
+    #  Take it out again.
+    #
+    unless self.email.blank?
+      self.email.downcase!
     end
     #
     #  We don't really know which of the ones we get from SB are valid

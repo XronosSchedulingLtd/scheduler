@@ -31,3 +31,5 @@ I think I'll shove it in an ElementsController for now.
 Wow!  Got predictive text working.  Now I need to think about what exact action will be connected to this form.  Effectively what I want to do is create a new Interest record, linking the current user to the indicated Element.  There will also need to be links in the existing records to allow the deletion of existing Interest records.  Perhaps then this whole form should be handled by the Interests controller (which also doesn't exist yet).  It would have index, new, create, and destroy methods, each of which would refer you back to where you came from (or perhaps merely update part of your page, plus trigger some Javascript).
 
 It seems the way to update part of a page is to send down a Javascript fragment which replaces a particular section.  That Javascript fragment could also trigger a reload of events into the calendar.
+
+That's all working now, but I think my big task for tomorrow is to try to set up a separate event feed for each element which is being monitored.  This will require me to revise my Javascript-fu
