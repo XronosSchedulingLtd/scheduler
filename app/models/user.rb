@@ -84,6 +84,7 @@ class User < ActiveRecord::Base
           Ownership.create! do |ownership|
             ownership.user_id    = self.id
             ownership.element_id = staff.element.id
+            ownership.equality   = true
           end
         end
       end
@@ -98,6 +99,7 @@ class User < ActiveRecord::Base
           Ownership.create! do |ownership|
             ownership.user_id    = self.id
             ownership.element_id = pupil.element.id
+            ownership.equality   = true
           end
         end
       end
