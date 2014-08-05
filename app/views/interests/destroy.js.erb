@@ -1,2 +1,4 @@
 $('#current_user').html("<%=j render current_user %>")
+<% if @element_id %>
 window.removeEventSource(<%= @element_id %>)
+<% end %>

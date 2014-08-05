@@ -18,6 +18,11 @@ class InterestsController < ApplicationController
         @interest = Interest.new
         format.js
       else
+        #
+        #  Failure to save indicates it wasn't a valid thing to add.
+        #
+        @interest = Interest.new
+        @element_id = nil
         format.js
       end
     end
