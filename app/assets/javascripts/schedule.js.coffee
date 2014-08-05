@@ -80,6 +80,8 @@ $(document).ready ->
           data:
             event:
               new_end: event.end.format()
+    $('.dynamic-element').each (index) ->
+      window.addEventSource($(this).attr('element_id'))
   else
     $('#fullcalendar').fullCalendar
       currentTimezone: 'Europe/London'
@@ -107,3 +109,11 @@ $(document).ready ->
         $('#eventModal').foundation('reveal',
                                     'open',
                                     '/events/' + event.id)
+
+window.addEventSource = (eid) ->
+  $('#fullcalendar').fullCalendar('addEventSource',
+                                  '/schedule/events?eid=' + eid)
+
+window.removeEventSource = (eid) ->
+  $('#fullcalendar').fullCalendar('removeEventSource',
+                                  '/schedule/events?eid=' + eid)

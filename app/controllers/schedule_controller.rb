@@ -56,24 +56,38 @@ class ScheduleController < ApplicationController
 #    raise params.inspect
     start_date = Time.zone.parse(params[:start])
     end_date   = Time.zone.parse(params[:end]) - 1.day
+    element_id = params[:eid].to_i
     cc = Eventcategory.find_by_name("Calendar")
     dc = Eventcategory.find_by_name("Duty")
     wlc = Eventcategory.find_by_name("Week letter")
     if current_user && current_user.known?
-      @schedule_events =
-        (current_user.ownerships.collect {|o|
-           o.element.events_on(start_date, end_date).collect {|e|
-             ScheduleEvent.new(e, current_user, o)
-           }
-         }.flatten) +
-        (current_user.interests.collect {|i|
-           i.element.events_on(start_date, end_date).collect {|e|
-             ScheduleEvent.new(e, current_user, i)
-           }
-         }.flatten) +
-        ((wlc ? wlc.events_on(start_date, end_date) : []).collect {|e|
-            ScheduleEvent.new(e, current_user, nil)
-         })
+      if element_id != 0
+        i = current_user.interests.detect {|ci| ci.element_id == element_id}
+        if i
+          element = i.element
+          @schedule_events =
+            element.events_on(start_date, end_date).collect {|e|
+              ScheduleEvent.new(e, current_user, i)
+            }
+        else
+          @schedule_events = []
+        end
+      else
+        @schedule_events =
+          (current_user.ownerships.collect {|o|
+             o.element.events_on(start_date, end_date).collect {|e|
+               ScheduleEvent.new(e, current_user, o)
+             }
+           }.flatten) +
+  #        (current_user.interests.collect {|i|
+  #           i.element.events_on(start_date, end_date).collect {|e|
+  #             ScheduleEvent.new(e, current_user, i)
+  #           }
+  #         }.flatten) +
+          ((wlc ? wlc.events_on(start_date, end_date) : []).collect {|e|
+              ScheduleEvent.new(e, current_user, nil)
+           })
+      end
     else
       @schedule_events =
         ((cc ? cc.events_on(start_date, end_date) : []) +

@@ -1,0 +1,26 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-05T09:19:24+01:00
+
+====== Tuesday 05 Aug 2014 ======
+
+My main objective for today is to make each element for which we're looking at events into a separate calendar event source.  Then we can add and remove event sources dynamically as required.
+
+Note that the main coffeescript source files are compiled statically - that is, once per deployment of code.  They are not compiled on the fly as the application is running, and so aren't suitable for dynamic code.
+
+My first thought is to have some sort of global functions defined in my fixed coffeescript files called something like:
+
+addEventSource(element_id)
+removeEventSource(element_id)
+
+The functions would construct a call to the FullCalendar object, adding and removing the source by URL.  Apparently, provided the URLs are unique, FC can cope with this.  I therefore need to make my URLs something like:
+
+http://abingdon.scheduler.org.uk/schedule/events?eid=1234
+
+Requests like this from a non logged-in or unknown user would produce an empty response.
+
+Obviously the server side code needs enhancing to recognise such requests for events for a particular element id.  Currently the server end decides what to send based on the current user's record.
+
+Any elements which can be dynamically added and removed, then need to have their events done in a separate piece of code at initialisation time.  It should be a question of looking for particular elements and picking the element_id out of the HTML somewhere.
+
+How do the Jquery element selectors work?  Can I cause a bit of code to be run on all items of a particular class?

@@ -14,6 +14,7 @@ class InterestsController < ApplicationController
     respond_to do |format|
       if @interest.save
         current_user.reload
+        @element_id = @interest.element_id
         @interest = Interest.new
         format.js
       else
@@ -24,6 +25,7 @@ class InterestsController < ApplicationController
 
   def destroy
     @interest = Interest.find(params[:id])
+    @element_id = @interest.element_id
     @interest.destroy
     @interest = Interest.new
   end
