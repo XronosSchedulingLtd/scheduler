@@ -11,6 +11,24 @@ class InterestsController < ApplicationController
     @interest.user = current_user
     @interest.colour = current_user.free_colour
 
+    unless @interest.valid?
+      #
+      #  We work on the principle that if it isn't valid then the one
+      #  and only parameter which we processed (element_id) wasn't good.
+      #  This can happen if the user hits return without selecting an
+      #  entry from the list presented.
+      #
+      #  See if we can find a unique element using the contents of
+      #  the name field.
+      #
+      unless @interest.name.blank?
+        @elements = Element.current.where("name like ?", "%#{@interest.name}%")
+        if @elements.size == 1
+          @interest.element = @elements[0]
+        end
+      end
+    end
+
     respond_to do |format|
       if @interest.save
         current_user.reload
@@ -43,6 +61,6 @@ class InterestsController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def interest_params
-    params.require(:interest).permit(:element_id)
+    params.require(:interest).permit(:element_id, :name)
   end
 end
