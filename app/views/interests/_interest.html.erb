@@ -1,7 +1,12 @@
-<li>
-  <span style="background-color:<%= interest.colour %>;color:white" class="dynamic-element" element_id="<%= interest.element_id %>">
+<tr>
+  <td style="background-color:<%= interest.colour %>;color:white" class="dynamic-element" element_id="<%= interest.element_id %>">
     <%= interest.element.name %>
-  </span>
-  <%= link_to '&#215;'.html_safe, interest, remote: true, method: :delete %>
-</li>
+  </td>
+  <td>
+    <input type="checkbox" value="1" />
+  </td>
+  <td>
+    <%= link_to '&#215;'.html_safe, interest, remote: true, method: :delete %>
+  </td>
+</tr>
 

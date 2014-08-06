@@ -1,30 +1,23 @@
-<h5>Me</h5>
-<ul>
-  <% user.ownerships.me.each do |o| %>
-    <li><span style="background-color:<%= o.colour %>;color:white">
-      <%= o.element.name %>
-    </span></li>
-  <% end %>
-</ul>
+<table style="current_user_table">
+<tr><td style="width:80%;"> </td><td style="width:10px;"></td><td style="width:10px;"></td></tr>
+<tr><th style="width:80%">Me</th><th></th></tr>
+<%= render user.ownerships.me %>
 <% if user.ownerships.notme.size > 0 %>
-  <h5>My assets</h5>
-  <ul>
-    <% user.ownerships.notme.each do |o| %>
-      <li><span style="background-color:<%= o.colour %>;color:white">
-        <%= o.element.name %>
-      </span></li>
+<tr><th>My assets</th><th></th></tr>
+  <%= render user.ownerships.notme %>
+<% end %>
+<tr><th>Watching</th><th></th></tr>
+<%= render user.interests %>
+<tr><th>Quick add</th><th></th></tr>
+<tr>
+  <td colspan="3">
+    <%= form_for(@interest, remote: true) do |f| %>
+      <%= f.autocomplete_field :name,
+                               autocomplete_element_name_elements_path,
+                               :id_element => '#interest_element_id' %>
+      <%= f.text_field :element_id, :type => :hidden %>
+      <%= f.submit "Find" %>
     <% end %>
-  </ul>
-<% end %>
-<h5>Watching</h5>
-<ul>
-  <%= render user.interests %>
-</ul>
-<h5>Quick add</h5>
-<%= form_for(@interest, remote: true) do |f| %>
-  <%= f.autocomplete_field :name,
-                           autocomplete_element_name_elements_path,
-                           :id_element => '#interest_element_id' %>
-  <%= f.text_field :element_id, :type => :hidden %>
-  <%= f.submit "Find" %>
-<% end %>
+  <td>
+</tr>
+</table>

@@ -1,0 +1,7 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-06T07:28:50+01:00
+
+====== Wednesday 06 Aug 2014 ======
+
+In HTML, can one have a check-box field without any surrounding form - that is, one gets the tick/untick behaviour, but there's no way actually to submit it.  It seems I can in IceWeasel at least.  How about Chrome?  Yes, Chrome too.
