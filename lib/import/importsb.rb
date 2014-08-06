@@ -95,7 +95,7 @@ module Slurper
               else
                 entry.send("#{attr_name}=",
                            row[column_hash[attr_name]] ?
-                           row[column_hash[attr_name]].strip : nil)
+                           row[column_hash[attr_name]].strip : "")
               end
             end
             entry.adjust(loader)
