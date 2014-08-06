@@ -360,6 +360,7 @@ class SB_Group
   FILE_NAME = "groups.csv"
   REQUIRED_COLUMNS = [Column["GroupIdent", :group_ident,      true],
                       Column["GroupName",  :name,             false],
+                      Column["YearIdent",  :year_ident,       true],
                       Column["CurrIdent",  :curriculum_ident, true]]
 
   FIELDS_TO_UPDATE = [:name, :current]
@@ -655,6 +656,35 @@ class SB_PeriodTime
     @ends_at   = sprintf("%02d:%02d", @end_mins / 60,   @end_mins % 60)
   end
 
+  #
+  #  These next two are really horrible.  The problem is, period 6 on a
+  #  Wednesday is from 13:30 to 14:25 for most people.  However for the
+  #  lower school it is from 13:00 to 13:55.  SB simply can't cope with
+  #  this at all and gives the wrong time.  I would prefer if possible
+  #  to have the right time.
+  #
+  #  810 is 13:30
+  #  865 is 14:25
+  #
+  #  Fortunately this particular pattern for start and end time occurs
+  #  only for period 6 on a Wednesday.
+  #
+  def ls_starts_at
+    if @start_mins == 810 && @end_mins == 865
+      "13:00"
+    else
+      @starts_at
+    end
+  end
+
+  def ls_ends_at
+    if @start_mins == 810 && @end_mins == 865
+      "13:55"
+    else
+      @ends_at
+    end
+  end
+
   def wanted?(loader)
     @period_time_set_ident == 2
   end
@@ -914,7 +944,9 @@ class SB_Timetableentry
                 :source_hash,
                 :staff_idents,
                 :group_idents,
-                :room_idents
+                :room_idents,
+                :lower_school
+
 
   def initialize
     @compound = false
@@ -923,6 +955,7 @@ class SB_Timetableentry
     @group_idents = []
     @room_idents  = []
     @body_text = nil
+    @lower_school = false
   end
 
   def adjust(loader)
@@ -943,6 +976,32 @@ class SB_Timetableentry
 
   def atomic?
     !@compound
+  end
+
+  def identify_ls(loader)
+    if atomic?
+      #
+      #  We need to have a group associated and the year for that group
+      #  needs to be 7 or 8.
+      #
+      group = loader.group_hash[self.group_ident]
+      if group
+        year = loader.year_hash[group.year_ident]
+        if year && (year.year_num == 7 || year.year_num == 8)
+          @lower_school = true
+        end
+      end
+    else
+      if self.group_idents.size > 0
+        group = loader.group_hash[self.group_idents[0]]
+        if group
+          year = loader.year_hash[group.year_ident]
+          if year && (year.year_num == 7 || year.year_num == 8)
+            @lower_school = true
+          end
+        end
+      end
+    end
   end
 
   def meeting?
@@ -1238,6 +1297,7 @@ class SB_Loader
               :location_hash,
               :rota_week_hash,
               :staff_hash,
+              :year_hash,
               :verbose,
               :lesson_category,
               :meeting_category,
@@ -1370,6 +1430,16 @@ class SB_Loader
         @periods_by_week[period.week_letter][period.day_name] << te
       end
     end
+    #
+    #  Identify which timetable entries refer to lower school lessons.
+    #  This can only be done once the hashes have been created.
+    #
+    @timetable_entries.each do |te|
+      te.identify_ls(self)
+    end
+    #
+    #  And all the event categories which we need.
+    #
     @week_letter_category = Eventcategory.find_by_name("Week letter")
     raise "Can't find event category for week letters." unless @week_letter_category
     @lesson_category = Eventcategory.find_by_name("Lesson")
@@ -1909,10 +1979,17 @@ class SB_Loader
                 event.body          = lesson.body_text(self)
                 event.eventcategory = lesson.eventcategory(self)
                 event.eventsource   = @event_source
-                event.starts_at     =
-                  Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
-                event.ends_at       =
-                  Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+                if lesson.lower_school
+                  event.starts_at     =
+                      Time.zone.parse("#{date.to_s} #{period.time.ls_starts_at}")
+                    event.ends_at       =
+                      Time.zone.parse("#{date.to_s} #{period.time.ls_ends_at}")
+                  else
+                  event.starts_at     =
+                    Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+                  event.ends_at       =
+                    Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+                end
                 event.approximate   = false
                 event.non_existent  = false
                 event.private       = false
@@ -1948,10 +2025,17 @@ class SB_Loader
               #
               changed = false
               period = @period_hash[lesson.period_ident]
-              starts_at =
-                Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
-              ends_at   =
-                Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+              if lesson.lower_school
+                starts_at =
+                  Time.zone.parse("#{date.to_s} #{period.time.ls_starts_at}")
+                ends_at   =
+                  Time.zone.parse("#{date.to_s} #{period.time.ls_ends_at}")
+              else
+                starts_at =
+                  Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+                ends_at   =
+                  Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+              end
               if event.starts_at != starts_at
                 event.starts_at = starts_at
                 changed = true
@@ -2099,10 +2183,17 @@ class SB_Loader
                 event.body          = lesson.body_text(self)
                 event.eventcategory = lesson.eventcategory(self)
                 event.eventsource   = @event_source
-                event.starts_at     =
-                  Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
-                event.ends_at       =
-                  Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+                if lesson.lower_school
+                  event.starts_at     =
+                    Time.zone.parse("#{date.to_s} #{period.time.ls_starts_at}")
+                  event.ends_at       =
+                    Time.zone.parse("#{date.to_s} #{period.time.ls_ends_at}")
+                else
+                  event.starts_at     =
+                    Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+                  event.ends_at       =
+                    Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+                end
                 event.approximate   = false
                 event.non_existent  = false
                 event.private       = false
@@ -2142,10 +2233,17 @@ class SB_Loader
               #
               changed = false
               period = @period_hash[lesson.period_ident]
-              starts_at =
-                Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
-              ends_at   =
-                Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+              if lesson.lower_school
+                starts_at =
+                  Time.zone.parse("#{date.to_s} #{period.time.ls_starts_at}")
+                ends_at   =
+                  Time.zone.parse("#{date.to_s} #{period.time.ls_ends_at}")
+              else
+                starts_at =
+                  Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+                ends_at   =
+                  Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+              end
               if event.starts_at != starts_at
                 event.starts_at = starts_at
                 changed = true
