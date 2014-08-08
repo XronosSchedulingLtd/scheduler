@@ -37,6 +37,18 @@ class Commitment < ActiveRecord::Base
 
   scope :names_event, lambda { where("names_event = true") }
 
+  #
+  #  This isn't a real field in the d/b.  It exists to allow a name
+  #  to be typed in the dialogue for creating a commitment record.
+  #
+  def element_name
+    @element_name 
+  end
+
+  def element_name=(en)
+    @element_name = en
+  end
+
   def self.cover_commitments(after = nil)
     after ||= Date.today
     #

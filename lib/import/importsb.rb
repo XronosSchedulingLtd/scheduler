@@ -793,13 +793,15 @@ class SB_Staff
                       Column["UserSurname",  :surname,     false],
                       Column["UserTitle",    :title,       false],
                       Column["UserForename", :forename,    false],
+                      Column["UserLeft",     :left,        true],
                       Column["UserEmail",    :email,       false]]
   FIELDS_TO_UPDATE = [:name,
                       :initials,
                       :surname,
                       :title,
                       :forename,
-                      :email]
+                      :email,
+                      :current]
   DB_CLASS = Staff
   DB_KEY_FIELD = :source_id
   FIELDS_TO_CREATE = [:name,
@@ -835,7 +837,7 @@ class SB_Staff
     #  and which aren't.  We take an initial stab at it.
     #
     self.active = !!(self.email =~ /\@abingdon\.org\.uk$/)
-    self.current = self.active
+    self.current = (self.left != 1)
   end
 
   def wanted?(loader)
@@ -1307,9 +1309,13 @@ class SB_Loader
   def initialize(options)
     @verbose   = options.verbose
     @full_load = options.full_load
-    raise "An era name must be specified." unless options.era
-    @era = Era.find_by_name(options.era)
-    raise "Era #{options.era} not found in d/b." unless @era
+    if options.era
+      @era = Era.find_by_name(options.era)
+      raise "Era #{options.era} not found in d/b." unless @era
+    else
+      @era = Setting.current_era
+      raise "Current era not set." unless @era
+    end
     #
     #  If an explicit date has been specified then we use that.
     #  Otherwise, if a full load has been specified then we use
@@ -1859,15 +1865,16 @@ class SB_Loader
           #
           #  We have to process compound and non-compound events separately.
           #
-          dbevents = Event.events_on(date,
-                                     nil,
-                                     [@lesson_category,
+          dbevents = Event.events_on(date,                # Start date
+                                     nil,                 # End date
+                                     [@lesson_category,   # Categories
                                       @meeting_category,
                                       @assembly_category,
                                       @chapel_category],
-                                     @event_source,
-                                     nil,
-                                     true)
+                                     @event_source,       # Event source
+                                     nil,                 # Resource
+                                     nil,                 # Owner
+                                     true)                # And non-existent
           dbcompound, dbatomic = dbevents.partition {|dbe| dbe.compound}
           dbids = dbatomic.collect {|dba| dba.source_id}.uniq
           dbhashes = dbcompound.collect {|dbc| dbc.source_hash}.uniq
@@ -1923,6 +1930,7 @@ class SB_Loader
                                         @assembly_category,
                                         @chapel_category],
                                        @event_source,
+                                       nil,
                                        nil,
                                        true)
             dbcompound, dbatomic = dbevents.partition {|dbe| dbe.compound}

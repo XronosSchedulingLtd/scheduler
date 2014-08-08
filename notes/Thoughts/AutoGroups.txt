@@ -1,0 +1,23 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-06T16:55:28+01:00
+
+====== AutoGroups ======
+Created Wednesday 06 August 2014
+
+I can get the SB loader code, once it's finished its main processing, to create various automatic groups of pupils.  Some I've thought of are:
+
+* All students
+* All students by year
+* All students by house
+* All students by house and year
+* All students of each subject by year
+
+So we could have groups called:
+
+"All students"
+"3rd year", "4th year", "5th year", etc.
+"School house", "Crescent house", etc.
+"School house 3rd year", "School house 4th year", etc.
+"3rd year maths", "3rd year English", "3rd year latin", etc.
+

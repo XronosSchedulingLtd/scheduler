@@ -50,6 +50,8 @@ class Event < ActiveRecord::Base
   has_many :commitments, :dependent => :destroy
   has_many :elements, :through => :commitments
 
+  belongs_to :owner, :class_name => :User
+
   validates :body, presence: true
   validates :eventcategory, presence: true
   validates :eventsource, presence: true
@@ -179,26 +181,6 @@ class Event < ActiveRecord::Base
   end
 
   #
-  #  Can the current user edit this event?
-  #
-  def can_edit?
-    #
-    #  This algorithm needs to be made slightly more sophisticated.
-    #
-    false
-#    if self.eventcategory.id == Event.duty_category.id ||
-#       self.eventcategory.id == Event.lesson_category.id ||
-#       self.eventcategory.id == Event.invigilation_category.id ||
-#       self.eventcategory.id == Event.weekletter_category.id
-#      false
-#    elsif starts_at.hour < 12
-#      true
-#    else
-#      false
-#    end
-  end
-
-  #
   #  What resources are directly involved in this event?
   #
   def resources
@@ -245,11 +227,18 @@ class Event < ActiveRecord::Base
   #  For the resource you can also pass any object which is a type of
   #  resource.
   #
+  #  Most events have an owner_id of nil, however passing an owned_by
+  #  value of nil here does not restrict us to just those events.  If
+  #  we specify an explicit owner then the search is restricted to just
+  #  the events of that owner, but if we specify no owner (owned_by = nil)
+  #  then we want *all* events, regardless of ownership.
+  #
   def self.events_on(startdate     = nil,
                      enddate       = nil,
                      eventcategory = nil,
                      eventsource   = nil,
                      resource      = nil,
+                     owned_by      = nil,
                      include_nonexistent = false)
     duffparameter = false
     #
@@ -306,6 +295,9 @@ class Event < ActiveRecord::Base
       end
       duffparameter = true unless res
     end
+    if owned_by
+      duffparameter = true unless owned_by.instance_of?(User)
+    end
     if duffparameter
       []
     else
@@ -354,6 +346,10 @@ class Event < ActiveRecord::Base
       if res
         query_string_parts << "commitments.element_id = :element_id"
         query_hash[:element_id] = res.id
+      end
+      if owned_by
+        query_string_parts << "owner_id = :owner_id"
+        query_hash[:owner_id] = owned_by.id
       end
       unless include_nonexistent
         query_string_parts << "not non_existent"

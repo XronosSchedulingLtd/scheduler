@@ -27,32 +27,19 @@ class EventsController < ApplicationController
 
   # GET /events/new
   def new
-    if current_user && current_user.known?
-      @event = Event.new
-      if request.xhr?
-        if params[:date]
-          start_date = Time.zone.parse(params[:date])
-          @event.starts_at = start_date
-          if start_date.hour == 0 &&
-             start_date.min == 0
-            @event.all_day = true
-          end
-        end
-        @minimal = true
-        render :layout => false
-      else
-        @minimal = false
-        render
-      end
-    else
-      @minimal = true
-      render :youcant, :layout => false
-    end
-  end
-
-  # GET /events/1/edit
-  def edit
+    @event = Event.new
+    es = Eventsource.find_by name: "Manual"
+    @event.eventsource = es if es
     if request.xhr?
+      if params[:date]
+        start_date = Time.zone.parse(params[:date])
+        @event.starts_at = start_date
+        @event.ends_at   = start_date
+        if start_date.hour == 0 &&
+           start_date.min == 0
+          @event.all_day = true
+        end
+      end
       @minimal = true
       render :layout => false
     else
@@ -61,10 +48,32 @@ class EventsController < ApplicationController
     end
   end
 
+  # GET /events/1/edit
+  def edit
+    @commitment = Commitment.new
+    #
+    #  Admin can edit anything.  Other editors can only edit their
+    #  own events.
+    #
+    if current_user.can_edit?(@event)
+      if request.xhr?
+        @minimal = true
+        render :layout => false
+      else
+        @minimal = false
+        render
+      end
+    else
+      @minimal = true
+      render :show, :layout => false
+    end
+  end
+
   # POST /events
   # POST /events.json
   def create
     @event = Event.new(event_params)
+    @event.owner = current_user
 
     respond_to do |format|
       if @event.save
@@ -132,8 +141,8 @@ class EventsController < ApplicationController
 
   private
     def authorized?(action = action_name, resource = nil)
-      (logged_in? && current_user.admin) ||
-      action == 'show' || action == 'new'
+      (logged_in? && current_user.create_events?) ||
+      action == 'show'
     end
 
     # Use callbacks to share common setup or constraints between actions.

@@ -18,7 +18,17 @@ $(document).ready ->
   $(document).on('opened', '[data-reveal]', ->
     $('.datetimepicker').datetimepicker
       dateFormat: "dd/mm/yy"
-      stepMinute: 5)
+      stepMinute: 5
+    $('#event_starts_at').change( (event) ->
+      starts_at = new Date($('#event_starts_at').val())
+      ends_at = new Date($('#event_ends_at').val())
+      if starts_at > ends_at
+        $('#event_ends_at').val($('#event_starts_at').val()))
+    $('#event_ends_at').change( (event) ->
+      starts_at = new Date($('#event_starts_at').val())
+      ends_at = new Date($('#event_ends_at').val())
+      if starts_at > ends_at
+        $('#event_starts_at').val($('#event_ends_at').val())))
   if ($('.withedit').length)
     $('#fullcalendar').fullCalendar
       currentTimezone: 'Europe/London'

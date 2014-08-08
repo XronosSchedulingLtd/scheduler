@@ -2,6 +2,17 @@
 <tr><td style="width:80%;"> </td><td style="width:10px;"></td><td style="width:10px;"></td></tr>
 <tr><th style="width:80%">Me</th><th></th></tr>
 <%= render user.ownerships.me %>
+<% if user.create_events? %>
+<tr>
+  <td style="background-color:<%= current_user.colour_not_involved %>;color:white">
+    My events
+  </td>
+  <td>
+    <input type="checkbox" value="on" />
+  </td>
+  <td></td>
+</tr>
+<% end %>
 <% if user.ownerships.notme.size > 0 %>
 <tr><th>My assets</th><th></th></tr>
   <%= render user.ownerships.notme %>

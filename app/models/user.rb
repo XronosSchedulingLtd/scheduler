@@ -6,7 +6,7 @@
 
 class User < ActiveRecord::Base
 
-  DECENT_COLOURS = ["#B8860B",      # DarkGoldenRod
+  DECENT_COLOURS = ["#B8860B",      # DarkGoldenRed (brown)
                     "#556B2F",      # DarkOliveGreen
                     "#483D8B",      # DarkSlateBlue
                     "#2F4F4F",      # DarkSlateGray
@@ -23,6 +23,9 @@ class User < ActiveRecord::Base
 
   has_many :ownerships, :dependent => :destroy
   has_many :interests,  :dependent => :destroy
+
+  has_many :events,   foreign_key: :owner_id
+  has_many :elements, foreign_key: :owner_id
 
   after_save :find_matching_resources
 
@@ -56,6 +59,39 @@ class User < ActiveRecord::Base
     end
   end
 
+  def create_events?
+    self.editor || self.admin
+  end
+
+  def create_groups?
+    self.editor || self.admin
+  end
+
+  #
+  #  Can this user edit the indicated item?
+  #
+  def can_edit?(item)
+    if item.instance_of?(Event)
+      self.admin || (self.create_events? && item.owner_id == self.id)
+    else
+      false
+    end
+  end
+
+  def events_on(start_date = nil,
+                end_date = nil,
+                eventcategory = nil,
+                eventsource = nil,
+                and_by_group = true,
+                include_nonexistent = false)
+    Event.events_on(start_date,
+                    end_date,
+                    eventcategory,
+                    eventsource,
+                    nil,
+                    self,
+                    include_nonexistent)
+  end
   #
   #  Create a new user record to match an omniauth authentication.
   #

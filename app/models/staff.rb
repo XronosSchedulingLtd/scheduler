@@ -26,7 +26,7 @@ class Staff < ActiveRecord::Base
     #
     #  A constructed name to pass to our element record.
     #
-    "#{self.name} (Staff)"
+    "#{self.initials} - #{self.name}"
   end
 
   #

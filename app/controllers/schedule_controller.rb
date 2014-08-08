@@ -12,20 +12,21 @@ class ScheduleController < ApplicationController
   #
   class ScheduleEvent
 
-    def initialize(event, current_user, attachment)
+    def initialize(event, current_user = nil, colour = nil)
       @event  = event
-      if current_user && current_user.known? && attachment
+      if current_user && current_user.known? && colour
         if event.covered_by?(current_user.own_element) ||
            event.eventcategory_id == Event.invigilation_category.id
           @colour = "red"
         else
-          @colour = attachment.colour
+          @colour = colour
         end
       elsif event.eventcategory_id == Event.weekletter_category.id
         @colour = "pink"
       else
         @colour = "green"
       end
+      @editable = current_user ? current_user.can_edit?(event) : false
     end
 
     def as_json(options = {})
@@ -36,7 +37,7 @@ class ScheduleController < ApplicationController
         :end       => @event.ends_at_for_fc,
         :allDay    => @event.all_day,
         :recurring => false,
-        :editable  => @event.can_edit?,
+        :editable  => @editable,
         :color     => @colour
       }
     end
@@ -67,33 +68,46 @@ class ScheduleController < ApplicationController
           element = i.element
           @schedule_events =
             element.events_on(start_date, end_date).collect {|e|
-              ScheduleEvent.new(e, current_user, i)
+              ScheduleEvent.new(e, current_user, i.colour)
             }
         else
           @schedule_events = []
         end
       else
+        #
+        #  On the assumption that events owned by this user will usually
+        #  involve this user, and we don't want them then to be displayed
+        #  twice, we gather in those first and uniq them.
+        #
+        #  Currently cope with only one "me" ownership.  Know there is at
+        #  least one because of the current_user.known? check above.
+        #
+        ownership = current_user.ownerships.me[0]
+        events_involving = ownership.element.events_on(start_date, end_date)
+        mine, notmine =
+          events_involving.partition {|e| e.owner_id == current_user.id}
+        myotherevents =
+          current_user.events_on(start_date, end_date) - mine
         @schedule_events =
-          (current_user.ownerships.collect {|o|
-             o.element.events_on(start_date, end_date).collect {|e|
-               ScheduleEvent.new(e, current_user, o)
-             }
-           }.flatten) +
-  #        (current_user.interests.collect {|i|
-  #           i.element.events_on(start_date, end_date).collect {|e|
-  #             ScheduleEvent.new(e, current_user, i)
-  #           }
-  #         }.flatten) +
-          ((wlc ? wlc.events_on(start_date, end_date) : []).collect {|e|
-              ScheduleEvent.new(e, current_user, nil)
-           })
+          notmine.collect {|e| ScheduleEvent.new(e,
+                                                 current_user,
+                                                 ownership.colour)} +
+          mine.collect {|e| ScheduleEvent.new(e,
+                                              current_user,
+                                              current_user.colour_involved)} +
+          myotherevents.collect {|e| ScheduleEvent.new(e,
+                                                       current_user,
+                                                       current_user.colour_not_involved)} +
+          (wlc ? wlc.events_on(start_date, end_date) : []).collect {|e|
+              ScheduleEvent.new(e, current_user)
+           }
       end
     else
       @schedule_events =
         ((cc ? cc.events_on(start_date, end_date) : []) +
          (dc ? dc.events_on(start_date, end_date) : []) +
          (wlc ? wlc.events_on(start_date, end_date) : [])).collect {|e|
-          ScheduleEvent.new(e, nil, nil)
+          ScheduleEvent.new(e)
         }
     end
     begin

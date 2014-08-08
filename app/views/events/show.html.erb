@@ -21,8 +21,8 @@
 
   <tr>
     <td><strong>Owner:</strong></td>
-    <td><%= @event.owner_id == nil || @event.owner_id = 0 ?
-            "None" :
+    <td><%= @event.owner_id == nil || @event.owner_id == 0 ?
+            "System" :
             @event.owner.name %></td>
   </tr>
 

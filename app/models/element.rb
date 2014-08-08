@@ -11,6 +11,8 @@ class Element < ActiveRecord::Base
   has_many :ownerships,  :dependent => :destroy
   has_many :interests,   :dependent => :destroy
 
+  belongs_to :owner, :class_name => :User
+
   scope :current, -> { where(current: true) }
   after_save :rename_affected_events
 
@@ -68,7 +70,11 @@ class Element < ActiveRecord::Base
       #  If recursion is not required then we just return a list of the
       #  groups of which this element is an immediate member.
       #
-      self.memberships.active_on(given_date).inclusions.collect {|m| m.group}
+      #  DONE: if we are not recursing, this could be better implemented
+      #        as a scope, or at least by use of scopes.
+      #
+      #self.memberships.active_on(given_date).inclusions.collect {|m| m.group}
+      Group.with_member_on(self, given_date)
     end
   end
 
@@ -83,6 +89,7 @@ class Element < ActiveRecord::Base
                                     eventcategory,
                                     eventsource,
                                     self,
+                                    nil,
                                     include_nonexistent)
     indirect_events = []
     if and_by_group && self.memberships.size > 0

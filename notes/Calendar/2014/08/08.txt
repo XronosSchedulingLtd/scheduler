@@ -1,0 +1,43 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-08T08:04:58+01:00
+
+====== Friday 08 Aug 2014 ======
+
+As an aside, I've just discovered (or re-discovered) that there are more columns in SB's Staff record which potentially enable me to make a better decision about whether staff members are current or not.  Just trying it now.  I will set "current" to true of the UserLeft field is not 1.
+
+Interesting - having done that I find that each time I run the loader utility it adds more events.  Need to work out why.
+
+The last event to be loaded has a title of S6 Spt and has an eventcategory of Lesson.  It also has 15 commitments.  Who is involved?  Alexis for one.  It's also noticeable that it is a compound event.  Try to find an atomic event for ease of analysis.  Going for the penultimate one is quite slow, but it's
+
+"MRW 6a Tu", with a source_id of 353989.  Any others with the same ID?  28 of them.  That's rather too many.  Who do they involve?  MRW 6a Tu, Ian Middleton, S18.  Let's take a look at IM's timetable.  Indeed, everything is repeated.  The same however is true for me too - all my lessons are there again and again.  What have I messed up?  There doesn't seem to be anything in that area, and yet the load which ran at 04:00 today didn't have that problem.  ISTR that code exists for deleting duplicate events too, and yet that's not happening - very odd.
+
+It's not my changes to the loader code - I've just reverted to the pre-changes version and we have the same problem.  It must therefore be something to do with the changes which I made to models yesterday.  But what?  Ah - I changed the interface to Event.events_on, and the loader code uses that.  I think I have my explanation.
+
+ ''def self.events_on(startdate     = nil,''
+''                   enddate       = nil,''
+''                   eventcategory = nil,''
+''                   eventsource   = nil,''
+''                   resource      = nil,''
+''                   owned_by      = nil,''
+''                   include_nonexistent = false)''
+
+That seems to have explained it - back to our scheduled programmes.  I can't promote the improved (in the sense of setting the "current" flag in staff records) importsb.rb until I'm ready to send the improved server code as well.
+
+I've also just upgraded the staff model so that I appear as "JHW - John Winters" instead of "John Winters (Staff)". In order to do the same thing for Pupils, I have had to implement a Setting model to hold system settings.  That is now in place and can potentially be used by the import code too.
+
+These two changes will need a bit of manual intervention on the live system.  All staff and pupil records will need to be loaded and then saved.  Before we do that, I will need to set up the current era.
+
+Steps to promote the current code to the live system (and it could be done, provided I don't give anyone else editing permission).
+
+[*] Backup database
+[ ] export RAILS_ENV=production
+[ ] Pull up latest code
+[ ] rake db:migrate
+[ ] re-compile assets
+[ ] touch tmp/restart.txt
+[ ] edit in settings record
+[ ] use rails console to force a save of all staff and pupil records
+[ ] run the import process
+
+Let's test that procedure first.

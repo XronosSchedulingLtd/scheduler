@@ -20,9 +20,30 @@ class Pupil < ActiveRecord::Base
 
   def element_name
     #
-    #  A constructed name to pass to our element record.
+    #  A constructed name to pass to our element record.  Sensitive to what
+    #  our current era is.
     #
-    "#{self.name} (Pupil)"
+    if Setting.current_era
+      #
+      #  We go for his tutor group as at today, unless we are outside the
+      #  current academic year, in which case we go for one extremity or
+      #  other of the year.
+      #
+      as_at = Date.today
+      if as_at < Setting.current_era.starts_on
+        as_at = Setting.current_era.starts_on
+      elsif as_at > Setting.current_era.ends_on
+        as_at = Setting.current_era.ends_on
+      end
+      tutorgroup = self.tutorgroups(as_at)[0]
+      if tutorgroup
+        "#{self.name} (#{tutorgroup.name})"
+      else
+        "#{self.name} (Pupil)"
+      end
+    else
+      "#{self.name} (Pupil)"
+    end
   end
 
   def <=>(other)
@@ -34,11 +55,16 @@ class Pupil < ActiveRecord::Base
   end
 
   def tutorgroups(date = nil)
-    self.groups(date, false).select {|g| g.class == Tutorgroup}
+    #
+    #  Provided you call Element#groups with recurse set to false, it
+    #  is implemented as a scope, so I can chain more scopes.
+    #
+    self.groups(date, false).tutorgroups
+#    self.groups(date, false).select {|g| g.persona_type == "Tutorgrouppersona"}
   end
 
   def teachinggroups(date = nil)
-    self.groups(date, false).select {|g| g.class == Teachinggroup}
+    self.groups(date, false).select {|g| g.persona_type == "Teachinggrouppersona"}
   end
 
   #

@@ -27,6 +27,7 @@ class Eventcategory < ActiveRecord::Base
                     self,
                     eventsource,
                     resource,
+                    nil,
                     include_nonexistent)
   end
 end

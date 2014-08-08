@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140806075037) do
+ActiveRecord::Schema.define(version: 20140808100012) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -31,9 +31,11 @@ ActiveRecord::Schema.define(version: 20140806075037) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean  "current",     default: false
+    t.integer  "owner_id"
   end
 
   add_index "elements", ["entity_id"], name: "index_elements_on_entity_id", using: :btree
+  add_index "elements", ["owner_id"], name: "index_elements_on_owner_id", using: :btree
 
   create_table "eras", force: true do |t|
     t.string   "name"
@@ -76,6 +78,7 @@ ActiveRecord::Schema.define(version: 20140806075037) do
     t.string   "source_hash"
   end
 
+  add_index "events", ["owner_id"], name: "index_events_on_owner_id", using: :btree
   add_index "events", ["source_id"], name: "index_events_on_source_id", using: :btree
 
   create_table "eventsources", force: true do |t|
@@ -168,6 +171,12 @@ ActiveRecord::Schema.define(version: 20140806075037) do
 
   add_index "pupils", ["source_id"], name: "index_pupils_on_source_id", using: :btree
 
+  create_table "settings", force: true do |t|
+    t.integer  "current_era_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "staffs", force: true do |t|
     t.string   "name"
     t.string   "initials"
@@ -230,7 +239,10 @@ ActiveRecord::Schema.define(version: 20140806075037) do
     t.string   "email"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "admin",      default: false
+    t.boolean  "admin",               default: false
+    t.boolean  "editor",              default: false
+    t.string   "colour_involved",     default: "#234B58"
+    t.string   "colour_not_involved", default: "#254117"
   end
 
 end

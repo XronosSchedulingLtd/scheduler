@@ -9,7 +9,7 @@
   </div>
   <div class="large-10 columns">
     <div id="fullcalendar"<%
-      if current_user && current_user.known?
+      if current_user && current_user.create_events?
         %> class="withedit"<%
       end %>></div>
   </div>

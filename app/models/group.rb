@@ -43,6 +43,20 @@ class Group < ActiveRecord::Base
   #
   scope :belonging_to, ->(target_user) { joins(element: {ownerships: :user}).where(users: {id: target_user.id} ) }
 
+  #
+  #  Note that this next one makes no attempt to massage dates etc.  It's
+  #  up to the client code to do that.  Nor does it check that the group
+  #  is actually extant at the indicated date.  It's just intended to find
+  #  the groups of which a given element is a direct member on an indicated
+  #  date.
+  #
+  scope :with_member_on, ->(element, as_at) {
+    joins(:memberships).where(
+      "memberships.element_id = :element_id AND memberships.inverse = FALSE AND memberships.starts_on <= :as_at AND (memberships.ends_on IS NULL OR memberships.ends_on >= :as_at)",
+      element_id: element.id,
+      as_at: as_at)
+  }
+
   after_initialize :set_flags
   before_create    :create_persona
   after_save       :update_persona

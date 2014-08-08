@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :settings
+
   get '/auth/:provider/callback' => 'sessions#create'
   get '/signin' => 'sessions#new', :as => :signin
   get '/signout' => 'sessions#destroy', :as => :signout
@@ -23,6 +25,8 @@ Rails.application.routes.draw do
   resources :pupils
 
   resources :users
+
+  resources :commitments
 
   resources :staffs do
     member do
