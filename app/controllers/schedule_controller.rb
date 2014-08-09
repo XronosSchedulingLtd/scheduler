@@ -58,9 +58,9 @@ class ScheduleController < ApplicationController
     start_date = Time.zone.parse(params[:start])
     end_date   = Time.zone.parse(params[:end]) - 1.day
     element_id = params[:eid].to_i
-    cc = Eventcategory.find_by_name("Calendar")
-    dc = Eventcategory.find_by_name("Duty")
-    wlc = Eventcategory.find_by_name("Week letter")
+    cc = Eventcategory.cached_category("Calendar")
+    dc = Eventcategory.cached_category("Duty")
+    wlc = Eventcategory.cached_category("Week letter")
     if current_user && current_user.known?
       if element_id != 0
         i = current_user.interests.detect {|ci| ci.element_id == element_id}

@@ -31,13 +31,15 @@ These two changes will need a bit of manual intervention on the live system.  Al
 Steps to promote the current code to the live system (and it could be done, provided I don't give anyone else editing permission).
 
 [*] Backup database
-[ ] export RAILS_ENV=production
-[ ] Pull up latest code
-[ ] rake db:migrate
-[ ] re-compile assets
-[ ] touch tmp/restart.txt
-[ ] edit in settings record
-[ ] use rails console to force a save of all staff and pupil records
-[ ] run the import process
+[*] export RAILS_ENV=production
+[*] Pull up latest code
+[*] rake db:migrate
+[*] re-compile assets
+[*] touch tmp/restart.txt
+[*] edit in settings record
+[*] use rails console to force a save of all staff and pupil records
+[*] run the import process
 
-Let's test that procedure first.
+Let's test that procedure first.  Tested.  Done on live system.
+
+Now back to fiddling with the event editing process.

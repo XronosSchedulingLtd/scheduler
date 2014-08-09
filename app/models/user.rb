@@ -30,11 +30,11 @@ class User < ActiveRecord::Base
   after_save :find_matching_resources
 
   def known?
-    self.ownerships.me.size > 0
+    @known ||= self.ownerships.me.size > 0
   end
 
   def own_element
-    self.ownerships.me[0]
+    @own_element ||= self.ownerships.me[0]
   end
 
   #

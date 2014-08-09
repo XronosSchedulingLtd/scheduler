@@ -13,6 +13,8 @@ class Eventcategory < ActiveRecord::Base
 
   has_many :events, dependent: :destroy
 
+  @@category_cache = {}
+
   def <=>(other)
     self.name <=> other.name
   end
@@ -30,4 +32,14 @@ class Eventcategory < ActiveRecord::Base
                     nil,
                     include_nonexistent)
   end
+
+  #
+  #  Since categories change very, very seldom, it might be worth having
+  #  a memory cache.
+  #
+  def self.cached_category(category_name)
+    @@category_cache[category_name] ||=
+      Eventcategory.find_by(name: category_name)
+  end
+
 end

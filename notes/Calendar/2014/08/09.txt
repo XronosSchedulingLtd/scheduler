@@ -1,0 +1,23 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-09T07:05:59+01:00
+
+====== Saturday 09 Aug 2014 ======
+
+I've been thinking about making the code for fetching events to display more efficient.  This code is executed a lot (every time someone moves around in the calendar) so it's worth making it as slick as possible.
+
+Currently a typical fetch involves an awful lot of database hits.  If I can merge these into fewer hits then it should get significantly faster.  One complicated d/b query is usually much faster than 20 simple ones.
+
+Displaying just myself on the test system, a week is taking 119ms to fetch.  Got it down to 100ms by means of a very small change to Event#covered_by?.  I should be able to optimise out a lot of calls to this method entirely.
+
+What speed can be achieved if I don't check for covers at all?  That brings it down to about 90 ms.  The only remaining silliness seems to be that I keep doing the same database query umpteen times:
+
+''SELECT COUNT(*) FROM `ownerships`  WHERE `ownerships`.`user_id` = 1 AND `ownerships`.`equality` = 1  [["user_id", 1]]''
+
+Why?  It's the current_user.known? call.  Needs some caching.  Interestingly, once I'd added the cache the number of d/b hits went down, but the time went up.  Why?  The time required in the view has gone up by about 10ms.  It gets slower and slower!  Now up to 153ms for the whole query.  What's going on?
+
+Found a major improvement (possibly).  If I add ".includes(:commitments)" to my events_on method in event.rb my whole query drops to 32ms.  Alternatively I can use preload in the same place, which seems to produce tidier SQL, but one more call.  Ah - it seems that ".includes" is the intelligent one and will do the equivalent of either .preload (extra SQL call) or .eager_load (get everything in one call) depending on which is more appropriate.
+
+Now putting the cover check backs in takes loading my events for a week back up from 32ms to about 57ms, with a lot of extra database queries.  Can I eliminate those?  Added some caching for own_element in the user model and got it back down to 33ms.
+
+Let's see how these changes affect performance on the live system.

@@ -362,7 +362,7 @@ class Event < ActiveRecord::Base
       else
         eventer = Event
       end
-      eventer.where(query_string_parts.join(" and "), query_hash)
+      eventer.where(query_string_parts.join(" and "), query_hash).includes(:commitments)
     end
   end
 
@@ -387,7 +387,7 @@ class Event < ActiveRecord::Base
     end
     result = false
     self.commitments.each do |commitment|
-      if commitment.element == resource &&
+      if commitment.element_id == resource.id &&
          commitment.covering
         result = true
       end
