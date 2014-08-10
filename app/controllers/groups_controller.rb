@@ -10,7 +10,7 @@ class GroupsController < ApplicationController
   # GET /groups
   # GET /groups.json
   def index
-    if current_user.admin
+    if current_user.admin && !params[:mine]
       @groups = Group.current.page(params[:page]).order('name')
     else
       @groups = Group.current.belonging_to(current_user).page(params[:page]).order('name')

@@ -14,6 +14,7 @@ class Element < ActiveRecord::Base
   belongs_to :owner, :class_name => :User
 
   scope :current, -> { where(current: true) }
+  scope :mine_or_system, ->(current_user) { where("owner_id IS NULL OR owner_id = :user_id", user_id: current_user.id) }
   after_save :rename_affected_events
 
   #
@@ -93,7 +94,26 @@ class Element < ActiveRecord::Base
                                     include_nonexistent)
     indirect_events = []
     if and_by_group && self.memberships.size > 0
-      self.memberships.each do |m|
+      #
+      # TODO: Need to fix this code to take account of *when* the
+      # memberships are in effect.  Ideally, should adjust if the
+      # membership changes in the course of the indicated time interval.
+      #
+      #  Potentially it would be enough to check the start end end dates
+      #  of the interval.  If the groups of which we are a member are
+      #  the same for both, then the chances are they stay the same for
+      #  the whole interval.  If not then we need to do more work.
+      #
+      #  Note that the logic for sanitizing dates here is just slightly
+      #  different from that in the Event#events_on method.  This is
+      #  because events have a date and time and so the end marker needs
+      #  to be the start of the following day.  Memberships have just
+      #  a start and end date, so the end marker can be the last required
+      #  date.
+      #
+      start_date = start_date ? start_date.to_date : Date.today
+      end_date   = end_date ? end_date.to_date : start_date
+      self.memberships.inclusions.active_during(start_date, end_date).each do |m|
         indirect_events =
           indirect_events + m.group.element.events_on(start_date,
                                                       end_date,

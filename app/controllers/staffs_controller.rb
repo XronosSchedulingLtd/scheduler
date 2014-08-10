@@ -13,12 +13,19 @@ class StaffsController < ApplicationController
   # GET /staffs
   # GET /staffs.json
   def index
-    @staffs = Staff.page(params[:page]).order('surname')
+    @staffs = Staff.active.page(params[:page]).order('surname')
   end
 
   # GET /staffs/1
   # GET /staffs/1.json
   def show
+    target_date = Date.today
+    if target_date < Setting.current_era.starts_on
+      target_date = Setting.current_era.starts_on
+    elsif target_date > Setting.current_era.ends_on
+      target_date = Setting.current_era.ends_on
+    end
+    @groups = @staff.groups(target_date, false)
   end
 
   # GET /staffs/new

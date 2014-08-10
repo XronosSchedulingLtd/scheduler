@@ -21,3 +21,25 @@ Found a major improvement (possibly).  If I add ".includes(:commitments)" to my 
 Now putting the cover check backs in takes loading my events for a week back up from 32ms to about 57ms, with a lot of extra database queries.  Can I eliminate those?  Added some caching for own_element in the user model and got it back down to 33ms.
 
 Let's see how these changes affect performance on the live system.
+
+First try just myself, then me plus a student, fetching a week of events.
+
+Just me - 286ms/280ms
+Add James Smith - 648ms
+Move forward a week.  I took 665ms.  James took 751ms.
+Next week was 348ms and 738ms.
+
+Now for the new code.
+
+Just me - 46ms/46ms
+Add James Smith - 360ms
+Move forward a week.  I took 49ms.  James took 470ms
+Next week was 55ms and 362ms.
+
+Really large improvement for a teacher.  Significant improvement for a pupil, but more can clearly still be done.  In particular, there is no point in checking for covers when dealing with a pupil.
+
+Onward and upward.  I've just had a thought.  If I get the event editing working, and the auto-groups mentioned elsewhere, then I could add in the INSET events for the start of term.
+
+Busily adding my auto-groups I've just had a thought - perhaps they warrant there own group persona?  Not because they have any special fields (although they might in the future) but simply so that they can be lumped together.
+
+It's also just occurred to me that I never got around to deleting the old teachinggroups and tutorgroups tables.  These I believe are redundant now.

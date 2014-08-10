@@ -21,6 +21,11 @@ class Staff < ActiveRecord::Base
 
   scope :active, -> { where(active: true) }
   scope :current, -> { where(current: true) }
+  scope :teaches, -> { where(teaches: true) }
+  scope :non_teaching, -> { where(teaches: false) }
+  scope :does_cover, -> { where(does_cover: true) }
+  scope :cover_exempt, -> { where(does_cover: false) }
+
 
   def element_name
     #

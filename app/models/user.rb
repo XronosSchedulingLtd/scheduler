@@ -25,7 +25,16 @@ class User < ActiveRecord::Base
   has_many :interests,  :dependent => :destroy
 
   has_many :events,   foreign_key: :owner_id
+
+  #
+  #  The only elements we can actually own currently are groups.  By creating
+  #  a group with us as the owner, its corresponding element will also be
+  #  marked as having us as the owner.  Should this user ever be deleted
+  #  the owned groups will also be deleted, and thus the elements will go
+  #  too.
+  #
   has_many :elements, foreign_key: :owner_id
+  has_many :groups,   foreign_key: :owner_id, :dependent => :destroy
 
   after_save :find_matching_resources
 
@@ -34,7 +43,7 @@ class User < ActiveRecord::Base
   end
 
   def own_element
-    @own_element ||= self.ownerships.me[0]
+    @own_element ||= self.ownerships.me[0].element
   end
 
   #
@@ -44,10 +53,6 @@ class User < ActiveRecord::Base
   #
   def owns?(element)
     !!ownerships.detect {|o| o.element_id == element.id}
-  end
-
-  def groups
-    ownerships.select {|o| o.element.entity_type == "Group"}.collect {|o| o.element.entity}
   end
 
   def free_colour

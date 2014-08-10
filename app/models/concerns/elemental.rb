@@ -23,11 +23,22 @@ module Elemental
   def update_element
     if self.element
       if self.active
-        if self.element.name != self.element_name ||
-           self.element.current != self.current
-          self.element.name    = self.element_name
-          self.element.current = self.current
-          self.element.save!
+        if self.respond_to?(:owner_id)
+          if self.element.name != self.element_name ||
+             self.element.current != self.current ||
+             self.element.owner_id != self.owner_id
+            self.element.name     = self.element_name
+            self.element.current  = self.current
+            self.element.owner_id = self.owner_id
+            self.element.save!
+          end
+        else
+          if self.element.name != self.element_name ||
+             self.element.current != self.current
+            self.element.name    = self.element_name
+            self.element.current = self.current
+            self.element.save!
+          end
         end
       else
         #
@@ -37,9 +48,16 @@ module Elemental
       end
     else
       if self.active
-        Element.create!(:name => self.element_name,
-                        :current => self.current,
-                        :entity => self)
+        if self.respond_to?(:owner_id)
+          Element.create!(:name => self.element_name,
+                          :current => self.current,
+                          :owner_id => self.owner_id,
+                          :entity => self)
+        else
+          Element.create!(:name => self.element_name,
+                          :current => self.current,
+                          :entity => self)
+        end
       end
     end
   end
@@ -55,7 +73,11 @@ module Elemental
   #  And shims to provide access to the instance methods in Element
   #
   def groups(given_date = nil, recurse = true)
-    self.element.groups(given_date, recurse)
+    if self.element
+      self.element.groups(given_date, recurse)
+    else
+      []
+    end
   end
 
 end

@@ -16,6 +16,13 @@ class PupilsController < ApplicationController
   # GET /pupils/1
   # GET /pupils/1.json
   def show
+    target_date = Date.today
+    if target_date < Setting.current_era.starts_on
+      target_date = Setting.current_era.starts_on
+    elsif target_date > Setting.current_era.ends_on
+      target_date = Setting.current_era.ends_on
+    end
+    @groups = @pupil.groups(target_date, false)
   end
 
   # GET /pupils/new

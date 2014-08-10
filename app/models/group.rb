@@ -15,6 +15,7 @@ end
 
 class Group < ActiveRecord::Base
   belongs_to :era
+  belongs_to :owner, :class_name => :User
   belongs_to :persona, :polymorphic => true, :dependent => :destroy
   #
   #  Since we can't do joins on polymorphic relationships, we need
@@ -40,8 +41,22 @@ class Group < ActiveRecord::Base
 
   #
   #  This next line is enough to get me burnt at the stake.
+  #  Also, whilst very clever it doesn't actually do the thing which I
+  #  wanted - I was muddling up to two types of ownership.  The ownerships
+  #  which I am manipulating here relate to responsibility - like Rory
+  #  used to be responsible for the Amey Theatre.  More than one person
+  #  can be responsible for one Entity (via its Element) in this way.
   #
-  scope :belonging_to, ->(target_user) { joins(element: {ownerships: :user}).where(users: {id: target_user.id} ) }
+  #  I'm not aware of any groups with this kind of ownership though.  Where
+  #  groups have owners it's because said owner created the group.  I suspect
+  #  I wrote this line before I crystalised this distinction.
+  #
+  #  See Ownership in the documentation Wiki for more expansion.  Anyway,
+  #  what I really want here is a list of groups which the user created.
+  #
+  # scope :belonging_to, ->(target_user) { joins(element: {ownerships: :user}).where(users: {id: target_user.id} ) }
+  scope :belonging_to, ->(target_user) { where(owner_id: target_user.id) }
+  scope :system, -> { where(owner_id: nil) }
 
   #
   #  Note that this next one makes no attempt to massage dates etc.  It's

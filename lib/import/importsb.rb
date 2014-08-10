@@ -361,6 +361,7 @@ class SB_Group
   REQUIRED_COLUMNS = [Column["GroupIdent", :group_ident,      true],
                       Column["GroupName",  :name,             false],
                       Column["YearIdent",  :year_ident,       true],
+                      Column["SubIdent",   :subject_ident,    true],
                       Column["CurrIdent",  :curriculum_ident, true]]
 
   FIELDS_TO_UPDATE = [:name, :current]
@@ -787,21 +788,25 @@ end
 
 class SB_Staff
   FILE_NAME = "staff.csv"
-  REQUIRED_COLUMNS = [Column["UserIdent",    :staff_ident, true],
-                      Column["UserName",     :name,        false],
-                      Column["UserMnemonic", :initials,    false],
-                      Column["UserSurname",  :surname,     false],
-                      Column["UserTitle",    :title,       false],
-                      Column["UserForename", :forename,    false],
-                      Column["UserLeft",     :left,        true],
-                      Column["UserEmail",    :email,       false]]
+  REQUIRED_COLUMNS = [Column["UserIdent",     :staff_ident, true],
+                      Column["UserName",      :name,        false],
+                      Column["UserMnemonic",  :initials,    false],
+                      Column["UserSurname",   :surname,     false],
+                      Column["UserTitle",     :title,       false],
+                      Column["UserForename",  :forename,    false],
+                      Column["UserLeft",      :left,        true],
+                      Column["UserTeach",     :teacher,     true],
+                      Column["UserDoesCover", :cover,       true],
+                      Column["UserEmail",     :email,       false]]
   FIELDS_TO_UPDATE = [:name,
                       :initials,
                       :surname,
                       :title,
                       :forename,
                       :email,
-                      :current]
+                      :current,
+                      :teaches,
+                      :does_cover]
   DB_CLASS = Staff
   DB_KEY_FIELD = :source_id
   FIELDS_TO_CREATE = [:name,
@@ -811,9 +816,11 @@ class SB_Staff
                       :forename,
                       :email,
                       :active,
-                      :current]
+                      :current,
+                      :teaches,
+                      :does_cover]
 
-  attr_accessor :active, :current
+  attr_accessor :active, :current, :teaches, :does_cover
 
   include Slurper
   include DatabaseAccess
@@ -838,6 +845,8 @@ class SB_Staff
     #
     self.active = !!(self.email =~ /\@abingdon\.org\.uk$/)
     self.current = (self.left != 1)
+    self.teaches = (self.teacher == 1)
+    self.does_cover = (self.cover == 1)
   end
 
   def wanted?(loader)
@@ -925,6 +934,61 @@ class SB_StaffCover
   end
 
   def source_id
+  end
+
+end
+
+
+class SB_Subject
+  FILE_NAME = "subjects.csv"
+  REQUIRED_COLUMNS =
+    [Column["SubCode",     :subject_code,  false],
+     Column["SubName",     :subject_name,  false],
+     Column["SubIdent",    :subject_ident, true]]
+
+  WANTED_SUBJECTS = ["Art",
+                     "Biology",
+                     "Chemistry",
+                     "Chinese",
+                     "Classical Civilisation",
+                     "Design & Technology",
+                     "Drama",
+                     "Economics",
+                     "Electronics",
+                     "English",
+                     "French",
+                     "Further Maths",
+                     "General Studies Roundabout",
+                     "Geography",
+                     "German",
+                     "Greek",
+                     "GSCS",
+                     "History",
+                     "ICT",
+                     "Italian",
+                     "Latin",
+                     "Mathematics",
+                     "Music",
+                     "Physical Education",
+                     "Physics",
+                     "PSHE",
+                     "PSHCE",
+                     "Psychology",
+                     "Religious Studies",
+                     "Spanish",
+                     "Sport",
+                     "Theatre Studies"]
+  include Slurper
+
+  def adjust(loader)
+  end
+
+  def wanted?(loader)
+    !!WANTED_SUBJECTS.detect {|ws| ws == self.subject_name}
+  end
+
+  def source_id
+    self.subject_ident
   end
 
 end
@@ -1208,7 +1272,13 @@ class SB_Tutorgroup
 
   include DatabaseAccess
 
-  attr_accessor :name, :house, :staff_id, :era_id, :start_year, :records
+  attr_accessor :name,
+                :house,
+                :staff_id,
+                :era_id,
+                :start_year,
+                :records,
+                :year_group
 
 
   def initialize
@@ -1279,6 +1349,7 @@ class SB_Loader
                    InputSource[:ars, SB_AcademicRecord],
                    InputSource[:periods, SB_Period, :period, :period_ident],
                    InputSource[:period_times, SB_PeriodTime],
+                   InputSource[:subjects, SB_Subject, :subject, :subject_ident],
                    InputSource[:timetable_entries, SB_Timetableentry, :tte,
                                :timetable_ident],
                    InputSource[:staffablines, SB_StaffAbLine, :sal,
@@ -1374,6 +1445,7 @@ class SB_Loader
     puts "Attempting to construct tutor groups." if @verbose
     @tutorgroups = []
     @tg_hash = {}
+    @house_hash = {}
     tge_accepted_count = 0
     tge_ignored_count = 0
     @tutorgroupentries.each do |tge|
@@ -1384,12 +1456,18 @@ class SB_Loader
         tge_accepted_count += 1
         unless @tg_hash[tge.user_ident]
           tg = SB_Tutorgroup.new
-          tg.name       = "#{year.year_num - 6}#{staff.initials}"
+          tg.year_group = year.year_num - 6
+          tg.name       = "#{tg.year_group}#{staff.initials}"
           tg.house      = tge.house
           tg.staff_id   = staff.dbrecord.id
           tg.era_id     = @era.id
           tg.start_year = year.start_year
           @tg_hash[tge.user_ident] = tg
+          if @house_hash[tg.house]
+            @house_hash[tg.house] << tg
+          else
+            @house_hash[tg.house] = [tg]
+          end
         end
         @tg_hash[tge.user_ident].add(tge)
       else
@@ -1442,6 +1520,30 @@ class SB_Loader
     #
     @timetable_entries.each do |te|
       te.identify_ls(self)
+    end
+    #
+    #  Make a list of which teachers teach each of the subjects.
+    #  Don't go for d/b records yet because we may yet need to create them.
+    #
+    @subject_teacher_hash = {}
+    @timetable_entries.each do |te|
+      on_sarah = false
+      staff = @staff_hash[te.staff_ident]
+      if staff && staff.active && staff.current
+        group = @group_hash[te.group_ident]
+        if group
+          subject = @subject_hash[group.subject_ident]
+          if subject
+            if @subject_teacher_hash[subject.subject_name]
+              unless @subject_teacher_hash[subject.subject_name].include?(staff)
+                @subject_teacher_hash[subject.subject_name] << staff
+              end
+            else
+              @subject_teacher_hash[subject.subject_name] = [staff]
+            end
+          end
+        end
+      end
     end
     #
     #  And all the event categories which we need.
@@ -2662,6 +2764,162 @@ class SB_Loader
     end
   end
 
+  #
+  #  Pass the name of the group and array of the members that should be
+  #  in it.  Note that the entity ids are used to identify the individual
+  #  members, so they need to be all of the same class, or else there is
+  #  scope for confusion.
+  #
+  def ensure_membership(group_name, members, member_class)
+    members_added   = 0
+    members_removed = 0
+    group = Group.system.vanillagroups.find_by(name: group_name)
+    unless group
+      group = Vanillagroup.new(name:      group_name,
+                               era:       @era,
+                               starts_on: @start_date,
+                               ends_on:   @era.ends_on,
+                               current:   true)
+      group.save!
+      group.reload
+      puts "\"#{group_name}\" group created."
+    end
+
+    intended_member_ids = members.collect {|m| m.id}
+    current_member_ids = group.members(@start_date, false, true).collect {|m| m.id}
+    to_remove = current_member_ids - intended_member_ids
+    to_add = intended_member_ids - current_member_ids
+    to_remove.each do |member_id|
+      group.remove_member(member_class.find(member_id), @start_date)
+      members_removed += 1
+    end
+    to_add.each do |member_id|
+      group.add_member(member_class.find(member_id), @start_date)
+      members_added += 1
+    end
+    if @verbose || members_removed > 0
+      puts "#{members_removed} removed from \"#{group_name}\" group."
+    end
+    if @verbose || members_added > 0
+      puts "#{members_added} added to \"#{group_name}\" group."
+    end
+  end
+
+  #
+  #  Create some hard-coded special groups, using information available
+  #  only at this point.
+  #
+  def do_auto_groups
+    ensure_membership("All staff",
+                      Staff.active.current,
+                      Staff)
+    ensure_membership("Teaching staff",
+                      Staff.active.current.teaches,
+                      Staff)
+    #
+    #  Staff by house they are tutors in.
+    #
+    all_tutors = []
+    tutors_by_year = {}
+    tges_by_year = {}
+    @house_hash.each do |house, tutorgroups|
+      tutors = []
+      tges = []
+      house_tges_by_year = {}
+      tutorgroups.each do |tg|
+        s = Staff.find(tg.staff_id)
+        tutors << s
+        all_tutors << s
+        if tutors_by_year[tg.year_group]
+          tutors_by_year[tg.year_group] << s
+        else
+          tutors_by_year[tg.year_group] = [s]
+        end
+        #
+        #  Unfortunately, as the sixth year tutor groups are now
+        #  muddled up, we need to sort the tutorgroupentries individually.
+        #
+        tg.records.each do |tge|
+          year_group = @year_hash[tge.year_ident].year_num - 6
+          if tges_by_year[year_group]
+            tges_by_year[year_group] << tge
+          else
+            tges_by_year[year_group] = [tge]
+          end
+          if house_tges_by_year[year_group]
+            house_tges_by_year[year_group] << tge
+          else
+            house_tges_by_year[year_group] = [tge]
+          end
+          tges << tge
+        end
+      end
+      pupils = tges.collect {|tge| @pupil_hash[tge.pupil_ident].dbrecord}.compact
+      if house == "Lower School"
+        ensure_membership("#{house} tutors",
+                          tutors,
+                          Staff)
+        ensure_membership("#{house}",
+                          pupils,
+                          Pupil)
+      else
+        ensure_membership("#{house} House tutors",
+                          tutors,
+                          Staff)
+        ensure_membership("#{house} House",
+                          pupils,
+                          Pupil)
+        house_tges_by_year.each do |year_group, tges|
+          pupils = tges.collect {|tge| @pupil_hash[tge.pupil_ident].dbrecord}.compact
+          ensure_membership("#{house} House #{year_group.ordinalize} year",
+                            pupils,
+                            Pupil)
+        end
+      end
+    end
+    middle_school_tutors = []
+    upper_school_tutors = []
+    tutors_by_year.each do |year_group, tutors|
+      ensure_membership("#{year_group.ordinalize} year tutors",
+                        tutors,
+                        Staff)
+      #
+      #  Lower school tutors already have their own group from the house
+      #  processing.
+      #
+      if year_group == 3 ||
+         year_group == 4 ||
+         year_group == 5
+        middle_school_tutors += tutors
+      elsif year_group == 6 ||
+            year_group == 7
+        upper_school_tutors += tutors
+      end
+    end
+    tges_by_year.each do |year_group, tges|
+      pupils = tges.collect {|tge| @pupil_hash[tge.pupil_ident].dbrecord}.compact
+      ensure_membership("#{year_group.ordinalize} year",
+                        pupils,
+                        Pupil)
+    end
+    ensure_membership("Middle school tutors", middle_school_tutors, Staff)
+    ensure_membership("Upper school tutors", upper_school_tutors, Staff)
+    ensure_membership("All tutors", all_tutors, Staff)
+    ensure_membership("All pupils",
+                      Pupil.current,
+                      Pupil)
+    @subject_teacher_hash.each do |subject, teachers|
+      dbteachers = teachers.collect {|t| @staff_hash[t.staff_ident].dbrecord}.compact
+      if dbteachers.size > 0
+        ensure_membership("#{subject} teachers",
+                          dbteachers,
+                          Staff)
+      else
+        puts "Subject \"#{subject}\" has no apparent teachers."
+      end
+    end
+  end
+
 end
 
 begin
@@ -2713,6 +2971,7 @@ begin
       loader.do_timetable
       loader.do_cover
       loader.do_other_half
+      loader.do_auto_groups
     end
   end
 rescue RuntimeError => e

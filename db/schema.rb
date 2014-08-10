@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140808100012) do
+ActiveRecord::Schema.define(version: 20140810084522) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -97,9 +97,11 @@ ActiveRecord::Schema.define(version: 20140808100012) do
     t.string   "name"
     t.integer  "era_id"
     t.boolean  "current",      default: false
+    t.integer  "owner_id"
   end
 
   add_index "groups", ["era_id"], name: "index_groups_on_era_id", using: :btree
+  add_index "groups", ["owner_id"], name: "index_groups_on_owner_id", using: :btree
 
   create_table "interests", force: true do |t|
     t.integer  "user_id"
@@ -189,6 +191,8 @@ ActiveRecord::Schema.define(version: 20140808100012) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean  "current",    default: false
+    t.boolean  "teaches"
+    t.boolean  "does_cover"
   end
 
   add_index "staffs", ["source_id"], name: "index_staffs_on_source_id", using: :btree
@@ -201,33 +205,10 @@ ActiveRecord::Schema.define(version: 20140808100012) do
 
   add_index "teachinggrouppersonae", ["source_id"], name: "index_teachinggrouppersonae_on_source_id", using: :btree
 
-  create_table "teachinggroups", force: true do |t|
-    t.string   "name"
-    t.integer  "era_id"
-    t.boolean  "current"
-    t.integer  "source_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  add_index "teachinggroups", ["era_id"], name: "index_teachinggroups_on_era_id", using: :btree
-  add_index "teachinggroups", ["source_id"], name: "index_teachinggroups_on_source_id", using: :btree
-
   create_table "tutorgrouppersonae", force: true do |t|
     t.string   "house"
     t.integer  "staff_id"
     t.integer  "start_year"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  create_table "tutorgroups", force: true do |t|
-    t.string   "name"
-    t.string   "house"
-    t.integer  "staff_id"
-    t.integer  "era_id"
-    t.integer  "start_year"
-    t.boolean  "current"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

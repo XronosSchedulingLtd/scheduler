@@ -15,9 +15,17 @@ I can get the SB loader code, once it's finished its main processing, to create 
 
 So we could have groups called:
 
-"All students"
-"3rd year", "4th year", "5th year", etc.
-"School house", "Crescent house", etc.
-"School house 3rd year", "School house 4th year", etc.
-"3rd year maths", "3rd year English", "3rd year latin", etc.
+[*] "All staff"
+[*] "Teaching staff" (SB purports to provide this info.)
+[ ] All teachers of a specific subject - e.g. "Maths teachers", "RS teachers", etc.
+[*] All tutors for a specific house - "Crescent house tutors", Cotton's house tutors", etc.
+[*] All tutors
+[*] Tutors by academic year - 3rd year tutors, 4th year tutors
+[*] Tutors by part of the school - Lower school tutors, Middle school tutors, Upper school tutors
+[*] "All students"
+[*] "3rd year", "4th year", "5th year", etc.
+[*] "School house", "Crescent house", etc.
+[*] "School house 3rd year", "School house 4th year", etc.
+[ ] "3rd year maths", "3rd year English", "3rd year latin", etc.
 
+If I'm going to do teachers and pupils by subject then I'm going to have to create my own list of core subjects to process.  There are far too many silly ones in the list which comes from SB.
