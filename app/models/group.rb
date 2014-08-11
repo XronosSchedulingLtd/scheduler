@@ -181,6 +181,9 @@ class Group < ActiveRecord::Base
       element = item.element
     end
     as_of ||= Date.today
+    if as_of < self.starts_on
+      as_of = self.starts_on
+    end
     #
     #  Is this item already an explicit (as opposed to recursive) member
     #  of this group.  Inclusive or exclusive?
@@ -405,7 +408,10 @@ class Group < ActiveRecord::Base
   #
   #  Note that this method returns *entities* - of whatever type.
   #
-  def members(given_date = nil, recurse = true, exclude_groups = false)
+  def members(given_date     = nil,
+              recurse        = true,
+              exclude_groups = false,
+              seen           = [])
     unless given_date
       given_date = Date.today
       if given_date < self.starts_on
@@ -415,7 +421,9 @@ class Group < ActiveRecord::Base
       end
     end
     return [] unless active_on(given_date)
-    if recurse
+    return [] if seen.include?(self.id)
+    if recurse 
+      seen << self.id
       active_memberships = self.memberships.active_on(given_date)
       excludes, includes = active_memberships.partition {|am| am.inverse}
       group_includes, atomic_includes =
@@ -433,7 +441,8 @@ class Group < ActiveRecord::Base
                                             membership.as_at :
                                             given_date,
                                             true,
-                                            exclude_groups)
+                                            exclude_groups,
+                                            seen)
         }.flatten.uniq
       excluded_by_group =
         group_excludes.collect {|membership|
@@ -442,7 +451,8 @@ class Group < ActiveRecord::Base
                                             membership.as_at :
                                             given_date,
                                             true,
-                                            exclude_groups)
+                                            exclude_groups,
+                                            seen)
         }.flatten.uniq
       included_atomically =
         atomic_includes.collect {|membership| membership.element.entity}
@@ -452,7 +462,7 @@ class Group < ActiveRecord::Base
       #  See the Zim documentation for Xronos for an explanation of
       #  these priorities.
       #
-      ((included_by_group - excluded_by_group) + included_atomically) - excluded_atomically
+      (((included_by_group - excluded_by_group) + included_atomically) - excluded_atomically).uniq
     else
       #
       #  If we're not recursing the processing is exceedingly simple.
@@ -466,6 +476,23 @@ class Group < ActiveRecord::Base
         m.element.entity.class != Group || !exclude_groups
       }.collect {|m| m.element.entity}
     end
+  end
+
+  #
+  #  Just return the membership records which give us explicit inclusions
+  #  on the indicated date.
+  #
+  def inclusions_on(given_date = nil)
+    unless given_date
+      given_date = Date.today
+      if given_date < self.starts_on
+        given_date = self.starts_on
+      elsif self.ends_on != nil && given_date > self.ends_on
+        given_date = self.ends_on
+      end
+    end
+    return [] unless active_on(given_date)
+    self.memberships.active_on(given_date).inclusions.includes(:element)
   end
 
   #
@@ -529,9 +556,18 @@ class Group < ActiveRecord::Base
   #  processing code and so returns an array of "Group" objects, and not
   #  the overlying visible groups.
   #
-  def parents_for(element, given_date)
+  #
+  #  Special processing is need to protect ourselves from someone having
+  #  set up a circular heirarchy.
+  #
+  def parents_for(element, given_date, seen = [])
     result = self.element.memberships.inclusions.collect {|membership|
-      membership.group.parents_for(element, given_date)
+      if seen.include?(membership.group_id)
+        []
+      else
+        seen << membership.group_id
+        membership.group.parents_for(element, given_date, seen)
+      end
     }.flatten
     if self.member?(element, given_date)
       result = result + [self]

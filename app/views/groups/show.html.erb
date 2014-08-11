@@ -11,15 +11,18 @@
 </p>
 
 <p>
+  <strong>Starts on:</strong>
+  <%= @group.starts_on %>
+</p>
+
+<p>
   <strong>Current:</strong>
   <%= @group.current %>
 </p>
 
 <p>
   <strong>Members:</strong>
-  <% @group.members.sort.each do |member| %>
-  <br/><%= member.name %>
-  <% end %>
+  <%= render partial: "membership", object: @group, locals: {editing: false} %>
 </p>
 
 <%= link_to 'Edit', edit_group_path(@group) %> |

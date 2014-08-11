@@ -1,0 +1,25 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-11T08:10:24+01:00
+
+====== Preloading ======
+Created Monday 11 August 2014
+
+
+Rails's ActiveRecord provides various ways of preloading associated models for efficiency.  The three ways of doing it are:
+
+* includes
+* preload
+* eager_load
+
+and it's not immediately obvious how they differ.  There's a useful explanation at: 
+
+http://blog.arkency.com/2013/12/rails4-preloading/
+
+but what it boils down to is:
+
+* preload always does two separate queries
+* eager_load crams everything into one query
+* includes decides which of the two to use dynamically
+
+It gets more interesting when your selection criteria also depend on other records - then you will want to use //joins// or //references// as additional modifiers.  See the above mentioned web page for a longer discussion on how to make sure you get the records you want, although this hasn't affected me yet.

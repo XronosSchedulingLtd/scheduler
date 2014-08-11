@@ -48,7 +48,7 @@
               </ul>
             </li>
             <li class="divider"></li>
-          <% elsif current_user.known? %>
+          <% elsif current_user.create_groups? %>
             <li><%= link_to "Groups", groups_path %></li>
             <li class="divider"></li>
           <% end %>

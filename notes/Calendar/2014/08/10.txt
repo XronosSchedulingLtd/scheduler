@@ -25,3 +25,16 @@ and then on to getting my event editing code working.
 Again we run into the problem of two types of ownership - ownership in the sense of being responsible for, and ownership in the sense of creator of.  See [[:Ownership|Ownership]] 
 
 Having got all the above changes done, perhaps it's time to promote stuff onto the live system.
+
+Steps:
+
+[*] Test with a fresh download of live system d/b and data files
+[*] Dump live system d/b
+[*] Move new code to live system
+[*] export RAILS_ENV=production
+[*] rake db:migrate
+[*] touch tmp/restart.txt
+[*] Test basic access
+[*] Run script to create auto-groups
+
+An easier than average next step would be to make the dialogue for creating and editing groups work.  This should be accessible to anyone with permission to create groups.  For now that means the "editor" bit needs to be set in their individual user record, or they need to be an administrator.

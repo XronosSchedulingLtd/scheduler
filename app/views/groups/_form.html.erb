@@ -16,8 +16,12 @@
     <%= f.text_field :name %>
   </div>
   <div class="field">
-    <%= f.label :era_id %><br>
-    <%= f.number_field :era_id %>
+    <%= f.label :era %><br>
+    <%= f.collection_select(:era_id,
+                            Era.all.sort,
+                            :id,
+                            :name,
+                            { :prompt => true }) %>
   </div>
   <div class="field">
     <%= f.label :current %><br>
@@ -26,4 +30,20 @@
   <div class="actions">
     <%= f.submit %>
   </div>
+<% end %>
+<% if @group.id %>
+  <h3>Members</h3>
+  <div id="membership">
+  <%= render partial: "membership", object: @group, locals: {editing: true} %>
+  </div>
+  <%= form_for(@membership, remote: true) do |f| %>
+    <%= f.autocomplete_field :element_name,
+                             autocomplete_element_name_elements_path,
+                             :id_element => '#membership_element_id' %>
+    <%= f.text_field :element_id, :type => :hidden %>
+    <%= f.text_field :group_id, :type => :hidden %>
+    <%= f.submit "Add member" %>
+  <% end %>
+<% else %>
+  <p>First create the group in order to allow resources to be added.</p>
 <% end %>

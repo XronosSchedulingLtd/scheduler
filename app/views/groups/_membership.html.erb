@@ -1,0 +1,23 @@
+<table>
+  <tr>
+    <th>Staff</th>
+    <th>Pupils</th>
+    <th>Groups</th>
+    <th>Locations</th>
+  </tr>
+  <tr>
+    <td valign="top">
+      <%= membership_entries_for(membership, Staff, editing) %>
+    </td>
+    <td valign="top">
+      <%= membership_entries_for(membership, Pupil, editing) %>
+    </td>
+    <td valign="top">
+      <%= membership_entries_for(membership, Group, editing) %>
+    </td>
+    <td valign="top">
+      <%= membership_entries_for(membership, Location, editing) %>
+    </td>
+  </tr>
+</table>
+

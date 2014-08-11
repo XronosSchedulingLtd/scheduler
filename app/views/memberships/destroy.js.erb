@@ -1,0 +1,3 @@
+<% if @group %>
+$('#membership').html("<%=j render partial: "groups/membership", object: @group, locals: {editing: true} %>")
+<% end %>

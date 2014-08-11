@@ -8,7 +8,13 @@
       <th>Name</th>
       <th>Era</th>
       <th>Type</th>
-      <th>Size</th>
+      <th colspan="2">Members</th>
+      <th colspan="3"></th>
+    </tr>
+    <tr>
+      <th colspan="3"></th>
+      <th>Immediate</th>
+      <th>Atomic</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -19,7 +25,8 @@
         <td><%= group.name %></td>
         <td><%= group.era_id %></td>
         <td><%= group.type %></td>
-        <td><%= group.members.count %></td>
+        <td><%= group.members(nil, false).count %></td>
+        <td><%= group.members(nil, true, true).count %></td>
         <td><%= link_to 'Show', group %></td>
         <td><%= link_to 'Edit', edit_group_path(group) %></td>
         <td><%= link_to 'Destroy', group, method: :delete, data: { confirm: 'Are you sure?' } %></td>
@@ -31,4 +38,4 @@
 
 <br>
 
-<%= link_to 'New Group', new_group_path %>
+<%= link_to 'New Group', new_group_path, class: "button radius" %>

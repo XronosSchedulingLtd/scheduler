@@ -24,22 +24,27 @@ class GroupsController < ApplicationController
 
   # GET /groups/new
   def new
-    @group = Group.new
+    @group = Vanillagroup.new
+    @group.era = Setting.current_era
+    @group.current = true
   end
 
   # GET /groups/1/edit
   def edit
+    @membership = Membership.new
+    @membership.group = @group
   end
 
   # POST /groups
   # POST /groups.json
   def create
-    @group = Group.new(group_params)
+    @group = Vanillagroup.new(group_params)
     @group.starts_on ||= Date.today
+    @group.owner = current_user
 
     respond_to do |format|
       if @group.save
-        format.html { redirect_to @group, notice: 'Group was successfully created.' }
+        format.html { redirect_to edit_group_path(@group), notice: 'Group was successfully created.' }
         format.json { render :show, status: :created, location: @group }
       else
         format.html { render :new }
@@ -53,7 +58,7 @@ class GroupsController < ApplicationController
   def update
     respond_to do |format|
       if @group.update(group_params)
-        format.html { redirect_to @group, notice: 'Group was successfully updated.' }
+        format.html { redirect_to groups_path, notice: 'Group was successfully updated.' }
         format.json { render :show, status: :ok, location: @group }
       else
         format.html { render :edit }
@@ -74,7 +79,7 @@ class GroupsController < ApplicationController
 
   private
     def authorized?(action = action_name, resource = nil)
-      logged_in? && (current_user.admin || action == 'index')
+      logged_in? && (current_user.create_groups? || action == 'index')
     end
 
     # Use callbacks to share common setup or constraints between actions.

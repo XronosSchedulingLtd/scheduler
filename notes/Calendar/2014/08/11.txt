@@ -1,0 +1,88 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-11T07:50:53+01:00
+
+====== Monday 11 Aug 2014 ======
+
+Today:
+
+[*] Finish off group creation and editing
+[ ] Do the same for events
+
+Simple targets.  Achievable?
+
+Just hit an interesting problem when I created an event on my calendar.  Although it had no commitments, the app went into a loop and then crashed.  It seemed to be something to do with the groups which I had at the time, because when I got rid of them it stopped happening.  Struggling now to reproduce the problem.
+
+There must be some potential recursion still somewhere.  There seems to be some possibility of recursion in the element model - the events_on method.  Take a look.  Unfortunately the log file is large and there's stuff both before and after the problem.
+
+Look for two requests with a lot of lines in between.
+
+One request starts at line 43026 and seems to end at line 46943.  That's a lot.  Look at it in detail.
+
+It was for events from the 10th to the 17th of August, with no other criteria specified.  That's the period containing my newly created event - id 247626.  I am logged in as my gmail user (user id 9).  I own element 10509, which is Vanessa, with id 2531.  Vanessa I'm pretty certain *was* a member of one of my then groups.  I then looked for all groups of which 10509 was a member in the specified interval.
+
+Interesting - vim seems to do special processing on files with a .log extension.  It's much slower at loading them, and does fancy formatting.  It also won't let me amend them.  It moves the cursor to the end by default.
+
+There's a definite loop there.  After a short preamble:
+
+'''
+Parameters: {"start"=>"2014-08-10", "end"=>"2014-08-17", "_"=>"1407745711478"}
+User Load (0.1ms)  SELECT  `users`.* FROM `users`  WHERE `users`.`id` = 9 LIMIT 1
+Ownership Load (0.1ms)  SELECT `ownerships`.* FROM `ownerships`  WHERE `ownerships`.`user_id` IN (9)
+(0.1ms)  SELECT COUNT(*) FROM `ownerships`  WHERE `ownerships`.`user_id` = 9 AND `ownerships`.`equality` = 1
+Ownership Load (0.1ms)  SELECT `ownerships`.* FROM `ownerships`  WHERE `ownerships`.`user_id` = 9 AND `ownerships`.`equality` = 1
+Element Load (0.1ms)  SELECT  `elements`.* FROM `elements`  WHERE `elements`.`id` = 10509 LIMIT 1
+(0.1ms)  SELECT COUNT(*) FROM `memberships`  WHERE `memberships`.`element_id` = 10509
+Membership Load (0.1ms)  SELECT `memberships`.* FROM `memberships`  WHERE `memberships`.`element_id` = 10509 AND `memberships`.`inverse` = 0 AND (starts_on <= '2014-08-16') AND (ends_on IS NULL OR ends_on >= '2014-08-10')
+'''
+
+
+ the loop looks like this:
+
+'''
+Group Load (0.2ms)  SELECT  `groups`.* FROM `groups`  WHERE `groups`.`id` = 11134 LIMIT 1
+Element Load (0.1ms)  SELECT  `elements`.* FROM `elements`  WHERE `elements`.`entity_id` = 11134 AND `elements`.`entity_type` = 'Group' LIMIT 1
+(0.1ms)  SELECT COUNT(*) FROM `memberships`  WHERE `memberships`.`element_id` = 15758
+Membership Load (0.1ms)  SELECT `memberships`.* FROM `memberships`  WHERE `memberships`.`element_id` = 15758 AND `memberships`.`inverse` = 0 AND (starts_on <= '2014-08-16') AND (ends_on IS NULL OR ends_on >= '2014-08-10')
+'''
+
+
+Let's compare that with the code, and work out where the loop is.
+
+I don't understand why I'm seeing no event queries at all - instead it's focusing purely on groups and members.  I can't see how the path through the code is doing this.
+
+I shouldn't have been so quick to delete those groups.  Try creating some again.
+
+Looking at a working query, these group and element queries are a natural preamble to the first Event query.  Let's look at a working query now and compare.
+
+'''
+Parameters: {"start"=>"2014-08-10", "end"=>"2014-08-17", "_"=>"1407749324337"}
+User Load (0.2ms)  SELECT  `users`.* FROM `users`  WHERE `users`.`id` = 9 LIMIT 1
+Ownership Load (0.1ms)  SELECT `ownerships`.* FROM `ownerships`  WHERE `ownerships`.`user_id` IN (9)
+(0.1ms)  SELECT COUNT(*) FROM `ownerships`  WHERE `ownerships`.`user_id` = 9 AND `ownerships`.`equality` = 1
+Ownership Load (0.1ms)  SELECT `ownerships`.* FROM `ownerships`  WHERE `ownerships`.`user_id` = 9 AND `ownerships`.`equality` = 1
+Element Load (0.1ms)  SELECT  `elements`.* FROM `elements`  WHERE `elements`.`id` = 10509 LIMIT 1
+ (0.3ms)  SELECT COUNT(*) FROM `memberships`  WHERE `memberships`.`element_id` = 10509
+Membership Load (0.3ms)  SELECT `memberships`.* FROM `memberships`  WHERE `memberships`.`element_id` = 10509 AND `memberships`.`inverse` = 0 AND (starts_on <= '2014-08-16') AND (ends_on IS NULL OR ends_on >= '2014-08-10')
+
+'''
+As before.
+
+''Group Load (0.1ms)  SELECT  `groups`.* FROM `groups`  WHERE `groups`.`id` = 11143 LIMIT 1''
+''Element Load (0.1ms)  SELECT  `elements`.* FROM `elements`  WHERE `elements`.`entity_id` = 11143 AND `elements`.`entity_type` = 'Group' LIMIT 1''
+''(0.2ms)  SELECT COUNT(*) FROM `memberships`  WHERE `memberships`.`element_id` = 15767''
+''Membership Load (0.2ms)  SELECT `memberships`.* FROM `memberships`  WHERE `memberships`.`element_id` = 15767 AND `memberships`.`inverse` = 0 AND (starts_on <= '2014-08-16') AND (ends_on IS NULL OR ends_on >= '2014-08-10')''
+''Group Load (0.4ms)  SELECT  `groups`.* FROM `groups`  WHERE `groups`.`id` = 11142 LIMIT 1''
+''Element Load (0.2ms)  SELECT  `elements`.* FROM `elements`  WHERE `elements`.`entity_id` = 11142 AND `elements`.`entity_type` = 'Group' LIMIT 1''
+''(0.6ms)  SELECT COUNT(*) FROM `memberships`  WHERE `memberships`.`element_id` = 15766''
+''SQL (0.1ms)  SELECT `events`.`id` AS t0_r0, `events`.`body` AS t0_r1,...''
+
+I don't understand why we're getting these membership queries //before// fetching the elements own events.  Add some debug code.
+
+Hah!  There are no event queries as a result of attempting to fetch direct events.  Why?  They don't even happen when I am succeeding in fetching and displaying a lot.  Clearly the code is not working the way I think it should.
+
+Solved it!  At least the discrepancy - not the original problem.  The reason I'm not seeing a hit on the Events table is because Rails defers doing the actual query until you try to use the data.  As soon as I put in a check on the count retrieved, it started doing the actual query, but before that it was holding it as a potential query for the future.
+
+On then to analysing what happened in my problem case.  Is it as simple as Vanessa being a member of a group which is also a member of itself?  Try it.  Yes - that seems to be the problem.  I get a stack too deep error.  I just need to implement recursion protection there too.
+
+If a group is a member of itself, we should get events for that group, but once only.  Think I've implemented that now.  I've certainly stopped the application hanging in that particular circumstance.

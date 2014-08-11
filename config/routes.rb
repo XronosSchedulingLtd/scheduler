@@ -28,6 +28,8 @@ Rails.application.routes.draw do
 
   resources :commitments
 
+  resources :memberships
+
   resources :staffs do
     member do
       get :ical
