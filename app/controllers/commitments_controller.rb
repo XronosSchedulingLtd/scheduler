@@ -10,9 +10,8 @@ class CommitmentsController < ApplicationController
     #  of whether it succeeds or fails, we just display the list of
     #  committed resources again.
     #
-    if @commitment.save
-      @event = @commitment.event
-    end
+    @commitment.save
+    @event = @commitment.event
     respond_to do |format|
       format.js
     end

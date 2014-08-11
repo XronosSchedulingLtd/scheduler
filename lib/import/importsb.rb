@@ -958,6 +958,7 @@ class SB_Subject
                      "English",
                      "French",
                      "Further Maths",
+                     "General Studies Core Skills",
                      "General Studies Roundabout",
                      "Geography",
                      "German",
@@ -2773,7 +2774,8 @@ class SB_Loader
   def ensure_membership(group_name, members, member_class)
     members_added   = 0
     members_removed = 0
-    group = Group.system.vanillagroups.find_by(name: group_name)
+    group = Group.system.vanillagroups.find_by(name: group_name,
+                                               era_id: @era.id)
     unless group
       group = Vanillagroup.new(name:      group_name,
                                era:       @era,
@@ -2859,14 +2861,14 @@ class SB_Loader
         ensure_membership("#{house} tutors",
                           tutors,
                           Staff)
-        ensure_membership("#{house}",
+        ensure_membership("#{house} pupils",
                           pupils,
                           Pupil)
       else
         ensure_membership("#{house} House tutors",
                           tutors,
                           Staff)
-        ensure_membership("#{house} House",
+        ensure_membership("#{house} House pupils",
                           pupils,
                           Pupil)
         house_tges_by_year.each do |year_group, tges|

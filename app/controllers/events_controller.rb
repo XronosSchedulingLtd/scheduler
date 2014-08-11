@@ -78,7 +78,11 @@ class EventsController < ApplicationController
 
     respond_to do |format|
       if @event.save
+        @event.reload
         @success = true
+        @minimal = true
+        @commitment = Commitment.new
+        @commitment.event = @event
         format.html { redirect_to events_path, notice: 'Event was successfully created.' }
         format.json { render :show, status: :created, location: @event }
         format.js
@@ -133,10 +137,13 @@ class EventsController < ApplicationController
   # DELETE /events/1
   # DELETE /events/1.json
   def destroy
-    @event.destroy
+    if current_user.can_edit?(@event)
+      @event.destroy
+    end
     respond_to do |format|
       format.html { redirect_to events_url }
       format.json { head :no_content }
+      format.js
     end
   end
 

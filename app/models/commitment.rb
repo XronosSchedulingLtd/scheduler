@@ -13,6 +13,8 @@ class Commitment < ActiveRecord::Base
   validates_associated  :event,   :message => "Event does not exist"
   validates_associated  :element, :message => "Element does not exist"
 
+  validates :element_id, uniqueness: { scope: :event_id }
+
   # Note naming here.  If this commitment is covering another commitment
   # then we point at it.  Code can read:
   #

@@ -90,3 +90,39 @@ If a group is a member of itself, we should get events for that group, but once 
 Let's try popping it on to the live system.  Seems OK.
 
 Now to set up editing resources into events.  The way I've set up editing members into groups is to have actions to create and delete memberships, even if they don't work quite that way.  It seems obvious to do much the same for commitments.
+
+Basic adding and removing of resources is now working.  Two further things to pop in:
+
+[*] Go straight from creation dialogue to editing dialogue
+[ ] Allow events to be deleted.
+
+Interesting.  I just tried creating an all staff meeting on the 29th of August.  It shows up as being one of my events, but it doesn't show up as being an event which I'm attending.  Nor is Vanessa apparently there.  Why not?  Ah - I think I know.  This meeting is before the technical start of term, and therefore we are not yet members of the group.  Try it on the Monday and see if that makes a difference.  Yes, it's fine on Monday.  Now what is the correct solution to this problem?
+
+Having thought about it a bit, I think it's just to say that I got the start date of the era wrong.  If things are happening to do with the new term, then the era has started.  I need to adjust the start date (to Thu 28/8, to allow for new staff INSET) and then make sure my script can update the start dates for the groups.
+
+Odd - I just updated my script and ran it, and it seems to have added a lot of boys to teaching groups.  I'm not sure why it would have done that - yes I am.  Because the era date has changed it is checking the wrong start date, etc etc.
+
+It won't actually have added them - it will should have just amended the start date of the membership - or it might have created duplicate memberships.  Yuk!  Need to check the logic carefully.  Changing the start date of an era is not as simple as I thought.
+
+No - it hasn't created any duplicate memberships.  Because it was trying to create a membership before the start date of the group, that got adjusted to the start date of the group and then it was found to be already there.  No harm done.
+
+If I want to change all my teaching and tutor groups to match the new era date then it calls for a bit of fiddling.  It might be easier simply to delete and re-create them.  Would that work?
+
+[ ] Delete all teaching groups for the era
+[ ] Delete all tutor groups for the era
+[ ] In fact destroy all groups for the era
+[ ] Re-load with the script
+
+Try it on my test system.
+
+This will take a while.  It will be interesting to see if it can re-attach the newly created groups to the existing events.  My first lesson of the term is event 212621 with S4 Ma-1c.  See if it comes back intact.  It seems to be the same event and has its teaching group back too - impressive!  The commitment by the teaching group even has the names_event flag set correctly.
+
+I need to re-edit my manual events to put the groups back onto them, since they all got detached when they were deleted.
+
+Seems tolerably successful.  Need to test again with a fresh copy of the school d/b and data.
+
+Had to rename the groups for a whole house because I realised that "School House" could equally be a location.  Now called "School House pupils".
+
+Odd - I ran my amended script and the only new group which it created was "Lower School pupils".  Why?  Because I only made the change in the Lower School section.  Need to be more careful.
+
+Let's try and achieve those two objectives above before I commit the code and test the upgrade process again with a fresh copy of the live data.
