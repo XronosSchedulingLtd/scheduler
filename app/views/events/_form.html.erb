@@ -20,49 +20,41 @@
     <div class="small-3 columns">
       <%= f.label :eventcategory_id, class: "right inline" %>
     </div>
-    <div class="small-5 columns">
+    <div class="small-3 columns">
       <%= f.collection_select(:eventcategory_id,
                               Eventcategory.all.sort,
                               :id,
                               :name,
                               { :prompt => true }) %>
     </div>
-    <div class="small-4 columns"></div>
-  </div>
-  <div class="row collapse">
     <div class="small-3 columns">
       <%= f.label :eventsource_id, class: "right inline" %>
     </div>
-    <div class="small-5 columns">
+    <div class="small-3 columns">
     <%= f.collection_select(:eventsource_id,
                             Eventsource.all.sort,
                             :id,
                             :name,
                             { :prompt => true }) %>
     </div>
-    <div class="small-4 columns"></div>
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
-      <%= f.label :starts_at, class: "right inline" %>
+      <%= f.label :starts, class: "right inline" %>
     </div>
-    <div class="small-5 columns">
+    <div class="small-3 columns">
       <%= f.text_field :starts_at,
                        :value => @event.starts_at_text,
                        :class => :datetimepicker %>
     </div>
-    <div class="small-4 columns"></div>
-  </div>
-  <div class="row collapse">
     <div class="small-3 columns">
-      <%= f.label :ends_at, class: "right inline" %>
+      <%= f.label :ends, class: "right inline" %>
     </div>
-    <div class="small-5 columns">
+    <div class="small-3 columns">
       <%= f.text_field :ends_at,
                        :value => @event.ends_at_text,
                        :class => :datetimepicker %>
     </div>
-    <div class="small-4 columns"></div>
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
@@ -73,17 +65,6 @@
     </div>
     <div class="small-8 columns"></div>
   </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :resources, class: "right inline" %>
-    </div>
-    <div class="small-5 columns">
-      <% @event.resources.each do |resource| %>
-        <%= resource.name %><br/>
-      <% end %>
-    </div>
-    <div class="small-4 columns"></div>
-  </div>
   <div class="row">
     <div class="small-9 small-offset-3 columns">
       <%= f.submit %>
@@ -91,13 +72,18 @@
   </div>
 <% end %>
 <% if @event.id %>
-<%= form_for(@commitment, remote: true) do |f| %>
-  <%= f.autocomplete_field :element_name,
-                           autocomplete_element_name_elements_path,
-                           :id_element => '#commitment_element_id' %>
-  <%= f.text_field :element_id %>
-  <%= f.submit "Add resource" %>
-<% end %>
+  <h3>Resources</h3>
+  <div id="event_resources">
+    <%= render partial: "resource", object: @event, locals: {editing: true} %>
+  </div>
+  <%= form_for(@commitment, remote: true) do |f| %>
+    <%= f.autocomplete_field :element_name,
+                             autocomplete_element_name_elements_path,
+                             :id_element => '#commitment_element_id' %>
+    <%= f.text_field :element_id %>
+    <%= f.text_field :event_id %>
+    <%= f.submit "Add resource" %>
+  <% end %>
 <% else %>
-<p>Save the event in order to allow resources to be added.</p>
+  <p>Save the event in order to allow resources to be added.</p>
 <% end %>

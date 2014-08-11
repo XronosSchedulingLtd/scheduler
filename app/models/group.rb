@@ -174,7 +174,7 @@ class Group < ActiveRecord::Base
   #  Item can be any kind of entity, or an element.
   #
   def add_member(item, as_of = nil)
-    Rails.logger.info("Entering add_member for #{item.name}")
+    # Rails.logger.info("Entering add_member for #{item.name}")
     if item.instance_of?(Element)
       element = item
     else
@@ -192,7 +192,7 @@ class Group < ActiveRecord::Base
       m.element_id == element.id
     }
     if existing_membership
-      Rails.logger.info("Found existing membership.")
+      # Rails.logger.info("Found existing membership.")
       if existing_membership.inverse
         #
         #  Currently explicitly excluded from the group at this date.
@@ -218,7 +218,7 @@ class Group < ActiveRecord::Base
         #
       end
     else
-      Rails.logger.info("No existing membership.")
+      # Rails.logger.info("No existing membership.")
       #
       #  No existing membership record.  Create one.
       #
@@ -228,7 +228,7 @@ class Group < ActiveRecord::Base
       membership.starts_on = as_of
       membership.inverse = false
       membership.save!
-      Rails.logger.info("Created new membership record.")
+      # Rails.logger.info("Created new membership record.")
     end
   end
 

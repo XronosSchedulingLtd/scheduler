@@ -1,0 +1,23 @@
+<table>
+  <tr>
+    <th>Staff</th>
+    <th>Pupils</th>
+    <th>Groups</th>
+    <th>Locations</th>
+  </tr>
+  <tr>
+    <td valign="top">
+      <%= commitment_entries_for(resource, Staff, editing) %>
+    </td>
+    <td valign="top">
+      <%= commitment_entries_for(resource, Pupil, editing) %>
+    </td>
+    <td valign="top">
+      <%= commitment_entries_for(resource, Group, editing) %>
+    </td>
+    <td valign="top">
+      <%= commitment_entries_for(resource, Location, editing) %>
+    </td>
+  </tr>
+</table>
+

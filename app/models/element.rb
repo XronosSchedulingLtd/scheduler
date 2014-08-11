@@ -97,7 +97,7 @@ class Element < ActiveRecord::Base
         seen << self.id
       end
     end
-    Rails.logger.debug("Entering Element#events_on")
+    # Rails.logger.debug("Entering Element#events_on")
     direct_events = Event.events_on(start_date,
                                     end_date,
                                     eventcategory,
@@ -105,7 +105,7 @@ class Element < ActiveRecord::Base
                                     self,
                                     nil,
                                     include_nonexistent)
-    Rails.logger.debug("Fetched #{direct_events.size} direct events")
+    # Rails.logger.debug("Fetched #{direct_events.size} direct events")
     indirect_events = []
     if and_by_group && self.memberships.size > 0
       #
@@ -125,7 +125,7 @@ class Element < ActiveRecord::Base
       #  a start and end date, so the end marker can be the last required
       #  date.
       #
-      Rails.logger.debug("Starting on indirect events")
+      # Rails.logger.debug("Starting on indirect events")
       start_date = start_date ? start_date.to_date : Date.today
       end_date   = end_date ? end_date.to_date : start_date
       self.memberships.inclusions.active_during(start_date, end_date).each do |m|
@@ -138,7 +138,7 @@ class Element < ActiveRecord::Base
                                                       include_nonexistent,
                                                       seen)
       end
-      Rails.logger.debug("Finished indirect events")
+      # Rails.logger.debug("Finished indirect events")
     end
     (direct_events + indirect_events).uniq
   end

@@ -1,8 +1,8 @@
 class MembershipsController < ApplicationController
   before_action :set_membership, only: [:destroy]
 
-  # POST /groups
-  # POST /groups.json
+  # POST /memberships
+  # POST /memberships.json
   def create
     #
     #  Although this action portrays itself as creating a membership

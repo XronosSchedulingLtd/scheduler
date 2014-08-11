@@ -86,3 +86,7 @@ Solved it!  At least the discrepancy - not the original problem.  The reason I'm
 On then to analysing what happened in my problem case.  Is it as simple as Vanessa being a member of a group which is also a member of itself?  Try it.  Yes - that seems to be the problem.  I get a stack too deep error.  I just need to implement recursion protection there too.
 
 If a group is a member of itself, we should get events for that group, but once only.  Think I've implemented that now.  I've certainly stopped the application hanging in that particular circumstance.
+
+Let's try popping it on to the live system.  Seems OK.
+
+Now to set up editing resources into events.  The way I've set up editing members into groups is to have actions to create and delete memberships, even if they don't work quite that way.  It seems obvious to do much the same for commitments.

@@ -240,7 +240,7 @@ class Event < ActiveRecord::Base
                      resource      = nil,
                      owned_by      = nil,
                      include_nonexistent = false)
-    Rails.logger.debug("Entering Event#events_on")
+    # Rails.logger.debug("Entering Event#events_on")
     duffparameter = false
     #
     #  Might be passed startdate and enddate as:
@@ -300,10 +300,10 @@ class Event < ActiveRecord::Base
       duffparameter = true unless owned_by.instance_of?(User)
     end
     if duffparameter
-      Rails.logger.debug("Event#events_on hit a duff parameter.")
+      # Rails.logger.debug("Event#events_on hit a duff parameter.")
       []
     else
-      Rails.logger.debug("Assembling the d/b query.")
+      # Rails.logger.debug("Assembling the d/b query.")
       query_hash = {}
       query_string_parts = []
       #
@@ -365,7 +365,7 @@ class Event < ActiveRecord::Base
       else
         eventer = Event
       end
-      Rails.logger.debug("Executing the query")
+      # Rails.logger.debug("Executing the query")
       eventer.where(query_string_parts.join(" and "), query_hash).includes(:commitments)
     end
   end

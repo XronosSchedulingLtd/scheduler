@@ -9,7 +9,9 @@ digraph tables {
     "Curriculum"     -> "AcademicYear";
     "Curriculum"     -> "Years";
     "Curriculum"     -> "Subjects";
+    "Groups"         -> "Curriculum";
     "Groups"         -> "Staff";
+    "Groups"         -> "Subjects";
     "PeriodTimes"    -> "Period";
     "Pupil"          -> "House";
     "Pupil"          -> "Years";

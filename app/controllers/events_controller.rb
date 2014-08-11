@@ -51,6 +51,7 @@ class EventsController < ApplicationController
   # GET /events/1/edit
   def edit
     @commitment = Commitment.new
+    @commitment.event = @event
     #
     #  Admin can edit anything.  Other editors can only edit their
     #  own events.
