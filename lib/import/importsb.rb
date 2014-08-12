@@ -1364,7 +1364,10 @@ class SB_Loader
                    InputSource[:other_half, SB_OtherHalfOccurence,
                                :other_half, :oh_occurence_ident]]
 
-    EXTRA_FILES = [{file_name: "extra_staff_groups.yml", dbclass: Staff}]
+    EXTRA_GROUP_FILES = [
+      {file_name: "extra_staff_groups.yml", dbclass: Staff},
+      {file_name: "extra_group_groups.yml", dbclass: Group}
+    ]
 
   attr_reader :era,
               :curriculum_hash,
@@ -2925,16 +2928,16 @@ class SB_Loader
   end
 
   def do_extra_groups
-    EXTRA_FILES.each do |control_data|
+    EXTRA_GROUP_FILES.each do |control_data|
       file_data =
         YAML.load(
           File.open(Rails.root.join(IMPORT_DIR, control_data[:file_name])))
       file_data.each do |group_name, members|
         dbrecords = members.collect {|m|
           if control_data[:dbclass].respond_to?(:active)
-            dbrecord = control_data[:dbclass].active.find_by(name: m)
+            dbrecord = control_data[:dbclass].active.current.find_by(name: m)
           else
-            dbrecord = control_data[:dbclass].find_by(name: m)
+            dbrecord = control_data[:dbclass].current.find_by(name: m)
           end
           unless dbrecord
             puts "Can't find #{m} for extra group #{group_name}"
