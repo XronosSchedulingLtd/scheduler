@@ -64,4 +64,8 @@ Interestingly, my job just crashed out nearly at the end.  Why?  Because one of 
 
 Ran the load on the live system - it took 40 mins and seems to have succeeded.  A re-run then takes 4m16s and does nothing.  Excellent.
 
-Just received a list of boarding house staff from Ed Swanwick, so add that group in too.  Try to do a meta-group for boarding staff.
+Just received a list of boarding house staff from Ed Swanwick, so add that group in too.  Try to do a meta-group for boarding staff.  Seems to work.
+
+Next I will enter in all the INSET stuff, to check it works.  I'll delete it again on Friday so that Janet and Sarah can re-enter it.
+
+Slight problem with the groups-of-groups code in my loader.  It keeps trying to add the same member groups to the parent group, even though they're already there.  Need to work out why.

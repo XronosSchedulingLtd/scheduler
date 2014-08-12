@@ -2793,7 +2793,7 @@ class SB_Loader
     end
 
     intended_member_ids = members.collect {|m| m.id}
-    current_member_ids = group.members(@start_date, false, true).collect {|m| m.id}
+    current_member_ids = group.members(@start_date, false, false).collect {|m| m.id}
     to_remove = current_member_ids - intended_member_ids
     to_add = intended_member_ids - current_member_ids
     to_remove.each do |member_id|

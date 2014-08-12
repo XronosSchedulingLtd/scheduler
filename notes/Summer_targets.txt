@@ -9,8 +9,8 @@ Created Monday 14 July 2014
 
 [ ] Sort out the general display - probably by switching to Bootstrap
 [*] Allow selection of display by resource
-[ ] Allow creation and editing of personal groups
-[ ] Allow creation and editing of events, with ownership
+[*] Allow creation and editing of personal groups
+[*] Allow creation and editing of events, with ownership
 [ ] Implement approval of resource usage by owners
 [ ] Implement an audit trail of amendments - by whom and when
 [*] Import Other Half activities
