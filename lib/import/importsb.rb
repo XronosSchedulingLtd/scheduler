@@ -978,6 +978,7 @@ class SB_Subject
                      "PSHCE",
                      "Psychology",
                      "Religious Studies",
+                     "Russian",
                      "Spanish",
                      "Sport",
                      "Theatre Studies"]
