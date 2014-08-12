@@ -179,6 +179,10 @@ class Group < ActiveRecord::Base
       element = item
     else
       element = item.element
+      if element == nil
+        Rails.logger.info("Attempt to add inactive entity to group.")
+        return
+      end
     end
     as_of ||= Date.today
     if as_of < self.starts_on
@@ -250,6 +254,10 @@ class Group < ActiveRecord::Base
       element = item
     else
       element = item.element
+      if element == nil
+        Rails.logger.info("Attempt to remove inactive entity from group.")
+        return
+      end
     end
     as_of ||= Date.today
     #

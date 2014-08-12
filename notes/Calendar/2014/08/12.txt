@@ -45,3 +45,19 @@ Housemasters
 These could be loaded from a file.  Done.
 
 OK - time to promote all this to the live system.  Steps (to be tested first by sucking data down to the test system).
+
+[*] Backup live data
+[ ] export RAILS_ENV=production
+[ ] Latest code to live system
+[ ] Re-build assets
+[ ] rake db:migrate
+[ ] touch tmp/restart.txt
+[ ] Edit staff to mark those shown above as active
+[ ] Drop all groups belonging to the current era (Setting.current_era.groups.destroy_all)
+[ ] Run import script to put them back in again
+
+And test all that first.
+
+What was the very large job which I tried to run on the live system the other day and had to kill and then restart it?  It was on the 24th July when I tried to run Commitment.set_names_events_flag for the whole year.  It used too much memory.
+
+Interestingly, my job just crashed out nearly at the end.  Why?  Because one of the staff who I've tried to add doesn't have an Element, presumably because said member of staff is not active.  Need to guard against that.  Also - who is it?  Chunlian Greenfield.  Also needs setting to active.

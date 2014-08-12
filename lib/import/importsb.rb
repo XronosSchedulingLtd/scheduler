@@ -2931,7 +2931,11 @@ class SB_Loader
           File.open(Rails.root.join(IMPORT_DIR, control_data[:file_name])))
       file_data.each do |group_name, members|
         dbrecords = members.collect {|m|
-          dbrecord = control_data[:dbclass].find_by(name: m)
+          if control_data[:dbclass].respond_to?(:active)
+            dbrecord = control_data[:dbclass].active.find_by(name: m)
+          else
+            dbrecord = control_data[:dbclass].find_by(name: m)
+          end
           unless dbrecord
             puts "Can't find #{m} for extra group #{group_name}"
           end
