@@ -1,0 +1,47 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-12T08:07:09+01:00
+
+====== Tuesday 12 Aug 2014 ======
+
+I didn't tidy up last night, with the result that the batch job at 04:00 today tried to re-add everyone to all the groups.  In fact it did nothing, but today's first job must be to get everything back in a consistent state, probably using the procedure outline yesterday.
+
+I modified the import script here to update the "active" flag on staff records, which has the advantage of telling me who it thinks should be active, but also currently sets Janet Dunbar to inactive because she has no e-mail address.  I think I need to turn that off again, but to keep a list of who needs their active flag setting.
+
+'''
+Field active differs for Peter Hadfield
+d/b: "false" SB: "true"
+Field active differs for Janet Dunbar
+d/b: "true" SB: "false"
+Field active differs for Andrew Hansford
+d/b: "false" SB: "true"
+Field active differs for Alistair Brown
+d/b: "false" SB: "true"
+Field active differs for Alix Weyd
+d/b: "false" SB: "true"
+Field active differs for Nezete Onen
+d/b: "false" SB: "true"
+Field active differs for Sid Prior
+d/b: "false" SB: "true"
+Field active differs for John Wiejak
+d/b: "false" SB: "true"
+Field active differs for Christie Bridle
+d/b: "false" SB: "true"
+Field active differs for Peter Moore
+d/b: "false" SB: "true"
+Field active differs for Dale Pimm
+d/b: "false" SB: "true"
+'''
+
+
+One slight problem is that my Staff listing dialogue no longer displays inactive staff.  I need a way to access them too if I'm to change the flag manually.  Done that - it's a little crude but it's available only to administrators and it does work.
+
+It would also be nice to be able to load extra manually entered groups.  Ones I've thought of so far are:
+
+New Staff 2014
+HoDs
+Housemasters
+
+These could be loaded from a file.  Done.
+
+OK - time to promote all this to the live system.  Steps (to be tested first by sucking data down to the test system).

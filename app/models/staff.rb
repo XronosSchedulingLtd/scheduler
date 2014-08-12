@@ -20,6 +20,7 @@ class Staff < ActiveRecord::Base
   self.per_page = 15
 
   scope :active, -> { where(active: true) }
+  scope :inactive, -> { where(active: false) }
   scope :current, -> { where(current: true) }
   scope :teaches, -> { where(teaches: true) }
   scope :non_teaching, -> { where(teaches: false) }

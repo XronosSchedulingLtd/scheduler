@@ -1364,6 +1364,8 @@ class SB_Loader
                    InputSource[:other_half, SB_OtherHalfOccurence,
                                :other_half, :oh_occurence_ident]]
 
+    EXTRA_FILES = [{file_name: "extra_staff_groups.yml", dbclass: Staff}]
+
   attr_reader :era,
               :curriculum_hash,
               :date_hash,
@@ -2922,6 +2924,24 @@ class SB_Loader
     end
   end
 
+  def do_extra_groups
+    EXTRA_FILES.each do |control_data|
+      file_data =
+        YAML.load(
+          File.open(Rails.root.join(IMPORT_DIR, control_data[:file_name])))
+      file_data.each do |group_name, members|
+        dbrecords = members.collect {|m|
+          dbrecord = control_data[:dbclass].find_by(name: m)
+          unless dbrecord
+            puts "Can't find #{m} for extra group #{group_name}"
+          end
+          dbrecord
+        }.compact
+        ensure_membership(group_name, dbrecords, control_data[:dbclass])
+      end
+    end
+  end
+
 end
 
 begin
@@ -2974,6 +2994,7 @@ begin
       loader.do_cover
       loader.do_other_half
       loader.do_auto_groups
+      loader.do_extra_groups
     end
   end
 rescue RuntimeError => e

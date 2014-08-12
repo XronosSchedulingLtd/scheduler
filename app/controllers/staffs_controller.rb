@@ -13,7 +13,25 @@ class StaffsController < ApplicationController
   # GET /staffs
   # GET /staffs.json
   def index
-    @staffs = Staff.active.page(params[:page]).order('surname')
+    #
+    #  If a preference is specified then it persists until another
+    #  preference is specified.
+    #
+    if params[:inactive]
+      selector = Staff.inactive
+      session[:which_staff] = :inactive
+    elsif params[:active]
+      selector = Staff.active
+      session[:which_staff] = :active
+    elsif session[:which_staff] == :inactive.to_s
+      selector = Staff.inactive
+    else
+      #
+      #  Default to active
+      #
+      selector = Staff.active
+    end
+    @staffs = selector.page(params[:page]).order('surname')
   end
 
   # GET /staffs/1
@@ -58,7 +76,7 @@ class StaffsController < ApplicationController
   def update
     respond_to do |format|
       if @staff.update(staff_params)
-        format.html { redirect_to @staff, notice: 'Staff was successfully updated.' }
+        format.html { redirect_to staffs_path, notice: 'Staff was successfully updated.' }
         format.json { render :show, status: :ok, location: @staff }
       else
         format.html { render :edit }
