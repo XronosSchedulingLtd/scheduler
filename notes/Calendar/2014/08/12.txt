@@ -69,3 +69,10 @@ Just received a list of boarding house staff from Ed Swanwick, so add that group
 Next I will enter in all the INSET stuff, to check it works.  I'll delete it again on Friday so that Janet and Sarah can re-enter it.
 
 Slight problem with the groups-of-groups code in my loader.  It keeps trying to add the same member groups to the parent group, even though they're already there.  Need to work out why.
+
+Fixed that.  Just noticed two oddities in event editing.
+
+1) When you go straight from creating to editing an event, the datetime pop-ups no longer work.
+2) The interaction between the two datetime fields seems to have stopped happening.
+
+More to investigate.
