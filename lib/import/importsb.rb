@@ -2824,7 +2824,7 @@ class SB_Loader
                       Staff.active.current,
                       Staff)
     ensure_membership("Teaching staff",
-                      Staff.active.current.teaches,
+                      Staff.active.current.teaching,
                       Staff)
     #
     #  Staff by house they are tutors in.

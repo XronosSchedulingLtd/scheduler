@@ -515,7 +515,7 @@ class ImportsController < ApplicationController
     calendarcategory = Eventcategory.find_by_name("Calendar")
     weeklettercategory = Eventcategory.find_by_name("Week letter")
     dutycategory = Eventcategory.find_by_name("Duty")
-    known_staff = Staff.active.current
+    known_staff = Staff.active.current.teaching
     if calendarcategory && weeklettercategory && dutycategory
       start_date = Time.zone.parse(params[:first_date])
       #

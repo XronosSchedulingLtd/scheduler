@@ -23,3 +23,5 @@ but what it boils down to is:
 * includes decides which of the two to use dynamically
 
 It gets more interesting when your selection criteria also depend on other records - then you will want to use //joins// or //references// as additional modifiers.  See the above mentioned web page for a longer discussion on how to make sure you get the records you want, although this hasn't affected me yet.
+
+

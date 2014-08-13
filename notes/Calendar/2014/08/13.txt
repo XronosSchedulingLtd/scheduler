@@ -1,0 +1,13 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-13T06:31:58+01:00
+
+====== Wednesday 13 Aug 2014 ======
+
+Today I intend to configure my new router, but one thing I could do on Scheduler is try a fresh copy of the school calendar.  Load it first on my test system.
+
+I could also do with a "Show calendar" tickbox, so that logged in users can see the full calendar.
+
+Hit a problem loading the calendar in that my code can't tell the difference between Barry Webb and Mike Webb when setting up the detention duty master.  Who is Barry Webb?  He has a school e-mail address, and no leaving date, but he's not a teacher.  Perhaps I can set that as an additional criterion.  Done.  It seems to work.
+
+It's also noticeable that the existing school calendar displays entries for exam results, but they aren't in the export file.  I wonder what else is also missing.
