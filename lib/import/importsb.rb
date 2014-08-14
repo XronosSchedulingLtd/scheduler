@@ -1369,6 +1369,7 @@ class SB_Loader
 
     EXTRA_GROUP_FILES = [
       {file_name: "extra_staff_groups.yml", dbclass: Staff},
+      {file_name: "extra_pupil_groups.yml", dbclass: Pupil},
       {file_name: "extra_group_groups.yml", dbclass: Group}
     ]
 
