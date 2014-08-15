@@ -2796,16 +2796,22 @@ class SB_Loader
       puts "\"#{group_name}\" group created."
     end
 
-    intended_member_ids = members.collect {|m| m.id}
-    current_member_ids = group.members(@start_date, false, false).collect {|m| m.id}
+    #
+    #  We don't intend to have mixtures of types in groups, but we might.
+    #  Therefore use element_ids as our unique identifiers, rather than
+    #  the entity's ids.  The latter are unique for a given type of entity,
+    #  but not across types.
+    #
+    intended_member_ids = members.collect {|m| m.element.id}
+    current_member_ids = group.members(@start_date, false, false).collect {|m| m.element.id}
     to_remove = current_member_ids - intended_member_ids
     to_add = intended_member_ids - current_member_ids
     to_remove.each do |member_id|
-      group.remove_member(member_class.find(member_id), @start_date)
+      group.remove_member(Element.find(member_id), @start_date)
       members_removed += 1
     end
     to_add.each do |member_id|
-      group.add_member(member_class.find(member_id), @start_date)
+      group.add_member(Element.find(member_id), @start_date)
       members_added += 1
     end
     if @verbose || members_removed > 0
