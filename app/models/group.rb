@@ -260,6 +260,9 @@ class Group < ActiveRecord::Base
       end
     end
     as_of ||= Date.today
+    if as_of < self.starts_on
+      as_of = self.starts_on
+    end
     #
     #  Is this item already an explicit (as opposed to recursive) member
     #  of this group.  Inclusive or exclusive?
