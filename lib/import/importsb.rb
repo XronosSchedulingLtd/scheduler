@@ -702,6 +702,7 @@ class SB_Pupil
                       Column["PupReportName",    :name,            false],
                       Column["PupEmail",         :email,           false],
                       Column["Pu_CandNo",        :candidate_no,    false],
+                      Column["PupUCI",           :uci,             false],
                       Column["YearIdent",        :year_ident,      true],
                       Column["Pu_Doe",           :date_of_entry,   false],
                       Column["PupDateofLeaving", :date_of_leaving, false],
@@ -949,7 +950,6 @@ class SB_Subject
   WANTED_SUBJECTS = ["Art",
                      "Biology",
                      "Chemistry",
-                     "Chinese",
                      "Classical Civilisation",
                      "Design & Technology",
                      "Drama",
@@ -1169,11 +1169,11 @@ class SB_Timetableentry
        / Chap\Z/ =~ own_group_name &&
        / Chap\Z/ =~ other_group_name) ||
       #
-      #  Or sport?  Note that for sport, the two should boast the same
+      #  Or sport/PE?  Note that for sport, the two should boast the same
       #  group, not just ones with similar names.
       #
       (!self.meeting? && !other.meeting? &&
-       / Spt\Z/ =~ own_group_name &&
+       / (Spt|PE)\Z/ =~ own_group_name &&
        self.group_ident == other.group_ident)
     )
   end
@@ -1309,11 +1309,14 @@ class SB_Year
 
   include Slurper
 
+  attr_reader :start_year
+
   def adjust(loader)
     #
     #  Nothing for now.
     #
-    @era = loader.send("era")
+    @era = loader.era
+    @start_year = @era.starts_on.year + 7 - self.year_num
   end
 
   def wanted?(loader)
@@ -1323,16 +1326,6 @@ class SB_Year
     self.ptype == 60
   end
 
-  def start_year
-    #
-    #  year_num is the conventional UK academic year number.  Thus
-    #  a 1st former is in year 7, and an upper sixth is in year 13.
-    #
-    #  We want to know what year he would effectively have started at
-    #  the school, if he had started in the 1st year.
-    #
-    @era.starts_on.year + 7 - self.year_num
-  end
 end
 
 class SB_Loader
@@ -1385,7 +1378,8 @@ class SB_Loader
               :lesson_category,
               :meeting_category,
               :assembly_category,
-              :chapel_category
+              :chapel_category,
+              :duty_category
 
   def initialize(options)
     @verbose   = options.verbose
@@ -1537,7 +1531,6 @@ class SB_Loader
     #
     @subject_teacher_hash = {}
     @timetable_entries.each do |te|
-      on_sarah = false
       staff = @staff_hash[te.staff_ident]
       if staff && staff.active && staff.current
         group = @group_hash[te.group_ident]
@@ -1572,23 +1565,45 @@ class SB_Loader
     raise "Can't find event category for invigilations." unless @invigilation_category
     @other_half_category = Eventcategory.find_by_name("Other Half")
     raise "Can't find event category for Other Half." unless @other_half_category
+    @duty_category = Eventcategory.find_by_name("Duty")
+    raise "Can't find event category for duties." unless @duty_category
     @event_source = Eventsource.find_by_name("SchoolBase")
     raise "Can't find event source \"SchoolBase\"." unless @event_source
+    @yaml_source = Eventsource.find_by_name("Yaml")
+    raise "Can't find event source \"Yaml\"." unless @yaml_source
     #
     #  Dump to file(s).
     #
     puts "Dumping parsed data." if @verbose
+    File.open(Rails.root.join(IMPORT_DIR, "staff.yml"), "w") do |file|
+      file.puts YAML::dump(@staff)
+    end
     File.open(Rails.root.join(IMPORT_DIR, "pupils.yml"), "w") do |file|
       file.puts YAML::dump(@pupils)
     end
     File.open(Rails.root.join(IMPORT_DIR, "groups.yml"), "w") do |file|
       file.puts YAML::dump(@groups)
     end
+    File.open(Rails.root.join(IMPORT_DIR, "subjects.yml"), "w") do |file|
+      file.puts YAML::dump(@subjects)
+    end
     File.open(Rails.root.join(IMPORT_DIR, "tutorgroups.yml"), "w") do |file|
       file.puts YAML::dump(@tg_hash)
     end
+    File.open(Rails.root.join(IMPORT_DIR, "periods.yml"), "w") do |file|
+      file.puts YAML::dump(@periods)
+    end
+    File.open(Rails.root.join(IMPORT_DIR, "periodtimes.yml"), "w") do |file|
+      file.puts YAML::dump(@period_times)
+    end
     File.open(Rails.root.join(IMPORT_DIR, "lessons.yml"), "w") do |file|
       file.puts YAML::dump(@timetable_entries)
+    end
+    File.open(Rails.root.join(IMPORT_DIR, "locations.yml"), "w") do |file|
+      file.puts YAML::dump(@locations)
+    end
+    File.open(Rails.root.join(IMPORT_DIR, "years.yml"), "w") do |file|
+      file.puts YAML::dump(@years)
     end
     puts "Finished data initialisation." if @verbose
     yield self if block_given?
@@ -1644,9 +1659,9 @@ class SB_Loader
     end
     if @verbose
       puts "#{pupils_unchanged_count} pupil record(s) untouched."
-      if original_pupil_count != final_pupil_count
-        puts "Started with #{original_pupil_count} current pupils and finished with #{final_pupil_count}."
-      end
+    end
+    if @verbose || original_pupil_count != final_pupil_count
+      puts "Started with #{original_pupil_count} current pupils and finished with #{final_pupil_count}."
     end
   end
 
@@ -2294,7 +2309,7 @@ class SB_Loader
               #
               dbgroup = nil
               unless lesson.meeting?
-                if group = @group_hash[lesson.group_ident]
+                if group = @group_hash[lesson.group_idents[0]]
                   dbgroup = group.dbrecord
                 end
               end
@@ -2959,6 +2974,123 @@ class SB_Loader
     end
   end
 
+  def do_duties
+    puts "Processing duties" if @verbose
+    duties_added_count = 0
+    duties_deleted_count = 0
+    resources_added_count = 0
+    resources_removed_count = 0
+    file_data =
+      YAML.load(
+        File.open(Rails.root.join(IMPORT_DIR, "Duties.yml")))
+    #raise file_data.inspect
+    @start_date.upto(@era.ends_on) do |date|
+      puts "Processing #{date}" if @verbose
+      week_letter = get_week_letter(date)
+      if week_letter
+        duties = file_data[week_letter][date.strftime("%A")]
+        if duties && duties.size > 0
+          existing_duties = @duty_category.events_on(date, date, @yaml_source)
+          #
+          #  We count duties from our input file and the database as being
+          #  the same one if they have the same title, the same start time
+          #  and the same end time.
+          #
+          duties.each do |duty|
+            starts_at =
+              Time.zone.parse("#{date.to_s} #{duty[:starts]}")
+            ends_at =
+              Time.zone.parse("#{date.to_s} #{duty[:ends]}")
+            existing_duty = existing_duties.detect {|ed|
+              ed.body      == duty[:title] &&
+              ed.starts_at == starts_at &&
+              ed.ends_at   == ends_at
+            }
+            if existing_duty
+              #
+              #  Remove from the array.  We will deal with any leftovers
+              #  at the end.
+              #
+              existing_duties = existing_duties - [existing_duty]
+            else
+              #
+              #  Event needs creating in the database.
+              #
+              existing_duty = Event.new
+              existing_duty.body = duty[:title]
+              existing_duty.eventcategory = @duty_category
+              existing_duty.eventsource   = @yaml_source
+              existing_duty.starts_at     = starts_at
+              existing_duty.ends_at       = ends_at
+              existing_duty.save!
+              existing_duty.reload
+              duties_added_count += 1
+            end
+            #
+            #  Now check that the resources match.
+            #
+            element_id = nil
+            if duty[:staff]
+              staff = Staff.find_by(initials: duty[:staff])
+              if staff
+                element_id = staff.element.id
+              end
+            elsif duty[:group]
+              group = Group.find_by(name: duty[:group])
+              if group
+                element_id = group.element.id
+              end
+            end
+            if element_id
+              required_ids = [element_id]
+              existing_ids = existing_duty.elements.collect {|e| e.id}
+              db_only = existing_ids - required_ids
+              input_only = required_ids - existing_ids
+              if db_only.size > 0
+                existing_duty.commitments.each do |c|
+                  if db_only.include?(c.element_id)
+                    c.destroy
+                    resources_removed_count += 1
+                  end
+                end
+              end
+              input_only.each do |id|
+                c = Commitment.new
+                c.event_id = existing_duty.id
+                c.element_id = id
+                c.save!
+                resources_added_count += 1
+              end
+            else
+              puts "Couldn't find duty resource for #{duty.inspect}"
+            end
+          end
+          #
+          #  Any of the existing duties left?
+          #
+          existing_duties.each do |ed|
+            ed.destroy
+            duties_deleted_count += 1
+          end
+        else
+          puts "Couldn't find duties for #{date.strftime("%A")} of week #{week_letter}."
+        end
+      end
+    end
+    if duties_added_count > 0 || @verbose
+      puts "Added #{duties_added_count} duty events."
+    end
+    if duties_deleted_count > 0 || @verbose
+      puts "Deleted #{duties_deleted_count} duty events."
+    end
+    if resources_added_count > 0 || @verbose
+      puts "Added #{resources_added_count} resources to duty events."
+    end
+    if resources_removed_count > 0 || @verbose
+      puts "Removed #{resources_removed_count} resources from duty events."
+    end
+  end
+
 end
 
 begin
@@ -3012,6 +3144,7 @@ begin
       loader.do_other_half
       loader.do_auto_groups
       loader.do_extra_groups
+      loader.do_duties
     end
   end
 rescue RuntimeError => e
