@@ -657,7 +657,15 @@ class Group < ActiveRecord::Base
           self.remove_member(member, date)
         end
         self.ends_on = date - 1.day
+        self.current = false
         self.save!
+      end
+    else
+      if self.starts_on > date
+        #
+        #  Being asked to delete ourselves before we've even started.
+        #
+        self.destroy!
       end
     end
   end

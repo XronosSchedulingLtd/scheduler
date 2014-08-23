@@ -1,0 +1,8 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-13T08:07:53+01:00
+
+====== Notes ======
+Created Wednesday 13 August 2014
+
+It would be nice to allow users to attach arbitrary textual notes to any events which they can see.  Each note would be private to its creator.

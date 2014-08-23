@@ -315,9 +315,11 @@ class SB_Curriculum
 
   def wanted?(loader)
     #
-    #  Only want those for our academic year.
+    #  Only want those for our academic year, and for which we know
+    #  the year group.
     #
-    @ac_year_ident == loader.send("era").source_id
+    (self.ac_year_ident == loader.era.source_id) &&
+    (loader.year_hash[self.year_ident] != nil)
   end
 
 end
@@ -397,7 +399,7 @@ class SB_Group
     #  Note that groups must be loaded from file after curriculum and
     #  academic year, or they'll all get rejected.
     #
-    curriculum = loader.send("curriculum_hash")[@curriculum_ident]
+    curriculum = loader.curriculum_hash[@curriculum_ident]
     !!(curriculum && curriculum.ac_year_ident == loader.era.source_id)
   end
 
@@ -798,7 +800,8 @@ class SB_Staff
                       Column["UserLeft",      :left,        true],
                       Column["UserTeach",     :teacher,     true],
                       Column["UserDoesCover", :cover,       true],
-                      Column["UserEmail",     :email,       false]]
+                      Column["UserEmail",     :email,       false],
+                      Column["PType",         :ptype,       true]]
   FIELDS_TO_UPDATE = [:name,
                       :initials,
                       :surname,
@@ -851,7 +854,10 @@ class SB_Staff
   end
 
   def wanted?(loader)
-    true
+    #
+    #  Current or past senior school staff.
+    #
+    self.ptype == 60 || self.ptype == 100
   end
 
   def source_id
@@ -1036,8 +1042,13 @@ class SB_Timetableentry
     #  For now we require either that they involve a teaching group
     #  (a normal lesson) or they have a time_note (usually a meeting).
     #
+    #  They must also involve *some* known resource - a member of
+    #  staff or a group of pupils.
+    #
     @ac_year_ident == loader.era.source_id &&
-    (@group_ident != nil || !@time_note.blank?)
+    (@group_ident != nil || !@time_note.blank?) &&
+    (loader.staff_hash[self.staff_ident] != nil ||
+     loader.group_hash[self.group_ident] != nil)
   end
 
   def <=>(other)
@@ -1335,10 +1346,10 @@ class SB_Loader
   InputSource = Struct.new(:array_name, :loader_class, :hash_prefix, :key_field)
 
   INPUT_SOURCES = [InputSource[:academicyears, SB_AcademicYear],
+                   InputSource[:years, SB_Year, :year, :year_ident],
                    InputSource[:curriculums, SB_Curriculum, :curriculum,
                                :curriculum_ident],
                    InputSource[:tutorgroupentries, SB_Tutorgroupentry],
-                   InputSource[:years, SB_Year, :year, :year_ident],
                    InputSource[:pupils, SB_Pupil, :pupil, :pupil_ident],
                    InputSource[:staff, SB_Staff, :staff, :staff_ident],
                    InputSource[:locations, SB_Location, :location, :room_ident],
@@ -1669,6 +1680,7 @@ class SB_Loader
     staff_changed_count   = 0
     staff_unchanged_count = 0
     staff_loaded_count    = 0
+    staff_deleted_count   = 0
     @staff.each do |s|
       dbrecord = s.dbrecord
       if dbrecord
@@ -1689,6 +1701,18 @@ class SB_Loader
         end
       end
     end
+    #
+    #  Any there who shouldn't be there?
+    #
+    Staff.all.each do |dbrecord|
+      if dbrecord.source_id && (dbrecord.source_id != 0)
+        unless @staff_hash[dbrecord.source_id]
+          puts "Deleting #{dbrecord.name}"
+          dbrecord.destroy
+          staff_deleted_count += 1
+        end
+      end
+    end
     if @verbose || staff_changed_count > 0
       puts "#{staff_changed_count} staff record(s) amended."
     end
@@ -1697,6 +1721,9 @@ class SB_Loader
     end
     if @verbose
       puts "#{staff_unchanged_count} staff record(s) untouched."
+    end
+    if @verbose || staff_deleted_count > 0
+      puts "#{staff_deleted_count} staff record(s) deleted."
     end
   end
 
@@ -1794,15 +1821,12 @@ class SB_Loader
         puts "Tutor group #{dbtg.name} exists in the d/b but not in the files." if @verbose
         #
         #  Need to terminate any remaining memberships, then terminate the
-        #  group.  Note that nothing gets deleted, just marked as over.
+        #  group.  Note that in general, nothing gets deleted, just marked
+        #  as over.  The exception is when we are deleting a group before
+        #  it ever got started.
         #
-        dbtg.ceases_existence(Date.today)
-        dbtg.current = false
-        if dbtg.save
-          tg_deleted_count += 1
-        else
-          puts "Failed to deactivate tutor group #{dbtg.name}"
-        end
+        dbtg.ceases_existence(@start_date)
+        tg_deleted_count += 1
       end
     end
     tg_at_end = Tutorgroup.current.count
@@ -1917,13 +1941,8 @@ class SB_Loader
         #  Need to terminate any remaining memberships, then terminate the
         #  group.  Note that nothing gets deleted, just marked as over.
         #
-        dbgroup.ceases_existence(Date.today)
-        dbgroup.current = false
-        if dbgroup.save
-          groups_deleted_count += 1
-        else
-          puts "Failed to deactivate teaching group #{dbgroup.name}"
-        end
+        dbgroup.ceases_existence(@start_date)
+        groups_deleted_count += 1
       end
     end
     groups_at_end = Teachinggroup.current.count

@@ -1,0 +1,8 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-13T08:08:33+01:00
+
+====== Interests ======
+Created Wednesday 13 August 2014
+
+It would be nice if each user could express an Interest in any event which he can see.  It wouldn't make the user a resource of the event, but it would cause the event to appear in the user's schedule.

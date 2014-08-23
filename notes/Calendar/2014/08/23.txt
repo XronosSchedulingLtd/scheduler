@@ -1,0 +1,51 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-23T09:03:24+01:00
+
+====== Saturday 23 Aug 2014 ======
+
+Just noticed - S1 PE lessons don't merge as part of the loading process.  TODO: fix.
+
+Interesting - as soon as I start to compound PE events, I get some compound events for the prep school, which then fail to load.  Why don't I get this failure when they are atomic events?  Where exactly are the prep school timetable events filtered out?
+
+I suspect that I am currently loading atomic prep school events into my d/b, but not seeing them because they don't involve any of my resources.  I'm failing to load them as compound, because I've added an explicit check for the event name.
+
+Need to follow through on exactly what happens to a prep school event if it isn't compounded.  Where does it get discarded, or does it end up in the d/b?
+
+Pick one that is now being compounded, revert the compounding change, and see where it goes.
+
+Compound lesson bea1e978...
+
+Uses staff_idents: 285 and 694
+group_idents: 33349
+room_idents: 187
+
+One of the original timetable_idents was 358107.  The other was 358108.
+
+Staff are Issac Jay and Steve Hibberd (both prep school).  Group is "Year 4T PE".  Location is "Sports Hall" (presumably at the prep school).
+
+Now - fetch the current live d/b and re-load it.  Yes, the events do seem to be in my d/b.  7 of each.  What resources do they involve?  Just the location - with name R_SPO.
+
+This is the problem - I seem to have discarded the group and the staff, but not the event.
+
+Perhaps I should simply do an early filtering of events to only those which involve at least one known member of staff or one known group.
+
+Where do groups get filtered?
+
+I am filtering the years table to take only those in the senior school. Ptype needs to be 60.
+
+I could then filter the curriculum entries to only those which reference known years.
+
+And then filter group entries to only those which reference known curriculum entries.
+
+And then filter timetable entries to only those involving either a known member of staff or a known group.
+
+Need to make sure that loading is in that order.
+
+Added that filtering, but still seem to have the atomic events for those lower-school events.  Why?
+
+Focus on 358108 and add some extra specific logging for it.  Ah - I still seem to have the relevant staff member.  Need to tighten up further on the check.  Staff ident is 694.  Steve Hibberd.  He's marked as inactive, so perhaps I need to check that too.  I really should check the d/b version of active, because the calculated one is a bit of a guess.  Do I have access to that?  Not at initialisation.
+
+Staff do have a Ptype field, which elsewhere tells me the school.  Would it work for them?  It seems it might.  Give it a go.  Rather cleverly it's called "PType", where in other tables it's called "Ptype".
+
+I'm left with a lot of spurious members of staff in my d/b, but I don't want to delete them automatically in case I delete someone who I want.  I might try implementing that later.  I wouldn't delete them for being inactive - just for having the wrong PType.  See how many would go.

@@ -55,6 +55,10 @@ class Tutorgroup
     end
   end
 
+  def self.all
+    Group.where(persona_type: "Tutorgrouppersona")
+  end
+
   #
   #  Typically called with: { :staff_id => 1234, :era_id => 2 }
   #
