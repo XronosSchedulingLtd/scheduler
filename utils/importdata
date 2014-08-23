@@ -9,3 +9,4 @@ export RAILS_ENV
 ~/.rvm/wrappers/scheduler/ruby lib/import/importsb.rb --era "Academic Year 2014/15"
 cd import
 /bin/tar cf - *.csv | gzip -9c >archive/`date +%Y%m%d`.tar.gz
+scp *.yml nimbus.sinodun.org.uk:Work/Coding/markbooklive/import/data/2014
