@@ -1185,7 +1185,13 @@ class SB_Timetableentry
       #
       (!self.meeting? && !other.meeting? &&
        / (Spt|PE)\Z/ =~ own_group_name &&
-       self.group_ident == other.group_ident)
+       self.group_ident == other.group_ident) ||
+      #
+      #  Or finally, the same group in the same place.
+      #
+      (!self.meeting? && !other.meeting? &&
+       self.group_ident == other.group_ident &&
+       self.room_ident  == other.room_ident)
     )
   end
 
