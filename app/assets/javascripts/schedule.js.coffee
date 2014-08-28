@@ -112,6 +112,8 @@ $(document).ready ->
       snapDuration: "00:05"
       minTime: "06:00"
       scrollTime: "08:00"
+      viewRender: (view, element) ->
+        $('#datepicker').datepicker('setDate', view.start.toDate())
       eventSources: [{
         url: '/schedule/events'
       }]
