@@ -13,6 +13,15 @@ class Eventcategory < ActiveRecord::Base
 
   has_many :events, dependent: :destroy
 
+  after_save :flush_cache
+
+  #
+  #  I'd like to call this just public, but Rails already uses that name
+  #  for internal purposes.
+  #
+  scope :public_ones, lambda { where(public: true) }
+  scope :for_users,   lambda { where(for_users: true) }
+
   @@category_cache = {}
 
   def <=>(other)
@@ -40,6 +49,10 @@ class Eventcategory < ActiveRecord::Base
   def self.cached_category(category_name)
     @@category_cache[category_name] ||=
       Eventcategory.find_by(name: category_name)
+  end
+
+  def flush_cache
+    @@category_cache = {}
   end
 
 end

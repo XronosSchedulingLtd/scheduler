@@ -58,9 +58,6 @@ class ScheduleController < ApplicationController
     start_date = Time.zone.parse(params[:start])
     end_date   = Time.zone.parse(params[:end]) - 1.day
     element_id = params[:eid].to_i
-    cc = Eventcategory.cached_category("Calendar")
-    dc = Eventcategory.cached_category("Duty")
-    wlc = Eventcategory.cached_category("Week letter")
     if current_user && current_user.known?
       if element_id != 0
         i = current_user.interests.detect {|ci| ci.element_id == element_id}
@@ -98,15 +95,17 @@ class ScheduleController < ApplicationController
           myotherevents.collect {|e| ScheduleEvent.new(e,
                                                        current_user,
                                                        current_user.colour_not_involved)} +
-          (wlc ? wlc.events_on(start_date, end_date) : []).collect {|e|
-              ScheduleEvent.new(e, current_user)
-           }
+          Event.events_on(start_date,
+                          end_date,
+                          Eventcategory.for_users).collect {|e|
+            ScheduleEvent.new(e, current_user)
+          }
       end
     else
       @schedule_events =
-        ((cc ? cc.events_on(start_date, end_date) : []) +
-         (dc ? dc.events_on(start_date, end_date) : []) +
-         (wlc ? wlc.events_on(start_date, end_date) : [])).collect {|e|
+        Event.events_on(start_date,
+                        end_date,
+                        Eventcategory.public_ones).collect {|e|
           ScheduleEvent.new(e)
         }
     end

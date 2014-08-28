@@ -258,8 +258,9 @@ class Event < ActiveRecord::Base
     if eventcategory
       #
       #  We allow a single eventcategory, or an array.
+      #  (Or something that behaves like an array.)
       #
-      if eventcategory.instance_of?(Array)
+      if eventcategory.respond_to?(:each)
         eca = eventcategory
       else
         eca = [eventcategory]

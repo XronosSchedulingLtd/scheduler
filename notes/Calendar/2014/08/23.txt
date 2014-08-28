@@ -49,3 +49,5 @@ Focus on 358108 and add some extra specific logging for it.  Ah - I still seem t
 Staff do have a Ptype field, which elsewhere tells me the school.  Would it work for them?  It seems it might.  Give it a go.  Rather cleverly it's called "PType", where in other tables it's called "Ptype".
 
 I'm left with a lot of spurious members of staff in my d/b, but I don't want to delete them automatically in case I delete someone who I want.  I might try implementing that later.  I wouldn't delete them for being inactive - just for having the wrong PType.  See how many would go.
+
+Done all that.  Put it on the live system too.  Hope all is well.

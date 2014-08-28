@@ -1,0 +1,12 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-08-28T06:36:34+01:00
+
+====== Thursday 28 Aug 2014 ======
+
+Just noticed two interesting things:
+
+1. When the user isn't logged in, navigating through FullCalendar doesn't change the date on the little calendar.
+2. The system ignores the EventCategory flags when deciding what to show on the not-logged-in display.
+
+Both should be fairly simple (famous last words.)
