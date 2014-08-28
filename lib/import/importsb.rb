@@ -953,6 +953,10 @@ class SB_Subject
      Column["SubName",     :subject_name,  false],
      Column["SubIdent",    :subject_ident, true]]
 
+  NOT_REALLY_SUBJECTS = ["Assembly",
+                         "Chapel",
+                         "Tutor"]
+
   WANTED_SUBJECTS = ["Art",
                      "Biology",
                      "Chemistry",
@@ -985,16 +989,26 @@ class SB_Subject
                      "Psychology",
                      "Religious Studies",
                      "Russian",
+                     "Science",
                      "Spanish",
                      "Sport",
                      "Theatre Studies"]
   include Slurper
 
+  attr_reader :type
+
   def adjust(loader)
+    if WANTED_SUBJECTS.detect {|ws| ws == self.subject_name}
+      @type = :proper_subject
+    elsif NOT_REALLY_SUBJECTS.detect {|ws| ws == self.subject_name}
+      @type = :pseudo_subject
+    else
+      @type = :unwanted
+    end
   end
 
   def wanted?(loader)
-    !!WANTED_SUBJECTS.detect {|ws| ws == self.subject_name}
+    @type != :unwanted
   end
 
   def source_id
@@ -1553,7 +1567,7 @@ class SB_Loader
         group = @group_hash[te.group_ident]
         if group
           subject = @subject_hash[group.subject_ident]
-          if subject
+          if subject && subject.type == :proper_subject
             if @subject_teacher_hash[subject.subject_name]
               unless @subject_teacher_hash[subject.subject_name].include?(staff)
                 @subject_teacher_hash[subject.subject_name] << staff
