@@ -754,6 +754,12 @@ class SB_Pupil
     @pupil_ident
   end
 
+  def force_save
+    if self.dbrecord
+      self.dbrecord.save!
+    end
+  end
+
 end
 
 
@@ -958,6 +964,7 @@ class SB_Subject
                          "Tutor"]
 
   WANTED_SUBJECTS = ["Art",
+                     "Be the Best",
                      "Biology",
                      "Chemistry",
                      "Classical Civilisation",
@@ -1811,6 +1818,12 @@ class SB_Loader
           if pupil && pupil.dbrecord
             begin
               dbrecord.add_member(pupil.dbrecord, @start_date)
+              #
+              #  Adding a pupil to a tutor group effectively changes the
+              #  pupil's element name.  Save the pupil record so the
+              #  element name gets updated.
+              #
+              pupil.force_save
               tgmember_loaded_count += 1
             rescue ActiveRecord::RecordInvalid => e
               puts "Failed to add #{pupil.name} to tutorgroup #{tg.name}"

@@ -76,7 +76,7 @@ module Elemental
     if self.element
       self.element.groups(given_date, recurse)
     else
-      []
+      Group.none
     end
   end
 
