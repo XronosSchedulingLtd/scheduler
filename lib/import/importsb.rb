@@ -2576,7 +2576,7 @@ class SB_Loader
               if sal.timetable_ident
                 staff_covered = @staff_hash[sa.staff_ident]
                 if staff_covered
-                  puts "#{staff_covering.name} covering #{staff_covered.name} on #{date.date} for lesson #{sal.timetable_ident}" if @verbose
+                  puts "#{staff_covering.name} covering #{staff_covered.name} on #{date.date} for lesson #{sal.timetable_ident}"
                   #
                   #  Can we actually add this to the d/b (assuming it isn't
                   #  already there)?
@@ -2589,7 +2589,6 @@ class SB_Loader
                   #    source id
                   dblesson = Event.on(date.date).
                                    eventsource_id(@event_source.id).
-                                   eventcategory_id(@lesson_category.id).
                                    source_id(sal.timetable_ident)[0]
                   if dblesson
 #                    puts "Found the corresponding lesson."
