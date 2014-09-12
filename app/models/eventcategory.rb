@@ -20,6 +20,7 @@ class Eventcategory < ActiveRecord::Base
   #  for internal purposes.
   #
   scope :public_ones, lambda { where(public: true) }
+  scope :publish,     lambda { where(publish: true) }
   scope :for_users,   lambda { where(for_users: true) }
 
   @@category_cache = {}

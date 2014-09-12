@@ -100,11 +100,17 @@ class StaffsController < ApplicationController
   def ical
     staff = Staff.find_by_initials(params[:id].upcase)
     era = Era.find_by_name("Academic Year 2014/15")
+    #
+    #  Not sure how I ended up with this name, but "publish" means it gets
+    #  included in ical downloads, and "for_users" means it is relevant,
+    #  even if the user is not explicitly involved.
+    #
+    extra_categories = Eventcategory.publish.for_users
     if staff && era
       starts_on = era.starts_on
       ends_on   = era.ends_on
       dbevents = staff.element.events_on(starts_on, ends_on) +
-                 Event.weekletter_category.events_on(starts_on, ends_on)
+                 extra_categories.collect {|ec| ec.events_on(starts_on, ends_on)}.flatten
       tf = Tempfile.new(["#{staff.initials}", ".ics"])
       RiCal.Calendar do |cal|
         cal.add_x_property("X-WR-CALNAME", staff.initials)
