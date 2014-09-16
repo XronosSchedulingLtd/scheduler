@@ -2994,7 +2994,7 @@ class SB_Loader
                       Pupil.current,
                       Pupil)
     @subject_teacher_hash.each do |subject, teachers|
-      dbteachers = teachers.collect {|t| @staff_hash[t.staff_ident].dbrecord}.compact
+      dbteachers = teachers.collect {|t| @staff_hash[t.staff_ident].dbrecord}.compact.select {|dbr| dbr.active}
       if dbteachers.size > 0
         ensure_membership("#{subject} teachers",
                           dbteachers,
