@@ -1,0 +1,24 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-10-05T08:58:26+01:00
+
+====== Sunday 05 Oct 2014 ======
+
+I seem to have got my new code for selecting commitments (rather than events) over a given interval working quite well.  I now need to take a decision about how the loading of cover is done.
+
+Currently I am purging (nearly all?) the existing cover commitments as part of checking and loading the actual lessons.  This is accidental and is happening because I wrote that code before I started thinking about how cover would be loaded.  The main code sees all commitments as equal, and will remove any which it wasn't expecting.  The possible exception is on compound events, where the person doing the cover was already committed to the same event - I'm not sure what will happen there.  Tests needed.
+
+My two options are:
+
+1. Continue to purge cover as I do the initial timetable check/load, but make sure I get rid of all of it.  Then load cover afresh.  The advantage of this approach is that I don't need to check for changes to existing cover.  Anything which was already there will have gone, so I just add in what I now think the cover situation is.
+2. Amended the timetable checking/loading code to leave all cover commitments alone.  The only way it would affect one is if the original commitment relating to a cover gets deleted, in which case the cover commitment would go to - this is implemented in the model code as a constraint.  The cover loading code would then be responsible not just for loading covers, but for amending or deleting those which have changed.
+
+The problem with the first approach is that anyone viewing the schedule, or downloading an ical file, would see it without the relevant cover for a short period.  This doesn't matter so much when the job runs only once a day at 04:00, but if Ian is going to trigger it more often it might become more significant.
+
+To do the second approach, I would need some kind of unique identifier for each cover commitment coming from SB, and I'd need to store that in my Commitment record.  No problem to add a "reference" field (or "source_id" as it is in the events record).  It's the way a lot of the rest of the app is structured anyway.  Does SB provide anything suitable?
+
+Just checked on the cover purging front and it appears that my loading code does //not// purge a cover if the covering person already has his own commitment to the same event.  Fine.
+
+Now - does SB provide a unique ID for each cover event which I could make use of?  It appears that I currently process only future cover events - how does this happen?  Ah - checked my code and I deliberately process only cover events dated >= my @start_date variable.  Good.  Now the covers don't actually contain a unique reference number of their own.  Instead they contain a StaffAbLineIdent which indexes into the StaffAbsenceLine table.  That in turn contains a StaffAbIdent which indexes into the StaffAbsence table.  Perhaps I could use the StaffAbLineIdent to identify the cover.
+
+OK - I'm going to try to go with approach 2.  It appeals because it doesn't leave me with a window of opportunity for my system to provide false information.  It's also more in line with how loading other things works.  I will sort the covers by day, then make sure that for each day, the covers in the d/b match those in the files.

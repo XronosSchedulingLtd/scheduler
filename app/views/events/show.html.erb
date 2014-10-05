@@ -66,9 +66,9 @@
   <tr>
     <td><strong>Resources:</strong></td>
     <td>
-      <% @event.resources.each do |resource| %>
-        <%= resource.display_name %><br/>
-      <% end %>
+      <div id="event_resources">
+        <%= render partial: "resource", object: @event, locals: {editing: false} %>
+      </div>
     </td>
   </tr>
 

@@ -13,7 +13,7 @@ class Commitment < ActiveRecord::Base
   validates_associated  :event,   :message => "Event does not exist"
   validates_associated  :element, :message => "Element does not exist"
 
-  validates :element_id, uniqueness: { scope: :event_id }
+  validates :element_id, uniqueness: { scope: [:event_id, :covering_id] }
 
   # Note naming here.  If this commitment is covering another commitment
   # then we point at it.  Code can read:
@@ -65,13 +65,16 @@ class Commitment < ActiveRecord::Base
   #
   #  Very similar to the events_on method provided by the event model,
   #
-  def self.commitments_on(startdate     = nil,
-                          enddate       = nil,
-                          eventcategory = nil,
-                          eventsource   = nil,
-                          element       = nil,
-                          include_nonexistent = false)
-    duffparameter = false
+  #  Has however been modified to use keyword arguments, as introduced
+  #  in Ruby 2.0
+  #
+  def self.commitments_on(startdate:           nil,
+                          enddate:             nil,
+                          eventcategory:       nil,
+                          eventsource:         nil,
+                          resource:            nil,
+                          owned_by:            nil,
+                          include_nonexistent: false)
     #
     #  Might be passed startdate and enddate as:
     #
@@ -84,81 +87,211 @@ class Commitment < ActiveRecord::Base
     #
     startdate = startdate ? startdate.to_date   : Date.today
     dateafter = enddate   ? enddate.to_date + 1 : startdate + 1
-    ec = nil
+    #
+    #  Now we need midnight at the start of these two dates, expressed
+    #  as a Time, to pass to the method that does the actual work.
+    #
+    start_time = Time.zone.parse("00:00:00", startdate)
+    end_time   = Time.zone.parse("00:00:00", dateafter)
+    self.commitments_during(start_time:          start_time,
+                            end_time:            end_time,
+                            eventcategory:       eventcategory,
+                            eventsource:         eventsource,
+                            resource:            resource,
+                            owned_by:            owned_by,
+                            include_nonexistent: include_nonexistent)
+  end
+
+
+  def self.commitments_during(start_time:          nil,
+                              end_time:            nil,
+                              eventcategory:       nil,
+                              eventsource:         nil,
+                              resource:            nil,
+                              owned_by:            nil,
+                              include_nonexistent: false)
+    duffparameter = false
+    start_time = Time.zone.now unless start_time
+    end_time   = start_time unless end_time
+    #
+    #  One or more event categories.
+    #
+    ecs = []
     if eventcategory
-      if eventcategory.instance_of?(String)
-        ec = Eventcategory.find_by_name(eventcategory)
-      elsif eventcategory.instance_of?(Eventcategory)
-        ec = eventcategory
+      #
+      #  We allow a single eventcategory, or an array.
+      #  (Or something that behaves like an array.)
+      #
+      if eventcategory.respond_to?(:each)
+        eca = eventcategory
+      else
+        eca = [eventcategory]
       end
-      duffparameter = true unless ec
+      eca.each do |ec|
+        if ec.instance_of?(String)
+          ec = Eventcategory.find_by_name(ec)
+        end
+        if ec.instance_of?(Eventcategory)
+          ecs << ec
+        else
+          duffparameter = true
+        end
+      end
     end
-    es = nil
+    #
+    #  One or more event sources.
+    #
+    ess = []
     if eventsource
-      if eventsource.instance_of?(String)
-        es = Eventsource.find_by_name(eventsource)
-      elsif eventsource.instance_of?(Eventsource)
-        es = eventsource
+      if eventsource.respond_to?(:each)
+        esa = eventsource
+      else
+        esa = [eventsource]
       end
-      duffparameter = true unless es
+      esa.each do |es|
+        if es.instance_of?(String)
+          es = Eventsource.find_by_name(es)
+        end
+        if es.instance_of?(Eventsource)
+          ess << es
+        else
+          duffparameter = true
+        end
+      end
     end
-    res = nil
-    if element
-      if element.instance_of?(String)
-        res = Element.find_by_name(element)
-      elsif element.instance_of?(Element)
-        res = element
-      elsif element.respond_to?(:element) &&
-            resource.element.instance_of?(Element)
-        res = element.element
+    elements = []
+    if resource
+      if resource.respond_to?(:each)
+        resource_array = resource
+      else
+        resource_array = [resource]
       end
-      duffparameter = true unless res
+      resource_array.each do |res|
+        if res.instance_of?(String)
+          res = Element.find_by_name(res)
+        elsif res.respond_to?(:element) &&
+              res.element.instance_of?(Element)
+          res = res.element
+        end
+        if res.instance_of?(Element)
+          elements << res
+        else
+          duffparameter = true
+        end
+      end
+    end
+    owners = []
+    if owned_by
+      if owned_by.respond_to?(:each)
+        owner_array = owned_by
+      else
+        owner_array = [owned_by]
+      end
+      owner_array.each do |owner|
+        if owner.instance_of?(User)
+          owners << owner
+        else
+          duffparameter = true
+        end
+      end
     end
     if duffparameter
       []
     else
       query_hash = {}
       query_string_parts = []
-      query_string_parts << "events.starts_at < :dateafter"
-      query_hash[:dateafter] = Time.zone.parse("00:00:00", dateafter)
-      query_string_parts << "events.ends_at >= :startdate"
-      query_hash[:startdate] = Time.zone.parse("00:00:00", startdate)
-      if ec
-        query_string_parts << "events.eventcategory_id = :eventcategory_id"
-        query_hash[:eventcategory_id] = ec.id
+      query_string_parts << "events.starts_at < :end_time"
+      query_hash[:end_time] = end_time
+      query_string_parts << "events.ends_at >= :start_time"
+      query_hash[:start_time] = start_time
+      if ecs.size > 0
+        if ecs.size == 1
+          query_string_parts << "events.eventcategory_id = :eventcategory_id"
+          query_hash[:eventcategory_id] = ecs[0].id
+        else
+          #
+          #  Aiming for "(events.event_category_id = :ec1 OR
+          #               events.event_category_id = :ec2)"
+          #
+          query_string_parts << "(#{
+            ecs.collect {|ec|
+              "events.eventcategory_id = :ec#{ec.id}"
+            }.join(" or ")
+          })"
+          ecs.each do |ec|
+            query_hash[:"ec#{ec.id}"] = ec.id
+          end
+        end
       end
-      if es
-        query_string_parts << "events.eventsource_id = :eventsource_id"
-        query_hash[:eventsource_id] = es.id
+      if ess.size > 0
+        if ess.size == 1
+          query_string_parts << "events.eventsource_id = :eventsource_id"
+          query_hash[:eventsource_id] = ess[0].id
+        else
+          query_string_parts << "(#{
+            ess.collect {|es|
+              "events.eventsource_id = :es#{es.id}"
+            }.join(" or ")
+          })"
+          ess.each do |es|
+            query_hash[:"es#{es.id}"] = es.id
+          end
+        end
       end
-      if res
-        query_string_parts << "element_id = :element_id"
-        query_hash[:element_id] = res.id
+      if elements.size > 0
+        if elements.size == 1
+          query_string_parts << "element_id = :element_id"
+          query_hash[:element_id] = elements[0].id
+        else
+          query_string_parts << "(#{
+            elements.collect {|element|
+              "element_id = :element#{element.id}"
+            }.join(" or ")
+          })"
+          elements.each do |element|
+            query_hash[:"element#{element.id}"] = element.id
+          end
+        end
+      end
+      if owners.size > 0
+        if owners.size == 1
+          query_string_parts << "events.owner_id = :owner_id"
+          query_hash[:owner_id] = owners[0].id
+        else
+          query_string_parts << "(#{
+            owners.collect {|owner|
+              "events.owner_id = :owner#{owner.id}"
+            }.join(" or ")
+          })"
+          owners.each do |owner|
+            query_hash[:"owner#{owner.id}"] = owner.id
+          end
+        end
       end
       unless include_nonexistent
         query_string_parts << "not events.non_existent"
       end
-      Commitment.joins(:event).where(query_string_parts.join(" and "),
-                                      query_hash)
+      Commitment.joins(:event).
+                 where(query_string_parts.join(" and "), query_hash)
     end
   end
 
-  def self.set_names_event_flags
-    flags_set = 0
-    Commitment.preload(:element).commitments_on("2013-09-01", "2015-08-31", "Lesson", "SchoolBase").each do |c|
+#  def self.set_names_event_flags
+#    flags_set = 0
+#    Commitment.preload(:element).commitments_on("2013-09-01", "2015-08-31", "Lesson", "SchoolBase").each do |c|
       #
       #  A lesson loaded from SchoolBase, therefore named after the
       #  teaching group.
       #
-      if c.element.entity.class == Group &&
-         c.element.entity.name == c.event.body &&
-         !c.names_event
-        c.names_event = true
-        c.save!
-        flags_set += 1
-      end
-    end
-    puts "Set #{flags_set} flags."
-  end
+#      if c.element.entity.class == Group &&
+#         c.element.entity.name == c.event.body &&
+#         !c.names_event
+#        c.names_event = true
+#        c.save!
+#        flags_set += 1
+#      end
+#    end
+#    puts "Set #{flags_set} flags."
+#  end
 
 end

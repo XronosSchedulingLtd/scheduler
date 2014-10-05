@@ -143,6 +143,30 @@ class Element < ActiveRecord::Base
     (direct_events + indirect_events).uniq
   end
 
+  def commitments_on(startdate:           nil,
+                     enddate:             nil,
+                     eventcategory:       nil,
+                     eventsource:         nil,
+                     owned_by:            nil,
+                     include_nonexistent: false,
+                     and_by_group:        true)
+    if and_by_group
+      if startdate != nil
+        start_date = startdate.to_date
+      end
+      my_groups = self.groups(start_date)
+    else
+      my_groups = []
+    end
+    Commitment.commitments_on(startdate:           startdate,
+                              enddate:             enddate,
+                              eventcategory:       eventcategory,
+                              eventsource:         eventsource,
+                              resource:            [self] + my_groups,
+                              owned_by:            owned_by,
+                              include_nonexistent: include_nonexistent)
+  end
+
   def rename_affected_events
     self.commitments.names_event.each do |c|
       if c.event.body != self.name

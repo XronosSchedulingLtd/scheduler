@@ -80,4 +80,11 @@ module Elemental
     end
   end
 
+  def commitments_on(**args)
+    if self.element
+      self.element.commitments_on(args)
+    else
+      Commitment.none
+    end
+  end
 end

@@ -77,6 +77,7 @@ class Event < ActiveRecord::Base
   scope :on, lambda {|date| where("starts_at >= ? and ends_at < ?",
                                   date, date + 1.day)}
   scope :source_id, lambda {|id| where("source_id = ?", id) }
+  scope :source_hash, lambda {|id| where("source_hash = ?", id) }
   scope :atomic, lambda { where("compound = false") }
   scope :compound, lambda { where("compound = true") }
 

@@ -1046,6 +1046,11 @@ class SB_Timetableentry
                 :room_idents,
                 :lower_school
 
+  #
+  #  The following item exists to allow us to find the right merged
+  #  event, given the ident of an original un-merged event.
+  #
+  @@merged_event_source_hash_hash = Hash.new
 
   def initialize
     @compound = false
@@ -1257,12 +1262,29 @@ class SB_Timetableentry
 #        puts "Combined #{matching.size} events with digest #{compounded.source_hash}."
 #        puts "Event is #{compounded.time_note} and involves #{compounded.staff_idents.size} staff."
         result << compounded
+        #
+        #  This is so that, if we subsequently get given the ident of
+        #  an original un-merged event, we can find the corresponding
+        #  merged event.
+        #
+        matching.each do |mevent|
+          @@merged_event_source_hash_hash[mevent.timetable_ident] =
+            compounded.source_hash
+        end
       else
         result << matching[0]
       end
     end
 #    puts "Leaving sort_and_merge"
     result
+  end
+
+  def self.been_merged?(source_ident)
+    @@merged_event_source_hash_hash[source_ident] != nil
+  end
+
+  def self.merged_source_hash(source_ident)
+    @@merged_event_source_hash_hash[source_ident]
   end
 
   #
@@ -2581,17 +2603,24 @@ class SB_Loader
                   #  Can we actually add this to the d/b (assuming it isn't
                   #  already there)?
                   #
-                  #
                   #  Specify:
                   #    Date
                   #    Eventsource
                   #    Eventcategory
                   #    source id
-                  dblesson = Event.on(date.date).
-                                   eventsource_id(@event_source.id).
-                                   source_id(sal.timetable_ident)[0]
+                  #
+                  if SB_Timetableentry.been_merged?(sal.timetable_ident)
+                    dblesson = Event.on(date.date).
+                                     eventsource_id(@event_source.id).
+                                     source_hash(
+                                       SB_Timetableentry.merged_source_hash(sal.timetable_ident))[0]
+                  else
+                    dblesson = Event.on(date.date).
+                                     eventsource_id(@event_source.id).
+                                     source_id(sal.timetable_ident)[0]
+                  end
                   if dblesson
-#                    puts "Found the corresponding lesson."
+                    puts "Found the corresponding lesson."
                     #
                     #  Need to find the commitment by the covered teacher
                     #  to the indicated lesson.
@@ -2599,27 +2628,27 @@ class SB_Loader
                     original_commitment =
                       Commitment.by(staff_covered.dbrecord).to(dblesson)[0]
                     if original_commitment
-#                      puts "Found commitment."
+                      puts "Found commitment."
                       #
                       #  Now - does the cover exist already?
                       #
                       if original_commitment.covered
-#                        puts "Cover is there already."
+                        puts "Cover is there already."
                         #
                         #  Is the right person doing it?
                         #
-#                        if original_commitment.covered.element.entity.id ==
-#                           staff_covering.dbrecord.id
-#                          puts "And by the right person."
-#                        else
-#                          puts "But the wrong person."
-#                        end
+                        if original_commitment.covered.element.entity.id ==
+                           staff_covering.dbrecord.id
+                          puts "And by the right person."
+                        else
+                          puts "But the wrong person."
+                        end
                       else
                         cover_commitment = Commitment.new
                         cover_commitment.event = original_commitment.event
                         cover_commitment.element = staff_covering.dbrecord.element
                         cover_commitment.covering = original_commitment
-                        if cover_commitment.save
+                        if cover_commitment.save!
                           covers_added += 1
                         else
                           puts "Failed to save cover."
