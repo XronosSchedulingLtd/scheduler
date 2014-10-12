@@ -9,3 +9,9 @@ Urgent things to do:
 
 1. E-mails about cover clashes for ICF
 2. Customisable calendar feeds
+3. Allow calendar feeds for entities other than staff
+4. Display entity number as hover text on main screen
+5. Preserve categories when importing calendar.  Automate.
+6. List of which teachers teach each year
+
+

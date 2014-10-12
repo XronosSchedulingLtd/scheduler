@@ -1,6 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2014 John Winters
-# Portions Copyright (C) 2014 Abindon School
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -39,6 +38,10 @@ class Commitment < ActiveRecord::Base
 
   scope :names_event, lambda { where("names_event = true") }
 
+  scope :covering_commitment, lambda { where("covering_id IS NOT NULL") }
+  scope :non_covering_commitment, lambda { where("covering_id IS NULL") }
+  scope :covered_commitment, -> { joins(:covered) }
+  scope :uncovered_commitment, -> { joins("left outer join `commitments` `covereds_commitments` ON `covereds_commitments`.`covering_id` = `commitments`.`id`").where("covereds_commitments.id IS NULL") }
   #
   #  This isn't a real field in the d/b.  It exists to allow a name
   #  to be typed in the dialogue for creating a commitment record.

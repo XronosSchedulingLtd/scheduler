@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2014 John Winters
-# Portions Copyright (C) 2014 Abindon School
+# Portions Copyright (C) 2014 Abingdon School
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -329,6 +329,11 @@ class SB_Date
   #
   #  This is an idiotic table.  Why have a look-up table for dates instead
   #  of simply storing dates?!?
+  #
+  #  The idiocy is compounded by the fact that it then requires another
+  #  layer of error checking to be added.  If you have a date then you
+  #  have a date, but if you merely have an index into this table then
+  #  you have to do a lookup, then check that the lookup didn't fail.
   #
   FILE_NAME = "days.csv"
   REQUIRED_COLUMNS =
@@ -939,6 +944,19 @@ class SB_StaffCover
 
   include Slurper
 
+  attr_accessor :sal, :date, :staff_covering, :staff_covered
+
+  attr_reader :date, :cover_or_invigilation
+
+  def initialize
+    @sal  = nil
+    @date = nil
+    @staff_covering        = nil
+    @staff_covered         = nil
+    @cover_or_invigilation = nil
+    @dbrecord              = nil
+  end
+
   def adjust(loader)
   end
 
@@ -947,6 +965,138 @@ class SB_StaffCover
   end
 
   def source_id
+    @staff_ab_line_ident
+  end
+
+  #
+  #  Prepares a SB cover record for subsequent loading/checking in the d/b.
+  #  Returns true if we are ready, or false if this one isn't suitable -
+  #  wrong type or don't have all the necessary info.
+  #
+  def prepare(loader)
+    result = false
+    if @ptype == 60
+      #
+      #  We try to gather all the relevant information up front,
+      #  checking as we go.
+      #
+      #  sc    Staff cover
+      #  sal   Staff absence line
+      #  sa    Staff absence
+      #
+      #  sc => sal => sa
+      #
+      @sal = loader.sal_hash[@staff_ab_line_ident]
+      @date = loader.safe_date(@absence_date)
+      @staff_covering = loader.staff_hash[@staff_ident]
+      if @sal && @date && @staff_covering
+        #
+        #  Is it cover or invigilation?
+        #
+        if @sal.timetable_ident
+          #
+          #  Cover.  Can we find the target lesson?
+          #
+          @cover_or_invigilation = :cover
+          @sa = loader.sa_hash[@sal.staff_ab_ident]
+          if @sa
+            @staff_covered = loader.staff_hash[@sa.staff_ident]
+            if @staff_covered
+              #
+              #  Have all we need to be able to process this one.
+              #
+              result = true
+            else
+              #
+              #  Can't find covered staff member.
+              #
+            end
+          else
+            #
+            #  Can't find the absence record - which would tell us
+            #  which lesson to cover.
+            #
+          end
+        else
+          #
+          #  Invigilation
+          #
+          @cover_or_invigilation = :invigilation
+        end
+      end
+    end
+    result
+  end
+
+  def ensure_db(loader)
+    #
+    #  Is it already in the database?
+    #
+    added = 0
+    amended = 0
+    deleted = 0
+    candidates =
+      Commitment.commitments_on(startdate: self.date).
+                 covering_commitment.
+                 where(source_id: self.source_id)
+    if candidates.size == 0
+      #
+      #  Not there - need to create it.  Can we find the corresponding
+      #  lesson?
+      #
+      #  Need to find the commitment by the covered teacher
+      #  to the indicated lesson.
+      #
+      if SB_Timetableentry.been_merged?(@sal.timetable_ident)
+        dblesson = Event.on(@date).
+                         eventsource_id(loader.event_source.id).
+                         source_hash(
+                           SB_Timetableentry.merged_source_hash(@sal.timetable_ident))[0]
+      else
+        dblesson = Event.on(@date).
+                         eventsource_id(loader.event_source.id).
+                         source_id(@sal.timetable_ident)[0]
+      end
+      if dblesson
+#        puts "Found the corresponding lesson."
+        #
+        #  Need to find the commitment by the covered teacher
+        #  to the indicated lesson.
+        #
+        original_commitment =
+          Commitment.by(@staff_covered.dbrecord).to(dblesson)[0]
+        if original_commitment
+          if original_commitment.covered
+            puts "Commitment seems to be covered already."
+          end
+          cover_commitment = Commitment.new
+          cover_commitment.event = original_commitment.event
+          cover_commitment.element = @staff_covering.dbrecord.element
+          cover_commitment.covering = original_commitment
+          cover_commitment.source_id = self.source_id
+          if cover_commitment.save
+            added += 1
+          else
+            puts "Failed to save cover."
+          end
+        else
+          puts "Failed to find original commitment."
+        end
+      else
+        puts "Failed to find corresponding lesson."
+      end
+    elsif candidates.size == 1
+      @dbrecord = candidates[0]
+      puts "Cover is already there."
+      puts "Event #{candidates[0].event.body} at #{candidates[0].event.starts_at}"
+    else
+      puts "Weird - cover item #{self.source_id} is there more than once."
+      candidates.each do |c|
+        c.destroy
+        deleted += 1
+      end
+    end
+    [added, amended, deleted]
   end
 
 end
@@ -1434,6 +1584,8 @@ class SB_Loader
               :group_hash,
               :location_hash,
               :rota_week_hash,
+              :sal_hash,
+              :sa_hash,
               :staff_hash,
               :year_hash,
               :verbose,
@@ -1441,7 +1593,8 @@ class SB_Loader
               :meeting_category,
               :assembly_category,
               :chapel_category,
-              :duty_category
+              :duty_category,
+              :event_source
 
   def initialize(options)
     @verbose   = options.verbose
@@ -2312,7 +2465,7 @@ class SB_Loader
               event.reload
               if db_only.size > 0
                 event.commitments.each do |c|
-                  if db_only.include?(c.element_id)
+                  if db_only.include?(c.element_id) && !c.covering
                     c.destroy
                     resources_removed_count += 1
                   end
@@ -2516,7 +2669,7 @@ class SB_Loader
               event.reload
               if db_only.size > 0
                 event.commitments.each do |c|
-                  if db_only.include?(c.element_id)
+                  if db_only.include?(c.element_id) && !c.covering
                     c.destroy
                     resources_removed_count += 1
                   end
@@ -2573,9 +2726,94 @@ class SB_Loader
   end
 
   #
+  #  Turn a SB date id into a real date, guarding against being given
+  #  an invalid one.
+  #
+  def safe_date(sb_date_id)
+    @date_hash[sb_date_id] ? @date_hash[sb_date_id].date : nil
+  end
+
+  #
   #  Add cover to existing lessons.
   #
   def do_cover
+    covers_added = 0
+    covers_amended = 0
+    covers_deleted = 0
+    #
+    #  First group all the proposed covers by date, discarding any which
+    #  are earlier than we are interested in.
+    #
+    covers_by_date = Hash.new
+    max_date = @start_date
+    @staffcovers.each do |sc|
+      if sc.prepare(self) &&
+         sc.date >= @start_date
+        if covers_by_date[sc.date]
+          covers_by_date[sc.date] << sc
+        else
+          covers_by_date[sc.date] = [sc]
+          if sc.date > max_date
+            max_date = sc.date
+          end
+        end
+      end
+    end
+    #
+    #  Now for the actual processing.  Note that we may well not do these
+    #  in date order, but that shouldn't actually matter.
+    #
+    #  Second thought - we do need to do them in order, because we need
+    #  to process even those dates where we haven't been given any cover
+    #  records.  There may be one in our d/b on that date which needs
+    #  removing.
+    #
+    @start_date.upto(max_date) do |date|
+      sb_covers = covers_by_date[date] || []
+      #
+      #  Now need to get the existing covers for this date and check
+      #  that they match.
+      #
+      existing_covers =
+        Commitment.commitments_on(startdate: date).covering_commitment
+      sb_ids = sb_covers.collect {|sc| sc.source_id}.uniq
+      db_ids = existing_covers.collect {|ec| ec.source_id}.uniq
+      db_only = db_ids - sb_ids
+      db_only.each do |db_id|
+        #
+        #  It's possible there's more than one db record with the same
+        #  id - for historical reasons this may be nil.  Need to get rid
+        #  of all of them.
+        #
+        puts "Deleting covers with source_id #{db_id ? db_id : "nil"}."
+        existing_covers.select {|ec| ec.source_id == db_id}.each do |ec|
+          ec.destroy
+          covers_deleted += 1
+        end
+      end
+      sb_covers.each do |sbc|
+        added, amended, deleted = sbc.ensure_db(self)
+        covers_added += added
+        covers_amended += amended
+        covers_deleted += deleted
+      end
+    end
+    if covers_added > 0 || @verbose
+      puts "Added #{covers_added} instances of cover."
+    end
+    if covers_added > 0 || @verbose
+      puts "Amended #{covers_amended} instances of cover."
+    end
+    if covers_deleted > 0 || @verbose
+      puts "Deleted #{covers_deleted} instances of cover."
+    end
+  end
+
+  #
+  #  This is the original algorithm for adding cover.  Kept temporarily for
+  #  reference.
+  #
+  def do_cover1
     covers_added = 0
     invigilations_added = 0
     invigilations_amended = 0
