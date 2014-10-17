@@ -1010,18 +1010,27 @@ class SB_StaffCover
               #
               #  Can't find covered staff member.
               #
+              puts "Can't find staff member #{@sa.staff_ident} to cover."
             end
           else
             #
             #  Can't find the absence record - which would tell us
             #  which lesson to cover.
             #
+            puts "Can't find absence record #{@sal.staff_ab_ident} for cover."
           end
         else
           #
           #  Invigilation
           #
           @cover_or_invigilation = :invigilation
+          puts "An invigilation slot for #{@staff_covering.name} on #{@date}." if loader.verbose
+          @period = loader.period_hash[@sal.period]
+          if @period && @period.time
+            result = true
+          else
+            puts "Couldn't find period #{@sal.period} for invigilation."
+          end
         end
       end
     end
@@ -1029,71 +1038,123 @@ class SB_StaffCover
   end
 
   def ensure_db(loader)
-    #
-    #  Is it already in the database?
-    #
     added = 0
     amended = 0
     deleted = 0
-    candidates =
-      Commitment.commitments_on(startdate: self.date).
-                 covering_commitment.
-                 where(source_id: self.source_id)
-    if candidates.size == 0
+    if @cover_or_invigilation == :cover
       #
-      #  Not there - need to create it.  Can we find the corresponding
-      #  lesson?
+      #  Is it already in the database?
       #
-      #  Need to find the commitment by the covered teacher
-      #  to the indicated lesson.
-      #
-      if SB_Timetableentry.been_merged?(@sal.timetable_ident)
-        dblesson = Event.on(@date).
-                         eventsource_id(loader.event_source.id).
-                         source_hash(
-                           SB_Timetableentry.merged_source_hash(@sal.timetable_ident))[0]
-      else
-        dblesson = Event.on(@date).
-                         eventsource_id(loader.event_source.id).
-                         source_id(@sal.timetable_ident)[0]
-      end
-      if dblesson
-#        puts "Found the corresponding lesson."
+      candidates =
+        Commitment.commitments_on(startdate: self.date).
+                   covering_commitment.
+                   where(source_id: self.source_id)
+      if candidates.size == 0
+        #
+        #  Not there - need to create it.  Can we find the corresponding
+        #  lesson?
         #
         #  Need to find the commitment by the covered teacher
         #  to the indicated lesson.
         #
-        original_commitment =
-          Commitment.by(@staff_covered.dbrecord).to(dblesson)[0]
-        if original_commitment
-          if original_commitment.covered
-            puts "Commitment seems to be covered already."
-          end
-          cover_commitment = Commitment.new
-          cover_commitment.event = original_commitment.event
-          cover_commitment.element = @staff_covering.dbrecord.element
-          cover_commitment.covering = original_commitment
-          cover_commitment.source_id = self.source_id
-          if cover_commitment.save
-            added += 1
+        if SB_Timetableentry.been_merged?(@sal.timetable_ident)
+          dblesson = Event.on(@date).
+                           eventsource_id(loader.event_source.id).
+                           source_hash(
+                             SB_Timetableentry.merged_source_hash(@sal.timetable_ident))[0]
+        else
+          dblesson = Event.on(@date).
+                           eventsource_id(loader.event_source.id).
+                           source_id(@sal.timetable_ident)[0]
+        end
+        if dblesson
+  #        puts "Found the corresponding lesson."
+          #
+          #  Need to find the commitment by the covered teacher
+          #  to the indicated lesson.
+          #
+          original_commitment =
+            Commitment.by(@staff_covered.dbrecord).to(dblesson)[0]
+          if original_commitment
+            if original_commitment.covered
+              puts "Commitment seems to be covered already."
+            end
+            cover_commitment = Commitment.new
+            cover_commitment.event = original_commitment.event
+            cover_commitment.element = @staff_covering.dbrecord.element
+            cover_commitment.covering = original_commitment
+            cover_commitment.source_id = self.source_id
+            if cover_commitment.save
+              added += 1
+            else
+              puts "Failed to save cover."
+            end
           else
-            puts "Failed to save cover."
+            puts "Failed to find original commitment."
           end
         else
-          puts "Failed to find original commitment."
+          puts "Failed to find corresponding lesson."
+        end
+      elsif candidates.size == 1
+        @dbrecord = candidates[0]
+#        puts "Cover is already there."
+#        puts "Event #{candidates[0].event.body} at #{candidates[0].event.starts_at}"
+      else
+        puts "Weird - cover item #{self.source_id} is there more than once."
+        candidates.each do |c|
+          c.destroy
+          deleted += 1
+        end
+      end
+    else
+      #
+      #  Is it already in the database?
+      #
+      dbinvigilation =
+        Event.on(@date).
+              eventsource_id(loader.event_source.id).
+              eventcategory_id(loader.invigilation_category.id).
+              source_id(@sal.staff_ab_line_ident)[0]
+      if dbinvigilation
+#        puts "Invigilation already in the d/b."
+        #
+        #  Is it the right person?
+        #
+        if dbinvigilation.commitments
+          commitment = dbinvigilation.commitments[0]
+          if commitment.element !=
+             @staff_covering.dbrecord.element
+            commitment.element = @staff_covering.dbrecord.element
+            commitment.save
+            amended += 1
+          end
         end
       else
-        puts "Failed to find corresponding lesson."
-      end
-    elsif candidates.size == 1
-      @dbrecord = candidates[0]
-      puts "Cover is already there."
-      puts "Event #{candidates[0].event.body} at #{candidates[0].event.starts_at}"
-    else
-      puts "Weird - cover item #{self.source_id} is there more than once."
-      candidates.each do |c|
-        c.destroy
-        deleted += 1
+#        puts "Creating invigilation event."
+        starts_at =
+          Time.zone.parse("#{@date.to_s} #{@period.time.starts_at}")
+        ends_at   =
+          Time.zone.parse("#{@date.to_s} #{@period.time.ends_at}")
+        event = Event.new
+        event.body          = "Invigilation"
+        event.eventcategory = loader.invigilation_category
+        event.eventsource   = loader.event_source
+        event.starts_at     = starts_at
+        event.ends_at       = ends_at
+        event.approximate   = false
+        event.non_existent  = false
+        event.private       = false
+        event.all_day       = false
+        event.compound      = false
+        event.source_id     = @sal.staff_ab_line_ident
+        if event.save
+          event.reload
+          c = Commitment.new
+          c.event = event
+          c.element = @staff_covering.dbrecord.element
+          c.save
+          invigilations_added += 1
+        end
       end
     end
     [added, amended, deleted]
@@ -1141,6 +1202,7 @@ class SB_Subject
                      "Mathematics",
                      "Music",
                      "Music Singing",
+                     "Philosophy",
                      "Physical Education",
                      "Physics",
                      "PSHE",
@@ -1594,7 +1656,8 @@ class SB_Loader
               :assembly_category,
               :chapel_category,
               :duty_category,
-              :event_source
+              :event_source,
+              :period_hash
 
   def initialize(options)
     @verbose   = options.verbose
@@ -2740,21 +2803,37 @@ class SB_Loader
     covers_added = 0
     covers_amended = 0
     covers_deleted = 0
+    invigilations_added = 0
+    invigilations_amended = 0
+    invigilations_deleted = 0
     #
     #  First group all the proposed covers by date, discarding any which
     #  are earlier than we are interested in.
     #
     covers_by_date = Hash.new
-    max_date = @start_date
+    invigilations_by_date = Hash.new
+    max_cover_date = @start_date
+    max_invigilation_date = @start_date
     @staffcovers.each do |sc|
       if sc.prepare(self) &&
          sc.date >= @start_date
-        if covers_by_date[sc.date]
-          covers_by_date[sc.date] << sc
+        if sc.cover_or_invigilation == :cover
+          if covers_by_date[sc.date]
+            covers_by_date[sc.date] << sc
+          else
+            covers_by_date[sc.date] = [sc]
+            if sc.date > max_cover_date
+              max_cover_date = sc.date
+            end
+          end
         else
-          covers_by_date[sc.date] = [sc]
-          if sc.date > max_date
-            max_date = sc.date
+          if invigilations_by_date[sc.date]
+            invigilations_by_date[sc.date] << sc
+          else
+            invigilations_by_date[sc.date] = [sc]
+            if sc.date > max_invigilation_date
+              max_invigilation_date = sc.date
+            end
           end
         end
       end
@@ -2768,7 +2847,7 @@ class SB_Loader
     #  records.  There may be one in our d/b on that date which needs
     #  removing.
     #
-    @start_date.upto(max_date) do |date|
+    @start_date.upto(max_cover_date) do |date|
       sb_covers = covers_by_date[date] || []
       #
       #  Now need to get the existing covers for this date and check
@@ -2798,6 +2877,11 @@ class SB_Loader
         covers_deleted += deleted
       end
     end
+    #
+    #  And now the invigilations.
+    #
+    @start_date.upto(max_invigilation_date) do |date|
+    end
     if covers_added > 0 || @verbose
       puts "Added #{covers_added} instances of cover."
     end
@@ -2806,6 +2890,15 @@ class SB_Loader
     end
     if covers_deleted > 0 || @verbose
       puts "Deleted #{covers_deleted} instances of cover."
+    end
+    if invigilations_added > 0 || @verbose
+      puts "Added #{invigilations_added} instances of invigilation."
+    end
+    if invigilations_added > 0 || @verbose
+      puts "Amended #{invigilations_amended} instances of invigilation."
+    end
+    if invigilations_deleted > 0 || @verbose
+      puts "Deleted #{invigilations_deleted} instances of invigilation."
     end
   end
 
