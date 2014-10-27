@@ -79,11 +79,30 @@ class Event < ActiveRecord::Base
   scope :source_hash, lambda {|id| where("source_hash = ?", id) }
   scope :atomic, lambda { where("compound = false") }
   scope :compound, lambda { where("compound = true") }
+  scope :all_day, lambda { where("all_day = true") }
 
   #
   #  For pagination.
   #
   self.per_page = 15
+
+  def all_day_field
+    self.all_day
+  end
+
+  def all_day_field=(value)
+    org_value = self.all_day
+#    puts "org_value.class = #{org_value.class}"
+#    puts "all_day_field receiving #{value} (#{value.class})"
+    self.all_day = value
+    new_value = self.all_day
+#    puts "new_value.class = #{new_value.class}"
+    if org_value && !new_value
+      become_timed
+    elsif new_value && !org_value
+      become_all_day
+    end
+  end
 
   def starts_at_text
     if all_day
@@ -93,11 +112,32 @@ class Event < ActiveRecord::Base
     end
   end
 
+  def starts_at_text=(value)
+    self.starts_at = value
+  end
+
   def ends_at_text
     if all_day
-      ends_at ? ends_at.strftime("%d/%m/%Y") : ""
+      ends_at ? (ends_at.to_date - 1.day).strftime("%d/%m/%Y") : ""
     else
       ends_at ? ends_at.strftime("%d/%m/%Y %H:%M") : ""
+    end
+  end
+
+  def ends_at_text=(value)
+#    Rails.logger.debug("Setting ends_at to #{value}")
+    self.ends_at = value
+    #
+    #  May need this again later.
+    #
+    @ends_at_text_value = value
+    if all_day
+      #
+      #  People expect to give the day on which the event ends, but we
+      #  want to store the time at which it ends, which is 00:00:00 on
+      #  the following day.
+      #
+      self.ends_at = self.ends_at.to_date + 1.day
     end
   end
 
@@ -112,9 +152,9 @@ class Event < ActiveRecord::Base
   def ends_at_for_fc
     if all_day
       if ends_at
-        (ends_at.to_date + 1.day).rfc822
+        ends_at.to_date.rfc822
       else
-        (starts_at.to_date + 1.day).rfc822
+        starts_at.to_date.rfc822
       end
     else
       if ends_at == nil || starts_at == ends_at
@@ -127,6 +167,7 @@ class Event < ActiveRecord::Base
 
   def set_timing(new_start, new_all_day)
     current_duration = ends_at - starts_at
+    current_days = ends_at.to_date - starts_at.to_date
     new_starts_at = Time.zone.parse(new_start)
     if all_day
       if new_all_day
@@ -151,10 +192,20 @@ class Event < ActiveRecord::Base
       if new_all_day
         #
         #  Moving from being a timed event to being an all_day event.
-        #  Assume a duration of 1 day for now.
+        #  A minimum duration of 1 day, but if the event previously straddled
+        #  more than one day, then keep them all in.
         #
+        #  Problem with the above - FC seems to assume that the event
+        #  will be just one day, and doesn't re-request the data to find
+        #  out.  I could force an event reload, but it seems simpler
+        #  just to go with FC's idea.  It's an easy additional drag to
+        #  change the duration.
+        #
+        #Rails.logger.debug "current duration #{current_duration} (#{current_duration.class})"
+        #Rails.logger.debug "current days #{current_days} (#{current_days.class})"
         self.starts_at = new_starts_at.to_date
-        self.ends_at   = self.starts_at
+        #self.ends_at   = self.starts_at + (current_days.to_i + 1).days
+        self.ends_at   = self.starts_at + 1.day
         self.all_day   = true
       else
         #
@@ -171,13 +222,10 @@ class Event < ActiveRecord::Base
   #  as the data are coming from FC, we need to take account of all day
   #  events.
   #
+  #  Actually, now no different from writing to ends_at
+  #
   def new_end=(new_value)
-    new_ends_at = Time.zone.parse(new_value)
-    if all_day
-      self.ends_at = new_ends_at - 1.day
-    else
-      self.ends_at = new_ends_at
-    end
+    self.ends_at = Time.zone.parse(new_value)
   end
 
   #
@@ -315,15 +363,15 @@ class Event < ActiveRecord::Base
       #  date range.  The selection for events to exclude would therefore
       #  be:
       #
-      #    If starts_at >= dateafter || ends_at < startdate
+      #    If starts_at >= dateafter || ends_at <= startdate
       #
       #  and if you negate that then by De Morgan's law you get:
       #
-      #    If starts_at < dateafter && ends_at >= startdate
+      #    If starts_at < dateafter && ends_at > startdate
       #
       query_string_parts << "starts_at < :dateafter"
       query_hash[:dateafter] = Time.zone.parse("00:00:00", dateafter)
-      query_string_parts << "ends_at >= :startdate"
+      query_string_parts << "ends_at > :startdate"
       query_hash[:startdate] = Time.zone.parse("00:00:00", startdate)
       if ecs.size > 0
         if ecs.size == 1
@@ -486,4 +534,81 @@ class Event < ActiveRecord::Base
     end
     output_events
   end
+
+  #
+  #  Adjust all existing all day events to follow the new convention of
+  #  ending at 00:00:00 on the *next* day - the first day after the event.
+  #
+  def self.adjust_all_day_events
+    count = 0
+    Event.all_day.each do |e|
+      e.ends_at = e.ends_at.to_date + 1.day
+      e.save!
+      count += 1
+    end
+    puts "Adjusted #{count} all day events."
+    nil
+  end
+
+  private
+
+  def become_all_day
+#    Rails.logger.debug("Becoming all_day.")
+    #
+    #  Was a timed event - now an all day event.  Set the start time
+    #  to be midnight at the start of the day containing the start time.
+    #  Set the end time to be midnight at the end of the day containing
+    #  the end time.
+    #
+    self.starts_at = self.starts_at.to_date
+    self.ends_at = self.ends_at.to_date + 1.day
+  end
+
+  def become_timed
+#    Rails.logger.debug("Becoming timed, with starts_at = #{self.starts_at} and ends_at = #{self.ends_at}.")
+    #
+    #  Was an all day event, but now am not.  If the start time
+    #  is midnight, then set it to be 08:00 so the event doesn't
+    #  disappear from the calendar.  If the user has selected a new
+    #  start time as well, then respect it.
+    #
+    #  If the end time is midnight 24 hours later, set it to be the
+    #  same as the start time.  If it is more than 24 hours later, but
+    #  a multiple of 24 hours, then set it to be 08:00 on the erstwhile
+    #  last day of the event.
+    #
+    if @ends_at_text_value
+      #
+      #  We have earlier adjusted our ends_at value on the basis that this
+      #  is an all day event.  Undo that adjustment, because we now know
+      #  it isn't.
+      #
+      self.ends_at = @ends_at_text_value
+      #
+      #  Adjust this as if we were still un-timed.
+      #
+      if self.ends_at.to_date == self.ends_at
+        self.ends_at = self.ends_at + 1.day
+      end
+    end
+    if self.starts_at == self.starts_at.to_date
+      if self.ends_at == self.starts_at.to_date + 1.day
+        self.ends_at = self.starts_at + 8.hours
+      elsif self.ends_at == self.ends_at.to_date
+        self.ends_at = self.ends_at - 16.hours
+      end
+      self.starts_at = self.starts_at + 8.hours
+    elsif self.ends_at == self.ends_at.to_date
+      #
+      #  User seems to have specified a new start time, but left the
+      #  end time as just a date.  If it's the end of the same day as the
+      #  start time, then adjust it to be the same as the start time.
+      #
+      if self.ends_at == self.starts_at.to_date + 1.day
+        self.ends_at = self.starts_at
+      end
+    end
+#    Rails.logger.debug("Now timed, with starts_at = #{self.starts_at} and ends_at = #{self.ends_at}.")
+  end
+
 end

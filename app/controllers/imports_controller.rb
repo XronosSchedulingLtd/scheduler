@@ -158,7 +158,7 @@ class CalendarEntry
       @starts_at = Time.zone.parse("#{start_date}")
       @ends_at   = Time.zone.parse("#{end_date.empty? ?
                                      start_date :
-                                     end_date}")
+                                     end_date}") + 1.day
     else
       @starts_at = Time.zone.parse("#{start_date} #{start_time}")
       @ends_at   = Time.zone.parse("#{end_date.empty? ?
@@ -213,7 +213,7 @@ class CalendarEntry
         #  Let's keep this sane.  We may have got it hopelessly wrong.
         #
         if newdate - @starts_at < 2.months
-          @ends_at     = newdate
+          @ends_at     = newdate + 1.day
           @description = newdescription
           #
           #  I used to preserve the provided times, but for a multi-day

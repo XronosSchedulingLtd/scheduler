@@ -1,0 +1,87 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-10-27T06:35:18+00:00
+
+====== Monday 27 Oct 2014 ======
+
+In doing some initial work on clash detection for cover, I've realised that I'm storing the all-day events in the database slightly wrongly.
+
+Arguably I should have adopted FullCalendar's approach of always storing events with an inclusive start and exclusive finish, thus meaning that an event running on the 3rd and 4th of June say, would have a start time of 00:00:00 2014-06-03 and an end time of 00:00:00 2014-06-05. I found though that that involved a lot of presentation massaging, so instead I'm storing just the start and end dates.
+
+The problem with this is that the last day of the event (or the only day if it is a single day event) then doesn't appear in searches for overlapping events.  From the point of view of endurance searches, the event ends right at the start of its last day.  I therefore propose a small change to the way the event is stored, which I think can be implemented just in the model code.  When an event is set as "all day", the start time will be stored as at present, but the end time will be set to 23:59:59 on the final day.  When displayed, the event will still show simply with dates, and input will be expected purely as dates.  Any supplied times will be ignored.  That should solve the search problem, but I will need to consider how to adjust this when the event is changed to or from being all day. 
+
+The change can occur either graphically (by dragging the event in the calendar) or textually (by editing it in the dialogue box).  Switching to being an all-day event is easy - I simply drop the time element - but switching from is more complex.  Check how it works now.
+
+Perhaps I should go the whole hog and make all day events use end times like FullCalendar does.  The problem there arises with dialogue boxes (and perhaps only there?)  No-one expects to enter the date //after// an event has ended as its end date, so I need to apply corrections both as the event starts being edited, and as it ends being edited.  It should be possible by means of a pseudo-field though.
+
+Here's interesting - if I edit an existing all day event using the dialogue boxes and simply remove the "all day" flag then it disappears from the week display.  Presumably because it now starts at midnight.  Can I see it in any other display?  Yes - it appears in the month display, so presumably can be edited there.
+
+I must already be doing some data massaging when presenting the dialogue box, because when editing an all-day event it appears with only a date in the field.  Take a look.  Yes, the fields are populated by the "starts_at_text" and "ends_at_text" methods in the model.  That takes care of the display end.  ends_at_for_fc provides a massaged end date for the benefit of FullCalendar.  If I fixed my storage, the need for that would go away.
+
+I just need to think about receiving dates back from the dialogue box and storing them.  Presumably I can invent a pseudo-field with the necessary massaging.  Where are all day events manipulated?
+
+[*] Direct entry through dialogue box
+[*] Drag and drop
+[*] Calendar import
+
+We don't currently have any all day events coming from SchoolBase (do we?)  No but...
+
+[*] lib/import/importsb seems to be affected in checking week letters.
+
+Because I can't control the order in which mass assignments are done to the model, I will also need to implement my own pseudo-field for the all-day boolean.  When that changes, I may also need to adjust the times.
+
+I think I'll go for a fixed time during the visible day - if someone just un-ticks the all day box, then the event will jump to being a momentary event at that time.  It must work regardless of the order in which the assignments are done.
+
+Will need a one-off method to convert all existing all-day events to the new convention.  Done that.
+
+Hit an interesting problem with Event.events_on.  It currently does some date adjustment with end dates, which may no longer be needed.  Some careful thought is needed.  Arguably my event storage is now becoming //more// consistent, so it should just be a case of removing frigs which were put in before.  Why does events_on currently adjust end dates to the day after the one specified?  Why is this picking up events ending at midnight at the start of the day?
+
+Note that events_on expects to deal solely with dates - not date times.
+
+It seems to be something to do with the use of <=, >=, < and >.  Think about this carefully.
+
+All events are now to be stored using a closed/open range.  In mathematical terminology,
+
+start time <= time in event < end time
+
+or
+
+[start time, end time)
+
+The start time stored in the database //is// included in the event, whilst the end time //isn't//.
+
+I think I've got it.  Thinking about the exclusion case first - trying to detect all events which we //don't// want because they aren't included in a specified interval.  My interval is specified in the same way - inclusive start_time and exclusive end_time.
+
+If an event has a start_time >= the end_time of the interval, then we don't want it.  The "or equal" is appropriate because it could start exactly as my interval ends, and we still don't want it.  At that instant, the event is starting, but the interval has just ended.
+
+If an event has an end_time <= the start_time of the interval then we also don't want it.  Again the "or equal" is appropriate, for precisely the same reasons. 
+
+The //inclusion// test should therefore use strict inequalities at both boundaries.
+
+OK - done that.  Things to test.
+
+[*] Create new all-day event
+[*] Create new two-day event
+[*] Create new timed event
+[*] Create new timed event spanning two days
+[*] Drag single day event to timed
+[*] Drag two day event to timed
+[*] Drag timed event to all day
+[*] Drag two day timed event to all day
+[*] Drag timed event to different time
+[*] Drag timed event to change duration
+[*] Drag all day event to change duration
+[*] Drag all day event to different day
+[*] Drag two day event to different days
+[*] Edit all day event to make it timed
+[*] Edit two day event to make it timed
+[*] Edit all day event to make it timed, specifying a start time
+[*] Edit two day event to make it timed, specifying a start time
+[*] Edit all day event to make it timed, specifying both times
+[*] Edit a two day event to make it timed, specifying both times
+[*] Edit timed event to make it all day
+[*] Edit timed event over two days to make it all day
+
+It's really tricky handling the date adjustment needed when the user edits an all_day event.  We need to adjust the provided date to ensure we actually store the start of the next day, but we may later discover that the user has also changed the event from being all_day to being timed, in which case we then need to undo the action.
+
+Hmm.  All seems to be working.  Time to commit it.

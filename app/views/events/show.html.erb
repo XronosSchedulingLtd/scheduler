@@ -20,6 +20,11 @@
   </tr>
 
   <tr>
+    <td><strong>Event id:</strong></td>
+    <td><%= @event.id %></td>
+  </tr>
+
+  <tr>
     <td><strong>Owner:</strong></td>
     <td><%= @event.owner_id == nil || @event.owner_id == 0 ?
             "System" :
@@ -27,38 +32,38 @@
   </tr>
 
   <% if @event.all_day %>
-    <% if @event.starts_at == @event.ends_at %>
+    <% if @event.starts_at + 1.day == @event.ends_at %>
       <tr>
         <td><strong>On:</strong></td>
-        <td><%= @event.starts_at.to_date %></td>
+        <td><%= @event.starts_at_text %></td>
       </tr>
 
     <% else %>
       <tr>
         <td><strong>Starts on:</strong></td>
-        <td><%= @event.starts_at.to_date %></td>
+        <td><%= @event.starts_at_text %></td>
       </tr>
 
       <tr>
         <td><strong>Ends on:</strong></td>
-        <td><%= @event.ends_at.to_date %></td>
+        <td><%= @event.ends_at_text %></td>
       </tr>
     <% end %>
   <% else %>
     <% if @event.starts_at == @event.ends_at %>
       <tr>
         <td><strong>At:</strong></td>
-        <td><%= @event.starts_at %></td>
+        <td><%= @event.starts_at_text %></td>
       </tr>
     <% else %>
       <tr>
         <td><strong>Starts at:</strong></td>
-        <td><%= @event.starts_at %></td>
+        <td><%= @event.starts_at_text %></td>
       </tr>
 
       <tr>
         <td><strong>Ends at:</strong></td>
-        <td><%= @event.ends_at %></td>
+        <td><%= @event.ends_at_text %></td>
       </tr>
     <% end %>
   <% end %>

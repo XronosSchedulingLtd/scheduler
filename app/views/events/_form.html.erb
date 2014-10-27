@@ -43,16 +43,14 @@
       <%= f.label :starts, class: "right inline" %>
     </div>
     <div class="small-3 columns">
-      <%= f.text_field :starts_at,
-                       :value => @event.starts_at_text,
+      <%= f.text_field :starts_at_text,
                        :class => :datetimepicker %>
     </div>
     <div class="small-3 columns">
       <%= f.label :ends, class: "right inline" %>
     </div>
     <div class="small-3 columns">
-      <%= f.text_field :ends_at,
-                       :value => @event.ends_at_text,
+      <%= f.text_field :ends_at_text,
                        :class => :datetimepicker %>
     </div>
   </div>
@@ -61,7 +59,7 @@
       <%= f.label :all_day, class: "right" %>
     </div>
     <div class="small-1 columns">
-      <%= f.check_box :all_day %>
+      <%= f.check_box :all_day_field %>
     </div>
     <div class="small-8 columns"></div>
   </div>

@@ -948,6 +948,23 @@ class SB_StaffCover
 
   attr_reader :date, :cover_or_invigilation
 
+  #
+  #  A class for recording details of an apparent clash.  For a clash
+  #  to exist, the same resource must have a commitment to two simultaneous
+  #  events.  This class therefore simply records references to the two
+  #  commitments.
+  #
+  class Clash
+
+    attr_reader :cover_commitment, :clashing_commitment
+
+    def initialize(cover_commitment, clashing_commitment)
+      @cover_commitment    = cover_commitment
+      @clashing_commitment = clashing_commitment
+    end
+
+  end
+
   def initialize
     @sal  = nil
     @date = nil
@@ -1086,6 +1103,26 @@ class SB_StaffCover
             cover_commitment.source_id = self.source_id
             if cover_commitment.save
               added += 1
+              cover_commitment.reload
+              #
+              #  Does this clash with anything?
+              #
+              all_commitments =
+                Commitment.commitments_during(
+                  start_time: cover_commitment.event.starts_at,
+                  end_time:   cover_commitment.event.ends_at,
+                  resource:   @staff_covering.dbrecord)
+              if all_commitments.size > 1
+                #
+                #  Possibly a problem.
+                #
+                puts "Possible cover clash for #{@staff_covering.dbrecord.name}."
+                all_commitments.each do |c|
+                  puts "  #{c.event.starts_at}"
+                  puts "  #{c.event.ends_at}"
+                  puts "  #{c.event.body}"
+                end
+              end
             else
               puts "Failed to save cover."
             end
@@ -1099,6 +1136,10 @@ class SB_StaffCover
         @dbrecord = candidates[0]
 #        puts "Cover is already there."
 #        puts "Event #{candidates[0].event.body} at #{candidates[0].event.starts_at}"
+        #
+        #  Again, need to check if it clashes with anything.
+        #
+
       else
         puts "Weird - cover item #{self.source_id} is there more than once."
         candidates.each do |c|
@@ -1153,7 +1194,7 @@ class SB_StaffCover
           c.event = event
           c.element = @staff_covering.dbrecord.element
           c.save
-          invigilations_added += 1
+          added += 1
         end
       end
     end
@@ -2881,6 +2922,29 @@ class SB_Loader
     #  And now the invigilations.
     #
     @start_date.upto(max_invigilation_date) do |date|
+      sb_invigilations = invigilations_by_date[date] || []
+      existing_invigilations = Event.events_on(date,
+                                               date, 
+                                               @invigilation_category,
+                                               @event_source)
+      #
+      #  With invigilations, the source id goes in the event.
+      #
+      sb_ids = sb_invigilations.collect {|si| si.source_id}.uniq
+      db_ids = existing_invigilations.collect {|ei| ei.source_id}.uniq
+      db_only = db_ids - sb_ids
+      db_only.each do |db_id|
+        existing_invigilations.select {|ei| ei.source_id == db_id}.each do |ei|
+          ei.destroy
+          invigilations_deleted += 1
+        end
+      end
+      sb_invigilations.each do |sbi|
+        added, amended, deleted = sbi.ensure_db(self)
+        invigilations_added += added
+        invigilations_amended += amended
+        invigilations_deleted += deleted
+      end
     end
     if covers_added > 0 || @verbose
       puts "Added #{covers_added} instances of cover."

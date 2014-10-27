@@ -203,9 +203,13 @@ class Commitment < ActiveRecord::Base
     else
       query_hash = {}
       query_string_parts = []
+      #
+      #  For an explanation of why the conditions are like this, see
+      #  either the Event model, or the journal for 27/10/2014.
+      #
       query_string_parts << "events.starts_at < :end_time"
       query_hash[:end_time] = end_time
-      query_string_parts << "events.ends_at >= :start_time"
+      query_string_parts << "events.ends_at > :start_time"
       query_hash[:start_time] = start_time
       if ecs.size > 0
         if ecs.size == 1

@@ -37,6 +37,7 @@ class EventsController < ApplicationController
         if start_date.hour == 0 &&
            start_date.min == 0
           @event.all_day = true
+          @event.ends_at = start_date + 1.day
         end
       end
       @minimal = true
@@ -159,6 +160,6 @@ class EventsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def event_params
-      params.require(:event).permit(:body, :eventcategory_id, :eventsource_id, :owner_id, :integer, :starts_at, :ends_at, :all_day, :approximate, :non_existent, :private, :reference_id, :reference_type, :new_end)
+      params.require(:event).permit(:body, :eventcategory_id, :eventsource_id, :owner_id, :integer, :starts_at_text, :ends_at_text, :all_day_field, :approximate, :non_existent, :private, :reference_id, :reference_type, :new_end)
     end
 end
