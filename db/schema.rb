@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20141005104637) do
+ActiveRecord::Schema.define(version: 20141028091314) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -228,6 +228,7 @@ ActiveRecord::Schema.define(version: 20141005104637) do
     t.boolean  "editor",              default: false
     t.string   "colour_involved",     default: "#234B58"
     t.string   "colour_not_involved", default: "#254117"
+    t.boolean  "arranges_cover",      default: false
   end
 
 end

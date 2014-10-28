@@ -85,3 +85,11 @@ OK - done that.  Things to test.
 It's really tricky handling the date adjustment needed when the user edits an all_day event.  We need to adjust the provided date to ensure we actually store the start of the next day, but we may later discover that the user has also changed the event from being all_day to being timed, in which case we then need to undo the action.
 
 Hmm.  All seems to be working.  Time to commit it.
+
+What now is the process to convert the live system?
+
+[*] Back up data
+[*] Add latest code
+[*] rake db:migrate
+[*] Event.adjust_all_day_events
+[*] And then do a data import from SB.

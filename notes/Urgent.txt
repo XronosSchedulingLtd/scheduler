@@ -13,5 +13,6 @@ Urgent things to do:
 4. Display entity number as hover text on main screen
 5. Preserve categories when importing calendar.  Automate.
 6. List of which teachers teach each year
+7. Lists of students for each subject, even by year
 
 

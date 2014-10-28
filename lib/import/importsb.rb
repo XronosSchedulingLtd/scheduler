@@ -963,6 +963,51 @@ class SB_StaffCover
       @clashing_commitment = clashing_commitment
     end
 
+    #
+    #  Clashes are sorted chronologically.
+    #
+    def <=>(other)
+      self.cover_commitment.event.starts_at <=> other.cover_commitment.event.starts_at
+    end
+
+    def to_partial_path
+      "user_mailer/clash"
+    end
+
+    def self.find_clashes(cover_commitment)
+      #
+      #  Finds anything which apparently clashes with this cover commitment.
+      #  Ignores:
+      #
+      #    The cover commitment itself
+      #    Additional commitments to the same event
+      #    Commitments to events flagged as unimportant
+      #
+      clashes = []
+      all_commitments =
+        Commitment.commitments_during(
+          start_time: cover_commitment.event.starts_at,
+          end_time:   cover_commitment.event.ends_at,
+          resource:   cover_commitment.element)
+      if all_commitments.size > 1
+        #
+        #  Possibly a problem.
+        #
+#        puts "Possible cover clash for #{cover_commitment.element.name}."
+        all_commitments.each do |c|
+#          puts "  #{c.event.starts_at}"
+#          puts "  #{c.event.ends_at}"
+#          puts "  #{c.event.body}"
+          unless (c == cover_commitment) ||
+                 (c.event == cover_commitment.event) ||
+                 (c.event.eventcategory.unimportant)
+            clashes << Clash.new(cover_commitment, c)
+          end
+        end
+      end
+      clashes
+    end
+
   end
 
   def initialize
@@ -1058,6 +1103,7 @@ class SB_StaffCover
     added = 0
     amended = 0
     deleted = 0
+    clashes = []
     if @cover_or_invigilation == :cover
       #
       #  Is it already in the database?
@@ -1107,22 +1153,7 @@ class SB_StaffCover
               #
               #  Does this clash with anything?
               #
-              all_commitments =
-                Commitment.commitments_during(
-                  start_time: cover_commitment.event.starts_at,
-                  end_time:   cover_commitment.event.ends_at,
-                  resource:   @staff_covering.dbrecord)
-              if all_commitments.size > 1
-                #
-                #  Possibly a problem.
-                #
-                puts "Possible cover clash for #{@staff_covering.dbrecord.name}."
-                all_commitments.each do |c|
-                  puts "  #{c.event.starts_at}"
-                  puts "  #{c.event.ends_at}"
-                  puts "  #{c.event.body}"
-                end
-              end
+              clashes = Clash.find_clashes(cover_commitment)
             else
               puts "Failed to save cover."
             end
@@ -1139,7 +1170,7 @@ class SB_StaffCover
         #
         #  Again, need to check if it clashes with anything.
         #
-
+        clashes = Clash.find_clashes(candidates[0])
       else
         puts "Weird - cover item #{self.source_id} is there more than once."
         candidates.each do |c|
@@ -1168,8 +1199,14 @@ class SB_StaffCover
             commitment.element = @staff_covering.dbrecord.element
             commitment.save
             amended += 1
+            commitment.reload
           end
+          clashes = Clash.find_clashes(commitment)
         end
+        #
+        #  TODO: Surely we should add our invigilator in if somehow
+        #  the event is there but no commitments?
+        #
       else
 #        puts "Creating invigilation event."
         starts_at =
@@ -1195,10 +1232,12 @@ class SB_StaffCover
           c.element = @staff_covering.dbrecord.element
           c.save
           added += 1
+          c.reload
+          clashes = Clash.find_clashes(c)
         end
       end
     end
-    [added, amended, deleted]
+    [added, amended, deleted, clashes]
   end
 
 end
@@ -2847,6 +2886,7 @@ class SB_Loader
     invigilations_added = 0
     invigilations_amended = 0
     invigilations_deleted = 0
+    cover_clashes = []
     #
     #  First group all the proposed covers by date, discarding any which
     #  are earlier than we are interested in.
@@ -2912,10 +2952,11 @@ class SB_Loader
         end
       end
       sb_covers.each do |sbc|
-        added, amended, deleted = sbc.ensure_db(self)
+        added, amended, deleted, clashes = sbc.ensure_db(self)
         covers_added += added
         covers_amended += amended
         covers_deleted += deleted
+        cover_clashes += clashes
       end
     end
     #
@@ -2940,7 +2981,7 @@ class SB_Loader
         end
       end
       sb_invigilations.each do |sbi|
-        added, amended, deleted = sbi.ensure_db(self)
+        added, amended, deleted, clashes = sbi.ensure_db(self)
         invigilations_added += added
         invigilations_amended += amended
         invigilations_deleted += deleted
@@ -2963,6 +3004,32 @@ class SB_Loader
     end
     if invigilations_deleted > 0 || @verbose
       puts "Deleted #{invigilations_deleted} instances of invigilation."
+    end
+    if cover_clashes.size > 0
+      puts "#{cover_clashes.size} apparent cover clashes."
+      UserMailer.cover_clash_email(cover_clashes).deliver
+#      current_date = Time.zone.parse("2010-01-01")
+#      cover_clashes.sort.each do |cc|
+#        if cc.cover_commitment.event.starts_at.to_date != current_date
+#          current_date = cc.cover_commitment.event.starts_at.to_date
+#          puts "#{current_date.strftime("%a %d/%m/%Y")}"
+#        end
+#        puts "  #{cc.cover_commitment.element.name}"
+#        if cc.cover_commitment.covering
+#          puts   "    Covering #{cc.cover_commitment.event.body} for #{cc.cover_commitment.covering.element.name}."
+#        else
+#          puts   "    Covering #{cc.cover_commitment.event.body}."
+#        end
+#        puts "    From #{cc.cover_commitment.event.starts_at.strftime("%H:%M")} to #{cc.cover_commitment.event.ends_at.strftime("%H:%M")}."
+#        puts "    Also has #{cc.clashing_commitment.event.body}."
+#        if cc.clashing_commitment.event.all_day
+#          puts "    All day"
+#        else
+#          puts "    From #{cc.clashing_commitment.event.starts_at.strftime("%H:%M")} to #{cc.clashing_commitment.event.ends_at.strftime("%H:%M")}."
+#        end
+#      end
+    else
+      puts "No apparent cover clashes."
     end
   end
 

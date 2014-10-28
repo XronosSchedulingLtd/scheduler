@@ -35,6 +35,8 @@ class User < ActiveRecord::Base
   has_many :elements, foreign_key: :owner_id
   has_many :groups,   foreign_key: :owner_id, :dependent => :destroy
 
+  scope :arranges_cover, lambda { where("arranges_cover = true") }
+
   after_save :find_matching_resources
 
   def known?
