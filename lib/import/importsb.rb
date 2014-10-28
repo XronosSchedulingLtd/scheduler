@@ -3007,7 +3007,9 @@ class SB_Loader
     end
     if cover_clashes.size > 0
       puts "#{cover_clashes.size} apparent cover clashes."
-      UserMailer.cover_clash_email(cover_clashes).deliver
+      User.arranges_cover.each do |user|
+        UserMailer.cover_clash_email(user, cover_clashes).deliver
+      end
 #      current_date = Time.zone.parse("2010-01-01")
 #      cover_clashes.sort.each do |cc|
 #        if cc.cover_commitment.event.starts_at.to_date != current_date
