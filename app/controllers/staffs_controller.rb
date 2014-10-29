@@ -121,7 +121,7 @@ class StaffsController < ApplicationController
             event.summary = dbevent.body
             if dbevent.all_day
               event.dtstart = dbevent.starts_at.to_date
-              event.dtend   = dbevent.ends_at.to_date + 1
+              event.dtend   = dbevent.ends_at.to_date
             else
               event.dtstart = dbevent.starts_at
               event.dtend   = dbevent.ends_at
