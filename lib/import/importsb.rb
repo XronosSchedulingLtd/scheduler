@@ -1500,11 +1500,11 @@ class SB_Timetableentry
        / Chap\Z/ =~ own_group_name &&
        / Chap\Z/ =~ other_group_name) ||
       #
-      #  Or sport/PE?  Note that for sport, the two should boast the same
-      #  group, not just ones with similar names.
+      #  Or sport/PE/General Studies?  Note that for these, the two should
+      #  boast the same group, not just ones with similar names.
       #
       (!self.meeting? && !other.meeting? &&
-       / (Spt|PE)\Z/ =~ own_group_name &&
+       / (Spt|PE|GSRA)\Z/ =~ own_group_name &&
        self.group_ident == other.group_ident) ||
       #
       #  Or finally, the same group in the same place.
@@ -1889,18 +1889,33 @@ class SB_Loader
     #
     @subject_teacher_hash = {}
     @timetable_entries.each do |te|
-      staff = @staff_hash[te.staff_ident]
-      if staff && staff.active && staff.current
-        group = @group_hash[te.group_ident]
-        if group
-          subject = @subject_hash[group.subject_ident]
-          if subject && subject.type == :proper_subject
-            if @subject_teacher_hash[subject.subject_name]
-              unless @subject_teacher_hash[subject.subject_name].include?(staff)
-                @subject_teacher_hash[subject.subject_name] << staff
+      group = @group_hash[te.group_ident]
+      if group
+        subject = @subject_hash[group.subject_ident]
+        if subject && subject.type == :proper_subject
+          if te.compound
+            te.staff_idents.each do |staff_ident|
+              staff = @staff_hash[staff_ident]
+              if staff && staff.active && staff.current
+                if @subject_teacher_hash[subject.subject_name]
+                  unless @subject_teacher_hash[subject.subject_name].include?(staff)
+                    @subject_teacher_hash[subject.subject_name] << staff
+                  end
+                else
+                  @subject_teacher_hash[subject.subject_name] = [staff]
+                end
               end
-            else
-              @subject_teacher_hash[subject.subject_name] = [staff]
+            end
+          else
+            staff = @staff_hash[te.staff_ident]
+            if staff && staff.active && staff.current
+              if @subject_teacher_hash[subject.subject_name]
+                unless @subject_teacher_hash[subject.subject_name].include?(staff)
+                  @subject_teacher_hash[subject.subject_name] << staff
+                end
+              else
+                @subject_teacher_hash[subject.subject_name] = [staff]
+              end
             end
           end
         end
