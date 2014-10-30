@@ -475,7 +475,7 @@ class Event < ActiveRecord::Base
   end
 
   def self.invigilation_category
-    @@invigilation_category ||= Eventcategory.find_by_name("Exam invigilation")
+    @@invigilation_category ||= Eventcategory.find_by_name("Invigilation")
   end
 
   def self.lesson_category
