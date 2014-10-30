@@ -166,6 +166,10 @@ class Element < ActiveRecord::Base
                               include_nonexistent: include_nonexistent)
   end
 
+  def short_name
+    entity.short_name
+  end
+
   def rename_affected_events
     self.commitments.names_event.each do |c|
       if c.event.body != self.name

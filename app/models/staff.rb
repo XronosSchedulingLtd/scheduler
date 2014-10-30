@@ -34,6 +34,10 @@ class Staff < ActiveRecord::Base
     "#{self.initials} - #{self.name}"
   end
 
+  def short_name
+    self.initials
+  end
+
   #
   #  Deleting a group deletes its persona, but not the other way around
   #  because that gives you a stack overflow.  We therefore have to

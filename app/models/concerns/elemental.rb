@@ -69,6 +69,10 @@ module Elemental
     self.name
   end
 
+  def short_name
+    self.name
+  end
+
   #
   #  And shims to provide access to the instance methods in Element
   #

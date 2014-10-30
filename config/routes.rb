@@ -12,7 +12,7 @@ Rails.application.routes.draw do
 
   get 'sessions/destroy'
 
-  get '/ical/:id' => 'staffs#ical'
+  get '/ical/:id' => 'elements#ical'
 
   resources :locationaliases
 
@@ -50,6 +50,7 @@ Rails.application.routes.draw do
 
   resources :elements do
     get :autocomplete_element_name, :on => :collection
+    get :ical, :on => :member
   end
 
   get 'schedule/show'

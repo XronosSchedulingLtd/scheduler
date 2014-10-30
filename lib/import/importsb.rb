@@ -1919,7 +1919,9 @@ class SB_Loader
     raise "Can't find event category for chapel." unless @chapel_category
     @meeting_category = Eventcategory.find_by_name("Meeting")
     raise "Can't find event category for meetings." unless @meeting_category
-    @invigilation_category = Eventcategory.find_by_name("Exam invigilation")
+    @invigilation_category =
+      Eventcategory.find_by_name("Invigilation") ||
+      Eventcategory.find_by_name("Exam invigilation")
     raise "Can't find event category for invigilations." unless @invigilation_category
     @other_half_category = Eventcategory.find_by_name("Other Half")
     raise "Can't find event category for Other Half." unless @other_half_category

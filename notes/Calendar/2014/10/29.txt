@@ -1,0 +1,53 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-10-29T15:48:55+00:00
+
+====== Wednesday 29 Oct 2014 ======
+
+Taking a look at the idea of improving calendar feeds.  Currently these are provided by the staffs controller.  I have a small amount of code in a stash which dates from an abortive start on this work.  I need to plan it a little better.
+
+Current situation:
+
+You request the calendar for a member of staff, identified by initials, and you get back all events explicitly involving that member of staff, plus any events in categories which have both the "publish" and "for_users" flags set.  Arguably, when selecting events involving the user, we should also filter to only those events in categories with the "publish" flag set.  We don't seem to do that at present.
+
+If someone takes more than one feed, they probably don't want to get the global events more than once.  Perhaps we should take those out of the individual user's feed entirely?
+
+I'd like to generalise it so that once can request a feed for any entity - probably by its element id.  I need a way to discover the element id for any entity.  This probably means leaving the existing code alone and implementing a parallel controller which can provide the new functionality.  Then I can change the route when it's ready.
+
+What might I want to request for an entity?
+
+* All events involving this entity, but nothing else
+* All events involving this entity, plus global events (like week letters, and crucial dates).
+* Events in a particular named event category.
+* Cover events (which aren't a separate category, because they aren't really events - they're commitments).
+* To exclude events by category or cover-ness
+
+All of which leads to a thought - although we talk about downloading events - "all the events on my calendar" - we generally actually mean commitments.  Apart from the break-through events, it's really commitments which we're interested in.
+
+It seems fairly obvious that if we request a feed for an entity with no additional parameters, then we should get all events involving that entity, and nothing else.  If we start to specify restrictions (e.g. ?cover) then by implication we exclude everything other than cover.  If we specify we want global events then we don't imply any restrictions.
+
+'''
+http://abingdon.scheduler.org.uk/ical/1234
+http://abingdon.scheduler.org.uk/ical/1234?global
+http://abingdon.scheduler.org.uk/ical/1234?cover
+http://abingdon.scheduler.org.uk/ical/1234?global&!cover
+http://abingdon.scheduler.org.uk/ical/1234?Lesson
+http://abingdon.scheduler.org.uk/ical/1234?!Lesson
+http://abingdon.scheduler.org.uk/ical/1234?global&!cover&categories=!Invigilation
+http://abingdon.scheduler.org.uk/ical/1234?cover&categories=Invigilation
+'''
+
+
+I quite like those last two, because they would let me have all my events, plus global events, but excluding my cover and exam invigilation in one file, then fetch my cover and exam invigilations in a separate feed and make them red.
+
+Actually, that last one probably doesn't give me quite what I want.  If I make all the conditions AND conditions, then it would fetch events which are cover AND which are of category Invigilation - effectively none.  I kind of need the means to specify an OR condition as well.
+
+I suspect I need to rename exam invigilations too.  Invigilations would be an easier name for the category.  Just need to amend my import code to cope with either name.
+
+I did have an earlier idea of setting up stored feeds.  A user could create a feed, which he then referenced with a short URL, rather than having to include all the required bits in a long URL.
+
+It would seem obvious to put the ical function in the elements controller, and have users specify the required element by its id number.  This is normal Rails terminology.
+
+GET [[/elements/:id/ical]]
+
+Then I might hide this behind a massaged route as I do at present for the staffs one.  Need to provide the means to discover the element id of an element.  I should be able to do this with some kind of hover text in the main display screen.  Done that - not difficult.  Now to try to create a parallel calendar feed for entities.  For now I'll just feed events relating to that one entity.
