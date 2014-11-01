@@ -41,7 +41,7 @@ class ElementsController < ApplicationController
       #
       include_cover = false
     end
-    Rails.logger.debug("include_cover = #{include_cover}.  include_non_cover = #{include_non_cover}.")
+#    Rails.logger.debug("include_cover = #{include_cover}.  include_non_cover = #{include_non_cover}.")
     if params[:categories]
       #
       #  The requester wants to limit the request to certain categories
@@ -85,13 +85,37 @@ class ElementsController < ApplicationController
       #  even if the user is not explicitly involved.
       #
       categories = customer_categories || Eventcategory.publish
-      commitments = element.commitments_on(startdate:     era.starts_on,
-                                           enddate:       era.ends_on,
-                                           eventcategory: categories)
+      selector = element.commitments_on(startdate:     era.starts_on,
+                                        enddate:       era.ends_on,
+                                        eventcategory: categories)
+      if include_cover && !include_non_cover
+        selector = selector.covering_commitment
+      elsif include_non_cover && !include_cover
+        selector = selector.non_covering_commitment
+      end
+      #
+      #  This preload does seem to speed things up just a touch.
+      #
+#      dbevents =
+#        selector.preload(:event).collect {|c| c.event}
+      #
+      #  This next one should theoretically do much better, but although
+      #  it preloads all the required items, the Active Record code then
+      #  seems to fetch them again from the database instead of using
+      #  them as intended.  Needs further investigation.
+      #
+#      dbevents =
+#        selector.includes(event: {commitments: {element: :entity}}).collect {|c| c.event}
+      #
+      #  Solved it.  I was trying to do too much work for Active Record.
+      #  By explicitly loading the commitments and then the corresponding
+      #  elements, I hid from AR the fact that it had now got the elements
+      #  for the event.  My definition of an event includes the concept
+      #  of a corresponding element (through the commitment) and that's
+      #  how I subsequently access it, so that's how I need to load it.
+      #
       dbevents =
-        commitments.select {|c|
-          (include_cover && c.covering) || (include_non_cover && !c.covering)
-        }.collect {|c| c.event}
+        selector.includes(event: {elements: :entity}).collect {|c| c.event}
       got_something = true
       prefix = "E#{element.id}E"
       if include_non_cover
