@@ -199,7 +199,7 @@ class Commitment < ActiveRecord::Base
       end
     end
     if duffparameter
-      []
+      Commitment.none
     else
       query_hash = {}
       query_string_parts = []

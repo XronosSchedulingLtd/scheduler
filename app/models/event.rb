@@ -350,7 +350,7 @@ class Event < ActiveRecord::Base
     end
     if duffparameter
       # Rails.logger.debug("Event#events_on hit a duff parameter.")
-      []
+      Event.none
     else
       # Rails.logger.debug("Assembling the d/b query.")
       query_hash = {}
@@ -415,7 +415,7 @@ class Event < ActiveRecord::Base
         eventer = Event
       end
       # Rails.logger.debug("Executing the query")
-      eventer.where(query_string_parts.join(" and "), query_hash).includes(:commitments)
+      eventer.where(query_string_parts.join(" and "), query_hash)
     end
   end
 

@@ -130,9 +130,18 @@ class ElementsController < ApplicationController
       #
       basic_categories = Eventcategory.publish
       extra_categories = Eventcategory.publish.for_users
+#      dbevents =
+#        (staff.element.events_on(era.starts_on, era.ends_on, basic_categories) +
+#         Event.events_on(era.starts_on, era.ends_on, extra_categories)).uniq
       dbevents =
-        (staff.element.events_on(era.starts_on, era.ends_on, basic_categories) +
-         Event.events_on(era.starts_on, era.ends_on, extra_categories)).uniq
+        (staff.element.
+               commitments_on(startdate: era.starts_on,
+                              enddate: era.ends_on,
+                              eventcategory: basic_categories).
+               includes(event: {elements: :entity}).collect {|c| c.event} +
+         Event.events_on(era.starts_on, era.ends_on, extra_categories).
+               includes(elements: :entity)).
+         uniq
       got_something = true
       prefix = staff.initials
       calendar_name = staff.initials
