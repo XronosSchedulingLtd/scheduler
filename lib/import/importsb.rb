@@ -1000,6 +1000,7 @@ class SB_StaffCover
 #          puts "  #{c.event.body}"
           unless (c == cover_commitment) ||
                  (c.event == cover_commitment.event) ||
+                 (c.covered) ||
                  (c.event.eventcategory.unimportant)
             clashes << Clash.new(cover_commitment, c)
           end
@@ -1164,13 +1165,28 @@ class SB_StaffCover
           puts "Failed to find corresponding lesson."
         end
       elsif candidates.size == 1
-        @dbrecord = candidates[0]
+        cover_commitment = candidates[0]
 #        puts "Cover is already there."
 #        puts "Event #{candidates[0].event.body} at #{candidates[0].event.starts_at}"
         #
+        #  Is it the right person doing it?
+        #
+        if cover_commitment.element != @staff_covering.dbrecord.element
+          #
+          #  No.  Adjust.
+          #
+          cover_commitment.element = @staff_covering.dbrecord.element
+          if cover_commitment.save
+            amended += 1
+            cover_commitment.reload
+          else
+            puts "Failed to save amended cover."
+          end
+        end
+        #
         #  Again, need to check if it clashes with anything.
         #
-        clashes = Clash.find_clashes(candidates[0])
+        clashes = Clash.find_clashes(cover_commitment)
       else
         puts "Weird - cover item #{self.source_id} is there more than once."
         candidates.each do |c|
@@ -1740,8 +1756,9 @@ class SB_Loader
               :period_hash
 
   def initialize(options)
-    @verbose   = options.verbose
-    @full_load = options.full_load
+    @verbose     = options.verbose
+    @full_load   = options.full_load
+    @send_emails = options.send_emails
     if options.era
       @era = Era.find_by_name(options.era)
       raise "Era #{options.era} not found in d/b." unless @era
@@ -3007,7 +3024,7 @@ class SB_Loader
     if covers_added > 0 || @verbose
       puts "Added #{covers_added} instances of cover."
     end
-    if covers_added > 0 || @verbose
+    if covers_amended > 0 || @verbose
       puts "Amended #{covers_amended} instances of cover."
     end
     if covers_deleted > 0 || @verbose
@@ -3024,8 +3041,10 @@ class SB_Loader
     end
     if cover_clashes.size > 0
       puts "#{cover_clashes.size} apparent cover clashes."
-      User.arranges_cover.each do |user|
-        UserMailer.cover_clash_email(user, cover_clashes).deliver
+      if @send_emails
+        User.arranges_cover.each do |user|
+          UserMailer.cover_clash_email(user, cover_clashes).deliver
+        end
       end
 #      current_date = Time.zone.parse("2010-01-01")
 #      cover_clashes.sort.each do |cc|
@@ -3661,6 +3680,7 @@ begin
   options.verbose         = false
   options.full_load       = false
   options.just_initialise = false
+  options.send_emails     = false
   options.era             = nil
   options.start_date      = nil
   OptionParser.new do |opts|
@@ -3685,6 +3705,11 @@ begin
     opts.on("-e", "--era [ERA NAME]",
             "Specify the era to load data into.") do |era|
       options.era = era
+    end
+
+    opts.on("--email",
+            "Generate e-mails about cover issues.") do |email|
+      options.send_emails = email
     end
 
     opts.on("-s", "--start [DATE]", Date,
