@@ -7,12 +7,13 @@ Created Saturday 04 October 2014
 
 Urgent things to do:
 
-1. E-mails about cover clashes for ICF
-2. Customisable calendar feeds
-3. Allow calendar feeds for entities other than staff
-4. Display entity number as hover text on main screen
-5. Preserve categories when importing calendar.  Automate.
-6. List of which teachers teach each year
-7. Lists of students for each subject, even by year
+[*] E-mails about cover clashes for ICF
+[*] Customisable calendar feeds
+[*] Allow calendar feeds for entities other than staff
+[*] Display entity number as hover text on main screen
+[*] Import latest calendar for second half of term.
+[ ] Preserve categories when importing calendar.  Automate.
+[ ] List of which teachers teach each year
+[ ] Lists of students for each subject, even by year
 
 

@@ -62,7 +62,9 @@ class Element < ActiveRecord::Base
       #  because without an inclusion of some sort the exclusion is irrelevant,
       #  then look at both on the way back down.
       #
-      self.memberships.inclusions.collect {|membership| 
+      self.memberships.
+           inclusions.
+           collect {|membership| 
         membership.group.parents_for(self, given_date)
       }.flatten.uniq
     else
@@ -164,6 +166,30 @@ class Element < ActiveRecord::Base
                               resource:            [self] + my_groups,
                               owned_by:            owned_by,
                               include_nonexistent: include_nonexistent)
+  end
+
+  def commitments_during(start_time:          nil,
+                         end_time:            nil,
+                         eventcategory:       nil,
+                         eventsource:         nil,
+                         owned_by:            nil,
+                         include_nonexistent: false,
+                         and_by_group:        true)
+    if and_by_group
+      if start_time != nil
+        start_date = start_time.to_date
+      end
+      my_groups = self.groups(start_date)
+    else
+      my_groups = []
+    end
+    Commitment.commitments_during(start_time:          start_time,
+                                  end_time:            end_time,
+                                  eventcategory:       eventcategory,
+                                  eventsource:         eventsource,
+                                  resource:            [self] + my_groups,
+                                  owned_by:            owned_by,
+                                  include_nonexistent: include_nonexistent)
   end
 
   def short_name

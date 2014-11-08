@@ -1,0 +1,56 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-11-01T08:56:05+00:00
+
+====== Saturday 01 Nov 2014 ======
+
+Just had a thought - if I use commitments_on for an element rather than events_on as I was previously, it returns a d/b selector rather than an array.  That means I can add further conditions to it before it hits the d/b.  I can pre-load the corresponding events, or I can possibly filter out the commitments which I don't want.
+
+Can I thus produce a performance improvement?  Worth testing.
+
+Check some timings on my test system.  Fresh copy of the live data (whole year's worth of timetable).  Do a dummy download first to charge up any d/b caches.  That took 6724ms (AR 623.9ms)
+
+Old:
+
+My events:				6614ms (AR 394.1ms)
+My events excluding cover:	6753ms (AR 500.9ms)
+My cover events:			601ms (AR 79.1ms)
+
+And new:
+
+My events:				6011ms (AR 302.7ms)
+My events excluding cover:	6171ms (AR 318.7ms)
+My cover events:			547ms (AR 57.9ms)
+
+Seem to get exactly the same output file too, which is good.  Can I achieve more with more pre-loading?
+
+Latest version:
+
+My events:				2008ms (AR 57.3ms)
+My events excluding cover:	2009ms (AR 66.1ms)
+My cover events:			491ms (AR 45.7ms)
+
+and test the timings on the live system.  Just go for a simple download of my events.
+
+Before new code deployed.	10719ms (AR 686.8ms)
+After new code deployed.	3857ms (AR 72.0ms)
+
+Oh for a decent computer to run the live code on!  Still an effing good improvement though.  The downloaded files are identical before and after, except that some lists of locations appear in a different order.
+
+Just had a thought - the way my current code works, I am finding commitments for an element by looking at the groups the element belongs to on the first day of the indicated period.  This doesn't make a lot of difference for staff, for whom most of the commitments are direct (rather than via a group).
+
+For pupils however it is liable to make a big difference.  They're going to get a timetable based on their set membership at the beginning of term, which completely fails to take account of changes during the term.  Obviously one could do a separate query for each day of the interval, but that would be back to being horrendously inefficient.
+
+Thinking about it and looking for an efficient way, I've come up with the following algorithm.
+
+* Generate a list of all the groups which the element has been a member of //at any time// during the interval.
+* Use this list to create a list of commitments for the element and its parent groups.  This will produce spurious commitments for groups which the element was not a member of at the time of the commitment. Preload the events, and associated records as at present.
+* For each group, generate also a start date and end date for the element's membership. For a direct membership, this will be just the values from the membership record. For a nested membership, it will be more complex.
+* It's also possible that an element will have been effectively a member of the group for more than one period of time.  Therefore need a list of start and end dates.
+* We can now process the list of commitments chronologically, discarding those where a group is referenced which the element was not a member of on that particular day.
+
+The end effect will be to load too many events, but then discard those not required.  I think it should be possible to implement this efficiently.  Each group belongs to an era, so we can ignore any outside our current era.  A typical student belongs to something of the order of 22 groups, and most of these don't change in the course of an era.
+
+An alternative approach would be to make a list of all the groups of which the user is a member at any point in the required interval, then identify any dates within the interval on which the membership changes, split the interval up at those dates, and handle it in a series of chunks. It might be more or less complicated depending on how many changes there are.
+
+The obvious place to put this would be in Element#commitments_on, which would have the side effect of meaning it no longer returns a database selector - just an ordinary array.  Perhaps add in the means to specify an additional scope?  Or can one still specify a scope *before*?  Does doing that currently achieve anything?

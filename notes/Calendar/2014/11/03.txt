@@ -1,0 +1,9 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-11-03T19:14:53+00:00
+
+====== Monday 03 Nov 2014 ======
+
+Realised that my cover loading code doesn't do any adjustment when the person doing a cover has changed.
+
+Also could do with a switch to control when e-mails are sent.

@@ -985,10 +985,9 @@ class SB_StaffCover
       #
       clashes = []
       all_commitments =
-        Commitment.commitments_during(
+        cover_commitment.element.commitments_during(
           start_time: cover_commitment.event.starts_at,
-          end_time:   cover_commitment.event.ends_at,
-          resource:   cover_commitment.element)
+          end_time:   cover_commitment.event.ends_at)
       if all_commitments.size > 1
         #
         #  Possibly a problem.
@@ -1024,7 +1023,10 @@ class SB_StaffCover
   end
 
   def wanted?(loader)
-    true
+    #
+    #  Current or past senior school staff.
+    #
+    self.ptype == 60 || self.ptype == 100
   end
 
   def source_id
@@ -1074,6 +1076,7 @@ class SB_StaffCover
               #  Can't find covered staff member.
               #
               puts "Can't find staff member #{@sa.staff_ident} to cover."
+#              puts self.inspect
             end
           else
             #

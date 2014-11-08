@@ -1,0 +1,32 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-11-02T15:16:58+00:00
+
+====== Sunday 02 Nov 2014 ======
+
+It occurs to me that it will be some time before people stop using the /ical/jhw style URLs, if indeed they ever do.  I therefore need to optimise the processing of that too, to get the same speed increases which I achieved for the ones my element no.
+
+Current timing:
+
+On my test system: 6235ms (AR 676.3ms)
+
+2nd attempt: 6752ms (AR 307.4ms)
+
+With enhanced code: 2444ms (AR 220.3ms)
+
+File seem identical except for the order of multiple locations.
+
+And with a bit more work got it down to:
+
+2074ms (AR 63.7ms)
+
+What difference will it make on the live system?
+
+Before this change: 10517ms (AR 859.2ms)
+
+After the change: 4101ms (AR 195.1ms)
+
+Again, the files are identical apart from the order of multiple locations.  Excellent.
+
+
+I need a method which, given any entity, and a period of time, finds all the groups which the element is a member of at any time during the specified interval.  For each of these groups, I then want a start and end date for each of the memberships.

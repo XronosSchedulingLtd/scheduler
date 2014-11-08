@@ -91,4 +91,12 @@ module Elemental
       Commitment.none
     end
   end
+
+  def commitments_during(**args)
+    if self.element
+      self.element.commitments_during(args)
+    else
+      Commitment.none
+    end
+  end
 end
