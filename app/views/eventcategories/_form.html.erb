@@ -85,6 +85,17 @@
     </div>
   </div>
   <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :can_merge, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :can_merge %>
+    </div>
+    <div class="small-8 columns annotation">
+      Two events of the same category can be merged for cover purposes.
+    </div>
+  </div>
+  <div class="row collapse">
     <div class="small-9 small-offset-3 columns">
       <%= f.submit %>
     </div>

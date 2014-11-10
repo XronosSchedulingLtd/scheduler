@@ -10,6 +10,7 @@
       <th>Public</th>
       <th>Forusers</th>
       <th>Unimportant</th>
+      <th>Can merge</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -24,6 +25,7 @@
         <td><%= eventcategory.public %></td>
         <td><%= eventcategory.for_users %></td>
         <td><%= eventcategory.unimportant %></td>
+        <td><%= eventcategory.can_merge %></td>
         <td><%= link_to 'Show', eventcategory %></td>
         <td><%= link_to 'Edit', edit_eventcategory_path(eventcategory) %></td>
         <td><%= link_to 'Destroy', eventcategory, method: :delete, data: { confirm: 'Are you sure?' } %></td>

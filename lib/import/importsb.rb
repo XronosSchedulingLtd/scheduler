@@ -602,7 +602,7 @@ class SB_Period
 
   include Slurper
 
-  attr_accessor :time
+  attr_reader :time
 
   def adjust(loader)
     if @teaching_period == 1
@@ -610,6 +610,7 @@ class SB_Period
     else
       @teaching_period = false
     end
+    @time = loader.period_time_hash[self.period_ident]
   end
 
   def week_letter
@@ -617,7 +618,10 @@ class SB_Period
   end
 
   def wanted?(loader)
-    true
+#    if @time == nil
+#      puts "Period #{@period_ident} has no time."
+#    end
+    @time != nil
   end
 
 end
@@ -982,6 +986,8 @@ class SB_StaffCover
       #    The cover commitment itself
       #    Additional commitments to the same event
       #    Commitments to events flagged as unimportant
+      #    Commitments to events of the same category, flagged as mergeable,
+      #    happening at exactly the same time (e.g. registration)
       #
       clashes = []
       all_commitments =
@@ -1000,7 +1006,11 @@ class SB_StaffCover
           unless (c == cover_commitment) ||
                  (c.event == cover_commitment.event) ||
                  (c.covered) ||
-                 (c.event.eventcategory.unimportant)
+                 (c.event.eventcategory.unimportant) ||
+                 (c.event.eventcategory.can_merge &&
+                  c.event.eventcategory == cover_commitment.event.eventcategory &&
+                  c.event.starts_at == cover_commitment.event.starts_at &&
+                  c.event.ends_at   == cover_commitment.event.ends_at)
             clashes << Clash.new(cover_commitment, c)
           end
         end
@@ -1355,7 +1365,9 @@ class SB_Timetableentry
                 :staff_idents,
                 :group_idents,
                 :room_idents,
-                :lower_school
+                :lower_school,
+                :period,
+                :period_time
 
   #
   #  The following item exists to allow us to find the right merged
@@ -1374,6 +1386,13 @@ class SB_Timetableentry
   end
 
   def adjust(loader)
+    if loader.period_hash[self.period_ident]
+      @period = loader.period_hash[self.period_ident]
+      @period_time = @period.time
+    else
+      @period = nil
+      @period_time = nil
+    end
   end
 
   def wanted?(loader)
@@ -1384,10 +1403,19 @@ class SB_Timetableentry
     #  They must also involve *some* known resource - a member of
     #  staff or a group of pupils.
     #
-    @ac_year_ident == loader.era.source_id &&
-    (@group_ident != nil || !@time_note.blank?) &&
-    (loader.staff_hash[self.staff_ident] != nil ||
-     loader.group_hash[self.group_ident] != nil)
+    if @ac_year_ident == loader.era.source_id &&
+       (@group_ident != nil || !@time_note.blank?) &&
+       (loader.staff_hash[self.staff_ident] != nil ||
+        loader.group_hash[self.group_ident] != nil)
+      if @period && @period_time
+        true
+      else
+#        puts "Timetable entry #{self.timetable_ident} has no period."
+        false
+      end
+    else
+      false
+    end
   end
 
   def <=>(other)
@@ -1441,6 +1469,14 @@ class SB_Timetableentry
       loader.assembly_category
     elsif self.body_text(loader) == "Chapel"
       loader.chapel_category
+    elsif self.period_time.starts_at == "08:35" &&
+          self.period_time.ends_at == "08:55"
+      loader.registration_category
+    elsif (self.period_time.starts_at == "12:10" &&
+           self.period_time.ends_at == "12:45") ||
+          (self.period_time.starts_at == "12:50" &&
+           self.period_time.ends_at == "13:25")
+      loader.tutor_category
     else
       loader.lesson_category
     end
@@ -1717,8 +1753,43 @@ class SB_Loader
                    InputSource[:locations, SB_Location, :location, :room_ident],
                    InputSource[:groups, SB_Group, :group, :group_ident],
                    InputSource[:ars, SB_AcademicRecord],
+                   #
+                   #  SB's data structures are slightly loony here (surprise!)
+                   #  Instead of periods referencing period times as you
+                   #  might expect, the period times reference periods.
+                   #  The period time records have their own idents, but
+                   #  they're never referenced again.  Instead each
+                   #  period time record contains the ident of a period
+                   #  record.
+                   #
+                   #  If it were done the sensible way around, then a period
+                   #  time record could be referenced by more than one period,
+                   #  allowing different periods (say on different days) to
+                   #  share the same period time record.
+                   #
+                   #  As it's the way round it is, the only many-to-one
+                   #  relationship you can manage is for one period to have
+                   #  more than one period time record pointing at it, which
+                   #  would be a nonsense.  There is thus no point in them
+                   #  being separate tables, and they would be better
+                   #  implemented as a single table.
+                   #
+                   #  We cope with it by loading period times first, hashing
+                   #  them by period id, then loading periods and linking
+                   #  them to period times as they're loaded.  A period
+                   #  without a matching period time is an error.
+                   #
+                   #  The timetable entries can then be loaded later and
+                   #  be linked to both periods and period times as they
+                   #  are loaded, saving work and checking later on.  Again,
+                   #  a timetable entry which references a non-existent
+                   #  period is an error.
+                   #
+                   InputSource[:period_times,
+                               SB_PeriodTime,
+                               :period_time,
+                               :period_ident],
                    InputSource[:periods, SB_Period, :period, :period_ident],
-                   InputSource[:period_times, SB_PeriodTime],
                    InputSource[:subjects, SB_Subject, :subject, :subject_ident],
                    InputSource[:timetable_entries, SB_Timetableentry, :tte,
                                :timetable_ident],
@@ -1755,8 +1826,11 @@ class SB_Loader
               :assembly_category,
               :chapel_category,
               :duty_category,
+              :registration_category,
+              :tutor_category,
               :event_source,
-              :period_hash
+              :period_hash,
+              :period_time_hash
 
   def initialize(options)
     @verbose     = options.verbose
@@ -1819,11 +1893,11 @@ class SB_Loader
       raise "SchoolBase doesn't have an academic year #{@era.source_ident}"
     end
     puts "Performing initial organisation." if @verbose
-    @period_times.each do |period_time|
-      if period = @period_hash[period_time.period_ident]
-        period.time ||= period_time
-      end
-    end
+#    @period_times.each do |period_time|
+#      if period = @period_hash[period_time.period_ident]
+#        period.time ||= period_time
+#      end
+#    end
     puts "Attempting to construct tutor groups." if @verbose
     @tutorgroups = []
     @tg_hash = {}
@@ -1962,6 +2036,10 @@ class SB_Loader
     raise "Can't find event category for Other Half." unless @other_half_category
     @duty_category = Eventcategory.find_by_name("Duty")
     raise "Can't find event category for duties." unless @duty_category
+    @registration_category = Eventcategory.find_by_name("Registration")
+    raise "Can't find event category for registration." unless @registration_category
+    @tutor_category = Eventcategory.find_by_name("Tutor period")
+    raise "Can't find event category for tutor period." unless @tutor_category
     @event_source = Eventsource.find_by_name("SchoolBase")
     raise "Can't find event source \"SchoolBase\"." unless @event_source
     @yaml_source = Eventsource.find_by_name("Yaml")
@@ -2406,7 +2484,9 @@ class SB_Loader
                                      [@lesson_category,   # Categories
                                       @meeting_category,
                                       @assembly_category,
-                                      @chapel_category],
+                                      @chapel_category,
+                                      @registration_category,
+                                      @tutor_category],
                                      @event_source,       # Event source
                                      nil,                 # Resource
                                      nil,                 # Owner
@@ -2464,7 +2544,9 @@ class SB_Loader
                                        [@lesson_category,
                                         @meeting_category,
                                         @assembly_category,
-                                        @chapel_category],
+                                        @chapel_category,
+                                        @registration_category,
+                                        @tutor_category],
                                        @event_source,
                                        nil,
                                        nil,
@@ -2517,41 +2599,37 @@ class SB_Loader
               #  For each of these, just create the event.  Resources
               #  will be handled later.
               #
-              period = @period_hash[lesson.period_ident]
-              if period
-                event = Event.new
-                event.body          = lesson.body_text(self)
-                event.eventcategory = lesson.eventcategory(self)
-                event.eventsource   = @event_source
-                if lesson.lower_school
-                  event.starts_at     =
-                      Time.zone.parse("#{date.to_s} #{period.time.ls_starts_at}")
-                    event.ends_at       =
-                      Time.zone.parse("#{date.to_s} #{period.time.ls_ends_at}")
-                  else
-                  event.starts_at     =
-                    Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+              period_time = lesson.period_time
+              event = Event.new
+              event.body          = lesson.body_text(self)
+              event.eventcategory = lesson.eventcategory(self)
+              event.eventsource   = @event_source
+              if lesson.lower_school
+                event.starts_at     =
+                    Time.zone.parse("#{date.to_s} #{period_time.ls_starts_at}")
                   event.ends_at       =
-                    Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
-                end
-                event.approximate   = false
-                event.non_existent  = false
-                event.private       = false
-                event.all_day       = false
-                event.compound      = false
-                event.source_id     = lesson.timetable_ident
-                if event.save
-                  atomic_event_created_count += 1
-                  event.reload
-                  #
-                  #  Add it to our array of events which are in the d/b.
-                  #
-                  dbatomic << event
+                    Time.zone.parse("#{date.to_s} #{period_time.ls_ends_at}")
                 else
-                  puts "Failed to save event #{event.inspect}"
-                end
+                event.starts_at     =
+                  Time.zone.parse("#{date.to_s} #{period_time.starts_at}")
+                event.ends_at       =
+                  Time.zone.parse("#{date.to_s} #{period_time.ends_at}")
+              end
+              event.approximate   = false
+              event.non_existent  = false
+              event.private       = false
+              event.all_day       = false
+              event.compound      = false
+              event.source_id     = lesson.timetable_ident
+              if event.save
+                atomic_event_created_count += 1
+                event.reload
+                #
+                #  Add it to our array of events which are in the d/b.
+                #
+                dbatomic << event
               else
-    #            puts "Not loading - lesson = #{lesson.timetable_ident}, dbgroup = #{dbgroup ? dbgroup.name : "Not found"}"
+                puts "Failed to save event #{event.inspect}"
               end
             end
           end
@@ -2568,17 +2646,17 @@ class SB_Loader
               #  Now have a d/b record (event) and a SB record (lesson).
               #
               changed = false
-              period = @period_hash[lesson.period_ident]
+              period_time = lesson.period_time
               if lesson.lower_school
                 starts_at =
-                  Time.zone.parse("#{date.to_s} #{period.time.ls_starts_at}")
+                  Time.zone.parse("#{date.to_s} #{period_time.ls_starts_at}")
                 ends_at   =
-                  Time.zone.parse("#{date.to_s} #{period.time.ls_ends_at}")
+                  Time.zone.parse("#{date.to_s} #{period_time.ls_ends_at}")
               else
                 starts_at =
-                  Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+                  Time.zone.parse("#{date.to_s} #{period_time.starts_at}")
                 ends_at   =
-                  Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+                  Time.zone.parse("#{date.to_s} #{period_time.ends_at}")
               end
               if event.starts_at != starts_at
                 event.starts_at = starts_at
@@ -2706,11 +2784,7 @@ class SB_Loader
             puts "Adding #{sbonly.size} compound events." if @verbose
             sbonly.each do |sbo|
               lesson = @ctte_hash[sbo]
-              #
-              #  For each of these, just create the event.  Resources
-              #  will be handled later.
-              #
-              period = @period_hash[lesson.period_ident]
+              period_time = lesson.period_time
               #
               #  Although we're not going to attach the teachinggroup
               #  at the moment, we may need to find it to use its name
@@ -2722,21 +2796,21 @@ class SB_Loader
                   dbgroup = group.dbrecord
                 end
               end
-              if period && (lesson.meeting? || dbgroup)
+              if lesson.meeting? || dbgroup
                 event = Event.new
                 event.body          = lesson.body_text(self)
                 event.eventcategory = lesson.eventcategory(self)
                 event.eventsource   = @event_source
                 if lesson.lower_school
                   event.starts_at     =
-                    Time.zone.parse("#{date.to_s} #{period.time.ls_starts_at}")
+                    Time.zone.parse("#{date.to_s} #{period_time.ls_starts_at}")
                   event.ends_at       =
-                    Time.zone.parse("#{date.to_s} #{period.time.ls_ends_at}")
+                    Time.zone.parse("#{date.to_s} #{period_time.ls_ends_at}")
                 else
                   event.starts_at     =
-                    Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+                    Time.zone.parse("#{date.to_s} #{period_time.starts_at}")
                   event.ends_at       =
-                    Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+                    Time.zone.parse("#{date.to_s} #{period_time.ends_at}")
                 end
                 event.approximate   = false
                 event.non_existent  = false
@@ -2776,17 +2850,17 @@ class SB_Loader
               #  Now have a d/b record (event) and a SB record (lesson).
               #
               changed = false
-              period = @period_hash[lesson.period_ident]
+              period_time = lesson.period_time
               if lesson.lower_school
                 starts_at =
-                  Time.zone.parse("#{date.to_s} #{period.time.ls_starts_at}")
+                  Time.zone.parse("#{date.to_s} #{period_time.ls_starts_at}")
                 ends_at   =
-                  Time.zone.parse("#{date.to_s} #{period.time.ls_ends_at}")
+                  Time.zone.parse("#{date.to_s} #{period_time.ls_ends_at}")
               else
                 starts_at =
-                  Time.zone.parse("#{date.to_s} #{period.time.starts_at}")
+                  Time.zone.parse("#{date.to_s} #{period_time.starts_at}")
                 ends_at   =
-                  Time.zone.parse("#{date.to_s} #{period.time.ends_at}")
+                  Time.zone.parse("#{date.to_s} #{period_time.ends_at}")
               end
               if event.starts_at != starts_at
                 event.starts_at = starts_at
@@ -2796,6 +2870,10 @@ class SB_Loader
                 event.ends_at = ends_at
                 changed = true
               end
+#              if event.eventcategory_id == @registration_category.id ||
+#                 event.eventcategory_id == @tutor_category.id
+#                puts "Compound event #{event.id} has a surprising category."
+#              end
               if event.eventcategory_id != lesson.eventcategory(self).id
                 event.eventcategory = lesson.eventcategory(self)
                 compound_event_recategorized_count += 1
