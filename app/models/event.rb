@@ -235,21 +235,37 @@ class Event < ActiveRecord::Base
     self.elements.collect {|e| e.entity}
   end
 
+  def all_atomic_resources
+    found = Array.new
+    self.elements.each do |e|
+      if e.entity.instance_of?(Group)
+        found += e.entity.members(self.starts_at.to_date,
+                                  true,
+                                  true)
+      else
+        found << e.entity
+      end
+    end
+    found.uniq
+  end
+
   #
   #  These need enhancing to take account of the fact that particular
   #  types of resource might be involved in an event by dint of being
   #  members of a group.  Pupils especially, but it could apply to anything.
   #
+  #  Enhancement now done.
+  #
   def locations
-    self.resources.select {|r| r.instance_of?(Location)}
+    self.all_atomic_resources.select {|r| r.instance_of?(Location)}
   end
 
   def pupils
-    self.resources.select {|r| r.instance_of?(Pupil)}
+    self.all_atomic_resources.select {|r| r.instance_of?(Pupil)}
   end
 
   def staff
-    self.resources.select {|r| r.instance_of?(Staff)}
+    self.all_atomic_resources.select {|r| r.instance_of?(Staff)}
   end
 
   def groups

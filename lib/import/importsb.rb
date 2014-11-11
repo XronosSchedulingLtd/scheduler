@@ -988,6 +988,8 @@ class SB_StaffCover
       #    Commitments to events flagged as unimportant
       #    Commitments to events of the same category, flagged as mergeable,
       #    happening at exactly the same time (e.g. registration)
+      #    Events flagged as can_borrow, where more then one member of
+      #    staff is committed to the event.
       #
       clashes = []
       all_commitments =
@@ -1010,7 +1012,9 @@ class SB_StaffCover
                  (c.event.eventcategory.can_merge &&
                   c.event.eventcategory == cover_commitment.event.eventcategory &&
                   c.event.starts_at == cover_commitment.event.starts_at &&
-                  c.event.ends_at   == cover_commitment.event.ends_at)
+                  c.event.ends_at   == cover_commitment.event.ends_at) ||
+                 (c.event.eventcategory.can_borrow &&
+                  c.event.staff.size > 1)
             clashes << Clash.new(cover_commitment, c)
           end
         end
