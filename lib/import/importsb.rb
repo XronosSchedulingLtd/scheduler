@@ -962,6 +962,8 @@ class SB_StaffCover
 
     attr_reader :cover_commitment, :clashing_commitment
 
+    require_relative 'permitted_overloads'
+
     def initialize(cover_commitment, clashing_commitment)
       @cover_commitment    = cover_commitment
       @clashing_commitment = clashing_commitment
@@ -976,6 +978,16 @@ class SB_StaffCover
 
     def to_partial_path
       "user_mailer/clash"
+    end
+
+    def self.permitted_overload(cover_commitment, clashing_commitment)
+      PERMITTED_OVERLOADS.each do |pe|
+        if pe.cover_event_body =~ cover_commitment.event.body &&
+           pe.clash_event_body =~ clashing_commitment.event.body
+          return true
+        end
+      end
+      false
     end
 
     def self.find_clashes(cover_commitment)
@@ -1014,7 +1026,8 @@ class SB_StaffCover
                   c.event.starts_at == cover_commitment.event.starts_at &&
                   c.event.ends_at   == cover_commitment.event.ends_at) ||
                  (c.event.eventcategory.can_borrow &&
-                  c.event.staff.size > 1)
+                  c.event.staff.size > 1) ||
+                 permitted_overload(cover_commitment, c)
             clashes << Clash.new(cover_commitment, c)
           end
         end
