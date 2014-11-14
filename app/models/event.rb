@@ -256,16 +256,28 @@ class Event < ActiveRecord::Base
   #
   #  Enhancement now done.
   #
-  def locations
-    self.all_atomic_resources.select {|r| r.instance_of?(Location)}
+  def locations(and_by_group = false)
+    if and_by_group
+      self.all_atomic_resources.select {|r| r.instance_of?(Location)}
+    else
+      self.resources.select {|r| r.instance_of?(Location)}
+    end
   end
 
-  def pupils
-    self.all_atomic_resources.select {|r| r.instance_of?(Pupil)}
+  def pupils(and_by_group = false)
+    if and_by_group
+      self.all_atomic_resources.select {|r| r.instance_of?(Pupil)}
+    else
+      self.resources.select {|r| r.instance_of?(Pupil)}
+    end
   end
 
-  def staff
-    self.all_atomic_resources.select {|r| r.instance_of?(Staff)}
+  def staff(and_by_group = false)
+    if and_by_group
+      self.all_atomic_resources.select {|r| r.instance_of?(Staff)}
+    else
+      self.resources.select {|r| r.instance_of?(Staff)}
+    end
   end
 
   def groups
