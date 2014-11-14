@@ -1026,7 +1026,7 @@ class SB_StaffCover
                   c.event.starts_at == cover_commitment.event.starts_at &&
                   c.event.ends_at   == cover_commitment.event.ends_at) ||
                  (c.event.eventcategory.can_borrow &&
-                  c.event.staff.size > 1) ||
+                  c.event.staff(true).size > 1) ||
                  permitted_overload(cover_commitment, c)
             clashes << Clash.new(cover_commitment, c)
           end
