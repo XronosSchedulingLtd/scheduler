@@ -70,7 +70,7 @@ class ElementsController < ApplicationController
       #
       #  Request for the breakthrough events.
       #
-      categories = customer_categories || Eventcategory.publish
+      categories = customer_categories || Eventcategory.publish.for_users
       dbevents = Event.events_on(era.starts_on,
                                  era.ends_on,
                                  categories)
