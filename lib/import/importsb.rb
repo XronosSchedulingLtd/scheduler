@@ -3077,7 +3077,9 @@ class SB_Loader
         #  id - for historical reasons this may be nil.  Need to get rid
         #  of all of them.
         #
-        puts "Deleting covers with source_id #{db_id ? db_id : "nil"}."
+        if @verbose
+          puts "Deleting covers with source_id #{db_id ? db_id : "nil"}."
+        end
         existing_covers.select {|ec| ec.source_id == db_id}.each do |ec|
           ec.destroy
           covers_deleted += 1
