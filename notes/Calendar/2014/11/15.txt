@@ -1,0 +1,15 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-11-15T08:03:44+00:00
+
+====== Saturday 15 Nov 2014 ======
+
+There still seem to be some remaining issues with timing.  I've just seen a request for the timetable of element 10613 (S23) take 370173ms - at 07:51:47.  Need to investigate further.  The system is heavily into swap, so perhaps a re-boot as a temporary measure.  It was using about 1.7G of swap.
+
+How long does it take on my development system?  1219ms.  Odd?  Perhaps the system was simply swapping to death causing the delay, but what was taking up all the memory?  There seemed to be one ruby process using over 1G of RAM.  On the live system after a fresh re-boot it took 4349ms.  Sounds like it was indeed a swap issue rather than an inefficient query.  The question then arises of what on earth the rogue ruby instance was doing, and why it hadn't been tidied away.  It wasn't my overnight batch job, because that had finished and reported.
+
+Perhaps there is some particular request that can be made that takes ages to process, uses a vast amount of RAM and thus slows down everything else.  Let things run for a while and see if it happens again.
+
+First really long request took 157281ms completing at 07:26 this morning.  Now was it something started just before that which caused the problem?  Just a bit earlier there was a request for [[/ical/0]] and I haven't yet found its completion.  What would the file be called?  Try it on my test system.  It seems an incredibly long request - why?  It didn't used to be.  I think I have my culprit - now why?  Presumably trying to download everything, but it shouldn't.
+
+Stupid change by me - I meant to allow Ben to get all the calendar events, and instead caused a simple request to return just about every event in the system.  Slap wrists.  Can Ben still get what he needs now I've fixed it?  Yes he can - excellent.

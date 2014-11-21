@@ -1,0 +1,13 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-11-14T13:22:09+00:00
+
+====== Friday 14 Nov 2014 ======
+
+I just saw my live server take 103s to process a request for what I think was my calendar, excluding cover.  It used to take about 7-10s so something which I've changed recently has clearly broken it.  Investigate what.
+
+A request for [[/ical/otl]] at 13:22:48 is taking, wait for it, 93262ms.  Clearly something seriously wrong.  My immediate suspicions fall on the changes which I made to include events included via a group when checking for cover clashes.  Should be relatively straightforward to do a binary chop test on my test system.
+
+Try with the same code on my test system.  Producing thousands and thousands of database hits.  Took 55235ms on this much faster system.  OK - try reversing that change to the nested resource finding.  Yes, without that change the same call took 2007ms.  Clearly a side effect which I didn't intend.  Let's make the recursion optional, and default to off.  The loading code can then opt for "on".
+
+Fixed version took 2019ms.  Now to enhance the loading code too.

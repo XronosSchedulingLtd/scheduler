@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20141111170609) do
+ActiveRecord::Schema.define(version: 20141116155313) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -24,6 +24,22 @@ ActiveRecord::Schema.define(version: 20141111170609) do
   add_index "commitments", ["covering_id"], name: "index_commitments_on_covering_id", using: :btree
   add_index "commitments", ["element_id"], name: "index_commitments_on_element_id", using: :btree
   add_index "commitments", ["event_id"], name: "index_commitments_on_event_id", using: :btree
+
+  create_table "delayed_jobs", force: true do |t|
+    t.integer  "priority",   default: 0, null: false
+    t.integer  "attempts",   default: 0, null: false
+    t.text     "handler",                null: false
+    t.text     "last_error"
+    t.datetime "run_at"
+    t.datetime "locked_at"
+    t.datetime "failed_at"
+    t.string   "locked_by"
+    t.string   "queue"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "delayed_jobs", ["priority", "run_at"], name: "delayed_jobs_priority", using: :btree
 
   create_table "elements", force: true do |t|
     t.string   "name"

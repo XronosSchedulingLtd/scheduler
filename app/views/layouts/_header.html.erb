@@ -54,6 +54,15 @@
             <li><%= link_to "Groups", groups_path %></li>
             <li class="divider"></li>
           <% end %>
+          <% if current_user.can_trigger_cover_check? %>
+            <li class="has-dropdown">
+              <a href="#" data-dropdown="drop3" data-options="is_hover:true">Cover</a>
+              <ul id="drop3" class="f-dropdown" data-dropdown-content>
+                <li><%= link_to "Check", settings_path %></li>
+              </ul>
+            </li>
+            <li class="divider"></li>
+          <% end %>
           <li>
             <% if current_user.known? %>
               <a href="/users/<%= current_user.id %>" data-reveal-id="eventModal" data-reveal-ajax="true"><%= current_user.name %></a>

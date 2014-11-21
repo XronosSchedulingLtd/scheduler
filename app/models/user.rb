@@ -73,6 +73,10 @@ class User < ActiveRecord::Base
     self.editor || self.admin
   end
 
+  def can_trigger_cover_check?
+    self.arranges_cover
+  end
+
   #
   #  Can this user edit the indicated item?
   #

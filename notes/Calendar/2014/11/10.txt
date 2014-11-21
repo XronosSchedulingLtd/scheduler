@@ -7,9 +7,9 @@ Creation-Date: 2014-11-10T20:32:58+00:00
 To merge in latest changes to reduce the error messages about cover:
 
 [*] Back up live database
-[ ] Install latest code
-[ ] export RAILS_ENV=production
-[ ] rake [[db:migrate]]
-[ ] touch tmp/restart.txt
-[ ] Edit Registration and Tutor period to make them mergeable
-[ ] lib/import/importsb.rb
+[*] Install latest code
+[*] export RAILS_ENV=production
+[*] rake [[db:migrate]]
+[*] touch tmp/restart.txt
+[*] Edit Registration and Tutor period to make them mergeable
+[*] lib/import/importsb.rb
