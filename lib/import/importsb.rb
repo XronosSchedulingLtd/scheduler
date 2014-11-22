@@ -32,6 +32,60 @@ require_relative '../../config/environment'
 
 IMPORT_DIR = 'import'
 
+#
+#  The purpose of this class is to keep track of which teachers teach which
+#  subjects to which year groups, and to regurgitate that information later.
+#
+#  Each instantiation of the class holds information for one subject.
+#
+class WhoTeachesWhat
+
+  attr_reader :teachers, :year_teachers
+
+  @@subjects = Hash.new
+
+  def initialize(subject)
+    @subject = subject
+    @teachers = Array.new
+    @year_teachers = Hash.new
+  end
+
+  def note_teacher(staff, group)
+    unless @teachers.include?(staff)
+#      puts "Adding #{staff.name} to #{@subject.subject_name} teachers."
+      @teachers << staff
+    end
+    year_record =
+      @year_teachers[group.year.year_num] ||= Array.new
+    unless year_record.include?(staff)
+#      puts "Adding #{staff.name} to year #{group.year.year_num} #{@subject.subject_name} teachers."
+      year_record << staff
+    end
+  end
+
+  def self.note_teacher(subject, staff, group)
+    subject_record =
+      @@subjects[subject.subject_name] ||= WhoTeachesWhat.new(subject)
+    subject_record.note_teacher(staff, group)
+  end
+
+  def self.teachers_by_subject
+    @@subjects.each do |subject_name, record|
+      yield subject_name, record.teachers
+    end
+  end
+
+  def self.teachers_by_subject_and_year
+    @@subjects.each do |subject_name, record|
+      record.year_teachers.each do |year_num, teachers|
+        yield subject_name, year_num, teachers
+      end
+    end
+  end
+
+end
+
+
 Column = Struct.new(:label, :attr_name, :numeric)
 
 #
@@ -380,6 +434,7 @@ class SB_Group
   include DatabaseAccess
 
   attr_accessor :records, :era_id
+  attr_reader   :year, :curriculum
 
   def initialize
     @records = Array.new
@@ -395,7 +450,9 @@ class SB_Group
   end
 
   def adjust(loader)
-    @era_id = loader.era.id
+    @era_id     = loader.era.id
+    @year       = loader.year_hash[self.year_ident]
+    @curriculum = loader.curriculum_hash[self.curriculum_ident]
   end
 
   def wanted?(loader)
@@ -404,8 +461,9 @@ class SB_Group
     #  Note that groups must be loaded from file after curriculum and
     #  academic year, or they'll all get rejected.
     #
-    curriculum = loader.curriculum_hash[@curriculum_ident]
-    !!(curriculum && curriculum.ac_year_ident == loader.era.source_id)
+    !!(self.year &&
+       self.curriculum &&
+       self.curriculum.ac_year_ident == loader.era.source_id)
   end
 
   def source_id
@@ -1450,20 +1508,14 @@ class SB_Timetableentry
       #  needs to be 7 or 8.
       #
       group = loader.group_hash[self.group_ident]
-      if group
-        year = loader.year_hash[group.year_ident]
-        if year && (year.year_num == 7 || year.year_num == 8)
-          @lower_school = true
-        end
+      if group && (group.year.year_num == 7 || group.year.year_num == 8)
+        @lower_school = true
       end
     else
       if self.group_idents.size > 0
         group = loader.group_hash[self.group_idents[0]]
-        if group
-          year = loader.year_hash[group.year_ident]
-          if year && (year.year_num == 7 || year.year_num == 8)
-            @lower_school = true
-          end
+        if group && (group.year.year_num == 7 || group.year.year_num == 8)
+          @lower_school = true
         end
       end
     end
@@ -1752,6 +1804,10 @@ class SB_Year
     self.ptype == 60
   end
 
+  def year_ordinal
+    (self.year_num - 6).ordinalize
+  end
+
 end
 
 class SB_Loader
@@ -1998,7 +2054,6 @@ class SB_Loader
     #  Make a list of which teachers teach each of the subjects.
     #  Don't go for d/b records yet because we may yet need to create them.
     #
-    @subject_teacher_hash = {}
     @timetable_entries.each do |te|
       group = @group_hash[te.group_ident]
       if group
@@ -2008,25 +2063,13 @@ class SB_Loader
             te.staff_idents.each do |staff_ident|
               staff = @staff_hash[staff_ident]
               if staff && staff.active && staff.current
-                if @subject_teacher_hash[subject.subject_name]
-                  unless @subject_teacher_hash[subject.subject_name].include?(staff)
-                    @subject_teacher_hash[subject.subject_name] << staff
-                  end
-                else
-                  @subject_teacher_hash[subject.subject_name] = [staff]
-                end
+                WhoTeachesWhat.note_teacher(subject, staff, group)
               end
             end
           else
             staff = @staff_hash[te.staff_ident]
             if staff && staff.active && staff.current
-              if @subject_teacher_hash[subject.subject_name]
-                unless @subject_teacher_hash[subject.subject_name].include?(staff)
-                  @subject_teacher_hash[subject.subject_name] << staff
-                end
-              else
-                @subject_teacher_hash[subject.subject_name] = [staff]
-              end
+              WhoTeachesWhat.note_teacher(subject, staff, group)
             end
           end
         end
@@ -3622,10 +3665,20 @@ class SB_Loader
     ensure_membership("All pupils",
                       Pupil.current,
                       Pupil)
-    @subject_teacher_hash.each do |subject, teachers|
+    WhoTeachesWhat.teachers_by_subject do |subject, teachers|
       dbteachers = teachers.collect {|t| @staff_hash[t.staff_ident].dbrecord}.compact.select {|dbr| dbr.active}
       if dbteachers.size > 0
         ensure_membership("#{subject} teachers",
+                          dbteachers,
+                          Staff)
+      else
+        puts "Subject \"#{subject}\" has no apparent teachers."
+      end
+    end
+    WhoTeachesWhat.teachers_by_subject_and_year do |subject, year_num, teachers|
+      dbteachers = teachers.collect {|t| @staff_hash[t.staff_ident].dbrecord}.compact.select {|dbr| dbr.active}
+      if dbteachers.size > 0
+        ensure_membership("#{(year_num - 6).ordinalize} year #{subject} teachers",
                           dbteachers,
                           Staff)
       else
