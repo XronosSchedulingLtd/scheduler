@@ -1245,9 +1245,14 @@ class SB_StaffCover
               clashes = Clash.find_clashes(cover_commitment)
             else
               puts "Failed to save cover."
+              cover_commitment.errors.full_messages.each do |msg|
+                puts msg
+              end
+              puts "staff_ab_line_ident = #{@staff_ab_line_ident}"
             end
           else
             puts "Failed to find original commitment."
+            puts "staff_ab_line_ident = #{@staff_ab_line_ident}"
           end
         else
           puts "Failed to find corresponding lesson."
@@ -1896,6 +1901,7 @@ class SB_Loader
               :verbose,
               :lesson_category,
               :meeting_category,
+              :invigilation_category,
               :assembly_category,
               :chapel_category,
               :duty_category,
@@ -3176,7 +3182,7 @@ class SB_Loader
     if invigilations_added > 0 || @verbose
       puts "Added #{invigilations_added} instances of invigilation."
     end
-    if invigilations_added > 0 || @verbose
+    if invigilations_amended > 0 || @verbose
       puts "Amended #{invigilations_amended} instances of invigilation."
     end
     if invigilations_deleted > 0 || @verbose
@@ -3291,7 +3297,7 @@ class SB_Loader
                         cover_commitment.event = original_commitment.event
                         cover_commitment.element = staff_covering.dbrecord.element
                         cover_commitment.covering = original_commitment
-                        if cover_commitment.save!
+                        if cover_commitment.save
                           covers_added += 1
                         else
                           puts "Failed to save cover."
