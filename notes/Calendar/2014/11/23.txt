@@ -1,0 +1,18 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-11-23T10:07:13+00:00
+
+====== Sunday 23 Nov 2014 ======
+
+Looking at promoting some of my recent changes onto the live system, which will need a bit of care.
+
+Steps:
+
+[*] Back up live database.
+[*] export RAILS_ENV=production
+[*] Pull down latest code
+[*] bundle install
+[*] bundle exec rake db:migrate
+[*] bundle exec rake assets:precompile
+[*] touch tmp/restart.txt
+[*] Re-run last night's import job
