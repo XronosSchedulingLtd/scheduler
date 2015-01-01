@@ -3399,90 +3399,92 @@ class SB_Loader
 #      unless oh.staff.empty?
 #        puts "With #{oh.staff.collect {|s| s.name}.join(", ")}"
 #      end
-      event = Event.find_by(source_id: oh.oh_occurence_ident,
-                            eventcategory_id: @other_half_category.id,
-                            eventsource_id: @event_source.id)
-      if event
-        #
-        #  The event seems to be there OK.  Is its timing right?
-        #
-        modified = false
-        if event.starts_at != oh.starts_at
-          event.starts_at = oh.starts_at
-          modified = true
-        end
-        if event.ends_at != oh.ends_at
-          event.ends_at = oh.ends_at
-          modified = true
-        end
-        if modified
-          oh_events_retimed_count += 1
-          unless event.save
-            puts "Failed to update timing for #{oh.activity_name}"
+      if oh.starts_at >= @start_date
+        event = Event.find_by(source_id: oh.oh_occurence_ident,
+                              eventcategory_id: @other_half_category.id,
+                              eventsource_id: @event_source.id)
+        if event
+          #
+          #  The event seems to be there OK.  Is its timing right?
+          #
+          modified = false
+          if event.starts_at != oh.starts_at
+            event.starts_at = oh.starts_at
+            modified = true
           end
-          event.reload
-        end
-      else
-        #
-        #  Event does not yet exist.  Need to create it.
-        #
-        event = Event.new
-        event.body          = oh.activity_name
-        event.eventcategory = @other_half_category
-        event.eventsource   = @event_source
-        event.starts_at     = oh.starts_at
-        event.ends_at       = oh.ends_at
-        event.approximate   = false
-        event.non_existent  = false
-        event.private       = false
-        event.all_day       = false
-        event.compound      = false
-        event.source_id     = oh.oh_occurence_ident
-        if event.save
-          oh_events_added_count += 1
-          event.reload
+          if event.ends_at != oh.ends_at
+            event.ends_at = oh.ends_at
+            modified = true
+          end
+          if modified
+            oh_events_retimed_count += 1
+            unless event.save
+              puts "Failed to update timing for #{oh.activity_name}"
+            end
+            event.reload
+          end
         else
-          puts "Failed to save OH event #{oh.activity_name}"
+          #
+          #  Event does not yet exist.  Need to create it.
+          #
+          event = Event.new
+          event.body          = oh.activity_name
+          event.eventcategory = @other_half_category
+          event.eventsource   = @event_source
+          event.starts_at     = oh.starts_at
+          event.ends_at       = oh.ends_at
+          event.approximate   = false
+          event.non_existent  = false
+          event.private       = false
+          event.all_day       = false
+          event.compound      = false
+          event.source_id     = oh.oh_occurence_ident
+          if event.save
+            oh_events_added_count += 1
+            event.reload
+          else
+            puts "Failed to save OH event #{oh.activity_name}"
+          end
         end
-      end
-      #
-      #  Event is now in the database.  Need to ensure it has the
-      #  right staff, group and location.  Treat all resources just as
-      #  resources.
-      #
-      #  Use the element id as a unique identifier.
-      #
-      sb_element_ids = Array.new
-      oh.staff.each do |s|
-        if s.dbrecord && s.dbrecord.active && s.dbrecord.element
-          sb_element_ids << s.dbrecord.element.id
+        #
+        #  Event is now in the database.  Need to ensure it has the
+        #  right staff, group and location.  Treat all resources just as
+        #  resources.
+        #
+        #  Use the element id as a unique identifier.
+        #
+        sb_element_ids = Array.new
+        oh.staff.each do |s|
+          if s.dbrecord && s.dbrecord.active && s.dbrecord.element
+            sb_element_ids << s.dbrecord.element.id
+          end
         end
-      end
-      if oh.group && oh.group.dbrecord
-        sb_element_ids << oh.group.dbrecord.element.id
-      end
-      if oh.location &&
-         oh.location.dbrecord &&
-         oh.location.dbrecord.location &&
-         oh.location.dbrecord.location.active
-        sb_element_ids << oh.location.dbrecord.location.element.id
-      end
-      db_element_ids = event.commitments.collect {|c| c.element_id}
-      db_only = db_element_ids - sb_element_ids
-      sb_only = sb_element_ids - db_element_ids
-      sb_only.each do |sbid|
-        c = Commitment.new
-        c.event      = event
-        c.element_id = sbid
-        c.save
-        oh_event_commitments_added_count += 1
-      end
-      event.reload
-      if db_only.size > 0
-        event.commitments.each do |c|
-          if db_only.include?(c.element_id)
-            c.destroy
-            oh_event_commitments_removed_count += 1
+        if oh.group && oh.group.dbrecord
+          sb_element_ids << oh.group.dbrecord.element.id
+        end
+        if oh.location &&
+           oh.location.dbrecord &&
+           oh.location.dbrecord.location &&
+           oh.location.dbrecord.location.active
+          sb_element_ids << oh.location.dbrecord.location.element.id
+        end
+        db_element_ids = event.commitments.collect {|c| c.element_id}
+        db_only = db_element_ids - sb_element_ids
+        sb_only = sb_element_ids - db_element_ids
+        sb_only.each do |sbid|
+          c = Commitment.new
+          c.event      = event
+          c.element_id = sbid
+          c.save
+          oh_event_commitments_added_count += 1
+        end
+        event.reload
+        if db_only.size > 0
+          event.commitments.each do |c|
+            if db_only.include?(c.element_id)
+              c.destroy
+              oh_event_commitments_removed_count += 1
+            end
           end
         end
       end
@@ -3493,7 +3495,7 @@ class SB_Loader
     #
     events = Event.eventsource_id(@event_source.id).
                    eventcategory_id(@other_half_category.id).
-                   beginning(@era.starts_on).
+                   beginning(@start_date).
                    until(@era.ends_on)
     puts "Checking #{events.size} other half events for possible deletion." if @verbose
     oh_events_deleted_count = 0
