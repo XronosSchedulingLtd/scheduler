@@ -537,7 +537,10 @@ class ImportsController < ApplicationController
         #  which has any part of its duration within the indicated period
         #  gets loaded.
         #
-        Event.beginning(start_date).until(end_date).eventsource_id(eventsource.id).destroy_all
+        Event.beginning(start_date).
+              until(end_date).
+              eventsource_id(eventsource.id).
+              destroy_all
       end
       if do_load
         name = params[:name]
@@ -563,7 +566,10 @@ class ImportsController < ApplicationController
             if entries
               weekletterentries = []
               locator = Locator.new
-              entries.each do |entry|
+              entries.select { |entry|
+                               entry.ends_at >= start_date &&
+                               entry.starts_at < end_date
+                             }.each do |entry|
                 if entry.week_letter
                   #
                   #  We save these up and process them at the end.
