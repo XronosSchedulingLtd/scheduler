@@ -18,7 +18,11 @@ class ScheduleController < ApplicationController
            event.eventcategory_id == Event.invigilation_category.id
           @colour = "red"
         else
-          @colour = colour
+          if event.non_existent
+            @colour = "gray"
+          else
+            @colour = colour
+          end
         end
       elsif event.eventcategory_id == Event.weekletter_category.id
         @colour = "pink"
@@ -63,7 +67,12 @@ class ScheduleController < ApplicationController
         if i
           element = i.element
           @schedule_events =
-            element.events_on(start_date, end_date).collect {|e|
+            element.events_on(start_date,
+                              end_date,
+                              nil,
+                              nil,
+                              false,
+                              true).collect {|e|
               ScheduleEvent.new(e, current_user, i.colour)
             }
         else
@@ -79,11 +88,21 @@ class ScheduleController < ApplicationController
         #  least one because of the current_user.known? check above.
         #
         ownership = current_user.ownerships.me[0]
-        events_involving = ownership.element.events_on(start_date, end_date)
+        events_involving = ownership.element.events_on(start_date,
+                                                       end_date,
+                                                       nil,
+                                                       nil,
+                                                       false,
+                                                       true)
         mine, notmine =
           events_involving.partition {|e| e.owner_id == current_user.id}
         myotherevents =
-          current_user.events_on(start_date, end_date) - mine
+          current_user.events_on(start_date,
+                                 end_date,
+                                 nil,
+                                 nil,
+                                 false,
+                                 true) - mine
         @schedule_events =
           notmine.collect {|e| ScheduleEvent.new(e,
                                                  current_user,

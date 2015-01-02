@@ -1,0 +1,44 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-01-02T09:34:16+00:00
+
+====== Friday 02 Jan 2015 ======
+
+Let's take a look at the suspendedlessons.csv file and see what the fields mean.  There are a number of entries there at present, but only the last one I believe is actually of any interest.
+
+'''
+SusIdent,SusStartdate,SusEndDate,YearIdent,SusReason,GroupIdent,ClassIdent,StartPeriod,EndPeriod,Ptype,SubIdent
+7,4061,4067,21,"5th year Mocks",,,27,11,60,
+8,4061,4067,21,"5th year mocks",,,,23,60,
+9,4149,4150,21,"Dummy exams",,,87,94,60,
+10,4172,4176,22,"4th year Exams ICF",,,13,120,60,
+11,4180,4239,21,"5th year Study Leave",,,25,120,60,
+12,4149,4180,22,"4th year Exams",,,,108,60,
+13,4182,4207,18,"L6th Study Leave",,,73,24,60,
+14,4149,4150,22,,,,13,118,,
+15,4149,4150,22,"4th year exams",,,1,118,60,
+16,4149,4150,22,"4th Exams",,,1,108,60,
+17,4149,4150,22,"4th Exams",,,1,108,60,
+18,4149,4150,22,"4th Exams",,,13,120,60,
+19,4149,4150,22,"4th Exams",,,13,120,60,
+20,4200,4239,19,"U6th Study Leave",,,1,120,60,
+21,4210,4214,23,"1st Exams",,,85,12,60,
+22,4210,4214,20,"2nd Exams",,,85,12,60,
+23,4222,4225,17,"3rd Exams",,,37,120,60,
+28,4354,4356,21,"dummy exams",,,1,70,60,
+29,4425,4431,21,"5th year Mock exams",,,25,24,60,
+'''
+
+
+The last line contains:
+
+* 29	Record id
+* 4425	Start date	2015-01-06
+* 4431	End date		2015-01-12
+* 21	Year ident	Fifth year
+* 25	Start period	Tuesday, Week A (?), 08:30
+* 24	End period	Monday, Week B (?), 16:35-17:10
+
+The week letters there seem to be wrong, but all I really need are the start and end dates and the start and end times.  I can combine those to produce an interval, then just compare each proposed lesson against the suspension record.  Any lessons which end up being suspended can be marked as non-existent in my database.  I'll then need to amend my display code to keep showing them, but grey them out.
+
+I think I need to set up any gaps as part of the initialisation process, then be able to call a method on any lesson suspended_on?(date), passing it just a date.  The lesson should by then have enough information to be able to return true/false.

@@ -18,9 +18,11 @@ class Eventcategory < ActiveRecord::Base
   #  I'd like to call this just public, but Rails already uses that name
   #  for internal purposes.
   #
-  scope :public_ones, lambda { where(public: true) }
-  scope :publish,     lambda { where(publish: true) }
-  scope :for_users,   lambda { where(for_users: true) }
+  scope :public_ones,      lambda { where(public: true) }
+  scope :publish,          lambda { where(publish: true) }
+  scope :for_users,        lambda { where(for_users: true) }
+  scope :name_starts_with, lambda { |prefix| where("name LIKE :prefix",
+                                                   prefix: "#{prefix}%") }
 
   @@category_cache = {}
 

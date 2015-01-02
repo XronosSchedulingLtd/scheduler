@@ -1428,6 +1428,60 @@ class SB_Subject
 end
 
 
+class SB_SuspendedLesson
+  FILE_NAME = "suspendedlessons.csv"
+  #
+  #  Note that the d of "date" in the start date is lower case, whilst
+  #  the D in Date of the end date is upper case.  Furlong need to be
+  #  given a really big shake.
+  #
+  REQUIRED_COLUMNS =
+    [Column["SusIdent",     :suspension_ident,   true],
+     Column["SusStartdate", :start_date_ident,   true],
+     Column["SusEndDate",   :end_date_ident,     true],
+     Column["YearIdent",    :year_ident,         true],
+     Column["StartPeriod",  :start_period_ident, true],
+     Column["EndPeriod",    :end_period_ident,   true]]
+
+  include Slurper
+
+  attr_reader :starts_at, :ends_at
+
+  def initialize
+    @got_duration = false
+    @starts_at = nil
+    @ends_at   = nil
+  end
+
+  def adjust(loader)
+    #
+    #  Need to work out our actual start and finish times.
+    #
+    start_date   = loader.safe_date(self.start_date_ident)
+    end_date     = loader.safe_date(self.end_date_ident)
+    start_period = loader.period_hash[self.start_period_ident]
+    end_period   = loader.period_hash[self.end_period_ident]
+    if start_date && end_date && start_period && end_period
+      @starts_at =
+        Time.zone.parse("#{start_date.to_s} #{start_period.time.starts_at}")
+      @ends_at =
+        Time.zone.parse("#{end_date.to_s} #{end_period.time.ends_at}")
+#      puts "Suspension for year_ident #{@year_ident} from #{@starts_at.to_s} to #{ends_at.to_s}"
+      @got_duration = true
+    end
+  end
+
+  def wanted?(loader)
+    @got_duration
+  end
+
+  def source_id
+    @suspension_ident
+  end
+
+end
+
+
 class SB_Timetableentry
   FILE_NAME = "timetable.csv"
   REQUIRED_COLUMNS = [Column["TimetableIdent", :timetable_ident, true],
@@ -1463,12 +1517,29 @@ class SB_Timetableentry
     @room_idents  = []
     @body_text = nil
     @lower_school = false
+    @suspensions = []
+    @year_group_id = nil
   end
 
   def adjust(loader)
+    @gaps = loader.gaps
     if loader.period_hash[self.period_ident]
       @period = loader.period_hash[self.period_ident]
       @period_time = @period.time
+      #
+      #  Are there any suspensions which might apply to this lesson?
+      #
+      loader.suspensions.each do |suspension|
+        if suspension.year_ident == self.year_ident(loader)
+          #
+          #  Potentially applies to us.
+          #
+          if suspension.ends_at >= loader.start_date
+#            puts "Found a possible suspension for year_group_id #{self.year_ident(loader)}"
+            @suspensions << suspension
+          end
+        end
+      end
     else
       @period = nil
       @period_time = nil
@@ -1504,6 +1575,67 @@ class SB_Timetableentry
 
   def atomic?
     !@compound
+  end
+
+  #
+  #  Check whether this particular lesson is suspended on the indicated
+  #  date.  Take account of the time of this lesson.
+  #
+  def suspended_on?(date)
+    starts_at = Time.zone.parse("#{date.to_s} #{@period_time.starts_at}")
+    ends_at   = Time.zone.parse("#{date.to_s} #{@period_time.ends_at}")
+    @suspensions.each do |suspension|
+      #
+      #  Usual argument.  Think about when the overlap doesn't apply.
+      #  If we start after the end of the suspension, or end before
+      #  it begins then we're not interested in this suspension.  Apply
+      #  De Morgan's law to get the inverse.
+      #
+      if starts_at < suspension.ends_at &&
+         ends_at >= suspension.starts_at
+        return true
+      end
+    end
+    false
+  end
+
+  #
+  #  And does this lesson exist at all on the specified date.  Typically
+  #  this gets rid of lessons on, e.g. Inset days.
+  #
+  def exists_on?(date)
+    starts_at = Time.zone.parse("#{date.to_s} #{@period_time.starts_at}")
+    ends_at   = Time.zone.parse("#{date.to_s} #{@period_time.ends_at}")
+    @gaps.each do |gap|
+      if starts_at < gap.ends_at &&
+         ends_at >= gap.starts_at
+        return false
+      end
+    end
+    true
+  end
+
+  #
+  #  Returns our year group id, or 0 if we don't seem to have one.
+  #  Information is cached.
+  #
+  def year_ident(loader)
+    unless @year_group_id
+      group = nil
+      if atomic?
+        group = loader.group_hash[self.group_ident]
+      else
+        if self.group_idents.size > 0
+          group = loader.group_hash[self.group_idents[0]]
+        end
+      end
+      if group
+        @year_group_id = group.year_ident
+      else
+        @year_group_id = 0
+      end
+    end
+    @year_group_id
   end
 
   def identify_ls(loader)
@@ -1869,6 +2001,8 @@ class SB_Loader
                                :period_ident],
                    InputSource[:periods, SB_Period, :period, :period_ident],
                    InputSource[:subjects, SB_Subject, :subject, :subject_ident],
+                   InputSource[:dates, SB_Date, :date, :date_ident],
+                   InputSource[:suspensions, SB_SuspendedLesson],
                    InputSource[:timetable_entries, SB_Timetableentry, :tte,
                                :timetable_ident],
                    InputSource[:staffablines, SB_StaffAbLine, :sal,
@@ -1876,7 +2010,6 @@ class SB_Loader
                    InputSource[:staffabsences, SB_StaffAbsence, :sa,
                                :staff_ab_ident],
                    InputSource[:staffcovers, SB_StaffCover],
-                   InputSource[:dates, SB_Date, :date, :date_ident],
                    InputSource[:rtrotaweek, SB_RotaWeek,
                                :rota_week, :rota_week_ident],
                    InputSource[:other_half, SB_OtherHalfOccurence,
@@ -1889,6 +2022,8 @@ class SB_Loader
     ]
 
   attr_reader :era,
+              :suspensions,
+              :gaps,
               :curriculum_hash,
               :date_hash,
               :group_hash,
@@ -1909,7 +2044,8 @@ class SB_Loader
               :tutor_category,
               :event_source,
               :period_hash,
-              :period_time_hash
+              :period_time_hash,
+              :start_date
 
   def initialize(options)
     @verbose     = options.verbose
@@ -1936,6 +2072,7 @@ class SB_Loader
     else
       @start_date = Date.today
     end
+    load_gaps
     puts "Reading data files." if @verbose
     INPUT_SOURCES.each do |is|
       array, msg = is.loader_class.slurp(self)
@@ -2146,6 +2283,19 @@ class SB_Loader
     end
     puts "Finished data initialisation." if @verbose
     yield self if block_given?
+  end
+
+  #
+  #  Find any gaps currently configured in the database.
+  #
+  def load_gaps
+    @gaps = []
+    event_categories = Eventcategory.name_starts_with("Gap")
+    if event_categories.size > 0
+      @gaps = Event.events_on(@start_date,
+                              @era.ends_on,
+                              event_categories)
+    end
   end
 
   #
@@ -2542,6 +2692,7 @@ class SB_Loader
       if week_letter
         lessons = @periods_by_week[week_letter][date.strftime("%A")]
         if lessons
+          lessons = lessons.select {|lesson| lesson.exists_on?(date)}
           #
           #  We have to process compound and non-compound events separately.
           #
@@ -2682,7 +2833,7 @@ class SB_Loader
                   Time.zone.parse("#{date.to_s} #{period_time.ends_at}")
               end
               event.approximate   = false
-              event.non_existent  = false
+              event.non_existent  = lesson.suspended_on?(date)
               event.private       = false
               event.all_day       = false
               event.compound      = false
@@ -2730,6 +2881,10 @@ class SB_Loader
               end
               if event.ends_at != ends_at
                 event.ends_at = ends_at
+                changed = true
+              end
+              if event.non_existent != lesson.suspended_on?(date)
+                event.non_existent = lesson.suspended_on?(date)
                 changed = true
               end
               if event.eventcategory_id != lesson.eventcategory(self).id
@@ -2879,7 +3034,7 @@ class SB_Loader
                     Time.zone.parse("#{date.to_s} #{period_time.ends_at}")
                 end
                 event.approximate   = false
-                event.non_existent  = false
+                event.non_existent  = lesson.suspended_on?(date)
                 event.private       = false
                 event.all_day       = false
                 event.compound      = true
@@ -2934,6 +3089,10 @@ class SB_Loader
               end
               if event.ends_at != ends_at
                 event.ends_at = ends_at
+                changed = true
+              end
+              if event.non_existent != lesson.suspended_on?(date)
+                event.non_existent = lesson.suspended_on?(date)
                 changed = true
               end
 #              if event.eventcategory_id == @registration_category.id ||
