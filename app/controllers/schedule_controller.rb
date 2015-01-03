@@ -11,6 +11,43 @@ class ScheduleController < ApplicationController
   #
   class ScheduleEvent
 
+    #
+    #  A bit of messing about is needed to generate a constant hash with
+    #  a default value.
+    #
+    KNOWN_COLOUR_NAMES = lambda do
+      known_colour_names = {
+        "red"   => "#FF0000",
+        "pink"  => "#FFC0CB",
+        "green" => "#008000"
+      }.default = "#000000"
+      known_colour_names
+    end.call
+
+    #
+    #  Passed a colour, produces a more greyed out version of the same
+    #  colour.  Lighter, and with less colour density, but still
+    #  clearly related.
+    #
+    def washed_out(colour)
+      if colour[0] != "#"
+        colour = KNOWN_COLOUR_NAMES[colour]
+      end
+      red_bit   = colour[1,2].hex
+      green_bit = colour[3,2].hex
+      blue_bit  = colour[5,2].hex
+      red_bit   = (255 - (255 - red_bit)   / 2)
+      green_bit = (255 - (255 - green_bit) / 2)
+      blue_bit  = (255 - (255 - blue_bit)  / 2)
+      "##{
+           sprintf("%02x", red_bit)
+         }#{
+           sprintf("%02x", green_bit)
+         }#{
+           sprintf("%02x", blue_bit)
+         }"
+    end
+
     def initialize(event, current_user = nil, colour = nil)
       @event  = event
       if current_user && current_user.known? && colour
@@ -18,16 +55,15 @@ class ScheduleController < ApplicationController
            event.eventcategory_id == Event.invigilation_category.id
           @colour = "red"
         else
-          if event.non_existent
-            @colour = "gray"
-          else
-            @colour = colour
-          end
+          @colour = colour
         end
       elsif event.eventcategory_id == Event.weekletter_category.id
         @colour = "pink"
       else
         @colour = "green"
+      end
+      if event.non_existent
+        @colour = washed_out(@colour)
       end
       @editable = current_user ? current_user.can_edit?(event) : false
     end

@@ -1,0 +1,15 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-01-03T10:59:06+00:00
+
+====== Saturday 03 Jan 2015 ======
+
+That all seems to be working well.  I need to sort out event colouring a bit more, because it becomes increasingly difficult to spot which events belong to which entity.  ISTR planning to do this by using Element.commitments_on instead of Element.events_on.  I could also do with some code which manipulates colours, e.g. by greying down an existing colour.  That would require the ability to translate named colours into numeric values.
+
+Done that.  It looks nice.
+
+An interesting thought has just occurred to me.  Sometimes when ICF suspends lessons in SB, it refers to just the lessons (e.g. for 5th year mocks) but at other times it means everything - tutor periods, registration etc - because the chaps are on study leave.  I don't think there's any way I can tell these apart from SB's data, so I may well need something else.
+
+Also, gaps as I currently implement them can't really do it either, because gaps cause the slots to disappear entirely, whilst suspensions cause them to be marked as non-existent.  When boys are on study leave, the lessons should still appear in the timetable as non-existent (so that one can see who should be doing invigilation), but not the registrations etc.
+
+I think for now what I will do is simply make ICF's suspensions apply to lessons only.  Registration, tutor period, chapel etc will stay.  I will remove those later with enhanced gap code if required.  Note that I'll need to be able to cope with compound events, where some of the staff and pupils cease to attend, for instance, assembly, but the event continues to exist.  Could be quite amusing.

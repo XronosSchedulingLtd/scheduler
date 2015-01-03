@@ -1494,14 +1494,14 @@ class SB_Timetableentry
 
   include Slurper
 
-  attr_accessor :compound,
-                :source_hash,
-                :staff_idents,
-                :group_idents,
-                :room_idents,
-                :lower_school,
-                :period,
-                :period_time
+  attr_reader :compound,
+              :source_hash,
+              :staff_idents,
+              :group_idents,
+              :room_idents,
+              :lower_school,
+              :period,
+              :period_time
 
   #
   #  The following item exists to allow us to find the right merged
@@ -1519,6 +1519,7 @@ class SB_Timetableentry
     @lower_school = false
     @suspensions = []
     @year_group_id = nil
+    @event_type = nil
   end
 
   def adjust(loader)
@@ -1581,19 +1582,21 @@ class SB_Timetableentry
   #  Check whether this particular lesson is suspended on the indicated
   #  date.  Take account of the time of this lesson.
   #
-  def suspended_on?(date)
-    starts_at = Time.zone.parse("#{date.to_s} #{@period_time.starts_at}")
-    ends_at   = Time.zone.parse("#{date.to_s} #{@period_time.ends_at}")
-    @suspensions.each do |suspension|
-      #
-      #  Usual argument.  Think about when the overlap doesn't apply.
-      #  If we start after the end of the suspension, or end before
-      #  it begins then we're not interested in this suspension.  Apply
-      #  De Morgan's law to get the inverse.
-      #
-      if starts_at < suspension.ends_at &&
-         ends_at >= suspension.starts_at
-        return true
+  def suspended_on?(loader, date)
+    if self.event_type(loader) == :lesson
+      starts_at = Time.zone.parse("#{date.to_s} #{@period_time.starts_at}")
+      ends_at   = Time.zone.parse("#{date.to_s} #{@period_time.ends_at}")
+      @suspensions.each do |suspension|
+        #
+        #  Usual argument.  Think about when the overlap doesn't apply.
+        #  If we start after the end of the suspension, or end before
+        #  it begins then we're not interested in this suspension.  Apply
+        #  De Morgan's law to get the inverse.
+        #
+        if starts_at < suspension.ends_at &&
+           ends_at >= suspension.starts_at
+          return true
+        end
       end
     end
     false
@@ -1668,23 +1671,46 @@ class SB_Timetableentry
     @group_ident == nil && @group_idents.size == 0
   end
 
+  #
+  #  Calculate and cache our event type.
+  #
+  def event_type(loader)
+    unless @event_type
+      if self.meeting?
+        @event_type = :meeting
+      elsif self.body_text(loader) == "Assembly"
+        @event_type = :assembly
+      elsif self.body_text(loader) == "Chapel"
+        @event_type = :chapel
+      elsif self.period_time.starts_at == "08:35" &&
+            self.period_time.ends_at == "08:55"
+        @event_type = :registration
+      elsif (self.period_time.starts_at == "12:10" &&
+             self.period_time.ends_at == "12:45") ||
+            (self.period_time.starts_at == "12:50" &&
+             self.period_time.ends_at == "13:25")
+        @event_type = :tutor_period
+      else
+        @event_type = :lesson
+      end
+    end
+    @event_type
+  end
+
   def eventcategory(loader)
-    if self.meeting?
-      loader.meeting_category
-    elsif self.body_text(loader) == "Assembly"
-      loader.assembly_category
-    elsif self.body_text(loader) == "Chapel"
-      loader.chapel_category
-    elsif self.period_time.starts_at == "08:35" &&
-          self.period_time.ends_at == "08:55"
-      loader.registration_category
-    elsif (self.period_time.starts_at == "12:10" &&
-           self.period_time.ends_at == "12:45") ||
-          (self.period_time.starts_at == "12:50" &&
-           self.period_time.ends_at == "13:25")
-      loader.tutor_category
-    else
-      loader.lesson_category
+    case self.event_type(loader)
+      when :meeting
+        loader.meeting_category
+      when :assembly
+        loader.assembly_category
+      when :chapel
+        loader.chapel_category
+      when :registration
+        loader.registration_category
+      when :tutor_period
+        loader.tutor_category
+      else
+        loader.lesson_category
     end
   end
 
@@ -1804,14 +1830,24 @@ class SB_Timetableentry
 #          puts "  #{tte.description}"
 #        end
         compounded = matching[0].clone
-        compounded.compound = true
-        compounded.source_hash = SB_Timetableentry.generate_hash(matching)
-        compounded.staff_idents =
-          matching.collect {|tte| tte.staff_ident}.uniq.compact
-        compounded.group_idents =
-          matching.collect {|tte| tte.group_ident}.uniq.compact
-        compounded.room_idents  =
-          matching.collect {|tte| tte.room_ident}.uniq.compact
+        #
+        #  Don't want to provide a general method to write to these
+        #  instance variables, but it's legitimate to use instance_variable_set
+        #  here as we're inside the implementation of the object.
+        #
+        compounded.instance_variable_set("@compound", true)
+        compounded.instance_variable_set(
+          "@source_hash",
+          SB_Timetableentry.generate_hash(matching))
+        compounded.instance_variable_set(
+          "@staff_idents",
+          matching.collect {|tte| tte.staff_ident}.uniq.compact)
+        compounded.instance_variable_set(
+          "@group_idents",
+          matching.collect {|tte| tte.group_ident}.uniq.compact)
+        compounded.instance_variable_set(
+          "@room_idents",
+          matching.collect {|tte| tte.room_ident}.uniq.compact)
 #        puts "Combined #{matching.size} events with digest #{compounded.source_hash}."
 #        puts "Event is #{compounded.time_note} and involves #{compounded.staff_idents.size} staff."
         result << compounded
@@ -2833,7 +2869,7 @@ class SB_Loader
                   Time.zone.parse("#{date.to_s} #{period_time.ends_at}")
               end
               event.approximate   = false
-              event.non_existent  = lesson.suspended_on?(date)
+              event.non_existent  = lesson.suspended_on?(self, date)
               event.private       = false
               event.all_day       = false
               event.compound      = false
@@ -2883,8 +2919,8 @@ class SB_Loader
                 event.ends_at = ends_at
                 changed = true
               end
-              if event.non_existent != lesson.suspended_on?(date)
-                event.non_existent = lesson.suspended_on?(date)
+              if event.non_existent != lesson.suspended_on?(self, date)
+                event.non_existent = lesson.suspended_on?(self, date)
                 changed = true
               end
               if event.eventcategory_id != lesson.eventcategory(self).id
@@ -3034,7 +3070,7 @@ class SB_Loader
                     Time.zone.parse("#{date.to_s} #{period_time.ends_at}")
                 end
                 event.approximate   = false
-                event.non_existent  = lesson.suspended_on?(date)
+                event.non_existent  = lesson.suspended_on?(self, date)
                 event.private       = false
                 event.all_day       = false
                 event.compound      = true
@@ -3091,8 +3127,8 @@ class SB_Loader
                 event.ends_at = ends_at
                 changed = true
               end
-              if event.non_existent != lesson.suspended_on?(date)
-                event.non_existent = lesson.suspended_on?(date)
+              if event.non_existent != lesson.suspended_on?(self, date)
+                event.non_existent = lesson.suspended_on?(self, date)
                 changed = true
               end
 #              if event.eventcategory_id == @registration_category.id ||
