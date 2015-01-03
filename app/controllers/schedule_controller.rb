@@ -107,7 +107,7 @@ class ScheduleController < ApplicationController
                               end_date,
                               nil,
                               nil,
-                              false,
+                              true,
                               true).collect {|e|
               ScheduleEvent.new(e, current_user, i.colour)
             }
@@ -128,7 +128,7 @@ class ScheduleController < ApplicationController
                                                        end_date,
                                                        nil,
                                                        nil,
-                                                       false,
+                                                       true,
                                                        true)
         mine, notmine =
           events_involving.partition {|e| e.owner_id == current_user.id}
@@ -137,7 +137,7 @@ class ScheduleController < ApplicationController
                                  end_date,
                                  nil,
                                  nil,
-                                 false,
+                                 true,
                                  true) - mine
         @schedule_events =
           notmine.collect {|e| ScheduleEvent.new(e,
