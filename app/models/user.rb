@@ -5,12 +5,11 @@
 
 class User < ActiveRecord::Base
 
-  DECENT_COLOURS = ["#B8860B",      # DarkGoldenRed (brown)
-                    "#556B2F",      # DarkOliveGreen
+  DECENT_COLOURS = [
                     "#483D8B",      # DarkSlateBlue
-                    "#2F4F4F",      # DarkSlateGray
                     "#CD5C5C",      # IndianRed
                     "#3CB371",      # MediumSeaGreen
+                    "#B8860B",      # DarkGoldenRed (brown)
                     "#7B68EE",      # MediumSlateBlue
                     "#808000",      # Olive
                     "#6B8E23",      # OliveDrab
@@ -18,6 +17,8 @@ class User < ActiveRecord::Base
                     "#2E8B57",      # SeaGreen
                     "#A0522D",      # Sienna
                     "#008080",      # Teal
+                    "#2F4F4F",      # DarkSlateGray
+                    "#556B2F",      # DarkOliveGreen
                     "#FF6347"]      # Tomato
 
   has_many :ownerships, :dependent => :destroy
