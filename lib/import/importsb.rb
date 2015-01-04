@@ -40,14 +40,16 @@ IMPORT_DIR = 'import'
 #
 class WhoTeachesWhat
 
-  attr_reader :teachers, :year_teachers
+  attr_reader :teachers, :year_teachers, :groups, :year_groups
 
   @@subjects = Hash.new
 
   def initialize(subject)
     @subject = subject
-    @teachers = Array.new
+    @teachers      = Array.new
     @year_teachers = Hash.new
+    @groups        = Array.new
+    @year_groups   = Hash.new
   end
 
   def note_teacher(staff, group)
@@ -55,11 +57,19 @@ class WhoTeachesWhat
 #      puts "Adding #{staff.name} to #{@subject.subject_name} teachers."
       @teachers << staff
     end
+    unless @groups.include?(group)
+      @groups << group
+    end
     year_record =
       @year_teachers[group.year.year_num] ||= Array.new
     unless year_record.include?(staff)
 #      puts "Adding #{staff.name} to year #{group.year.year_num} #{@subject.subject_name} teachers."
       year_record << staff
+    end
+    year_group_record =
+      @year_groups[group.year.year_num] ||= Array.new
+    unless year_group_record.include?(group)
+      year_group_record << group
     end
   end
 
@@ -75,10 +85,76 @@ class WhoTeachesWhat
     end
   end
 
+  def self.groups_by_subject
+    @@subjects.each do |subject_name, record|
+      yield subject_name, record.groups
+    end
+  end
+
   def self.teachers_by_subject_and_year
     @@subjects.each do |subject_name, record|
       record.year_teachers.each do |year_num, teachers|
         yield subject_name, year_num, teachers
+      end
+    end
+  end
+
+  def self.groups_by_subject_and_year
+    @@subjects.each do |subject_name, record|
+      record.year_groups.each do |year_num, groups|
+        yield subject_name, year_num, groups
+      end
+    end
+  end
+
+end
+
+#
+#  And this one is for pupils in a similar fashion.
+#
+class WhoStudiesWhat
+
+  attr_reader :pupils, :year_pupils
+
+  @@subjects = Hash.new
+
+  def initialize(subject)
+    @subject = subject
+    @pupils = Array.new
+    @year_pupils = Hash.new
+  end
+
+  def note_pupils(group)
+    group.records.each do |ar|
+      unless @pupils.include?(ar.pupil)
+#        puts "Adding #{ar.pupil.name} to #{@subject.subject_name} pupils."
+        @pupils << ar.pupil
+      end
+      year_record =
+        @year_pupils[group.year.year_num] ||= Array.new
+      unless year_record.include?(ar.pupil)
+#        puts "Adding #{ar.pupil.name} to year #{group.year.year_num} #{@subject.subject_name} pupils."
+        year_record << ar.pupil
+      end
+    end
+  end
+
+  def self.note_pupils(subject, group)
+    subject_record =
+      @@subjects[subject.subject_name] ||= WhoStudiesWhat.new(subject)
+    subject_record.note_pupils(group)
+  end
+
+  def self.pupils_by_subject
+    @@subjects.each do |subject_name, record|
+      yield subject_name, record.pupils
+    end
+  end
+
+  def self.pupils_by_subject_and_year
+    @@subjects.each do |subject_name, record|
+      record.year_pupils.each do |year_num, pupils|
+        yield subject_name, year_num, pupils
       end
     end
   end
@@ -325,11 +401,18 @@ class SB_AcademicRecord
 
   include Slurper
 
+  attr_reader :pupil
+
+  def initialize
+    @pupil = nil
+  end
+
   def adjust(loader)
+    @pupil = loader.pupil_hash[@pupil_ident]
   end
 
   def wanted?(loader)
-    true
+    @pupil != nil
   end
 
 end
@@ -2064,6 +2147,7 @@ class SB_Loader
               :date_hash,
               :group_hash,
               :location_hash,
+              :pupil_hash,
               :rota_week_hash,
               :sal_hash,
               :sa_hash,
@@ -2230,26 +2314,37 @@ class SB_Loader
       te.identify_ls(self)
     end
     #
-    #  Make a list of which teachers teach each of the subjects.
+    #  Make a list of which teachers teach each of the subjects,
+    #  and which students study them.
     #  Don't go for d/b records yet because we may yet need to create them.
     #
     @timetable_entries.each do |te|
-      group = @group_hash[te.group_ident]
-      if group
-        subject = @subject_hash[group.subject_ident]
-        if subject && subject.type == :proper_subject
-          if te.compound
-            te.staff_idents.each do |staff_ident|
-              staff = @staff_hash[staff_ident]
-              if staff && staff.active && staff.current
-                WhoTeachesWhat.note_teacher(subject, staff, group)
+      if te.compound
+        te.group_idents.each do |group_ident|
+          group = @group_hash[te.group_ident]
+          if group
+            subject = @subject_hash[group.subject_ident]
+            if subject && subject.type == :proper_subject
+              te.staff_idents.each do |staff_ident|
+                staff = @staff_hash[staff_ident]
+                if staff && staff.active && staff.current
+                  WhoTeachesWhat.note_teacher(subject, staff, group)
+                end
               end
+              WhoStudiesWhat.note_pupils(subject, group)
             end
-          else
+          end
+        end
+      else
+        group = @group_hash[te.group_ident]
+        if group
+          subject = @subject_hash[group.subject_ident]
+          if subject && subject.type == :proper_subject
             staff = @staff_hash[te.staff_ident]
             if staff && staff.active && staff.current
               WhoTeachesWhat.note_teacher(subject, staff, group)
             end
+            WhoStudiesWhat.note_pupils(subject, group)
           end
         end
       end
@@ -3888,6 +3983,47 @@ class SB_Loader
         puts "Subject \"#{subject}\" has no apparent teachers."
       end
     end
+    WhoTeachesWhat.groups_by_subject do |subject, groups|
+      dbgroups =
+        groups.collect {|g| @group_hash[g.group_ident].dbrecord}.compact
+      if dbgroups.size > 0
+        ensure_membership("#{subject} pupils",
+                          dbgroups,
+                          Group)
+      else
+        puts "Subject \"#{subject}\" has no apparent groups."
+      end
+    end
+    WhoTeachesWhat.groups_by_subject_and_year do |subject, year_num, groups|
+      dbgroups = groups.collect {|g| @group_hash[g.group_ident].dbrecord}.compact
+      if dbgroups.size > 0
+        ensure_membership("#{(year_num - 6).ordinalize} year #{subject} pupils",
+                          dbgroups,
+                          Group)
+      else
+        puts "Subject \"#{subject}\" has no apparent groups."
+      end
+    end
+#    WhoStudiesWhat.pupils_by_subject do |subject, pupils|
+#      dbpupils = pupils.collect {|p| @pupil_hash[p.pupil_ident].dbrecord}.compact
+#      if dbpupils.size > 0
+#        ensure_membership("#{subject} pupils",
+#                          dbpupils,
+#                          Pupil)
+#      else
+#        puts "Subject \"#{subject}\" has no apparent pupils."
+#      end
+#    end
+#    WhoStudiesWhat.pupils_by_subject_and_year do |subject, year_num, pupils|
+#      dbpupils = pupils.collect {|p| @pupil_hash[p.pupil_ident].dbrecord}.compact
+#      if dbpupils.size > 0
+#        ensure_membership("#{(year_num - 6).ordinalize} year #{subject} pupils",
+#                          dbpupils,
+#                          Pupil)
+#      else
+#        puts "Subject \"#{subject}\" has no apparent pupils."
+#      end
+#    end
   end
 
   def do_extra_groups
@@ -4094,5 +4230,4 @@ begin
 rescue RuntimeError => e
   puts e
 end
-
 
