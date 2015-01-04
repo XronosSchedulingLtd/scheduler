@@ -1450,6 +1450,7 @@ class SB_Subject
                      "Be the Best",
                      "Biology",
                      "Chemistry",
+                     "Chinese",
                      "Classical Civilisation",
                      "Design & Technology",
                      "Drama",
