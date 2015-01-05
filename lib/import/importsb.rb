@@ -2426,7 +2426,13 @@ class SB_Loader
     if event_categories.size > 0
       @gaps = Event.events_on(@start_date,
                               @era.ends_on,
-                              event_categories)
+                              event_categories).to_a
+      #
+      #  The to_a suffix causes the relation to be executed.  We don't
+      #  want to keep executing it every time we reference the gaps
+      #  (of which there are very few) and in any case, we need to save
+      #  the results to a file which can be read by older versions of Rails.
+      #
     end
   end
 
