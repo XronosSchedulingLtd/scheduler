@@ -181,7 +181,10 @@ TABLES = [SchoolBaseTable.new("academicrecord", :all),
                                "Period",
                                "StaffAbsenceDate2",
                                "Period2",
-                               "UserIdent"])]
+                               "UserIdent",
+                               "Invigilation",
+                               "InvigName",
+                               "RoomIdent"])]
 
 TABLES.each do |table|
   table.dump
