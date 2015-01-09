@@ -51,6 +51,7 @@ class WhoTeachesWhat
     @groups        = Array.new
     @year_groups   = Hash.new
   end
+  @@not_by_subject = WhoTeachesWhat.new("None")
 
   def note_teacher(staff, group)
     unless @teachers.include?(staff)
@@ -77,6 +78,7 @@ class WhoTeachesWhat
     subject_record =
       @@subjects[subject.subject_name] ||= WhoTeachesWhat.new(subject)
     subject_record.note_teacher(staff, group)
+    @@not_by_subject.note_teacher(staff, group)
   end
 
   def self.teachers_by_subject
@@ -104,6 +106,15 @@ class WhoTeachesWhat
       record.year_groups.each do |year_num, groups|
         yield subject_name, year_num, groups
       end
+    end
+  end
+
+  #
+  #  Return teachers grouped by the years which they teach.
+  #
+  def self.teachers_by_year
+    @@not_by_subject.year_teachers.each do |year_num, teachers|
+      yield year_num, teachers
     end
   end
 
@@ -3988,6 +3999,16 @@ class SB_Loader
                           Staff)
       else
         puts "Subject \"#{subject}\" has no apparent teachers."
+      end
+    end
+    WhoTeachesWhat.teachers_by_year do |year_num, teachers|
+      dbteachers = teachers.collect {|t| @staff_hash[t.staff_ident].dbrecord}.compact.select {|dbr| dbr.active}
+      if dbteachers.size > 0
+        ensure_membership("#{(year_num - 6).ordinalize} year teachers",
+                          dbteachers,
+                          Staff)
+      else
+        puts "Year \"#{year_num}\" has no apparent teachers."
       end
     end
     WhoTeachesWhat.groups_by_subject do |subject, groups|
