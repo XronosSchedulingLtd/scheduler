@@ -1070,7 +1070,8 @@ class SB_StaffAbsence
      Column["Period",            :period,         true],
      Column["StaffAbsenceDate2", :absence_date2,  true],
      Column["Period2",           :period2,        true],
-     Column["UserIdent",         :staff_ident,    true]]
+     Column["UserIdent",         :staff_ident,    true],
+     Column["RoomIdent",         :room_ident,     true]]
 
 
   include Slurper
@@ -1195,6 +1196,7 @@ class SB_StaffCover
     @staff_covering        = nil
     @staff_covered         = nil
     @cover_or_invigilation = nil
+    @invigilation_location = nil
     @dbrecord              = nil
   end
 
@@ -1270,6 +1272,13 @@ class SB_StaffCover
           #
           @cover_or_invigilation = :invigilation
           puts "An invigilation slot for #{@staff_covering.name} on #{@date}." if loader.verbose
+          #
+          #  Is there a room specified which we know about?
+          #
+          @sa = loader.sa_hash[@sal.staff_ab_ident]
+          if @sa
+            @invigilation_location = loader.location_hash[@sa.room_ident]
+          end
           @period = loader.period_hash[@sal.period]
           if @period && @period.time
             result = true
@@ -1390,27 +1399,23 @@ class SB_StaffCover
               eventsource_id(loader.event_source.id).
               eventcategory_id(loader.invigilation_category.id).
               source_id(@sal.staff_ab_line_ident)[0]
-      if dbinvigilation
+      unless dbinvigilation
 #        puts "Invigilation already in the d/b."
         #
         #  Is it the right person?
         #
-        if dbinvigilation.commitments
-          commitment = dbinvigilation.commitments[0]
-          if commitment.element !=
-             @staff_covering.dbrecord.element
-            commitment.element = @staff_covering.dbrecord.element
-            commitment.save
-            amended += 1
-            commitment.reload
-          end
-          clashes = Clash.find_clashes(commitment)
-        end
-        #
-        #  TODO: Surely we should add our invigilator in if somehow
-        #  the event is there but no commitments?
-        #
-      else
+#        if dbinvigilation.commitments
+#          commitment = dbinvigilation.commitments[0]
+#          if commitment.element !=
+#             @staff_covering.dbrecord.element
+#            commitment.element = @staff_covering.dbrecord.element
+#            commitment.save
+#            amended += 1
+#            commitment.reload
+#          end
+#          clashes = Clash.find_clashes(commitment)
+#        end
+#      else
 #        puts "Creating invigilation event."
         starts_at =
           Time.zone.parse("#{@date.to_s} #{@period.time.starts_at}")
@@ -1430,13 +1435,48 @@ class SB_StaffCover
         event.source_id     = @sal.staff_ab_line_ident
         if event.save
           event.reload
+          dbinvigilation = event
+#          c = Commitment.new
+#          c.event = event
+#          c.element = @staff_covering.dbrecord.element
+#          c.save
+#          added += 1
+#          c.reload
+#          clashes = Clash.find_clashes(c)
+        else
+          puts "Failed to create invigilation event."
+        end
+      end
+      if dbinvigilation
+        #
+        #  Event is now in the d/b.  Make sure it has the right resources.
+        #
+        sb_element_ids = Array.new
+        sb_element_ids << @staff_covering.dbrecord.element.id
+        if @invigilation_location &&
+           @invigilation_location.dbrecord &&
+           @invigilation_location.dbrecord.location &&
+           @invigilation_location.dbrecord.location.active
+          sb_element_ids << @invigilation_location.dbrecord.location.element.id
+        end
+        db_element_ids = dbinvigilation.commitments.collect {|c| c.element_id}
+        db_only = db_element_ids - sb_element_ids
+        sb_only = sb_element_ids - db_element_ids
+        sb_only.each do |sbid|
           c = Commitment.new
-          c.event = event
-          c.element = @staff_covering.dbrecord.element
+          c.event      = dbinvigilation
+          c.element_id = sbid
           c.save
-          added += 1
-          c.reload
-          clashes = Clash.find_clashes(c)
+          amended += 1
+        end
+        dbinvigilation.reload
+        if db_only.size > 0
+          dbinvigilation.commitments.each do |c|
+            if db_only.include?(c.element_id)
+              c.destroy
+              amended += 1
+            end
+          end
         end
       end
     end

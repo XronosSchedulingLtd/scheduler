@@ -224,15 +224,31 @@ class Group < ActiveRecord::Base
     else
       # Rails.logger.info("No existing membership.")
       #
-      #  No existing membership record.  Create one.
+      #  No existing membership record for the specified date.
       #
-      membership = Membership.new
-      membership.group = self
-      membership.element = element
-      membership.starts_on = as_of
-      membership.inverse = false
-      membership.save!
-      # Rails.logger.info("Created new membership record.")
+      #  It is however possible that there is a future membership record,
+      #  which would clash with any new one which we tried to create.
+      #  Check for that too.
+      #
+      #  TODO: Also check for future exclusions.
+      #
+      future_memberships =
+        memberships.starts_after(as_of).by_element(element).inclusions
+      if future_memberships.size == 0
+        membership = Membership.new
+        membership.group = self
+        membership.element = element
+        membership.starts_on = as_of
+        membership.inverse = false
+        membership.save!
+        # Rails.logger.info("Created new membership record.")
+      else
+        # Rails.logger.info("Adjusting membership start back in time.")
+        selected = future_memberships.sort_by {|m| m.starts_on}.first
+        # Rails.logger.info("From #{selected.starts_on} to #{as_of}")
+        selected.starts_on = as_of
+        selected.save!
+      end
     end
   end
 

@@ -16,6 +16,7 @@ class Membership < ActiveRecord::Base
   validate :unique, :on => :create
 
   scope :starts_by, lambda {|date| where("starts_on <= ?", date) }
+  scope :starts_after, lambda {|date| where("starts_on > ?", date) }
   scope :continues_until, lambda {|date| where("ends_on IS NULL OR ends_on >= ?", date) }
   scope :active_on, lambda {|date| starts_by(date).continues_until(date) }
   scope :active_during, ->(start_date, end_date) {
