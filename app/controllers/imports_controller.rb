@@ -576,7 +576,8 @@ class ImportsController < ApplicationController
                   #
                   weekletterentries << entry
                 elsif entry.description =~ /^Duty Masters/ ||
-                      entry.description =~ /^Detention.*aster/i
+                      entry.description =~ /^Detention.*aster/i ||
+                      entry.description =~ /^Detention.*uty/i
                   relevant_staff = find_relevant_staff(entry.description,
                                                        known_staff)
                   unless add_event(entry.starts_at,
