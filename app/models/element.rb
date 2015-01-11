@@ -151,13 +151,62 @@ class Element < ActiveRecord::Base
                      owned_by:            nil,
                      include_nonexistent: false,
                      and_by_group:        true)
+    my_groups = []
     if and_by_group
-      if startdate != nil
+      #
+      #  This is not a full implementation of what is needed, but it
+      #  gives a good approximation for now.  For a discussion of possible
+      #  approaches, see notes for 11th Jan, 2014
+      #
+      if startdate == nil
+        if enddate == nil
+          #
+          #  We are defaulting to today, so get groups for today
+          #
+          my_groups = self.groups
+        else
+          end_date = enddate.to_date
+          if end_date < Date.today
+            #
+            #  End date is in the past, so I think that nothing is
+            #  going to be returned anyway, but just in case...
+            #
+            my_groups = self.groups(end_date)
+          else
+            my_groups = self.groups
+          end
+        end
+      else
         start_date = startdate.to_date
+        if start_date > Date.today
+          #
+          #  Start date in the future.
+          #
+          my_groups = self.groups(start_date)
+        else
+          #
+          #  Start date in the past
+          #
+          if enddate == nil
+            #
+            #  Just the one day required.
+            #
+            my_groups = self.groups(start_date)
+          else
+            end_date = enddate.to_date
+            if end_date < Date.today
+              my_groups = self.groups(end_date)
+            else
+              #
+              #  This is the most common case.  Start date and end
+              #  date both specified, and the current date falls
+              #  between them.
+              #
+              my_groups = self.groups
+            end
+          end
+        end
       end
-      my_groups = self.groups(start_date)
-    else
-      my_groups = []
     end
     Commitment.commitments_on(startdate:           startdate,
                               enddate:             enddate,
