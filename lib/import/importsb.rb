@@ -1371,12 +1371,21 @@ class SB_StaffCover
           #
           #  No.  Adjust.
           #
-          cover_commitment.element = @staff_covering.dbrecord.element
-          if cover_commitment.save
-            amended += 1
+          if @staff_covering.dbrecord.element
+            cover_commitment.element = @staff_covering.dbrecord.element
+            if cover_commitment.save
+              amended += 1
+            else
+              puts "Failed to save amended cover."
+            end
+            #
+            #  Reload regardless of whether or not the save succeeded,
+            #  because if it failed we want to get back the consistent
+            #  record which we had before.
+            #
             cover_commitment.reload
           else
-            puts "Failed to save amended cover."
+            puts "Can't change cover to #{@staff_covering.name} because element is nil."
           end
         end
         #
