@@ -14,9 +14,9 @@ Things in general to do:
 
 [*] Stop the import process affecting OH stuff in the past
 [*] Load latest calendar from calendar.abingdon.org.uk
-[ ] Implement gaps
-[ ] Implement suspended lessons
-[ ] Duty slots for next term
+[*] Implement gaps
+[*] Implement suspended lessons
+[*] Duty slots for next term
 [*] Latest data to Markbook
 
 I may think of other things.

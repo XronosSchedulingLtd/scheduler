@@ -1,0 +1,29 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-01-09T16:16:35+00:00
+
+====== DJD Discussion ======
+Created Friday 09 January 2015
+
+DJD and I met towards the end of the Michaelmas term to talk about whether Scheduler was ready to supplant the existing platform for supplying the school calendar.  I said no, and we agreed that the existing platform would continue for the Lent term, with Scheduler shadowing it as far as possible.
+
+I identified a short list of bits of functionality which would be needed for Scheduler to take over:
+
+[ ] Retain the structure (categorisation) of events in the import from Calendar to Scheduler
+[ ] Better dialogue for the entry of events - check existing Calendar
+[ ] Textual search on events
+[ ] List view of events (kind of needed for the textual search)
+[ ] Tidy up the display - it has a few niggles and isn't polished
+[ ] Category view - select events by type rather than by who/what is involved
+[ ] Facilities for the bulk entry of events, without having to repeat typing
+
+And as a step on the way there, I would like to:
+
+[ ] Fully automate import from Calendar to Scheduler - every night.
+
+In terms of information about events, we also identified the need to record.
+
+[ ] Who entered an event into the system
+[ ] Who is the organiser of the event
+[ ] Group (rather than individual) ownership of events
+[ ] Audit trail, plus an interface to examine it.

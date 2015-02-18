@@ -3,7 +3,17 @@ Possible cover issues - <%=
   now.strftime("%a #{now.day.ordinalize} %b, %Y %H:%M")
 %>
 
+<% if @clashes.size > 0 %>
   Automatic processing of the cover records from SchoolBase has
   thrown up the following possible clashes.
 
 <%= render @clashes %>
+<% end %>
+
+<% if @oddities.size > 0 %>
+  Automatic processing of the cover records from SchoolBase has
+  thrown up the following possible oddities.
+
+<%= render @oddities %>
+<% end %>
+

@@ -1,0 +1,14 @@
+<%
+  if oddity.covered_commitment.event.starts_at.to_date != @current_date
+    @current_date = oddity.covered_commitment.event.starts_at.to_date
+%>
+  <%= @current_date.strftime("%a %-d %b %y") %>
+
+<%
+  end
+%>
+  <%= oddity.staff_covering.dbrecord.name %> <%= oddity.descriptive_text %>
+  Set to cover <%= oddity.covered_commitment.event.body %> for <%= oddity.covered_commitment.element.entity.name %>
+  From <%= oddity.covered_commitment.event.starts_at.strftime("%H:%M") %> to <%= oddity.covered_commitment.event.ends_at.strftime("%H:%M") %>
+
+

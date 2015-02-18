@@ -1,0 +1,79 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-01-11T08:20:30+00:00
+
+====== Sunday 11 Jan 2015 ======
+
+Things to try to do today:
+
+[*] Fix the calendar import to identify detention duties again
+[*] Update calendar from Calendar
+[*] Pick up the location for invigilations
+[ ] Identify covers which involve a room change and add that too
+[ ] Can I get other half lists from SB?  Stuart seems to hold off loading the events until the lists exist, so presumably he's entering those too.
+
+And for the near future
+
+[ ] Structure the input coming from the calendar
+
+Now - how can I discover the location for an invigilation.  SB clearly knows it because it's on the notification e-mail which it sends out.
+
+The actual commitment is in an SB_StaffCover record, but that contains no room info.  It does contain a StaffAbLineIdent field which points to a record of that type.  That does potentially contain a RoomIdent.  Is that the one which we want?  Need a test case.
+
+I have an invigilation on Monday, period 5, in the Sports Hall.  The e-mail which I got about it specifies the Sports Hall.  Is that same information in the corresponding StaffAbLine record.  The last entry in that file for me is:
+
+''21583,4182,358,"John Winters",60''
+
+Is that the right one?  Date is 4182 (WTF don't they put //dates// in date fields?) which is 8th May, 2014.  Clearly not the right one.  Try it the other way around.  Tomorrow (12th Jan) is date number 4431.  The entry with that is:
+
+''38690,4431,358,"John Winters",60''
+
+So - need to look at StaffAbLine number 38690, which reads:
+
+''38690,3153,4431,8,1,358,,''
+
+Unfortunately, no room there.  How about in the StaffAbsence record?
+
+''3153,4431,1,4431,10,2,1,"Invigilation",352''
+
+And there it is.  Room number 352 is the Sports Hall.  So, a double indirection needed to find the room for an invigilation.  Shouldn't be too difficult.
+
+Hit an interesting problem which I don't intend to do anything about just now, but it's worth noting.  The correct solution needs to be left for a while.
+
+I tried running a load with a start date of 1st January, 2015, in order to set the invigilation locations for events of the past week.  It crashed because it had tried to add William Chessel to S7 R Ch-1, as from 1st January, but he is already there as a member (as from 5th January, so not on the 1st).
+
+My code does take account of the dates, but then tries to create a new membership record starting from the first, extending into the future.  This clashes with the existing membership record running from the 5th, resulting in the error.  Arguably I'm trying to load set information from today as if it were appropriate for the 1st.  SB doesn't have any concept of when the set lists are valid - it just works on now.
+
+TODO: think about how this should be corrected.  Perhaps when adding a membership from a given date like this we should check for a corresponding membership which starts in the future (relative to the given date) and if one is found then move its start date back in time.  One would need to check that by doing so one did not cause it to overlap an existing membership.  Arguably though, we have already checked that the individual is not a member on the given date, so all we need to do is find //all// future memberships and extend back in time only the one which is closest in the future.
+
+Actually, having said I'd leave it for later, I've implemented an improvement already, as detailed above.  It seems OK.  Need to check:
+
+[*] If I run the pre-dated load a second time, no further adjustments should occur.
+[*] If I re-load the current database and re-run the import without pre-dating it, no adjustments should occur.
+
+If I it passes both those tests, I'll let it loose.
+
+On the first test, I didn't get any adjustments, but my loader utility did try to do lots of adding of students to groups, which shouldn't have happened as it was a re-run of a previous command.  Presumably the code is checking the membership at the indicated date, but then adding them as at today's date.  Check.
+
+Ah - issue 1.  The groups being added to didn't exist on 1st Jan.  Therefore, if you request to add a member on 1st Jan, the start date gets adjusted forward to the start date of the group.  Therefore next time you check the individual still isn't a member on 1st Jan and so the adding is attempted again.  It never actually happens, because the code checks and finds he is already a member then.  Not therefore a real problem - it's an inevitable side effect of trying to load inappropriate data in the past.
+
+I'm also getting quite a lot of addition of pupils to constructed groups (i.e. not directly from SB) which I think perhaps did exist on 1st Jan.  Check.  Try "Mandarin pupils"  Ah no, it didn't.  "1st year French pupils"?  Likewise not.  They do all seem to be groups created since the 4th of Jan.  I've checked my code for creating and populating these groups and it does indeed seem to take into account the indicated date, so it appears that all is well.
+
+Re-load the database and run again without any adjustment of date.
+
+(Incidentally, I just loaded his pupil record as p, then did a p.groups to get his groups and it did some phenomenally inefficient database queries.  One to look at at some point.)
+
+TODO: why is p.groups so inefficient?  Fix it.
+
+One oddity - William Chessel has 41 membership records, but is a member of only 28 groups.  This seems to indicate he's moved around a lot.  Or some from last year?  Ah yes, only 18 of his memberships are active today.
+
+
+Just realised something else which I need to address fairly promptly.  Currently when one requests a calendar feed, one sees events to which one is committed directly, or via a group of which one was a member on the //first// day of the indicated period.  If you joined the group later then it doesn't show up.
+
+I thought up an algorithm for dealing with this a while back.  Instead of gathering up just the groups of which one was a member on the start date, one should gather up all the groups of which one was a member at any point in the interval.  One then gets events for all of those, and filters out any where the membership was not active at the time of the event.
+
+The really simplistic algorithm would be to do a separate call for each day of the required interval, but that would typically require 365 calls, so not efficient.
+
+As an alternative, one could again get all the memberships, identify those which had changed in the duration of the interval, identify all the change dates (call the number of changes N) then split the interval into N+1 sub-intervals and do a query for each of those, concatenating the results.
+
+Great fun to code - just need the time.

@@ -1,0 +1,17 @@
+<%
+  if oddity.covered_commitment.event.starts_at.to_date != @current_date
+    @current_date = oddity.covered_commitment.event.starts_at.to_date
+%>
+<tr><th colspan="6"><%= @current_date.strftime("%a %-d %b %y") %></th></tr>
+<%
+  end
+%>
+<tr>
+  <td><%= oddity.staff_covering.dbrecord.initials %></td>
+  <td><%= oddity.covered_commitment.element.entity.initials %></td>
+  <td><%= oddity.covered_commitment.event.body %></td>
+  <td><%= oddity.covered_commitment.event.starts_at.strftime("%H:%M") %></td>
+  <td><%= oddity.covered_commitment.event.ends_at.strftime("%H:%M") %></td>
+  <td><%= oddity.staff_covering.dbrecord.name %>
+      <%= oddity.descriptive_text %></td>
+</tr>

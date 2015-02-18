@@ -1190,6 +1190,27 @@ class SB_StaffCover
 
   end
 
+  class Oddity
+
+    attr_reader :covered_commitment, :staff_covering, :descriptive_text
+
+    def initialize(covered_commitment, staff_covering, descriptive_text)
+#      puts "Creating an oddity"
+      @covered_commitment = covered_commitment
+      @staff_covering     = staff_covering
+      @descriptive_text   = descriptive_text
+    end
+
+    def <=>(other)
+      self.event.starts_at <=> other.event.starts_at
+    end
+
+    def to_partial_path
+      "user_mailer/oddity"
+    end
+
+  end
+
   def initialize
     @sal  = nil
     @date = nil
@@ -1292,10 +1313,11 @@ class SB_StaffCover
   end
 
   def ensure_db(loader)
-    added = 0
-    amended = 0
-    deleted = 0
-    clashes = []
+    added    = 0
+    amended  = 0
+    deleted  = 0
+    clashes  = []
+    oddities = []
     if @cover_or_invigilation == :cover
       #
       #  Is it already in the database?
@@ -1323,7 +1345,7 @@ class SB_StaffCover
                            source_id(@sal.timetable_ident)[0]
         end
         if dblesson
-  #        puts "Found the corresponding lesson."
+#        puts "Found the corresponding lesson."
           #
           #  Need to find the commitment by the covered teacher
           #  to the indicated lesson.
@@ -1334,24 +1356,45 @@ class SB_StaffCover
             if original_commitment.covered
               puts "Commitment seems to be covered already."
             end
-            cover_commitment = Commitment.new
-            cover_commitment.event = original_commitment.event
-            cover_commitment.element = @staff_covering.dbrecord.element
-            cover_commitment.covering = original_commitment
-            cover_commitment.source_id = self.source_id
-            if cover_commitment.save
-              added += 1
-              cover_commitment.reload
-              #
-              #  Does this clash with anything?
-              #
-              clashes = Clash.find_clashes(cover_commitment)
-            else
-              puts "Failed to save cover."
-              cover_commitment.errors.full_messages.each do |msg|
-                puts msg
+            if @staff_covering.dbrecord.element
+              cover_commitment = Commitment.new
+              cover_commitment.event = original_commitment.event
+              cover_commitment.element = @staff_covering.dbrecord.element
+              cover_commitment.covering = original_commitment
+              cover_commitment.source_id = self.source_id
+              if cover_commitment.save
+                added += 1
+                cover_commitment.reload
+                #
+                #  Does this clash with anything?
+                #
+                clashes = Clash.find_clashes(cover_commitment)
+              else
+                puts "Failed to save cover."
+                cover_commitment.errors.full_messages.each do |msg|
+                  puts msg
+                end
+                puts "staff_ab_line_ident = #{@staff_ab_line_ident}"
+                puts "staff_covering:"
+                puts "  name #{@staff_covering.name}"
+                puts "  does_cover #{@staff_covering.does_cover}"
+                puts "dblesson:"
+                puts "  body: #{dblesson.body}"
+                puts "  eventcategory: #{dblesson.eventcategory.name}"
+                puts "  starts_at: #{dblesson.starts_at}"
+                puts "  ends_at: #{dblesson.ends_at}"
+                puts "original_commitment:"
+                puts "  element.name: #{original_commitment.element.name}"
               end
-              puts "staff_ab_line_ident = #{@staff_ab_line_ident}"
+            else
+              #
+              #  The indicated member of staff does not seem appropriate.
+              #
+              oddities <<
+                Oddity.new(
+                  original_commitment,
+                  @staff_covering,
+                  "does not seem to be a current member of the teaching staff")
             end
           else
             puts "Failed to find original commitment."
@@ -1385,7 +1428,9 @@ class SB_StaffCover
             #
             cover_commitment.reload
           else
-            puts "Can't change cover to #{@staff_covering.name} because element is nil."
+            oddities << Oddity.new(cover_commitment.covering,
+                                   @staff_covering,
+                                   "does not seem to be a current member of the teaching staff")
           end
         end
         #
@@ -1489,7 +1534,10 @@ class SB_StaffCover
         end
       end
     end
-    [added, amended, deleted, clashes]
+#    if oddities.size > 0
+#      puts "Returning #{oddities.size} oddities."
+#    end
+    [added, amended, deleted, clashes, oddities]
   end
 
 end
@@ -3425,6 +3473,7 @@ class SB_Loader
     invigilations_amended = 0
     invigilations_deleted = 0
     cover_clashes = []
+    cover_oddities = []
     #
     #  First group all the proposed covers by date, discarding any which
     #  are earlier than we are interested in.
@@ -3492,11 +3541,12 @@ class SB_Loader
         end
       end
       sb_covers.each do |sbc|
-        added, amended, deleted, clashes = sbc.ensure_db(self)
+        added, amended, deleted, clashes, oddities = sbc.ensure_db(self)
         covers_added += added
         covers_amended += amended
         covers_deleted += deleted
         cover_clashes += clashes
+        cover_oddities += oddities
       end
     end
     #
@@ -3545,11 +3595,15 @@ class SB_Loader
     if invigilations_deleted > 0 || @verbose
       puts "Deleted #{invigilations_deleted} instances of invigilation."
     end
-    if cover_clashes.size > 0
+    if cover_clashes.size > 0 ||
+       cover_oddities.size > 0
       puts "#{cover_clashes.size} apparent cover clashes."
+      puts "#{cover_oddities.size} apparent cover oddities."
       if @send_emails
         User.arranges_cover.each do |user|
-          UserMailer.cover_clash_email(user, cover_clashes).deliver
+          UserMailer.cover_clash_email(user,
+                                       cover_clashes,
+                                       cover_oddities).deliver
         end
       end
 #      current_date = Time.zone.parse("2010-01-01")
@@ -3573,7 +3627,7 @@ class SB_Loader
 #        end
 #      end
     else
-      puts "No apparent cover clashes."
+      puts "No apparent cover issues."
     end
   end
 
