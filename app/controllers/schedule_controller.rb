@@ -52,7 +52,8 @@ class ScheduleController < ApplicationController
       @event  = event
       if current_user && current_user.known? && colour
         if event.covered_by?(current_user.own_element) ||
-           event.eventcategory_id == Event.invigilation_category.id
+           (event.eventcategory_id == Event.invigilation_category.id &&
+            event.involves?(current_user.own_element))
           @colour = "red"
         else
           @colour = colour
