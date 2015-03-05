@@ -3297,9 +3297,11 @@ class SB_Loader
                 end
               else
                 puts "Not loading - lesson = #{lesson.source_hash}"
-                puts "  period = #{period}"
+                puts "  original id = #{lesson.timetable_ident}"
+#                puts "  period = #{period}"
                 puts "  lesson.meeting = #{lesson.meeting?}"
                 puts "  dbgroup = #{dbgroup}"
+                puts "  group_ident = #{lesson.group_idents[0]}"
     #            puts "Not loading - lesson = #{lesson.timetable_ident}, dbgroup = #{dbgroup ? dbgroup.name : "Not found"}"
               end
             end
