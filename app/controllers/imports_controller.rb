@@ -5,6 +5,7 @@
 
 require 'csv'
 require 'charlock_holmes'
+require 'chronic_duration'
 
 class Locator
   #
@@ -147,6 +148,12 @@ class CalendarEntry
                       ["End Time",      :end_time],
                       ["All day event", :all_day]]
 
+  ALTERNATIVE_COLUMNS = [["Subject",         :subject],
+                         ["Start Date/Time", :start_datetime],
+                         ["End Date/Time",   :end_datetime],
+                         ["All day event",   :all_day],
+                         ["Duration",        :duration]]
+
   def initialize(description, start_date, start_time, end_date, end_time, all_day)
     @description = description.encode("utf-8",
                                       "binary",
@@ -230,6 +237,42 @@ class CalendarEntry
   end
 
   #
+  #  This method takes data removed in a pretty raw form from the Calendar
+  #  database, and massages it to suit the above "initialise" method.
+  #
+  def self.construct(description,
+                     start_datetime,
+                     end_datetime,
+                     all_day,
+                     duration)
+    starts_at = Time.zone.parse(start_datetime)
+    start_date = starts_at.strftime("%Y-%m-%d")
+    start_time = starts_at.strftime("%H:%M:%S")
+    durationsecs  = ChronicDuration.parse(duration, :keep_zero => true)
+    if end_datetime == "1970-01-01 00:00:00"
+      if durationsecs > 0
+        ends_at = starts_at + durationsecs.seconds
+        end_date = ends_at.strftime("%Y-%m-%d")
+        end_time = ends_at.strftime("%H:%M:%S")
+      else
+        end_date = ""
+        end_time = start_time
+      end
+    else
+      ends_at  = Time.zone.parse(end_datetime)
+      end_date = ends_at.strftime("%Y-%m-%d")
+      end_time = ends_at.strftime("%H:%M:%S")
+    end
+    #Rails.logger.info "Event \"#{description}\" from #{starts_at} to #{ends_at} lasting #{durationsecs ? durationsecs : "nil"}."
+    self.new(description,
+             start_date,
+             start_time,
+             end_date,
+             end_time,
+             all_day == "1" ? "True" : "False")
+  end
+
+  #
   #  If this entry describes a week then return A or B.  If not, return nil.
   #
   def week_letter
@@ -255,6 +298,7 @@ class CalendarEntry
     #
     missing = false
     column_hash = {}
+    entries = []
     REQUIRED_COLUMNS.each do |column|
       index = csv_data[0].find_index(column[0])
       if index
@@ -264,9 +308,39 @@ class CalendarEntry
       end
     end
     if missing
-      return nil, "One or more required column(s) missing."
+      #
+      #  Have another go with an alternative set of columns.
+      #
+      missing = false
+      column_hash = {}
+      ALTERNATIVE_COLUMNS.each do |column|
+        index = csv_data[0].find_index(column[0])
+        if index
+          column_hash[column[1]] = index
+        else
+          missing = true
+        end
+      end
+      if missing
+        return nil, "One or more required column(s) missing."
+      else
+        #
+        #  The alternative columns seem to be there, but slightly
+        #  more processing will thus be needed.
+        #
+        csv_data.each_with_index do |parsed_line, i|
+          if i != 0
+            entries << CalendarEntry.construct(
+                         parsed_line[column_hash[:subject]],
+                         parsed_line[column_hash[:start_datetime]],
+                         parsed_line[column_hash[:end_datetime]],
+                         parsed_line[column_hash[:all_day]],
+                         parsed_line[column_hash[:duration]])
+          end
+        end
+        return entries, ""
+      end
     else
-      entries = []
       csv_data.each_with_index do |parsed_line, i|
         if i != 0
           entries << CalendarEntry.new(parsed_line[column_hash[:subject]],
