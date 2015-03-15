@@ -50,10 +50,10 @@ class Locator
     locations = Array.new
     broken = description.split(/\s*,\s*/)
     broken.each do |chunk|
-      location = @location_hash[chunk.downcase]
+      location = @location_hash[chunk.downcase.chomp(".")]
       if location
         found_something = true
-        Rails.logger.info "Found #{location.name} in \"#{description}\"."
+#        Rails.logger.info "Found #{location.name} in \"#{description}\"."
         locations << location
       else
         #
@@ -71,14 +71,14 @@ class Locator
       end
     end
     if found_something
-      Rails.logger.info("LOC: \"#{orgdescription}\" yields:")
-      locations.each do |la|
-        Rails.logger.info("LOC:    #{la.name}")
-      end
+#     Rails.logger.info("LOC: \"#{orgdescription}\" yields:")
+#     locations.each do |la|
+#       Rails.logger.info("LOC:    #{la.name}")
+#     end
       ["#{unused.join(", ")}#{tbc ? " (tbc)" : ""}",
        locations.collect {|la| la.location}]
     else
-      Rails.logger.info("LOC: No locations: \"#{orgdescription}\"")
+#     Rails.logger.info("LOC: No locations: \"#{orgdescription}\"")
       [orgdescription, []]
     end
   end
@@ -100,7 +100,12 @@ class Locator
       failed_any = false
       locations = []
       subchunks.each do |sc|
-        location = @location_hash[sc.downcase]
+        #
+        #  Someone has started putting trailing full stops onto location
+        #  names.  Never used to happen.
+        #
+#        Rails.logger.info "Testing \"#{sc.downcase.chomp(".")}\"."
+        location = @location_hash[sc.downcase.chomp(".")]
         if location
 #            puts "Found #{location.name}"
           locations << location
