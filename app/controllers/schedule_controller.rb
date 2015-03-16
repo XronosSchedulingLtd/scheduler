@@ -140,6 +140,16 @@ class ScheduleController < ApplicationController
                                  nil,
                                  true,
                                  true) - mine
+        if current_user.preferred_event_category
+          preferred_events =
+            current_user.preferred_event_category.events_on(start_date,
+                                                            end_date,
+                                                            nil,
+                                                            nil,
+                                                            true) - (mine + myotherevents)
+        else
+          preferred_events = []
+        end
         @schedule_events =
           notmine.collect {|e| ScheduleEvent.new(e,
                                                  current_user,
@@ -150,9 +160,13 @@ class ScheduleController < ApplicationController
           myotherevents.collect {|e| ScheduleEvent.new(e,
                                                        current_user,
                                                        current_user.colour_not_involved)} +
-          Event.events_on(start_date,
-                          end_date,
-                          Eventcategory.for_users).collect {|e|
+          preferred_events.collect {|e| ScheduleEvent.new(e,
+                                                          current_user,
+                                                          "green")} +
+          (Event.events_on(start_date,
+                           end_date,
+                           Eventcategory.for_users) -
+           (mine + myotherevents)).collect {|e|
             ScheduleEvent.new(e, current_user)
           }
       end

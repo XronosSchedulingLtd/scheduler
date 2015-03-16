@@ -26,6 +26,8 @@ class User < ActiveRecord::Base
 
   has_many :events,   foreign_key: :owner_id
 
+  belongs_to :preferred_event_category, class_name: Eventcategory
+
   #
   #  The only elements we can actually own currently are groups.  By creating
   #  a group with us as the owner, its corresponding element will also be
@@ -83,7 +85,11 @@ class User < ActiveRecord::Base
   #
   def can_edit?(item)
     if item.instance_of?(Event)
-      self.admin || (self.create_events? && item.owner_id == self.id)
+      self.admin ||
+      (self.create_events? && item.owner_id == self.id) ||
+      (self.create_events? &&
+       self.preferred_event_category_id &&
+       item.eventcategory_id == self.preferred_event_category_id)
     else
       false
     end

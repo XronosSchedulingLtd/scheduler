@@ -29,6 +29,9 @@ class EventsController < ApplicationController
     @event = Event.new
     es = Eventsource.find_by name: "Manual"
     @event.eventsource = es if es
+    if current_user.preferred_event_category
+      @event.eventcategory = current_user.preferred_event_category
+    end
     if request.xhr?
       if params[:date]
         start_date = Time.zone.parse(params[:date])

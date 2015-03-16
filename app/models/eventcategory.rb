@@ -12,6 +12,7 @@ class Eventcategory < ActiveRecord::Base
 
   has_many :events, dependent: :destroy
 
+  has_many :users, foreign_key: :preferred_event_category_id, :dependent => :nullify
   after_save :flush_cache
 
   #
