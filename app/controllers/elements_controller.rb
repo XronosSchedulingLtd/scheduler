@@ -173,15 +173,25 @@ class ElementsController < ApplicationController
       if file_type == :csv
         tf = Tempfile.new(["#{prefix}", ".csv"])
         starts_on.upto(ends_on) do |date|
+          #
+          #  I need to know accurately when this date starts and finishes,
+          #  taking into account the time zone.  All day events actually
+          #  start at 23:00 GMT the night before when DST is in effect.
+          #
+          start_of_day = Time.zone.parse(date.strftime("%Y-%m-%d"))
+          end_of_day = Time.zone.parse((date + 1.day).strftime("%Y-%m-%d"))
+          #
+          #  Header line
+          #
           tf.write(["#{date.strftime("%A #{date.day.ordinalize} %B, %Y")}"].to_csv)
           #
           #  We want any events which have any degree of occurence
-          #  on this date.
+          #  on this date. 
           #
           whole_day,part_day =
             dbevents.
-              select {|dbe| dbe.starts_at.to_date < (date + 1.day) &&
-                            dbe.ends_at.to_date > date}.
+              select {|dbe| dbe.starts_at < end_of_day &&
+                            dbe.ends_at   > start_of_day}.
               partition {|dbe| dbe.all_day}
           if do_compact
             whole_day = whole_day.select {|wde| wde.starts_at == date}
