@@ -485,6 +485,36 @@ class Event < ActiveRecord::Base
     !!self.commitments.detect {|c| c.element == resource}
   end
 
+  #
+  #  Produce a string for the event's duration.  With just a start time we
+  #  get:
+  #
+  #    "10:00"
+  #
+  #  and with an end time as well we would get:
+  #
+  #    "10:00-11:00"
+  #
+  def duration_string
+    if starts_at == ends_at
+      starts_at.strftime("%H:%M")
+    else
+      "#{starts_at.strftime("%H:%M")}-#{ends_at.strftime("%H:%M")}"
+    end
+  end
+
+  #
+  #  Default to sorting events by time.  If two events start at precisely
+  #  the same time, then the shorter is shown first.
+  #
+  def <=>(other)
+    if self.starts_at == other.starts_at
+      self.ends_at <=> other.ends_at
+    else
+      self.starts_at <=> other.starts_at
+    end
+  end
+
   def as_json(options = {})
     {
       :id        => "#{id}",
