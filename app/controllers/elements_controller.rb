@@ -180,8 +180,8 @@ class ElementsController < ApplicationController
           #
           whole_day,part_day =
             dbevents.
-              select {|dbe| dbe.starts_at < (date + 1.day) &&
-                            dbe.ends_at > date}.
+              select {|dbe| dbe.starts_at.to_date < (date + 1.day) &&
+                            dbe.ends_at.to_date > date}.
               partition {|dbe| dbe.all_day}
           if do_compact
             whole_day = whole_day.select {|wde| wde.starts_at == date}
