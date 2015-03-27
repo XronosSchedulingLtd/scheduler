@@ -188,7 +188,9 @@ class ElementsController < ApplicationController
           end
           whole_day.each do |wde|
             tf.write(["",
-                      (add_duration && (wde.ends_at > wde.starts_at + 1.day)) ?
+                      (add_duration &&
+                       (wde.ends_at > wde.starts_at + 1.day) &&
+                       (wde.ends_at > date + 1.day)) ?
                       "#{wde.body} (to #{wde.ends_at.strftime("#{(wde.ends_at - 1.day).day.ordinalize} %B")})":
                       wde.body,
                       wde.locations.collect {|l| l.name}.join(",")].to_csv)
