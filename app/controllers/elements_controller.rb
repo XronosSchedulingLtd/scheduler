@@ -32,6 +32,7 @@ class ElementsController < ApplicationController
     customer_categories = nil
     file_type = :ical
     do_compact = false
+    add_duration = false
     era = Setting.current_era
     starts_on = era.starts_on
     ends_on = era.ends_on
@@ -52,6 +53,9 @@ class ElementsController < ApplicationController
     end
     if params.has_key?(:compact)
       do_compact = true
+    end
+    if params.has_key?(:duration)
+      add_duration = true
     end
     if params[:start_date]
       starts_on = Date.parse(params[:start_date])
@@ -179,8 +183,13 @@ class ElementsController < ApplicationController
               select {|dbe| dbe.starts_at < (date + 1.day) &&
                             dbe.ends_at > date}.
               partition {|dbe| dbe.all_day}
+          if do_compact
+            whole_day = whole_day.select {|wde| wde.starts_at == date}
+          end
           whole_day.each do |wde|
             tf.write(["",
+                      (add_duration && (wde.ends_at > wde.starts_at + 1.day)) ?
+                      "#{wde.body} (to #{wde.ends_at.strftime("#{(wde.ends_at - 1.day).day.ordinalize} %B")})":
                       wde.body,
                       wde.locations.collect {|l| l.name}.join(",")].to_csv)
           end
