@@ -101,6 +101,9 @@ class ScheduleController < ApplicationController
     if current_user && current_user.known?
       if element_id != 0
         i = current_user.interests.detect {|ci| ci.element_id == element_id}
+        unless i
+          i = current_user.ownerships.detect {|co| co.element_id == element_id}
+        end
         if i
           element = i.element
           @schedule_events =

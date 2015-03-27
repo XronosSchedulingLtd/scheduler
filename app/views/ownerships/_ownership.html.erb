@@ -1,9 +1,9 @@
 <tr>
-  <td style="background-color:<%= ownership.colour %>;color:white" title="<%= ownership.element.id %>">
+  <td style="background-color:<%= ownership.colour %>;color:white" class="dynamic-element" element_id="<%= ownership.element_id %>" title="<%= ownership.element.id %>">
     <%= ownership.element.name %>
   </td>
   <td>
-    <input type="checkbox" value="on" />
+    <input class="clicky" type="checkbox" checked  element_id="<%= ownership.element_id %>" />
   </td>
   <td></td>
 </tr>

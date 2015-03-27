@@ -92,6 +92,12 @@ $(document).ready ->
               new_end: event.end.format()
     $('.dynamic-element').each (index) ->
       window.addEventSource($(this).attr('element_id'))
+    $('.clicky').each (index) ->
+      $(this).click ->
+        if this.checked
+          window.addEventSource($(this).attr('element_id'))
+        else
+          window.removeEventSource($(this).attr('element_id'))
   else
     $('#fullcalendar').fullCalendar
       currentTimezone: 'Europe/London'

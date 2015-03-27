@@ -1,0 +1,19 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-03-18T14:53:30+00:00
+
+====== Wednesday 18 Mar 2015 ======
+
+I am steadily realising that the "Calendar" event category simply shouldn't exist.
+
+1. Events have types, whether or not they're in the published calendar.  We need to be able to categorize them as Sport, Drama, etc orthogonally to whether or not they're in the calendar.
+2. Being in the calendar requires approval.  It would best be handled by the same approvals process as that for other resources.
+3. Once calendar-ness becomes a resource to be attached to events, it can come under my existing planned ownership structure for resources.
+4. If Calendar were a resource, then we would have more flexibility in selecting items for display or feeds.
+5. Likewise, once the tick-boxes are working for showing/hiding events by resource, they will work for Calendar too.
+
+The first step will be to create a new type of resource, in parallel to Staff, Pupils, Groups and Locations.  Not sure whether it's a Service (like Cleaning, Catering, Porters and Parking) or a different type.  Probably a different type.
+
+I can retain Calendar as a sort of pseudo-category, so requests for data feeds from that category will be translated into requests for events involving the Calendar resource.
+
+It occurs to me that other things should work this way too - for instance "Gap", causing lessons not to happen, and indeed possibly the breakthrough property which causes something to appear on everyone's calendar.

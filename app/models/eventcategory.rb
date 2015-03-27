@@ -58,4 +58,31 @@ class Eventcategory < ActiveRecord::Base
     @@category_cache = {}
   end
 
+  #
+  #  A maintenance method to cause all events in a given category to gain
+  #  the "Calendar" property.
+  #
+  def add_calendar_property
+    property = Property.find_by_name("Calendar")
+    if property
+      updated_count = 0
+      not_updated_count = 0
+      self.events.each do |event|
+        if event.involves?(property)
+          not_updated_count += 1
+        else
+          commitment = Commitment.new
+          commitment.event   = event
+          commitment.element = property.element
+          commitment.save!
+          updated_count += 1
+        end
+      end
+      puts "Updated #{updated_count} events. #{not_updated_count} already there."
+      nil
+    else
+      puts "Can't find Calendar property."
+    end
+  end
+
 end

@@ -4,6 +4,8 @@
     <th>Pupils</th>
     <th>Groups</th>
     <th>Locations</th>
+    <th>Services</th>
+    <th>Properties</th>
   </tr>
   <tr>
     <td valign="top">
@@ -17,6 +19,12 @@
     </td>
     <td valign="top">
       <%= commitment_entries_for(resource, Location, editing) %>
+    </td>
+    <td valign="top">
+      <%= commitment_entries_for(resource, Service, editing) %>
+    </td>
+    <td valign="top">
+      <%= commitment_entries_for(resource, Property, editing) %>
     </td>
   </tr>
 </table>

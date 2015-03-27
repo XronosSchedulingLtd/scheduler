@@ -3,7 +3,7 @@
     <%= interest.element.name %>
   </td>
   <td>
-    <input type="checkbox" value="1" />
+    <input class="clicky" type="checkbox" checked  element_id="<%= interest.element_id %>" />
   </td>
   <td>
     <%= link_to '&#215;'.html_safe, interest, remote: true, method: :delete %>
