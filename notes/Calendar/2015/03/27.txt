@@ -1,0 +1,28 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-03-27T09:46:37+00:00
+
+====== Friday 27 Mar 2015 ======
+
+DJD has a problem in that he wants to get all the calendar data into some sort of file (typically Excel) and currently what he's getting has problems.
+
+What's happening at the moment is that Ben W is taking the ical feed from Scheduler into Google Calendar.  It is then apparently being fed out again to Firefly and the school web site.  The problems are:
+
+1. It lags - up to about 24 hours
+2. Sometimes events appear twice or not at all.
+
+Karen is now in the position that she is pretty confident about what she has in Scheduler, but DJD can't get it the way he wants it.  I therefore propose to provide an alternative download mechanism from Scheduler where he can get the same data, but (ideally) in Excel spreadsheet format.  If I can't manage that then my fallback position is to use CSV.
+
+Excel spreadsheets by default seem to be pretty complicated, but apparently it is possible to generate a small subset of the file format and Excel will still read it.  Let's try that first.
+
+Ryan Bates has a Railscast on the subject, and as ever he does it so much more nicely than I have done to date.
+
+Hmm.  Done some initial experimentation with what Ryan thinks is an Excel file, but Excel itself refuses to open it.
+
+I could try using a package to generate my xlsx file.  As ever the choice is wide.
+
+A thought as I made myself a coffee - implement a csv solution first, which is a known quantity, then worry about the excel version.  Created a new branch to work on.  Need to download and import the current database, because the one which I have has been mangled a bit for the stuff which I was doing before.
+
+I could either add csv as a modifier, or change the URL.  Again, for simplicity I think I'll go for csv as a modifier.
+
+Got a first version working.  Need to add the means to specify dates, and make sure that my ical download has not been broken by this.

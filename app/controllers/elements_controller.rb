@@ -194,6 +194,10 @@ class ElementsController < ApplicationController
                             dbe.ends_at   > start_of_day}.
               partition {|dbe| dbe.all_day}
           if do_compact
+            #
+            #  I don't think this next line will work correctly if DST
+            #  is in effect.  Should surely compare with start_of_day?
+            #
             whole_day = whole_day.select {|wde| wde.starts_at == date}
           end
           whole_day.each do |wde|

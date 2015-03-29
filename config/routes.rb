@@ -42,6 +42,10 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :days do
+    get :index, :on => :collection
+  end
+
   resources :eventsources
 
   resources :eventcategories
