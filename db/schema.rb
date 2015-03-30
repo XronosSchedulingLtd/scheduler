@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150316175015) do
+ActiveRecord::Schema.define(version: 20150330054317) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -75,6 +75,7 @@ ActiveRecord::Schema.define(version: 20150316175015) do
     t.datetime "updated_at"
     t.boolean  "can_merge",     default: false
     t.boolean  "can_borrow",    default: false
+    t.boolean  "compactable",   default: true
   end
 
   create_table "events", force: true do |t|
@@ -179,6 +180,12 @@ ActiveRecord::Schema.define(version: 20150316175015) do
     t.string   "colour",     default: "#225599"
   end
 
+  create_table "properties", force: true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "pupils", force: true do |t|
     t.string   "name"
     t.string   "surname"
@@ -194,6 +201,12 @@ ActiveRecord::Schema.define(version: 20150316175015) do
   end
 
   add_index "pupils", ["source_id"], name: "index_pupils_on_source_id", using: :btree
+
+  create_table "services", force: true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "settings", force: true do |t|
     t.integer  "current_era_id"

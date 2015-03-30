@@ -521,21 +521,21 @@ class Event < ActiveRecord::Base
     ends_at.strftime("#{ends_at.day.ordinalize} %B")
   end
 
-  def to_csv(add_duration = false, date = nil)
-    if self.all_day
-      ["", 
-       (add_duration &&
-        (self.ends_at > self.starts_at + 1.day) &&
-        (self.ends_at > date + 1.day)) ?
-       "#{self.tidied_body} (to #{self.short_end_date_str})" :
-       self.tidied_body,
-       self.locations.collect {|l| l.name}.join(",")].to_csv
-    else
-      [" #{self.duration_string}",
-       self.tidied_body,
-       self.locations.collect {|l| l.name}.join(",")].to_csv
-    end
-  end
+#  def to_csv(add_duration = false, date = nil)
+#    if self.all_day
+#      ["", 
+#       (add_duration &&
+#        (self.ends_at > self.starts_at + 1.day) &&
+#        (self.ends_at > date + 1.day)) ?
+#       "#{self.tidied_body} (to #{self.short_end_date_str})" :
+#       self.tidied_body,
+#       self.locations.collect {|l| l.name}.join(",")].to_csv
+#    else
+#      [" #{self.duration_string}",
+#       self.tidied_body,
+#       self.locations.collect {|l| l.name}.join(",")].to_csv
+#    end
+#  end
 
   #
   #  Default to sorting events by time.  If two events start at precisely
@@ -560,6 +560,10 @@ class Event < ActiveRecord::Base
       :editable  => can_edit?,
       :color     => colour
     }
+  end
+
+  def compactable?
+    self.eventcategory.compactable
   end
 
   def self.duty_category

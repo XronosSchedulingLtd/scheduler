@@ -74,6 +74,11 @@ class ElementsController < ApplicationController
       #  ical downloads.
       #
       customer_category_names = params[:categories].split(",")
+      #
+      #  Nasty frig to give BW an extra category.  Will go away as soon
+      #  as I fix the way Calendar entries are identified.
+      #
+      customer_category_names << "Key date (external)"
       customer_categories = customer_category_names.collect { |ccn|
         Eventcategory.find_by_name(ccn)
       }.compact.select {|cc| cc.publish}

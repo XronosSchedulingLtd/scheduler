@@ -1,6 +1,6 @@
 class DaysController < ApplicationController
 
-  DEFAULT_CATEGORIES = ["Week letter", "Calendar"]
+  DEFAULT_CATEGORIES = ["Week letter", "Key date (external)", "Calendar"]
 
   #
   #  We create an array of Days, based on the indicated selection criteria,
@@ -13,9 +13,10 @@ class DaysController < ApplicationController
     #
     #  Set defaults
     #
-    do_compact   = false
-    add_duration = false
-    mark_end     = false
+    do_compact    = false
+    add_duration  = false
+    mark_end      = false
+    add_locations = false
     era = Setting.current_era
     start_date   = Date.today
     end_date     = era.ends_on
@@ -31,6 +32,9 @@ class DaysController < ApplicationController
     end
     if params.has_key?(:mark_end)
       mark_end = true
+    end
+    if params.has_key?(:locations)
+      add_locations = true
     end
     if params[:start_date]
       start_date = Date.parse(params[:start_date])
@@ -78,12 +82,14 @@ class DaysController < ApplicationController
     start_date.upto(end_date) do |date|
       start_of_day = Time.zone.parse(date.strftime("%Y-%m-%d"))
       end_of_day = Time.zone.parse((date + 1.day).strftime("%Y-%m-%d"))
-      day = Day.new(date, add_duration, mark_end)
+      day = Day.new(date, add_duration, mark_end, add_locations)
       dbevents.select {|dbe| dbe.starts_at < end_of_day &&
                              dbe.ends_at   > start_of_day}.
                select {|dbe| !do_compact ||
                              !dbe.all_day ||
-                             dbe.starts_at == start_of_day}.
+                             !dbe.compactable? ||
+                             dbe.starts_at == start_of_day ||
+                             (mark_end && dbe.ends_at == end_of_day)}.
                sort_by {|dbe| [sort_hash[dbe.eventcategory_id],
                                dbe.starts_at,
                                dbe.ends_at]}.
