@@ -11,6 +11,6 @@ I achieved a lot with my Days controller yesterday, but there's a bit of tweakin
 [ ] Take notice of the Eventcategory pecking order when sorting (later useful to make key dates like Maundy Thursday come to the top).
 [*] Allow the end date of a long event to be shown too?  Append "ends".
 [*] Put friendly location names in ical feed and downloads
-[ ] Allow an option to tag on location names to event descriptions in the .doc download.
+[*] Allow an option to tag on location names to event descriptions in the .doc download.
 
 As a new philosophy, I intend not to keep all the Events in the Day record, but instead generate all the required texts at the moment when the event is added, then discard the events.
