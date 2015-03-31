@@ -74,6 +74,6 @@ class EventcategoriesController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def eventcategory_params
-      params.require(:eventcategory).permit(:name, :pecking_order, :schoolwide, :publish, :public, :for_users, :unimportant, :can_merge, :can_borrow)
+      params.require(:eventcategory).permit(:name, :pecking_order, :schoolwide, :publish, :public, :for_users, :unimportant, :can_merge, :can_borrow, :compactable)
     end
 end

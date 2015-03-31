@@ -1,0 +1,24 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-03-28T11:01:49+00:00
+
+====== Saturday 28 Mar 2015 ======
+
+DJD has asked me about the possibility of producing a Word document, giving a compact summary of the calendar.  The sample which he's sent me is just a single large table, and apparently Word will open HTML documents quite satisfactorily, so the obvious approach would seem to be to do it that way.
+
+The Railscast way (#362) is much more elegant than mine so I might take the time to do it that way, but I need to check Word on the Mac with a simple hand-crafted document first.
+
+If I do it the Railscast way, then I should have a simple index request, on something like days.
+
+http://abingdon.scheduler.org.uk/days
+
+which would yield displayable html, and then:
+
+http://abingdon.scheduler.org.uk/days.doc
+http://abingdon.scheduler.org.uk/days.csv
+
+to get specialised downloads.  I would need a controller, and a pseudo-model - not saved to the database.  You could add start_date= and end_date= modifiers to get particular formatting.  It should in due course take over from the bit which I've recently implemented.
+
+Note that they need absolutely no administrative interface.  It's purely a presentation component, which derives from the existing database.  Time for another development branch?
+
+Done quite well.  I have the basic days page, and a days.doc page working.  I need to add the options, and implement days.csv to do the same as I implemented previously through the elements controller.

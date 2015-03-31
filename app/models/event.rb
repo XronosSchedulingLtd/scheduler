@@ -485,6 +485,76 @@ class Event < ActiveRecord::Base
     !!self.commitments.detect {|c| c.element == resource}
   end
 
+  #
+  #  Produce a string for the event's duration.  With just a start time we
+  #  get:
+  #
+  #    "10:00"
+  #
+  #  and with an end time as well we would get:
+  #
+  #    "10:00-11:00"
+  #
+  def duration_string(clock_format = :twenty_four_hour,
+                      end_time     = :true)
+    if clock_format == :twenty_four_hour
+      format_string = "%H:%M"
+    else
+      format_string = "%-l:%M %P"
+    end
+    if (starts_at == ends_at) || !end_time
+      starts_at.strftime(format_string)
+    else
+      "#{starts_at.strftime(format_string)}-#{ends_at.strftime(format_string)}"
+    end
+  end
+
+  #
+  #  Some of the body texts are being entered with trailing spaces, or
+  #  with or without full stops, and even in some cases ending in " . "
+  #  Clean it up.
+  #
+  def tidied_body(with_dot = false)
+    "#{self.body.chomp(" ").chomp(".").chomp(" ")}#{with_dot ? "." : ""}"
+  end
+
+  def short_end_date_str
+    if self.all_day
+      ends_at = self.ends_at - 1.day
+    else
+      ends_at = self.ends_at
+    end
+    ends_at.strftime("#{ends_at.day.ordinalize} %B")
+  end
+
+#  def to_csv(add_duration = false, date = nil)
+#    if self.all_day
+#      ["", 
+#       (add_duration &&
+#        (self.ends_at > self.starts_at + 1.day) &&
+#        (self.ends_at > date + 1.day)) ?
+#       "#{self.tidied_body} (to #{self.short_end_date_str})" :
+#       self.tidied_body,
+#       self.locations.collect {|l| l.name}.join(",")].to_csv
+#    else
+#      [" #{self.duration_string}",
+#       self.tidied_body,
+#       self.locations.collect {|l| l.name}.join(",")].to_csv
+#    end
+#  end
+
+  #
+  #  Default to sorting events by time.  If two events start at precisely
+  #  the same time, then the shorter is shown first.
+  #
+  def <=>(other)
+    if self.starts_at == other.starts_at
+      self.ends_at <=> other.ends_at
+    else
+      self.starts_at <=> other.starts_at
+    end
+  end
+
   def as_json(options = {})
     {
       :id        => "#{id}",
@@ -496,6 +566,10 @@ class Event < ActiveRecord::Base
       :editable  => can_edit?,
       :color     => colour
     }
+  end
+
+  def compactable?
+    self.eventcategory.compactable
   end
 
   def self.duty_category

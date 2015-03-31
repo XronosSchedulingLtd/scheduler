@@ -36,6 +36,15 @@ class Location < ActiveRecord::Base
     self.element_name
   end
 
+  def friendly_name
+    friendly_alias = locationaliases.detect {|la| la.friendly}
+    if friendly_alias
+      friendly_alias.name
+    else
+      self.name
+    end
+  end
+
   def <=>(other)
     self.name <=> other.name
   end

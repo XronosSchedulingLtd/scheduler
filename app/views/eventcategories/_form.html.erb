@@ -108,6 +108,18 @@
     </div>
   </div>
   <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :compactable, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :compactable %>
+    </div>
+    <div class="small-8 columns annotation">
+      When exporting calendar data, can multi-day events be compacted
+      to reduce their number of appearances?
+    </div>
+  </div>
+  <div class="row collapse">
     <div class="small-9 small-offset-3 columns">
       <%= f.submit %>
     </div>
