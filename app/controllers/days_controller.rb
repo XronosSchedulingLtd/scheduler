@@ -17,6 +17,8 @@ class DaysController < ApplicationController
     add_duration  = false
     mark_end      = false
     add_locations = false
+    clock_format  = :twenty_four_hour
+    end_times     = true
     era = Setting.current_era
     start_date   = Date.today
     end_date     = era.ends_on
@@ -41,6 +43,12 @@ class DaysController < ApplicationController
     end
     if params[:end_date]
       end_date = Date.parse(params[:end_date])
+    end
+    if params.has_key?(:twelve_hour)
+      clock_format = :twelve_hour
+    end
+    if params.has_key?(:no_end_time)
+      end_times = false
     end
     if params[:categories]
       #
@@ -82,7 +90,12 @@ class DaysController < ApplicationController
     start_date.upto(end_date) do |date|
       start_of_day = Time.zone.parse(date.strftime("%Y-%m-%d"))
       end_of_day = Time.zone.parse((date + 1.day).strftime("%Y-%m-%d"))
-      day = Day.new(date, add_duration, mark_end, add_locations)
+      day = Day.new(date,
+                    add_duration,
+                    mark_end,
+                    add_locations,
+                    clock_format,
+                    end_times)
       dbevents.select {|dbe| dbe.starts_at < end_of_day &&
                              dbe.ends_at   > start_of_day}.
                select {|dbe| !do_compact ||

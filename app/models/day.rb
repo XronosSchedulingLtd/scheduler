@@ -39,9 +39,14 @@ class Day
         @csv_text = @table_text
         @duration_string = ""
       else
-        @table_text = "#{event.duration_string} #{event.tidied_body(true)}"
+        @table_text =
+          "#{
+              event.duration_string(day.clock_format,
+                                    day.end_times)
+            } #{event.tidied_body(true)}"
         @csv_text = event.tidied_body(true)
-        @duration_string = event.duration_string
+        @duration_string = event.duration_string(day.clock_format,
+                                                 day.end_times)
       end
       if day.add_locations && !@locations_string.empty?
         @table_text =
@@ -64,15 +69,24 @@ class Day
               :ends_at,
               :add_duration,
               :mark_end,
-              :add_locations
+              :add_locations,
+              :clock_format,
+              :end_times
 
-  def initialize(date, add_duration, mark_end, add_locations)
+  def initialize(date,
+                 add_duration,
+                 mark_end,
+                 add_locations,
+                 clock_format,
+                 end_times)
     @date = date
     @starts_at = Time.zone.parse(date.strftime("%Y-%m-%d"))
     @ends_at   = Time.zone.parse((date + 1.day).strftime("%Y-%m-%d"))
     @add_duration  = add_duration
     @mark_end      = mark_end
     @add_locations = add_locations
+    @clock_format  = clock_format
+    @end_times     = end_times
     @all_day_events = []
     @timed_events   = []
   end
