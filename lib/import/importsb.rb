@@ -1454,23 +1454,6 @@ class SB_StaffCover
               eventcategory_id(loader.invigilation_category.id).
               source_id(@sal.staff_ab_line_ident)[0]
       unless dbinvigilation
-#        puts "Invigilation already in the d/b."
-        #
-        #  Is it the right person?
-        #
-#        if dbinvigilation.commitments
-#          commitment = dbinvigilation.commitments[0]
-#          if commitment.element !=
-#             @staff_covering.dbrecord.element
-#            commitment.element = @staff_covering.dbrecord.element
-#            commitment.save
-#            amended += 1
-#            commitment.reload
-#          end
-#          clashes = Clash.find_clashes(commitment)
-#        end
-#      else
-#        puts "Creating invigilation event."
         starts_at =
           Time.zone.parse("#{@date.to_s} #{@period.time.starts_at}")
         ends_at   =
@@ -1490,13 +1473,6 @@ class SB_StaffCover
         if event.save
           event.reload
           dbinvigilation = event
-#          c = Commitment.new
-#          c.event = event
-#          c.element = @staff_covering.dbrecord.element
-#          c.save
-#          added += 1
-#          c.reload
-#          clashes = Clash.find_clashes(c)
         else
           puts "Failed to create invigilation event."
         end
@@ -1516,20 +1492,35 @@ class SB_StaffCover
         db_element_ids = dbinvigilation.commitments.collect {|c| c.element_id}
         db_only = db_element_ids - sb_element_ids
         sb_only = sb_element_ids - db_element_ids
-        sb_only.each do |sbid|
-          c = Commitment.new
-          c.event      = dbinvigilation
-          c.element_id = sbid
-          c.save
-          amended += 1
+        if sb_only.size > 0
+          sb_only.each do |sbid|
+            c = Commitment.new
+            c.event      = dbinvigilation
+            c.element_id = sbid
+            c.save
+            amended += 1
+          end
+          dbinvigilation.reload
         end
-        dbinvigilation.reload
         if db_only.size > 0
           dbinvigilation.commitments.each do |c|
             if db_only.include?(c.element_id)
               c.destroy
               amended += 1
             end
+          end
+          dbinvigilation.reload
+        end
+        #
+        #  And check for clashes.
+        #
+        dbinvigilation.commitments.each do |c|
+          #
+          #  Only need to check for members of staff.  If we check locations
+          #  then we're bound to get clashes.
+          #
+          if c.element.entity.instance_of?(Staff)
+            clashes += Clash.find_clashes(c)
           end
         end
       end
@@ -3476,6 +3467,8 @@ class SB_Loader
     invigilations_deleted = 0
     cover_clashes = []
     cover_oddities = []
+    covers_processed = 0
+    invigilations_processed = 0
     #
     #  First group all the proposed covers by date, discarding any which
     #  are earlier than we are interested in.
@@ -3488,6 +3481,7 @@ class SB_Loader
       if sc.prepare(self) &&
          sc.date >= @start_date
         if sc.cover_or_invigilation == :cover
+          covers_processed += 1
           if covers_by_date[sc.date]
             covers_by_date[sc.date] << sc
           else
@@ -3497,6 +3491,7 @@ class SB_Loader
             end
           end
         else
+          invigilations_processed += 1
           if invigilations_by_date[sc.date]
             invigilations_by_date[sc.date] << sc
           else
@@ -3573,10 +3568,12 @@ class SB_Loader
         end
       end
       sb_invigilations.each do |sbi|
-        added, amended, deleted, clashes = sbi.ensure_db(self)
+        added, amended, deleted, clashes,oddities = sbi.ensure_db(self)
         invigilations_added += added
         invigilations_amended += amended
         invigilations_deleted += deleted
+        cover_clashes += clashes
+        cover_oddities += oddities
       end
     end
     if covers_added > 0 || @verbose
@@ -3597,6 +3594,7 @@ class SB_Loader
     if invigilations_deleted > 0 || @verbose
       puts "Deleted #{invigilations_deleted} instances of invigilation."
     end
+    puts "Processed #{covers_processed} covers and #{invigilations_processed} invigilations."
     if cover_clashes.size > 0 ||
        cover_oddities.size > 0
       puts "#{cover_clashes.size} apparent cover clashes."
@@ -4300,12 +4298,19 @@ class SB_Loader
 
 end
 
+def finished(options, stage)
+  if options.do_timings
+    puts "#{Time.now.strftime("%H:%M:%S")} finished #{stage}."
+  end
+end
+
 begin
   options = OpenStruct.new
   options.verbose         = false
   options.full_load       = false
   options.just_initialise = false
   options.send_emails     = false
+  options.do_timings      = false
   options.era             = nil
   options.start_date      = nil
   OptionParser.new do |opts|
@@ -4337,6 +4342,11 @@ begin
       options.send_emails = email
     end
 
+    opts.on("--timings",
+            "Log the time at various stages in the processing.") do |timings|
+      options.do_timings = timings
+    end
+
     opts.on("-s", "--start [DATE]", Date,
             "Specify an over-riding start date",
             "for loading events.") do |date|
@@ -4347,17 +4357,29 @@ begin
 
   SB_Loader.new(options) do |loader|
     unless options.just_initialise
+      finished(options, "initialisation")
       loader.do_pupils
+      finished(options, "pupils")
       loader.do_staff
+      finished(options, "staff")
       loader.do_locations
+      finished(options, "locations")
       loader.do_tutorgroups
+      finished(options, "tutor groups")
       loader.do_teachinggroups
+      finished(options, "teaching groups")
       loader.do_timetable
+      finished(options, "timetable")
       loader.do_cover
+      finished(options, "cover")
       loader.do_other_half
+      finished(options, "other half")
       loader.do_auto_groups
+      finished(options, "automatic groups")
       loader.do_extra_groups
+      finished(options, "extra groups")
       loader.do_duties
+      finished(options, "duties")
     end
   end
 rescue RuntimeError => e
