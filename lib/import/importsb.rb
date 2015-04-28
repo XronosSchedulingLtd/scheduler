@@ -323,8 +323,15 @@ module DatabaseAccess
     else
       newrecord = self.class.const_get(:DB_CLASS).new
       key_field = self.class.const_get(:DB_KEY_FIELD)
-      newrecord.send("#{key_field}=",
-                     self.send("#{key_field}"))
+      if key_field.instance_of?(Array)
+        key_field.each do |kf|
+          newrecord.send("#{kf}=",
+                         self.send("#{kf}"))
+        end
+      else
+        newrecord.send("#{key_field}=",
+                       self.send("#{key_field}"))
+      end
       self.class.const_get(:FIELDS_TO_CREATE).each do |field_name|
          newrecord.send("#{field_name}=",
                         self.instance_variable_get("@#{field_name}"))
@@ -361,11 +368,16 @@ module DatabaseAccess
       #
       @belongs_to_era = db_class.new.respond_to?(:era)
       key_field = self.class.const_get(:DB_KEY_FIELD)
-      if @belongs_to_era
-        find_hash = { key_field => self.send("#{key_field}"),
-                      :era_id => self.instance_variable_get("@era_id") }
+      find_hash = Hash.new
+      if key_field.instance_of?(Array)
+        key_field.each do |kf|
+          find_hash[kf] = self.send("#{kf}")
+        end
       else
-        find_hash = { key_field => self.send("#{key_field}") }
+        find_hash[key_field] = self.send("#{key_field}")
+      end
+      if @belongs_to_era
+        find_hash[:era_id] = self.instance_variable_get("@era_id")
       end
       @dbrecord =
         db_class.find_by(find_hash)
@@ -2103,10 +2115,10 @@ end
 
 
 class SB_Tutorgroup
-  FIELDS_TO_UPDATE = [:name, :house, :era_id, :start_year, :current]
+  FIELDS_TO_UPDATE = [:name, :era_id, :current]
   DB_CLASS = Tutorgroup
-  DB_KEY_FIELD = :staff_id
-  FIELDS_TO_CREATE = [:name, :house, :era_id, :start_year, :current]
+  DB_KEY_FIELD = [:staff_id, :house, :start_year]
+  FIELDS_TO_CREATE = [:name, :era_id, :current]
 
   include DatabaseAccess
 
@@ -2119,9 +2131,15 @@ class SB_Tutorgroup
                 :year_group
 
 
-  def initialize
+  def initialize(year, staff, tge, era)
     @records = Array.new
     @current = true
+    @year_group = year.year_num - 6
+    @name       = "#{@year_group}#{staff.initials}"
+    @house      = tge.house
+    @staff_id   = staff.dbrecord.id
+    @era_id     = era.id
+    @start_year = year.start_year
   end
 
   def add(record)
@@ -2130,6 +2148,102 @@ class SB_Tutorgroup
 
   def num_pupils
     @records.size
+  end
+
+  #
+  #  Ensure this tutor group is correctly represented in the
+  #  database.
+  #
+  def ensure_db(loader)
+    loaded_count           = 0
+    changed_count          = 0
+    unchanged_count        = 0
+    reincarnated_count     = 0
+    member_loaded_count    = 0
+    member_removed_count   = 0
+    member_unchanged_count = 0
+    #
+    #  First call the method, then we can access @dbrecord directly.
+    #
+    self.dbrecord
+    if @dbrecord
+      #
+      #  It's possible that, although there is a record in the d/b
+      #  no longer current.
+      #
+      unless @dbrecord.current
+        @dbrecord.reincarnate
+        @dbrecord.reload
+        #
+        #  Reincarnating a group sets its end date to nil, but we kind
+        #  of want it to be the end of the current era.
+        #
+        @dbrecord.ends_on = loader.era.ends_on
+        @dbrecord.save
+        reincarnated_count += 1
+      end
+      #
+      #  Need to check the group details still match.
+      #
+      if self.check_and_update
+        changed_count += 1
+      else
+        unchanged_count += 1
+      end
+    else
+      if num_pupils > 0
+        if self.save_to_db(starts_on: loader.start_date,
+                           ends_on: loader.era.ends_on)
+          loaded_count += 1
+        end
+      end
+    end
+    if @dbrecord
+      #
+      #  And now sort out the pupils for this tutor group.
+      #
+      db_member_ids =
+        @dbrecord.members(loader.start_date).collect {|s| s.source_id}
+      sb_member_ids = self.records.collect {|r| r.pupil_ident}
+      missing_from_db = sb_member_ids - db_member_ids
+      missing_from_db.each do |pupil_id|
+        pupil = loader.pupil_hash[pupil_id]
+        if pupil && pupil.dbrecord
+          begin
+            if @dbrecord.add_member(pupil.dbrecord, loader.start_date)
+              #
+              #  Adding a pupil to a tutor group effectively changes the
+              #  pupil's element name.  Save the pupil record so the
+              #  element name gets updated.
+              #
+              pupil.force_save
+              member_loaded_count += 1
+            else
+              puts "Failed to add #{pupil.name} to tutorgroup #{self.name}"
+            end
+          rescue ActiveRecord::RecordInvalid => e
+            puts "Failed to add #{pupil.name} to tutorgroup #{self.name}"
+            puts e
+          end
+        end
+      end
+      extra_in_db = db_member_ids - sb_member_ids
+      extra_in_db.each do |pupil_id|
+        pupil = loader.pupil_hash[pupil_id]
+        if pupil && pupil.dbrecord
+          @dbrecord.remove_member(pupil.dbrecord, loader.start_date)
+          member_removed_count += 1
+        end
+      end
+      member_unchanged_count += (db_member_ids.size - extra_in_db.size)
+    end
+    [loaded_count,
+     reincarnated_count,
+     changed_count,
+     unchanged_count,
+     member_loaded_count,
+     member_removed_count,
+     member_unchanged_count]
   end
 
 end
@@ -2347,13 +2461,7 @@ class SB_Loader
       if staff && year && pupil && staff.dbrecord && staff.dbrecord.active
         tge_accepted_count += 1
         unless @tg_hash[tge.user_ident]
-          tg = SB_Tutorgroup.new
-          tg.year_group = year.year_num - 6
-          tg.name       = "#{tg.year_group}#{staff.initials}"
-          tg.house      = tge.house
-          tg.staff_id   = staff.dbrecord.id
-          tg.era_id     = @era.id
-          tg.start_year = year.start_year
+          tg = SB_Tutorgroup.new(year, staff, tge, @era)
           @tg_hash[tge.user_ident] = tg
           if @house_hash[tg.house]
             @house_hash[tg.house] << tg
@@ -2667,68 +2775,32 @@ class SB_Loader
   end
 
   def do_tutorgroups
-    tg_changed_count   = 0
-    tg_unchanged_count = 0
-    tg_loaded_count    = 0
+    tg_changed_count      = 0
+    tg_unchanged_count    = 0
+    tg_loaded_count       = 0
+    tg_reincarnated_count = 0
     tgmember_removed_count   = 0
     tgmember_unchanged_count = 0
     tgmember_loaded_count    = 0
     tg_at_start = Tutorgroup.current.count
     @tg_hash.each do |key, tg|
-      dbrecord = tg.dbrecord
-      if dbrecord
-        #
-        #  Need to check the group details still match.
-        #
-        if tg.check_and_update
-          tg_changed_count += 1
-        else
-          tg_unchanged_count += 1
-        end
-      else
-        if tg.num_pupils > 0
-          if tg.save_to_db(starts_on: @start_date,
-                           ends_on: @era.ends_on)
-            dbrecord = tg.dbrecord
-            tg_loaded_count += 1
-          end
-        end
-      end
-      if dbrecord
-        #
-        #  And now sort out the pupils for this tutor group.
-        #
-        db_member_ids = dbrecord.members(@start_date).collect {|s| s.source_id}
-        sb_member_ids = tg.records.collect {|r| r.pupil_ident}
-        missing_from_db = sb_member_ids - db_member_ids
-        missing_from_db.each do |pupil_id|
-          pupil = @pupil_hash[pupil_id]
-          if pupil && pupil.dbrecord
-            begin
-              dbrecord.add_member(pupil.dbrecord, @start_date)
-              #
-              #  Adding a pupil to a tutor group effectively changes the
-              #  pupil's element name.  Save the pupil record so the
-              #  element name gets updated.
-              #
-              pupil.force_save
-              tgmember_loaded_count += 1
-            rescue ActiveRecord::RecordInvalid => e
-              puts "Failed to add #{pupil.name} to tutorgroup #{tg.name}"
-              puts e
-            end
-          end
-        end
-        extra_in_db = db_member_ids - sb_member_ids
-        extra_in_db.each do |pupil_id|
-          pupil = @pupil_hash[pupil_id]
-          if pupil && pupil.dbrecord
-            dbrecord.remove_member(pupil.dbrecord, @start_date)
-            tgmember_removed_count += 1
-          end
-        end
-        tgmember_unchanged_count += (db_member_ids.size - extra_in_db.size)
-      end
+      #
+      #  There must be a more idiomatic way of doing this.
+      #
+      loaded,
+      reincarnated,
+      changed,
+      unchanged,
+      member_loaded,
+      member_removed,
+      member_unchanged = tg.ensure_db(self)
+      tg_loaded_count          += loaded
+      tg_reincarnated_count    += reincarnated
+      tg_changed_count         += changed
+      tg_unchanged_count       += unchanged
+      tgmember_loaded_count    += member_loaded
+      tgmember_removed_count   += member_removed
+      tgmember_unchanged_count += member_unchanged
     end
     #
     #  It's possible that a tutor group has ceased to exist entirely,
@@ -2736,19 +2808,14 @@ class SB_Loader
     #  with members) but we need to record its demise.
     #
     tg_deleted_count = 0
-    Tutorgroup.current.each do |dbtg|
-      tg = @tg_hash[dbtg.staff.source_id]
-      unless dbtg.era_id == @era.id && tg
-        puts "Tutor group #{dbtg.name} exists in the d/b but not in the files." if @verbose
-        #
-        #  Need to terminate any remaining memberships, then terminate the
-        #  group.  Note that in general, nothing gets deleted, just marked
-        #  as over.  The exception is when we are deleting a group before
-        #  it ever got started.
-        #
-        dbtg.ceases_existence(@start_date)
-        tg_deleted_count += 1
-      end
+    sb_tg_ids = @tg_hash.collect { |key, tg| tg.dbrecord.id }.compact
+    db_tg_ids = Tutorgroup.current.collect {|dbtg| dbtg.id}
+    extra_ids = db_tg_ids - sb_tg_ids
+    extra_ids.each do |eid|
+      dbtg = Tutorgroup.find(eid)
+      puts "Tutor group #{dbtg.name} exists in the d/b but not in the files." if @verbose
+      dbtg.ceases_existence(@start_date)
+      tg_deleted_count += 1
     end
     tg_at_end = Tutorgroup.current.count
     if @verbose || tg_deleted_count > 0
@@ -2763,6 +2830,9 @@ class SB_Loader
     if @verbose || tg_loaded_count > 0
       puts "#{tg_loaded_count} tutor group records created."
     end
+    if @verbose || tg_reincarnated_count > 0
+      puts "#{tg_reincarnated_count} tutor group records reincarnated."
+    end
     if @verbose || tgmember_removed_count > 0
       puts "Removed #{tgmember_removed_count} pupils from tutor groups."
     end
@@ -2772,7 +2842,7 @@ class SB_Loader
     if @verbose || tgmember_loaded_count > 0
       puts "Added #{tgmember_loaded_count} pupils to tutor groups."
     end
-    if @verbose && tg_at_start != tg_at_end
+    if @verbose || tg_at_start != tg_at_end
       puts "Started with #{tg_at_start} tutor groups and finished with #{tg_at_end}."
     end
   end
