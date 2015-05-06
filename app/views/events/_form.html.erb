@@ -5,8 +5,10 @@
     <% end %>
   </div>
 
-  Source id: <%= @event.source_id %> Event id: <%= @event.id %><br/>
-  Owner: <%= @event.owner_id ? @event.owner.name : "System" %>
+  <div id="meta_data">
+    Source id: <%= @event.source_id %> Event id: <%= @event.id %><br/>
+    Owner: <%= @event.owner_id ? @event.owner.name : "System" %>
+  </div>
 
   <div class="row collapse">
     <div class="small-3 columns">
@@ -83,6 +85,7 @@
     <%= f.submit "Add resource" %>
   <% end %>
   <%= link_to "Delete event entirely", @event, remote: @minimal, method: :delete, data: { confirm: "Are you sure you want to delete #{@event.body}?" } %>
+  <%= link_to "Clone event", clone_event_path(@event), remote: @minimal, method: :post %>
 <% else %>
   <p>Save the event in order to allow resources to be added.</p>
 <% end %>

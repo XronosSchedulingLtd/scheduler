@@ -1,5 +1,6 @@
 <% if @success %>
 $('#event-form').html("<%=j render "edit" %>")
+$('.datetimepicker').datetimepicker( { dateFormat: "dd/mm/yy", stepMinute: 5 })
 <% else %>
 $('#for_errors').html("<%=j render "error_msgs" %>")
 <% end %>

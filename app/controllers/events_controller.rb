@@ -4,7 +4,8 @@
 # for more information.
 
 class EventsController < ApplicationController
-  before_action :set_event, only: [:show, :edit, :update, :moved, :destroy]
+  before_action :set_event,
+                only: [:show, :edit, :update, :moved, :clone, :destroy]
 
   # GET /events
   # GET /events.json
@@ -134,6 +135,55 @@ class EventsController < ApplicationController
         format.html { render :edit }
         format.json { render json: @event.errors, status: :unprocessable_entity }
       end
+    end
+  end
+
+  # POST /events/1/clone
+  def clone
+    #
+    #  We enter this method with @event giving the event to be cloned.
+    #
+    @new_event = Event.new
+    @new_event.owner = current_user
+    @new_event.body          = @event.body
+    @new_event.eventcategory = @event.eventcategory
+    @new_event.eventsource   = Eventsource.find_by name: "Manual"
+    @new_event.owner         = current_user
+    @new_event.starts_at     = @event.starts_at
+    @new_event.ends_at       = @event.ends_at
+    @new_event.approximate   = @event.approximate
+    @new_event.non_existent  = @event.non_existent
+    @new_event.private       = @event.private
+    @new_event.all_day       = @event.all_day
+    @new_event.compound      = @event.compound
+    @new_event.source_id     = @event.source_id
+    @new_event.source_hash   = @event.source_hash
+    @new_event.save!
+    #
+    #  And any associated resources.
+    #
+    @event.commitments.each do |commitment|
+      #
+      #  Cover commitments don't get cloned.
+      #
+      unless commitment.covering
+        new_commitment = Commitment.new
+        new_commitment.event       = @new_event
+        new_commitment.element     = commitment.element
+        new_commitment.names_event = commitment.names_event
+        new_commitment.source_id   = commitment.source_id
+        new_commitment.save!
+      end
+    end
+    #
+    #  And throw the user straight into editing it.
+    #
+    @event = @new_event
+    @commitment = Commitment.new
+    @commitment.event = @event
+    @minimal = true
+    respond_to do |format|
+      format.js
     end
   end
 

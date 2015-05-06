@@ -1,0 +1,5 @@
+<% if @event %>
+$('#editing_form').html("<%=j render partial: "form", object: @event, locals: {editing: true} %>")
+$('.datetimepicker').datetimepicker( { dateFormat: "dd/mm/yy", stepMinute: 5 })
+<% end %>
+

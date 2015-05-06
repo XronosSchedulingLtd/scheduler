@@ -1,0 +1,15 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-05-06T15:15:45+01:00
+
+====== Wednesday 06 May 2015 ======
+
+Thinking about the adding the ability to clone an event in scheduler.  You open an event to edit it, then click on a "clone" button or link, and suddenly you are editing a copy rather than the original.
+
+I don't think it should be too difficult (famous last words).
+
+In the event controller, I need a new action to effect the cloning.  It will need to copy resources as well as the basic event details.  If the cloner does not own the original event, then the ownership will need to be updated, but I think that's it.  Oh, and set the source to be manual.
+
+Just had a thought.  When cloning commitments to the event, I have to be very careful about cover commitments.  They link both to the event, and to the commitment which they are covering.  If I copy that information, you will have a commitment to the new event, covering a commitment to the old event.
+
+Logically, cover commitments simply shouldn't be cloned, which neatly avoids the problem.
