@@ -85,7 +85,10 @@
     <%= f.submit "Add resource" %>
   <% end %>
   <%= link_to "Delete event entirely", @event, remote: @minimal, method: :delete, data: { confirm: "Are you sure you want to delete #{@event.body}?" } %>
-  <%= link_to "Clone event", clone_event_path(@event), remote: @minimal, method: :post %>
+  <div style="min-height: 18px;">
+    <span id="clone_button"><%= link_to "Clone event", clone_event_path(@event), remote: @minimal, method: :post %></span>
+    <span id="cloned_message" style="display: none; color: red;">Cloned</span>
+  </div>
 <% else %>
   <p>Save the event in order to allow resources to be added.</p>
 <% end %>

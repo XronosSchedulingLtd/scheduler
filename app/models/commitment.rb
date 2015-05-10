@@ -54,6 +54,20 @@ class Commitment < ActiveRecord::Base
     @element_name = en
   end
 
+  #
+  #  Clone an existing commitment and save to d/b.
+  #  Note that you *must* provide at least one modifier or the save
+  #  will fail.  Commitments must be unique.
+  #
+  def clone_and_save(modifiers)
+    new_self = self.dup
+    modifiers.each do |key, value|
+      new_self.send("#{key}=", value)
+    end
+    new_self.save!
+    new_self
+  end
+
   def self.cover_commitments(after = nil)
     after ||= Date.today
     #

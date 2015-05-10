@@ -568,6 +568,37 @@ class Event < ActiveRecord::Base
     }
   end
 
+  #
+  #  I would naturally call this method "clone" but that name is already
+  #  taken and has a well-defined meaning.  I don't want to risk unintended
+  #  side effects by overriding it.
+  #
+  #  Note that because we want to add commitments to this event during
+  #  the cloning process, we have to save it to the database.
+  #
+  def clone_and_save(modifiers)
+    new_self = self.dup
+    #
+    #  Any modifiers to apply?
+    #
+    modifiers.each do |key, value|
+      new_self.send("#{key}=", value)
+    end
+    new_self.save!
+    #
+    #  Commitments don't get copied by dup.
+    #
+    self.commitments.each do |commitment|
+      #
+      #  And we don't want to clone cover commitments.
+      #
+      unless commitment.covering
+        commitment.clone_and_save(event: new_self)
+      end
+    end
+    new_self
+  end
+
   def compactable?
     self.eventcategory.compactable
   end

@@ -1,4 +1,10 @@
 <tr>
   <td><%= day.date_text %></td>
-  <td><%= day.events_text_for_table %></td>
+  <td><%=
+    if @do_breaks
+      day.events_texts_for_table.collect {|t| h(t)}.join("<br/>").html_safe
+    else
+      day.events_texts_for_table.collect {|t| h(t)}.join(" ").html_safe
+    end
+  %></td>
 </tr>
