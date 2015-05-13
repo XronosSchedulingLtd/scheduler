@@ -58,6 +58,16 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= f.label :organiser, class: "right inline" %>
+    </div>
+    <div class="small-3 columns">
+      <%= f.autocomplete_field :organiser,
+                               autocomplete_element_name_elements_path %>
+    </div>
+    <div class="small-6 columns"></div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       <%= f.label :all_day, class: "right" %>
     </div>
     <div class="small-1 columns">
@@ -79,6 +89,7 @@
   <%= form_for(@commitment, remote: true) do |f| %>
     <%= f.autocomplete_field :element_name,
                              autocomplete_element_name_elements_path,
+                             'data-auto-focus' => true,
                              :id_element => '#commitment_element_id' %>
     <%= f.text_field :element_id, :type => :hidden %>
     <%= f.text_field :event_id, :type => :hidden %>

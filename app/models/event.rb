@@ -51,6 +51,8 @@ class Event < ActiveRecord::Base
 
   belongs_to :owner, :class_name => :User
 
+  belongs_to :organiser, :class_name => :Element
+
   validates :body, presence: true
   validates :eventcategory, presence: true
   validates :eventsource, presence: true

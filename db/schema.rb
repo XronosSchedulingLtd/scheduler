@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150330054317) do
+ActiveRecord::Schema.define(version: 20150512184828) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -96,6 +96,7 @@ ActiveRecord::Schema.define(version: 20150330054317) do
     t.boolean  "compound",         default: false
     t.integer  "source_id",        default: 0
     t.string   "source_hash"
+    t.integer  "organiser_id"
   end
 
   add_index "events", ["ends_at"], name: "index_events_on_ends_at", using: :btree
