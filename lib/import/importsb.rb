@@ -1465,7 +1465,10 @@ class SB_StaffCover
               eventsource_id(loader.event_source.id).
               eventcategory_id(loader.invigilation_category.id).
               source_id(@sal.staff_ab_line_ident)[0]
-      unless dbinvigilation
+      if dbinvigilation
+        newly_created = false
+      else
+        newly_created = true
         starts_at =
           Time.zone.parse("#{@date.to_s} #{@period.time.starts_at}")
         ends_at   =
@@ -1485,6 +1488,7 @@ class SB_StaffCover
         if event.save
           event.reload
           dbinvigilation = event
+          added += 1
         else
           puts "Failed to create invigilation event."
         end
@@ -1510,7 +1514,7 @@ class SB_StaffCover
             c.event      = dbinvigilation
             c.element_id = sbid
             c.save
-            amended += 1
+            amended += 1 unless newly_created
           end
           dbinvigilation.reload
         end
@@ -3659,7 +3663,7 @@ class SB_Loader
       puts "Added #{invigilations_added} instances of invigilation."
     end
     if invigilations_amended > 0 || @verbose
-      puts "Amended #{invigilations_amended} instances of invigilation."
+      puts "#{invigilations_amended} amendments to instances of invigilation."
     end
     if invigilations_deleted > 0 || @verbose
       puts "Deleted #{invigilations_deleted} instances of invigilation."
