@@ -1660,6 +1660,13 @@ class SB_SuspendedLesson
     end_date     = loader.safe_date(self.end_date_ident)
     start_period = loader.period_hash[self.start_period_ident]
     end_period   = loader.period_hash[self.end_period_ident]
+    #
+    #  There appears to be (yet another) bug in SB in that it sometimes
+    #  fails to record the start period.  Assume it to be 1.
+    #
+    if start_date && end_date && end_period && !start_period
+      start_period = loader.period_hash[1]
+    end
     if start_date && end_date && start_period && end_period
       @starts_at =
         Time.zone.parse("#{start_date.to_s} #{start_period.time.starts_at}")
