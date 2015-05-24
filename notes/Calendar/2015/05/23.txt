@@ -1,0 +1,16 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-05-23T08:50:26+01:00
+
+====== Saturday 23 May 2015 ======
+
+List of things needing addressing soon:
+
+[*] Processing of oddities in cover/invigilation records - complete re-work
+[ ] Change the way that suspension records are interpreted
+[ ] Add the ability to specify additional suspension records
+[ ] Suspend lower school lessons during their exams
+[ ] Change the duty slots for the second half of term
+
+And then I can think about moving on to the actual enhancements planned for half term - organiser for an event, which wants an improved version of the predictive text boxes.
+

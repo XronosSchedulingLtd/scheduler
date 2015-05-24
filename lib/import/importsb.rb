@@ -1115,7 +1115,7 @@ class SB_StaffCover
 
   attr_accessor :sal, :date, :staff_covering, :staff_covered
 
-  attr_reader :date, :cover_or_invigilation
+  attr_reader :date, :cover_or_invigilation, :period
 
   #
   #  A class for recording details of an apparent clash.  For a clash
@@ -1204,21 +1204,56 @@ class SB_StaffCover
 
   class Oddity
 
-    attr_reader :covered_commitment, :staff_covering, :descriptive_text
+    attr_reader :descriptive_text
 
-    def initialize(covered_commitment, staff_covering, descriptive_text)
+    #
+    #  New version - now passed the actual cover commitment.
+    #
+    def initialize(staff_cover,
+                   descriptive_text)
 #      puts "Creating an oddity"
-      @covered_commitment = covered_commitment
-      @staff_covering     = staff_covering
+      @staff_cover        = staff_cover
       @descriptive_text   = descriptive_text
-    end
+      #
+      #  Now prepare the bits we need to produce formatted output.
+      #
 
-    def <=>(other)
-      self.event.starts_at <=> other.event.starts_at
     end
 
     def to_partial_path
       "user_mailer/oddity"
+    end
+
+    def effective_date
+      @staff_cover.date
+    end
+
+    def oddity_type
+      @staff_cover.cover_or_invigilation
+    end
+
+    def activity_text
+      @staff_cover.cover_or_invigilation == :cover ? "Cover" : "Invigilation"
+    end
+    
+    def start_time
+      @staff_cover.period.time.starts_at
+    end
+
+    def end_time
+      @staff_cover.period.time.ends_at
+    end
+
+    def person
+      @staff_cover.staff_covering.name
+    end
+
+    def problem
+      @descriptive_text
+    end
+
+    def <=>(other)
+      self.effective_date <=> other.effective_date
     end
 
   end
@@ -1252,71 +1287,92 @@ class SB_StaffCover
   #  Returns true if we are ready, or false if this one isn't suitable -
   #  wrong type or don't have all the necessary info.
   #
-  def prepare(loader)
+  #  Discard here any which are in the past.
+  #
+  def prepare(loader, oddities)
     result = false
     if @ptype == 60
-      #
-      #  We try to gather all the relevant information up front,
-      #  checking as we go.
-      #
-      #  sc    Staff cover
-      #  sal   Staff absence line
-      #  sa    Staff absence
-      #
-      #  sc => sal => sa
-      #
-      @sal = loader.sal_hash[@staff_ab_line_ident]
       @date = loader.safe_date(@absence_date)
-      @staff_covering = loader.staff_hash[@staff_ident]
-      if @sal && @date && @staff_covering
+      #
+      #  Silently ignore any which are in the past.
+      #
+      if @date && @date >= loader.start_date
         #
-        #  Is it cover or invigilation?
+        #  We try to gather all the relevant information up front,
+        #  checking as we go.
         #
-        if @sal.timetable_ident
+        #  sc    Staff cover
+        #  sal   Staff absence line
+        #  sa    Staff absence
+        #
+        #  sc => sal => sa
+        #
+        @sal = loader.sal_hash[@staff_ab_line_ident]
+        @staff_covering = loader.staff_hash[@staff_ident]
+        if @sal && @staff_covering
           #
-          #  Cover.  Can we find the target lesson?
+          #  Is it cover or invigilation?
           #
-          @cover_or_invigilation = :cover
-          @sa = loader.sa_hash[@sal.staff_ab_ident]
-          if @sa
-            @staff_covered = loader.staff_hash[@sa.staff_ident]
-            if @staff_covered
-              #
-              #  Have all we need to be able to process this one.
-              #
-              result = true
+          if @sal.timetable_ident
+            #
+            #  Cover.  Can we find the target lesson?
+            #
+            @cover_or_invigilation = :cover
+            @sa = loader.sa_hash[@sal.staff_ab_ident]
+            if @sa
+              @staff_covered = loader.staff_hash[@sa.staff_ident]
+              @period = loader.period_hash[@sal.period]
+              if @staff_covered && @period && @period.time
+                #
+                #  Have all we need to be able to process this one.
+                #
+                result = true
+              else
+                #
+                #  Can't find covered staff member.
+                #
+                puts "Can't find staff member #{@sa.staff_ident} to cover."
+  #              puts self.inspect
+              end
             else
               #
-              #  Can't find covered staff member.
+              #  Can't find the absence record - which would tell us
+              #  which lesson to cover.
               #
-              puts "Can't find staff member #{@sa.staff_ident} to cover."
-#              puts self.inspect
+              puts "Can't find absence record #{@sal.staff_ab_ident} for cover."
             end
           else
             #
-            #  Can't find the absence record - which would tell us
-            #  which lesson to cover.
+            #  Invigilation
             #
-            puts "Can't find absence record #{@sal.staff_ab_ident} for cover."
+            @cover_or_invigilation = :invigilation
+            puts "An invigilation slot for #{@staff_covering.name} on #{@date}." if loader.verbose
+            #
+            #  Is there a room specified which we know about?
+            #
+            @sa = loader.sa_hash[@sal.staff_ab_ident]
+            if @sa
+              @invigilation_location = loader.location_hash[@sa.room_ident]
+            end
+            @period = loader.period_hash[@sal.period]
+            if @period && @period.time
+              result = true
+            else
+              puts "Couldn't find period #{@sal.period} for invigilation."
+            end
           end
-        else
-          #
-          #  Invigilation
-          #
-          @cover_or_invigilation = :invigilation
-          puts "An invigilation slot for #{@staff_covering.name} on #{@date}." if loader.verbose
-          #
-          #  Is there a room specified which we know about?
-          #
-          @sa = loader.sa_hash[@sal.staff_ab_ident]
-          if @sa
-            @invigilation_location = loader.location_hash[@sa.room_ident]
-          end
-          @period = loader.period_hash[@sal.period]
-          if @period && @period.time
-            result = true
-          else
-            puts "Couldn't find period #{@sal.period} for invigilation."
+          if result
+            #
+            #  Cross check that SB isn't asking us to do something
+            #  impossible.
+            #
+            unless @staff_covering.dbrecord &&
+                   @staff_covering.dbrecord.active
+              puts "#{@staff_covering.name} is due to #{@sal.timetable_ident ? "cover" : "invigilate"} on #{@date} but is inactive."
+              oddities << Oddity.new(self,
+                                     "is not a current member of the teaching staff")
+              result = false
+            end
           end
         end
       end
@@ -1368,45 +1424,34 @@ class SB_StaffCover
             if original_commitment.covered
               puts "Commitment seems to be covered already."
             end
-            if @staff_covering.dbrecord.element
-              cover_commitment = Commitment.new
-              cover_commitment.event = original_commitment.event
-              cover_commitment.element = @staff_covering.dbrecord.element
-              cover_commitment.covering = original_commitment
-              cover_commitment.source_id = self.source_id
-              if cover_commitment.save
-                added += 1
-                cover_commitment.reload
-                #
-                #  Does this clash with anything?
-                #
-                clashes = Clash.find_clashes(cover_commitment)
-              else
-                puts "Failed to save cover."
-                cover_commitment.errors.full_messages.each do |msg|
-                  puts msg
-                end
-                puts "staff_ab_line_ident = #{@staff_ab_line_ident}"
-                puts "staff_covering:"
-                puts "  name #{@staff_covering.name}"
-                puts "  does_cover #{@staff_covering.does_cover}"
-                puts "dblesson:"
-                puts "  body: #{dblesson.body}"
-                puts "  eventcategory: #{dblesson.eventcategory.name}"
-                puts "  starts_at: #{dblesson.starts_at}"
-                puts "  ends_at: #{dblesson.ends_at}"
-                puts "original_commitment:"
-                puts "  element.name: #{original_commitment.element.name}"
-              end
+            cover_commitment = Commitment.new
+            cover_commitment.event = original_commitment.event
+            cover_commitment.element = @staff_covering.dbrecord.element
+            cover_commitment.covering = original_commitment
+            cover_commitment.source_id = self.source_id
+            if cover_commitment.save
+              added += 1
+              cover_commitment.reload
+              #
+              #  Does this clash with anything?
+              #
+              clashes = Clash.find_clashes(cover_commitment)
             else
-              #
-              #  The indicated member of staff does not seem appropriate.
-              #
-              oddities <<
-                Oddity.new(
-                  original_commitment,
-                  @staff_covering,
-                  "does not seem to be a current member of the teaching staff")
+              puts "Failed to save cover."
+              cover_commitment.errors.full_messages.each do |msg|
+                puts msg
+              end
+              puts "staff_ab_line_ident = #{@staff_ab_line_ident}"
+              puts "staff_covering:"
+              puts "  name #{@staff_covering.name}"
+              puts "  does_cover #{@staff_covering.does_cover}"
+              puts "dblesson:"
+              puts "  body: #{dblesson.body}"
+              puts "  eventcategory: #{dblesson.eventcategory.name}"
+              puts "  starts_at: #{dblesson.starts_at}"
+              puts "  ends_at: #{dblesson.ends_at}"
+              puts "original_commitment:"
+              puts "  element.name: #{original_commitment.element.name}"
             end
           else
             puts "Failed to find original commitment."
@@ -1426,24 +1471,18 @@ class SB_StaffCover
           #
           #  No.  Adjust.
           #
-          if @staff_covering.dbrecord.element
-            cover_commitment.element = @staff_covering.dbrecord.element
-            if cover_commitment.save
-              amended += 1
-            else
-              puts "Failed to save amended cover."
-            end
-            #
-            #  Reload regardless of whether or not the save succeeded,
-            #  because if it failed we want to get back the consistent
-            #  record which we had before.
-            #
-            cover_commitment.reload
+          cover_commitment.element = @staff_covering.dbrecord.element
+          if cover_commitment.save
+            amended += 1
           else
-            oddities << Oddity.new(cover_commitment.covering,
-                                   @staff_covering,
-                                   "does not seem to be a current member of the teaching staff")
+            puts "Failed to save amended cover."
           end
+          #
+          #  Reload regardless of whether or not the save succeeded,
+          #  because if it failed we want to get back the consistent
+          #  record which we had before.
+          #
+          cover_commitment.reload
         end
         #
         #  Again, need to check if it clashes with anything.
@@ -1498,7 +1537,11 @@ class SB_StaffCover
         #  Event is now in the d/b.  Make sure it has the right resources.
         #
         sb_element_ids = Array.new
-        sb_element_ids << @staff_covering.dbrecord.element.id
+        if @staff_covering.dbrecord.element
+          sb_element_ids << @staff_covering.dbrecord.element.id
+        else
+          puts "Invigilation by #{@staff_covering.initials} who has no element."
+        end
         if @invigilation_location &&
            @invigilation_location.dbrecord &&
            @invigilation_location.dbrecord.location &&
@@ -3559,8 +3602,7 @@ class SB_Loader
     max_cover_date = @start_date
     max_invigilation_date = @start_date
     @staffcovers.each do |sc|
-      if sc.prepare(self) &&
-         sc.date >= @start_date
+      if sc.prepare(self, cover_oddities)
         if sc.cover_or_invigilation == :cover
           covers_processed += 1
           if covers_by_date[sc.date]
@@ -3687,195 +3729,8 @@ class SB_Loader
                                        cover_oddities).deliver
         end
       end
-#      current_date = Time.zone.parse("2010-01-01")
-#      cover_clashes.sort.each do |cc|
-#        if cc.cover_commitment.event.starts_at.to_date != current_date
-#          current_date = cc.cover_commitment.event.starts_at.to_date
-#          puts "#{current_date.strftime("%a %d/%m/%Y")}"
-#        end
-#        puts "  #{cc.cover_commitment.element.name}"
-#        if cc.cover_commitment.covering
-#          puts   "    Covering #{cc.cover_commitment.event.body} for #{cc.cover_commitment.covering.element.name}."
-#        else
-#          puts   "    Covering #{cc.cover_commitment.event.body}."
-#        end
-#        puts "    From #{cc.cover_commitment.event.starts_at.strftime("%H:%M")} to #{cc.cover_commitment.event.ends_at.strftime("%H:%M")}."
-#        puts "    Also has #{cc.clashing_commitment.event.body}."
-#        if cc.clashing_commitment.event.all_day
-#          puts "    All day"
-#        else
-#          puts "    From #{cc.clashing_commitment.event.starts_at.strftime("%H:%M")} to #{cc.clashing_commitment.event.ends_at.strftime("%H:%M")}."
-#        end
-#      end
     else
       puts "No apparent cover issues."
-    end
-  end
-
-  #
-  #  This is the original algorithm for adding cover.  Kept temporarily for
-  #  reference.
-  #
-  def do_cover1
-    covers_added = 0
-    invigilations_added = 0
-    invigilations_amended = 0
-    #
-    #  Let's see if we can make any sense of it first.
-    #
-    @staffcovers.each do |sc|
-      if sc.ptype == 60
-        sal = @sal_hash[sc.staff_ab_line_ident]
-        date = @date_hash[sc.absence_date]
-        if date && date.date >= @start_date
-          staff_covering = @staff_hash[sc.staff_ident]
-          if sal && date && staff_covering
-#            puts "#{sc.staff_name} on #{date.date} links up."
-            #
-            #  Now can we find the lesson he or she is meant to be covering?
-            #
-            sa = @sa_hash[sal.staff_ab_ident]
-            if sa
-              if sal.timetable_ident
-                staff_covered = @staff_hash[sa.staff_ident]
-                if staff_covered
-                  puts "#{staff_covering.name} covering #{staff_covered.name} on #{date.date} for lesson #{sal.timetable_ident}"
-                  #
-                  #  Can we actually add this to the d/b (assuming it isn't
-                  #  already there)?
-                  #
-                  #  Specify:
-                  #    Date
-                  #    Eventsource
-                  #    Eventcategory
-                  #    source id
-                  #
-                  if SB_Timetableentry.been_merged?(sal.timetable_ident)
-                    dblesson = Event.on(date.date).
-                                     eventsource_id(@event_source.id).
-                                     source_hash(
-                                       SB_Timetableentry.merged_source_hash(sal.timetable_ident))[0]
-                  else
-                    dblesson = Event.on(date.date).
-                                     eventsource_id(@event_source.id).
-                                     source_id(sal.timetable_ident)[0]
-                  end
-                  if dblesson
-                    puts "Found the corresponding lesson."
-                    #
-                    #  Need to find the commitment by the covered teacher
-                    #  to the indicated lesson.
-                    #
-                    original_commitment =
-                      Commitment.by(staff_covered.dbrecord).to(dblesson)[0]
-                    if original_commitment
-                      puts "Found commitment."
-                      #
-                      #  Now - does the cover exist already?
-                      #
-                      if original_commitment.covered
-                        puts "Cover is there already."
-                        #
-                        #  Is the right person doing it?
-                        #
-                        if original_commitment.covered.element.entity.id ==
-                           staff_covering.dbrecord.id
-                          puts "And by the right person."
-                        else
-                          puts "But the wrong person."
-                        end
-                      else
-                        cover_commitment = Commitment.new
-                        cover_commitment.event = original_commitment.event
-                        cover_commitment.element = staff_covering.dbrecord.element
-                        cover_commitment.covering = original_commitment
-                        if cover_commitment.save
-                          covers_added += 1
-                        else
-                          puts "Failed to save cover."
-                        end
-                      end
-                    else
-                      puts "Can't find commitment."
-                    end
-                  else
-                    puts "Can't find the lesson."
-                  end
-                else
-                  puts "Can't find covered staff."
-                end
-              else
-                puts "An invigilation slot for #{staff_covering.name} on #{date.date}." if @verbose
-                #
-                #  Is it already in the database?
-                #
-                dbinvigilation =
-                  Event.on(date.date).
-                        eventsource_id(@event_source.id).
-                        eventcategory_id(@invigilation_category.id).
-                        source_id(sal.staff_ab_line_ident)[0]
-                if dbinvigilation
-#                  puts "Invigilation already in the d/b."
-                  #
-                  #  Is it the right person?
-                  #
-                  if dbinvigilation.commitments
-                    commitment = dbinvigilation.commitments[0]
-                    if commitment.element !=
-                       staff_covering.dbrecord.element
-                      commitment.element = staff_covering.dbrecord.element
-                      commitment.save
-                      invigilations_amended += 1
-                    end
-                  end
-                else
-#                  puts "Creating invigilation event."
-                  period = @period_hash[sal.period]
-                  if period && period.time
-                    starts_at =
-                      Time.zone.parse("#{date.date.to_s} #{period.time.starts_at}")
-                    ends_at   =
-                      Time.zone.parse("#{date.date.to_s} #{period.time.ends_at}")
-                    event = Event.new
-                    event.body          = "Invigilation"
-                    event.eventcategory = @invigilation_category
-                    event.eventsource   = @event_source
-                    event.starts_at     = starts_at
-                    event.ends_at       = ends_at
-                    event.approximate   = false
-                    event.non_existent  = false
-                    event.private       = false
-                    event.all_day       = false
-                    event.compound      = false
-                    event.source_id     = sal.staff_ab_line_ident
-                    if event.save
-                      event.reload
-                      c = Commitment.new
-                      c.event = event
-                      c.element = staff_covering.dbrecord.element
-                      c.save
-                      invigilations_added += 1
-                    end
-                  end
-                end
-              end
-            else
-              puts "Can't find staff absence record."
-            end
-          else
-            puts "#{sc.staff_name} on #{date ? date.date : "unknown date"} doesn't link up."
-          end
-        end
-      end
-    end
-    if covers_added > 0 || @verbose
-      puts "Added #{covers_added} instances of cover."
-    end
-    if invigilations_added > 0 || @verbose
-      puts "Added #{invigilations_added} instances of invigilation."
-    end
-    if invigilations_amended > 0 || @verbose
-      puts "Changed #{invigilations_amended} instances of invigilation."
     end
   end
 

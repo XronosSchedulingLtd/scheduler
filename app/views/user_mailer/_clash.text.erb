@@ -1,8 +1,8 @@
 <%
-  if clash.cover_commitment.event.starts_at.to_date != @current_date
-    @current_date = clash.cover_commitment.event.starts_at.to_date
+  if clash.cover_commitment.event.starts_at.to_date != @current_clash_date_txt
+    @current_clash_date_txt = clash.cover_commitment.event.starts_at.to_date
 %>
-  <%= @current_date.strftime("%a %-d %b %y") %>
+  <%= @current_clash_date_txt.strftime("%a %-d %b %y") %>
 
 <%
   end
