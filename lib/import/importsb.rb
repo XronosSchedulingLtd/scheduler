@@ -811,7 +811,7 @@ class SB_PeriodTime
 
   include Slurper
 
-  attr_reader :starts_at, :ends_at
+  attr_reader :starts_at, :ends_at, :start_mins, :end_mins
 
   def adjust(loader)
     #
@@ -1168,7 +1168,13 @@ class SB_StaffCover
       #    Events flagged as can_borrow, where more then one member of
       #    staff is committed to the event.
       #
+      #  It is possible for someone to be committed more than once
+      #  to the same event, if he or she is a member of more than one
+      #  group committed to the event.  Make sure we report on each
+      #  clashing event only once.
+      #
       clashes = []
+      event_ids_seen = []
       all_commitments =
         cover_commitment.element.commitments_during(
           start_time: cover_commitment.event.starts_at,
@@ -1192,8 +1198,10 @@ class SB_StaffCover
                   c.event.ends_at   == cover_commitment.event.ends_at) ||
                  (c.event.eventcategory.can_borrow &&
                   c.event.staff(true).size > 1) ||
-                 permitted_overload(cover_commitment, c)
+                 permitted_overload(cover_commitment, c) ||
+                 event_ids_seen.include?(c.event.id)
             clashes << Clash.new(cover_commitment, c)
+            event_ids_seen << c.event.id
           end
         end
       end
@@ -1370,7 +1378,7 @@ class SB_StaffCover
                    @staff_covering.dbrecord.active
               puts "#{@staff_covering.name} is due to #{@sal.timetable_ident ? "cover" : "invigilate"} on #{@date} but is inactive."
               oddities << Oddity.new(self,
-                                     "is not a current member of the teaching staff")
+                                     "not a current member of the teaching staff")
               result = false
             end
           end
@@ -1389,9 +1397,12 @@ class SB_StaffCover
     if @cover_or_invigilation == :cover
       #
       #  Is it already in the database?
+      #  It's a bit weird, but Ian sometimes does cover for non-existent
+      #  lessons.
       #
       candidates =
-        Commitment.commitments_on(startdate: self.date).
+        Commitment.commitments_on(startdate: self.date,
+                                  include_nonexistent: true).
                    covering_commitment.
                    where(source_id: self.source_id)
       if candidates.size == 0
@@ -1418,6 +1429,9 @@ class SB_StaffCover
           #  Need to find the commitment by the covered teacher
           #  to the indicated lesson.
           #
+          if dblesson.non_existent
+            oddities << Oddity.new(self, "lesson is suspended")
+          end
           original_commitment =
             Commitment.by(@staff_covered.dbrecord).to(dblesson)[0]
           if original_commitment
@@ -1488,6 +1502,9 @@ class SB_StaffCover
         #  Again, need to check if it clashes with anything.
         #
         clashes = Clash.find_clashes(cover_commitment)
+        if cover_commitment.event.non_existent
+          oddities << Oddity.new(self, "lesson is suspended")
+        end
       else
         puts "Weird - cover item #{self.source_id} is there more than once."
         candidates.each do |c|
@@ -1687,35 +1704,30 @@ class SB_SuspendedLesson
 
   include Slurper
 
-  attr_reader :starts_at, :ends_at
+  attr_reader :end_date
 
   def initialize
     @got_duration = false
-    @starts_at = nil
-    @ends_at   = nil
   end
 
   def adjust(loader)
     #
     #  Need to work out our actual start and finish times.
     #
-    start_date   = loader.safe_date(self.start_date_ident)
-    end_date     = loader.safe_date(self.end_date_ident)
+    @start_date   = loader.safe_date(self.start_date_ident)
+    @end_date     = loader.safe_date(self.end_date_ident)
     start_period = loader.period_hash[self.start_period_ident]
     end_period   = loader.period_hash[self.end_period_ident]
     #
     #  There appears to be (yet another) bug in SB in that it sometimes
     #  fails to record the start period.  Assume it to be 1.
     #
-    if start_date && end_date && end_period && !start_period
+    if @start_date && @end_date && end_period && !start_period
       start_period = loader.period_hash[1]
     end
-    if start_date && end_date && start_period && end_period
-      @starts_at =
-        Time.zone.parse("#{start_date.to_s} #{start_period.time.starts_at}")
-      @ends_at =
-        Time.zone.parse("#{end_date.to_s} #{end_period.time.ends_at}")
-#      puts "Suspension for year_ident #{@year_ident} from #{@starts_at.to_s} to #{ends_at.to_s}"
+    if @start_date && @end_date && start_period && end_period
+      @start_mins = start_period.time.start_mins
+      @end_mins   = end_period.time.end_mins
       @got_duration = true
     end
   end
@@ -1728,11 +1740,47 @@ class SB_SuspendedLesson
     @suspension_ident
   end
 
+  def applies?(date, period_time)
+    #
+    #  First the dates have to match, then the times.  If we overlap
+    #  the indicated period then we match.
+    #
+    date >= @start_date &&
+    date <= @end_date &&
+    period_time.start_mins < @end_mins &&
+    period_time.end_mins > @start_mins
+  end
+
+  def initialise_from_extra(es)
+    @start_date = es.start_date
+    @end_date   = es.end_date
+    @year_ident = es.year_ident
+    @start_mins = es.start_mins
+    @end_mins   = es.end_mins
+    @got_duration = true
+  end
+
+  def self.create_extra(es)
+    new_one = self.new
+    new_one.initialise_from_extra(es)
+    new_one
+  end
+
+end
+
+
+class SB_ExtraSuspension
+  attr_reader :start_date,
+              :end_date,
+              :year_ident,
+              :start_mins,
+              :end_mins
 end
 
 
 class SB_Timetableentry
   FILE_NAME = "timetable.csv"
+  SUSPENDABLE_TYPES = [:lesson, :registration, :tutor_period]
   REQUIRED_COLUMNS = [Column["TimetableIdent", :timetable_ident, true],
                       Column["GroupIdent",     :group_ident,     true],
                       Column["StaffIdent",     :staff_ident,     true],
@@ -1784,7 +1832,7 @@ class SB_Timetableentry
           #
           #  Potentially applies to us.
           #
-          if suspension.ends_at >= loader.start_date
+          if suspension.end_date >= loader.start_date
 #            puts "Found a possible suspension for year_group_id #{self.year_ident(loader)}"
             @suspensions << suspension
           end
@@ -1832,23 +1880,12 @@ class SB_Timetableentry
   #  date.  Take account of the time of this lesson.
   #
   def suspended_on?(loader, date)
-    if self.event_type(loader) == :lesson
-      starts_at = Time.zone.parse("#{date.to_s} #{@period_time.starts_at}")
-      ends_at   = Time.zone.parse("#{date.to_s} #{@period_time.ends_at}")
-      @suspensions.each do |suspension|
-        #
-        #  Usual argument.  Think about when the overlap doesn't apply.
-        #  If we start after the end of the suspension, or end before
-        #  it begins then we're not interested in this suspension.  Apply
-        #  De Morgan's law to get the inverse.
-        #
-        if starts_at < suspension.ends_at &&
-           ends_at >= suspension.starts_at
-          return true
-        end
-      end
+    if SUSPENDABLE_TYPES.include?(self.event_type(loader)) &&
+       @suspensions.detect {|s| s.applies?(date, @period_time)}
+      true
+    else
+      false
     end
-    false
   end
 
   #
@@ -1871,6 +1908,9 @@ class SB_Timetableentry
   #  Returns our year group id, or 0 if we don't seem to have one.
   #  Information is cached.
   #
+  #  For compound events, all the groups have to have the same year
+  #  ident for us to return it.
+  #
   def year_ident(loader)
     unless @year_group_id
       group = nil
@@ -1879,6 +1919,18 @@ class SB_Timetableentry
       else
         if self.group_idents.size > 0
           group = loader.group_hash[self.group_idents[0]]
+          #
+          #  Check whether there's another group with a different
+          #  year id.  If there is, then we can't return a meaningful
+          #  value.
+          #
+          exception =
+            self.group_idents.detect {|gi|
+              g = loader.group_hash[gi]
+              g != nil && g.year_ident != group.year_ident}
+          if exception
+            group = nil
+          end
         end
       end
       if group
@@ -2338,7 +2390,7 @@ class SB_Loader
 
   KNOWN_DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
-  InputSource = Struct.new(:array_name, :loader_class, :hash_prefix, :key_field)
+  InputSource = Struct.new(:array_name, :loader_class, :hash_prefix, :key_field, :extra)
 
   INPUT_SOURCES = [InputSource[:academicyears, SB_AcademicYear],
                    InputSource[:years, SB_Year, :year, :year_ident],
@@ -2389,7 +2441,7 @@ class SB_Loader
                    InputSource[:periods, SB_Period, :period, :period_ident],
                    InputSource[:subjects, SB_Subject, :subject, :subject_ident],
                    InputSource[:dates, SB_Date, :date, :date_ident],
-                   InputSource[:suspensions, SB_SuspendedLesson],
+                   InputSource[:suspensions, SB_SuspendedLesson, nil, nil, :get_extra_suspensions],
                    InputSource[:timetable_entries, SB_Timetableentry, :tte,
                                :timetable_ident],
                    InputSource[:staffablines, SB_StaffAbLine, :sal,
@@ -2406,6 +2458,10 @@ class SB_Loader
       {file_name: "extra_staff_groups.yml", dbclass: Staff},
       {file_name: "extra_pupil_groups.yml", dbclass: Pupil},
       {file_name: "extra_group_groups.yml", dbclass: Group}
+    ]
+
+    EXTRA_SUSPENSION_FILES = [
+      "extra_suspensions.yml"
     ]
 
   attr_reader :era,
@@ -2487,6 +2543,9 @@ class SB_Loader
         end
       else
         raise "Failed to read #{is.array_name} - #{msg}."
+      end
+      if is.extra
+        self.send(is.extra)
       end
     end
     #
@@ -2673,6 +2732,9 @@ class SB_Loader
     end
     File.open(Rails.root.join(IMPORT_DIR, "years.yml"), "w") do |file|
       file.puts YAML::dump(@years)
+    end
+    File.open(Rails.root.join(IMPORT_DIR, "suspensions.yml"), "w") do |file|
+      file.puts YAML::dump(@suspensions)
     end
     puts "Finished data initialisation." if @verbose
     yield self if block_given?
@@ -3246,6 +3308,7 @@ class SB_Loader
               end
               if event.non_existent != lesson.suspended_on?(self, date)
                 event.non_existent = lesson.suspended_on?(self, date)
+#                puts "#{event.body} #{event.non_existent ? "suspended" : "un-suspended"} on #{date.to_s} at #{period_time.starts_at}"
                 changed = true
               end
               if event.eventcategory_id != lesson.eventcategory(self).id
@@ -3456,6 +3519,7 @@ class SB_Loader
               end
               if event.non_existent != lesson.suspended_on?(self, date)
                 event.non_existent = lesson.suspended_on?(self, date)
+#                puts "#{event.body} #{event.non_existent ? "suspended" : "un-suspended"} on #{date.to_s} at #{period_time.starts_at}"
                 changed = true
               end
 #              if event.eventcategory_id == @registration_category.id ||
@@ -4111,6 +4175,18 @@ class SB_Loader
           dbrecord
         }.compact
         ensure_membership(group_name, dbrecords, control_data[:dbclass])
+      end
+    end
+  end
+
+  def get_extra_suspensions
+    EXTRA_SUSPENSION_FILES.each do |file_name|
+      extra_suspensions =
+        YAML.load(
+          File.open(Rails.root.join(IMPORT_DIR, file_name)))
+      extra_suspensions.each do |es|
+#        puts "Got an extra suspension record."
+        @suspensions << SB_SuspendedLesson.create_extra(es)
       end
     end
   end

@@ -7,10 +7,13 @@ Creation-Date: 2015-05-23T08:50:26+01:00
 List of things needing addressing soon:
 
 [*] Processing of oddities in cover/invigilation records - complete re-work
-[ ] Change the way that suspension records are interpreted
-[ ] Add the ability to specify additional suspension records
-[ ] Suspend lower school lessons during their exams
+[*] Change the way that suspension records are interpreted
+[ ] Should we allow suspension of things other than lessons - e.g. registration.
+[*] Add the ability to specify additional suspension records
+[*] Suspend lower school lessons during their exams
 [ ] Change the duty slots for the second half of term
+[*] Stop multiple clash reports where a person is committed to an event more than once.
 
 And then I can think about moving on to the actual enhancements planned for half term - organiser for an event, which wants an improved version of the predictive text boxes.
 
+My change to the way lessons are suspended has resulted in 120 amendments to atomic timetable events, and 3 amendments to compound timetable events.  I need to know what those are and why.  They may be correct; they may not.
