@@ -4,7 +4,8 @@
 # for more information.
 
 class EventsController < ApplicationController
-  before_action :set_event, only: [:show, :edit, :update, :moved, :destroy]
+  before_action :set_event,
+                only: [:show, :edit, :update, :moved, :clone, :destroy]
 
   # GET /events
   # GET /events.json
@@ -134,6 +135,26 @@ class EventsController < ApplicationController
         format.html { render :edit }
         format.json { render json: @event.errors, status: :unprocessable_entity }
       end
+    end
+  end
+
+  # POST /events/1/clone
+  def clone
+    #
+    #  We enter this method with @event giving the event to be cloned.
+    #
+    @event =
+      @event.clone_and_save(
+        owner:       current_user,
+        eventsource: Eventsource.find_by(name: "Manual"))
+    #
+    #  And throw the user straight into editing it.
+    #
+    @commitment = Commitment.new
+    @commitment.event = @event
+    @minimal = true
+    respond_to do |format|
+      format.js
     end
   end
 

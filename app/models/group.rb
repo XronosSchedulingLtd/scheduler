@@ -173,6 +173,10 @@ class Group < ActiveRecord::Base
   #
   #  Item can be any kind of entity, or an element.
   #
+  #  Returns true if the member was added, and false if not.
+  #  Note that, if the entity is already a member then false
+  #  will be returned.  false means "nothing changed".
+  #
   def add_member(item, as_of = nil)
     # Rails.logger.info("Entering add_member for #{item.name}")
     if item.instance_of?(Element)
@@ -181,13 +185,22 @@ class Group < ActiveRecord::Base
       element = item.element
       if element == nil
         Rails.logger.info("Attempt to add inactive entity to group.")
-        return
+        return false
       end
     end
     as_of ||= Date.today
     if as_of < self.starts_on
       as_of = self.starts_on
     end
+    #
+    #  Can't have memberships starting after the life of the group
+    #  has ended.
+    #
+    if self.ends_on && as_of > self.ends_on
+      Rails.logger.info("Attempt to add entity to group after it has ended.")
+      return false
+    end
+    result = false
     #
     #  Is this item already an explicit (as opposed to recursive) member
     #  of this group.  Inclusive or exclusive?
@@ -216,6 +229,7 @@ class Group < ActiveRecord::Base
         membership.starts_on = as_of
         membership.inverse = false
         membership.save!
+        result = true
       else
         #
         #  Already an explicit member.  Do nothing.
@@ -249,7 +263,9 @@ class Group < ActiveRecord::Base
         selected.starts_on = as_of
         selected.save!
       end
+      result = true
     end
+    result
   end
 
   #
@@ -684,6 +700,20 @@ class Group < ActiveRecord::Base
         self.destroy!
       end
     end
+  end
+
+  #
+  #  Bring back a group which has previously been marked as over and
+  #  done with.
+  #
+  #  Could add a "with_members" parameter, which would re-instate
+  #  the members who were members on the day the group ended.  Not
+  #  needed for now though - the group comes back as empty.
+  #
+  def reincarnate
+    self.ends_on = nil
+    self.current = true
+    self.save!
   end
 
   #

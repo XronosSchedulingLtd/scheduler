@@ -13,12 +13,16 @@ class DaysController < ApplicationController
     #
     #  Set defaults
     #
-    do_compact    = false
-    add_duration  = false
-    mark_end      = false
-    add_locations = false
-    clock_format  = :twenty_four_hour
-    end_times     = true
+    options = {
+      do_compact:    false,
+      add_duration:  false,
+      mark_end:      false,
+      add_locations: false,
+      add_staff:     false,
+      by_period:     false,
+      clock_format:  :twenty_four_hour,
+      end_times:     true
+    }
     era = Setting.current_era
     start_date   = Date.today
     end_date     = era.ends_on
@@ -27,16 +31,22 @@ class DaysController < ApplicationController
     #  Check for options appended to the URL.
     #
     if params.has_key?(:compact)
-      do_compact = true
+      options[:do_compact] = true
     end
     if params.has_key?(:duration)
-      add_duration = true
+      options[:add_duration] = true
     end
     if params.has_key?(:mark_end)
-      mark_end = true
+      options[:mark_end] = true
     end
     if params.has_key?(:locations)
-      add_locations = true
+      options[:add_locations] = true
+    end
+    if params.has_key?(:staff)
+      options[:add_staff] = true
+    end
+    if params.has_key?(:periods)
+      options[:by_period] = true
     end
     if params[:start_date]
       start_date = Date.parse(params[:start_date])
@@ -45,10 +55,15 @@ class DaysController < ApplicationController
       end_date = Date.parse(params[:end_date])
     end
     if params.has_key?(:twelve_hour)
-      clock_format = :twelve_hour
+      options[:clock_format] = :twelve_hour
     end
     if params.has_key?(:no_end_time)
-      end_times = false
+      options[:end_times] = false
+    end
+    if params.has_key?(:breaks)
+      @do_breaks = true
+    else
+      @do_breaks = false
     end
     if params[:categories]
       #
@@ -90,19 +105,14 @@ class DaysController < ApplicationController
     start_date.upto(end_date) do |date|
       start_of_day = Time.zone.parse(date.strftime("%Y-%m-%d"))
       end_of_day = Time.zone.parse((date + 1.day).strftime("%Y-%m-%d"))
-      day = Day.new(date,
-                    add_duration,
-                    mark_end,
-                    add_locations,
-                    clock_format,
-                    end_times)
+      day = Day.new(date, options)
       dbevents.select {|dbe| dbe.starts_at < end_of_day &&
                              dbe.ends_at   > start_of_day}.
-               select {|dbe| !do_compact ||
+               select {|dbe| !options[:do_compact] ||
                              !dbe.all_day ||
                              !dbe.compactable? ||
                              dbe.starts_at == start_of_day ||
-                             (mark_end && dbe.ends_at == end_of_day)}.
+                             (options[:mark_end] && dbe.ends_at == end_of_day)}.
                sort_by {|dbe| [sort_hash[dbe.eventcategory_id],
                                dbe.starts_at,
                                dbe.ends_at]}.

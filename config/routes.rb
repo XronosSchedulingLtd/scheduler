@@ -39,6 +39,7 @@ Rails.application.routes.draw do
   resources :events do
     member do
       put 'moved'
+      post :clone
     end
   end
 

@@ -323,8 +323,15 @@ module DatabaseAccess
     else
       newrecord = self.class.const_get(:DB_CLASS).new
       key_field = self.class.const_get(:DB_KEY_FIELD)
-      newrecord.send("#{key_field}=",
-                     self.send("#{key_field}"))
+      if key_field.instance_of?(Array)
+        key_field.each do |kf|
+          newrecord.send("#{kf}=",
+                         self.send("#{kf}"))
+        end
+      else
+        newrecord.send("#{key_field}=",
+                       self.send("#{key_field}"))
+      end
       self.class.const_get(:FIELDS_TO_CREATE).each do |field_name|
          newrecord.send("#{field_name}=",
                         self.instance_variable_get("@#{field_name}"))
@@ -361,11 +368,16 @@ module DatabaseAccess
       #
       @belongs_to_era = db_class.new.respond_to?(:era)
       key_field = self.class.const_get(:DB_KEY_FIELD)
-      if @belongs_to_era
-        find_hash = { key_field => self.send("#{key_field}"),
-                      :era_id => self.instance_variable_get("@era_id") }
+      find_hash = Hash.new
+      if key_field.instance_of?(Array)
+        key_field.each do |kf|
+          find_hash[kf] = self.send("#{kf}")
+        end
       else
-        find_hash = { key_field => self.send("#{key_field}") }
+        find_hash[key_field] = self.send("#{key_field}")
+      end
+      if @belongs_to_era
+        find_hash[:era_id] = self.instance_variable_get("@era_id")
       end
       @dbrecord =
         db_class.find_by(find_hash)
@@ -799,7 +811,7 @@ class SB_PeriodTime
 
   include Slurper
 
-  attr_reader :starts_at, :ends_at
+  attr_reader :starts_at, :ends_at, :start_mins, :end_mins
 
   def adjust(loader)
     #
@@ -1103,7 +1115,7 @@ class SB_StaffCover
 
   attr_accessor :sal, :date, :staff_covering, :staff_covered
 
-  attr_reader :date, :cover_or_invigilation
+  attr_reader :date, :cover_or_invigilation, :period
 
   #
   #  A class for recording details of an apparent clash.  For a clash
@@ -1156,7 +1168,13 @@ class SB_StaffCover
       #    Events flagged as can_borrow, where more then one member of
       #    staff is committed to the event.
       #
+      #  It is possible for someone to be committed more than once
+      #  to the same event, if he or she is a member of more than one
+      #  group committed to the event.  Make sure we report on each
+      #  clashing event only once.
+      #
       clashes = []
+      event_ids_seen = []
       all_commitments =
         cover_commitment.element.commitments_during(
           start_time: cover_commitment.event.starts_at,
@@ -1180,8 +1198,10 @@ class SB_StaffCover
                   c.event.ends_at   == cover_commitment.event.ends_at) ||
                  (c.event.eventcategory.can_borrow &&
                   c.event.staff(true).size > 1) ||
-                 permitted_overload(cover_commitment, c)
+                 permitted_overload(cover_commitment, c) ||
+                 event_ids_seen.include?(c.event.id)
             clashes << Clash.new(cover_commitment, c)
+            event_ids_seen << c.event.id
           end
         end
       end
@@ -1192,21 +1212,56 @@ class SB_StaffCover
 
   class Oddity
 
-    attr_reader :covered_commitment, :staff_covering, :descriptive_text
+    attr_reader :descriptive_text
 
-    def initialize(covered_commitment, staff_covering, descriptive_text)
+    #
+    #  New version - now passed the actual cover commitment.
+    #
+    def initialize(staff_cover,
+                   descriptive_text)
 #      puts "Creating an oddity"
-      @covered_commitment = covered_commitment
-      @staff_covering     = staff_covering
+      @staff_cover        = staff_cover
       @descriptive_text   = descriptive_text
-    end
+      #
+      #  Now prepare the bits we need to produce formatted output.
+      #
 
-    def <=>(other)
-      self.event.starts_at <=> other.event.starts_at
     end
 
     def to_partial_path
       "user_mailer/oddity"
+    end
+
+    def effective_date
+      @staff_cover.date
+    end
+
+    def oddity_type
+      @staff_cover.cover_or_invigilation
+    end
+
+    def activity_text
+      @staff_cover.cover_or_invigilation == :cover ? "Cover" : "Invigilation"
+    end
+    
+    def start_time
+      @staff_cover.period.time.starts_at
+    end
+
+    def end_time
+      @staff_cover.period.time.ends_at
+    end
+
+    def person
+      @staff_cover.staff_covering.name
+    end
+
+    def problem
+      @descriptive_text
+    end
+
+    def <=>(other)
+      self.effective_date <=> other.effective_date
     end
 
   end
@@ -1240,71 +1295,92 @@ class SB_StaffCover
   #  Returns true if we are ready, or false if this one isn't suitable -
   #  wrong type or don't have all the necessary info.
   #
-  def prepare(loader)
+  #  Discard here any which are in the past.
+  #
+  def prepare(loader, oddities)
     result = false
     if @ptype == 60
-      #
-      #  We try to gather all the relevant information up front,
-      #  checking as we go.
-      #
-      #  sc    Staff cover
-      #  sal   Staff absence line
-      #  sa    Staff absence
-      #
-      #  sc => sal => sa
-      #
-      @sal = loader.sal_hash[@staff_ab_line_ident]
       @date = loader.safe_date(@absence_date)
-      @staff_covering = loader.staff_hash[@staff_ident]
-      if @sal && @date && @staff_covering
+      #
+      #  Silently ignore any which are in the past.
+      #
+      if @date && @date >= loader.start_date
         #
-        #  Is it cover or invigilation?
+        #  We try to gather all the relevant information up front,
+        #  checking as we go.
         #
-        if @sal.timetable_ident
+        #  sc    Staff cover
+        #  sal   Staff absence line
+        #  sa    Staff absence
+        #
+        #  sc => sal => sa
+        #
+        @sal = loader.sal_hash[@staff_ab_line_ident]
+        @staff_covering = loader.staff_hash[@staff_ident]
+        if @sal && @staff_covering
           #
-          #  Cover.  Can we find the target lesson?
+          #  Is it cover or invigilation?
           #
-          @cover_or_invigilation = :cover
-          @sa = loader.sa_hash[@sal.staff_ab_ident]
-          if @sa
-            @staff_covered = loader.staff_hash[@sa.staff_ident]
-            if @staff_covered
-              #
-              #  Have all we need to be able to process this one.
-              #
-              result = true
+          if @sal.timetable_ident
+            #
+            #  Cover.  Can we find the target lesson?
+            #
+            @cover_or_invigilation = :cover
+            @sa = loader.sa_hash[@sal.staff_ab_ident]
+            if @sa
+              @staff_covered = loader.staff_hash[@sa.staff_ident]
+              @period = loader.period_hash[@sal.period]
+              if @staff_covered && @period && @period.time
+                #
+                #  Have all we need to be able to process this one.
+                #
+                result = true
+              else
+                #
+                #  Can't find covered staff member.
+                #
+                puts "Can't find staff member #{@sa.staff_ident} to cover."
+  #              puts self.inspect
+              end
             else
               #
-              #  Can't find covered staff member.
+              #  Can't find the absence record - which would tell us
+              #  which lesson to cover.
               #
-              puts "Can't find staff member #{@sa.staff_ident} to cover."
-#              puts self.inspect
+              puts "Can't find absence record #{@sal.staff_ab_ident} for cover."
             end
           else
             #
-            #  Can't find the absence record - which would tell us
-            #  which lesson to cover.
+            #  Invigilation
             #
-            puts "Can't find absence record #{@sal.staff_ab_ident} for cover."
+            @cover_or_invigilation = :invigilation
+            puts "An invigilation slot for #{@staff_covering.name} on #{@date}." if loader.verbose
+            #
+            #  Is there a room specified which we know about?
+            #
+            @sa = loader.sa_hash[@sal.staff_ab_ident]
+            if @sa
+              @invigilation_location = loader.location_hash[@sa.room_ident]
+            end
+            @period = loader.period_hash[@sal.period]
+            if @period && @period.time
+              result = true
+            else
+              puts "Couldn't find period #{@sal.period} for invigilation."
+            end
           end
-        else
-          #
-          #  Invigilation
-          #
-          @cover_or_invigilation = :invigilation
-          puts "An invigilation slot for #{@staff_covering.name} on #{@date}." if loader.verbose
-          #
-          #  Is there a room specified which we know about?
-          #
-          @sa = loader.sa_hash[@sal.staff_ab_ident]
-          if @sa
-            @invigilation_location = loader.location_hash[@sa.room_ident]
-          end
-          @period = loader.period_hash[@sal.period]
-          if @period && @period.time
-            result = true
-          else
-            puts "Couldn't find period #{@sal.period} for invigilation."
+          if result
+            #
+            #  Cross check that SB isn't asking us to do something
+            #  impossible.
+            #
+            unless @staff_covering.dbrecord &&
+                   @staff_covering.dbrecord.active
+              puts "#{@staff_covering.name} is due to #{@sal.timetable_ident ? "cover" : "invigilate"} on #{@date} but is inactive."
+              oddities << Oddity.new(self,
+                                     "not a current member of the teaching staff")
+              result = false
+            end
           end
         end
       end
@@ -1321,9 +1397,12 @@ class SB_StaffCover
     if @cover_or_invigilation == :cover
       #
       #  Is it already in the database?
+      #  It's a bit weird, but Ian sometimes does cover for non-existent
+      #  lessons.
       #
       candidates =
-        Commitment.commitments_on(startdate: self.date).
+        Commitment.commitments_on(startdate: self.date,
+                                  include_nonexistent: true).
                    covering_commitment.
                    where(source_id: self.source_id)
       if candidates.size == 0
@@ -1350,51 +1429,43 @@ class SB_StaffCover
           #  Need to find the commitment by the covered teacher
           #  to the indicated lesson.
           #
+          if dblesson.non_existent
+            oddities << Oddity.new(self, "lesson is suspended")
+          end
           original_commitment =
             Commitment.by(@staff_covered.dbrecord).to(dblesson)[0]
           if original_commitment
             if original_commitment.covered
               puts "Commitment seems to be covered already."
             end
-            if @staff_covering.dbrecord.element
-              cover_commitment = Commitment.new
-              cover_commitment.event = original_commitment.event
-              cover_commitment.element = @staff_covering.dbrecord.element
-              cover_commitment.covering = original_commitment
-              cover_commitment.source_id = self.source_id
-              if cover_commitment.save
-                added += 1
-                cover_commitment.reload
-                #
-                #  Does this clash with anything?
-                #
-                clashes = Clash.find_clashes(cover_commitment)
-              else
-                puts "Failed to save cover."
-                cover_commitment.errors.full_messages.each do |msg|
-                  puts msg
-                end
-                puts "staff_ab_line_ident = #{@staff_ab_line_ident}"
-                puts "staff_covering:"
-                puts "  name #{@staff_covering.name}"
-                puts "  does_cover #{@staff_covering.does_cover}"
-                puts "dblesson:"
-                puts "  body: #{dblesson.body}"
-                puts "  eventcategory: #{dblesson.eventcategory.name}"
-                puts "  starts_at: #{dblesson.starts_at}"
-                puts "  ends_at: #{dblesson.ends_at}"
-                puts "original_commitment:"
-                puts "  element.name: #{original_commitment.element.name}"
-              end
+            cover_commitment = Commitment.new
+            cover_commitment.event = original_commitment.event
+            cover_commitment.element = @staff_covering.dbrecord.element
+            cover_commitment.covering = original_commitment
+            cover_commitment.source_id = self.source_id
+            if cover_commitment.save
+              added += 1
+              cover_commitment.reload
+              #
+              #  Does this clash with anything?
+              #
+              clashes = Clash.find_clashes(cover_commitment)
             else
-              #
-              #  The indicated member of staff does not seem appropriate.
-              #
-              oddities <<
-                Oddity.new(
-                  original_commitment,
-                  @staff_covering,
-                  "does not seem to be a current member of the teaching staff")
+              puts "Failed to save cover."
+              cover_commitment.errors.full_messages.each do |msg|
+                puts msg
+              end
+              puts "staff_ab_line_ident = #{@staff_ab_line_ident}"
+              puts "staff_covering:"
+              puts "  name #{@staff_covering.name}"
+              puts "  does_cover #{@staff_covering.does_cover}"
+              puts "dblesson:"
+              puts "  body: #{dblesson.body}"
+              puts "  eventcategory: #{dblesson.eventcategory.name}"
+              puts "  starts_at: #{dblesson.starts_at}"
+              puts "  ends_at: #{dblesson.ends_at}"
+              puts "original_commitment:"
+              puts "  element.name: #{original_commitment.element.name}"
             end
           else
             puts "Failed to find original commitment."
@@ -1414,29 +1485,26 @@ class SB_StaffCover
           #
           #  No.  Adjust.
           #
-          if @staff_covering.dbrecord.element
-            cover_commitment.element = @staff_covering.dbrecord.element
-            if cover_commitment.save
-              amended += 1
-            else
-              puts "Failed to save amended cover."
-            end
-            #
-            #  Reload regardless of whether or not the save succeeded,
-            #  because if it failed we want to get back the consistent
-            #  record which we had before.
-            #
-            cover_commitment.reload
+          cover_commitment.element = @staff_covering.dbrecord.element
+          if cover_commitment.save
+            amended += 1
           else
-            oddities << Oddity.new(cover_commitment.covering,
-                                   @staff_covering,
-                                   "does not seem to be a current member of the teaching staff")
+            puts "Failed to save amended cover."
           end
+          #
+          #  Reload regardless of whether or not the save succeeded,
+          #  because if it failed we want to get back the consistent
+          #  record which we had before.
+          #
+          cover_commitment.reload
         end
         #
         #  Again, need to check if it clashes with anything.
         #
         clashes = Clash.find_clashes(cover_commitment)
+        if cover_commitment.event.non_existent
+          oddities << Oddity.new(self, "lesson is suspended")
+        end
       else
         puts "Weird - cover item #{self.source_id} is there more than once."
         candidates.each do |c|
@@ -1453,7 +1521,10 @@ class SB_StaffCover
               eventsource_id(loader.event_source.id).
               eventcategory_id(loader.invigilation_category.id).
               source_id(@sal.staff_ab_line_ident)[0]
-      unless dbinvigilation
+      if dbinvigilation
+        newly_created = false
+      else
+        newly_created = true
         starts_at =
           Time.zone.parse("#{@date.to_s} #{@period.time.starts_at}")
         ends_at   =
@@ -1473,6 +1544,7 @@ class SB_StaffCover
         if event.save
           event.reload
           dbinvigilation = event
+          added += 1
         else
           puts "Failed to create invigilation event."
         end
@@ -1482,7 +1554,11 @@ class SB_StaffCover
         #  Event is now in the d/b.  Make sure it has the right resources.
         #
         sb_element_ids = Array.new
-        sb_element_ids << @staff_covering.dbrecord.element.id
+        if @staff_covering.dbrecord.element
+          sb_element_ids << @staff_covering.dbrecord.element.id
+        else
+          puts "Invigilation by #{@staff_covering.initials} who has no element."
+        end
         if @invigilation_location &&
            @invigilation_location.dbrecord &&
            @invigilation_location.dbrecord.location &&
@@ -1498,7 +1574,7 @@ class SB_StaffCover
             c.event      = dbinvigilation
             c.element_id = sbid
             c.save
-            amended += 1
+            amended += 1 unless newly_created
           end
           dbinvigilation.reload
         end
@@ -1628,28 +1704,30 @@ class SB_SuspendedLesson
 
   include Slurper
 
-  attr_reader :starts_at, :ends_at
+  attr_reader :end_date
 
   def initialize
     @got_duration = false
-    @starts_at = nil
-    @ends_at   = nil
   end
 
   def adjust(loader)
     #
     #  Need to work out our actual start and finish times.
     #
-    start_date   = loader.safe_date(self.start_date_ident)
-    end_date     = loader.safe_date(self.end_date_ident)
+    @start_date   = loader.safe_date(self.start_date_ident)
+    @end_date     = loader.safe_date(self.end_date_ident)
     start_period = loader.period_hash[self.start_period_ident]
     end_period   = loader.period_hash[self.end_period_ident]
-    if start_date && end_date && start_period && end_period
-      @starts_at =
-        Time.zone.parse("#{start_date.to_s} #{start_period.time.starts_at}")
-      @ends_at =
-        Time.zone.parse("#{end_date.to_s} #{end_period.time.ends_at}")
-#      puts "Suspension for year_ident #{@year_ident} from #{@starts_at.to_s} to #{ends_at.to_s}"
+    #
+    #  There appears to be (yet another) bug in SB in that it sometimes
+    #  fails to record the start period.  Assume it to be 1.
+    #
+    if @start_date && @end_date && end_period && !start_period
+      start_period = loader.period_hash[1]
+    end
+    if @start_date && @end_date && start_period && end_period
+      @start_mins = start_period.time.start_mins
+      @end_mins   = end_period.time.end_mins
       @got_duration = true
     end
   end
@@ -1662,11 +1740,47 @@ class SB_SuspendedLesson
     @suspension_ident
   end
 
+  def applies?(date, period_time)
+    #
+    #  First the dates have to match, then the times.  If we overlap
+    #  the indicated period then we match.
+    #
+    date >= @start_date &&
+    date <= @end_date &&
+    period_time.start_mins < @end_mins &&
+    period_time.end_mins > @start_mins
+  end
+
+  def initialise_from_extra(es)
+    @start_date = es.start_date
+    @end_date   = es.end_date
+    @year_ident = es.year_ident
+    @start_mins = es.start_mins
+    @end_mins   = es.end_mins
+    @got_duration = true
+  end
+
+  def self.create_extra(es)
+    new_one = self.new
+    new_one.initialise_from_extra(es)
+    new_one
+  end
+
+end
+
+
+class SB_ExtraSuspension
+  attr_reader :start_date,
+              :end_date,
+              :year_ident,
+              :start_mins,
+              :end_mins
 end
 
 
 class SB_Timetableentry
   FILE_NAME = "timetable.csv"
+  SUSPENDABLE_TYPES = [:lesson, :registration, :tutor_period]
   REQUIRED_COLUMNS = [Column["TimetableIdent", :timetable_ident, true],
                       Column["GroupIdent",     :group_ident,     true],
                       Column["StaffIdent",     :staff_ident,     true],
@@ -1718,7 +1832,7 @@ class SB_Timetableentry
           #
           #  Potentially applies to us.
           #
-          if suspension.ends_at >= loader.start_date
+          if suspension.end_date >= loader.start_date
 #            puts "Found a possible suspension for year_group_id #{self.year_ident(loader)}"
             @suspensions << suspension
           end
@@ -1766,23 +1880,12 @@ class SB_Timetableentry
   #  date.  Take account of the time of this lesson.
   #
   def suspended_on?(loader, date)
-    if self.event_type(loader) == :lesson
-      starts_at = Time.zone.parse("#{date.to_s} #{@period_time.starts_at}")
-      ends_at   = Time.zone.parse("#{date.to_s} #{@period_time.ends_at}")
-      @suspensions.each do |suspension|
-        #
-        #  Usual argument.  Think about when the overlap doesn't apply.
-        #  If we start after the end of the suspension, or end before
-        #  it begins then we're not interested in this suspension.  Apply
-        #  De Morgan's law to get the inverse.
-        #
-        if starts_at < suspension.ends_at &&
-           ends_at >= suspension.starts_at
-          return true
-        end
-      end
+    if SUSPENDABLE_TYPES.include?(self.event_type(loader)) &&
+       @suspensions.detect {|s| s.applies?(date, @period_time)}
+      true
+    else
+      false
     end
-    false
   end
 
   #
@@ -1805,6 +1908,9 @@ class SB_Timetableentry
   #  Returns our year group id, or 0 if we don't seem to have one.
   #  Information is cached.
   #
+  #  For compound events, all the groups have to have the same year
+  #  ident for us to return it.
+  #
   def year_ident(loader)
     unless @year_group_id
       group = nil
@@ -1813,6 +1919,18 @@ class SB_Timetableentry
       else
         if self.group_idents.size > 0
           group = loader.group_hash[self.group_idents[0]]
+          #
+          #  Check whether there's another group with a different
+          #  year id.  If there is, then we can't return a meaningful
+          #  value.
+          #
+          exception =
+            self.group_idents.detect {|gi|
+              g = loader.group_hash[gi]
+              g != nil && g.year_ident != group.year_ident}
+          if exception
+            group = nil
+          end
         end
       end
       if group
@@ -2103,10 +2221,10 @@ end
 
 
 class SB_Tutorgroup
-  FIELDS_TO_UPDATE = [:name, :house, :era_id, :start_year, :current]
+  FIELDS_TO_UPDATE = [:name, :era_id, :current]
   DB_CLASS = Tutorgroup
-  DB_KEY_FIELD = :staff_id
-  FIELDS_TO_CREATE = [:name, :house, :era_id, :start_year, :current]
+  DB_KEY_FIELD = [:staff_id, :house, :start_year]
+  FIELDS_TO_CREATE = [:name, :era_id, :current]
 
   include DatabaseAccess
 
@@ -2119,9 +2237,15 @@ class SB_Tutorgroup
                 :year_group
 
 
-  def initialize
+  def initialize(year, staff, tge, era)
     @records = Array.new
     @current = true
+    @year_group = year.year_num - 6
+    @name       = "#{@year_group}#{staff.initials}"
+    @house      = tge.house
+    @staff_id   = staff.dbrecord.id
+    @era_id     = era.id
+    @start_year = year.start_year
   end
 
   def add(record)
@@ -2130,6 +2254,102 @@ class SB_Tutorgroup
 
   def num_pupils
     @records.size
+  end
+
+  #
+  #  Ensure this tutor group is correctly represented in the
+  #  database.
+  #
+  def ensure_db(loader)
+    loaded_count           = 0
+    changed_count          = 0
+    unchanged_count        = 0
+    reincarnated_count     = 0
+    member_loaded_count    = 0
+    member_removed_count   = 0
+    member_unchanged_count = 0
+    #
+    #  First call the method, then we can access @dbrecord directly.
+    #
+    self.dbrecord
+    if @dbrecord
+      #
+      #  It's possible that, although there is a record in the d/b
+      #  no longer current.
+      #
+      unless @dbrecord.current
+        @dbrecord.reincarnate
+        @dbrecord.reload
+        #
+        #  Reincarnating a group sets its end date to nil, but we kind
+        #  of want it to be the end of the current era.
+        #
+        @dbrecord.ends_on = loader.era.ends_on
+        @dbrecord.save
+        reincarnated_count += 1
+      end
+      #
+      #  Need to check the group details still match.
+      #
+      if self.check_and_update
+        changed_count += 1
+      else
+        unchanged_count += 1
+      end
+    else
+      if num_pupils > 0
+        if self.save_to_db(starts_on: loader.start_date,
+                           ends_on: loader.era.ends_on)
+          loaded_count += 1
+        end
+      end
+    end
+    if @dbrecord
+      #
+      #  And now sort out the pupils for this tutor group.
+      #
+      db_member_ids =
+        @dbrecord.members(loader.start_date).collect {|s| s.source_id}
+      sb_member_ids = self.records.collect {|r| r.pupil_ident}
+      missing_from_db = sb_member_ids - db_member_ids
+      missing_from_db.each do |pupil_id|
+        pupil = loader.pupil_hash[pupil_id]
+        if pupil && pupil.dbrecord
+          begin
+            if @dbrecord.add_member(pupil.dbrecord, loader.start_date)
+              #
+              #  Adding a pupil to a tutor group effectively changes the
+              #  pupil's element name.  Save the pupil record so the
+              #  element name gets updated.
+              #
+              pupil.force_save
+              member_loaded_count += 1
+            else
+              puts "Failed to add #{pupil.name} to tutorgroup #{self.name}"
+            end
+          rescue ActiveRecord::RecordInvalid => e
+            puts "Failed to add #{pupil.name} to tutorgroup #{self.name}"
+            puts e
+          end
+        end
+      end
+      extra_in_db = db_member_ids - sb_member_ids
+      extra_in_db.each do |pupil_id|
+        pupil = loader.pupil_hash[pupil_id]
+        if pupil && pupil.dbrecord
+          @dbrecord.remove_member(pupil.dbrecord, loader.start_date)
+          member_removed_count += 1
+        end
+      end
+      member_unchanged_count += (db_member_ids.size - extra_in_db.size)
+    end
+    [loaded_count,
+     reincarnated_count,
+     changed_count,
+     unchanged_count,
+     member_loaded_count,
+     member_removed_count,
+     member_unchanged_count]
   end
 
 end
@@ -2170,7 +2390,7 @@ class SB_Loader
 
   KNOWN_DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
-  InputSource = Struct.new(:array_name, :loader_class, :hash_prefix, :key_field)
+  InputSource = Struct.new(:array_name, :loader_class, :hash_prefix, :key_field, :extra)
 
   INPUT_SOURCES = [InputSource[:academicyears, SB_AcademicYear],
                    InputSource[:years, SB_Year, :year, :year_ident],
@@ -2221,7 +2441,7 @@ class SB_Loader
                    InputSource[:periods, SB_Period, :period, :period_ident],
                    InputSource[:subjects, SB_Subject, :subject, :subject_ident],
                    InputSource[:dates, SB_Date, :date, :date_ident],
-                   InputSource[:suspensions, SB_SuspendedLesson],
+                   InputSource[:suspensions, SB_SuspendedLesson, nil, nil, :get_extra_suspensions],
                    InputSource[:timetable_entries, SB_Timetableentry, :tte,
                                :timetable_ident],
                    InputSource[:staffablines, SB_StaffAbLine, :sal,
@@ -2238,6 +2458,10 @@ class SB_Loader
       {file_name: "extra_staff_groups.yml", dbclass: Staff},
       {file_name: "extra_pupil_groups.yml", dbclass: Pupil},
       {file_name: "extra_group_groups.yml", dbclass: Group}
+    ]
+
+    EXTRA_SUSPENSION_FILES = [
+      "extra_suspensions.yml"
     ]
 
   attr_reader :era,
@@ -2320,6 +2544,9 @@ class SB_Loader
       else
         raise "Failed to read #{is.array_name} - #{msg}."
       end
+      if is.extra
+        self.send(is.extra)
+      end
     end
     #
     #  If we get this far then all the files have been succesfully read.
@@ -2347,13 +2574,7 @@ class SB_Loader
       if staff && year && pupil && staff.dbrecord && staff.dbrecord.active
         tge_accepted_count += 1
         unless @tg_hash[tge.user_ident]
-          tg = SB_Tutorgroup.new
-          tg.year_group = year.year_num - 6
-          tg.name       = "#{tg.year_group}#{staff.initials}"
-          tg.house      = tge.house
-          tg.staff_id   = staff.dbrecord.id
-          tg.era_id     = @era.id
-          tg.start_year = year.start_year
+          tg = SB_Tutorgroup.new(year, staff, tge, @era)
           @tg_hash[tge.user_ident] = tg
           if @house_hash[tg.house]
             @house_hash[tg.house] << tg
@@ -2512,6 +2733,9 @@ class SB_Loader
     File.open(Rails.root.join(IMPORT_DIR, "years.yml"), "w") do |file|
       file.puts YAML::dump(@years)
     end
+    File.open(Rails.root.join(IMPORT_DIR, "suspensions.yml"), "w") do |file|
+      file.puts YAML::dump(@suspensions)
+    end
     puts "Finished data initialisation." if @verbose
     yield self if block_given?
   end
@@ -2667,68 +2891,32 @@ class SB_Loader
   end
 
   def do_tutorgroups
-    tg_changed_count   = 0
-    tg_unchanged_count = 0
-    tg_loaded_count    = 0
+    tg_changed_count      = 0
+    tg_unchanged_count    = 0
+    tg_loaded_count       = 0
+    tg_reincarnated_count = 0
     tgmember_removed_count   = 0
     tgmember_unchanged_count = 0
     tgmember_loaded_count    = 0
     tg_at_start = Tutorgroup.current.count
     @tg_hash.each do |key, tg|
-      dbrecord = tg.dbrecord
-      if dbrecord
-        #
-        #  Need to check the group details still match.
-        #
-        if tg.check_and_update
-          tg_changed_count += 1
-        else
-          tg_unchanged_count += 1
-        end
-      else
-        if tg.num_pupils > 0
-          if tg.save_to_db(starts_on: @start_date,
-                           ends_on: @era.ends_on)
-            dbrecord = tg.dbrecord
-            tg_loaded_count += 1
-          end
-        end
-      end
-      if dbrecord
-        #
-        #  And now sort out the pupils for this tutor group.
-        #
-        db_member_ids = dbrecord.members(@start_date).collect {|s| s.source_id}
-        sb_member_ids = tg.records.collect {|r| r.pupil_ident}
-        missing_from_db = sb_member_ids - db_member_ids
-        missing_from_db.each do |pupil_id|
-          pupil = @pupil_hash[pupil_id]
-          if pupil && pupil.dbrecord
-            begin
-              dbrecord.add_member(pupil.dbrecord, @start_date)
-              #
-              #  Adding a pupil to a tutor group effectively changes the
-              #  pupil's element name.  Save the pupil record so the
-              #  element name gets updated.
-              #
-              pupil.force_save
-              tgmember_loaded_count += 1
-            rescue ActiveRecord::RecordInvalid => e
-              puts "Failed to add #{pupil.name} to tutorgroup #{tg.name}"
-              puts e
-            end
-          end
-        end
-        extra_in_db = db_member_ids - sb_member_ids
-        extra_in_db.each do |pupil_id|
-          pupil = @pupil_hash[pupil_id]
-          if pupil && pupil.dbrecord
-            dbrecord.remove_member(pupil.dbrecord, @start_date)
-            tgmember_removed_count += 1
-          end
-        end
-        tgmember_unchanged_count += (db_member_ids.size - extra_in_db.size)
-      end
+      #
+      #  There must be a more idiomatic way of doing this.
+      #
+      loaded,
+      reincarnated,
+      changed,
+      unchanged,
+      member_loaded,
+      member_removed,
+      member_unchanged = tg.ensure_db(self)
+      tg_loaded_count          += loaded
+      tg_reincarnated_count    += reincarnated
+      tg_changed_count         += changed
+      tg_unchanged_count       += unchanged
+      tgmember_loaded_count    += member_loaded
+      tgmember_removed_count   += member_removed
+      tgmember_unchanged_count += member_unchanged
     end
     #
     #  It's possible that a tutor group has ceased to exist entirely,
@@ -2736,19 +2924,14 @@ class SB_Loader
     #  with members) but we need to record its demise.
     #
     tg_deleted_count = 0
-    Tutorgroup.current.each do |dbtg|
-      tg = @tg_hash[dbtg.staff.source_id]
-      unless dbtg.era_id == @era.id && tg
-        puts "Tutor group #{dbtg.name} exists in the d/b but not in the files." if @verbose
-        #
-        #  Need to terminate any remaining memberships, then terminate the
-        #  group.  Note that in general, nothing gets deleted, just marked
-        #  as over.  The exception is when we are deleting a group before
-        #  it ever got started.
-        #
-        dbtg.ceases_existence(@start_date)
-        tg_deleted_count += 1
-      end
+    sb_tg_ids = @tg_hash.collect { |key, tg| tg.dbrecord.id }.compact
+    db_tg_ids = Tutorgroup.current.collect {|dbtg| dbtg.id}
+    extra_ids = db_tg_ids - sb_tg_ids
+    extra_ids.each do |eid|
+      dbtg = Tutorgroup.find(eid)
+      puts "Tutor group #{dbtg.name} exists in the d/b but not in the files." if @verbose
+      dbtg.ceases_existence(@start_date)
+      tg_deleted_count += 1
     end
     tg_at_end = Tutorgroup.current.count
     if @verbose || tg_deleted_count > 0
@@ -2763,6 +2946,9 @@ class SB_Loader
     if @verbose || tg_loaded_count > 0
       puts "#{tg_loaded_count} tutor group records created."
     end
+    if @verbose || tg_reincarnated_count > 0
+      puts "#{tg_reincarnated_count} tutor group records reincarnated."
+    end
     if @verbose || tgmember_removed_count > 0
       puts "Removed #{tgmember_removed_count} pupils from tutor groups."
     end
@@ -2772,7 +2958,7 @@ class SB_Loader
     if @verbose || tgmember_loaded_count > 0
       puts "Added #{tgmember_loaded_count} pupils to tutor groups."
     end
-    if @verbose && tg_at_start != tg_at_end
+    if @verbose || tg_at_start != tg_at_end
       puts "Started with #{tg_at_start} tutor groups and finished with #{tg_at_end}."
     end
   end
@@ -3122,6 +3308,7 @@ class SB_Loader
               end
               if event.non_existent != lesson.suspended_on?(self, date)
                 event.non_existent = lesson.suspended_on?(self, date)
+#                puts "#{event.body} #{event.non_existent ? "suspended" : "un-suspended"} on #{date.to_s} at #{period_time.starts_at}"
                 changed = true
               end
               if event.eventcategory_id != lesson.eventcategory(self).id
@@ -3332,6 +3519,7 @@ class SB_Loader
               end
               if event.non_existent != lesson.suspended_on?(self, date)
                 event.non_existent = lesson.suspended_on?(self, date)
+#                puts "#{event.body} #{event.non_existent ? "suspended" : "un-suspended"} on #{date.to_s} at #{period_time.starts_at}"
                 changed = true
               end
 #              if event.eventcategory_id == @registration_category.id ||
@@ -3478,8 +3666,7 @@ class SB_Loader
     max_cover_date = @start_date
     max_invigilation_date = @start_date
     @staffcovers.each do |sc|
-      if sc.prepare(self) &&
-         sc.date >= @start_date
+      if sc.prepare(self, cover_oddities)
         if sc.cover_or_invigilation == :cover
           covers_processed += 1
           if covers_by_date[sc.date]
@@ -3589,7 +3776,7 @@ class SB_Loader
       puts "Added #{invigilations_added} instances of invigilation."
     end
     if invigilations_amended > 0 || @verbose
-      puts "Amended #{invigilations_amended} instances of invigilation."
+      puts "#{invigilations_amended} amendments to instances of invigilation."
     end
     if invigilations_deleted > 0 || @verbose
       puts "Deleted #{invigilations_deleted} instances of invigilation."
@@ -3606,195 +3793,8 @@ class SB_Loader
                                        cover_oddities).deliver
         end
       end
-#      current_date = Time.zone.parse("2010-01-01")
-#      cover_clashes.sort.each do |cc|
-#        if cc.cover_commitment.event.starts_at.to_date != current_date
-#          current_date = cc.cover_commitment.event.starts_at.to_date
-#          puts "#{current_date.strftime("%a %d/%m/%Y")}"
-#        end
-#        puts "  #{cc.cover_commitment.element.name}"
-#        if cc.cover_commitment.covering
-#          puts   "    Covering #{cc.cover_commitment.event.body} for #{cc.cover_commitment.covering.element.name}."
-#        else
-#          puts   "    Covering #{cc.cover_commitment.event.body}."
-#        end
-#        puts "    From #{cc.cover_commitment.event.starts_at.strftime("%H:%M")} to #{cc.cover_commitment.event.ends_at.strftime("%H:%M")}."
-#        puts "    Also has #{cc.clashing_commitment.event.body}."
-#        if cc.clashing_commitment.event.all_day
-#          puts "    All day"
-#        else
-#          puts "    From #{cc.clashing_commitment.event.starts_at.strftime("%H:%M")} to #{cc.clashing_commitment.event.ends_at.strftime("%H:%M")}."
-#        end
-#      end
     else
       puts "No apparent cover issues."
-    end
-  end
-
-  #
-  #  This is the original algorithm for adding cover.  Kept temporarily for
-  #  reference.
-  #
-  def do_cover1
-    covers_added = 0
-    invigilations_added = 0
-    invigilations_amended = 0
-    #
-    #  Let's see if we can make any sense of it first.
-    #
-    @staffcovers.each do |sc|
-      if sc.ptype == 60
-        sal = @sal_hash[sc.staff_ab_line_ident]
-        date = @date_hash[sc.absence_date]
-        if date && date.date >= @start_date
-          staff_covering = @staff_hash[sc.staff_ident]
-          if sal && date && staff_covering
-#            puts "#{sc.staff_name} on #{date.date} links up."
-            #
-            #  Now can we find the lesson he or she is meant to be covering?
-            #
-            sa = @sa_hash[sal.staff_ab_ident]
-            if sa
-              if sal.timetable_ident
-                staff_covered = @staff_hash[sa.staff_ident]
-                if staff_covered
-                  puts "#{staff_covering.name} covering #{staff_covered.name} on #{date.date} for lesson #{sal.timetable_ident}"
-                  #
-                  #  Can we actually add this to the d/b (assuming it isn't
-                  #  already there)?
-                  #
-                  #  Specify:
-                  #    Date
-                  #    Eventsource
-                  #    Eventcategory
-                  #    source id
-                  #
-                  if SB_Timetableentry.been_merged?(sal.timetable_ident)
-                    dblesson = Event.on(date.date).
-                                     eventsource_id(@event_source.id).
-                                     source_hash(
-                                       SB_Timetableentry.merged_source_hash(sal.timetable_ident))[0]
-                  else
-                    dblesson = Event.on(date.date).
-                                     eventsource_id(@event_source.id).
-                                     source_id(sal.timetable_ident)[0]
-                  end
-                  if dblesson
-                    puts "Found the corresponding lesson."
-                    #
-                    #  Need to find the commitment by the covered teacher
-                    #  to the indicated lesson.
-                    #
-                    original_commitment =
-                      Commitment.by(staff_covered.dbrecord).to(dblesson)[0]
-                    if original_commitment
-                      puts "Found commitment."
-                      #
-                      #  Now - does the cover exist already?
-                      #
-                      if original_commitment.covered
-                        puts "Cover is there already."
-                        #
-                        #  Is the right person doing it?
-                        #
-                        if original_commitment.covered.element.entity.id ==
-                           staff_covering.dbrecord.id
-                          puts "And by the right person."
-                        else
-                          puts "But the wrong person."
-                        end
-                      else
-                        cover_commitment = Commitment.new
-                        cover_commitment.event = original_commitment.event
-                        cover_commitment.element = staff_covering.dbrecord.element
-                        cover_commitment.covering = original_commitment
-                        if cover_commitment.save
-                          covers_added += 1
-                        else
-                          puts "Failed to save cover."
-                        end
-                      end
-                    else
-                      puts "Can't find commitment."
-                    end
-                  else
-                    puts "Can't find the lesson."
-                  end
-                else
-                  puts "Can't find covered staff."
-                end
-              else
-                puts "An invigilation slot for #{staff_covering.name} on #{date.date}." if @verbose
-                #
-                #  Is it already in the database?
-                #
-                dbinvigilation =
-                  Event.on(date.date).
-                        eventsource_id(@event_source.id).
-                        eventcategory_id(@invigilation_category.id).
-                        source_id(sal.staff_ab_line_ident)[0]
-                if dbinvigilation
-#                  puts "Invigilation already in the d/b."
-                  #
-                  #  Is it the right person?
-                  #
-                  if dbinvigilation.commitments
-                    commitment = dbinvigilation.commitments[0]
-                    if commitment.element !=
-                       staff_covering.dbrecord.element
-                      commitment.element = staff_covering.dbrecord.element
-                      commitment.save
-                      invigilations_amended += 1
-                    end
-                  end
-                else
-#                  puts "Creating invigilation event."
-                  period = @period_hash[sal.period]
-                  if period && period.time
-                    starts_at =
-                      Time.zone.parse("#{date.date.to_s} #{period.time.starts_at}")
-                    ends_at   =
-                      Time.zone.parse("#{date.date.to_s} #{period.time.ends_at}")
-                    event = Event.new
-                    event.body          = "Invigilation"
-                    event.eventcategory = @invigilation_category
-                    event.eventsource   = @event_source
-                    event.starts_at     = starts_at
-                    event.ends_at       = ends_at
-                    event.approximate   = false
-                    event.non_existent  = false
-                    event.private       = false
-                    event.all_day       = false
-                    event.compound      = false
-                    event.source_id     = sal.staff_ab_line_ident
-                    if event.save
-                      event.reload
-                      c = Commitment.new
-                      c.event = event
-                      c.element = staff_covering.dbrecord.element
-                      c.save
-                      invigilations_added += 1
-                    end
-                  end
-                end
-              end
-            else
-              puts "Can't find staff absence record."
-            end
-          else
-            puts "#{sc.staff_name} on #{date ? date.date : "unknown date"} doesn't link up."
-          end
-        end
-      end
-    end
-    if covers_added > 0 || @verbose
-      puts "Added #{covers_added} instances of cover."
-    end
-    if invigilations_added > 0 || @verbose
-      puts "Added #{invigilations_added} instances of invigilation."
-    end
-    if invigilations_amended > 0 || @verbose
-      puts "Changed #{invigilations_amended} instances of invigilation."
     end
   end
 
@@ -4175,6 +4175,18 @@ class SB_Loader
           dbrecord
         }.compact
         ensure_membership(group_name, dbrecords, control_data[:dbclass])
+      end
+    end
+  end
+
+  def get_extra_suspensions
+    EXTRA_SUSPENSION_FILES.each do |file_name|
+      extra_suspensions =
+        YAML.load(
+          File.open(Rails.root.join(IMPORT_DIR, file_name)))
+      extra_suspensions.each do |es|
+#        puts "Got an extra suspension record."
+        @suspensions << SB_SuspendedLesson.create_extra(es)
       end
     end
   end

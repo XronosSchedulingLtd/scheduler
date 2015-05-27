@@ -3,7 +3,9 @@
 <% end %>
 <h1>Editing event</h1>
 
+<div id="editing_form">
 <%= render 'form' %>
+</div>
 
 <% if !@minimal && !@minute %>
 <%= link_to 'Show', @event %> |

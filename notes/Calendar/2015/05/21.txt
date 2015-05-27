@@ -1,0 +1,15 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-05-21T17:32:15+01:00
+
+====== Thursday 21 May 2015 ======
+
+I've just realised that I don't think I'm processing the lesson suspensions quite right.  I'm doing them from first specified period on first specified day to last specified period on last specified day.  This probably isn't what's intended.  It might be desired to suspend all the morning lessons for a week.
+
+I think I need to change the test to check for lessons being between the indicated dates, and during the indicated periods.  I also want to add some code to allow me to specify extra exclusions, for when ICF has failed to put them into SB.  I want the data I display to be as accurate as possible.
+
+And now I find myself needing to fix a problem too, brought on by yet another bug in SB.  It seems that it lets ICF choose absolutely anyone to do a cover or invigilation, regardless of whether or not they're on the teaching staff.  I already had code to check and cope with duff covers, but I've just been bitten by a duff invigilation.  Need to do the same checks there too.
+
+The question arises of when exactly to check.  I'd quite like to include reports of duff entries in my e-mailed details, so I don't want to discard them too soon.  I think therefore the check needs to be in ensure_db to allow them to be added to the oddities list.  An interesting question arises - if I get a cover amendment where the new indicated member of staff is impossible, what should the result be?  Obviously one logs the problem, but does one then delete the cover, or leave it as the old person?  Likewise with an invigilation.  It's actually less work to leave it as the old person, but is that the expected behaviour?
+
+Having thought about it on a walk into town and back, I've come to the conclusion that one should delete the cover.  The fact that someone else (someone real) used to be down to do it is not a reason to keep that record there.  If it's been changed on SB so that that person is no longer doing the cover/invigilation then it should disappear from that person's schedule.  The fact that it has not yet appeared on the new person's schedule is not the original person's problem.  I should therefore be logging and discarding problem covers/invigilations at an early stage.

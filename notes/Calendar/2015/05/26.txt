@@ -1,0 +1,40 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-05-26T10:20:52+01:00
+
+====== Tuesday 26 May 2015 ======
+
+Interesting.  Working on my changes to suspension code, I find all the lower sixth lessons on Monday and Tuesday of next week (the last two days of their suspension period) seem to have become un-suspended.  Why?
+
+Check the fine detail of the suspension record.
+
+'''
+SusIdent,SusStartdate,SusEndDate,YearIdent,SusReason,GroupIdent,ClassIdent,StartPeriod,EndPeriod,Ptype,SubIdent
+32,4547,4573,18,"L6the Study Leave",,,1,49,60,
+'''
+
+
+It's noticeable that the specified end period is only 49, when most suspensions run to period 120 or 97 or the like.  What is the significance of this?  Period 49 is on a Wednesday.  Period 1 is on a Monday.  Times?
+
+Period 1 is from 510 to 510.  08:30 to 08:30
+
+Period 49 is the same.  08:30 to 08:30
+
+Period 97 is from 510 to 510.
+
+Period 119 is 960 to 995.  16:00 to 16:35
+Period 120 is 995 to 1030.  16:35 to 17:10
+
+5th year study leave is from 1 to 119
+Lower sixth is from 1 to 49
+Upper sixth has two.  blank to 120 and 97 to 120
+
+It's a bit difficult to discern exactly how these are meant to be interpreted.  The date is effectively being given twice, and they can disagree.  I think I need to add my own suspensions in, then fix the erroneous data from SB.  I'll tell Ian about the odd suspension too.  For now however, my code seems to be working exactly correctly.
+
+Just added my suspension of first and second year lessons, and hit an interesting side effect.  Ian has apparently set up some of the suspended lessons with cover, and my code then seems to try to set up the cover again.  It doesn't recognise that the new cover is the same as the old one.  I need to fix that, and point out to Ian that he is covering suspended lessons.
+
+Fixed it.
+
+Interesting point arises if we consider allowing registration and/or tutor periods to be suspended.  Although each group record coming from SB has a purported year group, it doesn't quite map onto our groups.  Our sixth form tutor groups belong to both lower and upper sixth.  We thus might suspend one when we shouldn't.  Likewise, where I merge events to form compound events, I should keep track of all groups involved, and not just the first one.  They might have different year groups.
+
+Perhaps I need to leave things as they are for now.  Test the extended code anyway though.
