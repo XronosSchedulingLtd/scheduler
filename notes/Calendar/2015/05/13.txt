@@ -1,0 +1,9 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-05-13T15:15:39+01:00
+
+====== Wednesday 13 May 2015 ======
+
+Investigating something slightly odd.  Every day or two, it seems that Ian changes *all* the future invigilations, which seems unlikely somehow.  I need to analyse my code to see what the actual changes are.  What does my code consider to be a change?
+
+Just realised I am not counting invigilations added to the d/b.  I add them, but don't count them.  Perhaps that's it.  They're really additions, but I count only the fact that I am adding resources to the newly created events.  Amend and test again.  Yes, that does seem to be the explanation.
