@@ -12,7 +12,23 @@ class ElementsController < ApplicationController
   def autocomplete_element_name
     term = params[:term]
     elements =
-      Element.current.mine_or_system(current_user).where('name LIKE ?', "%#{term}%").order(:name).all
+      Element.current.
+              mine_or_system(current_user).
+              where('name LIKE ?', "%#{term}%").
+              order(:name).
+              all
+    render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+  end
+
+  def autocomplete_staff_element_name
+    term = params[:term].split(" ").join("%")
+    elements =
+      Element.current.
+              staff.
+              mine_or_system(current_user).
+              where('name LIKE ?', "%#{term}%").
+              order(:name).
+              all
     render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
   end
 

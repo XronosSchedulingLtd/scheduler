@@ -17,6 +17,7 @@ class Element < ActiveRecord::Base
   belongs_to :owner, :class_name => :User
 
   scope :current, -> { where(current: true) }
+  scope :staff, -> { where(entity_type: "Staff") }
   scope :mine_or_system, ->(current_user) { where("owner_id IS NULL OR owner_id = :user_id", user_id: current_user.id) }
   after_save :rename_affected_events
 

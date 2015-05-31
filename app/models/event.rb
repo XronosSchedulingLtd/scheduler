@@ -231,6 +231,18 @@ class Event < ActiveRecord::Base
   end
 
   #
+  #  A couple of dummy methods to allow an organiser name to be
+  #  included in our forms.
+  #
+  def organiser_name
+    self.organiser ? self.organiser.name : ""
+  end
+  
+  def organiser_name=(on)
+    @organiser_name = on
+  end
+  
+  #
   #  What resources are directly involved in this event?
   #
   def resources

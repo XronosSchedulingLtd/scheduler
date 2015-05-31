@@ -61,8 +61,10 @@
       <%= f.label :organiser, class: "right inline" %>
     </div>
     <div class="small-3 columns">
-      <%= f.autocomplete_field :organiser,
-                               autocomplete_element_name_elements_path %>
+      <%= f.autocomplete_field :organiser_name,
+                               autocomplete_staff_element_name_elements_path,
+                               :id_element => '#event_organiser_id' %>
+      <%= f.text_field :organiser_id, :type => :hidden %>
     </div>
     <div class="small-6 columns"></div>
   </div>
