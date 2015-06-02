@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150512184828) do
+ActiveRecord::Schema.define(version: 20150601193106) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -262,6 +262,7 @@ ActiveRecord::Schema.define(version: 20150512184828) do
     t.string   "colour_not_involved",         default: "#254117"
     t.boolean  "arranges_cover",              default: false
     t.integer  "preferred_event_category_id"
+    t.boolean  "secretary",                   default: false
   end
 
 end

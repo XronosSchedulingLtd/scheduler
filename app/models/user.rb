@@ -8,7 +8,6 @@ class User < ActiveRecord::Base
   DECENT_COLOURS = [
                     "#483D8B",      # DarkSlateBlue
                     "#CD5C5C",      # IndianRed
-                    "#3CB371",      # MediumSeaGreen
                     "#B8860B",      # DarkGoldenRed (brown)
                     "#7B68EE",      # MediumSlateBlue
                     "#808000",      # Olive
@@ -17,6 +16,7 @@ class User < ActiveRecord::Base
                     "#2E8B57",      # SeaGreen
                     "#A0522D",      # Sienna
                     "#008080",      # Teal
+                    "#3CB371",      # MediumSeaGreen
                     "#2F4F4F",      # DarkSlateGray
                     "#556B2F",      # DarkOliveGreen
                     "#FF6347"]      # Tomato
@@ -156,6 +156,14 @@ class User < ActiveRecord::Base
           end
         end
       end
+    end
+  end
+
+  def corresponding_staff
+    if self.email
+      Staff.find_by_email(self.email)
+    else
+      nil
     end
   end
 

@@ -33,6 +33,12 @@ class EventsController < ApplicationController
     if current_user.preferred_event_category
       @event.eventcategory = current_user.preferred_event_category
     end
+    unless current_user.secretary
+      staff = current_user.corresponding_staff
+      if staff
+        @event.organiser = staff.element
+      end
+    end
     if request.xhr?
       if params[:date]
         start_date = Time.zone.parse(params[:date])
