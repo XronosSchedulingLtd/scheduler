@@ -99,6 +99,7 @@ class StaffsController < ApplicationController
   def ical
     staff = Staff.find_by_initials(params[:id].upcase)
     era = Setting.current_era
+    next_era = Setting.next_era
     #
     #  Not sure how I ended up with this name, but "publish" means it gets
     #  included in ical downloads, and "for_users" means it is relevant,
@@ -108,7 +109,7 @@ class StaffsController < ApplicationController
     extra_categories = Eventcategory.publish.for_users
     if staff && era
       starts_on = era.starts_on
-      ends_on   = era.ends_on
+      ends_on   = next_era ? next_era.ends_on : era.ends_on
       dbevents =
         (staff.element.events_on(starts_on, ends_on, basic_categories) +
          Event.events_on(starts_on, ends_on, extra_categories)).uniq

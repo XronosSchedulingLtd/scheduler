@@ -103,13 +103,21 @@ class Commitment < ActiveRecord::Base
     #  Fortunately, all of these provide a to_date action.
     #
     startdate = startdate ? startdate.to_date   : Date.today
-    dateafter = enddate   ? enddate.to_date + 1 : startdate + 1
+    if enddate == :never
+      dateafter = :never
+    else
+      dateafter = enddate   ? enddate.to_date + 1 : startdate + 1
+    end
     #
     #  Now we need midnight at the start of these two dates, expressed
     #  as a Time, to pass to the method that does the actual work.
     #
     start_time = Time.zone.parse("00:00:00", startdate)
-    end_time   = Time.zone.parse("00:00:00", dateafter)
+    if dateafter == :never
+      end_time   = :never
+    else
+      end_time   = Time.zone.parse("00:00:00", dateafter)
+    end
     self.commitments_during(start_time:          start_time,
                             end_time:            end_time,
                             eventcategory:       eventcategory,
@@ -221,8 +229,10 @@ class Commitment < ActiveRecord::Base
       #  For an explanation of why the conditions are like this, see
       #  either the Event model, or the journal for 27/10/2014.
       #
-      query_string_parts << "events.starts_at < :end_time"
-      query_hash[:end_time] = end_time
+      unless end_time == :never
+        query_string_parts << "events.starts_at < :end_time"
+        query_hash[:end_time] = end_time
+      end
       query_string_parts << "events.ends_at > :start_time"
       query_hash[:start_time] = start_time
       if ecs.size > 0

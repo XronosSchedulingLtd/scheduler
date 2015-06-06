@@ -46,12 +46,13 @@ class ElementsController < ApplicationController
     include_cover = true
     include_non_cover = true
     customer_categories = nil
+    remove_categories = []
     file_type = :ical
     do_compact = false
     add_duration = false
     era = Setting.current_era
     starts_on = era.starts_on
-    ends_on = era.ends_on
+    ends_on = :never
     #raise params.inspect
     if params.has_key?(:cover)
       #
@@ -89,15 +90,21 @@ class ElementsController < ApplicationController
       #  You can't select categories which aren't flagged as allowing
       #  ical downloads.
       #
-      customer_category_names = params[:categories].split(",")
+      remove_category_names, customer_category_names =
+        params[:categories].split(",").partition{|n| n[0] == "!"}
       #
       #  Nasty frig to give BW an extra category.  Will go away as soon
       #  as I fix the way Calendar entries are identified.
       #
-      customer_category_names << "Key date (external)"
+      if customer_category_names.include?("Calendar")
+        customer_category_names << "Key date (external)"
+      end
       customer_categories = customer_category_names.collect { |ccn|
         Eventcategory.find_by_name(ccn)
       }.compact.select {|cc| cc.publish}
+      remove_categories = remove_category_names.collect { |rcn|
+        Eventcategory.find_by_name(rcn[1..-1])
+      }.compact
       #
       #  There is a slight danger that if the requestor specifies only
       #  invalid categories then we end up with an empty list, which
@@ -113,7 +120,11 @@ class ElementsController < ApplicationController
       #
       #  Request for the breakthrough events.
       #
-      categories = customer_categories || Eventcategory.publish.for_users
+      categories =
+        (customer_categories || Eventcategory.publish.for_users) - remove_categories
+      if categories.empty?
+        categories = Eventcategory.publish.for_users
+      end
       dbevents = Event.events_on(starts_on,
                                  ends_on,
                                  categories)
@@ -127,7 +138,11 @@ class ElementsController < ApplicationController
       #  included in ical downloads, and "for_users" means it is relevant,
       #  even if the user is not explicitly involved.
       #
-      categories = customer_categories || Eventcategory.publish
+      categories =
+        (customer_categories || Eventcategory.publish) - remove_categories
+      if categories.empty?
+        categories = Eventcategory.publish
+      end
       selector = element.commitments_on(startdate:     starts_on,
                                         enddate:       ends_on,
                                         eventcategory: categories)
@@ -192,6 +207,18 @@ class ElementsController < ApplicationController
     end
     if got_something
       if file_type == :csv
+        if ends_on == :never
+          #
+          #  Need to work out an end date, because we produce
+          #  an output line for each specified date.  It's just
+          #  possible that the dbevents array is empty.
+          #
+          if dbevents.size > 0
+            ends_on = dbevents.max_by{|dbe| dbe.end_date}.end_date
+          else
+            ends_on = starts_on
+          end
+        end
         tf = Tempfile.new(["#{prefix}", ".csv"])
         starts_on.upto(ends_on) do |date|
           #

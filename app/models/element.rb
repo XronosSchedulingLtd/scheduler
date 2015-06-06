@@ -170,15 +170,20 @@ class Element < ActiveRecord::Base
           #
           my_groups = self.groups
         else
-          end_date = enddate.to_date
-          if end_date < Date.today
-            #
-            #  End date is in the past, so I think that nothing is
-            #  going to be returned anyway, but just in case...
-            #
-            my_groups = self.groups(end_date)
-          else
+          if enddate == :never
             my_groups = self.groups
+            end_date = :never
+          else
+            end_date = enddate.to_date
+            if end_date < Date.today
+              #
+              #  End date is in the past, so I think that nothing is
+              #  going to be returned anyway, but just in case...
+              #
+              my_groups = self.groups(end_date)
+            else
+              my_groups = self.groups
+            end
           end
         end
       else
@@ -197,6 +202,9 @@ class Element < ActiveRecord::Base
             #  Just the one day required.
             #
             my_groups = self.groups(start_date)
+          elsif enddate == :never
+            my_groups = self.groups
+            end_date = :never
           else
             end_date = enddate.to_date
             if end_date < Date.today

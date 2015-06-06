@@ -6,8 +6,14 @@
 class Setting < ActiveRecord::Base
 
   @@current_era = nil
+  @@next_era = nil
+  @@checked_next_era = false
+  @@previous_era = nil
+  @@checked_previous_era = false
 
   belongs_to :current_era, class_name: :Era
+  belongs_to :next_era, class_name: :Era
+  belongs_to :previous_era, class_name: :Era
 
   after_save :flush_cache
 
@@ -25,6 +31,10 @@ class Setting < ActiveRecord::Base
   #
   def flush_cache
     @@current_era = nil
+    @@next_era = nil
+    @@checked_next_era = false
+    @@previous_era = nil
+    @@checked_previous_era = false
   end
 
   def self.current_era
@@ -37,6 +47,32 @@ class Setting < ActiveRecord::Base
       end
     end
     @@current_era
+  end
+
+  def self.next_era
+    unless @@checked_next_era
+      setting = Setting.first
+      if setting
+        @@next_era = setting.next_era
+      else
+        @@next_era = nil
+      end
+      @@checked_next_era = true
+    end
+    @@next_era
+  end
+
+  def self.previous_era
+    unless @@checked_previous_era
+      setting = Setting.first
+      if setting
+        @@previous_era = setting.previous_era
+      else
+        @@previous_era = nil
+      end
+      @@checked_previous_era = true
+    end
+    @@previous_era
   end
 
   protected

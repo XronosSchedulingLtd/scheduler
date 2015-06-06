@@ -118,6 +118,18 @@ class Event < ActiveRecord::Base
     self.starts_at = value
   end
 
+  #
+  #  Returns the last date of this event.  Processing differs depending
+  #  on whether or not this is an all-day event.
+  #
+  def end_date
+    if self.all_day
+      self.ends_at.to_date - 1.day
+    else
+      self.ends_at.to_date
+    end
+  end
+
   def ends_at_text
     if all_day
       ends_at ? (ends_at.to_date - 1.day).strftime("%d/%m/%Y") : ""
@@ -343,7 +355,11 @@ class Event < ActiveRecord::Base
     #  Fortunately, all of these provide a to_date action.
     #
     startdate = startdate ? startdate.to_date   : Date.today
-    dateafter = enddate   ? enddate.to_date + 1 : startdate + 1
+    if enddate == :never
+      dateafter = :never
+    else
+      dateafter = enddate   ? enddate.to_date + 1 : startdate + 1
+    end
     ecs = []
     if eventcategory
       #
@@ -411,8 +427,10 @@ class Event < ActiveRecord::Base
       #
       #    If starts_at < dateafter && ends_at > startdate
       #
-      query_string_parts << "starts_at < :dateafter"
-      query_hash[:dateafter] = Time.zone.parse("00:00:00", dateafter)
+      unless dateafter == :never
+        query_string_parts << "starts_at < :dateafter"
+        query_hash[:dateafter] = Time.zone.parse("00:00:00", dateafter)
+      end
       query_string_parts << "ends_at > :startdate"
       query_hash[:startdate] = Time.zone.parse("00:00:00", startdate)
       if ecs.size > 0

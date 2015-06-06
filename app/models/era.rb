@@ -7,6 +7,12 @@ class Era < ActiveRecord::Base
 
   has_many :groups, dependent: :destroy
   has_one  :setting, :foreign_key => :current_era_id
+  has_one  :future_setting,
+           :class_name => :Setting,
+           :foreign_key => :next_era_id
+  has_one  :previous_setting,
+           :class_name => :Setting,
+           :foreign_key => :previous_era_id
 
   def teachinggroups
     self.groups.teachinggroups
