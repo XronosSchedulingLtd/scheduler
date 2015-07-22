@@ -66,7 +66,12 @@
                                :id_element => '#event_organiser_id' %>
       <%= f.text_field :organiser_id, :type => :hidden %>
     </div>
-    <div class="small-6 columns"></div>
+    <div class="small-2 columns">
+      <%= f.label :reference, class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= f.text_field :organiser_ref %>
+    </div>
   </div>
   <div class="row collapse">
     <div class="small-3 columns">

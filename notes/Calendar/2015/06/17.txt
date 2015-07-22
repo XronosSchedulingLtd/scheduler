@@ -1,0 +1,41 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-06-17T15:06:55+01:00
+
+====== Wednesday 17 Jun 2015 ======
+
+OK - next little niggle.  My e-mails from the loading program are complaining about an apparent duplicate cover entry.
+
+On 23rd June, 2015  13:45 - 14:40  Andrew Hall covering Richard Taylor
+
+Staff_ab_line_ident = 54979
+
+Let's find the relevant lesson.  It's S4 Spt, and ASH does indeed seem to be down to cover RMT already.  What more can I discover about it?  I need to know the source id of the existing cover commitment.
+
+What do I use as the source_id for a cover?  The staff_ab_line_ident.  Event is 305669
+
+Ah - RMT was not covered prior to last night's run.  After it, he is.
+
+RMT's commitment is 761057, with a source id of nil.  The cover is commitment id 771101 with a source id of 54978 - one different.  Let's take a look at those input records.
+
+From staffabline.csv
+
+'''
+StaffAbLineIdent,StaffAbIdent,StaffAbsenceDate,Period,StaffAbCoverNeed,UserIdent,RoomIdent,TimetableIdent
+54978,4323,4593,33,1,41,,355116
+54979,4323,4593,33,1,41,,355535
+'''
+
+
+Notice that they differ only in the last field - the timetable ident.  Note also that this is a merged lesson in my database.  Could RMT be committed to it twice?
+
+Find those original Timetable ident records.
+
+'''
+TimetableIdent,GroupIdent,StaffIdent,RoomIdent,Period,AcYearIdent,Occurence,TimeFreeIdent,TimeMark,TimeTeachProb,TimeRoomProb,TimeNote,PupOrigNum,TimeOverIsGroup,TimeOverRepNeeded,ImportOrder,CopiedFromTimetableIdent,StartOfBlockTimetableIdent
+355116,32449,621,,33,15,0,0,0,1,0,,,0,,4,,
+355535,32449,621,,33,15,0,0,0,1,0,,,0,,1,,
+'''
+
+
+They do appear to be the same.  The StaffIdent is RMT's and the GroupIdent is S4 Spt.  How does my merging code cope when one staff member is committed to the same event twice?  I run uniq on it, so he only gets committed once.

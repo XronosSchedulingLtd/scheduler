@@ -1,0 +1,28 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-07-21T09:22:35+01:00
+
+====== Tuesday 21 Jul 2015 ======
+
+Just made an interesting discovery about SQL (or at least, about MySQL).
+
+If a field in a row is NULL, then it doesn't pass any tests apart from "IS NULL".  It seems fairly obvious that it won't pass:
+
+select * from table where field = 1;
+
+but the weird thing is that it also won't pass:
+
+select * from table where field != 1;
+
+It will only pass:
+
+select * from table where field is null;
+
+This means that I need to make sure that my fields are not null if I want to be able to find them reliably.
+
+To do today:
+
+[ ] Get web-based display and editing of users working
+[ ] Switch the fetching of events to be by concern rather than by element id.
+[ ] Get my admin editor-ness working again.
+[ ] Do all the new bits work for non-admin users?

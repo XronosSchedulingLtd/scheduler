@@ -1,0 +1,21 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-07-18T17:16:54+01:00
+
+====== Concern ======
+Created Saturday 18 July 2015
+
+A Concern links a User record to an Element record.  It indicates that the User is looking at Events involving the Element.
+
+==== Fields ====
+
+user_id		integer		Id of the relevant user				Indexed
+element_id	integer		Id of the relevant element			Indexed
+equality		boolean		Whether user == element
+owns		boolean		Whether user owns element
+colour		string		Colour in which to display events
+visible		boolean		Flag indicating whether events visible
+
+Note that the "equals" and "owns" flags can be set independently, although if the former is set then one would normally expect the latter to be set too.  The latter is often set without the former.
+
+The "owns" flag will be used later on to control who may authorise use of a resource.  Requests for the Amey Theatre will need to be authorised by Nick, etc.  Some events (e.g. the timetable) will be able to be entered without the need for the resource owner's authorisation.

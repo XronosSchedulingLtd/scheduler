@@ -24,29 +24,46 @@
     <td><%= @user.uid %></td>
   </tr>
 
-<% if @user.admin %>
   <tr>
     <td><strong>Administrator:</strong></td>
     <td><%= @user.admin %></td>
   </tr>
-<% end %>
+
+  <tr>
+    <td><strong>Editor:</strong></td>
+    <td><%= @user.editor %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Arranges cover:</strong></td>
+    <td><%= @user.arranges_cover %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Preferred event category:</strong></td>
+    <td><%= @user.preferred_event_category ?
+            @user.preferred_event_category.name :
+            "" %></td>
+  </tr>
+
+  <tr>
+    <td><strong>Secretary:</strong></td>
+    <td><%= @user.secretary %></td>
+  </tr>
+
 </table>
 
 <table>
-  <tr><th>Owns</th></tr>
-  <% @user.ownerships.each do |ownership| %>
-    <tr><td><%= ownership.element.name %></td></tr>
+  <tr><th>Concerns</th><th>Equality</th><th>Owns</th></tr>
+  <% @user.concerns.sort.each do |concern| %>
+    <tr>
+      <td><%= concern.element.name %></td>
+      <td><%= concern.equality %></td>
+      <td><%= concern.owns %></td>
+    </tr>
   <% end %>
-</table>
-
-<table>
-  <tr><th>Monitoring</th></tr>
-  <% @user.interests.each do |interest| %>
-    <tr><td><%= interest.element.name %></td></tr>
-  <% end %>
-
 </table>
 
 <% if !@minimal %>
-<%= link_to 'Edit', edit_user_path(@user) %> |
+<%= link_to 'Edit', edit_user_path(@user) %>
 <% end %>

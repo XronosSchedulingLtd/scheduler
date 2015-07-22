@@ -341,7 +341,8 @@ class Event < ActiveRecord::Base
                      eventsource   = nil,
                      resource      = nil,
                      owned_by      = nil,
-                     include_nonexistent = false)
+                     include_nonexistent = false,
+                     organised_by  = nil)
     # Rails.logger.debug("Entering Event#events_on")
     duffparameter = false
     #
@@ -406,6 +407,9 @@ class Event < ActiveRecord::Base
     if owned_by
       duffparameter = true unless owned_by.instance_of?(User)
     end
+    if organised_by
+      duffparameter = true unless organised_by.instance_of?(Element)
+    end
     if duffparameter
       # Rails.logger.debug("Event#events_on hit a duff parameter.")
       Event.none
@@ -462,6 +466,10 @@ class Event < ActiveRecord::Base
       if owned_by
         query_string_parts << "owner_id = :owner_id"
         query_hash[:owner_id] = owned_by.id
+      end
+      if organised_by
+        query_string_parts << "organiser_id = :organiser_id"
+        query_hash[:organiser_id] = organised_by.id
       end
       unless include_nonexistent
         query_string_parts << "not non_existent"

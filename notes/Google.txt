@@ -1,0 +1,30 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-07-21T16:48:56+01:00
+
+====== Google ======
+Created Tuesday 21 July 2015
+
+The application uses Google authentication.  Some notes on how to set it up.
+
+First you need to configure your host at:
+
+https://console.developers.google.com/project/predictive-tree-611/apiui/credential?authuser=0#
+
+Basically, it's the console at developers.google.com, then APIs and Auth and choose Credentials.
+
+You need to create a new host with an origin of:
+
+http://abingdon.scheduler.org.uk
+
+and a redirect URI of:
+
+http://abingdon.scheduler.org.uk/auth/google_oauth2/callback
+
+then copy the Client ID and Client Secret thus created and put them in your user's .profile.  (The user as whom you're running the application) like this:
+
+GOOGLE_CLIENT_ID="the id which you copied"
+GOOGLE_CLENT_SECRET="the secret which you copied"
+export GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
+
+and restart the app.  You should now be able to log in through google.

@@ -9,6 +9,7 @@ class Element < ActiveRecord::Base
   has_many :commitments, :dependent => :destroy
   has_many :ownerships,  :dependent => :destroy
   has_many :interests,   :dependent => :destroy
+  has_many :concerns,    :dependent => :destroy
   has_many :organised_events,
            :class_name => "Event",
            :foreign_key => :organiser_id,

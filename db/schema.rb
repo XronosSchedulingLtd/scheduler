@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150603194106) do
+ActiveRecord::Schema.define(version: 20150720081231) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -24,6 +24,20 @@ ActiveRecord::Schema.define(version: 20150603194106) do
   add_index "commitments", ["covering_id"], name: "index_commitments_on_covering_id", using: :btree
   add_index "commitments", ["element_id"], name: "index_commitments_on_element_id", using: :btree
   add_index "commitments", ["event_id"], name: "index_commitments_on_event_id", using: :btree
+
+  create_table "concerns", force: true do |t|
+    t.integer  "user_id"
+    t.integer  "element_id"
+    t.boolean  "equality",   default: false, null: false
+    t.boolean  "owns",       default: false, null: false
+    t.boolean  "visible",    default: true,  null: false
+    t.string   "colour",                     null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "concerns", ["element_id"], name: "index_concerns_on_element_id", using: :btree
+  add_index "concerns", ["user_id"], name: "index_concerns_on_user_id", using: :btree
 
   create_table "delayed_jobs", force: true do |t|
     t.integer  "priority",   default: 0, null: false
@@ -97,10 +111,12 @@ ActiveRecord::Schema.define(version: 20150603194106) do
     t.integer  "source_id",        default: 0
     t.string   "source_hash"
     t.integer  "organiser_id"
+    t.text     "organiser_ref"
   end
 
   add_index "events", ["ends_at"], name: "index_events_on_ends_at", using: :btree
   add_index "events", ["eventcategory_id"], name: "index_events_on_eventcategory_id", using: :btree
+  add_index "events", ["organiser_id"], name: "index_events_on_organiser_id", using: :btree
   add_index "events", ["owner_id"], name: "index_events_on_owner_id", using: :btree
   add_index "events", ["source_id"], name: "index_events_on_source_id", using: :btree
   add_index "events", ["starts_at"], name: "index_events_on_starts_at", using: :btree
@@ -265,6 +281,8 @@ ActiveRecord::Schema.define(version: 20150603194106) do
     t.boolean  "arranges_cover",              default: false
     t.integer  "preferred_event_category_id"
     t.boolean  "secretary",                   default: false
+    t.boolean  "show_calendar",               default: false
+    t.boolean  "show_owned",                  default: true
   end
 
 end

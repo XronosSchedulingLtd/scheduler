@@ -31,6 +31,13 @@
             @event.owner.name %></td>
   </tr>
 
+  <tr>
+    <td><strong>Organiser:</strong></td>
+    <td><%= @event.organiser ?
+            @event.organiser.name :
+            "" %></td>
+  </tr>
+
   <% if @event.all_day %>
     <% if @event.starts_at + 1.day == @event.ends_at %>
       <tr>

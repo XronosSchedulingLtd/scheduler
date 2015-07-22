@@ -15,6 +15,7 @@ $(document).ready ->
     dateFormat: 'yy-mm-dd',
     onSelect: (dateText, inst) ->
       $('#fullcalendar').fullCalendar( 'gotoDate', new Date(dateText))
+  window.activateCheckboxes()
   $(document).on('opened', '[data-reveal]', ->
     $('.datetimepicker').datetimepicker
       dateFormat: "dd/mm/yy"
@@ -129,3 +130,19 @@ window.addEventSource = (eid) ->
 window.removeEventSource = (eid) ->
   $('#fullcalendar').fullCalendar('removeEventSource',
                                   '/schedule/events?eid=' + eid)
+
+window.checkboxFlipped = (thebox) ->
+  concern_id = $(thebox).attr("concern_id")
+  jQuery.ajax
+    url: "/concerns/" + concern_id + "/flipped"
+    type: "PUT"
+    dataType: "json"
+    error: (jqXHR, textStatus, errorThrown) ->
+      alert("Failed: " + textStatus)
+    success: (data, textStatus, jqXHR) ->
+      $('#fullcalendar').fullCalendar('refetchEvents')
+
+window.activateCheckboxes = ->
+  $('.active-checkbox').change( ->
+    window.checkboxFlipped(this))
+

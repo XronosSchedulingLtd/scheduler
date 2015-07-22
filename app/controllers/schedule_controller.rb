@@ -48,15 +48,21 @@ class ScheduleController < ApplicationController
          }"
     end
 
-    def initialize(event, current_user = nil, colour = nil)
+    def initialize(event, current_user = nil, colour = nil, mine = false)
       @event  = event
-      if current_user && current_user.known? && colour
-        if event.covered_by?(current_user.own_element) ||
-           (event.eventcategory_id == Event.invigilation_category.id &&
-            event.involves?(current_user.own_element))
+      if colour
+        @colour = colour
+        #
+        #  If this is an event covered by the current user, *and* we
+        #  are selecting it by the current user's own element, then we
+        #  change the colour to red.  Likewise for invigilations.
+        #
+        if mine &&
+           current_user &&
+           current_user.known? &&
+           (event.covered_by?(current_user.own_element) ||
+            event.eventcategory_id == Event.invigilation_category.id)
           @colour = "red"
-        else
-          @colour = colour
         end
       elsif event.eventcategory_id == Event.weekletter_category.id
         @colour = "pink"
@@ -85,12 +91,10 @@ class ScheduleController < ApplicationController
   end
 
   def show
-    @interest = Interest.new
     #
-    #  This next one needs to go as soon as I get Interest creation
-    #  working correctly.
+    #  Make space for creating a new concern.
     #
-    @element  = Element.new
+    @concern = Concern.new
   end
 
   def events
@@ -99,10 +103,96 @@ class ScheduleController < ApplicationController
     end_date   = Time.zone.parse(params[:end]) - 1.day
     element_id = params[:eid].to_i
     if current_user && current_user.known?
-      if element_id != 0
-        i = current_user.interests.detect {|ci| ci.element_id == element_id}
-        if i
-          element = i.element
+      if element_id == 0
+        #
+        #  We are being asked for the usual list of events for the
+        #  current user.  These consist of:
+        #
+        #  * Events the user owns (i.e. he or she edited them in).
+        #  * Events the user's element is listed as organising.
+        #  * Breakthrough events, for all users.  These too are to go.
+        #  * As a special case for now, calendar events if the
+        #    user has asked for them.  Later on, calendar events will
+        #    be specified by them involving the calendar element.
+        #
+        #  As an order of precedence, we classify the events in that order.
+        #  Each event should appear only once, and in the category which
+        #  is listed here first.
+        #
+        #
+        if current_user.show_owned
+          my_owned_events =
+            current_user.events_on(start_date,
+                                   end_date,
+                                   nil,
+                                   nil,
+                                   true)
+          my_organised_events =
+            Event.events_on(start_date,
+                            end_date,
+                            nil,
+                            nil,
+                            nil,
+                            nil,
+                            true,
+                            current_user.own_element) - my_owned_events
+        else
+          my_owned_events = []
+          my_organised_events = []
+        end
+        breakthrough_events =
+          Event.events_on(start_date,
+                          end_date,
+                          Eventcategory.for_users) -
+                          (my_owned_events + my_organised_events)
+        if current_user.show_calendar
+          calendar_events =
+            Event.events_on(start_date,
+                            end_date,
+                            "Calendar",
+                            nil,
+                            nil,
+                            nil,
+                            true) - (my_owned_events +
+                                     my_organised_events +
+                                     breakthrough_events)
+          Rails.logger.debug("Got #{calendar_events.size} calendar events.")
+        else
+          calendar_events = []
+        end
+        @schedule_events =
+          calendar_events.collect {|e|
+            ScheduleEvent.new(e,
+                              current_user,
+                              "green")
+          } +
+          my_owned_events.collect {|e|
+            ScheduleEvent.new(e,
+                              current_user,
+                              current_user.colour_not_involved)
+          } +
+          my_organised_events.collect {|e|
+            ScheduleEvent.new(e,
+                              current_user,
+                              current_user.colour_not_involved)
+          } +
+          breakthrough_events.collect {|e|
+            ScheduleEvent.new(e,
+                              current_user)
+          }
+          Rails.logger.debug("Ended up with #{@schedule_events.size} displayable events.")
+      else
+        #
+        #  An explicit request for the events relating to a specified
+        #  element.  Only allow it if the element is listed as being
+        #  one of the current user's interests.  This is to stop users
+        #  being able to hand-craft requests for information to which
+        #  they might not be entitled.
+        #
+        concern =
+          current_user.concerns.detect {|ci| ci.element_id == element_id}
+        if concern && concern.visible
+          element = concern.element
           @schedule_events =
             element.events_on(start_date,
                               end_date,
@@ -110,65 +200,14 @@ class ScheduleController < ApplicationController
                               nil,
                               true,
                               true).collect {|e|
-              ScheduleEvent.new(e, current_user, i.colour)
+              ScheduleEvent.new(e,
+                                current_user,
+                                concern.colour,
+                                concern.equality)
             }
         else
           @schedule_events = []
         end
-      else
-        #
-        #  On the assumption that events owned by this user will usually
-        #  involve this user, and we don't want them then to be displayed
-        #  twice, we gather in those first and uniq them.
-        #
-        #  Currently cope with only one "me" ownership.  Know there is at
-        #  least one because of the current_user.known? check above.
-        #
-        ownership = current_user.ownerships.me[0]
-        events_involving = ownership.element.events_on(start_date,
-                                                       end_date,
-                                                       nil,
-                                                       nil,
-                                                       true,
-                                                       true)
-        mine, notmine =
-          events_involving.partition {|e| e.owner_id == current_user.id}
-        myotherevents =
-          current_user.events_on(start_date,
-                                 end_date,
-                                 nil,
-                                 nil,
-                                 true,
-                                 true) - mine
-        if current_user.preferred_event_category
-          preferred_events =
-            current_user.preferred_event_category.events_on(start_date,
-                                                            end_date,
-                                                            nil,
-                                                            nil,
-                                                            true) - (mine + myotherevents)
-        else
-          preferred_events = []
-        end
-        @schedule_events =
-          notmine.collect {|e| ScheduleEvent.new(e,
-                                                 current_user,
-                                                 ownership.colour)} +
-          mine.collect {|e| ScheduleEvent.new(e,
-                                              current_user,
-                                              current_user.colour_involved)} +
-          myotherevents.collect {|e| ScheduleEvent.new(e,
-                                                       current_user,
-                                                       current_user.colour_not_involved)} +
-          preferred_events.collect {|e| ScheduleEvent.new(e,
-                                                          current_user,
-                                                          "green")} +
-          (Event.events_on(start_date,
-                           end_date,
-                           Eventcategory.for_users) -
-           (mine + myotherevents)).collect {|e|
-            ScheduleEvent.new(e, current_user)
-          }
       end
     else
       @schedule_events =

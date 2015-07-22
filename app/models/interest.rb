@@ -14,7 +14,6 @@ class Interest < ActiveRecord::Base
   #  This isn't a real field in the d/b.  It exists to allow a name
   #  to be typed in the dialogue for creating an interest record.
   #
-
   def name
     @name 
   end

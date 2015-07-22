@@ -1,0 +1,17 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-07-17T11:22:26+01:00
+
+====== Interest ======
+Created Friday 17 July 2015
+
+Links a User and an Element, indicating that the user currently has an interest in that Element.  Controls the display of events to a User in the schedule view.  Each User sees all events involving Elements in which he is Interested.
+
+==== Fields ====
+
+user_id		The id of the relevant user
+element_id	The id of the relevant element
+colour		The colour in which to display events
+visible		Whether or not the events should currently be visible
+
+The last flag is provided so that users can toggle sets of events relating to a particular element on or off, without having to delete and re-create the Interest record.
