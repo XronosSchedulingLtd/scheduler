@@ -101,9 +101,9 @@ class ScheduleController < ApplicationController
 #    raise params.inspect
     start_date = Time.zone.parse(params[:start])
     end_date   = Time.zone.parse(params[:end]) - 1.day
-    element_id = params[:eid].to_i
+    concern_id = params[:cid].to_i
     if current_user && current_user.known?
-      if element_id == 0
+      if concern_id == 0
         #
         #  We are being asked for the usual list of events for the
         #  current user.  These consist of:
@@ -190,7 +190,7 @@ class ScheduleController < ApplicationController
         #  they might not be entitled.
         #
         concern =
-          current_user.concerns.detect {|ci| ci.element_id == element_id}
+          current_user.concerns.detect {|ci| ci.id == concern_id}
         if concern && concern.visible
           element = concern.element
           @schedule_events =

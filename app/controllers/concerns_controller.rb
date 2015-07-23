@@ -29,7 +29,12 @@ class ConcernsController < ApplicationController
     respond_to do |format|
       if @concern.save
         current_user.reload
-        @element_id = @concern.element_id
+        #
+        #  Need a new concern record in order to render the user's
+        #  side panel again, but also need the new concern_id
+        #  so save that first.
+        #
+        @concern_id = @concern.id
         @concern = Concern.new
         format.js
       else
@@ -45,49 +50,60 @@ class ConcernsController < ApplicationController
 
   def destroy
     #
-    #  This code should surely check that the concern relates to the
-    #  current user?
-    #
-    #  Also, if the user makes a request to destroy a non-existent
+    #  If the user makes a request to destroy a non-existent
     #  concern then it probably means that things have got out of step.
     #  He may well have logged on twice and be looking at an out-of-date
     #  screen.  We should respond by causing his screen to be refreshed.
     #
     #  Use find_by rather than find so we don't raise an error if not
-    #  found.
+    #  found.  If the front end asks to remove a concern which isn't
+    #  here then we assume that the front end is out of step and tell
+    #  it to update itself.
     #
     @concern = Concern.find_by(id: params[:id])
     if @concern && @concern.user_id == current_user.id
-      @element_id = @concern.element_id
+      @concern_id = @concern.id
       @concern.destroy
-      @success = true
     else
-      @success = false
+      #
+      #  So that the front end can destroy its erroneous record.
+      #
+      @concern_id = params[:id]
     end
     @concern = Concern.new
   end
 
   def flipped
     #
-    #  We could do with some permission checks here.  User's should
-    #  be able to flip only their own concerns.  Likewise, an invalid
-    #  request should result in the user's screen being refreshed.
-    #
     #  Special case until the calendar is an element.
+    #  If the user asks to change to the state which we're already in
+    #  then we just refresh his display.  This can happen if a user is
+    #  logged in on two different terminals.
     #
+    new_state = params[:state] == "on" ? true : false
+    @status = :ok
     if params[:id] == "calendar"
-      current_user.show_calendar = (!current_user.show_calendar)
-      current_user.save
+      if current_user.show_calendar != new_state
+        current_user.show_calendar = new_state
+        current_user.save
+      end
     elsif params[:id] == "owned"
-      current_user.show_owned = (!current_user.show_owned)
-      current_user.save
+      if current_user.show_owned != new_state
+        current_user.show_owned = new_state
+        current_user.save
+      end
     else
       @concern = Concern.find_by(id: params[:id])
       if @concern && @concern.user_id == current_user.id
-        @concern.visible = !@concern.visible
-        @concern.save
-        @status = :ok
+        if @concern.visible != new_state
+          @concern.visible = new_state
+          @concern.save
+        end
       else
+        #
+        #  By setting this to failed, we will cause the front end to
+        #  refresh its view entirely.
+        #
         @status = :failed
       end
     end

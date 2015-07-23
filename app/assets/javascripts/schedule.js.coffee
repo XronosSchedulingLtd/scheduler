@@ -92,7 +92,7 @@ $(document).ready ->
             event:
               new_end: event.end.format()
     $('.dynamic-element').each (index) ->
-      window.addEventSource($(this).attr('element_id'))
+      window.addEventSource($(this).attr('concern_id'))
   else
     $('#fullcalendar').fullCalendar
       currentTimezone: 'Europe/London'
@@ -123,18 +123,18 @@ $(document).ready ->
                                     'open',
                                     '/events/' + event.id)
 
-window.addEventSource = (eid) ->
+window.addEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('addEventSource',
-                                  '/schedule/events?eid=' + eid)
+                                  '/schedule/events?cid=' + cid)
 
-window.removeEventSource = (eid) ->
+window.removeEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('removeEventSource',
-                                  '/schedule/events?eid=' + eid)
+                                  '/schedule/events?cid=' + cid)
 
 window.checkboxFlipped = (thebox) ->
   concern_id = $(thebox).attr("concern_id")
   jQuery.ajax
-    url: "/concerns/" + concern_id + "/flipped"
+    url: "/concerns/" + concern_id + "/flipped?state=" + if thebox.checked then "on" else "off"
     type: "PUT"
     dataType: "json"
     error: (jqXHR, textStatus, errorThrown) ->

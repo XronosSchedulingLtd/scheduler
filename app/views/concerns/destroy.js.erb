@@ -1,7 +1,3 @@
-<% if @success %>
 $('#current_user').html("<%=j render current_user %>")
-window.removeEventSource(<%= @element_id %>)
+window.removeEventSource(<%= @concern_id %>)
 window.activateCheckboxes()
-<% else %>
-window.refreshConcerns()
-<% end %>
