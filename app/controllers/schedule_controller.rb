@@ -156,7 +156,6 @@ class ScheduleController < ApplicationController
                             true) - (my_owned_events +
                                      my_organised_events +
                                      breakthrough_events)
-          Rails.logger.debug("Got #{calendar_events.size} calendar events.")
         else
           calendar_events = []
         end
@@ -180,7 +179,6 @@ class ScheduleController < ApplicationController
             ScheduleEvent.new(e,
                               current_user)
           }
-          Rails.logger.debug("Ended up with #{@schedule_events.size} displayable events.")
       else
         #
         #  An explicit request for the events relating to a specified
