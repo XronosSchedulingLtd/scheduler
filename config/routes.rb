@@ -57,6 +57,10 @@ Rails.application.routes.draw do
     member do
       put :flipped
     end
+
+    collection do
+      get :sidebar
+    end
   end
 
   resources :elements do

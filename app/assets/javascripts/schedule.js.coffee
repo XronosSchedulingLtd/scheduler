@@ -138,7 +138,7 @@ window.checkboxFlipped = (thebox) ->
     type: "PUT"
     dataType: "json"
     error: (jqXHR, textStatus, errorThrown) ->
-      alert("Failed: " + textStatus)
+      window.refreshConcerns()
     success: (data, textStatus, jqXHR) ->
       $('#fullcalendar').fullCalendar('refetchEvents')
 
@@ -146,3 +146,6 @@ window.activateCheckboxes = ->
   $('.active-checkbox').change( ->
     window.checkboxFlipped(this))
 
+window.refreshConcerns = ->
+  $('#current_user').load('/concerns/sidebar', window.activateCheckboxes)
+  $('#fullcalendar').fullCalendar('refetchEvents')

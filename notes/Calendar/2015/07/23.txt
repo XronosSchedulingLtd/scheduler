@@ -1,0 +1,22 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-07-23T09:01:24+01:00
+
+====== Thursday 23 Jul 2015 ======
+
+Things to do today.
+
+[*] Fix permissions for non admin users.
+[*] Add a tag to the work which I did yesterday in order to identify the release.
+[ ] Play with a colour picker for Concerns
+[ ] Merge my recent work into the calendar_as_resource branch
+
+On the tag front, I'm not sure yet that I'm quite ready to start using version numbers - too much is changing.  I'm inclined to add a tag based on the date the work was done (although they're dated anyway) and then put a description in the attribute.  Let's try it.
+
+Just realised there is a problem with permissions for non-admin users trying to create concerns (I think).  No - there isn't.
+
+What I have done is add some error checking and handling code to the concerns controller and related JavaScript.  Now when you try to toggle or delete a concern the controller checks first that it is one of your own.  If it isn't, then it won't do it.  Additionally, for toggles only so far, it sends an error back which causes the Javascript error handler to re-load the side bar.  The assumption is that the invalid request was caused by the display getting out of step.  Perhaps it should reload the events too?
+
+I've realised that the feeds fetched by the JavaScript front end really should be identified by concern id, rather than by element id.  The compelling reason is that, if the front end has a record of a concern which is out of date, then the back end has no way of knowing what element it used to relate to, and so can't tell FullCalendar to remove it from its list of event sources.  It needs the element id to reconstruct the URL.
+
+If instead we made the URLs from concern ids (which they all should relate to anyway) and then fetched them by concern, we would have an immediate way of knowing which one to remove.
