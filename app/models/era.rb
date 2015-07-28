@@ -13,6 +13,9 @@ class Era < ActiveRecord::Base
   has_one  :previous_setting,
            :class_name => :Setting,
            :foreign_key => :previous_era_id
+  has_one  :perpetual_setting,
+           :class_name => :Setting,
+           :foreign_key => :perpetual_era_id
 
   def teachinggroups
     self.groups.teachinggroups

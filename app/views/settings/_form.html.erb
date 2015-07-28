@@ -35,6 +35,14 @@
                             :name,
                             { :prompt => true }) %>
   </div>
+  <div class="field">
+    <%= f.label :perpetual_era %><br>
+    <%= f.collection_select(:perpetual_era_id,
+                            Era.all.sort,
+                            :id,
+                            :name,
+                            { :prompt => true }) %>
+  </div>
   <div class="actions">
     <%= f.submit %>
   </div>

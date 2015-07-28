@@ -24,7 +24,7 @@ class GroupsController < ApplicationController
   # GET /groups/new
   def new
     @group = Vanillagroup.new
-    @group.era = Setting.current_era
+    @group.era = Setting.perpetual_era
     @group.current = true
   end
 

@@ -1,23 +1,27 @@
 <h1>Listing settings</h1>
 
 <table>
-  <thead>
-    <tr>
-      <th>Current era</th>
-      <th>Next era</th>
-      <th>Previous era</th>
-      <th colspan="3"></th>
-    </tr>
-  </thead>
-
   <tbody>
     <% @settings.each do |setting| %>
       <tr>
+        <td>Current era</td>
         <td><%= setting.current_era ? setting.current_era.name : "Era not set" %></td>
+      </tr>
+      <tr>
+        <td>Next era</td>
         <td><%= setting.next_era ? setting.next_era.name : "Era not set" %></td>
+      </tr>
+      <tr>
+        <td>Previous era</td>
         <td><%= setting.previous_era ? setting.previous_era.name : "Era not set" %></td>
-        <td><%= link_to 'Show', setting %></td>
+      </tr>
+      <tr>
+        <td>Perpetual era</td>
+        <td><%= setting.perpetual_era ? setting.perpetual_era.name : "Era not set" %></td>
+      </tr>
+      <tr>
         <td><%= link_to 'Edit', edit_setting_path(setting) %></td>
+        <td></td>
       </tr>
     <% end %>
   </tbody>

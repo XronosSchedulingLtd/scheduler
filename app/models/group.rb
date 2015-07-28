@@ -773,6 +773,21 @@ class Group < ActiveRecord::Base
 #    nil
 #  end
 
+  #
+  #  Another maintenance method to move private groups to the perpetual
+  #  era.
+  #
+  def self.move_to_perpetual
+    count = 0
+    Group.where("owner_id IS NOT NULL").each do |group|
+      group.era = Setting.perpetual_era
+      group.save!
+      count += 1
+    end
+    puts "Moved #{count} groups to the perpetual era."
+    nil
+  end
+
   private
 
   def not_backwards

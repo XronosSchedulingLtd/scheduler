@@ -2502,6 +2502,7 @@ class SB_Loader
       @era = Setting.current_era
       raise "Current era not set." unless @era
     end
+    raise "Perpetual era not set." unless Setting.perpetual_era
     #
     #  If an explicit date has been specified then we use that.
     #  Otherwise, if a full load has been specified then we use
@@ -3940,16 +3941,32 @@ class SB_Loader
   #  members, so they need to be all of the same class, or else there is
   #  scope for confusion.
   #
+  #  These used to go in the current era, but now go in the perpetual
+  #  era.  Any left over in the current era get moved to the perpetual
+  #  era.
+  #
   def ensure_membership(group_name, members, member_class)
     members_added   = 0
     members_removed = 0
     group = Group.system.vanillagroups.find_by(name: group_name,
-                                               era_id: @era.id)
+                                               era_id: Setting.perpetual_era.id)
+    unless group
+      group = Group.system.vanillagroups.find_by(name: group_name,
+                                                 era_id: @era.id)
+      if group
+        #
+        #  Need to move this to the perpetual era.
+        #
+        group.era     = Setting.perpetual_era
+        group.ends_on = nil
+        group.save
+        puts "Moved group #{group.name} to the perpetual era."
+      end
+    end
     unless group
       group = Vanillagroup.new(name:      group_name,
-                               era:       @era,
+                               era:       Setting.perpetual_era,
                                starts_on: @start_date,
-                               ends_on:   @era.ends_on,
                                current:   true)
       group.save!
       group.reload

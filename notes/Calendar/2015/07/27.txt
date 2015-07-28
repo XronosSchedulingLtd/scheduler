@@ -1,0 +1,117 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-07-27T12:53:14+01:00
+
+====== Monday 27 Jul 2015 ======
+
+Just promoted my new code to the live system, although I haven't yet dropped the rows from the old Interests and Ownerships tables.  I'll do that just a little later out of caution.
+
+Now, I need to do some investigation of the groups currently in Scheduler and their durations.  Some of them need to become persistent groups, and then I need to start thinking about the roll-over and loading next year's data.
+
+First get a copy of the live database (complete with this latest change in it) and load it into my development system.  Then need to investigate all the groups in the system.  How many are there?
+
+In total within the system there are 3313 groups.  Of these:
+
+1791 belong to Academic Year 2013/14
+1522 belong to Academic Year 2014/15
+
+and that makes all of them.  All of the groups from 2013/14 are marked as being not current.  Of the ones in 2014/15, 1517 are current.  That means 5 of them aren't.  They all seem to be teaching or tutor groups - presumably ones which have gone away in the course of the year.  Not sure whether I've done that manually or it happens as a result of the automated processing.
+
+Presumably I now need to mark all the remaining ones with an end date and set them as no longer current — except that some of them are to become permanent.  Need to find those ones first.
+
+Anything which comes directly from SchoolBase I think should belong to the Era.  It's other ones which I create which might be persistent.  Arguably though, I create tutor groups.  They are constructed in the course of the import process, and thus don't have a source id.  Let's break down the groups in the current era a bit more.
+
+83 tutorgroups (81 current)
+910 teachinggroups (907 current)
+529 vanillagroups (529 current)
+
+More vanilla groups than I was expecting.  What are they all?  How many have owners?  507 have no owner, so by implication 22 of them do have an owner.  Ah - most of them are being created in the course of my run.  Some are done algorithmically, and some because they are defined in a file.  Types therefore as follows:
+
+Tutorgroups			81		Annual
+Teachinggroups		910		Annual
+Personal groups		22		Annual, but I let individual ones be changed
+Algorithmic
+	All staff
+	Teaching staff
+	Tutors by house
+	Pupils by house
+	Pupils by house and year
+	Tutors by year
+	Pupils by year
+	Middle school tutors
+	Upper school tutors
+	All tutors
+	All pupils
+	Teachers by subject
+	Teachers by subject and year
+	Teachers by year
+	Pupils by subject
+	Pupils by subject and year
+File driven
+	Staff
+		Housemasters
+		New Ancillary Staff 2014
+		New Teaching Staff 2014
+		HoDs
+		Crescent House Boarding Staff
+		Davies' House Boarding Staff
+		School House Boarding Staff
+	Pupils
+		Prefects - by house
+		Lower School Assistants
+		Bus Prefects by bus
+	Groups
+		Boarding staff
+		Science teachers
+		MFL teachers
+		New Staff 2014
+		Prefects
+		Bus Prefects
+
+I start to think that most of these should be perpetual.  Tutorgroups and Teachinggroups are the ones which very obviously change from year to year.  We need - especially with teaching groups - to be able to have a brand new group with exactly the same name as one which went before.  Tutorgroups also change their names - 3JHW becomes 4JHW, so it makes sense for them to be tied to the Era and pensioned off at the end.
+
+A thought has occurred to me on the efficiency front.  The more groups are deleted and re-created each era, the more a given individual will tend to belong to over time.  Any group which can cope with being an ongoing group should therefore appear as such.
+
+Arguably, the pupil groups which are categorised by year also belong to an era, but I feel they also have an element of continuity.  In the interests of simplicity, I'm going to let them be perpetual too.
+
+So - I need to convert a lot of my existing groups from being era based to being perpetual.  The ones created by users I can do as a batch with a special method.  The ones created by my loading script I should get my loading script to change.  It needs to be able to do the change now, plus cope with them once they have been changed.
+
+What happens if I do a load now?  Has OTL changed things in SB which will cause problems?  I believe he should only be doing stuff for next year, but you never know.  Try it and see.
+
+Started a loading run with:
+
+time bundle exec lib/import/importsb.rb >output.txt
+
+Quite a while since I issued that command.  OK - it seems like major changes have been made.  The most obvious one is that my database and SB's database now disagree about everyone's start years.  Why?  I presume this is because SB has moved on to a new year.  Let's see how I evaluate this.  Yes, that seems to be the case.  It does however seem to have coped quite well with the the pupils leaving.
+
+When did I stop the data loading from SB into Scheduler?  I need to go back to that last copy for my current trials.  I changed the script at 09:20 on 3rd July, so by implication it must have loaded at 04:00 that morning.  That's the set of data which I want.  Happily, I keep them all.
+
+Work/Coding/scheduler/import/archive/20150703.tar.gz
+
+should contain what I want.  Fetch that, then have another attempt.  That did indeed produce now changes at all.  It must be the covers which used to take up the time.  Now, can I cause my script to convert the existing groups to being attached to the perpetual era?  Have I got a perpetual era?  No I haven't.  That's where I start then.
+
+Created an era called "Perpetual" with a start date of 01/09/2013.  That's when things started in this development.  Now I need some way of adding that to the settings.  Done that.  Next it's the script.
+
+Seem to have moved 507 groups to the perpetual era.  Is that the number I expect?  Yes, it is.
+
+Now what about the 22 which belong to people?  Who do they belong to?  Hmm. 19 of them seem to be mine.  The others belong one each to:
+
+My other user id
+AS Reception			Receptionists (I think I created this one)
+Nick Lloyd			ATTC
+
+A little helper method to adjust them I think.  Yes, and it moved 22 groups which is just the number I wanted.  How many groups now in the current era?  993.  Exactly what was expected.
+
+Now, what processing is required to move us to a new era?
+
+[ ] For each group in the era, call ceases_existence for the appropriate date.  This will mark all the memberships as well.
+[ ] Move current_era to previous_era
+[ ] Move next_era to current_era
+[ ] What else?
+Taking a look, tutor groups already seem to have their end dates filled in and teaching groups don't.  Should correct this in my loading script.  I can see code in the tutor group model to set both start and end date, but there doesn't seem to be anything similar for the teaching groups.  Do they have start dates at all?  Yes, found that bit.  I could add a specified end_date at the same time.  A lot of code seems to assume that no end date means still current though.  I'll leave if for now.
+
+Takes a while to run, but it ran.  What happens now if I take a fresh copy of the data from SB and try to load it?  It complains that the curriculum.csv file is empty, which it patently isn't.  I seem to have the right source id - 16 too.
+
+Hmm.  It seems to be that there are now relevant entries yet in the curriculum table.  There are entries for the next academic year, but they all relate to prep school year groups.
+
+

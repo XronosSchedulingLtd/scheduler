@@ -10,14 +10,18 @@ class Setting < ActiveRecord::Base
   @@checked_next_era = false
   @@previous_era = nil
   @@checked_previous_era = false
+  @@perpetual_era = nil
+  @@checked_perpetual_era = false
 
   belongs_to :current_era, class_name: :Era
   belongs_to :next_era, class_name: :Era
   belongs_to :previous_era, class_name: :Era
+  belongs_to :perpetual_era, class_name: :Era
 
   after_save :flush_cache
 
   validates :current_era, :presence => true
+  validates :perpetual_era, :presence => true
   validate :no_more_than_one
 
   # We never want this record to be deleted.
@@ -35,6 +39,8 @@ class Setting < ActiveRecord::Base
     @@checked_next_era = false
     @@previous_era = nil
     @@checked_previous_era = false
+    @@perpetual_era = nil
+    @@checked_perpetual_era = false
   end
 
   def self.current_era
@@ -73,6 +79,42 @@ class Setting < ActiveRecord::Base
       @@checked_previous_era = true
     end
     @@previous_era
+  end
+
+  def self.perpetual_era
+    unless @@checked_perpetual_era
+      setting = Setting.first
+      if setting
+        @@perpetual_era = setting.perpetual_era
+      else
+        @@perpetual_era = nil
+      end
+      @@checked_perpetual_era = true
+    end
+    @@perpetual_era
+  end
+
+  #
+  #  End-of-year processing.  Move us on into the next era.
+  #
+  def end_of_era
+    #
+    #  Close out any groups in the current era.
+    #
+    if self.current_era &&
+       self.next_era
+      group_count = 0
+      self.current_era.groups.each do |group|
+        group.ceases_existence(self.current_era.ends_on)
+      end
+      puts "#{group_count} groups terminated."
+      self.previous_era = self.current_era
+      self.current_era  = self.next_era
+      self.next_era     = nil
+      self.save!
+      puts "Rolled over."
+    end
+    nil
   end
 
   protected

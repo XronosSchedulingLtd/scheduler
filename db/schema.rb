@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150720081231) do
+ActiveRecord::Schema.define(version: 20150727135224) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -231,6 +231,7 @@ ActiveRecord::Schema.define(version: 20150720081231) do
     t.datetime "updated_at"
     t.integer  "next_era_id"
     t.integer  "previous_era_id"
+    t.integer  "perpetual_era_id"
   end
 
   create_table "staffs", force: true do |t|
