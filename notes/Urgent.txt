@@ -13,7 +13,7 @@ Urgent things to do:
 [*] Display entity number as hover text on main screen
 [*] Import latest calendar for second half of term.
 [ ] Preserve categories when importing calendar.  Automate.
-[ ] List of which teachers teach each year
-[ ] Lists of students for each subject, even by year
+[*] List of which teachers teach each year
+[*] Lists of students for each subject, even by year
 
 

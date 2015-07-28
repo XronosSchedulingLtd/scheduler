@@ -6,7 +6,7 @@ Creation-Date: 2015-07-28T10:00:10+01:00
 
 Today I have two small objectives.
 
-[ ] Add the missing fields to the ical field.  Test on staging server.
+[*] Add the missing fields to the ical field.  Test on staging server.
 [ ] Set up development environment on knight and document process.
 
 A little while back, whilst reviewing the RFC for icalendar feeds I discovered that there are two compulsory fields which I am not currently including.  I propose to add them.  They are UID and DTSTAMP, which should appear for each event. UID is a unique identifier and DTSTAMP is the date the event was created.  Let's see if my library allows them to be added.  Oddly, it doesn't require them, even though the RFC does.
@@ -19,4 +19,6 @@ The RFC suggests that UIDs should include the computers FQDN.  Of the form:
 
 where the string is something unique within that computer.  I'm inclined to use E1234, with the E meaning event and the number being the event's ID.  How can I get my computer's name from with Ruby?  Use back-ticks to invoke an external command.  Cache it so it's done only once.
 
-I seem to have done that.  Let's promote it to the staging server for testing.
+I seem to have done that.  Let's promote it to the staging server for testing.  I'll try setting up feeds in my school Google calendar.  Seems to work.
+
+Now to improve the installation documentation.  I have a fresh installation of Jessie on Knight.  Work on that.
