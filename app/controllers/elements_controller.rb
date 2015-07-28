@@ -36,8 +36,8 @@ class ElementsController < ApplicationController
   def ical
     #
     #  We expect to find the element by id, but if that doesn't work then
-    #  for reverse compatibility, we'll let the staffs controller have a
-    #  go at it.
+    #  for reverse compatibility, we'll let emulate what the staffs
+    #  controller used to do.
     #
     got_something = false
     prefix = "notset"
@@ -47,9 +47,6 @@ class ElementsController < ApplicationController
     include_non_cover = true
     customer_categories = nil
     remove_categories = []
-    file_type = :ical
-    do_compact = false
-    add_duration = false
     era = Setting.current_era
     starts_on = era.starts_on
     ends_on = :never
@@ -64,15 +61,6 @@ class ElementsController < ApplicationController
       #  The requestor wants to exclude cover events.
       #
       include_cover = false
-    end
-    if params.has_key?(:csv)
-      file_type = :csv
-    end
-    if params.has_key?(:compact)
-      do_compact = true
-    end
-    if params.has_key?(:duration)
-      add_duration = true
     end
     if params[:start_date]
       starts_on = Date.parse(params[:start_date])
@@ -206,91 +194,31 @@ class ElementsController < ApplicationController
       calendar_description = "#{staff.name}'s timetable"
     end
     if got_something
-      if file_type == :csv
-        if ends_on == :never
-          #
-          #  Need to work out an end date, because we produce
-          #  an output line for each specified date.  It's just
-          #  possible that the dbevents array is empty.
-          #
-          if dbevents.size > 0
-            ends_on = dbevents.max_by{|dbe| dbe.end_date}.end_date
-          else
-            ends_on = starts_on
-          end
-        end
-        tf = Tempfile.new(["#{prefix}", ".csv"])
-        starts_on.upto(ends_on) do |date|
-          #
-          #  I need to know accurately when this date starts and finishes,
-          #  taking into account the time zone.  All day events actually
-          #  start at 23:00 GMT the night before when DST is in effect.
-          #
-          start_of_day = Time.zone.parse(date.strftime("%Y-%m-%d"))
-          end_of_day = Time.zone.parse((date + 1.day).strftime("%Y-%m-%d"))
-          #
-          #  Header line
-          #
-          tf.write(["#{date.strftime("%A #{date.day.ordinalize} %B, %Y")}"].to_csv)
-          #
-          #  We want any events which have any degree of occurence
-          #  on this date. 
-          #
-          whole_day,part_day =
-            dbevents.
-              select {|dbe| dbe.starts_at < end_of_day &&
-                            dbe.ends_at   > start_of_day}.
-              partition {|dbe| dbe.all_day}
-          if do_compact
-            #
-            #  I don't think this next line will work correctly if DST
-            #  is in effect.  Should surely compare with start_of_day?
-            #
-            whole_day = whole_day.select {|wde| wde.starts_at == date}
-          end
-          whole_day.each do |wde|
-            tf.write(["",
-                      (add_duration &&
-                       (wde.ends_at > wde.starts_at + 1.day) &&
-                       (wde.ends_at > date + 1.day)) ?
-                      "#{wde.body} (to #{wde.ends_at.strftime("#{(wde.ends_at - 1.day).day.ordinalize} %B")})":
-                      wde.body,
-                      wde.locations.collect {|l| l.name}.join(",")].to_csv)
-          end
-          part_day.sort.each do |pde|
-            tf.write([" #{pde.duration_string}",
-                      pde.body,
-                      pde.locations.collect {|l| l.name}.join(",")].to_csv)
-          end
-          tf.write([""].to_csv)
-        end
-        tf.close
-        send_file(tf.path, :type => "application/csv")
-      else
-        tf = Tempfile.new(["#{prefix}", ".ics"])
-        RiCal.Calendar do |cal|
-          cal.add_x_property("X-WR-CALNAME", calendar_name)
-          cal.add_x_property("X-WR-CALDESC", calendar_description)
-          dbevents.each do |dbevent|
-            cal.event do |event|
-              event.summary = dbevent.body
-              if dbevent.all_day
-                event.dtstart = dbevent.starts_at.to_date
-                event.dtend   = dbevent.ends_at.to_date
-              else
-                event.dtstart = dbevent.starts_at
-                event.dtend   = dbevent.ends_at
-              end
-              locations = dbevent.locations
-              if locations.size > 0
-                event.location = locations.collect {|l| l.name}.join(",")
-              end
+      tf = Tempfile.new(["#{prefix}", ".ics"])
+      RiCal.Calendar do |cal|
+        cal.add_x_property("X-WR-CALNAME", calendar_name)
+        cal.add_x_property("X-WR-CALDESC", calendar_description)
+        dbevents.each do |dbevent|
+          cal.event do |event|
+            event.summary = dbevent.body
+            if dbevent.all_day
+              event.dtstart = dbevent.starts_at.to_date
+              event.dtend   = dbevent.ends_at.to_date
+            else
+              event.dtstart = dbevent.starts_at
+              event.dtend   = dbevent.ends_at
             end
+            locations = dbevent.locations
+            if locations.size > 0
+              event.location = locations.collect {|l| l.name}.join(",")
+            end
+            event.uid = "e#{dbevent.id}@#{Setting.hostname}"
+            event.dtstamp = dbevent.created_at
           end
-        end.export(tf)
-        tf.close
-        send_file(tf.path, :type => "application/ics")
-      end
+        end
+      end.export(tf)
+      tf.close
+      send_file(tf.path, :type => "application/ics")
     else
       redirect_to "/"
     end
