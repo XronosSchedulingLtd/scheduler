@@ -1,0 +1,38 @@
+<h1>Listing users</h1>
+<p id="notice"><%= notice %></p>
+
+<%= will_paginate @users %>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Admin</th>
+      <th>Editor</th>
+      <th>Arranges cover</th>
+      <th>Preferred category</th>
+      <th>Secretary</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @users.each do |user| %>
+      <tr>
+        <td><%= user.name %></td>
+        <td><%= user.admin ? "Yes" : "No" %></td>
+        <td><%= user.editor ? "Yes" : "No" %></td>
+        <td><%= user.arranges_cover ? "Yes" : "No" %></td>
+        <td><%= user.preferred_event_category ? user.preferred_event_category.name : "" %></td>
+        <td><%= user.secretary ? "Yes" : "No" %></td>
+        <td><%= link_to 'Show', user %></td>
+        <td><%= link_to 'Edit', edit_user_path(user) %></td>
+        <td><%= link_to 'Destroy', user, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= will_paginate @users %>
+
+<br>
+
+<%= link_to 'New Staff', new_staff_path %>

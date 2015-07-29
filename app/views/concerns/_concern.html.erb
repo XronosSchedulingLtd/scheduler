@@ -1,0 +1,17 @@
+<tr>
+  <td style="background-color:<%= concern.colour %>;color:white" class="dynamic-element" concern_id="<%= concern.id %>" title="<%= concern.element_id %>">
+    <%= concern.element.name %>
+  </td>
+  <td>
+    <input type="checkbox"
+           class="active-checkbox"
+           concern_id=<%= concern.id %>
+           <%= concern.visible ? "checked" : "" %> />
+  </td>
+  <td>
+    <% unless concern.owns %>
+      <%= link_to '&#215;'.html_safe, concern, remote: true, method: :delete %>
+    <% end %>
+  </td>
+</tr>
+

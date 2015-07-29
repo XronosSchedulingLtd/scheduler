@@ -15,6 +15,7 @@ $(document).ready ->
     dateFormat: 'yy-mm-dd',
     onSelect: (dateText, inst) ->
       $('#fullcalendar').fullCalendar( 'gotoDate', new Date(dateText))
+  window.activateCheckboxes()
   $(document).on('opened', '[data-reveal]', ->
     $('.datetimepicker').datetimepicker
       dateFormat: "dd/mm/yy"
@@ -91,13 +92,7 @@ $(document).ready ->
             event:
               new_end: event.end.format()
     $('.dynamic-element').each (index) ->
-      window.addEventSource($(this).attr('element_id'))
-    $('.clicky').each (index) ->
-      $(this).click ->
-        if this.checked
-          window.addEventSource($(this).attr('element_id'))
-        else
-          window.removeEventSource($(this).attr('element_id'))
+      window.addEventSource($(this).attr('concern_id'))
   else
     $('#fullcalendar').fullCalendar
       currentTimezone: 'Europe/London'
@@ -128,10 +123,29 @@ $(document).ready ->
                                     'open',
                                     '/events/' + event.id)
 
-window.addEventSource = (eid) ->
+window.addEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('addEventSource',
-                                  '/schedule/events?eid=' + eid)
+                                  '/schedule/events?cid=' + cid)
 
-window.removeEventSource = (eid) ->
+window.removeEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('removeEventSource',
-                                  '/schedule/events?eid=' + eid)
+                                  '/schedule/events?cid=' + cid)
+
+window.checkboxFlipped = (thebox) ->
+  concern_id = $(thebox).attr("concern_id")
+  jQuery.ajax
+    url: "/concerns/" + concern_id + "/flipped?state=" + if thebox.checked then "on" else "off"
+    type: "PUT"
+    dataType: "json"
+    error: (jqXHR, textStatus, errorThrown) ->
+      window.refreshConcerns()
+    success: (data, textStatus, jqXHR) ->
+      $('#fullcalendar').fullCalendar('refetchEvents')
+
+window.activateCheckboxes = ->
+  $('.active-checkbox').change( ->
+    window.checkboxFlipped(this))
+
+window.refreshConcerns = ->
+  $('#current_user').load('/concerns/sidebar', window.activateCheckboxes)
+  $('#fullcalendar').fullCalendar('refetchEvents')

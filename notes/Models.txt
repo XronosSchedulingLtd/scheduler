@@ -16,8 +16,14 @@ The following diagram gives a slightly simplified view of how the models fit tog
 
 Of these, four are atomic (can't be broken down further) and the two groups actually consist of collections of elements, possibly themselves being groups.  Each group-type item has an underlying Group model which takes care of the actual membership bit.  Connected to the Group model are Membership models, each of which points to an Element which is a member of the group.
 
+This diagram shows how elements are linked to events and are members of groups.
 
-{{./diagram.png?type=diagram}}
+
+{{./diagram1.png?type=diagram}}
+
+Whilst the following diagram illustrates how users are linked to the rest of the models.
+
+{{./diagram2.png?type=diagram}}
 The models in this application are:
 
 Era:		Specifies a span of time to which things belong.  In our case, it's a school year.

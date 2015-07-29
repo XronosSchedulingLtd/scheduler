@@ -8,7 +8,6 @@ class User < ActiveRecord::Base
   DECENT_COLOURS = [
                     "#483D8B",      # DarkSlateBlue
                     "#CD5C5C",      # IndianRed
-                    "#3CB371",      # MediumSeaGreen
                     "#B8860B",      # DarkGoldenRed (brown)
                     "#7B68EE",      # MediumSlateBlue
                     "#808000",      # Olive
@@ -17,12 +16,14 @@ class User < ActiveRecord::Base
                     "#2E8B57",      # SeaGreen
                     "#A0522D",      # Sienna
                     "#008080",      # Teal
+                    "#3CB371",      # MediumSeaGreen
                     "#2F4F4F",      # DarkSlateGray
                     "#556B2F",      # DarkOliveGreen
                     "#FF6347"]      # Tomato
 
   has_many :ownerships, :dependent => :destroy
   has_many :interests,  :dependent => :destroy
+  has_many :concerns,   :dependent => :destroy
 
   has_many :events,   foreign_key: :owner_id
 
@@ -43,11 +44,26 @@ class User < ActiveRecord::Base
   after_save :find_matching_resources
 
   def known?
-    @known ||= self.ownerships.me.size > 0
+    @known ||= (self.own_element != nil)
   end
 
   def own_element
-    @own_element ||= self.ownerships.me[0].element
+    unless @own_element
+      my_own_concern = self.concerns.me[0]
+      if my_own_concern
+        @own_element = my_own_concern.element
+      end
+    end
+    @own_element
+  end
+
+  def concern_with(element)
+    possibles = Concern.between(self, element)
+    if possibles.size == 1
+      possibles[0]
+    else
+      nil
+    end
   end
 
   #
@@ -56,11 +72,11 @@ class User < ActiveRecord::Base
   #  of elements.
   #
   def owns?(element)
-    !!ownerships.detect {|o| o.element_id == element.id}
+    !!concerns.detect {|c| (c.element_id == element.id) && c.owns}
   end
 
   def free_colour
-    available = DECENT_COLOURS - self.interests.collect {|i| i.colour}
+    available = DECENT_COLOURS - self.concerns.collect {|i| i.colour}
     if available.size > 0
       available[0]
     else
@@ -99,7 +115,6 @@ class User < ActiveRecord::Base
                 end_date = nil,
                 eventcategory = nil,
                 eventsource = nil,
-                and_by_group = true,
                 include_nonexistent = false)
     Event.events_on(start_date,
                     end_date,
@@ -133,11 +148,20 @@ class User < ActiveRecord::Base
         #  direct d/b query, but since each user is liable to own at most
         #  about 5 resources, and usually only 1, it isn't really worth it.
         #
-        unless ownerships.detect {|o| o.element_id == staff.element.id}
-          Ownership.create! do |ownership|
-            ownership.user_id    = self.id
-            ownership.element_id = staff.element.id
-            ownership.equality   = true
+        concern = concerns.detect {|c| c.element_id == staff.element.id}
+        if concern
+          unless concern.owns
+            concern.owns = true
+            concern.save!
+          end
+        else
+          Concern.create! do |concern|
+            concern.user_id    = self.id
+            concern.element_id = staff.element.id
+            concern.equality   = true
+            concern.owns       = true
+            concern.visible    = true
+            concern.colour     = "#225599"
           end
         end
       end
@@ -148,14 +172,31 @@ class User < ActiveRecord::Base
         #  direct d/b query, but since each user is liable to own at most
         #  about 5 resources, and usually only 1, it isn't really worth it.
         #
-        unless ownerships.detect {|o| o.element_id == pupil.element.id}
-          Ownership.create! do |ownership|
-            ownership.user_id    = self.id
-            ownership.element_id = pupil.element.id
-            ownership.equality   = true
+        concern = concerns.detect {|c| c.element_id == pupil.element_id}
+        if concern
+          unless concern.owns
+            concern.owns = true
+            concern.save!
+          end
+        else
+          Concern.create! do |concern|
+            concern.user_id    = self.id
+            concern.element_id = pupil.element.id
+            concern.equality   = true
+            concern.owns       = true
+            concern.visible    = true
+            concern.colour     = "#225599"
           end
         end
       end
+    end
+  end
+
+  def corresponding_staff
+    if self.email
+      Staff.find_by_email(self.email)
+    else
+      nil
     end
   end
 

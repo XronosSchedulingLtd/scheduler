@@ -1,0 +1,8 @@
+digraph models {
+  rankdir=TB;
+  node [shape=box, style="filled,rounded", fillcolor=lightskyblue2];
+    User -> Interest [dir=back];
+    User -> Ownership [dir=back];
+    Interest -> Element;
+    Ownership -> Element;
+}

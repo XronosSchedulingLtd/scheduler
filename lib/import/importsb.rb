@@ -3706,7 +3706,8 @@ class SB_Loader
       #  that they match.
       #
       existing_covers =
-        Commitment.commitments_on(startdate: date).covering_commitment
+        Commitment.commitments_on(startdate: date,
+                                  include_nonexistent: true).covering_commitment
       sb_ids = sb_covers.collect {|sc| sc.source_id}.uniq
       db_ids = existing_covers.collect {|ec| ec.source_id}.uniq
       db_only = db_ids - sb_ids

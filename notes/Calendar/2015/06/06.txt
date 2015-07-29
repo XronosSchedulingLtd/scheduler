@@ -1,0 +1,31 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-06-06T11:19:55+01:00
+
+====== Saturday 06 Jun 2015 ======
+
+Nick pointed out to me recently that the calendar downloads run only until the end of the current academic year.
+
+My first thought was to add  a "next_era" bit so that they could run until the end of the next one, and I got a fair way with implementing it.  However, I then had second thoughts and realised that there's no real reason for the selection ever to end.  We only enter events so far into the future (perhaps 18 months at most) and arguable they should all be included in the download, unless the requester specifies otherwise.
+
+I do however see a potential need for a "next_era", and indeed a "previous_era" in handling end-of-year processing, so I think I'll leave those in, but I won't use them for the calendar downloads.
+
+I could set up some sort of parameter of [[:never]] to be passed to the events_on method, which is then implemented as an unfeasibly far future date, or by removing the condition from the d/b query.  The latter would arguably be slightly more efficient (by how much?) but the former is easier to implement.  You can't pass nil to indicate no end date, because that already means that the end date is the same as the start date.
+
+I also need to change my processing for producing a .csv output, because that runs from the start date to the end date, and it can't do that if there isn't an actual end date.  It will need to look at the data which it has collected and find the last actual date.
+
+I need to enhance both Event.events_on and element.commitments_on to cope with requests with no end date.
+
+It's fairly straightforward to remove the end date from Event.events_on
+
+All the work of element.commitments_on is actually done by Commitment.commitments_on
+
+What functions do I need to test - each with and without a specified date:
+
+[*] Calendar for JHW
+[*] Calendar for my ID - 10375
+[*] Calendar for 0
+[*] My cover calendar
+[*] And all the same with a CSV modifier
+
+I have also added the ability to *remove* categories from the list requested.  It doesn't make a lot of sense to try to do both, but you can if you want to.  If you end up with an empty list, the system reverts to what it would have done if you had specified nothing.

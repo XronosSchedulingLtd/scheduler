@@ -53,8 +53,19 @@ Rails.application.routes.draw do
 
   resources :interests
 
+  resources :concerns do
+    member do
+      put :flipped
+    end
+
+    collection do
+      get :sidebar
+    end
+  end
+
   resources :elements do
     get :autocomplete_element_name, :on => :collection
+    get :autocomplete_staff_element_name, :on => :collection
     get :ical, :on => :member
   end
 

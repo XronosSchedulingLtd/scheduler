@@ -19,6 +19,22 @@
                             :name,
                             { :prompt => true }) %>
   </div>
+  <div class="field">
+    <%= f.label :next_era %><br>
+    <%= f.collection_select(:next_era_id,
+                            Era.all.sort,
+                            :id,
+                            :name,
+                            { :prompt => true }) %>
+  </div>
+  <div class="field">
+    <%= f.label :previous_era %><br>
+    <%= f.collection_select(:previous_era_id,
+                            Era.all.sort,
+                            :id,
+                            :name,
+                            { :prompt => true }) %>
+  </div>
   <div class="actions">
     <%= f.submit %>
   </div>

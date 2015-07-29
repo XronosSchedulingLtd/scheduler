@@ -1,0 +1,26 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-07-22T08:35:07+01:00
+
+====== Wednesday 22 Jul 2015 ======
+
+Things to do before putting the new version on the staging server:
+
+[*] Search for references to Interests and Ownerships in the code
+[*] Fix editing of events by admin
+[*] Check new facilities work for non admin users
+[*] Check suitable ownerships in place
+
+and I also need to think about the steps needed.
+
+[*] New code to staging system
+[*] bundle install
+[*] rake assets:precompile
+[*] Fresh copy of live database and load
+[*] Drop the concerns table if you have previously created it.
+[*] RAILS_ENV=production
+[*] Rake db:migrate
+[*] Run method to create Concerns
+[*] Drop rows from Interest and Ownership tables (but not the tables)
+[*] Check on ownerships - Nick Lloyd needs to own his various spaces.
+[*] Set AS Reception's default event category to be "Meeting"

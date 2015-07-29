@@ -1,0 +1,39 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-06-21T06:44:59+01:00
+
+====== Sunday 21 Jun 2015 ======
+
+Going to look today at:
+
+[ ] Selection and colouring of events for display in one's default calendar
+[ ] Add in display of organiser's events (need a new index)
+[*] Add reference to organiser
+[ ] Add a flag so that one can have a default category without seeing all its events
+
+Now I looked into the types of event one should display earlier this month.  I came up with:
+
+* I'm involved
+* I own an entity which is involved
+* I'm interested in an entity which is involved
+* I am the organiser of the event
+* I own the event
+
+Now the interests are handled separately - the front end requests them explicitly and the back end has a fairly easy job of collecting the relevant events.  What is more fun is the remainder:
+
+* I'm involved
+* I own an entity which is involved
+* I am the organiser of the event
+* I own the event
+
+Arguably the first two can be lumped together - they're both just instances of ownerships.  Then we have organiser, and finally owner of the event.  An event should appear twice if it relates to two different ownerships, but not otherwise.  Can owned and organised be lumped together under a single colour?
+
+Note that events are owned by a user, but organisers are elements - specifically staff.
+
+Aaaargh - just remembered I have a frig in place at present so that certain users can see all the calendar events.  This will go once calendar-ness becomes an element, but it's needed for now.  How does that interact with all the other bits.
+
+I think it goes with organiser and owner.  If an event is appearing anyway because we are watching an entity, then it doesn't need to appear again because it's for the calendar.  It just needs to appear as a background item even if we don't own it and it isn't calendar.  Currently my ownership overrides the greenness of a calendar event.  A calendar event which I don't own is green.  One which I do own appears in my colours.  Preferred event category is therefore at the very bottom of the pecking order.  In fact, it shouldn't be there at all, since I need to separate the behaviour.
+
+Let's just have a flag to make calendar events appear.  That's the only one currently in use.  I can then user preferred_event_category_id simply to do what its name suggests - to give a preferred category when creating events.  New flag - show_calendar.  That too can go in time.  It's the very bottom of the pecking order.  Events will only show through in green from the calendar if they qualify for display for absolutely no other reason.
+
+I think any events which I own should mix in the dirty green with their natural colour.

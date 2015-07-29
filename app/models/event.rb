@@ -51,6 +51,8 @@ class Event < ActiveRecord::Base
 
   belongs_to :owner, :class_name => :User
 
+  belongs_to :organiser, :class_name => :Element
+
   validates :body, presence: true
   validates :eventcategory, presence: true
   validates :eventsource, presence: true
@@ -114,6 +116,18 @@ class Event < ActiveRecord::Base
 
   def starts_at_text=(value)
     self.starts_at = value
+  end
+
+  #
+  #  Returns the last date of this event.  Processing differs depending
+  #  on whether or not this is an all-day event.
+  #
+  def end_date
+    if self.all_day
+      self.ends_at.to_date - 1.day
+    else
+      self.ends_at.to_date
+    end
   end
 
   def ends_at_text
@@ -229,6 +243,18 @@ class Event < ActiveRecord::Base
   end
 
   #
+  #  A couple of dummy methods to allow an organiser name to be
+  #  included in our forms.
+  #
+  def organiser_name
+    self.organiser ? self.organiser.name : ""
+  end
+  
+  def organiser_name=(on)
+    @organiser_name = on
+  end
+  
+  #
   #  What resources are directly involved in this event?
   #
   def resources
@@ -315,7 +341,8 @@ class Event < ActiveRecord::Base
                      eventsource   = nil,
                      resource      = nil,
                      owned_by      = nil,
-                     include_nonexistent = false)
+                     include_nonexistent = false,
+                     organised_by  = nil)
     # Rails.logger.debug("Entering Event#events_on")
     duffparameter = false
     #
@@ -329,7 +356,11 @@ class Event < ActiveRecord::Base
     #  Fortunately, all of these provide a to_date action.
     #
     startdate = startdate ? startdate.to_date   : Date.today
-    dateafter = enddate   ? enddate.to_date + 1 : startdate + 1
+    if enddate == :never
+      dateafter = :never
+    else
+      dateafter = enddate   ? enddate.to_date + 1 : startdate + 1
+    end
     ecs = []
     if eventcategory
       #
@@ -376,6 +407,9 @@ class Event < ActiveRecord::Base
     if owned_by
       duffparameter = true unless owned_by.instance_of?(User)
     end
+    if organised_by
+      duffparameter = true unless organised_by.instance_of?(Element)
+    end
     if duffparameter
       # Rails.logger.debug("Event#events_on hit a duff parameter.")
       Event.none
@@ -397,8 +431,10 @@ class Event < ActiveRecord::Base
       #
       #    If starts_at < dateafter && ends_at > startdate
       #
-      query_string_parts << "starts_at < :dateafter"
-      query_hash[:dateafter] = Time.zone.parse("00:00:00", dateafter)
+      unless dateafter == :never
+        query_string_parts << "starts_at < :dateafter"
+        query_hash[:dateafter] = Time.zone.parse("00:00:00", dateafter)
+      end
       query_string_parts << "ends_at > :startdate"
       query_hash[:startdate] = Time.zone.parse("00:00:00", startdate)
       if ecs.size > 0
@@ -430,6 +466,10 @@ class Event < ActiveRecord::Base
       if owned_by
         query_string_parts << "owner_id = :owner_id"
         query_hash[:owner_id] = owned_by.id
+      end
+      if organised_by
+        query_string_parts << "organiser_id = :organiser_id"
+        query_hash[:organiser_id] = organised_by.id
       end
       unless include_nonexistent
         query_string_parts << "not non_existent"

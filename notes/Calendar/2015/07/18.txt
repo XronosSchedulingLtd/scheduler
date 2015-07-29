@@ -1,0 +1,26 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-07-18T14:43:52+01:00
+
+====== Saturday 18 Jul 2015 ======
+
+Thinking about replacing Interest and Ownership records with a single type of record indicating the connection.
+
+A user may:
+
+* Be
+* Own
+* Be watching
+
+an Element.  Typically the user will have a "Be" type of connection with his own element record - Staff or Pupil.  Someone with particular responsibilities will own other Elements.  For instance, Nick would "Own" the Amey Theatre and other rooms, whilst Karen would "Own" the calendar.  Finally, you can simply be looking at something.  I could be looking at the schedule for the Charles Maude Room.  They all cause the relevant thing to be displayed.
+
+Arguably this could all be done with a single record and two flags.  The existence of the record creates the relationship, and then the two flags are a "Be" flag and an "Own" flag.  Generally, if you have the "Be" flag then you have the "Own" flag too, but I suppose it's possible one might not.
+
+One would also need a "Show" flag, to indicate whether the user is actively looking at that element's events at the moment - an implementation of the tick box which is there already.  And a "Colour" field to store the colour for display.
+
+What other events are then displayed for a user?
+
+* Events I own (in the sense that I edited them into the d/b)
+* Events where I am listed as the organiser.
+
+And how then would I do the hierarchy of avoiding duplicates?
