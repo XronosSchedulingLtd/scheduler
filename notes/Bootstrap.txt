@@ -5,7 +5,7 @@ Creation-Date: 2014-04-20T10:26:59+01:00
 ====== Bootstrap ======
 Created Sunday 20 April 2014
 
-This page originaly documented how to get started with creating the project (see Creation section below), but now I'm updating it to say how to set up a brand new machine as a development or deployment system.  Some of the information from the Creating section is repeated here.  We will initially set up the machine to be able to run Scheduler in a development environment, then go on to setting it up for production use.
+This page originally documented how to get started with creating the project (see Creation section below), but now I'm updating it to say how to set up a brand new machine as a development or deployment system.  Some of the information from the Creation section is repeated here.  We will initially set up the machine to be able to run Scheduler in a development environment, then go on to setting it up for production use.
 
 ==== Development mode ====
 
@@ -23,7 +23,7 @@ As root, install sudo and add your user to the list of those permitted to use it
 
 In the last one, choose vim as the default editor for the system (or something else if you prefer).
 
-Log out and then back in as your chosen user in order to pick up the new privilege.
+Log out and then back in as your chosen user in order to pick up the new privileges.
 
 Next we need to get the Ruby Version Manager installed.  This will provide the means to install whatever versions of Ruby we want.  Visit https://rvm.io/ for details of how to install it.  Currently this comes down to two commands.
 
@@ -86,7 +86,7 @@ $ make install
 
 Note that this step is relying on the compiler tools which were installed as part of the installation of Ruby earlier.  If you do these two in the opposite order, you will need to install the tools first.  Command:
 
-$ ''apt-get install build_essential''.
+$ ''apt-get install build_essential''
 
 That's all the infrastructure in place, and we're ready to start think about getting the application itself.
 
@@ -153,7 +153,7 @@ The application is running, but currently it's attached to a terminal and provid
 
 Note that any given server should be used either for development or for production - not both.  Make sure you shut down the development copy (Ctrl-C in the terminal) before trying to run a production server.
 
-You can do the following in your home directory, but you need to make sure you are using the same gem as is used in the application, so start with:
+You can do the following in your home directory, but you need to make sure you are using the same gem environment as is used in the application, so start with:
 
 ''$ rvm use 2.1.1@scheduler''
 
