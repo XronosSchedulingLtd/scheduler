@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150720081231) do
+ActiveRecord::Schema.define(version: 20150802084529) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -34,6 +34,7 @@ ActiveRecord::Schema.define(version: 20150720081231) do
     t.string   "colour",                     null: false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "auto_add",   default: false
   end
 
   add_index "concerns", ["element_id"], name: "index_concerns_on_element_id", using: :btree
@@ -90,6 +91,8 @@ ActiveRecord::Schema.define(version: 20150720081231) do
     t.boolean  "can_merge",     default: false
     t.boolean  "can_borrow",    default: false
     t.boolean  "compactable",   default: true
+    t.boolean  "deprecated",    default: false
+    t.boolean  "privileged",    default: false
   end
 
   create_table "events", force: true do |t|
@@ -231,6 +234,7 @@ ActiveRecord::Schema.define(version: 20150720081231) do
     t.datetime "updated_at"
     t.integer  "next_era_id"
     t.integer  "previous_era_id"
+    t.integer  "perpetual_era_id"
   end
 
   create_table "staffs", force: true do |t|
@@ -283,6 +287,7 @@ ActiveRecord::Schema.define(version: 20150720081231) do
     t.boolean  "secretary",                   default: false
     t.boolean  "show_calendar",               default: false
     t.boolean  "show_owned",                  default: true
+    t.boolean  "privileged",                  default: false
   end
 
 end

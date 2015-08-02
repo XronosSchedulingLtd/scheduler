@@ -13,6 +13,8 @@ class Concern < ActiveRecord::Base
 
   scope :between, ->(user, element) {where(user_id: user.id, element_id: element.id)}
 
+  scope :auto_add, -> { where(auto_add: true) }
+
   #
   #  This isn't a real field in the d/b.  It exists to allow a name
   #  to be typed in the dialogue for creating a concern record,

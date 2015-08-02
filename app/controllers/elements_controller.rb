@@ -10,7 +10,7 @@ class ElementsController < ApplicationController
   #autocomplete :element, :name, :scopes => [:current, :mine_or_system], :full => true
 
   def autocomplete_element_name
-    term = params[:term]
+    term = params[:term].split(" ").join("%")
     elements =
       Element.current.
               mine_or_system(current_user).

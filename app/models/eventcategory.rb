@@ -15,15 +15,15 @@ class Eventcategory < ActiveRecord::Base
   has_many :users, foreign_key: :preferred_event_category_id, :dependent => :nullify
   after_save :flush_cache
 
-  #
-  #  I'd like to call this just public, but Rails already uses that name
-  #  for internal purposes.
-  #
-  scope :public_ones,      lambda { where(public: true) }
+  scope :schoolwide,       lambda { where(schoolwide: true) }
   scope :publish,          lambda { where(publish: true) }
-  scope :for_users,        lambda { where(for_users: true) }
   scope :name_starts_with, lambda { |prefix| where("name LIKE :prefix",
                                                    prefix: "#{prefix}%") }
+  scope :deprecated, -> { where(deprecated: true) }
+  scope :available, -> { where(deprecated: false) }
+
+  scope :privileged, -> { where(privileged: true) }
+  scope :unprivileged, -> { where(privileged: false) }
 
   @@category_cache = {}
 
@@ -59,30 +59,70 @@ class Eventcategory < ActiveRecord::Base
   end
 
   #
-  #  A maintenance method to cause all events in a given category to gain
-  #  the "Calendar" property.
+  #  Maintenance methods to add relevant properties to existing events.
   #
-  def add_calendar_property
-    property = Property.find_by_name("Calendar")
-    if property
-      updated_count = 0
-      not_updated_count = 0
-      self.events.each do |event|
-        if event.involves?(property)
-          not_updated_count += 1
-        else
-          commitment = Commitment.new
-          commitment.event   = event
-          commitment.element = property.element
-          commitment.save!
-          updated_count += 1
-        end
+  def add_property(property)
+    updated_count = 0
+    not_updated_count = 0
+    self.events.each do |event|
+      if event.involves?(property)
+        not_updated_count += 1
+      else
+        commitment = Commitment.new
+        commitment.event   = event
+        commitment.element = property.element
+        commitment.save!
+        updated_count += 1
       end
-      puts "Updated #{updated_count} events. #{not_updated_count} already there."
-      nil
-    else
-      puts "Can't find Calendar property."
     end
+    puts "Updated #{updated_count} events with #{property.name} property. #{not_updated_count} already there."
+  end
+
+  def self.add_properties
+    #
+    #  First make sure the necessary properties exist.
+    #
+    calendar_property = Property.ensure("Calendar")
+    key_date_property = Property.ensure("Key date")
+    #
+    #  Anything in the existing calendar category gets the Calendar property.
+    #
+    calendar_category = Eventcategory.find_by(name: "Calendar")
+    if calendar_category
+      calendar_category.add_property(calendar_property)
+    else
+      puts "Can't find calendar event category."
+    end
+    #
+    #  Anything in Key date (internal) gets key date.
+    #
+    kdi_category = Eventcategory.find_by(name: "Key date (internal)")
+    if kdi_category
+      kdi_category.add_property(key_date_property)
+    else
+      puts "Can't find key date (internal) event category."
+    end
+    #
+    #  Anything in Key date (external) gets both
+    #
+    kde_category = Eventcategory.find_by(name: "Key date (external)")
+    if kde_category
+      kde_category.add_property(calendar_property)
+      kde_category.add_property(key_date_property)
+    else
+      puts "Can't find key date (external) event category."
+    end
+    #
+    #  As do week letters
+    #
+    wl_category = Eventcategory.find_by(name: "Week letter")
+    if wl_category
+      wl_category.add_property(calendar_property)
+      wl_category.add_property(key_date_property)
+    else
+      puts "Can't find week letter event category."
+    end
+    nil
   end
 
 end

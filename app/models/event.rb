@@ -40,6 +40,21 @@ class DurationValidator < ActiveModel::Validator
   end
 end
 
+class CategoryValidator < ActiveModel::Validator
+  def validate(record)
+    #
+    #  We don't fuss about there being no event category - that's taken
+    #  care of elsewhere - but we do need to make sure it's still a
+    #  permitted one.
+    #
+    if record.eventcategory
+      if record.eventcategory.deprecated
+        record.errors[:eventcategory_id] << "#{record.eventcategory.name} is deprecated."
+      end
+    end
+  end
+end
+
 class Event < ActiveRecord::Base
 
   include ActiveModel::Validations
@@ -58,6 +73,7 @@ class Event < ActiveRecord::Base
   validates :eventsource, presence: true
   validates :starts_at, presence: true
   validates_with DurationValidator
+  validates_with CategoryValidator
 
   @@duty_category         = nil
   @@invigilation_category = nil
@@ -637,6 +653,20 @@ class Event < ActiveRecord::Base
       end
     end
     new_self
+  end
+
+  #
+  #  A bit of a helper method for forms.  Usually we only allow the selection
+  #  of categories which are not marked as deprecated, but that really
+  #  confuses end users if this event already is in a deprecated category.
+  #  In that one particular case, allow that category to appear (but still
+  #  don't allow it to be selected).
+  def suitable_categories
+    if self.eventcategory && self.eventcategory.deprecated
+      Eventcategory.available + [self.eventcategory]
+    else
+      Eventcategory.available
+    end
   end
 
   def compactable?

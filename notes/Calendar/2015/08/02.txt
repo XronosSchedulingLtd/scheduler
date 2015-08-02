@@ -1,0 +1,25 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-08-02T09:11:33+01:00
+
+====== Sunday 02 Aug 2015 ======
+
+Currently documenting all the current event categories and planning how to change them.
+
+I need to add a "privileged" flag to both event categories and users.  Then I can re-work my conversion script to conform to my new document.  It should be capable of taking a fresh copy of the live database and doing all the necessary changes.  In some cases it can even merge existing categories.
+
+I think I can also get rid of some of the existing flags in event categories.  They currently are:
+
+* schoolwide		Appears on all user's schedules
+* publish		Can be downloaded via ical.  If a user doesn't specify categories, all these are sent.
+* public			Superseded by the "Calendar" property - can go.
+* for_users		Likewise, superseded.  Replace with schoolwide.
+* unimportant	Not important enough to prevent use for cover.
+* can_merge		Events can be merged to provide cover.
+* can_borrow		Events with multiple staff can lose staff to cover.
+* compactable	When downloading "days" information, event can be compacted.
+* deprecated		On its way out
+* privileged		Can only be selected by privileged users.
+
+
+

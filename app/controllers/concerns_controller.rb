@@ -82,12 +82,7 @@ class ConcernsController < ApplicationController
     #
     new_state = params[:state] == "on" ? true : false
     @status = :ok
-    if params[:id] == "calendar"
-      if current_user.show_calendar != new_state
-        current_user.show_calendar = new_state
-        current_user.save
-      end
-    elsif params[:id] == "owned"
+    if params[:id] == "owned"
       if current_user.show_owned != new_state
         current_user.show_owned = new_state
         current_user.save

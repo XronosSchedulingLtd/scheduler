@@ -110,10 +110,6 @@ class ScheduleController < ApplicationController
         #
         #  * Events the user owns (i.e. he or she edited them in).
         #  * Events the user's element is listed as organising.
-        #  * Breakthrough events, for all users.  These too are to go.
-        #  * As a special case for now, calendar events if the
-        #    user has asked for them.  Later on, calendar events will
-        #    be specified by them involving the calendar element.
         #
         #  As an order of precedence, we classify the events in that order.
         #  Each event should appear only once, and in the category which
@@ -140,31 +136,7 @@ class ScheduleController < ApplicationController
           my_owned_events = []
           my_organised_events = []
         end
-        breakthrough_events =
-          Event.events_on(start_date,
-                          end_date,
-                          Eventcategory.for_users) -
-                          (my_owned_events + my_organised_events)
-        if current_user.show_calendar
-          calendar_events =
-            Event.events_on(start_date,
-                            end_date,
-                            "Calendar",
-                            nil,
-                            nil,
-                            nil,
-                            true) - (my_owned_events +
-                                     my_organised_events +
-                                     breakthrough_events)
-        else
-          calendar_events = []
-        end
         @schedule_events =
-          calendar_events.collect {|e|
-            ScheduleEvent.new(e,
-                              current_user,
-                              "green")
-          } +
           my_owned_events.collect {|e|
             ScheduleEvent.new(e,
                               current_user,
@@ -174,10 +146,6 @@ class ScheduleController < ApplicationController
             ScheduleEvent.new(e,
                               current_user,
                               current_user.colour_not_involved)
-          } +
-          breakthrough_events.collect {|e|
-            ScheduleEvent.new(e,
-                              current_user)
           }
       else
         #
@@ -208,6 +176,10 @@ class ScheduleController < ApplicationController
         end
       end
     else
+      #
+      #  People who aren't logged on, or who we don't recognise, just
+      #  get to see the public calendar.
+      #
       @schedule_events =
         Event.events_on(start_date,
                         end_date,
