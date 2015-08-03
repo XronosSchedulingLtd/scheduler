@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150802084529) do
+ActiveRecord::Schema.define(version: 20150803154357) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -35,6 +35,7 @@ ActiveRecord::Schema.define(version: 20150802084529) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean  "auto_add",   default: false
+    t.boolean  "controls",   default: false
   end
 
   add_index "concerns", ["element_id"], name: "index_concerns_on_element_id", using: :btree
@@ -62,8 +63,9 @@ ActiveRecord::Schema.define(version: 20150802084529) do
     t.string   "entity_type"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "current",     default: false
+    t.boolean  "current",          default: false
     t.integer  "owner_id"
+    t.string   "preferred_colour"
   end
 
   add_index "elements", ["entity_id"], name: "index_elements_on_entity_id", using: :btree
@@ -234,7 +236,6 @@ ActiveRecord::Schema.define(version: 20150802084529) do
     t.datetime "updated_at"
     t.integer  "next_era_id"
     t.integer  "previous_era_id"
-    t.integer  "perpetual_era_id"
   end
 
   create_table "staffs", force: true do |t|

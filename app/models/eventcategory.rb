@@ -15,17 +15,40 @@ class Eventcategory < ActiveRecord::Base
   has_many :users, foreign_key: :preferred_event_category_id, :dependent => :nullify
   after_save :flush_cache
 
-  scope :schoolwide,       lambda { where(schoolwide: true) }
   scope :publish,          lambda { where(publish: true) }
   scope :name_starts_with, lambda { |prefix| where("name LIKE :prefix",
                                                    prefix: "#{prefix}%") }
-  scope :deprecated, -> { where(deprecated: true) }
-  scope :available, -> { where(deprecated: false) }
+  scope :schoolwide,     -> { where(schoolwide: true) }
+  scope :not_schoolwide, -> { where(schoolwide: false) }
+  scope :deprecated,     -> { where(deprecated: true) }
+  scope :available,      -> { where(deprecated: false) }
 
   scope :privileged, -> { where(privileged: true) }
   scope :unprivileged, -> { where(privileged: false) }
 
   @@category_cache = {}
+
+  TO_DEPRECATE = ["Calendar",
+                  "Admissions Event",
+                  "Gap (invisible)",
+                  "Gap (visible)",
+                  "Key date (external)",
+                  "Key date (internal)",
+                  "Public event"]
+  TO_MAKE_PRIVILEGED = ["Assembly",
+                        "Duty",
+                        "Invigilation",
+                        "Other Half",
+                        "Registration",
+                        "Reporting deadline",
+                        "Study leave",
+                        "Supervised study",
+                        "Tutor period",
+                        "Week letter"]
+  NewCategory = Struct.new(:name, :schoolwide, :privileged)
+  TO_CREATE = [NewCategory.new("Hospitality",      false, false),
+               NewCategory.new("Parents' evening", false, true),
+               NewCategory.new("Term date",        true,  true)]
 
   def <=>(other)
     self.name <=> other.name
@@ -58,6 +81,30 @@ class Eventcategory < ActiveRecord::Base
     @@category_cache = {}
   end
 
+  def categories_for(user)
+    if user && user.privileged
+      if self.deprecated
+        Eventcategory.available + [self]
+      else
+        Eventcategory.available
+      end
+    else
+      if self.deprecated
+        Eventcategory.available.unprivileged + [self]
+      else
+        Eventcategory.available.unprivileged
+      end
+    end
+  end
+
+  def self.categories_for(user)
+    if user && user.privileged
+      Eventcategory.available
+    else
+      Eventcategory.available.unprivileged
+    end
+  end
+
   #
   #  Maintenance methods to add relevant properties to existing events.
   #
@@ -75,52 +122,142 @@ class Eventcategory < ActiveRecord::Base
         updated_count += 1
       end
     end
-    puts "Updated #{updated_count} events with #{property.name} property. #{not_updated_count} already there."
+    "Updated #{updated_count} events from category #{self.name} with #{property.name} property. #{not_updated_count} already there."
   end
 
+  #
+  #  Maintenance method to upgrade the system to using properties.
+  #
   def self.add_properties
     #
     #  First make sure the necessary properties exist.
     #
     calendar_property = Property.ensure("Calendar")
     key_date_property = Property.ensure("Key date")
+    gap_property      = Property.ensure("Gap")
+    results = []
     #
     #  Anything in the existing calendar category gets the Calendar property.
     #
     calendar_category = Eventcategory.find_by(name: "Calendar")
     if calendar_category
-      calendar_category.add_property(calendar_property)
+      results << calendar_category.add_property(calendar_property)
     else
-      puts "Can't find calendar event category."
+      results << "Can't find calendar event category."
     end
     #
-    #  Anything in Key date (internal) gets key date.
-    #
-    kdi_category = Eventcategory.find_by(name: "Key date (internal)")
-    if kdi_category
-      kdi_category.add_property(key_date_property)
-    else
-      puts "Can't find key date (internal) event category."
-    end
-    #
-    #  Anything in Key date (external) gets both
+    #  Anything in Key date (external) does too.
     #
     kde_category = Eventcategory.find_by(name: "Key date (external)")
     if kde_category
-      kde_category.add_property(calendar_property)
-      kde_category.add_property(key_date_property)
+      results << kde_category.add_property(calendar_property)
     else
-      puts "Can't find key date (external) event category."
+      results << "Can't find key date (external) event category."
     end
     #
     #  As do week letters
     #
     wl_category = Eventcategory.find_by(name: "Week letter")
     if wl_category
-      wl_category.add_property(calendar_property)
-      wl_category.add_property(key_date_property)
+      results << wl_category.add_property(calendar_property)
     else
-      puts "Can't find week letter event category."
+      results << "Can't find week letter event category."
+    end
+    #
+    #  Gaps get the gap property.
+    #
+    gapi_category = Eventcategory.find_by(name: "Gap (invisible)")
+    if gapi_category
+      results << gapi_category.add_property(gap_property)
+    else
+      results << "Can't find Gap (invisible) property."
+    end
+    gapv_category = Eventcategory.find_by(name: "Gap (visible)")
+    if gapv_category
+      results << gapv_category.add_property(gap_property)
+    else
+      results << "Can't find Gap (visible) property."
+    end
+    #
+    #  Deprecate categories which we don't intend to use any more.
+    #
+    TO_DEPRECATE.each do |name|
+      category = Eventcategory.find_by(name: name)
+      if category
+        if category.deprecated
+          results << "Category #{name} already deprecated."
+        else
+          category.deprecated = true
+          category.save!
+          results << "Deprecated category #{name}."
+        end
+      else
+        results << "Can't find category #{name} to deprecate it."
+      end
+    end
+    TO_MAKE_PRIVILEGED.each do |name|
+      category = Eventcategory.find_by(name: name)
+      if category
+        if category.privileged
+          results << "Category #{name} is already privileged."
+        else
+          category.privileged = true
+          category.save!
+          results << "Category #{name} set as privileged."
+        end
+      else
+        results << "Can't find category #{name} to make it privileged."
+      end
+    end
+    TO_CREATE.each do |new_category|
+      category = Eventcategory.find_by(name: new_category.name)
+      if category
+        results << "Category #{new_category.name} is already there."
+      else
+        category = Eventcategory.new
+        category.name          = new_category.name
+        category.pecking_order = 1
+        category.schoolwide    = new_category.schoolwide
+        category.publish       = true
+        category.unimportant   = false
+        category.can_merge     = false
+        category.can_borrow    = false
+        category.compactable   = false
+        category.privileged    = new_category.privileged
+        category.save!
+        results << "Created category #{new_category.name}."
+      end
+    end
+    #
+    #  Anyone who used to have a preferred event category of "Calendar"
+    #  now gets an auto-add concern for the new property.
+    #
+    calendar_element = calendar_property.element
+    User.all.each do |user|
+      if user.preferred_event_category == calendar_category
+        results << "Removing calendar category from #{user.name}"
+        user.preferred_event_category = nil
+        user.save!
+        existing_concern = user.concern_with(calendar_element)
+        if existing_concern
+          unless existing_concern.auto_add
+            existing_concern.auto_add = true
+            existing_concern.save!
+          end
+        else
+          concern = Concern.new
+          concern.user     = user
+          concern.element  = calendar_element
+          concern.owns     = true
+          concern.controls = true
+          concern.colour   = "green"
+          concern.auto_add = true
+          concern.save!
+        end
+      end
+    end
+    results.each do |string|
+      puts string
     end
     nil
   end

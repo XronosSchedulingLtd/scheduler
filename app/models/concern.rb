@@ -10,6 +10,9 @@ class Concern < ActiveRecord::Base
   scope :not_me, -> {where.not(equality: true)}
   scope :owned, -> {where(owns: true)}
   scope :not_owned, -> {where.not(owns: true)}
+  scope :controlling, -> {where(controls: true)}
+
+  scope :visible, -> { where(visible: true) }
 
   scope :between, ->(user, element) {where(user_id: user.id, element_id: element.id)}
 

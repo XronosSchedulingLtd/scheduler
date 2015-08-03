@@ -24,7 +24,7 @@
     </div>
     <div class="small-3 columns">
       <%= f.collection_select(:eventcategory_id,
-                              @event.suitable_categories.sort,
+                              @event.suitable_categories(current_user).sort,
                               :id,
                               :name,
                               { :prompt => true }) %>

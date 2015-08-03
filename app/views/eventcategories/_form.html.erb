@@ -21,12 +21,16 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
-      <%= f.label :pecking_order, class: "right inline" %><br>
+      <%= f.label :precedence, class: "right inline" %><br>
     </div>
     <div class="small-2 columns">
       <%= f.number_field :pecking_order %>
     </div>
-    <div class="small-7 columns"></div>
+    <div class="small-1 columns"> </div>
+    <div class="small-6 columns annotation">
+      Controls the order in which events will appear in the Days controller.
+      Smaller values first.
+    </div>
   </div>
   <div class="row collapse">
     <div class="small-3 columns">

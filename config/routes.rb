@@ -61,12 +61,18 @@ Rails.application.routes.draw do
     collection do
       get :sidebar
     end
+
   end
 
   resources :elements do
     get :autocomplete_element_name, :on => :collection
     get :autocomplete_staff_element_name, :on => :collection
     get :ical, :on => :member
+
+    resources :days do
+      get :index, :on => :collection
+    end
+
   end
 
   get 'schedule/show'

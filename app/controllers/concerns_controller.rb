@@ -6,7 +6,12 @@ class ConcernsController < ApplicationController
   def create
     @concern = Concern.new(concern_params)
     @concern.user = current_user
-    @concern.colour = current_user.free_colour
+    if @concern.element &&
+       @concern.element.preferred_colour
+      @concern.colour = @concern.element.preferred_colour
+    else
+      @concern.colour = current_user.free_colour
+    end
 
     unless @concern.valid?
       #

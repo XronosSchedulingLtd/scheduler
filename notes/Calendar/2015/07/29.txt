@@ -59,15 +59,17 @@ Things to do:
 [*] Stop Calendar and Key date from being offered as event categories (although they'll have to continue to exist for now.)
 [*] Convert display code to use properties rather than categories.
 [*] Auto-add calendar property for Karen (and others?)
-[ ] Remove any preferred event categories of Calendar. Replace by ownership of Calendar property.
-[ ] Make ical feed understand Calendar and Key date properties - reverse compatibility
-[ ] Likewise the days controller for DJD's downloads
+[*] Remove any preferred event categories of Calendar. Replace by ownership of Calendar property.
+[*] Make ical feed understand Calendar and Key date properties - reverse compatibility
+[*] Likewise the days controller for DJD's downloads
 [ ] Update documentation
 [ ] Propagate to staging server
-[ ] Allow elements to have a preferred colour, and make Calendar's green.  Also colour for key dates.
-[ ] Need some way to allow Week letters to appear without needing to see the whole calendar.  This could perhaps be by way of key dates.
-[ ] Perhaps new users should default to having a couple of concerns - Key dates (checked) and Calendar (not checked).
-[ ] It's a bit weird having events appear twice when selected by Property Element.  Might need to re-think these.
+[*] Allow elements to have a preferred colour, and make Calendar's green.  Also colour for key dates.
+[*] Need some way to allow Week letters to appear without needing to see the whole calendar.
+[*] Perhaps new users should default to having a couple of concerns - Key dates (checked) and Calendar (not checked).
+[*] It's a bit weird having events appear twice when selected by Property Element.  Might need to re-think these.
+[ ] Give Nick ownership of stage stuff, and remove admin privileges
+[ ] Give AS Reception ownership of their meeting rooms
 
 Started with:
 

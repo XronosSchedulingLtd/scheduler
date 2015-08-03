@@ -54,12 +54,13 @@
 </table>
 
 <table>
-  <tr><th>Concerns</th><th>Equality</th><th>Owns</th></tr>
+  <tr><th>Concerns</th><th>Equality</th><th>Owns</th><th>Auto add</th></tr>
   <% @user.concerns.sort.each do |concern| %>
     <tr>
       <td><%= concern.element.name %></td>
       <td><%= concern.equality %></td>
       <td><%= concern.owns %></td>
+      <td><%= concern.auto_add %></td>
     </tr>
   <% end %>
 </table>

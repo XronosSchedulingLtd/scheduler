@@ -4,7 +4,8 @@
   <thead>
     <tr>
       <th>Name</th>
-      <th>Pecking order</th>
+      <th>Precedence</th>
+      <th>Events</th>
       <th>Schoolwide</th>
       <th>Publish</th>
       <th>Unimportant</th>
@@ -20,6 +21,7 @@
       <tr>
         <td><%= eventcategory.name %></td>
         <td><%= eventcategory.pecking_order %></td>
+        <td><%= eventcategory.events.count %></td>
         <td><%= eventcategory.schoolwide %></td>
         <td><%= eventcategory.publish %></td>
         <td><%= eventcategory.unimportant %></td>

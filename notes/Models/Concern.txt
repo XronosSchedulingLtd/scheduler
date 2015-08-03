@@ -13,9 +13,18 @@ user_id		integer		Id of the relevant user				Indexed
 element_id	integer		Id of the relevant element			Indexed
 equality		boolean		Whether user == element
 owns		boolean		Whether user owns element
+controls		boolean		Whether the user controls the element
 colour		string		Colour in which to display events
 visible		boolean		Flag indicating whether events visible
 
-Note that the "equals" and "owns" flags can be set independently, although if the former is set then one would normally expect the latter to be set too.  The latter is often set without the former.
+Note that the "equals" and "owns" flags can be set independently, although if the former is set then the latter usually is too.  The latter is often set without the former.
 
-The "owns" flag will be used later on to control who may authorise use of a resource.  Requests for the Amey Theatre will need to be authorised by Nick, etc.  Some events (e.g. the timetable) will be able to be entered without the need for the resource owner's authorisation.
+A word on these flags.
+
+equality is intended to indicate a one-to-one correspondence between user and element.  It will typically be set for the connection between a user and the corresponding Staff or Pupil record.  John Winters the user equals John Winters the member of staff.
+
+owns means the user has control over what events the resource may be allocated to, although certain parts of the system can override this.  Thus a user will normally have ownership of his or her own element record (as well as equality) and will have to sanction addition to events.  If someone wants to arrange a meeting with several other members of staff, the other members of staff will have to agree to the meeting.  Any owner of the resource can issue that approval, changing a commitment from tentative to firm.  The timetable however will need no such permission, nor will certain admin staff.  (You can't keep asking everyone's permission to arrange a parents' evening.)
+
+controls goes further.  If a user has control over an element then said user may edit any event involving that resource.  This is intended to allow, for instance, Karen to edit any Calendar event, and Nick to edit any event involving the Amey Theatre etc.
+
+Done that.  A good task for tomorrow would be to fully implement and tidy up (with explanatory text) the code for editing users and concerns.  I hope to be able to take Admin access away from Nick shortly.

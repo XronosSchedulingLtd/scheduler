@@ -97,15 +97,24 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  What elements do we control?  This information is cached because
+  #  we may need it many times during the course of rendering one page.
+  #
+  def controlled_elements
+    unless @controlled_elements
+      @controlled_elements = self.concerns.controlling.collect {|c| c.element}
+    end
+    @controlled_elements
+  end
+
+  #
   #  Can this user edit the indicated item?
   #
   def can_edit?(item)
     if item.instance_of?(Event)
       self.admin ||
       (self.create_events? && item.owner_id == self.id) ||
-      (self.create_events? &&
-       self.preferred_event_category_id &&
-       item.eventcategory_id == self.preferred_event_category_id)
+      (self.create_events? && item.involves_any?(self.controlled_elements))
     else
       false
     end
@@ -187,6 +196,17 @@ class User < ActiveRecord::Base
             concern.visible    = true
             concern.colour     = "#225599"
           end
+        end
+      end
+      calendar_element = Element.find_by(name: "Calendar")
+      if calendar_element
+        Concern.create! do |concern|
+          concern.user_id    = self.id
+          concern.element_id = calendar_element.id
+          concern.equality   = false
+          concern.owns       = false
+          concern.visible    = true
+          concern.colour     = calendar_element.preferred_colour || "green"
         end
       end
     end

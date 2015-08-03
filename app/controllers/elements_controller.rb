@@ -47,9 +47,10 @@ class ElementsController < ApplicationController
     include_non_cover = true
     customer_categories = nil
     remove_categories = []
-    era = Setting.current_era
+    era = Setting.previous_era || Setting.current_era
     starts_on = era.starts_on
     ends_on = :never
+    element_id = params[:id]
     #raise params.inspect
     if params.has_key?(:cover)
       #
@@ -81,37 +82,42 @@ class ElementsController < ApplicationController
       remove_category_names, customer_category_names =
         params[:categories].split(",").partition{|n| n[0] == "!"}
       #
-      #  Nasty frig to give BW an extra category.  Will go away as soon
-      #  as I fix the way Calendar entries are identified.
+      #  Calendar events used to be specified by event category,
+      #  but now it's a property.  Provide a touch of reverse
+      #  compatibility.
       #
-      if customer_category_names.include?("Calendar")
-        customer_category_names << "Key date (external)"
-      end
-      customer_categories = customer_category_names.collect { |ccn|
-        Eventcategory.find_by_name(ccn)
-      }.compact.select {|cc| cc.publish}
-      remove_categories = remove_category_names.collect { |rcn|
-        Eventcategory.find_by_name(rcn[1..-1])
-      }.compact
-      #
-      #  There is a slight danger that if the requestor specifies only
-      #  invalid categories then we end up with an empty list, which
-      #  would result in us sending events from *all* categories.
-      #  Prevent this.
-      #
-      if customer_categories.size == 0
-        customer_categories = nil
+      if (element_id == '0') && customer_category_names.include?("Calendar")
+        calendar_element = Element.find_by(name: "Calendar")
+        if calendar_element
+          element_id = calendar_element.id.to_s
+        end
+      else
+        customer_categories = customer_category_names.collect { |ccn|
+          Eventcategory.find_by_name(ccn)
+        }.compact.select {|cc| cc.publish}
+        remove_categories = remove_category_names.collect { |rcn|
+          Eventcategory.find_by_name(rcn[1..-1])
+        }.compact
+        #
+        #  There is a slight danger that if the requestor specifies only
+        #  invalid categories then we end up with an empty list, which
+        #  would result in us sending events from *all* categories.
+        #  Prevent this.
+        #
+        if customer_categories.size == 0
+          customer_categories = nil
+        end
       end
       #raise customer_categories.inspect
     end
-    if params[:id] == '0'
+    if element_id == '0'
       #
       #  Request for the breakthrough events.
       #
       categories =
-        (customer_categories || Eventcategory.publish.for_users) - remove_categories
+        (customer_categories || Eventcategory.publish.schoolwide) - remove_categories
       if categories.empty?
-        categories = Eventcategory.publish.for_users
+        categories = Eventcategory.publish.schoolwide
       end
       dbevents = Event.events_on(starts_on,
                                  ends_on,
@@ -120,12 +126,7 @@ class ElementsController < ApplicationController
       prefix = "global"
       calendar_name = "School dates"
       calendar_description = "Abingdon school key dates"
-    elsif element = Element.find_by_id(params[:id])
-      #
-      #  Not sure how I ended up with this name, but "publish" means it gets
-      #  included in ical downloads, and "for_users" means it is relevant,
-      #  even if the user is not explicitly involved.
-      #
+    elsif element = Element.find_by_id(element_id)
       categories =
         (customer_categories || Eventcategory.publish) - remove_categories
       if categories.empty?
@@ -175,7 +176,7 @@ class ElementsController < ApplicationController
       #  Fall back to old style processing.  Options are ignored.
       #
       basic_categories = Eventcategory.publish
-      extra_categories = Eventcategory.publish.for_users
+      extra_categories = Eventcategory.publish.schoolwide
 #      dbevents =
 #        (staff.element.events_on(starts_on, ends_on, basic_categories) +
 #         Event.events_on(starts_on, ends_on, extra_categories)).uniq
@@ -210,7 +211,7 @@ class ElementsController < ApplicationController
             end
             locations = dbevent.locations
             if locations.size > 0
-              event.location = locations.collect {|l| l.name}.join(",")
+              event.location = locations.collect {|l| l.friendly_name}.join(",")
             end
             event.uid = "e#{dbevent.id}@#{Setting.hostname}"
             event.dtstamp = dbevent.created_at
