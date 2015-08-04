@@ -1,0 +1,20 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2014-05-03T08:53:53+01:00
+
+====== New software version ======
+Created Saturday 03 May 2014
+
+
+To deploy a new software version, go onto the server and do:
+
+'''
+cd Work/Coding/scheduler
+git pull <whatever>
+bundle install
+RAILS_ENV=production rake db:migrate
+RAILS_ENV=production bundle exec rake assets:precompile
+touch tmp/restart.txt
+'''
+
+

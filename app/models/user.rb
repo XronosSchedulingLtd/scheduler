@@ -149,15 +149,12 @@ class User < ActiveRecord::Base
   end
 
   def find_matching_resources
-    if self.email
+    if self.email && !self.known?
+      got_something = false
       staff = Staff.find_by_email(self.email)
       if staff
-        #
-        #  This could be made a lot more efficient with scopes and a
-        #  direct d/b query, but since each user is liable to own at most
-        #  about 5 resources, and usually only 1, it isn't really worth it.
-        #
-        concern = concerns.detect {|c| c.element_id == staff.element.id}
+        got_something = true
+        concern = self.concern_with(staff.element)
         if concern
           unless concern.owns
             concern.owns = true
@@ -176,12 +173,8 @@ class User < ActiveRecord::Base
       end
       pupil = Pupil.find_by_email(self.email)
       if pupil
-        #
-        #  This could be made a lot more efficient with scopes and a
-        #  direct d/b query, but since each user is liable to own at most
-        #  about 5 resources, and usually only 1, it isn't really worth it.
-        #
-        concern = concerns.detect {|c| c.element_id == pupil.element_id}
+        got_something = true
+        concern = self.concern_with(pupil.element)
         if concern
           unless concern.owns
             concern.owns = true
@@ -198,15 +191,19 @@ class User < ActiveRecord::Base
           end
         end
       end
-      calendar_element = Element.find_by(name: "Calendar")
-      if calendar_element
-        Concern.create! do |concern|
-          concern.user_id    = self.id
-          concern.element_id = calendar_element.id
-          concern.equality   = false
-          concern.owns       = false
-          concern.visible    = true
-          concern.colour     = calendar_element.preferred_colour || "green"
+      if got_something
+        calendar_element = Element.find_by(name: "Calendar")
+        if calendar_element
+          unless self.concern_with(calendar_element)
+            Concern.create! do |concern|
+              concern.user_id    = self.id
+              concern.element_id = calendar_element.id
+              concern.equality   = false
+              concern.owns       = false
+              concern.visible    = true
+              concern.colour     = calendar_element.preferred_colour || "green"
+            end
+          end
         end
       end
     end
@@ -220,4 +217,86 @@ class User < ActiveRecord::Base
     end
   end
 
+  #
+  #  Maintenance method.  Set up a new concern record giving this user
+  #  control of the indicated element.
+  #
+  def to_control(element_or_name, auto_add = false)
+    if element_or_name.instance_of?(Element)
+      element = element_or_name
+    else
+      element = Element.find_by(name: element_or_name)
+    end
+    if element
+      concern = self.concern_with(element)
+      if concern
+        if concern.owns &&
+           concern.controls &&
+           concern.auto_add == auto_add
+          "User #{self.name} already controlling #{element.name}."
+        else
+          concern.owns     = true
+          concern.controls = true
+          concern.auto_add = auto_add
+          concern.save!
+          "User #{self.name} promoted to controlling #{element.name}."
+        end
+      else
+        concern = Concern.new
+        concern.user    = self
+        concern.element = element
+        concern.equality = false
+        concern.owns     = true
+        concern.visible  = true
+        concern.colour   = element.preferred_colour || self.free_colour
+        concern.auto_add = auto_add
+        concern.controls = true
+        concern.save!
+        "User #{self.name} now controlling #{element.name}."
+      end
+    else
+      "Can't find element #{element_or_name} for #{self.name} to control."
+    end
+  end
+
+  #
+  #  Similar, but only a general interest.
+  #
+  def to_view(element_or_name, visible = false)
+    if element_or_name.instance_of?(Element)
+      element = element_or_name
+    else
+      element = Element.find_by(name: element_or_name)
+    end
+    if element
+      concern = self.concern_with(element)
+      if concern
+        #
+        #  Already has a concern.  Just make sure the colour is right.
+        #
+        if element.preferred_colour &&
+           concern.colour != element.preferred_colour
+          concern.colour = element.preferred_colour
+          concern.save!
+          "Adjusted colour of #{element.name} for #{self.name}."
+        else
+          ""
+        end
+      else
+        concern = Concern.new
+        concern.user    = self
+        concern.element = element
+        concern.equality = false
+        concern.owns     = false
+        concern.visible  = visible
+        concern.colour   = element.preferred_colour || self.free_colour
+        concern.auto_add = false
+        concern.controls = false
+        concern.save!
+        "User #{self.name} now viewing #{element.name}."
+      end
+    else
+      "Can't find element #{element_or_name} for #{self.name} to view."
+    end
+  end
 end

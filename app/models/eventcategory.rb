@@ -132,7 +132,7 @@ class Eventcategory < ActiveRecord::Base
     #
     #  First make sure the necessary properties exist.
     #
-    calendar_property = Property.ensure("Calendar")
+    calendar_property = Property.ensure("Calendar", "green")
     key_date_property = Property.ensure("Key date")
     gap_property      = Property.ensure("Gap")
     results = []
@@ -238,24 +238,63 @@ class Eventcategory < ActiveRecord::Base
         results << "Removing calendar category from #{user.name}"
         user.preferred_event_category = nil
         user.save!
-        existing_concern = user.concern_with(calendar_element)
-        if existing_concern
-          unless existing_concern.auto_add
-            existing_concern.auto_add = true
-            existing_concern.save!
+        results << user.to_control(calendar_element, true)
+      else
+        #
+        #  Make sure everyone else has the calendar, at least as something
+        #  which they can view.
+        #
+        if user.known?
+          result = user.to_view(calendar_element)
+          unless result.empty?
+            results << result
           end
-        else
-          concern = Concern.new
-          concern.user     = user
-          concern.element  = calendar_element
-          concern.owns     = true
-          concern.controls = true
-          concern.colour   = "green"
-          concern.auto_add = true
-          concern.save!
         end
       end
     end
+    #
+    #  Now some special individuals.
+    #
+    user_name = "Nick Lloyd"
+    elements = ["A202 / Ingham Room",
+                "A221 / Drama Studio",
+                "A222 / Drama Classroom",
+                "AT / Amey Theatre",
+                "ATF / Amey Theatre Foyer",
+                "CMR / Charles Maude Room"]
+    user = User.find_by(name: user_name)
+    if user
+      elements.each do |element|
+        results << user.to_control(element)
+      end
+      user.admin = false
+      user.save!
+    else
+      results << "Unable to find user #{user_name} to adjust concerns."
+    end
+    user_name = "AS Reception"
+    elements = ["Admin Hub Meeting Room",
+                "Meeting room 1 (reception)",
+                "Meeting room 2 (reception)"]
+    user = User.find_by(name: user_name)
+    if user
+      elements.each do |element|
+        results << user.to_control(element)
+      end
+      preferred_category = Eventcategory.find_by(name: "Meeting")
+      if preferred_category
+        user.preferred_event_category = preferred_category
+        user.save!
+        results << "Set preferred event category for #{user_name} to Meeting."
+      else
+        results << "Can't find meeting category for #{user_name}."
+      end
+    else
+      results << "Unable to find user #{user_name} to adjust concerns."
+    end
+    #
+    #  And report on how we did.
+    #
     results.each do |string|
       puts string
     end

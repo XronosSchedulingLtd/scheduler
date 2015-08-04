@@ -66,7 +66,9 @@ class ConcernsController < ApplicationController
     #  it to update itself.
     #
     @concern = Concern.find_by(id: params[:id])
-    if @concern && @concern.user_id == current_user.id
+    if @concern &&
+       @concern.user_id == current_user.id &&
+       @concern.user_can_delete?
       @concern_id = @concern.id
       @concern.destroy
     else

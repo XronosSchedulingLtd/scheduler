@@ -1,0 +1,28 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-08-04T09:00:10+01:00
+
+====== Tuesday 04 Aug 2015 ======
+
+Today I would like to document a set of steps to upgrade the live system to the "Calendar as resource" version of code.  I will then test them by doing it on the staging server.
+
+[ ] Back up live database
+[ ] Load copy of live database
+[ ] If this is a re-run, then drop the properties and services tables
+[ ] Get new code - git pull
+[ ] export RAILS_ENV=production
+[ ] bundle exec rake db:migrate
+[ ] bundle exec rake assets:precompile
+[ ] touch tmp/restart.txt
+[ ] rails c
+[ ] Eventcategory.add_property
+[ ] Give Nick ownership (and control) of the Amey Theatre, Amey Theatre Foyer, Ingham Room, CMR, Drama Studio, Drama Classroom
+[ ] Give AS Reception control of their meeting rooms - Admin Hub Meeting Room, Meeting Room 1, Meeting Room 2
+[ ] Take away Admin from Nick Lloyd
+[ ] Give everyone a concern with the calendar, green, but set to invisible.
+[ ] Give calendar a default colour of green
+[ ] Give AS Reception a default event category of Meeting
+
+All those items after the add_property line are now done by the add_property method.
+
+Ready to test on the staging server?  Not quite - I need to make it visibly different.  Done that.  Let's go for a test.
