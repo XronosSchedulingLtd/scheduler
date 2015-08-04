@@ -10,7 +10,7 @@ class CommitmentsController < ApplicationController
     #  of whether it succeeds or fails, we just display the list of
     #  committed resources again.
     #
-    @commitment.save
+    @commitment.save!
     @event = @commitment.event
     respond_to do |format|
       format.js
@@ -37,6 +37,6 @@ class CommitmentsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def commitment_params
-      params.require(:commitment).permit(:event_id, :element_id)
+      params.require(:commitment).permit(:event_id, :element_id, :element_name)
     end
 end
