@@ -73,7 +73,13 @@ class Event < ActiveRecord::Base
   validates :eventsource, presence: true
   validates :starts_at, presence: true
   validates_with DurationValidator
-  validates_with CategoryValidator
+  #
+  #  It's too confusing for users to be forced to change the category
+  #  before they can do any other edits.  We still won't offer them
+  #  deprecated categories, but for now they can still update events
+  #  which have them.
+  #
+#  validates_with CategoryValidator
 
   @@duty_category         = nil
   @@invigilation_category = nil

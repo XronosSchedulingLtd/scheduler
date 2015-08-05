@@ -15,7 +15,7 @@ Today I would like to document a set of steps to upgrade the live system to the 
 [ ] bundle exec rake assets:precompile
 [ ] touch tmp/restart.txt
 [ ] rails c
-[ ] Eventcategory.add_property
+[ ] Eventcategory.add_properties
 [ ] Give Nick ownership (and control) of the Amey Theatre, Amey Theatre Foyer, Ingham Room, CMR, Drama Studio, Drama Classroom
 [ ] Give AS Reception control of their meeting rooms - Admin Hub Meeting Room, Meeting Room 1, Meeting Room 2
 [ ] Take away Admin from Nick Lloyd
@@ -26,3 +26,13 @@ Today I would like to document a set of steps to upgrade the live system to the 
 All those items after the add_property line are now done by the add_property method.
 
 Ready to test on the staging server?  Not quite - I need to make it visibly different.  Done that.  Let's go for a test.
+
+Interesting question - why does the Property "Key date" not show up in the search box on my staging server?  It exists as a property.  The property has an element, and the element is marked as current.  None of them does though.  Have I done something interesting to the search box?  It worked not long ago, because I was adding Calendar as a concern dynamically.
+
+Try on test system.  Interesting - it appears on the test system.  Why the difference?  Ah - a quick refresh seems to have fixed it.  I was probably using a slightly out of date bit of the front-end code.
+
+Now found something else interesting.  If I try to add resources to an existing calendar event - with an event category of Calendar - it fails.  Is it because of the deprecated event category?  Yes.  Rails seems to behave as if it doesn't exist because it fails validation.  Perhaps I should remove that actual test, and simply stop offering it as a category.  That will mean that user's can still update existing events, but they can't create new ones.  They just won't be forced to change the event category.  I'll leave it for now and see if they cope.
+
+I've just identified another useful task - I need to go through all DJD's lists of events and make sure I can sensibly allocate them to categories within my proposed list.  Some of them are less than easy.
+
+If I were to add an edit dialogue for Concerns, working much like the one for Events, it could allow flags to be changed (within limits) and colours, and potentially allow the user to jump to the Days view, with checkboxes to set the parameters.

@@ -69,10 +69,12 @@ Rails.application.routes.draw do
     get :autocomplete_staff_element_name, :on => :collection
     get :ical, :on => :member
 
+  end
+
+  resources :item do
     resources :days do
       get :index, :on => :collection
     end
-
   end
 
   get 'schedule/show'

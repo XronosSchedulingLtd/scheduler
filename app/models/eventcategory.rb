@@ -48,7 +48,8 @@ class Eventcategory < ActiveRecord::Base
   NewCategory = Struct.new(:name, :schoolwide, :privileged)
   TO_CREATE = [NewCategory.new("Hospitality",      false, false),
                NewCategory.new("Parents' evening", false, true),
-               NewCategory.new("Term date",        true,  true)]
+               NewCategory.new("Date - crucial",   true,  true),
+               NewCategory.new("Date - other",     false, false)]
 
   def <=>(other)
     self.name <=> other.name

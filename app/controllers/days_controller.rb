@@ -36,9 +36,19 @@ class DaysController < ApplicationController
     #  Have we been given a specified element?
     #
     element = nil
-    element_id = params[:element_id]
-    if element_id
-      element = Element.find_by(id: element_id)
+    item_id = params[:item_id]
+    if item_id
+      element = Element.find_by(id: item_id)
+      unless element
+        element = Element.find_by(name: item_id)
+      end
+      #
+      #  We could go on here and try individual entities by name until
+      #  we manage to find one.
+      #
+      #  We should perhaps change the route from elements/*/days to items/*/days
+      #  to make it more logical to the user.
+      #
     end
     #
     #  If nothing valid was specified, then default to the calendar.
