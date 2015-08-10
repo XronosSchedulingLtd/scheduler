@@ -133,9 +133,10 @@ class Eventcategory < ActiveRecord::Base
     #
     #  First make sure the necessary properties exist.
     #
-    calendar_property = Property.ensure("Calendar", "green")
-    key_date_property = Property.ensure("Key date")
-    gap_property      = Property.ensure("Gap")
+    calendar_property  = Property.ensure("Calendar", "green")
+    key_date_property  = Property.ensure("Key date")
+    key_event_property = Property.ensure("Twilight Meetings etc.")
+    gap_property       = Property.ensure("Gap")
     results = []
     #
     #  Anything in the existing calendar category gets the Calendar property.
