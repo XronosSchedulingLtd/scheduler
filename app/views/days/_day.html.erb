@@ -1,10 +1,12 @@
+<% unless day.suppress? %>
 <tr>
   <td><%= day.date_text %></td>
   <td><%=
-    if @do_breaks
+    if day.do_breaks?
       day.events_texts_for_table.collect {|t| h(t)}.join("<br/>").html_safe
     else
       day.events_texts_for_table.collect {|t| h(t)}.join(" ").html_safe
     end
   %></td>
 </tr>
+<% end %>

@@ -21,12 +21,16 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
-      <%= f.label :pecking_order, class: "right inline" %><br>
+      <%= f.label :precedence, class: "right inline" %><br>
     </div>
     <div class="small-2 columns">
       <%= f.number_field :pecking_order %>
     </div>
-    <div class="small-7 columns"></div>
+    <div class="small-1 columns"> </div>
+    <div class="small-6 columns annotation">
+      Controls the order in which events will appear in the Days controller.
+      Smaller values first.
+    </div>
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
@@ -36,7 +40,7 @@
       <%= f.check_box :schoolwide %>
     </div>
     <div class="small-8 columns annotation">
-      Appears on all calendars.
+      Appears on the schedule for all logged-in users.
     </div>
   </div>
   <div class="row collapse">
@@ -48,29 +52,6 @@
     </div>
     <div class="small-8 columns annotation">
       Included in ical exports - e.g. to Google Calendar.
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :public, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :public %>
-    </div>
-    <div class="small-8 columns annotation">
-      Appears on public calendar - shown to those who are not logged in.
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :for_users, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :for_users %>
-    </div>
-    <div class="small-8 columns annotation">
-      Appears on schedules for individual users, even if they are not explicitly
-      involved - e.g. breaks.
     </div>
   </div>
   <div class="row collapse">
@@ -117,6 +98,30 @@
     <div class="small-8 columns annotation">
       When exporting calendar data, can multi-day events be compacted
       to reduce their number of appearances?
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :deprecated, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :deprecated %>
+    </div>
+    <div class="small-8 columns annotation">
+      This event category no longer appears in the pull-down and events
+      cannot be saved with this category.  Old events may still exist.
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :privileged, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :privileged %>
+    </div>
+    <div class="small-8 columns annotation">
+      This event category can be selected only by users who have the
+      corresponding bit set in their user records.
     </div>
   </div>
   <div class="row collapse">

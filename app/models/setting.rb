@@ -12,6 +12,8 @@ class Setting < ActiveRecord::Base
   @@checked_previous_era = false
   @@perpetual_era = nil
   @@checked_perpetual_era = false
+  @@hostname = nil
+  @@got_hostname = false
 
   belongs_to :current_era, class_name: :Era
   belongs_to :next_era, class_name: :Era
@@ -115,6 +117,14 @@ class Setting < ActiveRecord::Base
       puts "Rolled over."
     end
     nil
+  end
+
+  def self.hostname
+    unless @@got_hostname
+      @@hostname = `hostname -f`.chomp
+      @@got_hostname = true
+    end
+    @@hostname
   end
 
   protected

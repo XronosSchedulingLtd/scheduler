@@ -23,11 +23,16 @@ Each event category has a number of flags to control its behaviour.
 
 Flags identified so far are:
 
-* Schoolwide - appears on all calendars.  E.g. term dates.
-* Publish - included in ical exports
-* Public - appears on a calendar for non logged-in users.
-* Forusers - Appears on calendar for logged-in users, even if they aren't involved.  E.g. break.
-* Unimportant - not important enough to prevent use for cover.
+* schoolwide		Appears on all user's schedules
+* publish		Can be downloaded via ical.  If a user doesn't specify categories, all these are sent.
+* public			Superseded by the "Calendar" property - can go.
+* for_users		Likewise, superseded.  Replace with schoolwide.
+* unimportant	Not important enough to prevent use for cover.
+* can_merge		Events can be merged to provide cover.
+* can_borrow		Events with multiple staff can lose staff to cover.
+* compactable	When downloading "days" information, event can be compacted.
+* deprecated		On its way out
+* privileged		Can only be selected by privileged users.
 
 There will be more.
 

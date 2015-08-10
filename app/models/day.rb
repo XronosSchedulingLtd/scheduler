@@ -179,4 +179,14 @@ class Day
     result
   end
 
+  def do_breaks?
+    @options[:do_breaks]
+  end
+
+  def suppress?
+    @options[:suppress_empties] &&
+    @all_day_events.empty? &&
+    @timed_events.empty?
+  end
+
 end

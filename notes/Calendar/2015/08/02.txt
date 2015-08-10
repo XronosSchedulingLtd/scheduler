@@ -1,0 +1,57 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-08-02T09:11:33+01:00
+
+====== Sunday 02 Aug 2015 ======
+
+Currently documenting all the current event categories and planning how to change them.
+
+I need to add a "privileged" flag to both event categories and users.  Then I can re-work my conversion script to conform to my new document.  It should be capable of taking a fresh copy of the live database and doing all the necessary changes.  In some cases it can even merge existing categories.
+
+I think I can also get rid of some of the existing flags in event categories.  They currently are:
+
+* schoolwide		Appears on all user's schedules
+* publish		Can be downloaded via ical.  If a user doesn't specify categories, all these are sent.
+* public			Superseded by the "Calendar" property - can go.
+* for_users		Likewise, superseded.  Replace with schoolwide.
+* unimportant	Not important enough to prevent use for cover.
+* can_merge		Events can be merged to provide cover.
+* can_borrow		Events with multiple staff can lose staff to cover.
+* compactable	When downloading "days" information, event can be compacted.
+* deprecated		On its way out
+* privileged		Can only be selected by privileged users.
+
+Trying to fix my general display code to logical quantities of repeat event displaying.
+
+If two elements are involved in the same event, and both elements are explicitly being watched, the event should appear twice.
+
+If a user owns an event, and is looking at his or her owned events, it should appear as an owned event, except if the user is also viewing it by element, it which case it should appear only for the element being viewed.  (So that the receptionists see meetings by room).  Or else the user could simply turn of her view of owned events.
+
+If events are being view by property (e.g. Calendar) but are already on the screen because they are schoolwide events, then they shouldn't be shown again as calendar events.
+
+See if I can implement these.  Done the second one.  The first is more tricky.  When you're displaying events by element it's easy to see whether you own them.  However, we want it the other way around - when looking at my own events, I don't want to display them if they involve an element which I am currently also observing.  Can I do that?  I need to filter using my current concerns, checking for active ones.  Seems to work - good.
+
+Now let's look at upgrading my conversion code to do all the recent changes which I've specified.
+
+Need to make sure the ical feed for the calendar still gets the calendar - now selected by way of a property rather than an event category.  I can get the client changed in time, but it must also work through the changeover period.
+
+As I understand it, the client code is using this URL:
+
+http://abingdon.scheduler.org.uk/ical/0?categories=Calendar,Week%20letter
+
+I need to make sure it continues to work for now.  I can put in special processing for the "Calendar" category, but I then need to make sure that the feed doesn't go on to be restricted to just "Week letter" as its category.  I do however want to allow future use which doesn't have this restriction.  Ah - it isn't actually a problem.  If you want to get Calendar events and restrict the categories, specify the Calendar bit properly (by element ID) and then restrict the categories.
+
+Seem to have done that.  Back to fixing the conversion code.
+
+What does preferred_category on the user record do now?  It used to add the calendar category, but it can't any more.  A, yes it can for reception.  For everyone else it makes sense to remove it.  Karen can have her auto-calendar entries by having a concern with the auto-add bit set.
+
+Let's try re-loading the database from a live dump, then db:migrate, then do the conversion again.  Remember to drop the services and properties tables before doing the migration.
+
+Just had a thought - all my recent changes will have removed Karen's ability to edit all calendar events.  I need to fix that.  She can edit it because she owns the calendar property and the event has that property.
+
+Nick and AS Reception will need to be given control of their resources separately.
+
+Just had a thought - if you put a restricted resource in a group and then add that you can probably get around the access restrictions.  I won't worry about that for now.
+
+
+

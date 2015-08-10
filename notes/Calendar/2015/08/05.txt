@@ -1,0 +1,28 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-08-05T11:33:37+01:00
+
+====== Wednesday 05 Aug 2015 ======
+
+Hit a little problem with Google Calendar - it doesn't seem to like my new ICAL feeds.  Not sure why - it doesn't give any diagnostic information - but each time I try to add one it says it's failed to add it.
+
+That needs fixing before I promote the current code to the live server.
+
+Things to do:
+
+[*] Fix ical feed so Google likes it again.
+[*] Enter DJD's events and show him the URLs.
+[ ] Enhance editing of users
+[ ] Enhance editing of concerns whilst editing users
+[ ] Allow users to edit concerns themselves by clicking on them
+[ ] Add a group for "Boarding Housemasters"
+
+Just checked the live server and it already has my changes for adding an event ID and a date stamp.  I can add a calendar feed from the live server no problem.  I didn't think I'd made any more changes to that bit of code.  Check.
+
+Ah yes - there is a change.  Previously the events were selected by event category, but now they're selected by property.  Can't see why that should make a difference to the output though - Google shouldn't even know.
+
+Interestingly, some of my events (on both systems) get an explicit time zone in their time fields, whilst most of them don't.  Unlikely to be the cause though, because the effect is visible in both.  My newer version is using longer location names, but only in one event - that surely can't explain it.
+
+Hang on - I just succeeded!  I haven't changed anything - I think it must have been a transitory fault in Google Calendar.
+
+We return to our scheduler activities.

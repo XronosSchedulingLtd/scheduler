@@ -1,1 +1,1 @@
-<%= render @days %>
+<%= render @days.select {|d| !d.suppress? } %>

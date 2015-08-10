@@ -89,6 +89,15 @@ class EventsController < ApplicationController
     respond_to do |format|
       if @event.save
         @event.reload
+        #
+        #  Does this user have any Concerns with the auto_add flag set?
+        #
+        current_user.concerns.auto_add.each do |concern|
+          c = Commitment.new
+          c.event = @event
+          c.element = concern.element
+          c.save
+        end
         @success = true
         @minimal = true
         @commitment = Commitment.new

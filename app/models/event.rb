@@ -40,6 +40,21 @@ class DurationValidator < ActiveModel::Validator
   end
 end
 
+class CategoryValidator < ActiveModel::Validator
+  def validate(record)
+    #
+    #  We don't fuss about there being no event category - that's taken
+    #  care of elsewhere - but we do need to make sure it's still a
+    #  permitted one.
+    #
+    if record.eventcategory
+      if record.eventcategory.deprecated
+        record.errors[:eventcategory_id] << "#{record.eventcategory.name} is deprecated."
+      end
+    end
+  end
+end
+
 class Event < ActiveRecord::Base
 
   include ActiveModel::Validations
@@ -58,6 +73,13 @@ class Event < ActiveRecord::Base
   validates :eventsource, presence: true
   validates :starts_at, presence: true
   validates_with DurationValidator
+  #
+  #  It's too confusing for users to be forced to change the category
+  #  before they can do any other edits.  We still won't offer them
+  #  deprecated categories, but for now they can still update events
+  #  which have them.
+  #
+#  validates_with CategoryValidator
 
   @@duty_category         = nil
   @@invigilation_category = nil
@@ -310,6 +332,10 @@ class Event < ActiveRecord::Base
     self.resources.select {|r| r.instance_of?(Group)}
   end
 
+  def properties
+    self.resources.select {|r| r.instance_of?(Property)}
+  end
+
   # Returns an array of events for the indicated category, resource
   # and dates.
   # If no date is given, return today's events.
@@ -525,6 +551,14 @@ class Event < ActiveRecord::Base
     !!self.commitments.detect {|c| c.element == resource}
   end
 
+  def involves_any?(list)
+    if list.detect {|item| self.involves?(item)}
+      true
+    else
+      false
+    end
+  end
+
   #
   #  Produce a string for the event's duration.  With just a start time we
   #  get:
@@ -637,6 +671,23 @@ class Event < ActiveRecord::Base
       end
     end
     new_self
+  end
+
+  #
+  #  A bit of a helper method for forms.  Usually we only allow the selection
+  #  of categories which are not marked as deprecated, but that really
+  #  confuses end users if this event already is in a deprecated category.
+  #  In that one particular case, allow that category to appear (but still
+  #  don't allow it to be selected).
+  #
+  #  Also, don't show privileged categories to non-privileged users.
+  #
+  def suitable_categories(user)
+    if self.eventcategory
+      self.eventcategory.categories_for(user)
+    else
+      Eventcategory.categories_for(user)
+    end
   end
 
   def compactable?

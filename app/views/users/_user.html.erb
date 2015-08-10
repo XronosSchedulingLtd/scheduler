@@ -1,16 +1,6 @@
 <table style="current_user_table">
 <tr><td style="width:80%;"> </td><td style="width:10px;"></td><td style="width:10px;"></td></tr>
 <tr>
-  <td style="background-color:green;color:white" element_id="calendar">
-    Calendar
-  </td>
-  <td>
-    <input type="checkbox" class="active-checkbox" concern_id="calendar" <%= user.show_calendar ? "checked" : "" %> />
-  </td>
-  <td></td>
-<tr>
-<% if user.create_events? %>
-<tr>
   <td style="background-color:<%= current_user.colour_not_involved %>;color:white">
     My events
   </td>
@@ -19,7 +9,6 @@
   </td>
   <td></td>
 </tr>
-<% end %>
 <%= render user.concerns.me %>
 <% if user.concerns.not_me.size > 0 %>
   <%= render user.concerns.not_me.sort %>

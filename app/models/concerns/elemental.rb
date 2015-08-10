@@ -48,16 +48,14 @@ module Elemental
       end
     else
       if self.active
+        creation_hash = { :name => self.element_name,
+                          :current => self.current,
+                          :entity => self }
         if self.respond_to?(:owner_id)
-          Element.create!(:name => self.element_name,
-                          :current => self.current,
-                          :owner_id => self.owner_id,
-                          :entity => self)
-        else
-          Element.create!(:name => self.element_name,
-                          :current => self.current,
-                          :entity => self)
+          creation_hash[:owner_id] = self.owner_id
         end
+        self.adjust_element_creation_hash(creation_hash)
+        Element.create!(creation_hash)
       end
     end
   end
@@ -71,6 +69,9 @@ module Elemental
 
   def short_name
     self.name
+  end
+
+  def adjust_element_creation_hash(creation_hash)
   end
 
   #

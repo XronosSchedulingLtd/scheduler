@@ -1,6 +1,9 @@
 class DaysController < ApplicationController
 
-  DEFAULT_CATEGORIES = ["Week letter", "Key date (external)", "Calendar"]
+  #
+  #  Default to all categories.
+  #
+  DEFAULT_CATEGORIES = []
 
   #
   #  We create an array of Days, based on the indicated selection criteria,
@@ -14,19 +17,45 @@ class DaysController < ApplicationController
     #  Set defaults
     #
     options = {
-      do_compact:    false,
-      add_duration:  false,
-      mark_end:      false,
-      add_locations: false,
-      add_staff:     false,
-      by_period:     false,
-      clock_format:  :twenty_four_hour,
-      end_times:     true
+      do_compact:       false,
+      add_duration:     false,
+      mark_end:         false,
+      add_locations:    false,
+      add_staff:        false,
+      by_period:        false,
+      clock_format:     :twenty_four_hour,
+      end_times:        true,
+      do_breaks:        false,
+      suppress_empties: false
     }
-    era = Setting.current_era
+    era = Setting.next_era || Setting.current_era
     start_date   = Date.today
     end_date     = era.ends_on
     category_names = DEFAULT_CATEGORIES
+    #
+    #  Have we been given a specified element?
+    #
+    element = nil
+    item_id = params[:item_id]
+    if item_id
+      element = Element.find_by(id: item_id)
+      unless element
+        element = Element.find_by(name: item_id)
+      end
+      #
+      #  We could go on here and try individual entities by name until
+      #  we manage to find one.
+      #
+      #  We should perhaps change the route from elements/*/days to items/*/days
+      #  to make it more logical to the user.
+      #
+    end
+    #
+    #  If nothing valid was specified, then default to the calendar.
+    #
+    unless element
+      element = Element.find_by(name: "Calendar")
+    end
     #
     #  Check for options appended to the URL.
     #
@@ -61,9 +90,10 @@ class DaysController < ApplicationController
       options[:end_times] = false
     end
     if params.has_key?(:breaks)
-      @do_breaks = true
-    else
-      @do_breaks = false
+      options[:do_breaks] = true
+    end
+    if params.has_key?(:suppress_empties)
+      options[:suppress_empties] = true
     end
     if params[:categories]
       #
@@ -79,28 +109,9 @@ class DaysController < ApplicationController
     categories = category_names.collect { |cn|
       Eventcategory.find_by_name(cn)
     }.compact.select {|cc| cc.publish}
-    #
-    #  There is a slight danger that if the requestor specifies only
-    #  invalid categories then we end up with an empty list, which
-    #  would result in us sending events from *all* categories.
-    #  Prevent this.
-    #
-    if categories.size == 0
-      categories = DEFAULT_CATEGORIES.collect { |cn|
-        Eventcategory.find_by_name(cn)
-      }.compact.select {|cc| cc.publish}
-    end
-    #
-    #  Want to be able to sort selected events into the order in which
-    #  the categories were specified.
-    #
-    sort_hash = Hash.new
-    categories.each_with_index do |category, index|
-      sort_hash[category.id] = index
-    end
-    dbevents = Event.events_on(start_date,
-                               end_date,
-                               categories)
+    dbevents = element.events_on(start_date,
+                                 end_date,
+                                 categories)
     @days = []
     start_date.upto(end_date) do |date|
       start_of_day = Time.zone.parse(date.strftime("%Y-%m-%d"))
@@ -113,7 +124,7 @@ class DaysController < ApplicationController
                              !dbe.compactable? ||
                              dbe.starts_at == start_of_day ||
                              (options[:mark_end] && dbe.ends_at == end_of_day)}.
-               sort_by {|dbe| [sort_hash[dbe.eventcategory_id],
+               sort_by {|dbe| [dbe.eventcategory.pecking_order,
                                dbe.starts_at,
                                dbe.ends_at]}.
                each do |event|

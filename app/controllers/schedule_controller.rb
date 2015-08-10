@@ -110,16 +110,14 @@ class ScheduleController < ApplicationController
         #
         #  * Events the user owns (i.e. he or she edited them in).
         #  * Events the user's element is listed as organising.
-        #  * Breakthrough events, for all users.  These too are to go.
-        #  * As a special case for now, calendar events if the
-        #    user has asked for them.  Later on, calendar events will
-        #    be specified by them involving the calendar element.
         #
         #  As an order of precedence, we classify the events in that order.
         #  Each event should appear only once, and in the category which
         #  is listed here first.
         #
         #
+        watched_elements =
+          current_user.concerns.visible.collect {|concern| concern.element}
         if current_user.show_owned
           my_owned_events =
             current_user.events_on(start_date,
@@ -136,35 +134,26 @@ class ScheduleController < ApplicationController
                             nil,
                             true,
                             current_user.own_element) - my_owned_events
+          #
+          #  Now I want to subtract from my owned events, the list of
+          #  events involving elements which I am currently watching by
+          #  another means.
+          #
+          #  Currently this is only going to work for direct involvement,
+          #  not involvement via a group.
+          #
+          my_owned_events =
+            my_owned_events.select {|e| !e.involves_any?(watched_elements)}
         else
           my_owned_events = []
           my_organised_events = []
         end
-        breakthrough_events =
+        schoolwide_events =
           Event.events_on(start_date,
                           end_date,
-                          Eventcategory.for_users) -
+                          Eventcategory.schoolwide) -
                           (my_owned_events + my_organised_events)
-        if current_user.show_calendar
-          calendar_events =
-            Event.events_on(start_date,
-                            end_date,
-                            "Calendar",
-                            nil,
-                            nil,
-                            nil,
-                            true) - (my_owned_events +
-                                     my_organised_events +
-                                     breakthrough_events)
-        else
-          calendar_events = []
-        end
         @schedule_events =
-          calendar_events.collect {|e|
-            ScheduleEvent.new(e,
-                              current_user,
-                              "green")
-          } +
           my_owned_events.collect {|e|
             ScheduleEvent.new(e,
                               current_user,
@@ -175,7 +164,7 @@ class ScheduleController < ApplicationController
                               current_user,
                               current_user.colour_not_involved)
           } +
-          breakthrough_events.collect {|e|
+          schoolwide_events.collect {|e|
             ScheduleEvent.new(e,
                               current_user)
           }
@@ -191,10 +180,20 @@ class ScheduleController < ApplicationController
           current_user.concerns.detect {|ci| ci.id == concern_id}
         if concern && concern.visible
           element = concern.element
+          if element.entity.instance_of?(Property)
+            #
+            #  The .all forces the lambda to be evaluated now.  We don't
+            #  want the database being queried again and again for the
+            #  same answer.
+            #
+            event_categories = Eventcategory.not_schoolwide.all
+          else
+            event_categories = nil
+          end
           @schedule_events =
             element.events_on(start_date,
                               end_date,
-                              nil,
+                              event_categories,
                               nil,
                               true,
                               true).collect {|e|
@@ -208,12 +207,19 @@ class ScheduleController < ApplicationController
         end
       end
     else
-      @schedule_events =
-        Event.events_on(start_date,
-                        end_date,
-                        Eventcategory.public_ones).collect {|e|
-          ScheduleEvent.new(e)
-        }
+      #
+      #  People who aren't logged on, or who we don't recognise, just
+      #  get to see the public calendar.
+      #
+      calendar_element = Element.find_by(name: "Calendar")
+      if calendar_element
+        @schedule_events =
+          calendar_element.events_on(start_date, end_date).collect {|e|
+            ScheduleEvent.new(e)
+          }
+      else
+        @schedule_events = []
+      end
     end
     begin
       respond_to do |format|

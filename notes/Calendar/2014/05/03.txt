@@ -22,7 +22,7 @@ which uses Webrick.  The latter version can't find its resources.  Points to be 
 * ''RAILS_ENV=production bundle exec rake assets:precompile''
 * Webrick then still won't find the assets, but Passenger will.
 
-I think I've found a config item which would change that, but I'll test it with my test app first, then document it here.  Then I'll write up a fresh page giving blow-by-blow instructions on how to do a live deployment.  Yes, setting the relevant variable gets Webrick to work in production mode.  See [[:Deployment|Deployment]] for details of how to set everything up.
+I think I've found a config item which would change that, but I'll test it with my test app first, then document it here.  Then I'll write up a fresh page giving blow-by-blow instructions on how to do a live deployment.  Yes, setting the relevant variable gets Webrick to work in production mode.  See [[Bootstrap:New software version|Deployment]] for details of how to set everything up.
 
 Now, can I do all of that on Mach2?  I suspect I'm going to hit problems with the firewall.  How about re-directing via Nimbus as I did for Knight?  Try it.   Aaargh.  Secvpn seems to have disappeared from Jessie.  Annoying.  It is suggested one should upgrade to openvpn.  What does that involve?  It does seem to be available in all of Squeeze, Wheezy and Jessie.  Can it exist alongside secvpn?  I need to be careful not to kill my connection to Dad's PC.  The obvious machine on which to install it first is this one, since I have direct access to it.  At least the packages don't clash.  There's some documentation at:
 

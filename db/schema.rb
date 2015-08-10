@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150727135224) do
+ActiveRecord::Schema.define(version: 20150803154357) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -34,6 +34,8 @@ ActiveRecord::Schema.define(version: 20150727135224) do
     t.string   "colour",                     null: false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "auto_add",   default: false
+    t.boolean  "controls",   default: false
   end
 
   add_index "concerns", ["element_id"], name: "index_concerns_on_element_id", using: :btree
@@ -61,8 +63,9 @@ ActiveRecord::Schema.define(version: 20150727135224) do
     t.string   "entity_type"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "current",     default: false
+    t.boolean  "current",          default: false
     t.integer  "owner_id"
+    t.string   "preferred_colour"
   end
 
   add_index "elements", ["entity_id"], name: "index_elements_on_entity_id", using: :btree
@@ -90,6 +93,8 @@ ActiveRecord::Schema.define(version: 20150727135224) do
     t.boolean  "can_merge",     default: false
     t.boolean  "can_borrow",    default: false
     t.boolean  "compactable",   default: true
+    t.boolean  "deprecated",    default: false
+    t.boolean  "privileged",    default: false
   end
 
   create_table "events", force: true do |t|
@@ -284,6 +289,7 @@ ActiveRecord::Schema.define(version: 20150727135224) do
     t.boolean  "secretary",                   default: false
     t.boolean  "show_calendar",               default: false
     t.boolean  "show_owned",                  default: true
+    t.boolean  "privileged",                  default: false
   end
 
 end

@@ -6,7 +6,12 @@ class ConcernsController < ApplicationController
   def create
     @concern = Concern.new(concern_params)
     @concern.user = current_user
-    @concern.colour = current_user.free_colour
+    if @concern.element &&
+       @concern.element.preferred_colour
+      @concern.colour = @concern.element.preferred_colour
+    else
+      @concern.colour = current_user.free_colour
+    end
 
     unless @concern.valid?
       #
@@ -61,7 +66,9 @@ class ConcernsController < ApplicationController
     #  it to update itself.
     #
     @concern = Concern.find_by(id: params[:id])
-    if @concern && @concern.user_id == current_user.id
+    if @concern &&
+       @concern.user_id == current_user.id &&
+       @concern.user_can_delete?
       @concern_id = @concern.id
       @concern.destroy
     else
@@ -82,12 +89,7 @@ class ConcernsController < ApplicationController
     #
     new_state = params[:state] == "on" ? true : false
     @status = :ok
-    if params[:id] == "calendar"
-      if current_user.show_calendar != new_state
-        current_user.show_calendar = new_state
-        current_user.save
-      end
-    elsif params[:id] == "owned"
+    if params[:id] == "owned"
       if current_user.show_owned != new_state
         current_user.show_owned = new_state
         current_user.save
