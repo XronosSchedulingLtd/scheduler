@@ -19,8 +19,18 @@ class Element < ActiveRecord::Base
 
   scope :current, -> { where(current: true) }
   scope :staff, -> { where(entity_type: "Staff") }
+  scope :property, -> { where(entity_type: "Property") }
   scope :mine_or_system, ->(current_user) { where("owner_id IS NULL OR owner_id = :user_id", user_id: current_user.id) }
   after_save :rename_affected_events
+
+  SORT_ORDER_HASH = {
+    "Property" => 1,
+    "Staff"    => 2,
+    "Pupil"    => 3,
+    "Location" => 4,
+    "Group"    => 5,
+    "Service"  => 6
+  }.tap {|h| h.default = 0}
 
   #
   #  This method is much like the "members" method in the Group model,
@@ -257,6 +267,19 @@ class Element < ActiveRecord::Base
 
   def short_name
     entity.short_name
+  end
+
+  #
+  #  We sort elements first by their type (order specified at head of
+  #  file) and then by their names.
+  #
+  def <=>(other)
+    result =
+      SORT_ORDER_HASH[self.entity_type] <=> SORT_ORDER_HASH[other.entity_type]
+    if result == 0
+      result = self.name <=> other.name
+    end
+    result
   end
 
   def rename_affected_events

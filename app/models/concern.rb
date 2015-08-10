@@ -1,3 +1,8 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2015 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+
 class Concern < ActiveRecord::Base
   belongs_to :user
   belongs_to :element
@@ -40,7 +45,7 @@ class Concern < ActiveRecord::Base
       if other.equality
         if self.owns
           if other.owns
-            self.element.name <=> other.element.name
+            self.element <=> other.element
           else
             -1
           end
@@ -48,7 +53,7 @@ class Concern < ActiveRecord::Base
           if other.ownership
             1
           else
-            self.element.name <=> other.element.name
+            self.element <=> other.element
           end
         end
       else
@@ -60,7 +65,7 @@ class Concern < ActiveRecord::Base
       else
         if self.owns
           if other.owns
-            self.element.name <=> other.element.name
+            self.element <=> other.element
           else
             -1
           end
@@ -68,7 +73,7 @@ class Concern < ActiveRecord::Base
           if other.owns
             1
           else
-            self.element.name <=> other.element.name
+            self.element <=> other.element
           end
         end
       end
