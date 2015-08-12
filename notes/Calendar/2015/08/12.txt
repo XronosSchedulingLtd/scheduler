@@ -11,3 +11,5 @@ Before I do that, I think I should re-test the conversion of the live system (us
 In fact, to be really cautious, I should do it on the development server first.  OK - back to the master branch and here we go.
 
 Check that I can still get a calendar feed from the staging server into Google Calendar.
+
+I have just done some very nasty frigging of the appearance of the concerns in the left hand column.  Zurb Foundation by default makes them far too big, and only seems to provide the means to change them for //all// tables.  I want to change just that one table, which probably shouldn't be a table anyway.  The whole area needs a complete re-work so for now I'm just going to do this.  I feel soiled.

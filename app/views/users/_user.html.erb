@@ -1,13 +1,13 @@
 <table style="current_user_table">
 <tr><td style="width:80%;"> </td><td style="width:10px;"></td><td style="width:10px;"></td></tr>
 <tr>
-  <td style="background-color:<%= current_user.colour_not_involved %>;color:white;font-size:90%">
+  <td style="background-color:<%= current_user.colour_not_involved %>;color:white;font-size:90%;padding-top:0px;padding-bottom:0px;">
     My events
   </td>
-  <td>
+  <td style="padding-top:0px;padding-bottom:0px;">
     <input type="checkbox" class="active-checkbox" concern_id="owned" <%= user.show_owned ? "checked" : "" %> />
   </td>
-  <td></td>
+  <td style="padding-top:0px;padding-bottom:0px;"></td>
 </tr>
 <%= render user.concerns.me %>
 <% if user.concerns.not_me.size > 0 %>
