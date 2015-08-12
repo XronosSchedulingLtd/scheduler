@@ -1,14 +1,14 @@
-<tr>
-  <td style="background-color:<%= concern.colour %>;color:white" class="dynamic-element" concern_id="<%= concern.id %>" title="<%= concern.element_id %>">
+<tr;>
+  <td style="background-color:<%= concern.colour %>;color:white;font-size:90%;padding-top:0px;padding-bottom:0px;" class="dynamic-element" concern_id="<%= concern.id %>" title="<%= concern.element_id %>">
     <%= concern.element.name %>
   </td>
-  <td>
+  <td style="padding-top:0px;padding-bottom:0px;">
     <input type="checkbox"
            class="active-checkbox"
            concern_id=<%= concern.id %>
            <%= concern.visible ? "checked" : "" %> />
   </td>
-  <td>
+  <td style="padding-top:0px;padding-bottom:0px;">
     <% if concern.user_can_delete? %>
       <%= link_to '&#215;'.html_safe, concern, remote: true, method: :delete %>
     <% end %>

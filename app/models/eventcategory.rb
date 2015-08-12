@@ -135,8 +135,10 @@ class Eventcategory < ActiveRecord::Base
     #
     calendar_property  = Property.ensure("Calendar", "green")
     key_date_property  = Property.ensure("Key date")
-    key_event_property = Property.ensure("Twilight Meetings etc.")
+    key_event_property = Property.ensure("Twilight meetings etc.")
     gap_property       = Property.ensure("Gap")
+    drama_property     = Property.ensure("Drama calendar", "#b40404")
+    theatre_property   = Property.ensure("Music calendar", "#5f04b4")
     results = []
     #
     #  Anything in the existing calendar category gets the Calendar property.
@@ -263,7 +265,9 @@ class Eventcategory < ActiveRecord::Base
                 "A222 / Drama Classroom",
                 "AT / Amey Theatre",
                 "ATF / Amey Theatre Foyer",
-                "CMR / Charles Maude Room"]
+                "CMR / Charles Maude Room",
+                "Drama calendar",
+                "Music calendar"]
     user = User.find_by(name: user_name)
     if user
       elements.each do |element|
