@@ -1,0 +1,13 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-08-12T08:59:41+01:00
+
+====== Wednesday 12 Aug 2015 ======
+
+Back from a short trip to Preston, and needing to start work on importing next year's data - OTL has finally managed to get at least some of it into SB.
+
+Before I do that, I think I should re-test the conversion of the live system (using the staging server) and then do the actual live conversion.  Instructions for the process are in the calendar for [[:Calendar:2015:08:04|4th August]]. I have made a few small changes to the code since I last ran them, so I'll do them again now on the staging server.
+
+In fact, to be really cautious, I should do it on the development server first.  OK - back to the master branch and here we go.
+
+Check that I can still get a calendar feed from the staging server into Google Calendar.
