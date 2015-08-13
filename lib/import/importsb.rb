@@ -2847,9 +2847,31 @@ class SB_Loader
     Staff.all.each do |dbrecord|
       if dbrecord.source_id && (dbrecord.source_id != 0)
         unless @staff_hash[dbrecord.source_id]
-          puts "Deleting #{dbrecord.name}"
-          dbrecord.destroy
-          staff_deleted_count += 1
+          #
+          #  A member of staff seems to have gone away from SB.  This
+          #  shouldn't really happen, but it seems it sometimes does.
+          #
+          #  My approach is to delete them *only* if there is no ancillary
+          #  information.
+          #
+          if dbrecord.element &&
+             (dbrecord.element.memberships.count > 0 ||
+              dbrecord.element.commitments.count > 0)
+            #
+            #  Useful information about this staff member which should
+            #  be kept.
+            #
+            if dbrecord.current
+              puts "Marking #{dbrecord.name} no longer current."
+              dbrecord.current = false
+              dbrecord.save
+              staff_changed_count += 1
+            end
+          else
+            puts "Deleting #{dbrecord.name}"
+            dbrecord.destroy
+            staff_deleted_count += 1
+          end
         end
       end
     end
@@ -4181,17 +4203,21 @@ class SB_Loader
         YAML.load(
           File.open(Rails.root.join(IMPORT_DIR, control_data[:file_name])))
       file_data.each do |group_name, members|
-        dbrecords = members.collect {|m|
-          if control_data[:dbclass].respond_to?(:active)
-            dbrecord = control_data[:dbclass].active.current.find_by(name: m)
-          else
-            dbrecord = control_data[:dbclass].current.find_by(name: m)
-          end
-          unless dbrecord
-            puts "Can't find #{m} for extra group #{group_name}"
-          end
-          dbrecord
-        }.compact
+        if members
+          dbrecords = members.collect {|m|
+            if control_data[:dbclass].respond_to?(:active)
+              dbrecord = control_data[:dbclass].active.current.find_by(name: m)
+            else
+              dbrecord = control_data[:dbclass].current.find_by(name: m)
+            end
+            unless dbrecord
+              puts "Can't find #{m} for extra group #{group_name}"
+            end
+            dbrecord
+          }.compact
+        else
+          dbrecords = []
+        end
         ensure_membership(group_name, dbrecords, control_data[:dbclass])
       end
     end
