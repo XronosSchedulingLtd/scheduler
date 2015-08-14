@@ -122,6 +122,8 @@ $(document).ready ->
         $('#eventModal').foundation('reveal',
                                     'open',
                                     '/events/' + event.id)
+    $('.dynamic-element').each (index) ->
+      window.addEventSource($(this).attr('concern_id'))
 
 window.addEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('addEventSource',

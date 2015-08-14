@@ -108,6 +108,7 @@ class Setting < ActiveRecord::Base
       group_count = 0
       self.current_era.groups.each do |group|
         group.ceases_existence(self.current_era.ends_on)
+        group_count += 1
       end
       puts "#{group_count} groups terminated."
       self.previous_era = self.current_era
