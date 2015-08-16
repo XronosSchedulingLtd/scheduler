@@ -166,13 +166,15 @@ class Element < ActiveRecord::Base
                      eventsource:         nil,
                      owned_by:            nil,
                      include_nonexistent: false,
-                     and_by_group:        true)
+                     and_by_group:        true,
+                     effective_date:      nil)
     my_groups = []
+    Rails.logger.debug("Effective date is #{effective_date}")
     if and_by_group
       #
       #  This is not a full implementation of what is needed, but it
       #  gives a good approximation for now.  For a discussion of possible
-      #  approaches, see notes for 11th Jan, 2014
+      #  approaches, see notes for 1st Nov, 2014
       #
       if startdate == nil
         if enddate == nil
@@ -214,7 +216,12 @@ class Element < ActiveRecord::Base
             #
             my_groups = self.groups(start_date)
           elsif enddate == :never
-            my_groups = self.groups
+            if effective_date &&
+               effective_date > Date.today
+              my_groups = self.groups(effective_date)
+            else
+              my_groups = self.groups
+            end
             end_date = :never
           else
             end_date = enddate.to_date
@@ -226,7 +233,12 @@ class Element < ActiveRecord::Base
               #  date both specified, and the current date falls
               #  between them.
               #
-              my_groups = self.groups
+              if effective_date &&
+                 effective_date > Date.today
+                my_groups = self.groups(effective_date)
+              else
+                my_groups = self.groups
+              end
             end
           end
         end

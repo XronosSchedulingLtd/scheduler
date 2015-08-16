@@ -133,9 +133,11 @@ class ElementsController < ApplicationController
       if categories.empty?
         categories = Eventcategory.publish
       end
-      selector = element.commitments_on(startdate:     starts_on,
-                                        enddate:       ends_on,
-                                        eventcategory: categories)
+      selector =
+        element.commitments_on(startdate:      starts_on,
+                               enddate:        ends_on,
+                               eventcategory:  categories,
+                               effective_date: Setting.current_era.starts_on)
       if include_cover && !include_non_cover
         selector = selector.covering_commitment
       elsif include_non_cover && !include_cover
@@ -185,7 +187,8 @@ class ElementsController < ApplicationController
         (staff.element.
                commitments_on(startdate: starts_on,
                               enddate: ends_on,
-                              eventcategory: basic_categories).
+                              eventcategory: basic_categories,
+                              effective_date: Setting.current_era.starts_on).
                includes(event: {elements: :entity}).collect {|c| c.event} +
          Event.events_on(starts_on, ends_on, extra_categories).
                includes(elements: :entity)).
