@@ -799,15 +799,17 @@ class SB_PeriodTime
                       Column["PeriodTimeEnd",    :end_mins,          true],
                       Column["Period",           :period_ident,      true],
                       Column["PeriodTimeSetIdent", :period_time_set_ident, true]]
-  TIME_CORRECTIONS = [PT_Correction[510, 540, 515, 535],  # 08:35 - 08:55
-                      PT_Correction[540, 595, 540, 590],  # 09:00 - 09:50
-                      PT_Correction[670, 730, 670, 725],  # 11:10 - 12:05
-                      PT_Correction[730, 790, 730, 785],  # 12:10 - 13:05
-                      PT_Correction[840, 900, 840, 895],  # 14:00 - 14:55
-                      PT_Correction[900, 960, 900, 955],  # 15:00 - 15:55
-                      PT_Correction[825, 885, 825, 880],  # 13:45 - 14:40
-                      PT_Correction[730, 770, 730, 765],  # 12:10 - 12:45
-                      PT_Correction[770, 810, 770, 805]]  # 12:50 - 13:25
+  TIME_CORRECTIONS = [
+    PT_Correction[510, 540, 515, 535],  # 08:30 - 09:00 becomes 08:35 - 08:55
+    PT_Correction[540, 595, 540, 590],  # 09:00 - 09:55 becomes 09:00 - 09:50
+    PT_Correction[670, 730, 670, 725],  # 11:10 - 12:10 becomes 11:10 - 12:05
+    PT_Correction[730, 790, 730, 785],  # 12:10 - 13:10 becomes 12:10 - 13:05
+    PT_Correction[840, 900, 840, 895],  # 14:00 - 15:00 becomes 14:00 - 14:55
+    PT_Correction[900, 960, 900, 955],  # 15:00 - 16:00 becomes 15:00 - 15:55
+    PT_Correction[825, 885, 825, 880],  # 13:45 - 14:45 becomes 13:45 - 14:40
+    PT_Correction[730, 770, 730, 765],  # 12:10 - 12:50 becomes 12:10 - 12:45
+    PT_Correction[770, 810, 770, 805],  # 12:50 - 13:30 becomes 12:50 - 13:25
+    PT_Correction[845, 865, 845, 875]]  # 14:05 - 14:25 becomes 14:05 - 14:35
 
   include Slurper
 
@@ -1780,7 +1782,11 @@ end
 
 class SB_Timetableentry
   FILE_NAME = "timetable.csv"
-  SUSPENDABLE_TYPES = [:lesson, :registration, :tutor_period]
+  SUSPENDABLE_TYPES = [:assembly,
+                       :lesson,
+                       :registration,
+                       :chapel,
+                       :tutor_period]
   REQUIRED_COLUMNS = [Column["TimetableIdent", :timetable_ident, true],
                       Column["GroupIdent",     :group_ident,     true],
                       Column["StaffIdent",     :staff_ident,     true],
@@ -1989,7 +1995,9 @@ class SB_Timetableentry
       elsif (self.period_time.starts_at == "12:10" &&
              self.period_time.ends_at == "12:45") ||
             (self.period_time.starts_at == "12:50" &&
-             self.period_time.ends_at == "13:25")
+             self.period_time.ends_at == "13:25") ||
+            (self.period_time.starts_at == "14:05" &&
+             self.period_time.ends_at == "14:35")
         @event_type = :tutor_period
       else
         @event_type = :lesson
@@ -2217,6 +2225,7 @@ class SB_Tutorgroupentry
     self.pupil_ident != 0 &&
     self.pupil_ident != -1
   end
+
 end
 
 
@@ -2254,6 +2263,10 @@ class SB_Tutorgroup
 
   def num_pupils
     @records.size
+  end
+
+  def source_id
+    @name
   end
 
   #
@@ -2746,17 +2759,18 @@ class SB_Loader
   #
   def load_gaps
     @gaps = []
-    event_categories = Eventcategory.name_starts_with("Gap")
-    if event_categories.size > 0
-      @gaps = Event.events_on(@start_date,
-                              @era.ends_on,
-                              event_categories).to_a
+    gap_property = Property.find_by(name: "Gap")
+    if gap_property
+      @gaps = gap_property.element.events_on(@start_date,
+                                             @era.ends_on).to_a
       #
       #  The to_a suffix causes the relation to be executed.  We don't
       #  want to keep executing it every time we reference the gaps
       #  (of which there are very few) and in any case, we need to save
       #  the results to a file which can be read by older versions of Rails.
       #
+    else
+      puts "Unable to find a Gap property."
     end
   end
 
