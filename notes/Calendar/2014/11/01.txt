@@ -54,3 +54,9 @@ The end effect will be to load too many events, but then discard those not requi
 An alternative approach would be to make a list of all the groups of which the user is a member at any point in the required interval, then identify any dates within the interval on which the membership changes, split the interval up at those dates, and handle it in a series of chunks. It might be more or less complicated depending on how many changes there are.
 
 The obvious place to put this would be in Element#commitments_on, which would have the side effect of meaning it no longer returns a database selector - just an ordinary array.  Perhaps add in the means to specify an additional scope?  Or can one still specify a scope *before*?  Does doing that currently achieve anything?
+
+16th Aug, 2015: I've just thought of another way, provided one only needs events and not the corresponding commitments (although commitments might be possible too with a little more thought).  This is the case for ical processing at least.
+
+Implement a method on the group model called something like "events_during", where you specify a start and end date for required events.  That then yields a list of all the events which that group is committed to during the specified interval, recursing if necessary.  Then, when called upon to get a list of events for an element, you first assemble a list of groups of which it is an immediate member at any time during the specified interval.  You then call "events_during" on each of these groups, specifying an interval generated from the overlap of the required interval and the membership interval.  Finally you do an non-recursive events_on for the element itself (getting events for which it is directly committed) and merge all the events together, eliminating duplicates.  It will mean one big database hit for each group of which it is a member, instead of the current one big hit.
+
+

@@ -1,0 +1,19 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-08-18T17:29:28+01:00
+
+====== Tuesday 18 Aug 2015 ======
+
+A new requirement has arisen in the context of period times.  On Wednesdays, OTL has entered periods as:
+
+Period 6: 14:05 - 14:25
+Period 7: 14:30 -
+
+but DJD has just said that he wants:
+
+Period 6: 14:05 - 14:35
+Period 7: 14:40 -
+
+There aren't actually any lessons showing up in period 7 yet, but I can adjust period 6 appropriately using my loading script.
+
+Tested it - it seems to work.  I'll leave deploying it until tomorrow though, just in case.

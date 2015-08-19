@@ -1,0 +1,64 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-08-16T09:10:12+01:00
+
+====== Sunday 16 Aug 2015 ======
+
+Just hit a worrying cascade of errors when I tried to run the automatic import script on Mach2 - I hope it hasn't done too much damage, although in the worst case I should be able to reload the backup taken in the small hours of this morning.
+
+What I did was to re-instate the script and then in the utils directory I typed:
+
+nohup importdata
+
+which resulted in reams of errors and then the program crashing.  It says that SB_Tutorgroup has no source_id field, which is very odd.  Line 351 of importsb.rb.  Ah - this error occurs solely because it's trying to put out an error message.  Now, why the error message?
+
+Found it!  I have an old version of the script in my path, which hard codes to Academic Year 2013/14.  Damn, blast and bugger.  Now - has it done any damage?  It fell over whilst trying to do the tutor groups. It had already done pupils, staff and locations.  It had changed the start year for a lot of pupils - this however can easily be changed back.  It then failed to add various pupils to tutor groups, and then stopped.
+
+Let's try running it again correctly.  If that doesn't work smoothly I can think about restoring from last night's backup.
+
+Careless twit!  Keep a copy of the nohup.out in case of problems in the future.
+
+Running the correct script seems to have put all the pupils back to the right date and then deleted two tutor groups.  The loading script goes for current tutor groups rather than referencing the current era's tutor groups.  I think the two spurious groups will have been created in the 2013/14 era.  Because they were still current, they then got deleted again.  I hope all is now well.
+
+Run the script one more time for luck.  Ah - there is a persistent problem.  It keeps reporting that it has deleted the two tutor groups.  This will be a date issue.  Now - investigate in detail or just restore last night's backup?
+
+Run it again (just the import) with the verbose switch.
+
+The two tutor groups are 4SMN and 4DMH.  Let's find them.
+
+There are two tutor groups called 4SMN.  Both are current.  One was created today.
+
+The former belongs to the era 2013/14.  It was created on 2014-06-07
+The latter belongs to the era 2015/16.  It was created today.
+
+Interestingly, the former has an end date of 2014-08-31 (as it should) but is still current.  How many current groups does that era have?  Just the 2.  It looks as if those two must have got re-instated somehow.  Check this.  Yes, indeed they have.  On an un-bent system, there are two 4SMNs (as you would expect, 2 years apart), but the older one is marked as not being current.
+
+Now how has my script managed to resurrect the old one, and create a new one.  Why does it not manage to get rid of the old one again?
+
+I could do with a fresh dump of the live database to play with, but I //must not// lose the old one from the small hours of this morning.  The good one is copied on to NUC.  Take a copy of it as well.
+
+Now re-dump on mach2 and copy down to Midnight to play with it.  This is a good opportunity to check the edge processing in my script.  I want to know:
+
+* How did two new tutorgroups belonging to the current era get created, plus the old ones get resurrected?
+* Why are the two new ones not getting deleted?
+
+Now, my script was running with an explicit era.  Let's check out the processing in that circumstance.
+
+A thought - I should really fix the live system first, just in case there are other side effects which I don't know about.
+
+Make sure I have database dumps before and after the problem, then restore the dump from 02:30 this morning.  Then go on to investigate at my leisure.
+
+Re-loaded and all seems tidy.  Running the import script again to make sure it's clean.  I will need to re-copy the yml files to Nimbus before I start doing any work there, but that will happen automatically at 04:00 tomorrow anyway.
+
+I am inclined to try running the script on Midnight, exactly as I ran it on Mach2, but with verbose turned on.  That may tell me a little more about what's happening.  I would like it to crash at the same place too, so I want the unmodified script.
+
+Just hit another little oddity.  Since we are currently sitting in the last part of the old academic year, the ical downloads which we're getting do not reflect the new year's groups.  It would be nice if they did.  Currently my algorithm is incomplete and gets all the events for just one date, and that is currently coming out as today's date.  I need to let another date - the date of the start of the era - be specified.
+
+This has a side effect of projecting membership back into the previous year for perpetual groups.  So, for instance, Oliver will be a member of the "Maths teacher" group in the coming year, so suddenly his ical download includes all last year's events for that group.  He probably won't notice.
+
+In any case, he would have started to get those events at the start of term anyway.
+
+Does the calendar download still seem OK?  It's identical apart from the change to the machine name.
+
+Tested it on my staging server - seems OK.  Put it live.  My calendar should get corrected in time too - to remove my commitments to tutor and house related stuff.
+

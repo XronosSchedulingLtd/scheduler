@@ -34,20 +34,21 @@ Done all David's dates.  It occurs to me that, as tomorrow is results day, I rea
 OK - back on the end_of_year branch and ready to try it out.  I need a copy of the live database as it now stands in order to have a known starting point.  I also need some slightly old data files from SB in order to tidy up my groups.  I have a set from 20150703 which are the last I loaded.
 
 [ ] Backup live system
-[ ] Get latest code
+[*] Get latest code
 [ ] Load live database (if not on live system)
-[ ] export RAILS_ENV=production
-[ ] rake db:migrate
-[ ] touch tmp/restart.txt
+[*] export RAILS_ENV=production
+[*] bundle exec rake db:migrate
+[*] bundle exec rake assets:precompile
+[*] touch tmp/restart.txt
 
 System should now run with a copy of the live data.  Yes - it seems to.
 
-[ ] Create a perpetual era.
-[ ] Set it as the perpetual era in the system settings.
-[ ] Make sure you have the old extra group yml files
-[ ] Unpack the 3rd July SB files and run the import script.
-[ ] Run Setting.first.end_of_era to move to a new era.
-[ ] Create a new era for Academic Year 2016/17 and set as next era.
+[*] Create a perpetual era.
+[*] Set it as the perpetual era in the system settings.
+[*] Make sure you have the old extra group yml files
+[*] Unpack the 3rd July SB files and run the import script.
+[*] Run Setting.first.end_of_era to move to a new era.
+[*] Create a new era for Academic Year 2016/17 and set as next era.
 [ ] Unpack the latest SB files, make sure you have the new extra group and duty yml files and run import again.
 
 Let's see if I get any further this time.
