@@ -80,4 +80,29 @@ Should probably take that data and import it to Markbook too.  Do a test on my s
 
 Just taken a look at DJD's programme for the start of term.  It definitely does need the by-year functionality of gaps.  I can do that at the moment with my extra_suspensions file, but it would be much better done through the web interface.  Oddly, the chapel service has accidentally come out right(ish) because pupils are meant to go to lesson 4, although it is billed to start late.  It will start very late!  Once I've tested markbook data loading, I will start a new branch and get going.
 
-Done that.  New branch.
+Done that.  New branch.  My existing slurp method (for reading in SB's CSV file) does the following for each entry.
+
+* Create a new object
+* Assigns each of the provided values to the configured field
+* Calls adjust() on the new object
+* Calls wanted?() to establish whether the object wants to carry on existing
+
+It also defines accessor methods for each of the fields to which it might assign a value.  Happily, in the case of the SB_SuspendedLesson object, I don't think I use any of them directly later.  They all need translating.
+
+Actually, I think I can sensibly store the hard/soft information by where I put the record.  Hard ones go in one array, soft in the other.
+
+Suspensions arrive from SB with a year ident, which I need to look up to find out the actual year group.  Ah, no I don't.  All my processing is done using SB's year idents.  How do those map to actual year groups?  Ah yes, the SB_Year record has year_ident and year_num, the latter being the national curriculum year number - 7 for the 1st year, 8 for the 2nd year etc.  My brain is turning to mush trying to follow all this.
+
+Having thought on it a while, I think my best bet is probably to define a new object - say, Hiatus - which implements all the storage and checking, then sub-class it to provide SB_SuspendedLesson, or use it raw for my own stuff.  Does that actually buy me anything - apart perhaps from a little opportunity for clear thinking?
+
+We need two different ways of storing the duration of a gap.  It either has a start and end time, or it has start and end dates, and times within those dates.  It should include validation code to enable easy checking.
+
+As far as possible, clients should not access the Hiatus's data - they should ask questions of it as to whether the Hiatus is applicable.
+
+I think I //might// have re-implemented the existing functionality using gaps.  Now test it.  Of course I don't have any meaningful suspensions from SB, but I could put one in my extras file.  See if it runs at all first.
+
+I can also edit the data file coming from SB - that would be a more realistic test.  Anyway, my first problem is that it thinks that file is empty.  Why?  My code for checking completeness must be rejecting them all.  Further, why?  Was initialising my Hiatus for an SB_SuspendedLesson as not being times-by-day.  Fixed that.  Now running for longer.
+
+An early bit of extra functionality which I should be able to add is to read of year idents from Gaps in the database, add them to the gap records, then apply gaps selectively to lessons.  I'll need to do a bit of a reverse lookup to find the right year_ident, since I don't use those.
+
+That's interesting - it says it re-categorized 2550 atomic timetable events.  Is this a case of doing it repeatedly?  No, it just did it the once.  What did it do and why?  I thought I had already run the bit which re-categorised the tutor periods.

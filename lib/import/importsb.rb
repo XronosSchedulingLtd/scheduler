@@ -172,6 +172,114 @@ class WhoStudiesWhat
 
 end
 
+#
+#  A class to store information about gaps in lessons.  These can be
+#  occasions when lessons are suspended for a particular year group
+#  (e.g. for study leave or exams) or chunks of the year when nothing
+#  is to happen at all (e.g. for athletics or the road relay).
+#
+#  It is sub-classed to store the data needed by SB_SuspendedLesson
+#
+class Hiatus
+
+  def initialize(hard_or_soft, times_by_day)
+    @hard_or_soft = hard_or_soft   # :hard or :soft
+    @times_by_day = times_by_day   # true or false
+    @year_group_idents = Array.new
+    #
+    #  For hiatuses specified with times_by_day = true
+    #
+    @start_date = nil
+    @end_date   = nil
+    @start_mins = nil
+    @end_mins   = nil
+    #
+    #  For hiatuses specified with times_by_day = false
+    #
+    @starts_at = nil
+    @ends_at   = nil
+  end
+
+  def note_dates_and_times(start_date, end_date, start_mins, end_mins)
+    @start_date = start_date
+    @end_date   = end_date
+    @start_mins = start_mins
+    @end_mins   = end_mins
+  end
+
+  def note_start_and_end(starts_at, ends_at)
+    @starts_at = starts_at
+    @ends_at   = ends_at
+  end
+
+  def note_year_ident(year_ident)
+    @year_group_idents << year_ident
+  end
+
+  def complete?
+    if @times_by_day
+      !(@start_date == nil ||
+        @end_date == nil ||
+        @start_mins == nil ||
+        @end_mins == nil)
+    else
+      !(@starts_at = nil || @ends_at == nil)
+    end
+  end
+
+  #
+  #  Does this hiatus apply for an indicated lesson time?
+  #
+  def applies_to_lesson?(date, period_time)
+    if @times_by_day
+      #
+      #  First the dates have to match, then the times.  If we overlap
+      #  the indicated period then we match.
+      #
+      date >= @start_date &&
+      date <= @end_date &&
+      period_time.start_mins < @end_mins &&
+      period_time.end_mins > @start_mins
+    else
+      given_starts_at = Time.zone.parse("#{date.to_s} #{period_time.starts_at}")
+      given_ends_at   = Time.zone.parse("#{date.to_s} #{period_time.ends_at}")
+      given_starts_at < @ends_at && given_ends_at >= @starts_at
+    end
+  end
+
+  #
+  #  Does this hiatus apply to the indicated year group.  This will be true
+  #  if either:
+  #
+  #    a) The year_ident is in our list
+  #    b) Our list is empty
+  #
+  #  As a further case, if the year_ident we're given is 0, indicating that
+  #  the lesson has a mixture of year groups in it, then we apply provided
+  #  our list is empty.  This actually happens without any special code,
+  #  but it is intentional.
+  #
+  def applies_to_year?(year_ident)
+    @year_group_idents.empty? || @year_group_idents.include?(year_ident)
+  end
+
+  def effective_end_date
+    if @times_by_day
+      @end_date
+    else
+      @ends_at.to_date
+    end
+  end
+
+  #
+  #  For filtering out suspensions which are just plain old.
+  #
+  def occurs_after?(date)
+    self.complete? &&
+    self.effective_end_date >= date
+  end
+end
+
 
 Column = Struct.new(:label, :attr_name, :numeric)
 
@@ -1689,7 +1797,7 @@ class SB_Subject
 end
 
 
-class SB_SuspendedLesson
+class SB_SuspendedLesson < Hiatus
   FILE_NAME = "suspendedlessons.csv"
   #
   #  Note that the d of "date" in the start date is lower case, whilst
@@ -1709,57 +1817,50 @@ class SB_SuspendedLesson
   attr_reader :end_date
 
   def initialize
-    @got_duration = false
+    super(:soft, true)
   end
 
   def adjust(loader)
     #
     #  Need to work out our actual start and finish times.
     #
-    @start_date   = loader.safe_date(self.start_date_ident)
-    @end_date     = loader.safe_date(self.end_date_ident)
+    start_date   = loader.safe_date(self.start_date_ident)
+    end_date     = loader.safe_date(self.end_date_ident)
     start_period = loader.period_hash[self.start_period_ident]
     end_period   = loader.period_hash[self.end_period_ident]
     #
     #  There appears to be (yet another) bug in SB in that it sometimes
     #  fails to record the start period.  Assume it to be 1.
     #
-    if @start_date && @end_date && end_period && !start_period
+    if start_date && end_date && end_period && !start_period
       start_period = loader.period_hash[1]
     end
-    if @start_date && @end_date && start_period && end_period
-      @start_mins = start_period.time.start_mins
-      @end_mins   = end_period.time.end_mins
-      @got_duration = true
+    if start_date && end_date && start_period && end_period
+      start_mins = start_period.time.start_mins
+      end_mins   = end_period.time.end_mins
     end
+    #
+    #  Although we could access the Hiatus data structures directly,
+    #  prefer to keep them out of sight.
+    #
+    self.note_dates_and_times(start_date, end_date, start_mins, end_mins)
+    self.note_year_ident(@year_ident)
   end
 
   def wanted?(loader)
-    @got_duration
+    self.complete?
   end
 
   def source_id
     @suspension_ident
   end
 
-  def applies?(date, period_time)
-    #
-    #  First the dates have to match, then the times.  If we overlap
-    #  the indicated period then we match.
-    #
-    date >= @start_date &&
-    date <= @end_date &&
-    period_time.start_mins < @end_mins &&
-    period_time.end_mins > @start_mins
-  end
-
   def initialise_from_extra(es)
-    @start_date = es.start_date
-    @end_date   = es.end_date
-    @year_ident = es.year_ident
-    @start_mins = es.start_mins
-    @end_mins   = es.end_mins
-    @got_duration = true
+    self.note_dates_and_times(es.start_date,
+                              es.end_date,
+                              es.start_mins,
+                              es.end_mins)
+    self.note_year_ident(es.year_ident)
   end
 
   def self.create_extra(es)
@@ -1834,14 +1935,13 @@ class SB_Timetableentry
       #  Are there any suspensions which might apply to this lesson?
       #
       loader.suspensions.each do |suspension|
-        if suspension.year_ident == self.year_ident(loader)
+        if suspension.applies_to_year?(self.year_ident(loader)) &&
+           suspension.occurs_after?(loader.start_date)
           #
           #  Potentially applies to us.
           #
-          if suspension.end_date >= loader.start_date
-#            puts "Found a possible suspension for year_group_id #{self.year_ident(loader)}"
-            @suspensions << suspension
-          end
+#         puts "Found a possible suspension for year_group_id #{self.year_ident(loader)}"
+          @suspensions << suspension
         end
       end
     else
@@ -1887,7 +1987,7 @@ class SB_Timetableentry
   #
   def suspended_on?(loader, date)
     if SUSPENDABLE_TYPES.include?(self.event_type(loader)) &&
-       @suspensions.detect {|s| s.applies?(date, @period_time)}
+       @suspensions.detect {|s| s.applies_to_lesson?(date, @period_time)}
       true
     else
       false
@@ -1899,15 +1999,7 @@ class SB_Timetableentry
   #  this gets rid of lessons on, e.g. Inset days.
   #
   def exists_on?(date)
-    starts_at = Time.zone.parse("#{date.to_s} #{@period_time.starts_at}")
-    ends_at   = Time.zone.parse("#{date.to_s} #{@period_time.ends_at}")
-    @gaps.each do |gap|
-      if starts_at < gap.ends_at &&
-         ends_at >= gap.starts_at
-        return false
-      end
-    end
-    true
+    @gaps.detect {|gap| gap.applies_to_lesson?(date, @period_time)} == nil
   end
 
   #
@@ -2758,18 +2850,18 @@ class SB_Loader
   #  Find any gaps currently configured in the database.
   #
   def load_gaps
-    @gaps = []
     gap_property = Property.find_by(name: "Gap")
     if gap_property
       @gaps = gap_property.element.events_on(@start_date,
-                                             @era.ends_on).to_a
-      #
-      #  The to_a suffix causes the relation to be executed.  We don't
-      #  want to keep executing it every time we reference the gaps
-      #  (of which there are very few) and in any case, we need to save
-      #  the results to a file which can be read by older versions of Rails.
-      #
+                                             @era.ends_on).collect { |gap_event|
+
+        gap = Hiatus.new(:hard, false)
+        gap.note_start_and_end(gap_event.starts_at,
+                               gap_event.ends_at)
+        gap
+      }
     else
+      @gaps = []
       puts "Unable to find a Gap property."
     end
   end
