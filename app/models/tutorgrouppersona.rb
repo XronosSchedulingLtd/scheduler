@@ -14,16 +14,18 @@ class Tutorgrouppersona < ActiveRecord::Base
 
   #
   #  Returns a string like "3JHW"
+  #  No it doesn't - this method is broken.  Can't think what I was
+  #  thinking, but it doesn't seem to be used anway.
   #
-  def tutorgroup_name
-    current_era = Setting.current_era
-    if current_era
-      year_group = (self.start_year - current_era.starts_on.year + 7).to_s
-    else
-      year_group = ""
-    end
-    "#{year_group}#{staff.initials}"
-  end
+#  def tutorgroup_name
+#    current_era = Setting.current_era
+#    if current_era
+#      year_group = (self.start_year - current_era.starts_on.year + 7).to_s
+#    else
+#      year_group = ""
+#    end
+#    "#{year_group}#{staff.initials}"
+#  end
 
   self.per_page = 15
   def active

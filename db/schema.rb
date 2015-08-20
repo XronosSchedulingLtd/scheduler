@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150810081759) do
+ActiveRecord::Schema.define(version: 20150820124201) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -95,6 +95,7 @@ ActiveRecord::Schema.define(version: 20150810081759) do
     t.boolean  "compactable",   default: true
     t.boolean  "deprecated",    default: false
     t.boolean  "privileged",    default: false
+    t.boolean  "visible",       default: true
   end
 
   create_table "events", force: true do |t|

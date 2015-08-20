@@ -45,6 +45,20 @@ class Pupil < ActiveRecord::Base
     end
   end
 
+  #
+  #  Returns the current year group for this pupil, using whatever
+  #  numbering convention is in use.  The crucial thing is that start_year
+  #  should give the year in which this pupil would have started in your
+  #  year 1.
+  #
+  def year_group
+    if Setting.current_era
+      Setting.current_era.starts_on.year - self.start_year + 1
+    else
+      0
+    end
+  end
+
   def <=>(other)
     result = self.surname <=> other.surname
     if result == 0

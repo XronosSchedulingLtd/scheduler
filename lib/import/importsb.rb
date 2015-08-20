@@ -227,6 +227,14 @@ class Hiatus
     end
   end
 
+  def hard?
+    @hard_or_soft == :hard
+  end
+
+  def soft?
+    @hard_or_soft == :soft
+  end
+
   #
   #  Does this hiatus apply for an indicated lesson time?
   #
@@ -243,7 +251,7 @@ class Hiatus
     else
       given_starts_at = Time.zone.parse("#{date.to_s} #{period_time.starts_at}")
       given_ends_at   = Time.zone.parse("#{date.to_s} #{period_time.ends_at}")
-      given_starts_at < @ends_at && given_ends_at >= @starts_at
+      given_starts_at < @ends_at && given_ends_at > @starts_at
     end
   end
 
@@ -296,7 +304,7 @@ module Slurper
   end
 
   module ClassMethods
-    def slurp(loader)
+    def slurp(loader, allow_empty)
       #
       #  Slurp in a file full of records and return them as an array.
       #
@@ -353,7 +361,7 @@ module Slurper
             end
           end
         end
-        if entries.size > 0
+        if allow_empty || entries.size > 0
           return entries, nil
         else
           return nil, "File #{self::FILE_NAME} is empty."
@@ -1848,7 +1856,7 @@ class SB_SuspendedLesson < Hiatus
   end
 
   def wanted?(loader)
-    self.complete?
+    self.complete? && self.occurs_after?(loader.start_date)
   end
 
   def source_id
@@ -1927,23 +1935,9 @@ class SB_Timetableentry
   end
 
   def adjust(loader)
-    @gaps = loader.gaps
     if loader.period_hash[self.period_ident]
       @period = loader.period_hash[self.period_ident]
       @period_time = @period.time
-      #
-      #  Are there any suspensions which might apply to this lesson?
-      #
-      loader.suspensions.each do |suspension|
-        if suspension.applies_to_year?(self.year_ident(loader)) &&
-           suspension.occurs_after?(loader.start_date)
-          #
-          #  Potentially applies to us.
-          #
-#         puts "Found a possible suspension for year_group_id #{self.year_ident(loader)}"
-          @suspensions << suspension
-        end
-      end
     else
       @period = nil
       @period_time = nil
@@ -1971,6 +1965,15 @@ class SB_Timetableentry
     else
       false
     end
+  end
+
+  def note_hiatuses(loader, hiatuses)
+    #
+    #  Are there any suspensions which might apply to this lesson?
+    #
+    @gaps, @suspensions = hiatuses.select {
+      |hiatus| hiatus.applies_to_year?(self.year_ident(loader))}.partition {
+      |hiatus| hiatus.hard? }
   end
 
   def <=>(other)
@@ -2495,18 +2498,24 @@ class SB_Loader
 
   KNOWN_DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
-  InputSource = Struct.new(:array_name, :loader_class, :hash_prefix, :key_field, :extra)
+  InputSource = Struct.new(:array_name,
+                           :loader_class,
+                           :allow_empty,
+                           :hash_prefix,
+                           :key_field,
+                           :extra)
 
-  INPUT_SOURCES = [InputSource[:academicyears, SB_AcademicYear],
-                   InputSource[:years, SB_Year, :year, :year_ident],
-                   InputSource[:curriculums, SB_Curriculum, :curriculum,
+  INPUT_SOURCES = [InputSource[:academicyears, SB_AcademicYear, false],
+                   InputSource[:years, SB_Year, false, :year, :year_ident],
+                   InputSource[:curriculums, SB_Curriculum, false, :curriculum,
                                :curriculum_ident],
-                   InputSource[:tutorgroupentries, SB_Tutorgroupentry],
-                   InputSource[:pupils, SB_Pupil, :pupil, :pupil_ident],
-                   InputSource[:staff, SB_Staff, :staff, :staff_ident],
-                   InputSource[:locations, SB_Location, :location, :room_ident],
-                   InputSource[:groups, SB_Group, :group, :group_ident],
-                   InputSource[:ars, SB_AcademicRecord],
+                   InputSource[:tutorgroupentries, SB_Tutorgroupentry, false],
+                   InputSource[:pupils, SB_Pupil, false, :pupil, :pupil_ident],
+                   InputSource[:staff, SB_Staff, false, :staff, :staff_ident],
+                   InputSource[:locations, SB_Location, false,
+                               :location, :room_ident],
+                   InputSource[:groups, SB_Group, false, :group, :group_ident],
+                   InputSource[:ars, SB_AcademicRecord, false],
                    #
                    #  SB's data structures are slightly loony here (surprise!)
                    #  Instead of periods referencing period times as you
@@ -2540,23 +2549,26 @@ class SB_Loader
                    #  period is an error.
                    #
                    InputSource[:period_times,
-                               SB_PeriodTime,
+                               SB_PeriodTime, false,
                                :period_time,
                                :period_ident],
-                   InputSource[:periods, SB_Period, :period, :period_ident],
-                   InputSource[:subjects, SB_Subject, :subject, :subject_ident],
-                   InputSource[:dates, SB_Date, :date, :date_ident],
-                   InputSource[:suspensions, SB_SuspendedLesson, nil, nil, :get_extra_suspensions],
-                   InputSource[:timetable_entries, SB_Timetableentry, :tte,
-                               :timetable_ident],
-                   InputSource[:staffablines, SB_StaffAbLine, :sal,
+                   InputSource[:periods, SB_Period, false,
+                               :period, :period_ident],
+                   InputSource[:subjects, SB_Subject, false,
+                               :subject, :subject_ident],
+                   InputSource[:dates, SB_Date, false, :date, :date_ident],
+                   InputSource[:hiatuses, SB_SuspendedLesson, true,
+                               nil, nil, :get_extra_suspensions],
+                   InputSource[:timetable_entries, SB_Timetableentry, false,
+                               :tte, :timetable_ident],
+                   InputSource[:staffablines, SB_StaffAbLine, false, :sal,
                                :staff_ab_line_ident],
-                   InputSource[:staffabsences, SB_StaffAbsence, :sa,
+                   InputSource[:staffabsences, SB_StaffAbsence, false, :sa,
                                :staff_ab_ident],
-                   InputSource[:staffcovers, SB_StaffCover],
-                   InputSource[:rtrotaweek, SB_RotaWeek,
+                   InputSource[:staffcovers, SB_StaffCover, false],
+                   InputSource[:rtrotaweek, SB_RotaWeek, false,
                                :rota_week, :rota_week_ident],
-                   InputSource[:other_half, SB_OtherHalfOccurence,
+                   InputSource[:other_half, SB_OtherHalfOccurence, false,
                                :other_half, :oh_occurence_ident]]
 
     EXTRA_GROUP_FILES = [
@@ -2570,8 +2582,7 @@ class SB_Loader
     ]
 
   attr_reader :era,
-              :suspensions,
-              :gaps,
+              :hiatuses,
               :curriculum_hash,
               :date_hash,
               :group_hash,
@@ -2622,14 +2633,10 @@ class SB_Loader
     else
       @start_date = Date.today
     end
-    load_gaps
     puts "Reading data files." if @verbose
     INPUT_SOURCES.each do |is|
-      array, msg = is.loader_class.slurp(self)
+      array, msg = is.loader_class.slurp(self, is.allow_empty)
       if msg.blank?
-        if array.size == 0
-          raise "Input file for #{is.array_name} contains no data."
-        end
         puts "Read #{array.size} records as #{is.array_name}." if @verbose
         #
         #  It's legitimate to use instance_variable_set because I'm fiddling
@@ -2653,6 +2660,15 @@ class SB_Loader
       if is.extra
         self.send(is.extra)
       end
+    end
+    load_hiatuses
+    #
+    #  Now need to give all our timetable entries the chance to take
+    #  note of our hiatuses.  These may have come from a file, or from
+    #  the d/b, so we can't do it until now.
+    #
+    @timetable_entries.each do |te|
+      te.note_hiatuses(self, @hiatuses)
     end
     #
     #  If we get this far then all the files have been succesfully read.
@@ -2839,8 +2855,8 @@ class SB_Loader
     File.open(Rails.root.join(IMPORT_DIR, "years.yml"), "w") do |file|
       file.puts YAML::dump(@years)
     end
-    File.open(Rails.root.join(IMPORT_DIR, "suspensions.yml"), "w") do |file|
-      file.puts YAML::dump(@suspensions)
+    File.open(Rails.root.join(IMPORT_DIR, "hiatuses.yml"), "w") do |file|
+      file.puts YAML::dump(@hiatuses)
     end
     puts "Finished data initialisation." if @verbose
     yield self if block_given?
@@ -2849,20 +2865,58 @@ class SB_Loader
   #
   #  Find any gaps currently configured in the database.
   #
-  def load_gaps
+  def load_hiatuses
     gap_property = Property.find_by(name: "Gap")
     if gap_property
-      @gaps = gap_property.element.events_on(@start_date,
-                                             @era.ends_on).collect { |gap_event|
-
+#      puts "Found the gap property"
+      gap_property.element.events_on(@start_date,
+                                     @era.ends_on).each do |gap_event|
+#        puts "Processing a gap"
         gap = Hiatus.new(:hard, false)
         gap.note_start_and_end(gap_event.starts_at,
                                gap_event.ends_at)
-        gap
-      }
+        #
+        #  Need a list of the year groups involved in this event.
+        #
+        gap_event.pupil_year_groups(true).each do |year_group|
+          #
+          #  year_group is Abingdon years.
+          #  year_num is national curriculum (Abingdon + 6)
+          #
+#          puts "Applies to #{year_group.ordinalize} years."
+          year = @years.detect {|year| year.year_num == year_group + 6}
+          if year
+            gap.note_year_ident(year.year_ident)
+          end
+        end
+#        puts "And recording the gap"
+        @hiatuses << gap
+      end
     else
-      @gaps = []
       puts "Unable to find a Gap property."
+    end
+    suspension_property = Property.find_by(name: "Suspension")
+    if suspension_property
+#      puts "Found the suspension property."
+      suspension_property.element.events_on(
+        @start_date,
+        @era.ends_on).each do |suspension_event|
+#        puts "Found a suspension event"
+        suspension = Hiatus.new(:soft, false)
+        suspension.note_start_and_end(suspension_event.starts_at,
+                                      suspension_event.ends_at)
+        suspension_event.pupil_year_groups(true).each do |year_group|
+#          puts "Applies to #{year_group.ordinalize} years."
+          year = @years.detect {|year| year.year_num == year_group + 6}
+          if year
+            suspension.note_year_ident(year.year_ident)
+          end
+        end
+#        puts "And saving the suspension."
+        @hiatuses << suspension
+      end
+    else
+      puts "Unable to find a Suspension property."
     end
   end
 
@@ -4336,7 +4390,10 @@ class SB_Loader
           File.open(Rails.root.join(IMPORT_DIR, file_name)))
       extra_suspensions.each do |es|
 #        puts "Got an extra suspension record."
-        @suspensions << SB_SuspendedLesson.create_extra(es)
+        hiatus = SB_SuspendedLesson.create_extra(es)
+        if hiatus.occurs_after?(@start_date)
+          @hiatuses << hiatus
+        end
       end
     end
   end

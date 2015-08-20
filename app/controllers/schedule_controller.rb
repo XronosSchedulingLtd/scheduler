@@ -143,7 +143,9 @@ class ScheduleController < ApplicationController
           #  not involvement via a group.
           #
           my_owned_events =
-            my_owned_events.select {|e| !e.involves_any?(watched_elements)}
+            my_owned_events.select { |e|
+              !e.eventcategory.visible || !e.involves_any?(watched_elements)
+            }
         else
           my_owned_events = []
           my_organised_events = []
@@ -186,9 +188,9 @@ class ScheduleController < ApplicationController
             #  want the database being queried again and again for the
             #  same answer.
             #
-            event_categories = Eventcategory.not_schoolwide.all
+            event_categories = Eventcategory.not_schoolwide.visible.all
           else
-            event_categories = nil
+            event_categories = Eventcategory.visible.all
           end
           @schedule_events =
             element.events_on(start_date,

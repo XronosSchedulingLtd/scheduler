@@ -56,6 +56,18 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= f.label :visible, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :visible %>
+    </div>
+    <div class="small-8 columns annotation">
+      Shown on the web display in association with attached resources. Events
+      which are not visible will be seen only by their owners.
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       <%= f.label :unimportant, class: "right" %><br>
     </div>
     <div class="small-1 columns">

@@ -26,6 +26,8 @@ class Eventcategory < ActiveRecord::Base
   scope :privileged, -> { where(privileged: true) }
   scope :unprivileged, -> { where(privileged: false) }
 
+  scope :visible, -> { where(visible: true) }
+
   @@category_cache = {}
 
   TO_DEPRECATE = ["Calendar",

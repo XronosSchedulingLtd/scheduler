@@ -320,6 +320,10 @@ class Event < ActiveRecord::Base
     end
   end
 
+  def pupil_year_groups(and_by_group = false)
+    self.pupils(and_by_group).collect {|p| p.year_group}.uniq
+  end
+
   def staff(and_by_group = false)
     if and_by_group
       self.all_atomic_resources.select {|r| r.instance_of?(Staff)}
