@@ -467,12 +467,15 @@ class Group < ActiveRecord::Base
     return [] if seen.include?(self.id)
     if recurse 
       seen << self.id
-      active_memberships = self.memberships.active_on(given_date)
+      active_memberships =
+        self.memberships.
+             preload([:element, :element => :entity]).
+             active_on(given_date)
       excludes, includes = active_memberships.partition {|am| am.inverse}
       group_includes, atomic_includes =
-        includes.partition {|m| m.element.entity.class == Group}
+        includes.partition {|m| m.element.entity_type == "Group"}
       group_excludes, atomic_excludes =
-        excludes.partition {|m| m.element.entity.class == Group}
+        excludes.partition {|m| m.element.entity_type == "Group"}
       #
       #  Now build a list of includes and excludes, and subtract one from
       #  the other.

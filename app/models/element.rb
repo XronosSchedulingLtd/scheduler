@@ -80,6 +80,8 @@ class Element < ActiveRecord::Base
       #
       self.memberships.
            inclusions.
+           active_on(given_date).
+           preload(:group).
            collect {|membership| 
         membership.group.parents_for(self, given_date)
       }.flatten.uniq
