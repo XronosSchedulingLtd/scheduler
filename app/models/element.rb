@@ -78,6 +78,13 @@ class Element < ActiveRecord::Base
       #  because without an inclusion of some sort the exclusion is irrelevant,
       #  then look at both on the way back down.
       #
+      #  ******* N.B. *******
+      #
+      #  Above comment kept for historical documentation reasons.  "as_at"
+      #  seems to be on its way out - it's never been used - and we do now
+      #  filter to just the active memberships.  It produces a significant
+      #  speed improvement.
+      #
       self.memberships.
            inclusions.
            active_on(given_date).
