@@ -1,0 +1,32 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Showing element</h1>
+
+<p>
+  <strong>Name:</strong>
+  <%= @element.name %>
+</p>
+
+<p>
+  <strong>Type:</strong>
+  <%= @element.entity_type %>
+</p>
+
+<p>
+  <strong>Current:</strong>
+  <%= @element.current %>
+</p>
+
+<h2>Memberships</h2>
+
+<table>
+  <% @memberships.each do |batch| %>
+  <tr>
+    <th colspan=4>Batch</th>
+  </tr>
+  <tr>
+    <th>Group</th><th>Level</th><th>From</th><th>To</th>
+  </tr>
+    <%= render batch %>
+  <% end %>
+</table>

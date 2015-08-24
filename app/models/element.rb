@@ -33,6 +33,45 @@ class Element < ActiveRecord::Base
   }.tap {|h| h.default = 0}
 
   #
+  #  The start of complete re-work of how we find commitments.
+  #
+  #  The purpose of this method is to find a list of all the groups
+  #  to which this element belongs during the indicated interval, as
+  #  efficiently as possible.  For each one found, we return a
+  #  GroupWithDuration object, giving not only the group, but also the
+  #  exact interval for which we were a member.  Dates are all inclusive
+  #  because that's how the information is stored in the database.
+  #
+  #  A start_date or end_date of nil means to go on forever in that
+  #  direction.
+  #
+  #  It is assumed that the dates in the membership records will be
+  #  accurate - we don't check the group dates as well.  The membership
+  #  records should have been checked against the group dates at time of
+  #  creation/update.
+  #
+  def memberships_by_duration(start_date:, end_date:)
+    self.recurse_mbd(start_date, end_date, [])
+  end
+
+  def recurse_mbd(start_date, end_date, seen, level = 1)
+    selector = self.memberships.inclusions
+    if start_date
+      if end_date
+        selector = selector.active_during(start_date, end_date)
+      else
+        selector = selector.continues_until(start_date)
+      end
+    else
+      if end_date
+        selector = selector.starts_by(end_date)
+      end
+    end
+    selector.preload([:group, :group => :element]).
+             collect {|m| m.recurse_mbd(start_date, end_date, seen, level)}.flatten
+  end
+
+  #
   #  This method is much like the "members" method in the Group model,
   #  except the other way around.  It provides a list of all the groups
   #  of which this element is a member on the indicated date.  If no

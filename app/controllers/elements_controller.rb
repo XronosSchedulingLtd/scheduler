@@ -1,4 +1,5 @@
 require 'csv'
+require 'membershipwithduration'
 
 class ElementsController < ApplicationController
 
@@ -19,6 +20,14 @@ class ElementsController < ApplicationController
               order(:name).
               all
     render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+  end
+
+  def show
+    @element = Element.find(params[:id])
+    @memberships =
+      Membership::MembershipWithDuration.group_by_duration(
+        @element.memberships_by_duration(start_date: nil,
+                                         end_date: nil))
   end
 
   def autocomplete_staff_element_name
