@@ -19,14 +19,4 @@
 
 <h2>Memberships</h2>
 
-<table>
-  <% @memberships.each do |batch| %>
-  <tr>
-    <th colspan=4>Batch</th>
-  </tr>
-  <tr>
-    <th>Group</th><th>Level</th><th>From</th><th>To</th>
-  </tr>
-    <%= render batch %>
-  <% end %>
-</table>
+<%= render @mwd_set %>

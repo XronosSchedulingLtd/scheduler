@@ -79,6 +79,58 @@ class Commitment < ActiveRecord::Base
                                     after])
   end
 
+
+  def self.start_time_from_date(start_date)
+    Time.zone.parse("00:00:00", startdate)
+  end
+
+  def self.end_time_from_date(end_date)
+    if end_date
+      Time.zone.parse("00:00:00", end_date + 1.day)
+    else
+      :never
+    end
+  end
+
+  def self.element_sql(element, startdate, enddate)
+    start_time = Time.zone.parse("00:00:00", startdate)
+    st_string = start_time.utc.strftime("%Y-%m-%d %H:%M:%S")
+    if enddate == :never
+      prefix = "("
+    else
+      end_time = enddate ?
+                 Time.zone.parse("00:00:00", enddate + 1.day) :
+                 Time.zone.parse("00:00:00", startdate + 1.day)
+      et_string = end_time.utc.strftime("%Y-%m-%d %H:%M:%S")
+      prefix = "(events.starts_at < '#{et_string}' AND "
+    end
+    prefix + "events.ends_at > '#{st_string}' AND commitments.element_id = #{element.id})"
+  end
+
+  #
+  #  This is intended for use explicitly by the results of calling
+  #  memberships_by_duration on the element model.
+  #
+  def self.commitments_for_element_and_mwds(element:,
+                                            startdate:,
+                                            enddate:,
+                                            mwd_set:,
+                                            eventcategory:       nil,
+                                            eventsource:         nil,
+                                            owned_by:            nil,
+                                            include_nonexistent: false)
+    #
+    #  Events are stored in the database with datetimes, but all my
+    #  criteria are specified just with dates.  Need to convert.
+    #
+    if mwd_set.empty?
+      Commitment.joins(:event).where(element_sql(element, startdate, enddate))
+    else
+      Commitment.joins(:event).where(element_sql(element, startdate, enddate) + " OR " + mwd_set.to_sql)
+    end
+  end
+
+
   #
   #  Very similar to the events_on method provided by the event model,
   #

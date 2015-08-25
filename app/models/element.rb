@@ -51,10 +51,14 @@ class Element < ActiveRecord::Base
   #  creation/update.
   #
   def memberships_by_duration(start_date:, end_date:)
-    self.recurse_mbd(start_date, end_date, [])
+    results = Membership::MWD_Set.new(self)
+    self.recurse_mbd(results, start_date, end_date, [])
+    results.finalize
+    results
   end
 
-  def recurse_mbd(start_date, end_date, seen, level = 1)
+  def recurse_mbd(mwd_set, start_date, end_date, seen, level = 1)
+#    Rails.logger.debug("Entering recurse_mbd for #{self.name}.")
     selector = self.memberships.inclusions
     if start_date
       if end_date
@@ -67,8 +71,18 @@ class Element < ActiveRecord::Base
         selector = selector.starts_by(end_date)
       end
     end
-    selector.preload([:group, :group => :element]).
-             collect {|m| m.recurse_mbd(start_date, end_date, seen, level)}.flatten
+    selector.preload([:group, :group => :element]).each do |m|
+      #
+      #  Each group gets its own fresh copy of the "seen" array.
+      #  We're only interested in getting rid of loops.  It's
+      #  perfectly legitimate to encounter the same group up
+      #  two different branches, and we need to take account of
+      #  both of them.
+      #
+      copy_seen = seen.dup
+      m.recurse_mbd(mwd_set, start_date, end_date, copy_seen, level)
+    end
+#    Rails.logger.debug("Leaving recurse_mbd for #{self.name}.")
   end
 
   #

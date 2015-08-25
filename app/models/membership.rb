@@ -5,29 +5,6 @@
 
 class Membership < ActiveRecord::Base
 
-  belongs_to :group
-  belongs_to :element
-  belongs_to :role              # Optional
-
-  validates :group,     :presence => true
-  validates :element,   :presence => true
-  validates :starts_on, :presence => true
-  
-  validate :not_backwards
-  validate :unique, :on => :create
-
-  scope :starts_by, lambda {|date| where("starts_on <= ?", date) }
-  scope :starts_after, lambda {|date| where("starts_on > ?", date) }
-  scope :continues_until, lambda {|date| where("ends_on IS NULL OR ends_on >= ?", date) }
-  scope :active_on, lambda {|date| starts_by(date).continues_until(date) }
-  scope :active_during, ->(start_date, end_date) {
-                             starts_by(end_date).continues_until(start_date)
-                           }
-  scope :exclusions, -> { where(inverse: true) }
-  scope :inclusions, -> { where(inverse: false) }
-  scope :by_element, ->(element) { where("element_id = ?", element.id) }
-  scope :of_group,   ->(group)   { where("group_id = ?", group.id) }
-
   class MembershipWithDuration
 
     attr_reader :membership, :start_date, :end_date, :level
@@ -96,24 +73,218 @@ class Membership < ActiveRecord::Base
       end
     end
 
+    def start_time_utc
+      time = Time.zone.parse("00:00:00", self.start_date)
+      time.utc.strftime("%Y-%m-%d %H:%M:%S")
+    end
+
+    def end_time_utc
+      time = Time.zone.parse("00:00:00", self.end_date + 1.day)
+      time.utc.strftime("%Y-%m-%d %H:%M:%S")
+    end
+
+    #
+    #  Does this mwd overlap with another one?  Note that each must have
+    #  a start date, but might not have an end date.
+    #
+    def overlaps(other)
+      if self.end_date
+        if other.end_date
+          self.start_date <= other.end_date &&
+          self.end_date >= other.start_date
+        else
+          self.end_date >= other.start_date
+        end
+      else
+        if other.end_date
+          self.start_date <= other.end_date
+        else
+          true
+        end
+      end
+    end
+
+    #
+    #  Does our interval cover the whole of the other mwd's interval?
+    #
+    def encompasses(other)
+      if self.end_date
+        if other.end_date
+          self.start_date <= other.start_date &&
+          self.end_date >= other.end_date
+        else
+          false
+        end
+      else
+        self.start_date <= other.start_date
+      end
+    end
+
+    #
+    #  Does our interval lie completely inside another's interval, leaving
+    #  a bit over at each end?
+    #
+    def splits(other)
+      if self.end_date
+        self.start_date > other.start_date &&
+        (other.end_date == nil || self.end_date < other.end_date)
+      else
+        false
+      end
+    end
+
+    #
+    #  Adjust the duration of our mwd to exclude the period indicated
+    #  by the other.  We've already checked that the other doesn't
+    #  split us, or completely encompass us.
+    #
+    def adjust_duration(other)
+      if self.start_date < other.start_date
+        @end_date = other.start_date - 1.day
+      else
+        if other.end_date == nil
+          Rails.logger.debug("Error: other has no end_date.")
+        else
+          @start_date = other.end_date + 1.day
+        end
+      end
+    end
+
+    #
+    #  We have already established that one of our mwds is going to split
+    #  another. Do the split by adjusting our own end date and returning
+    #  a new mwd for the other part.
+    #
+    def do_split(other)
+      old_end_date = @end_date
+      @end_date = other.start_date - 1.day
+      MembershipWithDuration.new(@membership,
+                                 other.end_date + 1.day,
+                                 old_end_date,
+                                 @level)
+    end
+
+  end
+
+  #
+  #  Class to store a set of MembershipWithDuration objects and manipulate
+  #  them.
+  #
+  class MWD_Set
+
+    attr_reader :grouped_mwds
+
+    def initialize(client_element)
+      @client_element = client_element
+      @mwds = Array.new
+      @mwds_by_element_id = Hash.new
+      @grouped_mwds = Array.new
+    end
+
+    def add_mwd(membership, start_date, end_date, level)
+#      Rails.logger.debug("Adding mwd")
+      mwd = MembershipWithDuration.new(membership, start_date, end_date, level)
+      @mwds << mwd
+      if @mwds_by_element_id[membership.group.element.id]
+        @mwds_by_element_id[membership.group.element.id] << mwd
+      else
+        @mwds_by_element_id[membership.group.element.id] = [mwd]
+      end
+#      Rails.logger.debug("Finished adding mwd")
+    end
+
+    #
+    #  Handle any exclusions which there are in the set.
+    #
+    #  Note that it is possible to set up a deadly embrace of exclusions,
+    #  in which case the result is undefined.  Just don't do it.
+    #
+    def process_exclusions
+      to_destroy = Array.new
+      new_mwds = Array.new
+      @mwds.each do |mwd|
+        mwd.membership.group.memberships.eager_load(:element).exclusions.each do |exclusion|
+#        mwd.membership.group.memberships.exclusions.each do |exclusion|
+#          Rails.logger.debug("Found an exclusion")
+          #
+          #  Need to remember to check against the original parent element
+          #  as well as against our stored groups.
+          #
+          if exclusion.element.id == @client_element.id
+            exclusion_mwds = [MembershipWithDuration.new(exclusion,
+                                                         exclusion.starts_on,
+                                                         exclusion.ends_on,
+                                                         0)]
+          else
+            exclusion_mwds = @mwds_by_element_id[exclusion.element.id]
+          end
+          if exclusion_mwds
+            exclusion_mwds.each do |exclusion_mwd|
+              if exclusion_mwd.overlaps(mwd)
+                #
+                #  One of our entries is over-riding another one.  Need to
+                #  adjust intelligently based on duration.  As a worst case,
+                #  our entry might need splitting in two.
+                #
+                if exclusion_mwd.encompasses(mwd)
+                  to_destroy << mwd
+                else
+                  #
+                  #  Overlaps, but doesn't completely cover it.  We're going
+                  #  to need to adjust our duration, and possibly even
+                  #  split in two.
+                  #
+                  if exclusion_mwd.splits(mwd)
+                    #
+                    #  Hard case.
+                    #
+                    new_mwds << mwd.do_split(exclusion_mwd)
+                  else
+                    #
+                    #  Simply need to adjust the duration of this mwd.
+                    #
+                    mwd.adjust_duration(exclusion_mwd)
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+      to_destroy.uniq.each do |mwd|
+        mwd_array = @mwds_by_element_id[mwd.membership.group.element.id]
+        if mwd_array
+          mwd_array = mwd_array - [mwd]
+        end
+      end
+      @mwds = (@mwds - to_destroy) + new_mwds
+      new_mwds.each do |mwd|
+        if @mwds_by_element_id[mwd.membership.group.element.id]
+          @mwds_by_element_id[mwd.membership.group.element.id] << mwd
+        else
+          @mwds_by_element_id[mwd.membership.group.element.id] = [mwd]
+        end
+      end
+    end
+
     #
     #  Take a collection of MembershipWithDurations and group them by duration.
     #  Any two with the same duration go in the same group.  Note that it
     #  is common for any given element to have many groups with exactly the
     #  same duration, so this is a potentially useful optimisation.
     #
-    def self.group_by_duration(mwds)
+    def group_by_duration
       previous_start = 0
       previous_end = 0
       the_lot = Array.new
       current_batch = Array.new
-      mwds.sort.each do |mwd|
+      @mwds.sort.each do |mwd|
         if mwd.start_date == previous_start &&
            mwd.end_date == previous_end
           current_batch << mwd
         else
           unless current_batch.empty?
-            the_lot << current_batch
+            @grouped_mwds << current_batch
           end
           current_batch = Array.new
           previous_start = mwd.start_date
@@ -122,12 +293,70 @@ class Membership < ActiveRecord::Base
         end
       end
       unless current_batch.empty?
-        the_lot << current_batch
+        @grouped_mwds << current_batch
       end
-      the_lot
+    end
+
+    #
+    #  Call this after you've added all the mwds to sort them and handle
+    #  any exclusions.
+    #
+    def finalize
+#      Rails.logger.debug("Finalizing MWD_Set.")
+      self.process_exclusions
+#      Rails.logger.debug("Done the exclusions.")
+      self.group_by_duration
+#      Rails.logger.debug("Finished finalizing.")
+    end
+
+    def to_partial_path
+      "mwdset"
+    end
+
+    #
+    #  Turn this whole set into a snippet of SQL to be added to a
+    #  larger query.
+    #
+    def to_sql
+      @grouped_mwds.collect { |group|
+        "(events.ends_at > '#{group[0].start_time_utc}'#{
+          group[0].end_date ? " AND events.starts_at < '#{group[0].end_time_utc}'" : ""
+        } AND commitments.element_id IN (#{group.collect {|mwb| mwb.membership.group.element.id}.join(",") }))"
+      }.join(" OR ")
+    end
+
+    def empty?
+      @grouped_mwds.size == 0
     end
 
   end
+
+  #
+  #  Start of the Membership class proper
+  #
+
+  belongs_to :group
+  belongs_to :element
+  belongs_to :role              # Optional
+
+  validates :group,     :presence => true
+  validates :element,   :presence => true
+  validates :starts_on, :presence => true
+  
+  validate :not_backwards
+  
+
+  scope :starts_by, lambda {|date| where("starts_on <= ?", date) }
+  scope :starts_after, lambda {|date| where("starts_on > ?", date) }
+  scope :continues_until, lambda {|date| where("ends_on IS NULL OR ends_on >= ?", date) }
+  scope :active_on, lambda {|date| starts_by(date).continues_until(date) }
+  scope :active_during, ->(start_date, end_date) {
+                             starts_by(end_date).continues_until(start_date)
+                           }
+  scope :exclusions, -> { where(inverse: true) }
+  scope :inclusions, -> { where(inverse: false) }
+  scope :by_element, ->(element) { where("element_id = ?", element.id) }
+  scope :of_group,   ->(group)   { where("group_id = ?", group.id) }
 
   #
   #  Can I also have a method with the same name?  It appears I can.
@@ -211,8 +440,12 @@ class Membership < ActiveRecord::Base
   #  same group twice in the same branch of the tree - indicating a loop.
   #  TODO: Fix this later.
   #
-  def recurse_mbd(start_date, end_date, seen, level)
-    return [] if seen.include?(self.group_id)
+  def recurse_mbd(mwd_set, start_date, end_date, seen, level)
+#    Rails.logger.debug("Entering membership.recurse_mbd")
+#    Rails.logger.debug("Seen #{seen.to_s}")
+    if seen.include?(self.group_id)
+#      Rails.logger.debug("so not bothering")
+    end
     seen << self.group_id
     #
     #  May need to adjust the start and end date in the light of our own.
@@ -240,8 +473,13 @@ class Membership < ActiveRecord::Base
     #  We now know the membership dates for our parent group.  Record
     #  that and move on.
     #
-    ours = MembershipWithDuration.new(self, start_date, end_date, level)
-    self.group.element.recurse_mbd(start_date, end_date, seen, level + 1) << ours
+    mwd_set.add_mwd(self, start_date, end_date, level)
+    self.group.element.recurse_mbd(mwd_set,
+                                   start_date,
+                                   end_date,
+                                   seen,
+                                   level + 1)
+#    Rails.logger.debug("Leaving membership.recurse_mbd.")
   end
 
   private
