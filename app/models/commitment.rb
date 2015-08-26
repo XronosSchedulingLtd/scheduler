@@ -113,16 +113,143 @@ class Commitment < ActiveRecord::Base
                                             eventsource:         nil,
                                             owned_by:            nil,
                                             include_nonexistent: false)
+    duffparameter = false
     #
-    #  Events are stored in the database with datetimes, but all my
-    #  criteria are specified just with dates.  Need to convert.
+    #  One or more event categories.
     #
-    if mwd_set.empty?
-      Commitment.joins(:event).where(element.sql_snippet(start_date, end_date))
+    ecs = []
+    if eventcategory
+      #
+      #  We allow a single eventcategory, or an array.
+      #  (Or something that behaves like an array.)
+      #
+      if eventcategory.respond_to?(:each)
+        eca = eventcategory
+      else
+        eca = [eventcategory]
+      end
+      eca.each do |ec|
+        if ec.instance_of?(String)
+          ec = Eventcategory.find_by_name(ec)
+        end
+        if ec.instance_of?(Eventcategory)
+          ecs << ec
+        else
+          duffparameter = true
+        end
+      end
+    end
+    #
+    #  One or more event sources.
+    #
+    ess = []
+    if eventsource
+      if eventsource.respond_to?(:each)
+        esa = eventsource
+      else
+        esa = [eventsource]
+      end
+      esa.each do |es|
+        if es.instance_of?(String)
+          es = Eventsource.find_by_name(es)
+        end
+        if es.instance_of?(Eventsource)
+          ess << es
+        else
+          duffparameter = true
+        end
+      end
+    end
+    owners = []
+    if owned_by
+      if owned_by.respond_to?(:each)
+        owner_array = owned_by
+      else
+        owner_array = [owned_by]
+      end
+      owner_array.each do |owner|
+        if owner.instance_of?(User)
+          owners << owner
+        else
+          duffparameter = true
+        end
+      end
+    end
+    if duffparameter
+      Commitment.none
     else
+      query_hash = {}
+      query_string_parts = []
+      if ecs.size > 0
+        if ecs.size == 1
+          query_string_parts << "events.eventcategory_id = :eventcategory_id"
+          query_hash[:eventcategory_id] = ecs[0].id
+        else
+          #
+          #  Aiming for "(events.event_category_id = :ec1 OR
+          #               events.event_category_id = :ec2)"
+          #
+          query_string_parts << "(#{
+            ecs.collect {|ec|
+              "events.eventcategory_id = :ec#{ec.id}"
+            }.join(" or ")
+          })"
+          ecs.each do |ec|
+            query_hash[:"ec#{ec.id}"] = ec.id
+          end
+        end
+      end
+      if ess.size > 0
+        if ess.size == 1
+          query_string_parts << "events.eventsource_id = :eventsource_id"
+          query_hash[:eventsource_id] = ess[0].id
+        else
+          query_string_parts << "(#{
+            ess.collect {|es|
+              "events.eventsource_id = :es#{es.id}"
+            }.join(" or ")
+          })"
+          ess.each do |es|
+            query_hash[:"es#{es.id}"] = es.id
+          end
+        end
+      end
+      if owners.size > 0
+        if owners.size == 1
+          query_string_parts << "events.owner_id = :owner_id"
+          query_hash[:owner_id] = owners[0].id
+        else
+          query_string_parts << "(#{
+            owners.collect {|owner|
+              "events.owner_id = :owner#{owner.id}"
+            }.join(" or ")
+          })"
+          owners.each do |owner|
+            query_hash[:"owner#{owner.id}"] = owner.id
+          end
+        end
+      end
+      unless include_nonexistent
+        query_string_parts << "not events.non_existent"
+      end
+      text_snippet = element.sql_snippet(start_date, end_date)
+      unless mwd_set.empty?
+        text_snippet = text_snippet + " OR " + mwd_set.to_sql
+      end
+      #
+      #  It's possible my query_hash is empty, but AR doesn't seem to
+      #  mind that.  It becomes a null restriction.
+      #
       Commitment.joins(:event).
-                 where(element.sql_snippet(start_date, end_date) +
-                       " OR " + mwd_set.to_sql)
+                 where(query_string_parts.join(" and "), query_hash).
+                 where(text_snippet)
+#      if mwd_set.empty?
+#        Commitment.joins(:event).where(element.sql_snippet(start_date, end_date))
+#      else
+#        Commitment.joins(:event).
+#                   where(element.sql_snippet(start_date, end_date) +
+#                         " OR " + mwd_set.to_sql)
+#      end
     end
   end
 

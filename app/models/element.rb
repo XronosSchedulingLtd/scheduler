@@ -178,6 +178,23 @@ class Element < ActiveRecord::Base
                 and_by_group = true,
                 include_nonexistent = false,
                 seen = [])
+    self.commitments_on(startdate: start_date,
+                        enddate: end_date,
+                        eventcategory: eventcategory,
+                        eventsource: eventsource,
+                        and_by_group: and_by_group,
+                        include_nonexistent: include_nonexistent).
+         preload(:event).
+         collect {|c| c.event}.uniq
+  end
+
+  def old_events_on(start_date = nil,
+                end_date = nil,
+                eventcategory = nil,
+                eventsource = nil,
+                and_by_group = true,
+                include_nonexistent = false,
+                seen = [])
     #
     #  If this element is a group then we should find its events (including
     #  those supplied by parent groups) once and only once.
@@ -272,10 +289,15 @@ class Element < ActiveRecord::Base
       #
       mwd_set = self.memberships_by_duration(start_date: startdate,
                                              end_date: enddate)
-      Commitment.commitments_for_element_and_mwds(element: self,
-                                                  start_date: startdate,
-                                                  end_date: enddate,
-                                                  mwd_set: mwd_set)
+      Commitment.commitments_for_element_and_mwds(
+        element:             self,
+        start_date:          startdate,
+        end_date:            enddate,
+        mwd_set:             mwd_set,
+        eventcategory:       eventcategory,
+        eventsource:         eventsource,
+        owned_by:            owned_by,
+        include_nonexistent: include_nonexistent)
     else
       #
       #  The old code is quite capable of coping with this.

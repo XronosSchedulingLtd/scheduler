@@ -56,5 +56,5 @@ Tomorrow:
 [ ] Promote to live system
 [ ] Edit in start-of-term events
 [ ] Run import again
-[ ] Merge two locations
+[ ] Merge two locations - try on test system first.
 [ ] Implement an alternative events_on in element.rb and test the two for speed in the real app

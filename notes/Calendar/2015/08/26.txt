@@ -1,0 +1,126 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-08-26T09:12:57+01:00
+
+====== Wednesday 26 Aug 2015 ======
+
+Nothing yesterday because I was in school in the morning giving a bit of training to users, and then I took the afternoon off.
+
+Today I aim to tidy up my implementation.  Three things I don't like:
+
+* Two different conventions for having no start/end date.  nil or [[:never.]]  Since the existing commitments_on uses [[:never]] (and nil to mean "today") I think I should stick to that and re-work my new code.  It needs to understand [[:never]] and it should never receive nil.  Perhaps allow [[:always]] for a start date?
+* Membership duration is stored as dates, inclusive.  Events are stored as datetimes (with time zone), exclusive.  Too big a change to change the memberships now (and too confusing for the viewer), but I need to make sure my conversions work consistently.
+* Some of the code is rather scrappy.  I need neat and encapsulated ways to convert dates and to produce sql snippets.
+
+I wonder whether I can extend Date to produce end_time and start_time?  I've done this sort of thing in Markbook, by extending Date in the lib directory.
+
+Found a fast method to convert a Date into a TimeWithZone.  It's badly named but it's date.at_beginning_of_day.
+
+Added start_time and end_time to the Date class in an initializer.  You can now get the necessary value direct from the date, and get the necessary string for a database query using:
+
+''date.end_time.to_s(:db)''
+
+A start.  Now let's go through my new code, converting anything which uses nil to mean never.  Hang on a minute though - the database uses nil to mean never.  Perhaps not such a good idea.  Should I leave it as it is and simply convert calls on it?  The problem I observed was when I was doing it by hand.  The query for the individual's direct commitments took the end value of nil to mean "just one day" whilst all the recursive stuff took it to mean "forever".  Commands executed were:
+
+
+'''
+e = Element.find(10036)
+start_date = Date.parse("2014-09-01")
+end_date = nil
+results = e.memberships_by_duration(start_date: start_date, end_date: end_date)
+Commitment.commitments_for_element_and_mwds(element: e,
+                                            startdate: start_date,
+                                            enddate: end_date,
+                                            mwd_set: results)
+'''
+
+
+The query for the direct commitments had an end date of midnight at the end of the day, which was not the intention.  The problem simply lies in the element_sql method in the Commitment class.  Now, I think I can move things around a bit.
+
+Tidied a bit - now I need to re-implement the whole of commitments_on, for a single element, using my new code.  The old commitments_on in Commitments becomes redundant.  Not quite sure where each component should go, but I can worry about that later.  The entry point for client code should clearly still be commitments_on called on a Element object.  I need to lift lots of the old functionality from Commitment#commitments_during and add it to my new method.
+
+Although I have previously provided a commitments_during method (used solely by the commitments_on) method, we don't really provide the means to request commitments with a finer granularity than a day.  None of our client code needs it, although it would theoretically be possible.  Memberships work only in whole days, but we could potentially expand indicated times to a whole day, sort out all the membership stuff, then filter the actual events back to the original times given.  It would need a lot of re-working of my code though, and as I currently have no use for it I'm not going to do it.  Press on and mimic Element#commitments_on using my new code.
+
+Responsibility for handling dates etc. passed as strings passes to the Element#commitments_on method, plus converting [[:never]] to nil.
+
+Code is still not complete (doesn't do eventcategory, eventsource or owned_by yet), but let's try it for timing.
+
+Fetch 10036's ical file by both old and new.  For the old version it took 4383ms (313.1ms).  I bet the new one crashes.  No - it ran, although it did take 4286ms (145.4ms).  Not as much of a speed improvement as I expected.  Do the files differ?  Yes, quite dramatically in size.  The newer one is quite a bit bigger.  Is this a good thing or a bad thing?  It's a good thing - it's got all his events for last year which the other one missed.  Let's make it fairer by specifying a start date.
+1st September 2015.  Then the new code takes 2198ms (67.8ms)  Old code takes 444ms (33.1ms).  Hang on - that doesn't make any sense.  File is tiny - I must have typed it wrong.  No - file stays tiny.  It doesn't have any of his lessons.  Why not?  He seems to be a member of only 4 groups.  Ah - does specifying a date over-ride the effective date?  No - it is always Setting.current_era.starts_on.
+
+Found it - if the start date is in the future, then it overrides the effective date.  Does that make sense, or did I just not put the effective date code in in enough places.  I just hadn't put the code in enough places.  Note - this change needs to go back in the master code if there are any delays in deploying my new code.  Time it again.  Now the old code takes 4040ms (130.5ms), whilst the new code takes 2174ms (27.4ms).  That's a worthwhile improvement.  Files are now very comparable in size.  The newer one actually contains 4 more events.  I wonder what they are.  The files are similar enough to be diffed, so I can work it out once I've got myself a cup of coffee.  All events on the 8th and 9th of September.
+
+Hah!  They are suspended lessons.  My new code doesn't yet take account of non-existent lessons.  Excellent.
+
+How well does it perform if I re-direct the web display through it?  What happened to my code to do this?  It's on a different branch.  With my new commitments_on. fetching AA's week of events takes 232ms (29.0)  With the old events_on it takes 322ms (29.3ms).  A significant improvement.  Break for coffee and then do some more tests.
+
+Having to my coffee, let's implement the missing clauses relating to:
+
+[*] Categories
+[*] Source
+[*] Ownership
+[*] Non-existent
+
+I should be able to pretty much lift the code from the older methods.  Done that.  Try an ical download for Angus again, specifying a start date of 2015-09-01.  With the new code it took 1916ms (20.9ms).  Switch the old commitments_on back in and try again.  That took 4099ms (241.3ms).  Check the files.  Interestingly, the contents are now very different, although they're much the same size.  A question of the order of events?  They have just one different in the quantity - 1058 and 1059.  Try sorting the events before creating the ical file.  This will slow things down, but might make the files comparable.  Hang on - I fetched two different calendars.  For the second one I did 10035.  Do 10036.
+
+Old code: 4021ms (165.4ms)
+New code: 1960ms (23.9ms)
+
+The downloaded files are identical!  Excellent.  I suppose I should apply the same test to the calendar too.
+
+New code: 2537ms (73.0ms)
+Old code: 2823ms (42.4ms)
+
+Again, the files are identical.  There's far less time gained for the calendar because it doesn't involve any groups.  The important thing is that the file contents haven't changed.
+
+With the old code commitments_on doing the work, fetching a week of events for Angus takes 2341ms.  With the new code it's 257ms.  With the old events_on it takes 344ms.  Another win.
+
+I notice that when I'm getting the calendar, there are a load of trailing queries for locationaliases.  Can these be improved?  Getting a bit complex to my mind, and they're quite fast.  Leave for now.
+
+What have I forgotten - there must be something.  Test what appears for Oliver if I look at last term's calendar download.  On the live system he starts to get meetings last term, because he is now a member of the maths staff.  On my test system, I should find he now doesn't.
+
+Interesting - on my test system, Oliver is showing the Athletics at Tilsley Park last term.  When did he get added to the "Teaching Staff" group?  1st May 2015.  Fair enough.  However, he only gets added to Maths teachers on 3rd Sep 2015.  He therefore shouldn't see maths department meetings.  There's one on 25th June.  He doesn't see it on the web display, but I'd expect that anyway.  What about ical?  Downloaded from both.  My one from the test system is smaller.
+
+Ah - Maths Dept meetings are listed by individual so they're not an effective test.  Find something else.  Yes, there do indeed seem to be plenty of things from the past which Oliver gets on the live system, but now doesn't on the test.  OTOH, he does seem to get appropriate things from the future.  All seems excellent.
+
+I think I'd like to package all this up, deploy it on my staging server, and then do some general playing with it.  Perhaps after lunch.  Get the live data down and put it on the staging server too, so I can do some direct comparisons.  Check some timings on the staging server before I give it the new code.
+
+Let's really push the envelope.  Set up a couple of events for Non-tutors in the same week and check that I get one and not the other.  Likewise for AA and his exception from the Mandarin Pupils group.
+
+When do I cease to be a tutor?  My last day as a tutor is 2/9/2015.  First day as a non-tutor is 3/9/2015.  It's the non-tutors group I'm particularly interested in, but try both.
+
+Came across one little anomaly, but I think it's too abstruse to worry about.  I created my non-tutors meeting on the 2nd, then dragged it to the 3rd.  Because of the change of date, the list of those involved actually changed, but the display didn't update.  I had to navigate away from the week and then come back to get it to appear on my schedule.  Not really an issue I don't think.
+
+Hah!  The "visible" bit is making the query longer than it needs to be.  I'm selecting all visible categories.  Perhaps it might be quicker to exclude all invisible categories.  Mind you, the query is apparently taking 0.3ms so again, not worth worrying?
+
+Test AA's little exclusion.  When does it start?  I seem to have lost it.  Did I reload the d/b?  Yes, it appears I did.  OK, put it in again.  Exclude him from 1st October.  Yes, that seems to work beautifully too.
+
+Ready to do some timings on Scheduler.
+
+Calendar download
+Personal download for 10375, starting 2015-09-01
+Personal download for 10036, starting 2015-09-01
+
+Display first week of term with Calendar
+Display first week of term with JHW
+Display first week of term with AA
+
+Then put the new code on Scheduler and try again.
+
+Before:
+
+Calendar download:    2816 ms (20.9ms)
+10375:                           959ms (58.2ms)
+10036:
+
+Angus's file is almost empty.  What am I doing wrong?  Ah yes - it doesn't have the fix for effective date.  Patch that in. and start again.
+
+Calendar download:    2782ms (22.9ms)
+10375:                          867ms (49.5ms)
+10036:                         4298ms (299.4ms)
+
+Calendar display          3 requests 46ms, 64ms, 47ms
+Me                                2 requests  40ms, 91ms
+AA                                3 requests 8ms 19ms 152ms
+
+Now try the improved code.
