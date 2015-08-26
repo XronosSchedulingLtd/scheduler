@@ -86,6 +86,19 @@ class Element < ActiveRecord::Base
   end
 
   #
+  #  Used indirectly by the above methods.  Generate a small snippet
+  #  of SQL to select commitments for this element.
+  #
+  def sql_snippet(start_date, end_date)
+    if end_date
+      prefix = "(events.starts_at < '#{end_date.end_time.to_s(:db)}' AND "
+    else
+      prefix = "("
+    end
+    prefix + "events.ends_at > '#{start_date.start_time.to_s(:db)}' AND commitments.element_id = #{self.id})"
+  end
+
+  #
   #  This method is much like the "members" method in the Group model,
   #  except the other way around.  It provides a list of all the groups
   #  of which this element is a member on the indicated date.  If no
@@ -222,7 +235,62 @@ class Element < ActiveRecord::Base
     (direct_events + indirect_events).uniq
   end
 
+  #
+  #  Re-work of the old commitments_on, with exactly the same signature
+  #  but using the new more efficient code.  Has to do a bit more of the
+  #  work.
+  #
+  #  Note that we ignore the "effective_date" parameter, which was a
+  #  frig needed because the old implementation didn't work properly.
+  #  We do work properly.
+  #
   def commitments_on(startdate:           nil,
+                     enddate:             nil,
+                     eventcategory:       nil,
+                     eventsource:         nil,
+                     owned_by:            nil,
+                     include_nonexistent: false,
+                     and_by_group:        true,
+                     effective_date:      nil)
+    if and_by_group
+      #
+      #  This requires the new code, and a bit of preliminary spadework.
+      #
+      startdate = startdate ? startdate.to_date : Date.today
+      #
+      #  Change of convention for enddate.
+      #
+      if enddate == nil
+        enddate = startdate
+      elsif enddate == :never
+        enddate = nil
+      else
+        enddate = enddate.to_date
+      end
+      #
+      #  Now the actual retrieval is done in two stages.
+      #
+      mwd_set = self.memberships_by_duration(start_date: startdate,
+                                             end_date: enddate)
+      Commitment.commitments_for_element_and_mwds(element: self,
+                                                  start_date: startdate,
+                                                  end_date: enddate,
+                                                  mwd_set: mwd_set)
+    else
+      #
+      #  The old code is quite capable of coping with this.
+      #
+      Commitment.commitments_on(startdate:           startdate,
+                                enddate:             enddate,
+                                eventcategory:       eventcategory,
+                                eventsource:         eventsource,
+                                resource:            [self],
+                                owned_by:            owned_by,
+                                include_nonexistent: include_nonexistent)
+    end
+  end
+
+  def old_commitments_on(startdate:           nil,
                      enddate:             nil,
                      eventcategory:       nil,
                      eventsource:         nil,
@@ -267,7 +335,11 @@ class Element < ActiveRecord::Base
           #
           #  Start date in the future.
           #
-          my_groups = self.groups(start_date)
+          if effective_date && effective_date > start_date
+            my_groups = self.groups(effective_date)
+          else
+            my_groups = self.groups(start_date)
+          end
         else
           #
           #  Start date in the past
@@ -306,6 +378,7 @@ class Element < ActiveRecord::Base
         end
       end
     end
+    Rails.logger.debug("Have #{my_groups.size} groups.")
     Commitment.commitments_on(startdate:           startdate,
                               enddate:             enddate,
                               eventcategory:       eventcategory,

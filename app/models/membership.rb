@@ -74,13 +74,11 @@ class Membership < ActiveRecord::Base
     end
 
     def start_time_utc
-      time = Time.zone.parse("00:00:00", self.start_date)
-      time.utc.strftime("%Y-%m-%d %H:%M:%S")
+      self.start_date.start_time.to_s(:db)
     end
 
     def end_time_utc
-      time = Time.zone.parse("00:00:00", self.end_date + 1.day)
-      time.utc.strftime("%Y-%m-%d %H:%M:%S")
+      self.end_date.end_time.to_s(:db)
     end
 
     #

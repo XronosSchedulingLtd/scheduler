@@ -92,28 +92,22 @@ class Commitment < ActiveRecord::Base
     end
   end
 
-  def self.element_sql(element, startdate, enddate)
-    start_time = Time.zone.parse("00:00:00", startdate)
-    st_string = start_time.utc.strftime("%Y-%m-%d %H:%M:%S")
-    if enddate == :never
-      prefix = "("
-    else
-      end_time = enddate ?
-                 Time.zone.parse("00:00:00", enddate + 1.day) :
-                 Time.zone.parse("00:00:00", startdate + 1.day)
-      et_string = end_time.utc.strftime("%Y-%m-%d %H:%M:%S")
-      prefix = "(events.starts_at < '#{et_string}' AND "
-    end
-    prefix + "events.ends_at > '#{st_string}' AND commitments.element_id = #{element.id})"
-  end
-
   #
   #  This is intended for use explicitly by the results of calling
   #  memberships_by_duration on the element model.
   #
+  #  Note that we're getting quite close to the d/b here, and so we
+  #  use the same convention as the d/b to indicate "going on forever".
+  #  If you want to go on forever, pass an enddate of nil.
+  #
+  #  Higher level code uses a slightly different convention, with
+  #  :never to go on forever and nil meaning "the same as the start
+  #  date".  Client code should be calling the higher level code and
+  #  not this method directly.
+  #
   def self.commitments_for_element_and_mwds(element:,
-                                            startdate:,
-                                            enddate:,
+                                            start_date:,
+                                            end_date:,
                                             mwd_set:,
                                             eventcategory:       nil,
                                             eventsource:         nil,
@@ -124,9 +118,11 @@ class Commitment < ActiveRecord::Base
     #  criteria are specified just with dates.  Need to convert.
     #
     if mwd_set.empty?
-      Commitment.joins(:event).where(element_sql(element, startdate, enddate))
+      Commitment.joins(:event).where(element.sql_snippet(start_date, end_date))
     else
-      Commitment.joins(:event).where(element_sql(element, startdate, enddate) + " OR " + mwd_set.to_sql)
+      Commitment.joins(:event).
+                 where(element.sql_snippet(start_date, end_date) +
+                       " OR " + mwd_set.to_sql)
     end
   end
 
