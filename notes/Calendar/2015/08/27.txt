@@ -1,0 +1,61 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-08-27T09:36:20+01:00
+
+====== Thursday 27 Aug 2015 ======
+
+I have put the new code onto the live system and so far it seems OK.  A quick speed test indicates that my tame pupil - William Richardson - is getting his ical file slightly more quickly, but it is twice as big.  If one restricts him to a comparable file by specifying a start date of 2015-09-01 it comes down in half the time (4.5s instead of 9s).  A good start.
+
+I want to get on to providing the means to edit Concerns - colours, flags, and a route into the Days controller with tick boxes.  Before that however I would like to make a small change to the way ical downloads work if you specify a teacher's initials.
+
+Currently, for reverse compatibility, if you specify initials then all options are ignored and you get:
+
+* Break through events
+* The teacher's explicit events
+
+all in one go.  This is because that's the way the original implementation worked.  I then added the means to specify any element's id number and then you can put all sorts of options after it, but it's more hassle for a teacher to do that than to specify his or her initials.
+
+It occurred to me the other day that I can still provide reverse compatibility but also give more flexibility if I say that only the case of just initials - with no options at all - will give the default behaviour.  Anyone still using that original published interface will see it continue the same.  As soon as you specify any kind of option though, it will behave as if you gave the element id number, and you will be able to use all and any of the options.
+
+Thus:
+
+http://abingdon.scheduler.org.uk/jhw
+
+Gives my stuff, plus the breakthrough events.  As soon as an option is added though, e.g.
+
+http://abingdon.scheduler.org.uk/jhw?categories=Lesson
+
+then it's just as if I'd entered:
+
+http://abingdon.scheduler.org.uk/10375?categories=Lesson
+
+Ancient uses thus still see the behaviour which they were expecting, but there's more flexibility for new users who don't want to go to the trouble of looking up their id number.
+
+At the same time it would make sense to completely remove the old ical processing from the staffs controller, which is in any case broken.
+
+After that I'll get on to Concern editing.
+
+[*] Remove ical from staffs controller, plus associated route
+[ ] Change working of initials in elements controller
+[ ] On to concern editing.
+
+
+I've downloaded the latest data from the live system and put it on my test system.  ical files should therefore be comparable.  Things to test.
+
+Full calendar							Identical apart from event IDs.
+Breakthrough events					Identical apart from event IDs.
+ical/jhw								Identical apart from event IDs.
+ical/jhw?start_date=2015-09-01			Now they're different.  Differences exactly as expected.
+ical/10375?start_date=2015-09-01		This on the live system produces the same as the previous
+									    URL on the test system (except IDs).
+
+That fourth one should be different (in a predictable way) - the rest should be exactly the same.
+
+Interesting - the old code did actually allow some parameters with initials, but I don't think I'd ever publicized the fact.  Does anyone use any?  The only ones which had any effect were dates.  No, practically no-one ever uses any parameters at all.
+
+Should also check that Brian's exact URL produces the same output for the calendar.  And by element id.
+
+ical/0?categories=Calendar,Week%20letter
+ical/17424
+
+All identical, except event IDs between machines.  Excellent.  I can push this to live too.

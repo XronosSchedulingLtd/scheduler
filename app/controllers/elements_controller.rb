@@ -1,3 +1,8 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2015 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+
 require 'csv'
 
 class ElementsController < ApplicationController
@@ -47,6 +52,8 @@ class ElementsController < ApplicationController
     #  controller used to do.
     #
     got_something = false
+    any_params    = false
+    by_initials   = false
     prefix = "notset"
     calendar_name = "notset"
     calendar_description = "notset"
@@ -60,24 +67,29 @@ class ElementsController < ApplicationController
     element_id = params[:id]
     #raise params.inspect
     if params.has_key?(:cover)
+      any_params = true
       #
       #  The requestor wants only cover events.
       #
       include_non_cover = false
     elsif params.has_key?(:"!cover")
+      any_params = true
       #
       #  The requestor wants to exclude cover events.
       #
       include_cover = false
     end
     if params[:start_date]
-      starts_on = Date.parse(params[:start_date])
+      any_params = true
+      starts_on  = Date.parse(params[:start_date])
     end
     if params[:end_date]
-      ends_on = Date.parse(params[:end_date])
+      any_params = true
+      ends_on    = Date.parse(params[:end_date])
     end
 #    Rails.logger.debug("include_cover = #{include_cover}.  include_non_cover = #{include_non_cover}.")
     if params[:categories]
+      any_params = true
       #
       #  The requester wants to limit the request to certain categories
       #  of event.  Requests for non-existent categories will result in
@@ -133,76 +145,76 @@ class ElementsController < ApplicationController
       prefix = "global"
       calendar_name = "School dates"
       calendar_description = "Abingdon school key dates"
-    elsif element = Element.find_by_id(element_id)
-      categories =
-        (customer_categories || Eventcategory.publish) - remove_categories
-      if categories.empty?
-        categories = Eventcategory.publish
+    else
+      element = Element.find_by_id(element_id)
+      unless element
+        staff = Staff.eager_load(:element).find_by_initials(params[:id].upcase)
+        if staff
+          element = staff.element
+          by_initials = true
+        end
       end
-      selector =
-        element.commitments_on(startdate:      starts_on,
-                               enddate:        ends_on,
-                               eventcategory:  categories,
-                               effective_date: Setting.current_era.starts_on)
-      if include_cover && !include_non_cover
-        selector = selector.covering_commitment
-      elsif include_non_cover && !include_cover
-        selector = selector.non_covering_commitment
-      end
-      #
-      #  This preload does seem to speed things up just a touch.
-      #
-#      dbevents =
-#        selector.preload(:event).collect {|c| c.event}
-      #
-      #  This next one should theoretically do much better, but although
-      #  it preloads all the required items, the Active Record code then
-      #  seems to fetch them again from the database instead of using
-      #  them as intended.  Needs further investigation.
-      #
-#      dbevents =
-#        selector.includes(event: {commitments: {element: :entity}}).collect {|c| c.event}
-      #
-      #  Solved it.  I was trying to do too much work for Active Record.
-      #  By explicitly loading the commitments and then the corresponding
-      #  elements, I hid from AR the fact that it had now got the elements
-      #  for the event.  My definition of an event includes the concept
-      #  of a corresponding element (through the commitment) and that's
-      #  how I subsequently access it, so that's how I need to load it.
-      #
-      dbevents =
-        selector.includes(event: {elements: :entity}).collect {|c| c.event}
-      got_something = true
-      prefix = "E#{element.id}E"
-      if include_non_cover
-        calendar_name = element.short_name
-      else
-        calendar_name = "#{element.short_name}'s cover"
-      end
-      calendar_description = "#{element.name}'s events"
-    elsif staff = Staff.find_by_initials(params[:id].upcase)
-      #
-      #  Fall back to old style processing.  Options are ignored.
-      #
-      basic_categories = Eventcategory.publish
-      extra_categories = Eventcategory.publish.schoolwide
-#      dbevents =
-#        (staff.element.events_on(starts_on, ends_on, basic_categories) +
-#         Event.events_on(starts_on, ends_on, extra_categories)).uniq
-      dbevents =
-        (staff.element.
+      if element
+        if by_initials && !any_params
+          #
+          #  We fall back to old-style processing for reverse compatibility.
+          #
+          basic_categories = Eventcategory.publish
+          extra_categories = Eventcategory.publish.schoolwide
+          dbevents =
+            (element.
                commitments_on(startdate: starts_on,
                               enddate: ends_on,
                               eventcategory: basic_categories,
                               effective_date: Setting.current_era.starts_on).
                includes(event: {elements: :entity}).collect {|c| c.event} +
-         Event.events_on(starts_on, ends_on, extra_categories).
-               includes(elements: :entity)).
-         uniq
-      got_something = true
-      prefix = staff.initials
-      calendar_name = staff.initials
-      calendar_description = "#{staff.name}'s timetable"
+             Event.events_on(starts_on, ends_on, extra_categories).
+                   includes(elements: :entity)).uniq
+          got_something = true
+          prefix = staff.initials
+          calendar_name = staff.initials
+          calendar_description = "#{staff.name}'s timetable"
+        else
+          #
+          #  Either specified by id number, or by initials but with some
+          #  parameters.
+          #
+          categories =
+            (customer_categories || Eventcategory.publish) - remove_categories
+          if categories.empty?
+            categories = Eventcategory.publish
+          end
+          selector =
+            element.
+              commitments_on(startdate:      starts_on,
+                             enddate:        ends_on,
+                             eventcategory:  categories,
+                             effective_date: Setting.current_era.starts_on)
+          if include_cover && !include_non_cover
+            selector = selector.covering_commitment
+          elsif include_non_cover && !include_cover
+            selector = selector.non_covering_commitment
+          end
+          #
+          #  Solved it.  I was trying to do too much work for Active Record.
+          #  By explicitly loading the commitments and then the corresponding
+          #  elements, I hid from AR the fact that it had now got the elements
+          #  for the event.  My definition of an event includes the concept
+          #  of a corresponding element (through the commitment) and that's
+          #  how I subsequently access it, so that's how I need to load it.
+          #
+          dbevents =
+            selector.includes(event: {elements: :entity}).collect {|c| c.event}
+          got_something = true
+          prefix = "E#{element.id}E"
+          if include_non_cover
+            calendar_name = element.short_name
+          else
+            calendar_name = "#{element.short_name}'s cover"
+          end
+          calendar_description = "#{element.name}'s events"
+        end
+      end
     end
     if got_something
       tf = Tempfile.new(["#{prefix}", ".ics"])

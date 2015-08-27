@@ -30,11 +30,7 @@ Rails.application.routes.draw do
 
   resources :memberships
 
-  resources :staffs do
-    member do
-      get :ical
-    end
-  end
+  resources :staffs
 
   resources :events do
     member do

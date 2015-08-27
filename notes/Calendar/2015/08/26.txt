@@ -123,4 +123,31 @@ Calendar display          3 requests 46ms, 64ms, 47ms
 Me                                2 requests  40ms, 91ms
 AA                                3 requests 8ms 19ms 152ms
 
-Now try the improved code.
+Now try the improved (?) code.
+
+Calendar download:    2760ms (29.4ms)
+10375:                          680ms (37.6ms)
+10036:                         2169ms (38.1ms)
+
+Each of the download files is unchanged.
+
+Calendar display          3 requests 20ms 32ms 34ms
+Me                                2 requests  17ms, 58ms
+AA                                3 requests 12ms 31ms 152ms
+
+
+So the only thing which hasn't improved is AA's display, and that least is just as good.  AA's ical download with no restrictions (so far bigger than before) takes 4464ms.  This compares with 16s for a smaller file when I started.
+
+There is quite a bit of redundant code left in, but I want to leave it there for now in case I get regression issues.  It will be handy to be able to consult the old code to check how it worked.  Must remember to remove it later.
+
+Let's try adding AA's schedule to my Google Calendar.  It should show correct lessons for last year and this, which would be quite an achievement.  It seems to think it's managing it, but there's always that disconcerting delay before the events appear.  It says it's done, but nothing has appeared.  Let's find an event in the file.  Definitely got his 4th year lessons back in 2014.  Are they appearing chronologically?  Got stuff up to the end of March 2015.  Nothing after the Easter holiday so far though.  Anything for April in the file?  Yes, in the file but not in my Google Calendar.  File is less than half a meg - Google says files should be under a meg.  Perhaps it's just taking a while?  Unsubscribe and try a different one.  10035  That one seems to have been more successful.  One wrinkle though - although all this chap's events have appeared, his calendar is not listed as one to which I'm subscribed, which means I can't hide or remove it.  Could be tricky.  Ah no - he's appeared under "My Calendars" instead of under "Other calendars".  Odd.  Got rid of him again.
+
+This is looking very promising.  Something must bite me shortly.
+
+OK - what have I achieved.
+
+The web display now takes account of set changes during the course of a week (previously everything was as-at the Sunday) and it takes account of subtractions (previously ignored).  It used to use the old events_on, but that's now mapped on to my new code.
+
+The ical download now gets correct set memberships for the whole period - even 2 years - and is significantly faster.  Previously it used this idea of an effective date, so a single set snapshot was used for the whole period.
+
+Tomorrow, barring issues, I will promote this to the live system.

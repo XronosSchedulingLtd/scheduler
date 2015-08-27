@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150820124201) do
+ActiveRecord::Schema.define(version: 20150827094642) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -170,6 +170,8 @@ ActiveRecord::Schema.define(version: 20150820124201) do
     t.boolean  "display",     default: false
     t.boolean  "friendly",    default: false
   end
+
+  add_index "locationaliases", ["location_id"], name: "index_locationaliases_on_location_id", using: :btree
 
   create_table "locations", force: true do |t|
     t.string   "name"

@@ -3,9 +3,6 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-require 'tempfile'
-require 'ri_cal'
-
 class StaffsController < ApplicationController
   before_action :set_staff, only: [:show, :edit, :update, :destroy]
 
@@ -94,53 +91,6 @@ class StaffsController < ApplicationController
     end
   end
 
-  #  Not sure if one can set up a route for this.
-  # GET /staffs/<initials>/ical
-  def ical
-    staff = Staff.find_by_initials(params[:id].upcase)
-    era = Setting.current_era
-    next_era = Setting.next_era
-    #
-    #  Not sure how I ended up with this name, but "publish" means it gets
-    #  included in ical downloads, and "for_users" means it is relevant,
-    #  even if the user is not explicitly involved.
-    #
-    basic_categories = Eventcategory.publish
-    extra_categories = Eventcategory.publish.for_users
-    if staff && era
-      starts_on = era.starts_on
-      ends_on   = next_era ? next_era.ends_on : era.ends_on
-      dbevents =
-        (staff.element.events_on(starts_on, ends_on, basic_categories) +
-         Event.events_on(starts_on, ends_on, extra_categories)).uniq
-      tf = Tempfile.new(["#{staff.initials}", ".ics"])
-      RiCal.Calendar do |cal|
-        cal.add_x_property("X-WR-CALNAME", staff.initials)
-        cal.add_x_property("X-WR-CALDESC", "#{staff.name}'s timetable")
-        dbevents.each do |dbevent|
-          cal.event do |event|
-            event.summary = dbevent.body
-            if dbevent.all_day
-              event.dtstart = dbevent.starts_at.to_date
-              event.dtend   = dbevent.ends_at.to_date
-            else
-              event.dtstart = dbevent.starts_at
-              event.dtend   = dbevent.ends_at
-            end
-            locations = dbevent.locations
-            if locations.size > 0
-              event.location = locations.collect {|l| l.name}.join(",")
-            end
-          end
-        end
-      end.export(tf)
-      tf.close
-      send_file(tf.path, :type => "application/ics")
-    else
-      redirect_to "/"
-    end
-  end
-
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_staff
@@ -153,8 +103,7 @@ class StaffsController < ApplicationController
     end
 
     def authorized?(action = action_name, resource = nil)
-      (logged_in? && current_user.admin) ||
-      action == 'ical'
+      (logged_in? && current_user.admin)
     end
 
 end
