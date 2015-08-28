@@ -36,7 +36,7 @@ At the same time it would make sense to completely remove the old ical processin
 After that I'll get on to Concern editing.
 
 [*] Remove ical from staffs controller, plus associated route
-[ ] Change working of initials in elements controller
+[*] Change working of initials in elements controller
 [ ] On to concern editing.
 
 
@@ -59,3 +59,23 @@ ical/0?categories=Calendar,Week%20letter
 ical/17424
 
 All identical, except event IDs between machines.  Excellent.  I can push this to live too.
+
+Now, I think concern editing deserves its own branch.   ISTR I did some work on just colour editing before, so that might be worth looking at.
+
+The one I played with before is called Spectrum.  Not sure why I chose that - there seem to be a plethora of them.  In any case, colour picking is fairly low down in the order of things I want to provide.  Firstly we need an edit dialogue for Concerns.  It wants to function much like editing an event.  The coloured rectangle in the side bar should be the link to trigger it.
+
+DJD has just interrupted me with some issues over the calendar export which Lou has done for him.  Part of the problem is her not using quite the right options, but one is a knock-on from my calendar changes.  Historically, all the Calendar events had an event category of Calendar, which has a pecking order of 50.  Week letters have a pecking order of 5, putting them first before the calendar, but everything else seems to have a pecking order of 1.  As events get converted from Calendar to other categories they therefore start sneaking in ahead of week letters.  I need to do some global editing of pecking orders to make sure Week letters come first.  To give myself some space, I should perhaps move all the general categories to about 20.  Does anything else get affected by this field?  It's called pecking_order.
+
+Currently my code to add extra categories gives them a pecking order of 1.  Change that to 20.
+
+No - the days controller seems to be the only thing which actually uses the field.  Everything else is just to do with editing it.  Let's just edit each of the event categories.
+
+Test to see the problem demonstrated first.
+
+http://abingdon.scheduler.org.uk/days.doc?compact&duration&locations&no_end_time&twelve_hour
+
+First problem is on Mon 5th Oct, when the Abingdon Michaelmas Fair sneaks in ahead.  That's because it's a "Date (other)".  Change that one first to test.  Yes, that seems to cure it.  Let's change all the others.  That seems to have been successful.
+
+Wondering whether I can overload the existing "compactable" flag on event categories to provide DJD with events which retain their end times.  Currently it is used on week letters to make them last all week.  That is - it is used on multi-day all-day events to make them appear on each day.  Could the same flag be used on timed events to say that the end-time should stay in.  It sounds like pretty much the same functionality.
+
+Noticed that "compactable" seems to be defaulting to false, with the result that several other non-compactable categories have crept it.  Change them to true.  How does one change an existing d/b default value.  You use change_column.  Perhaps I should do that for the default pecking_order and compactable-ness.

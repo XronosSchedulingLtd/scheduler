@@ -575,15 +575,10 @@ class Event < ActiveRecord::Base
   #
   def duration_string(clock_format = :twenty_four_hour,
                       end_time     = :true)
-    if clock_format == :twenty_four_hour
-      format_string = "%H:%M"
+    if end_time
+      self.starts_at.interval_str(self.ends_at, clock_format == :twelve_hour)
     else
-      format_string = "%-l:%M %P"
-    end
-    if (starts_at == ends_at) || !end_time
-      starts_at.strftime(format_string)
-    else
-      "#{starts_at.strftime(format_string)}-#{ends_at.strftime(format_string)}"
+      self.starts_at.interval_str(nil, clock_format == :twelve_hour)
     end
   end
 

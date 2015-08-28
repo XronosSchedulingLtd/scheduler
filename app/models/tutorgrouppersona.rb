@@ -9,8 +9,26 @@ class Tutorgrouppersona < ActiveRecord::Base
   validates :staff, presence: true
 
   belongs_to :staff
+  has_one    :group
 
   include Persona
+
+  #
+  #  Maintenance method to fix a tutor group's pupil names.
+  #
+  def fix_pupil_names
+    fixed_count = 0
+    group.members(nil, false, true).select {|member|
+      member.class == Pupil
+    }.each do |pupil|
+      if pupil.element_name != pupil.element.name
+        pupil.save
+        fixed_count += 1
+      end
+    end
+    puts "Fixed #{fixed_count} pupils' names."
+    nil
+  end
 
   #
   #  Returns a string like "3JHW"

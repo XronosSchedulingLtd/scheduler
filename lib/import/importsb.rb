@@ -2446,6 +2446,10 @@ class SB_Tutorgroup
         pupil = loader.pupil_hash[pupil_id]
         if pupil && pupil.dbrecord
           @dbrecord.remove_member(pupil.dbrecord, loader.start_date)
+          #
+          #  Likewise, removing a pupil can change his element name.
+          #
+          pupil.force_save
           member_removed_count += 1
         end
       end

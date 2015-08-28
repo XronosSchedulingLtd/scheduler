@@ -107,7 +107,11 @@ class Setting < ActiveRecord::Base
        self.next_era
       group_count = 0
       self.current_era.groups.each do |group|
-        group.ceases_existence(self.current_era.ends_on)
+        #
+        #  The ceases_existence method expects the first day on which
+        #  the individual is *not* a member.
+        #
+        group.ceases_existence(self.current_era.ends_on + 1.day)
         group_count += 1
       end
       puts "#{group_count} groups terminated."

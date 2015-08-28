@@ -222,13 +222,8 @@ class Eventcategory < ActiveRecord::Base
       else
         category = Eventcategory.new
         category.name          = new_category.name
-        category.pecking_order = 1
         category.schoolwide    = new_category.schoolwide
         category.publish       = true
-        category.unimportant   = false
-        category.can_merge     = false
-        category.can_borrow    = false
-        category.compactable   = false
         category.privileged    = new_category.privileged
         category.save!
         results << "Created category #{new_category.name}."

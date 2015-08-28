@@ -109,9 +109,12 @@ class DaysController < ApplicationController
     categories = category_names.collect { |cn|
       Eventcategory.find_by_name(cn)
     }.compact.select {|cc| cc.publish}
-    dbevents = element.events_on(start_date,
-                                 end_date,
-                                 categories)
+    dbevents =
+      element.commitments_on(startdate: start_date,
+                             enddate: end_date,
+                             eventcategory: categories).
+         preload(event: :eventcategory).
+         collect {|c| c.event}.uniq
     @days = []
     start_date.upto(end_date) do |date|
       start_of_day = Time.zone.parse(date.strftime("%Y-%m-%d"))

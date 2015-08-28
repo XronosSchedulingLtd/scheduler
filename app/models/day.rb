@@ -71,7 +71,7 @@ class Day
       @staff_string =
         event.staff.collect {|s| s.short_name}.join(", ")
       @period_no = period_no(event)
-      Rails.logger.debug("@period_no = #{@period_no}")
+#      Rails.logger.debug("@period_no = #{@period_no}")
       if event.all_day
         #
         #  If:
@@ -101,8 +101,10 @@ class Day
         if day.options[:by_period] && @period_no
           @duration_string = "Period #{@period_no}"
         else
-          @duration_string = event.duration_string(day.options[:clock_format],
-                                                   day.options[:end_times])
+          @duration_string =
+            event.duration_string(day.options[:clock_format],
+                                  day.options[:end_times] ||
+                                  !event.compactable?)
         end
         @table_text =
           "#{@duration_string} #{event.tidied_body(true)}"

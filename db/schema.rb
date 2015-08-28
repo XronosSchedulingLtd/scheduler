@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150827094642) do
+ActiveRecord::Schema.define(version: 20150828100105) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -82,7 +82,7 @@ ActiveRecord::Schema.define(version: 20150827094642) do
 
   create_table "eventcategories", force: true do |t|
     t.string   "name"
-    t.integer  "pecking_order"
+    t.integer  "pecking_order", default: 20
     t.boolean  "schoolwide"
     t.boolean  "publish"
     t.boolean  "public"
