@@ -2805,7 +2805,7 @@ class SB_Loader
     raise "Can't find event category for lessons." unless @lesson_category
     @assembly_category = Eventcategory.find_by_name("Assembly")
     raise "Can't find event category for assemblies." unless @assembly_category
-    @chapel_category = Eventcategory.find_by_name("Chapel")
+    @chapel_category = Eventcategory.find_by_name("Religious service")
     raise "Can't find event category for chapel." unless @chapel_category
     @meeting_category = Eventcategory.find_by_name("Meeting")
     raise "Can't find event category for meetings." unless @meeting_category
@@ -3085,6 +3085,7 @@ class SB_Loader
     tgmember_removed_count   = 0
     tgmember_unchanged_count = 0
     tgmember_loaded_count    = 0
+    pupils_renamed           = 0
     tg_at_start = Tutorgroup.current.count
     @tg_hash.each do |key, tg|
       #
@@ -3117,12 +3118,27 @@ class SB_Loader
     extra_ids.each do |eid|
       dbtg = Tutorgroup.find(eid)
       puts "Tutor group #{dbtg.name} exists in the d/b but not in the files." if @verbose
+      #
+      #  All the pupils in this group will need to have their names updated.
+      #
+      erstwhile_pupils =
+        dbtg.members(nil, false, true).select {|member| member.class == Pupil}
       dbtg.ceases_existence(@start_date)
+      erstwhile_pupils.each do |pupil|
+        pupil.reload
+        if pupil.element_name != pupil.element.name
+          pupil.save
+          pupils_renamed += 1
+        end
+      end
       tg_deleted_count += 1
     end
     tg_at_end = Tutorgroup.current.count
     if @verbose || tg_deleted_count > 0
       puts "#{tg_deleted_count} tutor group records deleted."
+      if pupils_renamed > 0
+        puts "as a result of which, #{pupils_renamed} pupils were renamed."
+      end
     end
     if @verbose || tg_changed_count > 0
       puts "#{tg_changed_count} tutor group records amended."
