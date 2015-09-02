@@ -1,6 +1,11 @@
+<% if @minimal %>
+<a class="close-reveal-modal">&#215;</a>
+<% end %>
 <h1>Editing user</h1>
 
 <%= render 'form' %>
 
+<% if !@minimal && !@minute %>
 <%= link_to 'Show', @user %> |
 <%= link_to 'Back', users_path %>
+<% end %>

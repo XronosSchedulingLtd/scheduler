@@ -1,0 +1,18 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-09-01T14:31:33+01:00
+
+====== Tuesday 01 Sep 2015 ======
+
+ASH has asked about the possibility of letting the week display start on a Monday instead of a Sunday. FullCalendar supports this, and it raises quite a few interesting ideas about the chain of changes needed.  I also noticed whilst talking to ASH that if an ordinary user (not admin) clicks on his or her name, messy things happen.  It's meant to show their user details, but I haven't set the permissions up correctly.
+
+So - what should happen?
+
+* Not logged in - name is not there
+* Unknown user - link should not be there
+* Known ordinary user - can edit some basic functionality
+* Admin user - can edit rather more
+
+And I'll need a new field in the User record to store the preferred day of the week.  Let's give it a go.  New branch.
+
+Add a new field to the User record called firstday, which defaults to 0 - Sunday.  I already have a basic editing form, so all I should need to do is add a new field to that - and perhaps tidy it up a bit.

@@ -13,9 +13,9 @@ Yes, they had indeed swapped.  Slight problem with the loader code in Scheduler.
 [*] Fix default values on eventcategories
 [*] Change helper method not to over-ride defaults unnecessarily (although it should never be used again).
 [*] Polish interval time formatting further - encapsulate it
-[ ] Promote to live system
-[ ] Run the helper method to fix element names
-[ ] Tell DJD and Karen that SUS is sorted
+[*] Promote to live system
+[*] Run the helper method to fix element names
+[*] Tell DJD and Karen that SUS is sorted
 
 Before I fix the loader code, let's just take note of two students who demonstrate the problem.
 
@@ -92,3 +92,4 @@ Noon never gets any minutes.  Try this - if neither time has any minutes, don't 
 11:00 am to 2:30 pm
 9:30 to 11:00 am
 
+9:30 am to 12 noon

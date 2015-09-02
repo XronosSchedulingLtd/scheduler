@@ -5,6 +5,15 @@
 
 class User < ActiveRecord::Base
 
+  DWI = Struct.new(:id, :name)
+  DaysOfWeek = [DWI.new(0, "Sunday"),
+                DWI.new(1, "Monday"),
+                DWI.new(2, "Tuesday"),
+                DWI.new(3, "Wednesday"),
+                DWI.new(4, "Thursday"),
+                DWI.new(5, "Friday"),
+                DWI.new(6, "Saturday")]
+
   DECENT_COLOURS = [
                     "#483D8B",      # DarkSlateBlue
                     "#CD5C5C",      # IndianRed
@@ -38,6 +47,9 @@ class User < ActiveRecord::Base
   #
   has_many :elements, foreign_key: :owner_id
   has_many :groups,   foreign_key: :owner_id, :dependent => :destroy
+
+  validates :firstday, :presence => true
+  validates :firstday, :numericality => true
 
   scope :arranges_cover, lambda { where("arranges_cover = true") }
 
@@ -82,6 +94,10 @@ class User < ActiveRecord::Base
     else
       "Gray"
     end
+  end
+
+  def list_days
+    DaysOfWeek
   end
 
   def create_events?
@@ -214,6 +230,17 @@ class User < ActiveRecord::Base
       Staff.find_by_email(self.email)
     else
       nil
+    end
+  end
+
+  #
+  #  Retrieve our firstday value, coercing it to be meaningful.
+  #
+  def safe_firstday
+    if self.firstday >=0 && self.firstday <= 6
+      self.firstday
+    else
+      0
     end
   end
 

@@ -11,7 +11,8 @@
     <div id="fullcalendar"<%
       if current_user && current_user.create_events?
         %> class="withedit"<%
-      end %>></div>
+      end
+        %> data-firstday="<%= current_user ? current_user.safe_firstday : "0" %>" data-defaultdate="<%= @default_date %>"></div>
   </div>
 </div>
 <div id="eventModal" class="reveal-modal" data-reveal>

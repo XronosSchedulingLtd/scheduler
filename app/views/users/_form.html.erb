@@ -1,4 +1,4 @@
-<%= form_for(@user) do |f| %>
+<%= form_for(@user, remote: @minimal) do |f| %>
   <% if @user.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h2>
@@ -11,33 +11,72 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :name %><br>
-    <%= f.text_field :name %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :name, class: "right inline" %><br>
+    </div>
+    <div class="small-9 columns">
+      <%= f.text_field :name, :disabled => !current_user.admin %>
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :email %><br>
-    <%= f.text_field :email %>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :email, class: "right inline" %><br>
+    </div>
+    <div class="small-9 columns">
+      <%= f.text_field :email, :disabled => !current_user.admin %>
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :admin %><br>
-    <%= f.check_box :admin %>
+
+<% if current_user.admin %>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :admin, class: "right inline" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :admin, :disabled => !current_user.admin %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.label :editor, class: "right inline" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :editor, :disabled => !current_user.admin %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.label :cover, class: "right inline" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :arranges_cover, :disabled => !current_user.admin %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.label :secretary, class: "right inline" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :secretary, :disabled => !current_user.admin %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.label :privileged, class: "right inline" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :privileged, :disabled => !current_user.admin %>
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :editor %><br>
-    <%= f.check_box :editor %>
-  </div>
-  <div class="field">
-    <%= f.label :arranges_cover %><br>
-    <%= f.check_box :arranges_cover %>
-  </div>
-  <div class="field">
-    <%= f.label :secretary %><br>
-    <%= f.check_box :secretary %>
-  </div>
-  <div class="field">
-    <%= f.label :privileged %><br>
-    <%= f.check_box :privileged %>
+
+<% end %>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "Week display to start on", class: "right inline" %><br>
+    </div>
+    <div class="small-2 columns">
+      <%= f.collection_select(:firstday,
+                              @user.list_days,
+                              :id,
+                              :name) %>
+    </div>
+    <div class="small-7 columns"></div>
   </div>
   <div class="actions">
     <%= f.submit %>

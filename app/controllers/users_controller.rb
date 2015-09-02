@@ -31,6 +31,18 @@ class UsersController < ApplicationController
 
   # GET /users/1/edit
   def edit
+    if current_user.known? &&
+       (current_user.admin || current_user.id == @user.id)
+      if request.xhr?
+        @minimal = true
+        render :layout => false
+      else
+        @minimal = false
+        render
+      end
+    else
+      render :forbidden
+    end
   end
 
   # POST /users
@@ -52,13 +64,19 @@ class UsersController < ApplicationController
   # PATCH/PUT /users/1
   # PATCH/PUT /users/1.json
   def update
+    original_firstday = @user.firstday
     respond_to do |format|
       if @user.update(user_params)
+        @success = true
+        @changed_firstday = (@user.firstday != original_firstday)
         format.html { redirect_to @user, notice: 'User was successfully updated.' }
         format.json { render :show, status: :ok, location: @user }
+        format.js
       else
+        @success = false
         format.html { render :edit }
         format.json { render json: @user.errors, status: :unprocessable_entity }
+        format.js
       end
     end
   end
@@ -74,6 +92,12 @@ class UsersController < ApplicationController
   end
 
   private
+    def authorized?(action = action_name, resource = nil)
+      logged_in? && (current_user.admin ||
+                     action == 'edit' ||
+                     action == 'update')
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_user
       @user = User.find(params[:id])
@@ -81,15 +105,21 @@ class UsersController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def user_params
-      params.require(:user).
-             permit(:provider,
-                    :uid,
-                    :name,
-                    :email,
-                    :admin,
-                    :editor,
-                    :arranges_cover,
-                    :secretary,
-                    :privileged)
+      if current_user.admin
+        params.require(:user).
+               permit(:provider,
+                      :uid,
+                      :name,
+                      :email,
+                      :admin,
+                      :editor,
+                      :arranges_cover,
+                      :secretary,
+                      :privileged,
+                      :firstday)
+      else
+        params.require(:user).
+               permit(:firstday)
+      end
     end
 end

@@ -95,6 +95,8 @@ class ScheduleController < ApplicationController
     #  Make space for creating a new concern.
     #
     @concern = Concern.new
+    start_at = session[:last_start_date] || Time.zone.now
+    @default_date = start_at.strftime("%Y-%m-%d")
   end
 
   def events
@@ -104,6 +106,12 @@ class ScheduleController < ApplicationController
     concern_id = params[:cid].to_i
     if current_user && current_user.known?
       if concern_id == 0
+        #
+        #  For this particular request, we make a note of the start
+        #  date, in order to be able to return to it on a page refresh
+        #  later.
+        #
+        session[:last_start_date] = start_date
         #
         #  We are being asked for the usual list of events for the
         #  current user.  These consist of:

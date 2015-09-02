@@ -1,0 +1,8 @@
+<% if @success %>
+$('#eventModal').foundation('reveal', 'close')
+<% if @changed_firstday %>
+location.reload();
+<% end %>
+<% else %>
+$('#for_errors').html("<%=j render "error_msgs" %>")
+<% end %>

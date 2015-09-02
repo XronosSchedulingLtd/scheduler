@@ -12,7 +12,8 @@ $(document).ready ->
   $('#datepicker').datepicker
     showOtherMonths: true
     selectOtherMonths: true
-    dateFormat: 'yy-mm-dd',
+    dateFormat: 'yy-mm-dd'
+    firstDay: $('#fullcalendar').data("firstday")
     onSelect: (dateText, inst) ->
       $('#fullcalendar').fullCalendar( 'gotoDate', new Date(dateText))
   window.activateCheckboxes()
@@ -47,6 +48,8 @@ $(document).ready ->
         week: 'Do MMM, YYYY'
         day: 'dddd Do MMM, YYYY'
       defaultView: "agendaWeek"
+      firstDay: $('#fullcalendar').data("firstday")
+      defaultDate: $('#fullcalendar').data("defaultdate")
       snapDuration: "00:05"
       minTime: "06:00"
       scrollTime: "08:00"
@@ -110,6 +113,8 @@ $(document).ready ->
         week: 'Do MMM, YYYY'
         day: 'dddd Do MMM, YYYY'
       defaultView: "agendaWeek"
+      firstDay: $('#fullcalendar').data("firstday")
+      defaultDate: $('#fullcalendar').data("defaultdate")
       snapDuration: "00:05"
       minTime: "06:00"
       scrollTime: "08:00"
