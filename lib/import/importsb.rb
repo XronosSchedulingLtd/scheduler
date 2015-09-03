@@ -1739,12 +1739,14 @@ class SB_Subject
                          "Chapel",
                          "Tutor"]
 
-  WANTED_SUBJECTS = ["Art",
+  WANTED_SUBJECTS = ["Ancient History",
+                     "Art",
                      "Be the Best",
                      "Biology",
                      "Chemistry",
                      "Chinese",
                      "Classical Civilisation",
+                     "Computing",
                      "Design & Technology",
                      "Drama",
                      "Economics",
