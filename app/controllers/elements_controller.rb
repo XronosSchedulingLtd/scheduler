@@ -218,6 +218,7 @@ class ElementsController < ApplicationController
     end
     if got_something
       tf = Tempfile.new(["#{prefix}", ".ics"])
+      dtstamp = Time.zone.now
       RiCal.Calendar do |cal|
         cal.add_x_property("X-WR-CALNAME", calendar_name)
         cal.add_x_property("X-WR-CALDESC", calendar_description)
@@ -236,7 +237,9 @@ class ElementsController < ApplicationController
               event.location = locations.collect {|l| l.friendly_name}.join(",")
             end
             event.uid = "e#{dbevent.id}@#{Setting.hostname}"
-            event.dtstamp = dbevent.created_at
+            event.dtstamp = dtstamp
+#            event.created = dbevent.created_at
+#            event.last_modified = dbevent.updated_at
           end
         end
       end.export(tf)
