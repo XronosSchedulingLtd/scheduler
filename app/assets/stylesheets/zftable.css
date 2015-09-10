@@ -1,0 +1,31 @@
+table.zftable {
+  background: white;
+  margin-bottom: 1.25rem;
+  border: solid 1px #dddddd; }
+  table.zftable thead,
+  table.zftable tfoot {
+    background: whitesmoke; }
+    table.zftable thead tr th,
+    table.zftable thead tr td,
+    table.zftable tfoot tr th,
+    table.zftable tfoot tr td {
+      padding: 0.5rem 0.625rem 0.625rem;
+      font-size: 0.875rem;
+      font-weight: bold;
+      color: #222222;
+      text-align: left; }
+  table.zftable tr th,
+  table.zftable tr td {
+    padding: 0.5625rem 0.625rem;
+    font-size: 0.875rem;
+    color: #222222; }
+  table.zftable tr.even, table.zftable tr.alt, table.zftable tr:nth-of-type(even) {
+    background: #f9f9f9; }
+  table.zftable thead tr th,
+  table.zftable tfoot tr th,
+  table.zftable tbody tr td,
+  table.zftable tr td,
+  table.zftable tfoot tr td {
+    display: table-cell;
+    line-height: 1.125rem; }
+
