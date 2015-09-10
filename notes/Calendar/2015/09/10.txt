@@ -94,7 +94,7 @@ It is of course the very last thing which I put in.  If I had a select handler t
 
 It was the select handler.  Something is wrong with the way that handler is invoking the dialogue.  What?  Does dropping a dragged item onto the calendar cause the same issue?  No, that is fine.
 
-Just noticed something - the greying out does happen, but it gets removed again immediately.  Could it be something to do with needing the clear the selection before invoking the dialogue?
+Just noticed something - the greying out does happen, but it gets removed again immediately.  Could it be something to do with needing to clear the selection before invoking the dialogue?
 
 Interesting phenomenon - if I do a proper drag then I get a working dialogue.  It's only if I do a click that it goes wrong. Is it that *both* callbacks are invoked?  Yes!!!!! That's it.  First the click and then the drag ones are invoked.  I need to guard against this.  How?  One test would be for the event being only 5 minutes long.  This seems to be the default if there is no movement.  It's not a proper solution (testing a side effect rather than the real problem) but...
 

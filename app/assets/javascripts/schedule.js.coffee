@@ -118,7 +118,7 @@ $(document).ready ->
           })
     $('.dynamic-element').each (index) ->
       window.addEventSource($(this).attr('concern_id'))
-      $(this).draggable({revert: true, revertDuration: 0, zIndex: 100})
+      $(this).draggable({revert: true, revertDuration: 0, zIndex: 100, cursorAt: { top: 0 }})
       $(this).droppable();
   else
     $('#fullcalendar').fullCalendar
@@ -180,7 +180,7 @@ window.activateCheckboxes = ->
 window.activateDragging = ->
   if ($('.withedit').length)
     $('.dynamic-element').each (index) ->
-      $(this).draggable({revert: true, revertDuration: 0, zIndex: 100})
+      $(this).draggable({revert: true, revertDuration: 0, zIndex: 100, cursorAt: { top: 0 }})
       $(this).droppable();
 
 window.refreshConcerns = ->
