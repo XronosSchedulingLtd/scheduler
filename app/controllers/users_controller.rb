@@ -116,7 +116,14 @@ class UsersController < ApplicationController
                       :arranges_cover,
                       :secretary,
                       :privileged,
-                      :firstday)
+                      :firstday,
+                      :preferred_event_category_id,
+                      :default_event_text)
+      elsif current_user.editor
+        params.require(:user).
+               permit(:firstday,
+                      :preferred_event_category_id,
+                      :default_event_text)
       else
         params.require(:user).
                permit(:firstday)

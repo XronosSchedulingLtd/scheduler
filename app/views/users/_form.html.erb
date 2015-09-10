@@ -78,6 +78,34 @@
     </div>
     <div class="small-7 columns"></div>
   </div>
+
+<% if current_user.editor || current_user.admin %>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "Preferred event category", class: "right inline" %><br>
+    </div>
+    <div class="small-2 columns">
+      <%= f.collection_select(:preferred_event_category_id,
+                              Eventcategory.categories_for(current_user),
+                              :id,
+                              :name,
+                              {:include_blank => "--None--"}) %>
+    </div>
+    <div class="small-7 columns"></div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "Default event description", class: "right inline" %><br>
+    </div>
+    <div class="small-9 columns">
+      <%= f.text_field(:default_event_text) %>
+    </div>
+  </div>
+
+<% end %>
+
   <div class="actions">
     <%= f.submit %>
   </div>

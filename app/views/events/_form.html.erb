@@ -1,3 +1,8 @@
+<% if @event.id %>
+<h1>Editing event</h1>
+<% else %>
+<h1>New event</h1>
+<% end %>
 <%= form_for(@event, remote: @minimal) do |f| %>
   <div id="for_errors">
     <% if @event.errors.any? %>
@@ -10,12 +15,16 @@
     Owner: <%= @event.owner_id ? @event.owner.name : "System" %>
   </div>
 
+  <%= f.text_field :precommit_element_id,
+                   :type => :hidden,
+                   :readonly => true %>
+
   <div class="row collapse">
     <div class="small-3 columns">
       <%= f.label :description, class: "right inline" %>
     </div>
     <div class="small-9 columns">
-      <%= f.text_area :body %>
+      <%= f.text_field :body, :id => "first_field" %>
     </div>
   </div>
   <div class="row collapse">

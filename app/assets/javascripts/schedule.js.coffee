@@ -18,6 +18,8 @@ $(document).ready ->
       $('#fullcalendar').fullCalendar( 'gotoDate', new Date(dateText))
   window.activateCheckboxes()
   $(document).on('opened', '[data-reveal]', ->
+    $('#first_field').focus()
+    $('#first_field').select()
     $('.datetimepicker').datetimepicker
       dateFormat: "dd/mm/yy"
       stepMinute: 5
@@ -58,10 +60,6 @@ $(document).ready ->
       eventSources: [{
         url: '/schedule/events'
       }]
-      dayClick: (date, jsEvent, view) ->
-        $('#eventModal').foundation('reveal', 'open', {
-          url: '/events/new?date=' + date.format("YYYY-MM-DD HH:mm")
-        })
       eventClick: (event, jsEvent, view) ->
         if event.editable
           $('#eventModal').foundation('reveal', 'open', {
@@ -94,8 +92,34 @@ $(document).ready ->
           data:
             event:
               new_end: event.end.format()
+      droppable: true
+      drop: (date, jsEvent, ui) ->
+        $('#eventModal').foundation('reveal', 'open', {
+          url: '/events/new?date=' +
+               date.format("YYYY-MM-DD HH:mm") +
+               '&precommit=' +
+               $(this).data("eid")
+        })
+      selectable: true
+      selectHelper: true
+      select: (start_time, end_time, jsEvent, view) ->
+        $('#fullcalendar').fullCalendar('unselect')
+        if end_time - start_time > 300000
+          $('#eventModal').foundation('reveal', 'open', {
+            url: '/events/new?date=' +
+                 start_time.format("YYYY-MM-DD HH:mm") +
+                 '&enddate=' +
+                 end_time.format("YYYY-MM-DD HH:mm")
+          })
+        else
+          $('#eventModal').foundation('reveal', 'open', {
+            url: '/events/new?date=' +
+                 start_time.format("YYYY-MM-DD HH:mm")
+          })
     $('.dynamic-element').each (index) ->
       window.addEventSource($(this).attr('concern_id'))
+      $(this).draggable({revert: true, revertDuration: 0, zIndex: 100})
+      $(this).droppable();
   else
     $('#fullcalendar').fullCalendar
       currentTimezone: 'Europe/London'
@@ -152,6 +176,12 @@ window.checkboxFlipped = (thebox) ->
 window.activateCheckboxes = ->
   $('.active-checkbox').change( ->
     window.checkboxFlipped(this))
+
+window.activateDragging = ->
+  if ($('.withedit').length)
+    $('.dynamic-element').each (index) ->
+      $(this).draggable({revert: true, revertDuration: 0, zIndex: 100})
+      $(this).droppable();
 
 window.refreshConcerns = ->
   $('#current_user').load('/concerns/sidebar', window.activateCheckboxes)

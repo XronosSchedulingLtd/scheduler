@@ -33,23 +33,64 @@ class EventsController < ApplicationController
     if current_user.preferred_event_category
       @event.eventcategory = current_user.preferred_event_category
     end
+    unless current_user.default_event_text.blank?
+      @event.body = current_user.default_event_text
+    end
     unless current_user.secretary
       staff = current_user.corresponding_staff
       if staff
         @event.organiser = staff.element
       end
     end
-    if request.xhr?
-      if params[:date]
-        start_date = Time.zone.parse(params[:date])
-        @event.starts_at = start_date
+    if params[:precommit]
+      #
+      #  Make no attempt to validate at this point.  If it comes back
+      #  later then we will check it, and if it isn't valid then the
+      #  pre-commit just won't happen.
+      #
+      @event.precommit_element_id = params[:precommit]
+    else
+      @event.precommit_element_id = ""
+    end
+    if params[:date]
+      start_date = Time.zone.parse(params[:date])
+      @event.starts_at = start_date
+      if params[:enddate]
+        end_date = Time.zone.parse(params[:enddate])
+        @event.ends_at = end_date
+      else
+        end_date = nil
         @event.ends_at   = start_date
-        if start_date.hour == 0 &&
-           start_date.min == 0
-          @event.all_day = true
+      end
+      if start_date.hour == 0 &&
+         start_date.min == 0
+        @event.all_day = true
+        unless end_date
           @event.ends_at = start_date + 1.day
         end
       end
+    end
+    #
+    #  If the event is now complete enough to save to the database,
+    #  then save it.  We will thus go on to edit it instead of
+    #  the creation dialogue.  This is kind of breaking the rules
+    #  of verbs, but it makes for a slicker user experience.
+    #
+    #  Actually - it leads to too many problems.  If the user then
+    #  cancels the dialogue the event is still in the d/b but doesn't
+    #  appear on the screen, causing confusion.  Turned off again.
+    #
+#    if @event.valid?
+#      @event.save
+#      @commitment = Commitment.new
+#      @commitment.event = @event
+#    else
+#      #
+#      #  Don't whinge prematurely.
+#      #
+#      @event.errors.clear
+#    end
+    if request.xhr?
       @minimal = true
       render :layout => false
     else
@@ -97,6 +138,25 @@ class EventsController < ApplicationController
           c.event = @event
           c.element = concern.element
           c.save
+        end
+        #
+        #  And was anything specified in the request?
+        #
+        unless @event.precommit_element_id.blank?
+          element = Element.find_by(id: @event.precommit_element_id)
+          if element
+            #
+            #  Guard against double commitment.
+            #
+            unless current_user.concerns.auto_add.detect {|c| c.element == element}
+              c = Commitment.new
+              c.event = @event
+              c.element = element
+              c.save
+            end
+          else
+            Rails.logger.debug("Couldn't find element with id #{@event.precommit_element_id}")
+          end
         end
         @success = true
         @minimal = true
@@ -199,6 +259,6 @@ class EventsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def event_params
-      params.require(:event).permit(:body, :eventcategory_id, :eventsource_id, :owner_id, :integer, :starts_at_text, :ends_at_text, :all_day_field, :approximate, :non_existent, :private, :reference_id, :reference_type, :new_end, :organiser_name, :organiser_id, :organiser_ref)
+      params.require(:event).permit(:body, :eventcategory_id, :eventsource_id, :owner_id, :integer, :starts_at_text, :ends_at_text, :all_day_field, :approximate, :non_existent, :private, :reference_id, :reference_type, :new_end, :organiser_name, :organiser_id, :organiser_ref, :precommit_element_id)
     end
 end

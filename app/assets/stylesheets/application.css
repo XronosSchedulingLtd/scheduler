@@ -13,8 +13,8 @@
  *= require_tree .
  *= require_self
  *= require foundation_and_overrides
- *= require fullcalendar
  *= require jquery.ui.all
  *= require jquery-ui-timepicker-addon
+ *= require fullcalendar
 
  */

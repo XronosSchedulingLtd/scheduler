@@ -33,12 +33,14 @@ Hit an interesting problem trying to keep data in the session store.  (Currently
 
 What happens if I install memcached on this box?  It just starts and runs.  Can I now use it for my session store?  Had to add Dalli to my Gemfile.  It does now seem to manage to store my session information.  Let's remove some of the garbage.  All seems to work fine.  Perhaps I should test it on my staging server?  Or is that premature?  Steps needed.
 
-[ ] Make sure memcached is installed and running
-[ ] Backup database
-[ ] export RAILS_ENV=production
-[ ] git pull
-[ ] rake db:migrate
-[ ] rake assets:precompile
-[ ] touch tmp/restart.txt
+[*] Make sure memcached is installed and running
+[*] Backup database
+[*] export RAILS_ENV=production
+[*] git pull
+[*] bundle install
+[*] rake db:migrate
+[*] rake assets:precompile
+[*] touch tmp/restart.txt
 
+I had a temporary problem with being unable to install the gem, but it seemed to resolve itself.
 

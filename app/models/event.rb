@@ -128,6 +128,14 @@ class Event < ActiveRecord::Base
     end
   end
 
+  def precommit_element_id
+    @precommit_element_id
+  end
+
+  def precommit_element_id=(value)
+    @precommit_element_id = value
+  end
+
   def starts_at_text
     if all_day
       starts_at ? starts_at.strftime("%d/%m/%Y") : ""

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150901133449) do
+ActiveRecord::Schema.define(version: 20150910101625) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -294,6 +294,7 @@ ActiveRecord::Schema.define(version: 20150901133449) do
     t.boolean  "show_owned",                  default: true
     t.boolean  "privileged",                  default: false
     t.integer  "firstday",                    default: 0
+    t.string   "default_event_text",          default: ""
   end
 
 end

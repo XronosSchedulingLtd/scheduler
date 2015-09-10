@@ -1,5 +1,6 @@
 $('#current_user').html("<%=j render current_user %>")
 <% if @concern_id %>
-window.addEventSource(<%= @concern_id %>)
+window.addEventSource(<%= @concern_id %>);
 <% end %>
-window.activateCheckboxes()
+window.activateCheckboxes();
+window.activateDragging();
