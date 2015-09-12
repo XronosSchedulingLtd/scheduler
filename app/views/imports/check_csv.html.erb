@@ -1,6 +1,6 @@
 <h1>Parsed input file</h1>
 
-<table>
+<table class="zftable">
   <tbody>
     <tr>
       <td>File name:</td>
@@ -24,7 +24,7 @@
 <h2>Confirm data import</h2>
 <%= form_tag({action: :commit_csv}) do %>
 <%= hidden_field_tag(:name, @name, :readonly => true) %>
-<table>
+<table class="zftable">
   <tbody>
     <tr>
       <td>Data source:</td>
