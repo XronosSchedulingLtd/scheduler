@@ -22,6 +22,7 @@ class DaysController < ApplicationController
       mark_end:         false,
       add_locations:    false,
       add_staff:        false,
+      add_pupils:       false,
       by_period:        false,
       clock_format:     :twenty_four_hour,
       end_times:        true,
@@ -73,6 +74,9 @@ class DaysController < ApplicationController
     end
     if params.has_key?(:staff)
       options[:add_staff] = true
+    end
+    if params.has_key?(:pupils)
+      options[:add_pupils] = true
     end
     if params.has_key?(:periods)
       options[:by_period] = true

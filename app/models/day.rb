@@ -70,6 +70,8 @@ class Day
         event.locations.collect {|l| l.friendly_name}.join(", ")
       @staff_string =
         event.staff.collect {|s| s.short_name}.join(", ")
+      @pupil_string =
+        event.pupils(true).collect {|s| s.short_name}.join(", ")
       @period_no = period_no(event)
 #      Rails.logger.debug("@period_no = #{@period_no}")
       if event.all_day
@@ -114,6 +116,10 @@ class Day
         @table_text =
           @table_text.chomp(".") + " - " + @staff_string + "."
       end
+      if day.options[:add_pupils] && !@pupil_string.empty?
+        @table_text =
+          @table_text.chomp(".") + " - " + @pupil_string + "."
+      end
       if day.options[:add_locations] && !@locations_string.empty?
         @table_text =
           @table_text.chomp(".") + " - " + @locations_string + "."
@@ -121,6 +127,9 @@ class Day
       @csv_data = [@duration_string, @csv_text]
       if day.options[:add_staff]
         @csv_data << @staff_string
+      end
+      if day.options[:add_pupils]
+        @csv_data << @pupil_string
       end
       if day.options[:add_locations]
         @csv_data << @locations_string
