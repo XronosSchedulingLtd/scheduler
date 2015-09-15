@@ -133,7 +133,9 @@ $(document).ready ->
       header:
         left: 'prev,next today'
         center: 'title'
-        right: 'month,agendaWeek,agendaDay'
+        right: 'month,agendaWeek,agendaDay,basicDay'
+      buttonText:
+        basicDay: "day list"
       titleFormat:
         month: 'MMMM YYYY'
         week: 'Do MMM, YYYY'
