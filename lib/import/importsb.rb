@@ -1292,34 +1292,42 @@ class SB_StaffCover
       #  clashing event only once.
       #
       clashes = []
-      event_ids_seen = []
-      all_commitments =
-        cover_commitment.element.commitments_during(
-          start_time: cover_commitment.event.starts_at,
-          end_time:   cover_commitment.event.ends_at)
-      if all_commitments.size > 1
-        #
-        #  Possibly a problem.
-        #
-#        puts "Possible cover clash for #{cover_commitment.element.name}."
-        all_commitments.each do |c|
-#          puts "  #{c.event.starts_at}"
-#          puts "  #{c.event.ends_at}"
-#          puts "  #{c.event.body}"
-          unless (c == cover_commitment) ||
-                 (c.event == cover_commitment.event) ||
-                 (c.covered) ||
-                 (c.event.eventcategory.unimportant) ||
-                 (c.event.eventcategory.can_merge &&
-                  c.event.eventcategory == cover_commitment.event.eventcategory &&
-                  c.event.starts_at == cover_commitment.event.starts_at &&
-                  c.event.ends_at   == cover_commitment.event.ends_at) ||
-                 (c.event.eventcategory.can_borrow &&
-                  c.event.staff(true).size > 1) ||
-                 permitted_overload(cover_commitment, c) ||
-                 event_ids_seen.include?(c.event.id)
-            clashes << Clash.new(cover_commitment, c)
-            event_ids_seen << c.event.id
+      #
+      #  Special case.  ICF uses a convention of saying an individual
+      #  is covering his or her own lesson to indicate that no cover
+      #  is actually needed at all.  Identify this case, and if we
+      #  have it then do no further checks.
+      #
+      unless cover_commitment.element == cover_commitment.covering.element
+        event_ids_seen = []
+        all_commitments =
+          cover_commitment.element.commitments_during(
+            start_time: cover_commitment.event.starts_at,
+            end_time:   cover_commitment.event.ends_at)
+        if all_commitments.size > 1
+          #
+          #  Possibly a problem.
+          #
+  #        puts "Possible cover clash for #{cover_commitment.element.name}."
+          all_commitments.each do |c|
+  #          puts "  #{c.event.starts_at}"
+  #          puts "  #{c.event.ends_at}"
+  #          puts "  #{c.event.body}"
+            unless (c == cover_commitment) ||
+                   (c.event == cover_commitment.event) ||
+                   (c.covered) ||
+                   (c.event.eventcategory.unimportant) ||
+                   (c.event.eventcategory.can_merge &&
+                    c.event.eventcategory == cover_commitment.event.eventcategory &&
+                    c.event.starts_at == cover_commitment.event.starts_at &&
+                    c.event.ends_at   == cover_commitment.event.ends_at) ||
+                   (c.event.eventcategory.can_borrow &&
+                    c.event.staff(true).size > 1) ||
+                   permitted_overload(cover_commitment, c) ||
+                   event_ids_seen.include?(c.event.id)
+              clashes << Clash.new(cover_commitment, c)
+              event_ids_seen << c.event.id
+            end
           end
         end
       end
