@@ -246,10 +246,42 @@ class EventsController < ApplicationController
     end
   end
 
+  # GET /events/search
+  def search
+    #
+    #  Logged in, known users can search for any event.
+    #  Others only on calendar events.
+    #
+    search_text = event_params[:body]
+    if search_text.blank?
+      redirect_to :back
+    else
+      if current_user && current_user.known?
+        @found_events =
+          Event.beginning(Setting.current_era.starts_on).
+                where("body like ?", "%" + search_text + "%").
+                order(:starts_at).
+                page(params[:page]).order('starts_at')
+      else
+        calendar_category = Eventcategory.cached_category("Calendar")
+        if calendar_category
+          @found_events =
+            calendar_category.events.
+                              beginning(Setting.current_era.starts_on).
+                              where("body like ?", "%" + search_text + "%").
+                              order(:starts_at).
+                              page(params[:page]).order('starts_at')
+        else
+          redirect_to :back
+        end
+      end
+    end
+  end
+
   private
     def authorized?(action = action_name, resource = nil)
       (logged_in? && current_user.create_events?) ||
-      action == 'show'
+      action == 'show' || action == "search"
     end
 
     # Use callbacks to share common setup or constraints between actions.

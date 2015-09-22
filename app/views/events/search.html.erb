@@ -1,0 +1,22 @@
+<h1>Events</h1>
+
+<%= will_paginate @found_events %>
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>When</th>
+      <th>Event</th>
+      <th>Properties</th>
+      <th>Where</th>
+      <th>Owner</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <%= render :partial => "found_event", :collection => @found_events %>
+  </tbody>
+</table>
+<%= will_paginate @found_events %>
+
+<br>
+

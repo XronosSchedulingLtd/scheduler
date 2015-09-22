@@ -37,6 +37,7 @@ Rails.application.routes.draw do
       put 'moved'
       post :clone
     end
+    get :search, :on => :collection
   end
 
   resources :days do

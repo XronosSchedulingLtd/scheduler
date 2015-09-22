@@ -283,7 +283,14 @@ class Event < ActiveRecord::Base
   def organiser_name=(on)
     @organiser_name = on
   end
-  
+ 
+  def owners_initials
+    if self.owner
+      self.owner.initials
+    else
+      "SYS"
+    end
+  end
   #
   #  What resources are directly involved in this event?
   #

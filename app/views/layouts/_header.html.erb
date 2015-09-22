@@ -20,6 +20,7 @@
     </ul>
     <section class="top-bar-section">
       <ul class="right">
+        <%= render :partial => "/events/search" %>
         <li class="divider"></li>
         <% if current_user %>
           <% if current_user.admin %>

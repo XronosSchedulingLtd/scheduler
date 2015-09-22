@@ -233,6 +233,14 @@ class User < ActiveRecord::Base
     end
   end
 
+  def initials
+    if self.corresponding_staff
+      self.corresponding_staff.initials
+    else
+      "UNK"
+    end
+  end
+
   #
   #  Retrieve our firstday value, coercing it to be meaningful.
   #
