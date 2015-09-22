@@ -91,12 +91,26 @@ class ScheduleController < ApplicationController
   end
 
   def show
-    #
-    #  Make space for creating a new concern.
-    #
-    @concern = Concern.new
-    start_at = session[:last_start_date] || Time.zone.now
-    @default_date = start_at.strftime("%Y-%m-%d")
+    if params[:date]
+      #
+      #  If the request specifies a date then we get a little tricky.
+      #  We could just shove that date in the :last_start_date field
+      #  in the session and then go on to display the page, but then
+      #  the specified date would stay in the URL.  Instead we shove
+      #  it there and then redirect to the root (which is us again)
+      #  but it means that if the user later refreshes the page, he
+      #  or she won't be sent back to this date.
+      #
+      session[:last_start_date] = Time.zone.parse(params[:date])
+      redirect_to :root
+    else
+      #
+      #  Make space for creating a new concern.
+      #
+      @concern = Concern.new
+      start_at = session[:last_start_date] || Time.zone.now
+      @default_date = start_at.strftime("%Y-%m-%d")
+    end
   end
 
   def events

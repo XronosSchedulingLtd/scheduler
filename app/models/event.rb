@@ -104,6 +104,7 @@ class Event < ActiveRecord::Base
   scope :atomic, lambda { where("compound = false") }
   scope :compound, lambda { where("compound = true") }
   scope :all_day, lambda { where("all_day = true") }
+  scope :involving, lambda {|element| joins(:commitments).where("commitments.element_id = ?", element.id)}
 
   #
   #  For pagination.

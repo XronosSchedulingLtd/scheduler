@@ -261,16 +261,16 @@ class EventsController < ApplicationController
           Event.beginning(Setting.current_era.starts_on).
                 where("body like ?", "%" + search_text + "%").
                 order(:starts_at).
-                page(params[:page]).order('starts_at')
+                page(params[:page])
       else
-        calendar_category = Eventcategory.cached_category("Calendar")
-        if calendar_category
+        calendar_property = Property.find_by(name: "Calendar")
+        if calendar_property
           @found_events =
-            calendar_category.events.
-                              beginning(Setting.current_era.starts_on).
-                              where("body like ?", "%" + search_text + "%").
-                              order(:starts_at).
-                              page(params[:page]).order('starts_at')
+            Event.beginning(Setting.current_era.starts_on).
+                  involving(calendar_property.element).
+                  where("body like ?", "%" + search_text + "%").
+                  order(:starts_at).
+                  page(params[:page])
         else
           redirect_to :back
         end

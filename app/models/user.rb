@@ -167,7 +167,7 @@ class User < ActiveRecord::Base
   def find_matching_resources
     if self.email && !self.known?
       got_something = false
-      staff = Staff.active.find_by(email: self.email)
+      staff = Staff.find_by_email(self.email)
       if staff
         got_something = true
         concern = self.concern_with(staff.element)
