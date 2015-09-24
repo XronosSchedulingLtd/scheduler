@@ -253,28 +253,35 @@ class EventsController < ApplicationController
     #  Others only on calendar events.
     #
     search_text = event_params[:body]
-    if search_text.blank?
+    calendar_property = Property.find_by(name: "Calendar")
+    if search_text.blank? || calendar_property == nil
       redirect_to :back
     else
-      if current_user && current_user.known?
-        @found_events =
-          Event.beginning(Setting.current_era.starts_on).
-                where("body like ?", "%" + search_text + "%").
-                order(:starts_at).
-                page(params[:page])
-      else
-        calendar_property = Property.find_by(name: "Calendar")
-        if calendar_property
-          @found_events =
-            Event.beginning(Setting.current_era.starts_on).
-                  involving(calendar_property.element).
-                  where("body like ?", "%" + search_text + "%").
-                  order(:starts_at).
-                  page(params[:page])
-        else
-          redirect_to :back
-        end
+      selector = Event.beginning(Setting.current_era.starts_on)
+      unless current_user && current_user.staff?
+        selector = selector.involving(calendar_property.element)
       end
+      selector =
+        search_text.split(" ").inject(selector) { |memo, snippet|
+          memo.where("body like ?", "%#{snippet}%")
+        }
+      @found_events = selector.order(:starts_at).page(params[:page])
+      @full_details = current_user && current_user.staff?
+
+#      if current_user && current_user.known?
+#        @found_events =
+#          Event.beginning(Setting.current_era.starts_on).
+#                where("body like ?", "%" + search_text + "%").
+#                order(:starts_at).
+#                page(params[:page])
+#      else
+#        @found_events =
+#          Event.beginning(Setting.current_era.starts_on).
+#                involving(calendar_property.element).
+#                where("body like ?", "%" + search_text + "%").
+#                order(:starts_at).
+#                page(params[:page])
+#      end
     end
   end
 

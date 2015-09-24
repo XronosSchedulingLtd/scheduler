@@ -1,0 +1,31 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-09-15T08:12:55+01:00
+
+====== Tuesday 15 Sep 2015 ======
+
+Need to add one more exception to the cover checking code in the loader.
+
+ICF uses a convention of marking someone as covering themselves if he has decided that the lesson does not need cover.  One might have expected him just to leave it uncovered (matching the real state of affairs) but he's decided to do it this way.
+
+I already have code to prevent a warning about the self-cover, but I need to add further code to stop my utility warning that the staff member is doing a cover (for him or her self) at the same time as having an extra commitment.
+
+If staff member is covering him or herself, no further clash checking needed.
+
+Ah - but.  The warning is arising as I check the extra commitment.  It needs to be suppressed earlier.  Essentially, if a staff member is covering him or her self, don't bother to do any further checks.  Don't even look for any clashing events.  Is that correct?  Is it safe?
+
+It's only cover commitments which I do this check for anyway.
+
+Made the change and tested it - it seems OK.  One extra oddity though - more clashes appeared when I did my test run which didn't appear at 04:00 today.  This is because the sports department have entered the other half activities late, and OH is actually loaded after the clash checking is done.  This shouldn't be an issue (because the sports OH should have been entered ages ago), but it is in this case.
+
+Deployed my new loader code to the live system.
+
+I'm very tempted now to go on and do an event search facility.  I seem to have an idea of how it would work.  Should it work for non logged-in users too?  Perhaps just calendar events in their case.
+
+A thought - if I want to paginate my event results, I potentially need somewhere to store them - that or re-execute the search each time.  Searches are fairly cheap.  Presumably it only makes sense to search for future events - at least by default.
+
+I need the form to be available whenever a page is displayed with the header in it.  This is something which I've done successfully with Markbook, but I need to remind myself exactly how.  ISTR that whenever you have a form in a Rails view, you need an object behind for it to belong to.  Find the code which generates the form.
+
+Ah yes - I seem to be generating a dummy element in the actual view.  In fact, in a fragment which is included in lots of other views.  views/resources/_enter.erb  Now where is that then included?
+
+Got a basic version of the search facility working.  The interesting thing is whether one can usefully put some links in there.  I can easily provide a link to take someone to the relevant day, but they might then not see the event for which they're looking if they're not looking at the right resources.  It's fine for guests, because they will search only calendar events, and are shown calendar events, but not so good for others.

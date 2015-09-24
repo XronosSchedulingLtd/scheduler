@@ -1,5 +1,10 @@
 <table style="current_user_table" class="zftable">
-<tr><td style="width:80%;"> </td><td style="width:10px;"></td><td style="width:10px;"></td></tr>
+<tr>
+  <td style="width:80%;"> </td>
+  <td style="width:10px;"></td>
+  <td style="width:10px;"></td>
+</tr>
+<% if current_user.staff? %>
 <tr>
   <td style="background-color:<%= current_user.colour_not_involved %>;color:white;font-size:90%;padding-top:0px;padding-bottom:0px;">
     My events
@@ -9,10 +14,12 @@
   </td>
   <td style="padding-top:0px;padding-bottom:0px;"></td>
 </tr>
+<% end %>
 <%= render user.concerns.me %>
 <% if user.concerns.not_me.size > 0 %>
   <%= render user.concerns.not_me.sort %>
 <% end %>
+<% if current_user.staff? %>
 <tr><th>Quick add</th><th></th></tr>
 <tr>
   <td colspan="3">
@@ -25,4 +32,5 @@
     <% end %>
   <td>
 </tr>
+<% end %>
 </table>

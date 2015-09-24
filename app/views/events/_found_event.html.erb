@@ -8,11 +8,18 @@
   <td title="<%= found_event.body %>">
     <%= truncate(found_event.body, :length => 40) %>
   </td>
+<% if @full_details %>
   <td title="<%= found_event.properties.collect {|p| p.name}.join(",")%>">
     <%= found_event.properties.collect {|p|
           truncate(p.name, :length => 14)
         }.join("<br/>").html_safe %>
   </td>
-  <td><%= found_event.locations.collect {|l| l.name}.join("<br/>").html_safe %></td>
+<% end %>
+  <td>
+    <%= found_event.locations.collect {|l| l.name}.join("<br/>").html_safe %>
+  </td>
+<% if @full_details %>
+  <td><%= found_event.organiser ? found_event.organiser.short_name : "" %></td>
   <td><%= found_event.owners_initials %></td>
+<% end %>
 </tr>

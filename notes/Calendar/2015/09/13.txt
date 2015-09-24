@@ -1,0 +1,59 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-09-13T10:19:25+01:00
+
+====== Sunday 13 Sep 2015 ======
+
+Looking at promoting my latest code to the live system.  The last time I did this I had some problems because bundle install couldn't connect to the Gem server.  I suspect they've blocked it at the firewall again.  I circumvented the problem by using "gem install" to get the relevant Gem first.  It seems to use http, where bundle install uses https.  I must make sure I can get the new Gem before I upgrade the software.
+
+I also need to be able to step back. What am I running at the moment?
+
+'''
+commit 8080e49b2f3541fceda883e0202c16ea0bad26b8
+Author: John Winters <john@sinodun.org.uk>
+Date:   Thu Sep 10 08:10:02 2015 +0100
+
+    Changed overload names to match new year.
+'''
+
+
+
+OK.  What's the new gem needed?  fullcalendar-rails 2.0.2.0.  Odd - I thought we were on 2.3 or something like that.  Yes, if I search for fullcalendar-rails I see version 2.3.1.0.  Why didn't that get installed?  Not at all sure.  I gave it a free choice.  However, as that's what I have tested with I'd better stick to it.  It replaces fullcalendar2-rails which I was using before.
+
+Can I install that version on mach2?
+
+Steps to install
+
+[*] Back up d/b
+[*] export RAILS_ENV=production
+[*] git pull
+[*] bundle install
+[*] rake db:migrate
+[*] rake assets:precompile
+[*] touch tmp/restart.txt
+
+Interesting - on both my development system and my live one, I let bundler handle the installation of fullcalendar-rails, and in the process fullcalendar2-rails seems to have been removed.  However, on the live system I explicitly installed fullcalendar-rails, and fullcalendar2-rails seems to be still there.  Should I remove it?  I have done, and it seems still to work.  Good.  Odd though that I'm using an old version (why? - I didn't ask for it) and that it cures my old drag-to-create problem.
+
+Now, can I fix the new theatre chap's colours to match Nicks?  Done that.
+
+Thinking about adding a moving time line to the day.  There seem to be very full instructions available on-line, albeit for various version of fullcalendar.  That then got me thinking about why I have an old version installed.  I simply asked the bundler to install fullcalendar-rails, and given these available versions:
+
+'''
+john@midnight:~/Work/Coding/scheduler$ gem search fullcalendar-rails --all
+
+*** REMOTE GEMS ***
+
+fullcalendar-rails (2.3.1.0, 2.2.5.1, 2.2.5.0, 2.2.3.0, 2.2.2.0, 2.2.0.0, 2.1.1.0, 2.0.2.0, 2.0.1.0, 1.6.4.0, 1.6.1.0, 1.5.4.0, 1.5.3.0)
+john@midnight:~/Work/Coding/scheduler$
+'''
+ 
+
+It seems to have chosen 2.0.2.0.  Why?  What happens if I specify the version to be at least 2.3?  Am I confident I can get back again?
+
+Ah - discovered why it chose that one.  fullcalendar-rails depends on jquery-rails and version 2.3.1.0 wants jquery rails between 3.1.1 and 5.0.0.  Currently I'm using 3.1.0.  Should I try upgrading that too?  Why not?
+
+Did that, and now we want at least version 2.8.4 of momentjs-rails.  Again, try it.  Now it thinks it's managed the installation.  Will things still work?
+
+jquery-ui seems to have changed its general appearance a bit.  Trying to look like Twitter Bootstrap?  It looks slightly less polished to me, and my day highlight has disappeared again.  Presumably a slight change to the css?  Yes, added .fc-unthemed to my selector and back it came.
+
+OK - as I have the app running with fullcalendar 2.3 (although I now understand even less how it actually works) perhaps I should try following instructions for 2.3 and trying to get a red line to appear.

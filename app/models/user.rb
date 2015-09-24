@@ -59,6 +59,11 @@ class User < ActiveRecord::Base
     @known ||= (self.own_element != nil)
   end
 
+  def staff?
+    @staff ||= (self.own_element != nil &&
+                self.own_element.entity.class == Staff)
+  end
+
   def own_element
     unless @own_element
       my_own_concern = self.concerns.me[0]
@@ -334,4 +339,35 @@ class User < ActiveRecord::Base
       "Can't find element #{element_or_name} for #{self.name} to view."
     end
   end
+
+  #
+  #  Fix all users who are students so that they have a concern with
+  #  themselves and the calendar, and no others.
+  #
+  def self.fix_students
+    results = Array.new
+    calendar_element = Element.find_by(name: "Calendar")
+    if calendar_element
+      User.all.each do |u|
+        e = u.own_element
+        if e && e.entity.class == Pupil
+          results << "Processing #{e.name}"
+          u.concerns.each do |c|
+            if c.element != e
+              results << "Removing concern with #{c.element.name}"
+              c.destroy
+            end
+          end
+          u.to_view(calendar_element, true)
+        end
+      end
+    else
+      results << "Unable to find Calendar element."
+    end
+    results.each do |text|
+      puts text
+    end
+    nil
+  end
+
 end

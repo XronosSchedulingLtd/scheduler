@@ -83,7 +83,7 @@ class Concern < ActiveRecord::Base
   #
   #  Can the relevant user delete this concern?
   def user_can_delete?
-    !(self.owns || self.controls)
+     self.user.staff? && !(self.owns || self.controls)
   end
 
   #
