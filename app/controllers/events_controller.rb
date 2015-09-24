@@ -254,6 +254,7 @@ class EventsController < ApplicationController
     #
     search_text = event_params[:body]
     calendar_property = Property.find_by(name: "Calendar")
+    invisible_categories = Eventcategory.invisible.to_a
     if search_text.blank? || calendar_property == nil
       redirect_to :back
     else
@@ -261,6 +262,9 @@ class EventsController < ApplicationController
       unless current_user && current_user.staff?
         selector = selector.involving(calendar_property.element)
       end
+      selector = invisible_categories.inject(selector) { |memo, ic|
+        memo.excluding_category(ic)
+      }
       selector =
         search_text.split(" ").inject(selector) { |memo, snippet|
           memo.where("body like ?", "%#{snippet}%")

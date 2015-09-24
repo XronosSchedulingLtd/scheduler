@@ -27,6 +27,7 @@ class Eventcategory < ActiveRecord::Base
   scope :unprivileged, -> { where(privileged: false) }
 
   scope :visible, -> { where(visible: true) }
+  scope :invisible, -> { where(visible: false) }
 
   @@category_cache = {}
 
