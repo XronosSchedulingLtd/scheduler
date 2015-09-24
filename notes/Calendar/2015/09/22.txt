@@ -6,11 +6,12 @@ Creation-Date: 2015-09-22T15:00:29+01:00
 
 OK - I think I'm going to try to put my search facility onto the staging server.  As ever, record the steps.
 
-[ ] Back up live database
+[*] Back up live database
 [ ] Restore onto staging server
-[ ] export RAILS_ENV=production
-[ ] git pull
-[ ] touch tmp/restart.txt
+[*] export RAILS_ENV=production
+[*] git pull
+[*] touch tmp/restart.txt
+[*] rails c; User.fix_students
 
 Is that it?
 

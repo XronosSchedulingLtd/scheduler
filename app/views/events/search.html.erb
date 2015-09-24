@@ -1,6 +1,9 @@
 <h1>Events</h1>
 
+<div class="digg_pagination">
 <%= will_paginate @found_events %>
+</div>
+
 <table class="zftable">
   <thead>
     <tr>
@@ -21,7 +24,9 @@
     <%= render :partial => "found_event", :collection => @found_events %>
   </tbody>
 </table>
+<div class="digg_pagination">
 <%= will_paginate @found_events %>
+</div>
 
 <br>
 

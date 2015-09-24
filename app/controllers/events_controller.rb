@@ -264,8 +264,33 @@ class EventsController < ApplicationController
       selector =
         search_text.split(" ").inject(selector) { |memo, snippet|
           memo.where("body like ?", "%#{snippet}%")
-        }
-      @found_events = selector.order(:starts_at).page(params[:page])
+        }.order(:starts_at)
+      #
+      #  Now, has a page number been specified?  If has then we go
+      #  to it, otherwise we try to a bit of intelligent adjustment.
+      #
+      page_param = params[:page]
+      if page_param.blank?
+        num_events = selector.size
+        now = Time.zone.now
+        if num_events > Event.per_page
+          index = selector.find_index {|e| e.starts_at >= now }
+          if index
+            #
+            #  I want to start on the page on which this event
+            #  occurs.
+            #
+            page_param = ((index / Event.per_page) + 1).to_s
+          else
+            #
+            #  All events are in the past.  Would make sense
+            #  to start on the last page.
+            #
+            page_param = (((num_events - 1) / Event.per_page) + 1).to_s
+          end
+        end
+      end
+      @found_events = selector.page(page_param)
       @full_details = current_user && current_user.staff?
 
 #      if current_user && current_user.known?
