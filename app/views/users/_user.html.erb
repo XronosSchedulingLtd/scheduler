@@ -5,15 +5,14 @@
   <td style="width:10px;"></td>
 </tr>
 <% if current_user.staff? %>
-<tr><th>Quick add</th><th></th></tr>
 <tr>
   <td colspan="3">
     <%= form_for(@concern, remote: true) do |f| %>
       <%= f.autocomplete_field :name,
                                autocomplete_element_name_elements_path,
-                               :id_element => '#concern_element_id' %>
+                               :id_element => '#concern_element_id',
+                               :placeholder => "Add watch item" %>
       <%= f.text_field :element_id, :type => :hidden %>
-      <%= f.submit "Find" %>
     <% end %>
   <td>
 </tr>
