@@ -1,27 +1,30 @@
-<div class="row">
-  <div class="large-2 columns">
-    <div id="datepicker"></div>
-    <% if current_user && current_user.known? %>
+<div class="container">
+  <div class="row">
+  <% if known_user? %>
+    <div class="large-2 small-3 columns">
       <div id="current_user">
         <%= render current_user %>
       </div>
-    <% end %>
+    </div>
+    <div class="large-10 small-9 columns">
+  <% else %>
+    <div class="large-12 columns">
+  <% end %>
+      <div id="fullcalendar"<%
+        if current_user && current_user.create_events?
+          %> class="withedit"<%
+        end
+          %> data-firstday="<%= current_user ? current_user.safe_firstday : "0" %>" data-defaultdate="<%= @default_date %>"></div>
+    </div>
   </div>
-  <div class="large-10 columns">
-    <div id="fullcalendar"<%
-      if current_user && current_user.create_events?
-        %> class="withedit"<%
-      end
-        %> data-firstday="<%= current_user ? current_user.safe_firstday : "0" %>" data-defaultdate="<%= @default_date %>"></div>
-  </div>
-</div>
-<div id="eventModal" class="reveal-modal" data-reveal>
-  <h2>You clicked on an event.</h2>
-  <p>If you have permission to edit this event, then this will take you
-  into an edit dialogue.</p>
-  
-  <p>If you don't then it will simply show you full
-  details of the event.</p>
+  <div id="eventModal" class="reveal-modal" data-reveal>
+    <h2>You clicked on an event.</h2>
+    <p>If you have permission to edit this event, then this will take you
+    into an edit dialogue.</p>
+    
+    <p>If you don't then it will simply show you full
+    details of the event.</p>
 
-  <a class="close-reveal-modal">&#215;</a>
+    <a class="close-reveal-modal">&#215;</a>
+  </div>
 </div>

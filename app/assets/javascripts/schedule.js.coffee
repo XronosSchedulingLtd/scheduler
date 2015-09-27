@@ -16,6 +16,15 @@ $(document).ready ->
     firstDay: $('#fullcalendar').data("firstday")
     onSelect: (dateText, inst) ->
       $('#fullcalendar').fullCalendar( 'gotoDate', new Date(dateText))
+  $('#topdatepicker').datepicker
+    showOtherMonths: true
+    selectOtherMonths: true
+    dateFormat: 'yy-mm-dd'
+    firstDay: $('#fullcalendar').data("firstday")
+    defaultDate: $('#fullcalendar').data("defaultdate")
+    onSelect: (dateText, inst) ->
+      $('#fullcalendar').fullCalendar( 'gotoDate', new Date(dateText))
+      $('#topdatepicker').val("").datepicker("hide")
   window.activateCheckboxes()
   $(document).on('opened', '[data-reveal]', ->
     $('#first_field').focus()

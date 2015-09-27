@@ -19,6 +19,11 @@
       </li>
     </ul>
     <section class="top-bar-section">
+<% if @show_jump %>
+      <ul class="left">
+        <%= render :partial => "/schedule/datepicker" %>
+      </ul>
+<% end %>
       <ul class="right">
         <%= render :partial => "/events/search" %>
         <li class="divider"></li>

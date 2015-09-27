@@ -5,6 +5,18 @@
   <td style="width:10px;"></td>
 </tr>
 <% if current_user.staff? %>
+<tr><th>Quick add</th><th></th></tr>
+<tr>
+  <td colspan="3">
+    <%= form_for(@concern, remote: true) do |f| %>
+      <%= f.autocomplete_field :name,
+                               autocomplete_element_name_elements_path,
+                               :id_element => '#concern_element_id' %>
+      <%= f.text_field :element_id, :type => :hidden %>
+      <%= f.submit "Find" %>
+    <% end %>
+  <td>
+</tr>
 <tr>
   <td style="background-color:<%= current_user.colour_not_involved %>;color:white;font-size:90%;padding-top:0px;padding-bottom:0px;">
     My events
@@ -18,19 +30,5 @@
 <%= render user.concerns.me %>
 <% if user.concerns.not_me.size > 0 %>
   <%= render user.concerns.not_me.sort %>
-<% end %>
-<% if current_user.staff? %>
-<tr><th>Quick add</th><th></th></tr>
-<tr>
-  <td colspan="3">
-    <%= form_for(@concern, remote: true) do |f| %>
-      <%= f.autocomplete_field :name,
-                               autocomplete_element_name_elements_path,
-                               :id_element => '#concern_element_id' %>
-      <%= f.text_field :element_id, :type => :hidden %>
-      <%= f.submit "Find" %>
-    <% end %>
-  <td>
-</tr>
 <% end %>
 </table>

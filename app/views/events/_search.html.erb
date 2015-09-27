@@ -1,4 +1,3 @@
-Hello
 <% @searchevent = Event.new %>
 <li class="has-form">
 <%= form_for(@searchevent,
@@ -7,10 +6,7 @@ Hello
 
   <div class="row collapse">
     <div class="large-8 small-9 columns">
-      <%= f.text_field :body %>
-    </div>
-    <div class="large-4 small-3 columns">
-      <%= f.submit "Search" %>
+      <%= f.text_field :body, :placeholder => "Search"  %>
     </div>
   </div>
 <% end %>

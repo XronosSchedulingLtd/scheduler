@@ -65,9 +65,13 @@ class ScheduleController < ApplicationController
           @colour = "red"
         end
       elsif event.eventcategory_id == Event.weekletter_category.id
-        @colour = "pink"
+        @colour = "#212D48"  # Blue of the title bar
+#        @colour = "#663d52"  # Darkish pink
       else
-        @colour = "green"
+         @colour = "#4068b2"
+#         @colour = "#7094ff"
+#         @colour = "#3366ff"
+#        @colour = "#00476b"  # Distinguised blue
       end
       if event.non_existent
         @colour = washed_out(@colour)
@@ -110,6 +114,7 @@ class ScheduleController < ApplicationController
       @concern = Concern.new
       start_at = session[:last_start_date] || Time.zone.now
       @default_date = start_at.strftime("%Y-%m-%d")
+      @show_jump = true
     end
   end
 
@@ -235,6 +240,7 @@ class ScheduleController < ApplicationController
       #  People who aren't logged on, or who we don't recognise, just
       #  get to see the public calendar.
       #
+      session[:last_start_date] = start_date
       calendar_element = Element.find_by(name: "Calendar")
       if calendar_element
         @schedule_events =
