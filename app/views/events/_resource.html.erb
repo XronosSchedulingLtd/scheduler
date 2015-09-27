@@ -1,31 +1,39 @@
 <table class="zftable">
   <tr>
     <th>Staff</th>
+<% if known_user? %>
     <th>Pupils</th>
+<% end %>
     <th>Groups</th>
     <th>Locations</th>
+<% if known_user? %>
     <th>Services</th>
     <th>Properties</th>
+<% end %>
   </tr>
   <tr>
     <td valign="top">
       <%= commitment_entries_for(resource, Staff, editing) %>
     </td>
+<% if known_user? %>
     <td valign="top">
       <%= commitment_entries_for(resource, Pupil, editing) %>
     </td>
+<% end %>
     <td valign="top">
       <%= commitment_entries_for(resource, Group, editing) %>
     </td>
     <td valign="top">
       <%= commitment_entries_for(resource, Location, editing) %>
     </td>
+<% if known_user? %>
     <td valign="top">
       <%= commitment_entries_for(resource, Service, editing) %>
     </td>
     <td valign="top">
       <%= commitment_entries_for(resource, Property, editing) %>
     </td>
+<% end %>
   </tr>
 </table>
 

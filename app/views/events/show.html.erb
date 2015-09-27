@@ -9,6 +9,7 @@
     <td><%= @event.body %></td>
   </tr>
 
+<% if known_user? %>
   <tr>
     <td><strong>Event category:</strong></td>
     <td><%= @event.eventcategory.name %></td>
@@ -30,6 +31,8 @@
             "System" :
             @event.owner.name %></td>
   </tr>
+
+<% end %>
 
   <tr>
     <td><strong>Organiser:</strong></td>
@@ -84,10 +87,13 @@
     </td>
   </tr>
 
+<% if known_user? %>
   <tr>
     <td><strong>Source id:</strong></td>
     <td><%= @event.source_id %></td>
   </tr>
+
+<% end %>
 </table>
 
 <% if !@minimal %>
