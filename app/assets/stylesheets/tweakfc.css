@@ -1,3 +1,7 @@
 .fc-today {
   background-color: #f5f1d0;
 }
+
+.rounded-corners {
+  border-radius: 3px;
+}
