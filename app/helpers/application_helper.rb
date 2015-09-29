@@ -7,4 +7,8 @@ module ApplicationHelper
   def known_user?
     current_user && current_user.known?
   end
+
+  def admin_user?
+    current_user && current_user.admin?
+  end
 end

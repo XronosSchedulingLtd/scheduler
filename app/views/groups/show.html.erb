@@ -7,7 +7,7 @@
 
 <p>
   <strong>Era:</strong>
-  <%= @group.era_id %>
+  <%= @group.era.name %>
 </p>
 
 <p>
@@ -15,13 +15,14 @@
   <%= @group.starts_on %>
 </p>
 
+<% if current_user && current_user.admin? %>
 <p>
   <strong>Current:</strong>
   <%= @group.current %>
 </p>
+<% end %>
 
 <p>
-  <strong>Members:</strong>
   <%= render partial: "membership", object: @group, locals: {editing: false} %>
 </p>
 

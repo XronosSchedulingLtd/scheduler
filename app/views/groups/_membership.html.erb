@@ -5,6 +5,11 @@
     <th>Groups</th>
     <th>Locations</th>
   </tr>
+<% if @atomic_membership %>
+  <tr>
+    <td colspan="4" align="center">Specified members</td>
+  </tr>
+<% end %>
   <tr>
     <td valign="top">
       <%= membership_entries_for(membership, Staff, editing) %>
@@ -19,5 +24,24 @@
       <%= membership_entries_for(membership, Location, editing) %>
     </td>
   </tr>
+<% if @atomic_membership %>
+  <tr>
+    <td colspan="4" align="center">Resulting membership</td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <%= atomic_entries(@atomic_membership, Staff) %>
+    </td>
+    <td valign="top">
+      <%= atomic_entries(@atomic_membership, Pupil) %>
+    </td>
+    <td valign="top">
+      <%= atomic_entries(@atomic_membership, Group) %>
+    </td>
+    <td valign="top">
+      <%= atomic_entries(@atomic_membership, Location) %>
+    </td>
+  </tr>
+<% end %>
 </table>
 

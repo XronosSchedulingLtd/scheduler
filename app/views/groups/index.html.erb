@@ -7,12 +7,14 @@
     <tr>
       <th>Name</th>
       <th>Era</th>
+<% if admin_user? %>
       <th>Type</th>
+<% end %>
       <th colspan="2">Members</th>
       <th colspan="3"></th>
     </tr>
     <tr>
-      <th colspan="3"></th>
+      <th colspan="<%= admin_user? ? "3" : "2" %>"></th>
       <th>Immediate</th>
       <th>Atomic</th>
       <th colspan="3"></th>
@@ -23,8 +25,10 @@
     <% @groups.each do |group| %>
       <tr>
         <td><%= group.name %></td>
-        <td><%= group.era_id %></td>
+        <td><%= group.era.name %></td>
+<% if admin_user? %>
         <td><%= group.type %></td>
+<% end %>
         <td><%= group.members(nil, false).count %></td>
         <td><%= group.members(nil, true, true).count %></td>
         <td><%= link_to 'Show', group %></td>

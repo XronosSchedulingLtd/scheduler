@@ -11,39 +11,81 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :name %><br>
-    <%= f.text_field :name %>
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :name, class: "right inline" %>
+    </div>
+    <div class="small-10 columns">
+      <%= f.text_field :name %>
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :era %><br>
-    <%= f.collection_select(:era_id,
-                            Era.all.sort,
-                            :id,
-                            :name,
-                            { :prompt => true }) %>
+
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :era, class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= f.collection_select(:era_id,
+                              Era.all.sort,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
+    </div>
+    <div class="small-6 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :current %><br>
-    <%= f.check_box :current %>
+
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :current, class: "right inline" %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :current %>
+    </div>
+    <div class="small-9 columns">
+    </div>
   </div>
-  <div class="actions">
-    <%= f.submit %>
+
+  <div class="row collapse">
+    <div class="small-2 columns">&nbsp;</div>
+    <div class="small-2 columns">
+      <div class="actions">
+        <%= f.submit %>
+      </div>
+    </div>
+    <div class="small-8 columns">
+    </div>
   </div>
+
 <% end %>
 <% if @group.id %>
   <h3>Members</h3>
+  <div class="row">
+    <div class="small-8 columns">
+      <%= form_for(@membership, remote: true) do |f| %>
+        <%= f.autocomplete_field :element_name,
+                                 autocomplete_element_name_elements_path,
+                                 :id_element => '#membership_element_id',
+                                 :placeholder => "Add a member" %>
+        <%= f.text_field :element_id, :type => :hidden %>
+        <%= f.text_field :group_id, :type => :hidden %>
+      <% end %>
+    </div>
+    <div class="small-4 columns">
+      <%= form_for(@exclusion, namespace: :exclusion, remote: true) do |f| %>
+        <%= f.autocomplete_field :element_name,
+                                 autocomplete_element_name_elements_path,
+                                 :id_element => '#exclusion_membership_element_id',
+                                 :placeholder => "but exclude" %>
+        <%= f.text_field :element_id, :type => :hidden %>
+        <%= f.text_field :group_id, :type => :hidden %>
+        <%= f.text_field :inverse, :type => :hidden %>
+      <% end %>
+    </div>
+  </div>
   <div id="membership">
   <%= render partial: "membership", object: @group, locals: {editing: true} %>
   </div>
-  <%= form_for(@membership, remote: true) do |f| %>
-    <%= f.autocomplete_field :element_name,
-                             autocomplete_element_name_elements_path,
-                             :id_element => '#membership_element_id' %>
-    <%= f.text_field :element_id, :type => :hidden %>
-    <%= f.text_field :group_id, :type => :hidden %>
-    <%= f.submit "Add member" %>
-  <% end %>
 <% else %>
   <p>First create the group in order to allow resources to be added.</p>
 <% end %>

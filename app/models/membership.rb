@@ -3,21 +3,37 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
+require 'yaml'
+
 class Membership < ActiveRecord::Base
 
   class MembershipWithDuration
 
-    attr_reader :membership, :start_date, :end_date, :level
+    attr_reader :membership,
+                :start_date,
+                :end_date,
+                :level,
+                :largest_nesting_depth
+
+    attr_accessor :being_deleted
 
     def initialize(membership, start_date, end_date, level)
-      @membership = membership
-      @start_date = start_date
-      @end_date   = end_date
-      @level      = level
+      @membership            = membership
+      @start_date            = start_date
+      @end_date              = end_date
+      @level                 = level
+      @largest_nesting_depth = 0
+      @being_deleted         = false
     end
 
     def to_partial_path
       "membershipwd"
+    end
+
+    def affects(other)
+      if self.largest_nesting_depth <= other.largest_nesting_depth
+        @largest_nesting_depth = other.largest_nesting_depth + 1
+      end
     end
 
     def <=>(other)
@@ -86,7 +102,9 @@ class Membership < ActiveRecord::Base
     #  a start date, but might not have an end date.
     #
     def overlaps(other)
-      if self.end_date
+      if self.being_deleted
+        false
+      elsif self.end_date
         if other.end_date
           self.start_date <= other.end_date &&
           self.end_date >= other.start_date
@@ -198,9 +216,44 @@ class Membership < ActiveRecord::Base
     #  in which case the result is undefined.  Just don't do it.
     #
     def process_exclusions
+      @exclusions_processed = []
       to_destroy = Array.new
       new_mwds = Array.new
+      #
+      #  An initial pass to work out the nesting depths.
+      #
+      #  Note that the algorithm used here is incomplete.  It's only
+      #  needed to cope with double negatives, and given the case
+      #  of a double negative, e.g.
+      #
+      #     Group A of prefects
+      #     Group B consisting of {Group A, but not Able Baker}
+      #     Group C consisting of {Upper sixth, but not Group B}
+      #
+      #  then Able Baker should end up as a member of group C.
+      #  To achieve this, we impose an ordering on the processing.
+      #  If however all these memberships only partially overlap,
+      #  I'm not sure that the processing will get it quite right.
+      #
       @mwds.each do |mwd|
+        mwd.membership.group.
+            memberships.exclusions.each do |exclusion|
+          unless exclusion.element_id == @client_element.id
+            exclusion_mwds = @mwds_by_element_id[exclusion.element_id]
+            if exclusion_mwds
+              exclusion_mwds.each do |exclusion_mwd|
+                exclusion_mwd.affects(mwd)
+              end
+            end
+          end
+        end
+      end
+      #
+      #  And now the pass which does the actual work.
+      #
+      @mwds.sort {|a,b| b.largest_nesting_depth <=> a.largest_nesting_depth}.
+            each do |mwd|
+#        Rails.logger.debug("Processing MWD for membership #{mwd.membership.id} with nesting #{mwd.largest_nesting_depth}.")
         mwd.membership.group.memberships.eager_load(:element).exclusions.each do |exclusion|
 #        mwd.membership.group.memberships.exclusions.each do |exclusion|
 #          Rails.logger.debug("Found an exclusion")
@@ -217,6 +270,7 @@ class Membership < ActiveRecord::Base
             exclusion_mwds = @mwds_by_element_id[exclusion.element.id]
           end
           if exclusion_mwds
+            @exclusions_processed = @exclusions_processed + exclusion_mwds
             exclusion_mwds.each do |exclusion_mwd|
               if exclusion_mwd.overlaps(mwd)
                 #
@@ -226,6 +280,7 @@ class Membership < ActiveRecord::Base
                 #
                 if exclusion_mwd.encompasses(mwd)
                   to_destroy << mwd
+                  mwd.being_deleted = true
                 else
                   #
                   #  Overlaps, but doesn't completely cover it.  We're going
@@ -300,11 +355,17 @@ class Membership < ActiveRecord::Base
     #  any exclusions.
     #
     def finalize
+#      File.open(Rails.root.join("scratch", "before.yml"), "w") do |file|
+#        file.puts YAML::dump(self)
+#      end
 #      Rails.logger.debug("Finalizing MWD_Set.")
       self.process_exclusions
 #      Rails.logger.debug("Done the exclusions.")
       self.group_by_duration
 #      Rails.logger.debug("Finished finalizing.")
+#      File.open(Rails.root.join("scratch", "after.yml"), "w") do |file|
+#        file.puts YAML::dump(self)
+#      end
     end
 
     def to_partial_path
@@ -436,7 +497,7 @@ class Membership < ActiveRecord::Base
   #  case - e.g. because something belongs twice consecutively in the indicated
   #  period.  We should really only reject duplicates if we find the
   #  same group twice in the same branch of the tree - indicating a loop.
-  #  TODO: Fix this later.
+  #  DONE: Fix this later.
   #
   def recurse_mbd(mwd_set, start_date, end_date, seen, level)
 #    Rails.logger.debug("Entering membership.recurse_mbd")

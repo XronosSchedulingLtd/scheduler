@@ -19,6 +19,7 @@ class GroupsController < ApplicationController
   # GET /groups/1
   # GET /groups/1.json
   def show
+    @atomic_membership = @group.atomic_membership
   end
 
   # GET /groups/new
@@ -32,6 +33,10 @@ class GroupsController < ApplicationController
   def edit
     @membership = Membership.new
     @membership.group = @group
+    @exclusion = Membership.new
+    @exclusion.group = @group
+    @exclusion.inverse = true
+    @atomic_membership = @group.atomic_membership
   end
 
   # POST /groups

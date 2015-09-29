@@ -89,6 +89,18 @@ class Group < ActiveRecord::Base
   end
 
   #
+  #  Returns this groups atomic membership if relevant - that is, if
+  #  this group itself contains any other groups.  Returns nil otherwise.
+  #
+  def atomic_membership
+    if self.inclusions_on.select {|m| m.element.entity_type == "Group"}.size > 0
+      self.members(nil, true, true)
+    else
+      nil
+    end
+  end
+
+  #
   #  What type is this group?
   #
   def type
@@ -328,6 +340,7 @@ class Group < ActiveRecord::Base
   #  Item can be any kind of entity, or an element.
   #
   def add_outcast(item, as_of = nil)
+    Rails.logger.debug("Attempting to add an outcast.")
     if item.instance_of?(Element)
       element = item
     else
@@ -539,6 +552,22 @@ class Group < ActiveRecord::Base
     end
     return [] unless active_on(given_date)
     self.memberships.active_on(given_date).inclusions.includes(:element)
+  end
+
+  #
+  #  And similarly, but for all membership records.
+  #
+  def memberships_on(given_date = nil)
+    unless given_date
+      given_date = Date.today
+      if given_date < self.starts_on
+        given_date = self.starts_on
+      elsif self.ends_on != nil && given_date > self.ends_on
+        given_date = self.ends_on
+      end
+    end
+    return [] unless active_on(given_date)
+    self.memberships.active_on(given_date).includes(:element)
   end
 
   #

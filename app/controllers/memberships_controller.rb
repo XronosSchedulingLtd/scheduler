@@ -18,17 +18,25 @@ class MembershipsController < ApplicationController
     #
     @group = Group.find_by(id: membership_params[:group_id])
     @element = Element.find_by(id: membership_params[:element_id])
+    inverse = membership_params[:inverse]
     #
     #  Don't let a group be added to itself.
     #
-    if @group && @element # && @group.element != @element
-      @group.add_member(@element)
+    if @group && @element && @group.element != @element
+      if inverse && inverse == "true"
+        @group.add_outcast(@element)
+      else
+        @group.add_member(@element)
+      end
     end
     #
     #  We respond regardless of whether or not we've done anything.
     #  If @group isn't set then we send back an empty snippet of javascript,
     #  otherwise we re-display the group's membership.
     #
+    if @group
+      @atomic_membership = @group.atomic_membership
+    end
     respond_to do |format|
       format.js
     end
@@ -41,11 +49,16 @@ class MembershipsController < ApplicationController
     #  just mark it as over.  The only time one goes away is when the
     #  date of destruction is the same as the date of creation.
     #
-    @membership.group.remove_member(@membership.element)
+    if @membership.inverse
+      @membership.group.remove_outcast(@membership.element)
+    else
+      @membership.group.remove_member(@membership.element)
+    end
     #
     #  @group needs to be set so that the view can re-render things.
     #
     @group = @membership.group
+    @atomic_membership = @group.atomic_membership
     respond_to do |format|
       format.js
     end
@@ -63,6 +76,9 @@ class MembershipsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def membership_params
-      params.require(:membership).permit(:group_id, :element_id)
+      params.require(:membership).permit(:group_id,
+                                         :element_id,
+                                         :element_name,
+                                         :inverse)
     end
 end

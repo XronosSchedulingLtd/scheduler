@@ -56,4 +56,13 @@ class Staff < ActiveRecord::Base
       s.save
     end
   end
+
+  def <=>(other)
+    result = self.surname <=> other.surname
+    if result == 0
+      result = self.forename <=> other.forename
+    end
+    result
+  end
+
 end
