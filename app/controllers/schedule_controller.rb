@@ -65,12 +65,14 @@ class ScheduleController < ApplicationController
           @colour = "red"
         end
       elsif event.eventcategory_id == Event.weekletter_category.id
-        @colour = "#212D48"  # Blue of the title bar
+        @colour = "pink"
+#        @colour = "#212D48"  # Blue of the title bar - good one.
 #        @colour = "#663d52"  # Darkish pink
       else
-         @colour = "#4068b2"
-#         @colour = "#7094ff"
-#         @colour = "#3366ff"
+        @colour = "green"
+#        @colour = "#4068b2"  # Blue very like "myself" - good one.
+#        @colour = "#7094ff"
+#        @colour = "#3366ff"
 #        @colour = "#00476b"  # Distinguised blue
       end
       if event.non_existent
