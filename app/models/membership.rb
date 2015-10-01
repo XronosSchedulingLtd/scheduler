@@ -386,17 +386,17 @@ class Membership < ActiveRecord::Base
     #  any exclusions.
     #
     def finalize
-      File.open(Rails.root.join("scratch", "before.yml"), "w") do |file|
-        file.puts YAML::dump(self)
-      end
+#      File.open(Rails.root.join("scratch", "before.yml"), "w") do |file|
+#        file.puts YAML::dump(self)
+#      end
 #      Rails.logger.debug("Finalizing MWD_Set.")
       self.process_exclusions
 #      Rails.logger.debug("Done the exclusions.")
       self.group_by_duration
       Rails.logger.debug("Finished finalizing.")
-      File.open(Rails.root.join("scratch", "after.yml"), "w") do |file|
-        file.puts YAML::dump(self)
-      end
+#      File.open(Rails.root.join("scratch", "after.yml"), "w") do |file|
+#        file.puts YAML::dump(self)
+#      end
     end
 
     def to_partial_path
