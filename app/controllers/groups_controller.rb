@@ -6,7 +6,13 @@
 require 'csv'
 
 class GroupsController < ApplicationController
-  before_action :set_group, only: [:show, :edit, :update, :destroy, :members]
+  before_action :set_group, only: [:show,
+                                   :edit,
+                                   :update,
+                                   :destroy,
+                                   :members,
+                                   :do_clone,
+                                   :flatten]
 
   # GET /groups
   # GET /groups.json
@@ -70,6 +76,23 @@ class GroupsController < ApplicationController
         format.json { render json: @group.errors, status: :unprocessable_entity }
       end
     end
+  end
+
+  # POST /groups/1/do_clone
+  def do_clone
+    @new_group = @group.do_clone
+    @new_group.owner = current_user
+    #
+    #  And round to edit it.
+    #
+    redirect_to edit_group_path(@new_group)
+  end
+
+  # POST /groups/1/flatten
+  def flatten
+    @new_group = @group.do_clone
+    @new_group.flatten
+    redirect_to edit_group_path(@new_group)
   end
 
   # PATCH/PUT /groups/1

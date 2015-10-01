@@ -1,6 +1,8 @@
 <h1>Listing groups</h1>
 <p id="notice"><%= notice %></p>
 
+<%= link_to 'New Group', new_group_path, class: "button tiny radius" %>
+
 <% if @paginate %>
 <%= will_paginate @groups %>
 <% end %>
@@ -46,4 +48,3 @@
 
 <br>
 
-<%= link_to 'New Group', new_group_path, class: "button radius" %>

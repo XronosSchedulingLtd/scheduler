@@ -8,13 +8,13 @@ module MembershipsHelper
            m.inverse ? " class=\"excluded_member\"" : ""
          }>#{h(m.element.name)} #{
           link_to("&#215;".html_safe, m, method: :delete, remote: true)
-        }"
+        }</span>"
       }.join("<br/>").html_safe
     else
       memberships.collect {|m|
         "<span#{
           m.inverse ? " class=\"excluded_member\"" : ""
-         }>#{h(m.element.name)}"
+         }>#{h(m.element.name)}</span>"
       }.join("<br/>").html_safe
     end
   end

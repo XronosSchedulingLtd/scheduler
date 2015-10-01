@@ -202,6 +202,80 @@ class Group < ActiveRecord::Base
     result
   end
 
+  #
+  #  Clone this group, giving the new group exactly the same membership
+  #  in the same way, but everything starts today.
+  #
+  #  Note that this currently works only for Vanilla groups.
+  #
+  #  Has to save to the database in order to clone the membership.
+  #
+  def do_clone
+    if self.persona_type
+      raise "Cloning is supported only for Vanilla groups."
+    else
+      new_group = Vanillagroup.new
+      new_group.starts_on   = Date.today
+      new_group.ends_on     = nil
+      new_group.name        = "Copy of #{self.name}"
+      new_group.era         = self.era
+      new_group.current     = self.current
+      new_group.owner       = self.owner
+      new_group.make_public = self.make_public
+      new_group.save!
+      new_group.reload
+      #
+      #  And now for the membership.
+      #
+      self.memberships_on.each do |membership|
+        new_membership = Membership.new
+        new_membership.group     = new_group
+        new_membership.element   = membership.element
+        new_membership.starts_on = Date.today
+        new_membership.ends_on   = nil
+        new_membership.inverse   = membership.inverse
+        new_membership.save!
+      end
+      #
+      #  Finished.
+      #
+      new_group
+    end
+  end
+
+  #
+  #  Flatten this group.  That is, convert any memberships which are
+  #  currently achieved via groups to direct memberships.  The final
+  #  atomic membership will end up the same as it is today, but all
+  #  the intervening groups will be gone.
+  #
+  def flatten
+    original_membership = self.members(nil, true, true)
+    #
+    #  Get rid of any memberships of this group which directly reference
+    #  groups, and any exclusions.
+    #
+    today = Date.today
+    self.memberships_on.
+         select {|m| m.inverse ||
+                     m.element.entity_type == "Group"}.each do |membership|
+      if membership.starts_on == today
+        membership.destroy
+      else
+        membership.ends_on = today - 1.day
+        membership.save
+      end
+    end
+    #
+    #  And now we need to add back in anyone who has been lost.
+    #
+    self.reload
+    resulting_membership = self.members(nil, true, true)
+    (original_membership - resulting_membership).each do |entity|
+      self.add_member(entity)
+    end
+  end
+
 #
 #================================================================
 #
