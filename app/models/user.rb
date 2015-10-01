@@ -110,7 +110,7 @@ class User < ActiveRecord::Base
   end
 
   def create_groups?
-    self.editor || self.admin
+    self.staff? || self.admin
   end
 
   def can_trigger_cover_check?
@@ -138,7 +138,7 @@ class User < ActiveRecord::Base
       (self.create_events? && item.involves_any?(self.controlled_elements))
     elsif item.instance_of?(Group)
       self.admin ||
-      (self.create_events? && item.owner_id == self.id)
+      (self.create_groups? && item.owner_id == self.id)
     else
       false
     end
