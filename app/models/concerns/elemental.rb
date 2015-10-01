@@ -23,22 +23,13 @@ module Elemental
   def update_element
     if self.element
       if self.active
-        if self.respond_to?(:owner_id)
-          if self.element.name != self.element_name ||
-             self.element.current != self.current ||
-             self.element.owner_id != self.owner_id
-            self.element.name     = self.element_name
-            self.element.current  = self.current
-            self.element.owner_id = self.owner_id
-            self.element.save!
-          end
-        else
-          if self.element.name != self.element_name ||
-             self.element.current != self.current
-            self.element.name    = self.element_name
-            self.element.current = self.current
-            self.element.save!
-          end
+        if self.element.name != self.element_name ||
+           self.element.current != self.current ||
+           self.element.owner_id != self.entitys_owner_id
+          self.element.name     = self.element_name
+          self.element.current  = self.current
+          self.element.owner_id = self.entitys_owner_id
+          self.element.save!
         end
       else
         #
@@ -61,7 +52,7 @@ module Elemental
   end
 
   #
-  #  An entity may well want to override this.
+  #  An entity may well want to override these.
   #
   def display_name
     self.name
@@ -72,6 +63,24 @@ module Elemental
   end
 
   def adjust_element_creation_hash(creation_hash)
+  end
+
+  #
+  #  Give this method a slightly different name to avoid accidentally
+  #  overriding ActiveRecord's method.
+  #
+  #  Entities which *do* have an owner id should then override this
+  #  method.
+  #
+  def entitys_owner_id
+    nil
+  end
+
+  #
+  #  Default to sorting by name.
+  #
+  def <=>(other)
+    self.name <=> other.name
   end
 
   #

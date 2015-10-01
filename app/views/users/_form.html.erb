@@ -32,7 +32,7 @@
 <% if current_user.admin %>
 
   <div class="row collapse">
-    <div class="small-3 columns">
+    <div class="small-1 columns">
       <%= f.label :admin, class: "right inline" %><br>
     </div>
     <div class="small-1 columns">
@@ -61,6 +61,12 @@
     </div>
     <div class="small-1 columns">
       <%= f.check_box :privileged, :disabled => !current_user.admin %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.label :public_groups, class: "right inline" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :public_groups, :disabled => !current_user.admin %>
     </div>
   </div>
 

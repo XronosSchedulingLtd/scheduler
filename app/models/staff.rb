@@ -58,10 +58,13 @@ class Staff < ActiveRecord::Base
   end
 
   def <=>(other)
+    puts "Comparing #{self.surname} and #{other.surname}"
     result = self.surname <=> other.surname
     if result == 0
+      puts "Comparing #{self.forename} and #{other.forename}"
       result = self.forename <=> other.forename
     end
+    puts "result = #{result}"
     result
   end
 

@@ -1,7 +1,10 @@
 <h1>Listing groups</h1>
 <p id="notice"><%= notice %></p>
 
+<% if @paginate %>
 <%= will_paginate @groups %>
+<% end %>
+
 <table class="zftable">
   <thead>
     <tr>
@@ -11,34 +14,35 @@
       <th>Type</th>
 <% end %>
       <th colspan="2">Members</th>
-      <th colspan="3"></th>
+      <th colspan="4"></th>
     </tr>
     <tr>
       <th colspan="<%= admin_user? ? "3" : "2" %>"></th>
       <th>Immediate</th>
       <th>Resulting</th>
-      <th colspan="3"></th>
+      <th colspan="4"></th>
     </tr>
   </thead>
 
   <tbody>
-    <% @groups.each do |group| %>
-      <tr>
-        <td><%= group.name %></td>
-        <td><%= group.era.name %></td>
-<% if admin_user? %>
-        <td><%= group.type %></td>
+<% if @separate %>
+    <tr>
+      <th colspan="<%= admin_user? ? "9" : "8" %>">Public</th>
+    </tr>
+    <%= render partial: "grouplisting", collection: @public_groups %>
+    <tr>
+      <th colspan="<%= admin_user? ? "9" : "8" %>">Private</th>
+    </tr>
+    <%= render partial: "grouplisting", collection: @private_groups %>
+<% else %>
+    <%= render partial: "grouplisting", collection: @groups %>
 <% end %>
-        <td><%= group.members(nil, false).count %></td>
-        <td><%= group.members(nil, true, true).count %></td>
-        <td><%= link_to 'Show', group %></td>
-        <td><%= link_to 'Edit', edit_group_path(group) %></td>
-        <td><%= link_to 'Destroy', group, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
-    <% end %>
   </tbody>
 </table>
+
+<% if @paginate %>
 <%= will_paginate @groups %>
+<% end %>
 
 <br>
 

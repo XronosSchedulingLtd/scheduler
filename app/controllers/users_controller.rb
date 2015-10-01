@@ -116,6 +116,7 @@ class UsersController < ApplicationController
                       :arranges_cover,
                       :secretary,
                       :privileged,
+                      :public_groups,
                       :firstday,
                       :preferred_event_category_id,
                       :default_event_text)

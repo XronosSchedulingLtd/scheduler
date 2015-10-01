@@ -136,6 +136,9 @@ class User < ActiveRecord::Base
       self.admin ||
       (self.create_events? && item.owner_id == self.id) ||
       (self.create_events? && item.involves_any?(self.controlled_elements))
+    elsif item.instance_of?(Group)
+      self.admin ||
+      (self.create_events? && item.owner_id == self.id)
     else
       false
     end

@@ -440,13 +440,13 @@ class Element < ActiveRecord::Base
 
   #
   #  We sort elements first by their type (order specified at head of
-  #  file) and then by their names.
+  #  file) and then by their own native sorting method.
   #
   def <=>(other)
     result =
       SORT_ORDER_HASH[self.entity_type] <=> SORT_ORDER_HASH[other.entity_type]
     if result == 0
-      result = self.name <=> other.name
+      result = self.entity <=> other.entity
     end
     result
   end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150910101625) do
+ActiveRecord::Schema.define(version: 20151001075917) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -144,6 +144,7 @@ ActiveRecord::Schema.define(version: 20150910101625) do
     t.integer  "era_id"
     t.boolean  "current",      default: false
     t.integer  "owner_id"
+    t.boolean  "make_public",  default: false
   end
 
   add_index "groups", ["era_id"], name: "index_groups_on_era_id", using: :btree
@@ -295,6 +296,7 @@ ActiveRecord::Schema.define(version: 20150910101625) do
     t.boolean  "privileged",                  default: false
     t.integer  "firstday",                    default: 0
     t.string   "default_event_text",          default: ""
+    t.boolean  "public_groups",               default: false
   end
 
 end

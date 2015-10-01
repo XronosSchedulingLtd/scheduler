@@ -3,6 +3,8 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
+require 'csv'
+
 class Vanillagrouppersona
   #
   #  This exists just to exist.
@@ -88,8 +90,17 @@ class Group < ActiveRecord::Base
     true
   end
 
+  def entitys_owner_id
+    #
+    #  If we are flagged as being a public group, then we pretend not
+    #  to have an owner_id.  This will then mean that our element appears
+    #  in public searches.
+    #
+    self.make_public ? nil : self.owner_id
+  end
+
   #
-  #  Returns this groups atomic membership if relevant - that is, if
+  #  Returns this group's atomic membership if relevant - that is, if
   #  this group itself contains any other groups.  Returns nil otherwise.
   #
   def atomic_membership
@@ -170,6 +181,25 @@ class Group < ActiveRecord::Base
         end
       end
     end
+  end
+
+  #
+  #  Export the immediate membership of this group as a CSV file.
+  #  If there are any explicit exclusions, report those too.
+  #
+  def to_csv
+    result = [self.name].to_csv
+    exclusions, inclusions = self.memberships_on.partition{|m| m.inverse}
+    inclusions.collect {|i| i.element}.sort.each do |element|
+      result += ["", element.name].to_csv
+    end
+    unless exclusions.empty?
+      result += ["but excluding"].to_csv
+      exclusions.collect {|e| e.element}.sort.each do |element|
+        result += ["", element.name].to_csv
+      end
+    end
+    result
   end
 
 #
@@ -571,6 +601,32 @@ class Group < ActiveRecord::Base
   end
 
   #
+  #  Returns an array of all the groups which influence the membership of
+  #  this group on the indicated day.  Works recursively.
+  #
+  def influencing_groups(given_date = nil, seen = [])
+    #
+    #  Avoid a loop.
+    #
+    if seen.include?(self.id)
+      []
+    else
+      seen << self.id
+      group_members =
+        self.memberships_on(given_date).
+             select {|m| m.element.entity_type == "Group"}.
+             collect {|m| m.element.entity}
+      [self] +
+      (group_members.collect {|group|
+         group.influencing_groups(given_date, seen)}).flatten.sort
+    end
+  end
+
+  def <=>(other)
+    self.name <=> other.name
+  end
+
+  #
   #  Like members, but if the date falls outside the lifetime of the group
   #  then list the members just before the group ended.
   #
@@ -709,7 +765,8 @@ class Group < ActiveRecord::Base
   #  situation which shouldn't really arise, but if it does then the
   #  chances are we really weren't ever wanted at all.
   #
-  def ceases_existence(date)
+  def ceases_existence(date = nil)
+    date ||= Date.today
     if self.active_on(date)
       if self.starts_on == date
         #
@@ -817,6 +874,48 @@ class Group < ActiveRecord::Base
       count += 1
     end
     puts "Moved #{count} groups to the perpetual era."
+    nil
+  end
+
+  #
+  #  A method to take groups which currently have no owner and give them
+  #  to a user, marking them as public as they go.
+  #
+  def give_to(user)
+    self.owner = user
+    self.make_public = true
+    self.save
+  end
+
+  def self.managed_groups_to(user)
+    messages = []
+    ["Senior Leadership Team",
+     "Academic Committee",
+     "Communications Committee",
+     "Environment Committee",
+     "Food Committee",
+     "Other Half Committee",
+     "Pastoral Committee",
+     "Societies and Services Committee",
+     "Works Committee",
+     "Health and Safety Committee",
+     "Sports Committee",
+     "Housemasters",
+     "HoDs"].each do |group_name|
+      g = Group.find_by(name: group_name)
+      if g
+        if g.owner
+          messages << "Group #{group_name} is already owned by #{g.owner.name}."
+        else
+          g.give_to(user)
+        end
+      else
+        messages << "Unable to find #{group_name}."
+      end
+    end
+    messages.each do |m|
+      puts m
+    end
     nil
   end
 

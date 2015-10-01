@@ -42,7 +42,13 @@
     <div class="small-1 columns">
       <%= f.check_box :current %>
     </div>
-    <div class="small-9 columns">
+    <div class="small-1 columns">
+      <%= f.label :public, class: "right inline" %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :make_public, :disabled => !public_groups_user? %>
+    </div>
+    <div class="small-7 columns">
     </div>
   </div>
 

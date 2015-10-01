@@ -16,7 +16,11 @@ Rails.application.routes.draw do
 
   resources :locationaliases
 
-  resources :groups
+  resources :groups do
+    member do
+      get :members
+    end
+  end
 
   resources :tutorgroups
 

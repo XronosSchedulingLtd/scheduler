@@ -1,0 +1,18 @@
+<tr>
+  <td><%= grouplisting.name %></td>
+  <td><%= grouplisting.era.name %></td>
+<% if admin_user? %>
+  <td><%= grouplisting.type %></td>
+<% end %>
+  <td><%= grouplisting.members(nil, false).count %></td>
+  <td><%= grouplisting.members(nil, true, true).count %></td>
+  <td><%= link_to 'Show', grouplisting %></td>
+  <td><%= link_to 'Edit', edit_group_path(grouplisting) %></td>
+  <td><%= link_to "Export", members_group_path(grouplisting, format: "csv") %></td>
+  <td><%= link_to 'Destroy',
+                   grouplisting,
+                   method: :delete,
+                   data: {
+                     confirm: "Are you sure you want to delete #{grouplisting.name}?"
+                   } %></td>
+</tr>
