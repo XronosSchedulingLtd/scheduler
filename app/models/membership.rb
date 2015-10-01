@@ -121,6 +121,36 @@ class Membership < ActiveRecord::Base
     end
 
     #
+    #  Does this mwd override another one?  Precedence is as follows
+    #  (highest first):
+    #
+    #  An individual exclusion
+    #  An individual inclusion
+    #  A group exclusion
+    #  A group inclusion
+    #
+    #  Note that the first two can't both exist, so in general all one
+    #  needs to know is that an exclusion overrides an inclusion, unless
+    #  the exclusion is of a group and the inclusion is individual.
+    #
+    #  We are always called with "self" as the exclusion.  We are thus looking
+    #  for the specific case where both mwds relate to the same parent
+    #  and "other" relates explicitly to our target element.
+    #
+    #  This test is simply to check whether "other" is an explicit inclusion
+    #  of the target individual in the group currently being considered.
+    #  If it is then it can't be over-ridden.
+    #
+    def overrides_for(other, element)
+      other.membership.element_id != element.id
+#      if other.membership.element_id == element.id
+#        false
+#      else
+#        true
+#      end
+    end
+
+    #
     #  Does our interval cover the whole of the other mwd's interval?
     #
     def encompasses(other)
@@ -272,7 +302,8 @@ class Membership < ActiveRecord::Base
           if exclusion_mwds
             @exclusions_processed = @exclusions_processed + exclusion_mwds
             exclusion_mwds.each do |exclusion_mwd|
-              if exclusion_mwd.overlaps(mwd)
+              if exclusion_mwd.overlaps(mwd) &&
+                 exclusion_mwd.overrides_for(mwd, @client_element)
                 #
                 #  One of our entries is over-riding another one.  Need to
                 #  adjust intelligently based on duration.  As a worst case,
@@ -355,17 +386,17 @@ class Membership < ActiveRecord::Base
     #  any exclusions.
     #
     def finalize
-#      File.open(Rails.root.join("scratch", "before.yml"), "w") do |file|
-#        file.puts YAML::dump(self)
-#      end
+      File.open(Rails.root.join("scratch", "before.yml"), "w") do |file|
+        file.puts YAML::dump(self)
+      end
 #      Rails.logger.debug("Finalizing MWD_Set.")
       self.process_exclusions
 #      Rails.logger.debug("Done the exclusions.")
       self.group_by_duration
-#      Rails.logger.debug("Finished finalizing.")
-#      File.open(Rails.root.join("scratch", "after.yml"), "w") do |file|
-#        file.puts YAML::dump(self)
-#      end
+      Rails.logger.debug("Finished finalizing.")
+      File.open(Rails.root.join("scratch", "after.yml"), "w") do |file|
+        file.puts YAML::dump(self)
+      end
     end
 
     def to_partial_path
