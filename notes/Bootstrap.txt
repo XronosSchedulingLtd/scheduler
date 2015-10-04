@@ -217,6 +217,19 @@ If you now re-start nginx with:
 
 You should be able to access the application.  You won't however be able to log in, because that means setting up some more Google credentials, and should probably be done by the school.
 
+===== Maintenance tasks =====
+
+To maintain smooth running of the application, a few maintenance tasks are needed.
+
+==== Database backups ====
+
+It's essential that the database is backed up regularly (and indeed, the whole machine).  A suitable script for backing up the database will be found in the scratch directory of the application.  It is called dodump and should be run nightly by root.
+
+==== Log rotation ====
+
+Likewise, the logs need to be rotated regularly.  Again a suitable configuration file is provided in scratch.  It is called logrotate.scheduler.  Copy it to [[/etc/logrotate.d/scheduler]] and tweak to suit your installation directory.
+
+
 ===== !!!!Stop here!!!! =====
 
 After here is old stuff.

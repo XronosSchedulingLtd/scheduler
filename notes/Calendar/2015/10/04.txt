@@ -1,0 +1,31 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-10-04T09:07:12+01:00
+
+====== Sunday 04 Oct 2015 ======
+
+My objective today is to promote the new code to the live system.  This will involved re-merging my git branches, testing again on the staging server, and then deploying.  Could also do to make sure that mach2 has been backed up recently.
+
+Steps:
+
+[*] Back up live database
+[*] Take a note of what version of s/w it is running.
+[ ] export RAILS_ENV=production
+[ ] Pull down new software
+[ ] rake [[db:migrate]]
+[ ] rake [[assets:precompile]]
+[ ] touch tmp/restart.txt
+[ ] Give VJA her groups
+[ ] Remove same groups from auto-loader
+
+Version on live server is:
+
+'''
+commit 20e6ad0b8275654a5a23c6eb7c87242e98c8dedf
+Author: John Winters <john@sinodun.org.uk>
+Date:   Tue Sep 29 08:34:14 2015 +0100
+
+    Reverted non-logged-in colours.
+'''
+
+

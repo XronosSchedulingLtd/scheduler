@@ -1,0 +1,20 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-09-27T09:16:04+01:00
+
+====== Sunday 27 Sep 2015 ======
+
+The next thing I am planning to do is to implement a working permissions module, but first a little query has arisen from Naomi Constable, who looks after the web site.  She was asking about getting Brian (the consultant) to put past events in his calendar snippet, and even implement a "Month" view.
+
+This seems to me to be going the wrong way about it.  We already have a month view, but it needs polishing up a bit.  My idea would be to tidy up my display and then just treat Brian's as a calendar preview, including a link to the full searchable calendar.
+
+To that end I've been fiddling with my calendar display and I think I'm getting somewhere.  I've moved the datepicker into the title bar, and adjusted the colours a bit.  It looks fine to me.  I need to test it with:
+
+[*] Not logged in
+[*] Logged in but unknown
+[*] Logged in staff, but not editor
+[*] Logged in editor
+[*] Logged in admin
+
+I think I can do all of those.  Let's get an up to date copy of the data first.  All seem OK.  Put it on the staging server and ask for comments.
+
