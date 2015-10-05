@@ -61,17 +61,18 @@ class Location < ActiveRecord::Base
   #  or the name of a location.
   #
   def absorb(other)
+    messages = Array.new
     if other.instance_of?(String)
       other_location = Location.find_by(name: other)
       if other_location
         other = other_location
       else
-        puts "Can't find location #{other}."
+        messages << "Can't find location #{other}."
       end
     end
     if other.instance_of?(Location)
       if other.id == self.id
-        puts "A location can't absorb itself."
+        messages << "A location can't absorb itself."
       else
         #
         #  Go for it.
@@ -86,12 +87,13 @@ class Location < ActiveRecord::Base
           #  same event.
           #
           if own_element.commitments.detect {|c| c.event_id == commitment.event_id}
-            puts "Both committed to same event.  Dropping other commitment."
+            messages << "Both committed to same event.  Dropping other commitment."
             commitment.destroy
           else
             commitment.element = self.element
             commitment.save!
             commitments_taken += 1
+            own_element.reload
           end
         end
         other.locationaliases.each do |la|
@@ -99,19 +101,23 @@ class Location < ActiveRecord::Base
           la.save!
           aliases_taken += 1
         end
-        puts "Absorbed #{commitments_taken} commitments and #{aliases_taken} aliases."
+        messages << "Absorbed #{commitments_taken} commitments and #{aliases_taken} aliases."
         other.reload
         if other.locationaliases.size == 0 &&
            other.element.commitments.size == 0
-           puts "Deleting #{other.name}"
-          other_location.destroy
+           messages << "Deleting #{other.name}"
+          other.destroy
         else
-          puts "Odd - #{other.name} still has #{other.locationaliases.size} location aliases, and #{other.element.commitments.size} commitments."
+          messages << "Odd - #{other.name} still has #{other.locationaliases.size} location aliases, and #{other.element.commitments.size} commitments."
         end
       end
     else
-      puts "Must pass another location to absorb."
+      messages << "Must pass another location to absorb."
     end
+    messages.each do |message|
+      puts message
+    end
+    nil
   end
 
 end
