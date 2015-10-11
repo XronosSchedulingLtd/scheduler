@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151001075917) do
+ActiveRecord::Schema.define(version: 20151011084943) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -132,6 +132,19 @@ ActiveRecord::Schema.define(version: 20151001075917) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "freefinders", force: true do |t|
+    t.integer  "element_id"
+    t.string   "name"
+    t.integer  "owner_id"
+    t.date     "on"
+    t.time     "start_time"
+    t.time     "end_time"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "freefinders", ["owner_id"], name: "index_freefinders_on_owner_id", using: :btree
 
   create_table "groups", force: true do |t|
     t.date     "starts_on",                    null: false

@@ -22,7 +22,10 @@ Rails.application.routes.draw do
       post :do_clone
       post :flatten
     end
+
   end
+
+  resources :freefinders
 
   resources :tutorgroups
 
@@ -70,6 +73,7 @@ Rails.application.routes.draw do
   resources :elements do
     get :autocomplete_element_name, :on => :collection
     get :autocomplete_staff_element_name, :on => :collection
+    get :autocomplete_group_element_name, :on => :collection
     get :ical, :on => :member
 
   end

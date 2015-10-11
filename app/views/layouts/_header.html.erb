@@ -58,7 +58,13 @@
             </li>
             <li class="divider"></li>
           <% elsif current_user.create_groups? %>
-            <li><%= link_to "Groups", groups_path %></li>
+            <li class="has-dropdown">
+              <a href="#" data-dropdown="drop1" data-options="is_hover:true">Groups</a>
+              <ul id="drop1" class="f-dropdown" data-dropdown-content>
+                <li><%= link_to "Mine", groups_path %></li>
+                <li><%= link_to "Find free", new_freefinder_path %></li>
+              </ul>
+            </li>
             <li class="divider"></li>
           <% end %>
           <% if current_user.can_trigger_cover_check? %>

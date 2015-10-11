@@ -30,6 +30,7 @@ GEM
     arel (5.0.1.20140414130214)
     builder (3.2.2)
     charlock_holmes (0.7.1)
+    chronic (0.10.2)
     chronic_duration (0.10.6)
       numerizer (~> 0.1.1)
     coffee-rails (4.0.1)
@@ -110,10 +111,10 @@ GEM
       bundler (>= 1.3.0, < 2.0)
       railties (= 4.1.0)
       sprockets-rails (~> 2.0)
+    rails-jquery-autocomplete (1.0.2)
+      rails (>= 3.2)
     rails-observers (0.1.2)
       activemodel (~> 4.0)
-    rails3-jquery-autocomplete (1.0.14)
-      rails (>= 3.0)
     railties (4.1.0)
       actionpack (= 4.1.0)
       activesupport (= 4.1.0)
@@ -163,6 +164,7 @@ PLATFORMS
 
 DEPENDENCIES
   charlock_holmes
+  chronic
   chronic_duration
   coffee-rails (~> 4.0.0)
   daemons
@@ -177,8 +179,8 @@ DEPENDENCIES
   mysql2
   omniauth-google-oauth2
   rails (= 4.1.0)
+  rails-jquery-autocomplete
   rails-observers
-  rails3-jquery-autocomplete
   ri_cal
   ruby-prof
   sass-rails (~> 4.0.3)

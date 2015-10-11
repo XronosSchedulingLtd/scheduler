@@ -44,6 +44,18 @@ class ElementsController < ApplicationController
     render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
   end
 
+  def autocomplete_group_element_name
+    term = params[:term].split(" ").join("%")
+    elements =
+      Element.current.
+              agroup.
+              mine_or_system(current_user).
+              where('name LIKE ?', "%#{term}%").
+              order(:name).
+              all
+    render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+  end
+
   IcalDataSet = Struct.new(:prefix, :data)
 
   # GET /elements/:id/ical

@@ -10,6 +10,7 @@ class Element < ActiveRecord::Base
   has_many :ownerships,  :dependent => :destroy
   has_many :interests,   :dependent => :destroy
   has_many :concerns,    :dependent => :destroy
+  has_many :freefinders, :dependent => :destroy
   has_many :organised_events,
            :class_name => "Event",
            :foreign_key => :organiser_id,
@@ -19,6 +20,7 @@ class Element < ActiveRecord::Base
 
   scope :current, -> { where(current: true) }
   scope :staff, -> { where(entity_type: "Staff") }
+  scope :agroup, -> { where(entity_type: "Group") }
   scope :property, -> { where(entity_type: "Property") }
   scope :mine_or_system, ->(current_user) { where("owner_id IS NULL OR owner_id = :user_id", user_id: current_user.id) }
   after_save :rename_affected_events

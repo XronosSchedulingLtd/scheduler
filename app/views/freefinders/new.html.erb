@@ -1,0 +1,61 @@
+<h1>Finding free resources</h1>
+
+<%= form_for(@freefinder) do |f| %>
+  <% if @freefinder.errors.any? %>
+    <div id="error_explanation">
+      <ul>
+        <% @freefinder.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "From group", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= f.autocomplete_field :element_name,
+                               autocomplete_group_element_name_elements_path,
+                               :id_element => '#freefinder_element_id',
+                               :placeholder => "Group name",
+                               "data-auto-focus" => true %>
+      <%= f.text_field :element_id, :type => :hidden %>
+    </div>
+    <div class="small-5 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "Find free resources on", class: "right inline" %>
+    </div>
+    <div class="small-2 columns">
+      <%= f.text_field :on, :id => :freedatepicker %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.label "between", class: "right inline" %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.text_field :start_time_text,
+                       :placeholder => "HH:MM",
+                       :length => 5 %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.label "and", class: "right inline" %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.text_field :end_time_text,
+                       :placeholder => "HH:MM",
+                       :length => 5 %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <%= f.submit "Find free", :class => "button small radius" %>
+<% end %>
+
+<% if @freefinder.free_elements && @freefinder.free_elements.size > 0 %>
+<%= render @freefinder.free_elements.sort %>
+<% elsif @freefinder.done_search %>
+None found.
+<% end %>
