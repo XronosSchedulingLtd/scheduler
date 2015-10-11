@@ -440,6 +440,10 @@ class Element < ActiveRecord::Base
     entity.short_name
   end
 
+  def tabulate_name(columns)
+    entity.tabulate_name(columns)
+  end
+
   #
   #  We sort elements first by their type (order specified at head of
   #  file) and then by their own native sorting method.

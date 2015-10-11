@@ -62,6 +62,10 @@ module Elemental
     self.name
   end
 
+  def tabulate_name(columns)
+    "<tr><td colspan='#{columns}'>#{self.element_name}</td></tr>".html_safe
+  end
+
   def adjust_element_creation_hash(creation_hash)
   end
 

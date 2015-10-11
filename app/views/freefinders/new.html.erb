@@ -55,7 +55,9 @@
 <% end %>
 
 <% if @freefinder.free_elements && @freefinder.free_elements.size > 0 %>
+<table class="zftable">
 <%= render @freefinder.free_elements.sort %>
+</table>
 <% elsif @freefinder.done_search %>
 None found.
 <% end %>

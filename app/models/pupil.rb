@@ -17,11 +17,7 @@ class Pupil < ActiveRecord::Base
     true
   end
 
-  def element_name
-    #
-    #  A constructed name to pass to our element record.  Sensitive to what
-    #  our current era is.
-    #
+  def tutorgroup_name
     if Setting.current_era
       #
       #  We go for his tutor group as at today, unless we are outside the
@@ -36,12 +32,28 @@ class Pupil < ActiveRecord::Base
       end
       tutorgroup = self.tutorgroups(as_at)[0]
       if tutorgroup
-        "#{self.name} (#{tutorgroup.name})"
+        tutorgroup.name
       else
-        "#{self.name} (Pupil)"
+        "Pupil"
       end
     else
-      "#{self.name} (Pupil)"
+      "Pupil"
+    end
+  end
+
+  def element_name
+    #
+    #  A constructed name to pass to our element record.  Sensitive to what
+    #  our current era is.
+    #
+    "#{self.name} (#{self.tutorgroup_name})"
+  end
+
+  def tabulate_name(columns)
+    if columns == 3
+      "<tr><td>#{self.known_as}</td><td>#{self.surname}</td><td>#{self.tutorgroup_name}</td></tr>".html_safe
+    else
+      "<tr><td colspan='#{columns}'>#{self.element_name}</td></tr>".html_safe
     end
   end
 
