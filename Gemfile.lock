@@ -30,7 +30,6 @@ GEM
     arel (5.0.1.20140414130214)
     builder (3.2.2)
     charlock_holmes (0.7.1)
-    chronic (0.10.2)
     chronic_duration (0.10.6)
       numerizer (~> 0.1.1)
     coffee-rails (4.0.1)
@@ -164,7 +163,6 @@ PLATFORMS
 
 DEPENDENCIES
   charlock_holmes
-  chronic
   chronic_duration
   coffee-rails (~> 4.0.0)
   daemons

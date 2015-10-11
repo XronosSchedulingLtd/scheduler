@@ -21,7 +21,7 @@ class Freefinder < ActiveRecord::Base
   end
 
   def start_time_text=(value)
-    self.start_time = Chronic.parse(value)
+    self.start_time = Time.zone.parse(value)
   end
 
   def end_time_text
@@ -33,7 +33,7 @@ class Freefinder < ActiveRecord::Base
   end
 
   def end_time_text=(value)
-    self.end_time = Chronic.parse(value)
+    self.end_time = Time.zone.parse(value)
   end
 
   def do_find
@@ -53,14 +53,25 @@ class Freefinder < ActiveRecord::Base
         start_string = self.start_time.strftime("%H:%M:00")
       else
         start_string = Time.zone.now.strftime("%H:%M:00")
-        self.start_time = Chronic.parse(start_string)
       end
+      self.start_time = Time.zone.parse(start_string)
       if self.end_time
         end_string = self.end_time.strftime("%H:%M:00")
       else
-        end_string = start_string
-        self.end_time = Chronic.parse(end_string)
+        end_string = (self.start_time + 1.minute).strftime("%H:%M:00")
       end
+      self.end_time = Time.zone.parse(end_string)
+      Rails.logger.debug("start_string = #{start_string}, end_string = #{end_string}")
+      Rails.logger.debug("start_time = #{self.start_time}")
+      Rails.logger.debug("end_time = #{self.end_time}")
+      if self.end_time <= self.start_time
+        Rails.logger.debug("Adjusting")
+        self.end_time = self.start_time + 1.minute
+        end_string = self.end_time.strftime("%H:%M:00")
+      end
+      Rails.logger.debug("start_time = #{self.start_time}")
+      Rails.logger.debug("end_time = #{self.end_time}")
+      Rails.logger.debug("start_string = #{start_string}, end_string = #{end_string}")
       starts_at = Time.zone.parse(start_string, self.on)
       ends_at = Time.zone.parse(end_string, self.on)
       #
@@ -81,17 +92,9 @@ class Freefinder < ActiveRecord::Base
       #  involved by way of a group membership, so we need to be
       #  slightly more long-winded.
       #
-      #  End times are treated throughout the application as being
-      #  exclusive, which leads to a slight problem here.  If someone
-      #  enters an end time which is exactly the same as the start time
-      #  (or leaves it blank) then we will not detect an overlap with
-      #  an event which starts at exactly the same time.  This is technically
-      #  correct, but surprises people.  Hence we add 1 second to our
-      #  specified end time, so that we run on into the next slot.
-      #
       overlapping_commitments =
         Commitment.commitments_during(start_time: starts_at,
-                                      end_time: ends_at + 1.second)
+                                      end_time: ends_at)
       Rails.logger.debug("Found #{overlapping_commitments.size} overlapping commitments.")
       #
       #  Now I need a list of all the non-group entities referenced through

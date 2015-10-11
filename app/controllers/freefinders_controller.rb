@@ -3,8 +3,6 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-require 'chronic'
-
 class FreefindersController < ApplicationController
 
   # GET /freefinders/new
@@ -12,7 +10,7 @@ class FreefindersController < ApplicationController
     @freefinder = Freefinder.new
     @freefinder.on = Date.today
     @freefinder.start_time = Time.now
-    @freefinder.end_time = Time.now
+    @freefinder.end_time = @freefinder.start_time + 1.minute
   end
 
   # POST /freefinders

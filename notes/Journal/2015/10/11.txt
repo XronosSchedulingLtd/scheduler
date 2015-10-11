@@ -18,3 +18,14 @@ End_time - time it ends
 ''rails g model freefinder element_id:integer name:string owner_id:integer on:date start_time:time end_time:time''
 
 Then we will call new to get a new one, followed by create to activate it.  That won't actually save it to the database, but it will retrieve the data and throw us back into editing the same freefinder object.  Note that we will have to force editing, because it won't have an ID.  Give it a go.
+
+What do I need to put it on the staging server?
+
+[ ] Load fresh copy of live database.
+[ ] export RAILS_ENV=production
+[ ] git fetch origin find_free_elements:find_free_elements
+[ ] git checkout find_free_elements
+[ ] bundle install
+[ ] rake db:migrate
+[ ] rake assets:precompile
+[ ] touch tmp/restart.txt
