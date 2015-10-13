@@ -38,6 +38,22 @@ class Staff < ActiveRecord::Base
     self.initials
   end
 
+  def tabulate_name(columns)
+    if columns == 3
+      "<tr><td>#{self.initials}</td><td>#{self.forename}</td><td>#{self.surname}</td></tr>".html_safe
+    elsif columns == 2
+      "<tr><td>#{self.initials}</td><td>#{self.forename} #{self.surname}</td></tr>".html_safe
+    else
+      "<tr><td colspan='#{columns}'>#{self.element_name}</td></tr>".html_safe
+    end
+  end
+
+  def csv_name
+    [self.initials,
+     self.forename,
+     self.surname].to_csv
+  end
+
   #
   #  Deleting a group deletes its persona, but not the other way around
   #  because that gives you a stack overflow.  We therefore have to

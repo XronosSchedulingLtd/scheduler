@@ -51,13 +51,63 @@
     <div class="small-3 columns">
     </div>
   </div>
-  <%= f.submit "Find free", :class => "button small radius" %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "Period", class: "right inline" %>
+    </div>
+<% 1.upto(8) do |index| %>
+    <div class="small-1 columns">
+      <span class="button tiny radius period-selector" data-period-no="<%= index %>"><%= index %></span>
+    </div>
+<% end %>
+    <div class="small-1 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      &nbsp;
+    </div>
+    <div class="small-2 columns">
+      <%= f.submit "Find free", :class => "button small radius" %>
+    </div>
+<% if @freefinder.done_search %>
+    <div class="small-2 columns">
+      <%= f.submit "Export",
+                   :name => :export,
+                   :class => "button small radius" %>
+    </div>
+    <div class="small-2 columns">
+      <%= f.submit "Create group",
+                   :name => :create,
+                   :class => "button small radius" %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+<% else %>
+    <div class="small-7 columns">
+    </div>
+<% end %>
+  </div>
+
 <% end %>
 
+<div class="row collapse">
+  <div class="small-3 columns">
+    &nbsp;
+  </div>
+  <div class="small-6 columns">
 <% if @freefinder.free_elements && @freefinder.free_elements.size > 0 %>
 <table class="zftable">
+  <tr>
+    <th colspan="3"><%= @freefinder.free_elements.size %> resources found.</th>
+  </tr>
 <%= render @freefinder.free_elements.sort %>
 </table>
 <% elsif @freefinder.done_search %>
 None found.
 <% end %>
+  </div>
+  <div class="small-3 columns">
+    &nbsp;
+  </div>
+</div>

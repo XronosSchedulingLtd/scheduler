@@ -1,3 +1,5 @@
+require 'csv'
+
 class Freefinder < ActiveRecord::Base
 
   belongs_to :element
@@ -8,7 +10,7 @@ class Freefinder < ActiveRecord::Base
     self.element ? self.element.name : ""
   end
 
-  def element_name=
+  def element_name=(value)
     # Not interested
   end
 
@@ -36,6 +38,12 @@ class Freefinder < ActiveRecord::Base
     self.end_time = Time.zone.parse(value)
   end
 
+  def on_text
+    self.on ?
+    self.on.strftime("%a #{self.on.day.ordinalize} %B, %Y") :
+    "date not given"
+  end
+
   def do_find
     #
     #  The very minimum which we need in order to do our work is a
@@ -61,17 +69,10 @@ class Freefinder < ActiveRecord::Base
         end_string = (self.start_time + 1.minute).strftime("%H:%M:00")
       end
       self.end_time = Time.zone.parse(end_string)
-      Rails.logger.debug("start_string = #{start_string}, end_string = #{end_string}")
-      Rails.logger.debug("start_time = #{self.start_time}")
-      Rails.logger.debug("end_time = #{self.end_time}")
       if self.end_time <= self.start_time
-        Rails.logger.debug("Adjusting")
         self.end_time = self.start_time + 1.minute
         end_string = self.end_time.strftime("%H:%M:00")
       end
-      Rails.logger.debug("start_time = #{self.start_time}")
-      Rails.logger.debug("end_time = #{self.end_time}")
-      Rails.logger.debug("start_string = #{start_string}, end_string = #{end_string}")
       starts_at = Time.zone.parse(start_string, self.on)
       ends_at = Time.zone.parse(end_string, self.on)
       #
@@ -80,7 +81,6 @@ class Freefinder < ActiveRecord::Base
       #
       member_elements =
         target_group.members(self.on, true, true).collect {|e| e.element}
-      Rails.logger.debug("Found #{member_elements.size} possible elements.")
       #
       #  And a list of all the events occuring at the specified time,
       #  from which we construct a list of all the elements committed to
@@ -95,7 +95,6 @@ class Freefinder < ActiveRecord::Base
       overlapping_commitments =
         Commitment.commitments_during(start_time: starts_at,
                                       end_time: ends_at)
-      Rails.logger.debug("Found #{overlapping_commitments.size} overlapping commitments.")
       #
       #  Now I need a list of all the non-group entities referenced through
       #  these commitments.
@@ -120,6 +119,53 @@ class Freefinder < ActiveRecord::Base
     else
       errors.add(:element_name,
                  "The name of an existing group must be specified.")
+    end
+  end
+
+  def to_csv
+    if @done_search
+      result = ["Checked #{self.element_name} for free resources"].to_csv
+      result += ["On #{
+                   self.on_text
+                 } between #{
+                   self.start_time_text
+                 } and #{
+                   self.end_time_text
+                 }"].to_csv
+      if @free_elements.size > 0
+        @free_elements.sort.each do |element|
+          result += element.csv_name
+        end
+      else
+        result += "None found".to_csv
+      end
+      result
+    else
+      "Not searched yet".to_csv
+    end
+  end
+
+  #
+  #  Create a new group from this search, and return its id.
+  #  Returns nil if we haven't created one.
+  #
+  def create_group(user)
+    if @done_search && @free_elements.size > 0
+      new_group = Vanillagroup.new
+      new_group.starts_on = Date.today
+      new_group.name = "Members of \"#{self.element_name}\" free on #{self.on_text} between #{self.start_time_text} and #{self.end_time_text}"
+      new_group.era = Setting.current_era
+      new_group.current = true
+      new_group.owner = user
+      new_group.save!
+      new_group.reload
+      @free_elements.each do |fe|
+        new_group.add_member(fe)
+      end
+      new_group.id
+    else
+      errors.add(:overall, "Must find some results to create a group")
+      nil
     end
   end
 

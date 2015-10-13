@@ -57,6 +57,12 @@ class Pupil < ActiveRecord::Base
     end
   end
 
+  def csv_name
+    [self.known_as,
+     self.surname,
+     self.tutorgroup_name].to_csv
+  end
+
   #
   #  Returns the current year group for this pupil, using whatever
   #  numbering convention is in use.  The crucial thing is that start_year

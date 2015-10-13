@@ -444,6 +444,10 @@ class Element < ActiveRecord::Base
     entity.tabulate_name(columns)
   end
 
+  def csv_name
+    entity.csv_name
+  end
+
   #
   #  We sort elements first by their type (order specified at head of
   #  file) and then by their own native sorting method.

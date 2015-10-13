@@ -3,6 +3,8 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
+require 'csv'
+
 class FreefindersController < ApplicationController
 
   # GET /freefinders/new
@@ -24,10 +26,33 @@ class FreefindersController < ApplicationController
     #  id of a group.
     #
     @freefinder.do_find
-    render :new
+    #
+    #  I've tried really hard to do this in a Rails native way, but
+    #  the documentation is impenetrable.
+    #
+    if params[:export] == "Export"
+      send_csv(@freefinder)
+    elsif params[:create] == "Create group"
+      group_id = @freefinder.create_group(current_user)
+      if group_id
+        redirect_to edit_group_path(group_id)
+      else
+        render :new
+      end
+    else
+      render :new
+    end
   end
 
   private
+
+    def send_csv(freefinder)
+      result = freefinder.to_csv
+      send_data(result,
+                :filename => "free.csv",
+                :type => "application/csv")
+    end
+
     def authorized?(action = action_name, resource = nil)
       logged_in? && current_user.staff?
     end
@@ -36,6 +61,7 @@ class FreefindersController < ApplicationController
     def freefinder_params
       params.require(:freefinder).
              permit(:element_id,
+                    :element_name,
                     :name,
                     :owner_id,
                     :on,

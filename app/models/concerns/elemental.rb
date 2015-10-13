@@ -4,6 +4,8 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
+require 'csv'
+
 module Elemental
   extend ActiveSupport::Concern
 
@@ -64,6 +66,10 @@ module Elemental
 
   def tabulate_name(columns)
     "<tr><td colspan='#{columns}'>#{self.element_name}</td></tr>".html_safe
+  end
+
+  def csv_name
+    [self.element_name].to_csv
   end
 
   def adjust_element_creation_hash(creation_hash)
