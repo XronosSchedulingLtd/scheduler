@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2015 John Winters
 # Portions Copyright (C) 2014 Abingdon School
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
@@ -46,12 +46,13 @@ class WhoTeachesWhat
 
   def initialize(subject)
     @subject = subject
-    @teachers      = Array.new
-    @year_teachers = Hash.new
-    @groups        = Array.new
-    @year_groups   = Hash.new
+    @teachers        = Array.new
+    @year_teachers   = Hash.new
+    @groups          = Array.new
+    @year_groups     = Hash.new
   end
   @@not_by_subject = WhoTeachesWhat.new("None")
+  @@ps_invigilators = Array.new
 
   def note_teacher(staff, group)
     unless @teachers.include?(staff)
@@ -81,6 +82,12 @@ class WhoTeachesWhat
     @@not_by_subject.note_teacher(staff, group)
   end
 
+  def self.note_ps_invigilator(staff)
+    unless @@ps_invigilators.include?(staff)
+      @@ps_invigilators << staff
+    end
+  end
+
   def self.teachers_by_subject
     @@subjects.each do |subject_name, record|
       yield subject_name, record.teachers
@@ -107,6 +114,10 @@ class WhoTeachesWhat
         yield subject_name, year_num, groups
       end
     end
+  end
+
+  def self.ps_invigilators
+    @@ps_invigilators
   end
 
   #
@@ -1905,7 +1916,8 @@ class SB_Timetableentry
                        :lesson,
                        :registration,
                        :chapel,
-                       :tutor_period]
+                       :tutor_period,
+                       :supervised_study]
   REQUIRED_COLUMNS = [Column["TimetableIdent", :timetable_ident, true],
                       Column["GroupIdent",     :group_ident,     true],
                       Column["StaffIdent",     :staff_ident,     true],
@@ -2089,7 +2101,11 @@ class SB_Timetableentry
   def event_type(loader)
     unless @event_type
       if self.meeting?
-        @event_type = :meeting
+        if @time_note == "PS"
+          @event_type = :supervised_study
+        else
+          @event_type = :meeting
+        end
       elsif self.body_text(loader) == "Assembly"
         @event_type = :assembly
       elsif self.body_text(loader) == "Chapel"
@@ -2115,6 +2131,8 @@ class SB_Timetableentry
     case self.event_type(loader)
       when :meeting
         loader.meeting_category
+      when :supervised_study
+        loader.supervised_study_category
       when :assembly
         loader.assembly_category
       when :chapel
@@ -2610,6 +2628,7 @@ class SB_Loader
               :verbose,
               :lesson_category,
               :meeting_category,
+              :supervised_study_category,
               :invigilation_category,
               :assembly_category,
               :chapel_category,
@@ -2790,6 +2809,13 @@ class SB_Loader
               end
               WhoStudiesWhat.note_pupils(subject, group)
             end
+          elsif te.event_type == :supervised_study
+            te.staff_idents.each do |staff_ident|
+              staff = @staff_hash [staff_ident]
+              if staff && staff.active && staff.current
+                WhoTeachesWhat.note_ps_invigilator(staff)
+              end
+            end
           end
         end
       else
@@ -2802,6 +2828,11 @@ class SB_Loader
               WhoTeachesWhat.note_teacher(subject, staff, group)
             end
             WhoStudiesWhat.note_pupils(subject, group)
+          end
+        elsif te.event_type(self) == :supervised_study
+          staff = @staff_hash[te.staff_ident]
+          if staff && staff.active && staff.current
+            WhoTeachesWhat.note_ps_invigilator(staff)
           end
         end
       end
@@ -2819,6 +2850,8 @@ class SB_Loader
     raise "Can't find event category for chapel." unless @chapel_category
     @meeting_category = Eventcategory.find_by_name("Meeting")
     raise "Can't find event category for meetings." unless @meeting_category
+    @supervised_study_category = Eventcategory.find_by_name("Supervised study")
+    raise "Can't find event category for supervised study." unless @supervised_study_category
     @invigilation_category =
       Eventcategory.find_by_name("Invigilation") ||
       Eventcategory.find_by_name("Exam invigilation")
@@ -3336,6 +3369,7 @@ class SB_Loader
                                      nil,                 # End date
                                      [@lesson_category,   # Categories
                                       @meeting_category,
+                                      @supervised_study_category,
                                       @assembly_category,
                                       @chapel_category,
                                       @registration_category,
@@ -3396,6 +3430,7 @@ class SB_Loader
                                        nil,
                                        [@lesson_category,
                                         @meeting_category,
+                                        @supervised_study_category,
                                         @assembly_category,
                                         @chapel_category,
                                         @registration_category,
@@ -4364,6 +4399,18 @@ class SB_Loader
       else
         puts "Subject \"#{subject}\" has no apparent groups."
       end
+    end
+    ps_invigilators =
+      WhoTeachesWhat.ps_invigilators.collect {|t|
+        t.dbrecord
+#        @staff_hash[t.staff_ident].dbrecord
+      }.compact.select {|dbr| dbr.active}
+    if ps_invigilators.size > 0
+      ensure_membership("Supervised study invigilators",
+                        ps_invigilators,
+                        Staff)
+    else
+      puts "There don't seem to be any supervised study invigilators."
     end
 #    WhoStudiesWhat.pupils_by_subject do |subject, pupils|
 #      dbpupils = pupils.collect {|p| @pupil_hash[p.pupil_ident].dbrecord}.compact
