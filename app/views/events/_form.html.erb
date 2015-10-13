@@ -24,7 +24,9 @@
       <%= f.label :description, class: "right inline" %>
     </div>
     <div class="small-9 columns">
-      <%= f.text_field :body, :id => "first_field" %>
+      <%= f.text_field :body,
+                       :id => "first_field",
+                       :placeholder => "Please describe what is happening" %>
     </div>
   </div>
   <div class="row collapse">
@@ -72,14 +74,17 @@
     <div class="small-3 columns">
       <%= f.autocomplete_field :organiser_name,
                                autocomplete_staff_element_name_elements_path,
-                               :id_element => '#event_organiser_id' %>
+                               :id_element => '#event_organiser_id',
+                               :placeholder => "Name of organiser (optional)",
+                               "data-auto-focus" => true %>
       <%= f.text_field :organiser_id, :type => :hidden %>
     </div>
     <div class="small-2 columns">
       <%= f.label :reference, class: "right inline" %>
     </div>
     <div class="small-4 columns">
-      <%= f.text_field :organiser_ref %>
+      <%= f.text_field :organiser_ref,
+                       :placeholder => "additional information (optional)" %>
     </div>
   </div>
   <div class="row collapse">
@@ -106,7 +111,8 @@
     <%= f.autocomplete_field :element_name,
                              autocomplete_element_name_elements_path,
                              'data-auto-focus' => true,
-                             :id_element => '#commitment_element_id' %>
+                             :id_element => '#commitment_element_id',
+                             :placeholder => "Type the name of a resource to add" %>
     <%= f.text_field :element_id, :type => :hidden %>
     <%= f.text_field :event_id, :type => :hidden %>
     <%= f.submit "Add resource" %>
