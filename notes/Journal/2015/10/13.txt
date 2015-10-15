@@ -1,0 +1,13 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-10-13T08:24:21+01:00
+
+====== Tuesday 13 Oct 2015 ======
+
+I have started today by pushing my new find_free facility to the live system.  Next I intend to:
+
+[*] Modify all autocomplete fields to select the first item - consistency
+[*] Fix the import script to classify PS periods and suspend them when appropriate
+[ ] Enhance my find_free stuff to do more and have a prettier interface
+
+Need a current copy of the live database with which to test things, since its format has just changed.
