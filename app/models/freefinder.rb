@@ -4,7 +4,7 @@ class Freefinder < ActiveRecord::Base
 
   belongs_to :element
 
-  attr_reader :free_elements, :done_search
+  attr_reader :free_elements, :done_search, :original_membership_size
 
   def element_name
     self.element ? self.element.name : ""
@@ -81,6 +81,7 @@ class Freefinder < ActiveRecord::Base
       #
       member_elements =
         target_group.members(self.on, true, true).collect {|e| e.element}
+      @original_membership_size = member_elements.size
       #
       #  And a list of all the events occuring at the specified time,
       #  from which we construct a list of all the elements committed to

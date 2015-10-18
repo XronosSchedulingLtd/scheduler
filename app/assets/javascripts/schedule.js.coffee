@@ -48,7 +48,7 @@ $(document).ready ->
       columnFormat:
         month: 'ddd'
         week: 'ddd D/M'
-        day: 'dddd D/M'
+        day: 'ddd D/M'
       timeFormat: 'H:mm',
       header:
         left: 'prev,next today'
@@ -59,7 +59,7 @@ $(document).ready ->
       titleFormat:
         month: 'MMMM YYYY'
         week: 'Do MMM, YYYY'
-        day: 'dddd Do MMM, YYYY'
+        day: 'ddd Do MMM, YYYY'
       defaultView: "agendaWeek"
       firstDay: $('#fullcalendar').data("firstday")
       defaultDate: $('#fullcalendar').data("defaultdate")
@@ -137,7 +137,7 @@ $(document).ready ->
       columnFormat:
         month: 'ddd'
         week: 'ddd D/M'
-        day: 'dddd D/M'
+        day: 'ddd D/M'
       timeFormat: 'H:mm',
       header:
         left: 'prev,next today'
@@ -148,7 +148,7 @@ $(document).ready ->
       titleFormat:
         month: 'MMMM YYYY'
         week: 'Do MMM, YYYY'
-        day: 'dddd Do MMM, YYYY'
+        day: 'ddd Do MMM, YYYY'
       defaultView: "agendaWeek"
       firstDay: $('#fullcalendar').data("firstday")
       defaultDate: $('#fullcalendar').data("defaultdate")
