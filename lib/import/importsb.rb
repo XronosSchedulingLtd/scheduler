@@ -129,6 +129,12 @@ class WhoTeachesWhat
     end
   end
 
+  #
+  #  Return an array of anyone recorded as teaching anything.
+  #
+  def self.all_teachers
+    @@not_by_subject.teachers
+  end
 end
 
 #
@@ -4254,7 +4260,7 @@ class SB_Loader
     ensure_membership("All staff",
                       Staff.active.current,
                       Staff)
-    ensure_membership("Teaching staff",
+    ensure_membership("Teaching staff (according to SB)",
                       Staff.active.current.teaching,
                       Staff)
     #
@@ -4411,6 +4417,17 @@ class SB_Loader
                         Staff)
     else
       puts "There don't seem to be any supervised study invigilators."
+    end
+    actual_teachers =
+      WhoTeachesWhat.all_teachers.collect {|t|
+        t.dbrecord
+      }.compact.select {|dbr| dbr.active}
+    if actual_teachers.size > 0
+      ensure_membership("Teaching staff",
+                        actual_teachers,
+                        Staff)
+    else
+      puts "Don't seem to have any teachers at all."
     end
 #    WhoStudiesWhat.pupils_by_subject do |subject, pupils|
 #      dbpupils = pupils.collect {|p| @pupil_hash[p.pupil_ident].dbrecord}.compact
