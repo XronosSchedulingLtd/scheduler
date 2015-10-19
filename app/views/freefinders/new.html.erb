@@ -12,13 +12,13 @@
   <% end %>
   <div class="row collapse">
     <div class="small-3 columns">
-      <%= f.label "From group", class: "right inline" %>
+      <%= f.label "From", class: "right inline" %>
     </div>
     <div class="small-4 columns">
       <%= f.autocomplete_field :element_name,
                                autocomplete_group_element_name_elements_path,
                                :id_element => '#freefinder_element_id',
-                               :placeholder => "Group name",
+                               :placeholder => "group name",
                                "data-auto-focus" => true %>
       <%= f.text_field :element_id, :type => :hidden %>
     </div>
@@ -55,19 +55,20 @@
     <div class="small-3 columns">
       <%= f.label "Period", class: "right inline" %>
     </div>
+    <div class="small-8 columns">
+      <ul class="button-group round">
+        <li class="button tiny period-selector" data-period-no="0" title="Tutor period">0</li>
 <% 1.upto(8) do |index| %>
-    <div class="small-1 columns">
-      <span class="button tiny radius period-selector" data-period-no="<%= index %>"><%= index %></span>
-    </div>
+        <li class="button tiny period-selector" data-period-no="<%= index %>"><%= index %></li>
 <% end %>
+      </ul>
+    </div>
     <div class="small-1 columns">
+      &nbsp;
     </div>
   </div>
   <div class="row collapse">
-    <div class="small-3 columns">
-      &nbsp;
-    </div>
-    <div class="small-2 columns">
+    <div class="small-2 small-offset-3 columns">
       <%= f.submit "Find free", :class => "button small radius" %>
     </div>
 <% if @freefinder.done_search %>
@@ -99,7 +100,7 @@
 <% if @freefinder.free_elements && @freefinder.free_elements.size > 0 %>
 <table class="zftable">
   <tr>
-    <th colspan="3"><%= @freefinder.free_elements.size %> resources found.</th>
+    <th colspan="3">Found <%= @freefinder.free_elements.size %> free out of <%= @freefinder.original_membership_size %>.</th>
   </tr>
 <%= render @freefinder.free_elements.sort %>
 </table>
