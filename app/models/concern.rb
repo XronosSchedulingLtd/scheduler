@@ -23,6 +23,9 @@ class Concern < ActiveRecord::Base
 
   scope :auto_add, -> { where(auto_add: true) }
 
+  after_save :update_element_ownedness_after_save
+  after_destroy :update_element_ownedness_after_destroy
+
   #
   #  This isn't a real field in the d/b.  It exists to allow a name
   #  to be typed in the dialogue for creating a concern record,
@@ -83,7 +86,35 @@ class Concern < ActiveRecord::Base
   #
   #  Can the relevant user delete this concern?
   def user_can_delete?
-     self.user.staff? && !(self.owns || self.controls)
+     self.user.staff? && !(self.equality || self.owns || self.controls)
+  end
+
+  #
+  #  A maintenance method to clear up some unwanted ownership bits.
+  #
+  def self.tidy_ownerships
+    messages = Array.new
+    Concern.all.each do |concern|
+      if concern.owns
+        if concern.element.entity_type == "Staff" ||
+           concern.element.entity_type == "Pupil"
+          messages << "Removing ownership of #{concern.element.name} by #{concern.user.name}."
+          concern.owns = false
+          concern.save
+        end
+      end
+    end
+    Concern.owned.each do |concern|
+      messages << "#{concern.user.name} owns #{concern.element.name}."
+      unless concern.element.owned
+        concern.element.owned = true
+        concern.element.save
+      end
+    end
+    messages.each do |message|
+      puts message
+    end
+    nil
   end
 
   #
@@ -139,5 +170,19 @@ class Concern < ActiveRecord::Base
 #    puts "Didn't copy #{interests_not_copied} interests and #{ownerships_not_copied} ownerships."
 #    nil
 #  end
+
+  protected
+
+  def update_element_ownedness_after_destroy
+    if self.element
+      self.element.update_ownedness(false)
+    end
+  end
+
+  def update_element_ownedness_after_save
+    if self.element
+      self.element.update_ownedness(self.owns)
+    end
+  end
 
 end

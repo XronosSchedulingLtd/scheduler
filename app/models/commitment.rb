@@ -42,6 +42,7 @@ class Commitment < ActiveRecord::Base
   scope :non_covering_commitment, lambda { where("covering_id IS NULL") }
   scope :covered_commitment, -> { joins(:covered) }
   scope :uncovered_commitment, -> { joins("left outer join `commitments` `covereds_commitments` ON `covereds_commitments`.`covering_id` = `commitments`.`id`").where("covereds_commitments.id IS NULL") }
+  scope :firm, -> { where(:tentative => false) }
   #
   #  This isn't a real field in the d/b.  It exists to allow a name
   #  to be typed in the dialogue for creating a commitment record.

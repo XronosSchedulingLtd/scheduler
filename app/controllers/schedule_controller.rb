@@ -75,7 +75,7 @@ class ScheduleController < ApplicationController
 #        @colour = "#3366ff"
 #        @colour = "#00476b"  # Distinguised blue
       end
-      if event.non_existent
+      if event.non_existent || !event.complete
         @colour = washed_out(@colour)
       end
       @editable = current_user ? current_user.can_edit?(event) : false
@@ -227,7 +227,8 @@ class ScheduleController < ApplicationController
                               event_categories,
                               nil,
                               true,
-                              true).collect {|e|
+                              true,
+                              concern.owns).collect {|e|
               ScheduleEvent.new(e,
                                 current_user,
                                 concern.colour,

@@ -5,6 +5,10 @@ class CommitmentsController < ApplicationController
   # POST /commitments.json
   def create
     @commitment = Commitment.new(commitment_params)
+    if @commitment.element.owned &&
+       !current_user.concerns.owned.detect {|c| c.element == @commitment.element}
+      @commitment.tentative = true
+    end
     #
     #  Not currently checking the result of this, because regardless
     #  of whether it succeeds or fails, we just display the list of

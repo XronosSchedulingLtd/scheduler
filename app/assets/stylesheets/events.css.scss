@@ -47,3 +47,12 @@
     height: 1%; }
   *:first-child + html .digg_pagination {
     overflow: hidden; }
+
+.tentative-commitment {
+  background: #ffa500;
+}
+
+.rejected-commitment {
+  color: white;
+  background: red;
+}

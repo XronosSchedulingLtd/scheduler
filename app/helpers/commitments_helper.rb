@@ -14,6 +14,9 @@ module CommitmentsHelper
                 h(commitment.covered.element.name) +
                 ")"
     end
+    if commitment.tentative
+      result = "<span class=\"tentative-commitment\">#{result}</span>"
+    end
 #    puts "Returning \"#{result}\"."
     result
   end

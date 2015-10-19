@@ -569,7 +569,9 @@ class Event < ActiveRecord::Base
     else
       resource = item.element
     end
-    !!self.commitments.detect {|c| c.element == resource}
+    !!self.commitments.detect {|c|
+      !c.tentative && (c.element == resource)
+    }
   end
 
   def involves_any?(list)

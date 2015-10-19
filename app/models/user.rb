@@ -180,8 +180,8 @@ class User < ActiveRecord::Base
         got_something = true
         concern = self.concern_with(staff.element)
         if concern
-          unless concern.owns
-            concern.owns = true
+          unless concern.equality
+            concern.equality = true
             concern.save!
           end
         else
@@ -189,7 +189,7 @@ class User < ActiveRecord::Base
             concern.user_id    = self.id
             concern.element_id = staff.element.id
             concern.equality   = true
-            concern.owns       = true
+            concern.owns       = false
             concern.visible    = true
             concern.colour     = "#225599"
           end
@@ -200,8 +200,8 @@ class User < ActiveRecord::Base
         got_something = true
         concern = self.concern_with(pupil.element)
         if concern
-          unless concern.owns
-            concern.owns = true
+          unless concern.equality
+            concern.equality = true
             concern.save!
           end
         else
@@ -209,7 +209,7 @@ class User < ActiveRecord::Base
             concern.user_id    = self.id
             concern.element_id = pupil.element.id
             concern.equality   = true
-            concern.owns       = true
+            concern.owns       = false
             concern.visible    = true
             concern.colour     = "#225599"
           end
