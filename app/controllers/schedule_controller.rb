@@ -15,14 +15,20 @@ class ScheduleController < ApplicationController
     #  A bit of messing about is needed to generate a constant hash with
     #  a default value.
     #
-    KNOWN_COLOUR_NAMES = lambda do
-      known_colour_names = {
-        "red"   => "#FF0000",
-        "pink"  => "#FFC0CB",
-        "green" => "#008000"
-      }.default = "#000000"
-      known_colour_names
-    end.call
+#    KNOWN_COLOUR_NAMES = lambda do
+#      known_colour_names = {
+#        "red"   => "#FF0000",
+#        "pink"  => "#FFC0CB",
+#        "green" => "#008000"
+#      }.default = "#000000"
+#      known_colour_names
+#    end.call
+    KNOWN_COLOUR_NAMES = {
+      "red"   => "#FF0000",
+      "pink"  => "#FFC0CB",
+      "green" => "#008000"
+    }
+    KNOWN_COLOUR_NAMES.default = "#000000"
 
     #
     #  Passed a colour, produces a more greyed out version of the same
