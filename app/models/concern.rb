@@ -23,8 +23,8 @@ class Concern < ActiveRecord::Base
 
   scope :auto_add, -> { where(auto_add: true) }
 
-  after_save :update_element_ownedness_after_save
-  after_destroy :update_element_ownedness_after_destroy
+  after_save :update_after_save
+  after_destroy :update_after_destroy
 
   #
   #  This isn't a real field in the d/b.  It exists to allow a name
@@ -106,10 +106,11 @@ class Concern < ActiveRecord::Base
     end
     Concern.owned.each do |concern|
       messages << "#{concern.user.name} owns #{concern.element.name}."
-      unless concern.element.owned
-        concern.element.owned = true
-        concern.element.save
-      end
+      #
+      #  Do a dummy save to cause the element and user to be updated
+      #  as being owned/owners.
+      #
+      concern.save
     end
     messages.each do |message|
       puts message
@@ -173,15 +174,21 @@ class Concern < ActiveRecord::Base
 
   protected
 
-  def update_element_ownedness_after_destroy
+  def update_after_destroy
     if self.element
       self.element.update_ownedness(false)
     end
+    if self.user
+      self.user.update_owningness(false)
+    end
   end
 
-  def update_element_ownedness_after_save
+  def update_after_save
     if self.element
       self.element.update_ownedness(self.owns)
+    end
+    if self.user
+      self.user.update_owningness(self.owns)
     end
   end
 

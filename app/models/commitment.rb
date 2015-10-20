@@ -43,6 +43,15 @@ class Commitment < ActiveRecord::Base
   scope :covered_commitment, -> { joins(:covered) }
   scope :uncovered_commitment, -> { joins("left outer join `commitments` `covereds_commitments` ON `covereds_commitments`.`covering_id` = `commitments`.`id`").where("covereds_commitments.id IS NULL") }
   scope :firm, -> { where(:tentative => false) }
+  scope :tentative, -> { where(:tentative => true) }
+  scope :constraining, -> { where(:constraining => true) }
+
+  #
+  #  Call-backs.
+  #
+  after_save    :update_event_after_save
+  after_destroy :update_event_after_destroy
+
   #
   #  This isn't a real field in the d/b.  It exists to allow a name
   #  to be typed in the dialogue for creating a commitment record.
@@ -53,6 +62,16 @@ class Commitment < ActiveRecord::Base
 
   def element_name=(en)
     @element_name = en
+  end
+
+  #
+  #  Override the default setter.
+  #
+  def tentative=(new_value)
+    if self.tentative && !new_value
+      self.constraining = true
+    end
+    super(new_value)
   end
 
   #
@@ -500,5 +519,19 @@ class Commitment < ActiveRecord::Base
 #    end
 #    puts "Set #{flags_set} flags."
 #  end
+
+  protected
+
+  def update_event_after_save
+    if self.event
+      self.event.update_from_commitments(self.tentative, self.constraining)
+    end
+  end
+
+  def update_event_after_destroy
+    if self.event
+      self.event.update_from_commitments(false, false)
+    end
+  end
 
 end

@@ -14,8 +14,12 @@ module CommitmentsHelper
                 h(commitment.covered.element.name) +
                 ")"
     end
-    if commitment.tentative
-      result = "<span class=\"tentative-commitment\">#{result}</span>"
+    if commitment.rejected
+      result = "<span class=\"rejected-commitment\">#{result}</span>"
+    elsif commitment.tentative
+      result = "<span class=\"tentative-commitment\">#{result}</span> <span class=\"commitment-yes\">Yes</span>/<span class=\"commitment-no\">No</span>"
+    elsif commitment.constraining
+      result = "<span class=\"constraining-commitment\">#{result}</span>"
     end
 #    puts "Returning \"#{result}\"."
     result

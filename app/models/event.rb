@@ -107,6 +107,53 @@ class Event < ActiveRecord::Base
   scope :involving, lambda {|element| joins(:commitments).where("commitments.element_id = ?", element.id)}
   scope :excluding_category, lambda {|ec| where("eventcategory_id != ?", ec.id) }
 
+  before_destroy :being_destroyed
+
+  #
+  #  We are being asked to check whether we are complete or not.  The
+  #  hint indicates whether or not the calling commitment is tentative.
+  #  If it is tentative, then we can't be complete.  If it's not
+  #  tentative, then we might be complete.
+  #
+  def update_from_commitments(commitment_tentative, commitment_constraining)
+    unless @being_destroyed || self.destroyed?
+      do_save = false
+      if commitment_tentative
+        if self.complete
+          self.complete = false
+          do_save = true
+        end
+      else
+        unless self.complete
+          #
+          #  It's possible our last remaining tentative commitment either
+          #  went away or became non-tentative.
+          #  This is the most expensive case to check.
+          #
+          if self.commitments.tentative.count == 0
+            self.complete = true
+            do_save = true
+          end
+        end
+      end
+      if commitment_constraining
+        unless self.constrained
+          self.constrained = true
+          do_save = true
+        end
+      else
+        if self.constrained
+          if self.commitments.constraining.count == 0
+            self.constrained = false
+            do_save = true
+          end
+        end
+      end
+      if do_save
+        self.save!
+      end
+    end
+  end
   #
   #  For pagination.
   #
@@ -563,19 +610,31 @@ class Event < ActiveRecord::Base
     result
   end
 
-  def involves?(item)
+  def involves?(item, even_tentative = false)
     if item.instance_of?(Element)
       resource = item
     else
       resource = item.element
     end
-    !!self.commitments.detect {|c|
-      !c.tentative && (c.element == resource)
-    }
+    if even_tentative
+      selector = self.commitments
+    else
+      selector = self.commitments.firm
+    end
+#    Rails.logger.debug("Checking for commitments to #{resource.id}")
+#    Rails.logger.debug("Have commitments to:")
+#    selector.each do |c|
+#      Rails.logger.debug("Element id #{c.element_id}")
+#    end
+    !!selector.detect {|c| c.element_id == resource.id }
   end
 
-  def involves_any?(list)
-    if list.detect {|item| self.involves?(item)}
+  def involves_any?(list, even_tentative = false)
+#    Rails.logger.debug("Entering involves_any? to check:")
+#    list.each do |element|
+#      Rails.logger.debug("Element id #{element.id}")
+#    end
+    if list.detect {|item| self.involves?(item, even_tentative)}
       true
     else
       false
@@ -851,6 +910,12 @@ class Event < ActiveRecord::Base
       end
     end
 #    Rails.logger.debug("Now timed, with starts_at = #{self.starts_at} and ends_at = #{self.ends_at}.")
+  end
+
+  protected
+
+  def being_destroyed
+    @being_destroyed = true
   end
 
 end

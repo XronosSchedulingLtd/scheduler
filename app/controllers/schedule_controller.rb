@@ -15,14 +15,26 @@ class ScheduleController < ApplicationController
     #  A bit of messing about is needed to generate a constant hash with
     #  a default value.
     #
-    KNOWN_COLOUR_NAMES = lambda do
-      known_colour_names = {
-        "red"   => "#FF0000",
-        "pink"  => "#FFC0CB",
-        "green" => "#008000"
-      }.default = "#000000"
-      known_colour_names
-    end.call
+    #  I got this from a blog posting and it doesn't actually work.
+    #  it returns a string, not a hash.  It also appears to be quite
+    #  unnecessary, since the straightforward approach works without
+    #  even producing a warning.
+    #
+    #KNOWN_COLOUR_NAMES = lambda do
+    #  known_colour_names = {
+    #    "red"   => "#FF0000",
+    #    "pink"  => "#FFC0CB",
+    #    "green" => "#008000"
+    #  }.default = "#000000"
+    #  known_colour_names
+    #end.call
+    #
+    KNOWN_COLOUR_NAMES = {
+      "red"   => "#FF0000",
+      "pink"  => "#FFC0CB",
+      "green" => "#008000"
+    }
+    KNOWN_COLOUR_NAMES.default = "#000000"
 
     #
     #  Passed a colour, produces a more greyed out version of the same
@@ -78,19 +90,28 @@ class ScheduleController < ApplicationController
       if event.non_existent || !event.complete
         @colour = washed_out(@colour)
       end
-      @editable = current_user ? current_user.can_edit?(event) : false
+#      Rails.logger.debug("Current user is #{current_user.email}")
+      #
+      #  Note that our idea of editable is slightly different from
+      #  FullCalendar's.  If I set editable on the event data, then
+      #  FullCalendar will let us drag it around - i.e. change the time.
+      #  This corresponds to our idea of being retimeable.
+      #
+      @editable = current_user ? current_user.can_retime?(event) : false
+      @edit_dialogue = current_user ? current_user.can_edit?(event) : false
     end
 
     def as_json(options = {})
       {
-        :id        => "#{@event.id}",
-        :title     => @event.body,
-        :start     => @event.starts_at_for_fc,
-        :end       => @event.ends_at_for_fc,
-        :allDay    => @event.all_day,
-        :recurring => false,
-        :editable  => @editable,
-        :color     => @colour
+        :id            => "#{@event.id}",
+        :title         => @event.body,
+        :start         => @event.starts_at_for_fc,
+        :end           => @event.ends_at_for_fc,
+        :allDay        => @event.all_day,
+        :recurring     => false,
+        :editable      => @editable,
+        :edit_dialogue => @edit_dialogue,
+        :color         => @colour
       }
     end
 

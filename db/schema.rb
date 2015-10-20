@@ -17,12 +17,14 @@ ActiveRecord::Schema.define(version: 20151015094648) do
     t.integer "event_id"
     t.integer "element_id"
     t.integer "covering_id"
-    t.boolean "names_event", default: false
+    t.boolean "names_event",  default: false
     t.integer "source_id"
-    t.boolean "tentative",   default: false
-    t.boolean "rejected",    default: false
+    t.boolean "tentative",    default: false
+    t.boolean "rejected",     default: false
+    t.boolean "constraining", default: false
   end
 
+  add_index "commitments", ["constraining"], name: "index_commitments_on_constraining", using: :btree
   add_index "commitments", ["covering_id"], name: "index_commitments_on_covering_id", using: :btree
   add_index "commitments", ["element_id"], name: "index_commitments_on_element_id", using: :btree
   add_index "commitments", ["event_id"], name: "index_commitments_on_event_id", using: :btree
@@ -317,6 +319,7 @@ ActiveRecord::Schema.define(version: 20151015094648) do
     t.integer  "firstday",                    default: 0
     t.string   "default_event_text",          default: ""
     t.boolean  "public_groups",               default: false
+    t.boolean  "element_owner",               default: false
   end
 
 end

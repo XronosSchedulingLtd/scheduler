@@ -203,12 +203,13 @@ class EventsController < ApplicationController
     new_all_day = (params[:event][:all_day] == "true")
     @event.set_timing(new_start, new_all_day)
     respond_to do |format|
-      if @event.save
+      if false # @event.save
         format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
         format.json { render :show, status: :ok, location: @event }
       else
         format.html { render :edit }
-        format.json { render json: @event.errors, status: :unprocessable_entity }
+        format.json { render :revert, status: :failed }
+#        format.json { render json: @event.errors, status: :unprocessable_entity }
       end
     end
   end

@@ -71,7 +71,7 @@
     <div class="small-8 columns">
       <%= form_for(@membership, remote: true) do |f| %>
         <%= f.autocomplete_field :element_name,
-                                 autocomplete_element_name_elements_path,
+                                 autocomplete_unowned_element_name_elements_path,
                                  :id_element => '#membership_element_id',
                                  :placeholder => "Add a member",
                                  "data-auto-focus" => true %>
@@ -82,7 +82,7 @@
     <div class="small-4 columns">
       <%= form_for(@exclusion, namespace: :exclusion, remote: true) do |f| %>
         <%= f.autocomplete_field :element_name,
-                                 autocomplete_element_name_elements_path,
+                                 autocomplete_unowned_element_name_elements_path,
                                  :id_element => '#exclusion_membership_element_id',
                                  :placeholder => "but exclude",
                                  "data-auto-focus" => true %>

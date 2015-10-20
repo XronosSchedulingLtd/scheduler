@@ -7,8 +7,6 @@ class Element < ActiveRecord::Base
   belongs_to :entity, :polymorphic => true
   has_many :memberships, :dependent => :destroy
   has_many :commitments, :dependent => :destroy
-  has_many :ownerships,  :dependent => :destroy
-  has_many :interests,   :dependent => :destroy
   has_many :concerns,    :dependent => :destroy
   has_many :freefinders, :dependent => :destroy
   has_many :organised_events,
@@ -37,10 +35,6 @@ class Element < ActiveRecord::Base
     "Group"    => 5,
     "Service"  => 6
   }.tap {|h| h.default = 0}
-
-  def being_destroyed
-    @being_destroyed = true
-  end
 
   #
   #  The hint tells us whether the invoking concern is an owning
@@ -367,6 +361,12 @@ class Element < ActiveRecord::Base
     end
     puts "Updated #{currents_updated_count} current flags."
     nil
+  end
+
+  protected
+
+  def being_destroyed
+    @being_destroyed = true
   end
 
 end

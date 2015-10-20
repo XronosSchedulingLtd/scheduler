@@ -4,10 +4,14 @@ class CommitmentsController < ApplicationController
   # POST /commitments
   # POST /commitments.json
   def create
+    Rails.logger.debug("Creating a commitment.")
     @commitment = Commitment.new(commitment_params)
+    Rails.logger.debug("@commitment.element.owned = #{@commitment.element.owned}")
+    Rails.logger.debug("current_user.owns?(@commitment.element) = #{current_user.owns?(@commitment.element)}")
     if @commitment.element.owned &&
-       !current_user.concerns.owned.detect {|c| c.element == @commitment.element}
+       !current_user.owns?(@commitment.element)
       @commitment.tentative = true
+      Rails.logger.debug("Set tentative to true.")
     end
     #
     #  Not currently checking the result of this, because regardless
@@ -15,6 +19,8 @@ class CommitmentsController < ApplicationController
     #  committed resources again.
     #
     @commitment.save!
+    @commitment.reload
+    Rails.logger.debug("Commitment.tentative = #{@commitment.tentative}")
     @event = @commitment.event
     respond_to do |format|
       format.js

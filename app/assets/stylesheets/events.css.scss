@@ -50,9 +50,28 @@
 
 .tentative-commitment {
   background: #ffa500;
+  border-radius: 2px;
 }
 
 .rejected-commitment {
   color: white;
   background: red;
+  border-radius: 2px;
+}
+
+.constraining-commitment {
+  background: #98fb98;      // Pale green
+  border-radius: 2px;
+}
+
+.commitment-yes {
+  background: #005500;
+  color: white;
+  border-radius: 2px;
+}
+
+.commitment-no {
+  background: #cc0000;
+  color: white;
+  border-radius: 2px;
 }

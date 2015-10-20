@@ -30,8 +30,6 @@ class User < ActiveRecord::Base
                     "#556B2F",      # DarkOliveGreen
                     "#FF6347"]      # Tomato
 
-  has_many :ownerships, :dependent => :destroy
-  has_many :interests,  :dependent => :destroy
   has_many :concerns,   :dependent => :destroy
 
   has_many :events,   foreign_key: :owner_id
@@ -52,7 +50,9 @@ class User < ActiveRecord::Base
   validates :firstday, :numericality => true
 
   scope :arranges_cover, lambda { where("arranges_cover = true") }
+  scope :element_owner, lambda { where(:element_owner => true) }
 
+  before_destroy :being_destroyed
   after_save :find_matching_resources
 
   def known?
@@ -89,9 +89,35 @@ class User < ActiveRecord::Base
   #  of elements.
   #
   def owns?(element)
-    !!concerns.detect {|c| (c.element_id == element.id) && c.owns}
+    !!concerns.owned.detect {|c| (c.element_id == element.id)}
   end
 
+  #
+  #  The hint tells us whether the invoking concern is an owning
+  #  concern.  If it is, then we are definitely owned.  If it is
+  #  not then we might not be owned any more.
+  #
+  def update_owningness(hint)
+    unless @being_destroyed || self.destroyed?
+      if hint
+        unless self.element_owner
+          self.element_owner = true
+          self.save!
+        end
+      else
+        if self.element_owner
+          #
+          #  It's possible our last remaining ownership just went away.
+          #  This is the most expensive case to check.
+          #
+          if self.concerns.owned.count == 0
+            self.element_owner = false
+            self.save!
+          end
+        end
+      end
+    end
+  end
   def free_colour
     available = DECENT_COLOURS - self.concerns.collect {|i| i.colour}
     if available.size > 0
@@ -135,13 +161,33 @@ class User < ActiveRecord::Base
     if item.instance_of?(Event)
       self.admin ||
       (self.create_events? && item.owner_id == self.id) ||
-      (self.create_events? && item.involves_any?(self.controlled_elements))
+      (self.create_events? && item.involves_any?(self.controlled_elements, true))
     elsif item.instance_of?(Group)
       self.admin ||
       (self.create_groups? && item.owner_id == self.id)
     else
       false
     end
+  end
+
+  #
+  #  And specifically for events, can the user re-time the event?
+  #  Sometimes users can edit, but not re-time.
+  #
+  #  Returns two values - edit and retime.
+  #
+  def can_retime?(event)
+    if self.admin ||
+       (self.element_owner &&
+        self.create_events? &&
+        event.involves_any?(self.controlled_elements, true))
+      can_retime = true
+    elsif self.create_events? && event.owner_id == self.id
+      can_retime = !event.constrained
+    else
+      can_retime = false
+    end
+    can_retime
   end
 
   def events_on(start_date = nil,
@@ -371,6 +417,12 @@ class User < ActiveRecord::Base
       puts text
     end
     nil
+  end
+
+  protected
+
+  def being_destroyed
+    @being_destroyed = true
   end
 
 end

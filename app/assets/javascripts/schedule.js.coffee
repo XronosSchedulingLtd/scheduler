@@ -72,7 +72,7 @@ $(document).ready ->
         url: '/schedule/events'
       }]
       eventClick: (event, jsEvent, view) ->
-        if event.editable
+        if event.edit_dialogue
           $('#eventModal').foundation('reveal', 'open', {
             url: '/events/' + event.id + '/edit'
           })
@@ -80,7 +80,7 @@ $(document).ready ->
           $('#eventModal').foundation('reveal',
                                       'open',
                                       '/events/' + event.id)
-      eventDrop: (event, revertFunc) ->
+      eventDrop: (event, delta, revertFunc) ->
         jQuery.ajax
           url:  "/events/" + event.id + "/moved"
           type: "PUT"

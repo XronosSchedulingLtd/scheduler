@@ -56,15 +56,25 @@
       <%= f.label :starts, class: "right inline" %>
     </div>
     <div class="small-3 columns">
-      <%= f.text_field :starts_at_text,
-                       :class => :datetimepicker %>
+      <% if current_user.can_retime?(@event) %>
+        <%= f.text_field :starts_at_text,
+                         :class => :datetimepicker %>
+      <% else %>
+        <%= f.text_field :starts_at_text,
+                         :disabled => true %>
+      <% end %>
     </div>
     <div class="small-3 columns">
       <%= f.label :ends, class: "right inline" %>
     </div>
     <div class="small-3 columns">
-      <%= f.text_field :ends_at_text,
-                       :class => :datetimepicker %>
+      <% if current_user.can_retime?(@event) %>
+        <%= f.text_field :ends_at_text,
+                         :class => :datetimepicker %>
+      <% else %>
+        <%= f.text_field :ends_at_text,
+                         :disabled => true %>
+      <% end %>
     </div>
   </div>
   <div class="row collapse">

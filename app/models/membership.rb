@@ -393,7 +393,7 @@ class Membership < ActiveRecord::Base
       self.process_exclusions
 #      Rails.logger.debug("Done the exclusions.")
       self.group_by_duration
-      Rails.logger.debug("Finished finalizing.")
+#      Rails.logger.debug("Finished finalizing.")
 #      File.open(Rails.root.join("scratch", "after.yml"), "w") do |file|
 #        file.puts YAML::dump(self)
 #      end

@@ -30,6 +30,13 @@ Boolean, defaulting to false.  If the resource owner rejects the request, this g
 
 Tentative = false, rejected = true is not a valid state.
 
+== Constraining ==
+A flag to indicate that the commitment constrains the event.  Basically gets set whenever a tentative commitment becomes a firm one.  Exists to avoid having to follow through all the commitments to an event when checking whether the event is constrained.  It would be necessary to go:
+
+Event => All commitments => All elements => All concerns => Find ownerships
+
+otherwise to decide whether or not an event had any constraints.
+
 ==== Element ====
 
 == Owned ==
@@ -49,15 +56,19 @@ We then need additional functionality as follows:
 [*] For all existing concerns, set the corresponding owned flag in the element record
 [*] Make sure future updates to concerns keep the element record in step
 [*] When adding elements to an event, check for ownership and set the tentative flag.  Display this status somehow in the dialogue.  If the current user is actually the owner, don't set the flag.
-[ ] When displaying events for an element, do not display ones with a tentative commitment, unless the user has ownership of the element.  In that case, make them visually distinctive - faded out?
+[*] When displaying events for an element, do not display ones with a tentative commitment, unless the user has ownership of the element.  In that case, make them visually distinctive - faded out?
 [*] Likewise, when generating a calendar download, don't include tentative commitments.
-[ ] Whenever an event has tentative commitments, flag it as incomplete.
-[ ] Remove owned elements from those offered in the groups dialogue
+[*] Whenever an event has tentative commitments, flag it as incomplete.
+[*] Remove owned elements from those offered in the groups dialogue
 [ ] Constrain editing of constrained events by their owners.  No time changes.
+[ ] Need to apply these constraints at the server end too.
 [ ] For element owners, provide a visual indication when the element has tentative commitments
 [ ] Allow element owners then to view and approve or reject such commitments
 [ ] Enhance the user editing dialogue to allow ownership to be given and/or taken away.
+[ ] Allow element owners to choose to receive e-mail notifications of requests
+[ ] When approving a commitment, one should be able to see what other approvals are still needed for that event.
 [ ] If an owned element loses its last remaining owner, should I automatically approve all tentative commitments? This might cause problems if, for instance, the person responsible for the calendar is changing and whoever does it deletes the old person before setting up the new one.
+[ ] In an ideal world, one should also be able to have groups of resources to request - meeting room, mini-bus.
 
 
 What have I forgotten?  Doubtless I will find out.
@@ -84,4 +95,32 @@ Some suggestions here:
 https://github.com/rails/rails/issues/13609
 
 Let's try it.  Seems to work, including the bit where I delete the entity underlying the element.
+
+Interesting - I seem to have managed to create an event which has a commitment to "Calendar" and yet it doesn't appear when I ask to see the Calendar.  Why?  The commitment was initially tentative, but isn't now.  Ah - I think it's because my event isn't complete.  Why isn't it complete?  I deleted its rejected commitment.
+
+Ah - clearly a code problem, because none of my calendar events was appearing.  Setting the event to complete made them all appear.  Two issues then.
+
+[*] Why didn't the event get set to being complete when I deleted its rejected commitment?
+[*] Why did it prevent all the other calendar events from appearing?
+
+Is the latter problem because the concern has no colour?  We seem to have tried to wash out the colour for a calendar event, but somehow we weren't passed a colour.
+
+I think my code to wash out a known colour is broken, and it may be that it has never been executed before.  Now, what is wrong with it?  It seems I wrote nonsense, guided by a blog.  Now fixed it.
+
+I've just tested deleting a rejected commitment and the event did indeed become complete.  I suspect I may have done the deletion before the relevant code was in place.
+
+Now - constraining editing.  Currently I use just a single flag - editable - on my events as they are downloaded to the browser.  If that is set then they can be edited, and if it isn't then they can't.
+
+I need to split that in two - the situation will arise when the user can edit, but can't change the timing.  No dragging and no editing it in the dialogue.  Perhaps a second flag saying "time_fixed"?
+
+Odd - my admin user seems to be able to override tentativeness?  How has that happened?  Is it purely because I am an admin user?  Try it the other way around.  No, my ordinary user can now ignore things too.  How has that happened? I am setting the commitment field to true, then something is changing it back to false as it gets saved to the d/b.  Weird.  Probably one of my callbacks.  No - it's because I'd tried to hook into the value assignment in my model.  Think I've fixed it?
+
+Why does setting a commitment to be no longer tentative not automatically make it constraining?  Because I was trying to access instance variables directly.  Stop it.
+
+Now need to work out how to send an error status back if the user requests a drag and it isn't allowed.  Really want the visual of the drag to be reverted.
+
+What's the difference between a json file and a js file?
+
+
+
 

@@ -26,10 +26,17 @@ class ElementsController < ApplicationController
     render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
   end
 
-  def show
-    @element = Element.find(params[:id])
-    @mwd_set = @element.memberships_by_duration(start_date: nil,
-                                                end_date: nil)
+  def autocomplete_unowned_element_name
+    term = params[:term].split(" ").join("%")
+    elements =
+      Element.current.
+              disowned.
+              mine_or_system(current_user).
+              where('name LIKE ?', "%#{term}%").
+              order("LENGTH(elements.name)").
+              order(:name).
+              all
+    render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
   end
 
   def autocomplete_staff_element_name
@@ -54,6 +61,12 @@ class ElementsController < ApplicationController
               order(:name).
               all
     render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+  end
+
+  def show
+    @element = Element.find(params[:id])
+    @mwd_set = @element.memberships_by_duration(start_date: nil,
+                                                end_date: nil)
   end
 
   IcalDataSet = Struct.new(:prefix, :data)
