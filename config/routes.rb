@@ -35,7 +35,12 @@ Rails.application.routes.draw do
 
   resources :users
 
-  resources :commitments
+  resources :commitments do
+    member do
+      put :approve
+      put :reject
+    end
+  end
 
   resources :memberships
 

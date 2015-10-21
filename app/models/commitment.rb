@@ -44,6 +44,7 @@ class Commitment < ActiveRecord::Base
   scope :uncovered_commitment, -> { joins("left outer join `commitments` `covereds_commitments` ON `covereds_commitments`.`covering_id` = `commitments`.`id`").where("covereds_commitments.id IS NULL") }
   scope :firm, -> { where(:tentative => false) }
   scope :tentative, -> { where(:tentative => true) }
+  scope :not_rejected, -> { where(:rejected => false) }
   scope :constraining, -> { where(:constraining => true) }
 
   #
@@ -70,8 +71,26 @@ class Commitment < ActiveRecord::Base
   def tentative=(new_value)
     if self.tentative && !new_value
       self.constraining = true
+      self.rejected = false
+    elsif !self.tentative && new_value
+      self.constraining = false
     end
     super(new_value)
+  end
+
+  #
+  #  Approve this commitment if it wasn't already, and save it to
+  #  the d/b.
+  #
+  def approve_and_save!
+    self.tentative = false
+    self.save!
+  end
+
+  def reject_and_save!
+    self.tentative = true
+    self.rejected  = true
+    self.save!
   end
 
   #

@@ -1,0 +1,26 @@
+<tr>
+  <td>
+    <%= commitment.event.body %>
+  </td>
+  <td>
+    <%= commitment.event.owner ? commitment.event.owner.name : "" %>
+  </td>
+  <td>
+    <%= commitment.event.organiser ? commitment.event.organiser.name : "" %>
+  </td>
+  <td>
+    <%= commitment.event.starts_at_text %>
+  </td>
+  <td>
+    <%= commitment.event.ends_at_text %>
+  </td>
+  <td>
+    <%= commitment.event.commitments.tentative.count == 1 ? "Yes" : "No" %>
+  </td>
+  <td>
+    <%=
+      link_to "View",
+              schedule_show_path + "?date=#{commitment.event.jump_date_text}"
+     %>
+  </td>
+</tr>

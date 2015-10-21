@@ -90,6 +90,18 @@ class Concern < ActiveRecord::Base
   end
 
   #
+  #  How many permissions are pending for the element pointed to by
+  #  this concern?
+  #
+  def permissions_pending
+    if self.owns
+      self.element.commitments.tentative.not_rejected.count
+    else
+      0
+    end
+  end
+
+  #
   #  A maintenance method to clear up some unwanted ownership bits.
   #
   def self.tidy_ownerships

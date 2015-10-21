@@ -1,0 +1,3 @@
+<% if @event %>
+$('#event_resources').html("<%=j render partial: "events/resource", object: @event, locals: {editing: @editing} %>")
+<% end %>

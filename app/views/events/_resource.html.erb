@@ -1,39 +1,46 @@
-<table class="zftable">
-  <tr>
-    <th>Staff</th>
 <% if known_user? %>
-    <th>Pupils</th>
+<div class="row collapse">
+  <div class="small-12 medium-4 columns">
+    <h5>Staff</h5>
+    <%= commitment_entries_for(resource, Staff, editing, current_user) %>
+  </div>
+  <div class="small-12 medium-4 columns">
+    <h5>Pupils</h5>
+    <%= commitment_entries_for(resource, Pupil, editing, current_user) %>
+  </div>
+  <div class="small-12 medium-4 columns">
+    <h5>Groups</h5>
+    <%= commitment_entries_for(resource, Group, editing, current_user) %>
+  </div>
+</div>
+<div class="row collapse">
+  <div class="small-12 medium-4 columns">
+    <h5>Locations</h5>
+    <%= commitment_entries_for(resource, Location, editing, current_user) %>
+  </div>
+  <div class="small-12 medium-4 columns">
+    <h5>Services</h5>
+    <%= commitment_entries_for(resource, Service, editing, current_user) %>
+  </div>
+  <div class="small-12 medium-4 columns">
+    <h5>Properties</h5>
+    <%= commitment_entries_for(resource, Property, editing, current_user) %>
+  </div>
+</div>
+<% else %>
+<div class="row collapse">
+  <div class="small-12 medium-4 columns">
+    <h5>Staff</h5>
+    <%= commitment_entries_for(resource, Staff, editing, current_user) %>
+  </div>
+  <div class="small-12 medium-4 columns">
+    <h5>Groups</h5>
+    <%= commitment_entries_for(resource, Group, editing, current_user) %>
+  </div>
+  <div class="small-12 medium-4 columns">
+    <h5>Locations</h5>
+    <%= commitment_entries_for(resource, Location, editing, current_user) %>
+  </div>
+</div>
 <% end %>
-    <th>Groups</th>
-    <th>Locations</th>
-<% if known_user? %>
-    <th>Services</th>
-    <th>Properties</th>
-<% end %>
-  </tr>
-  <tr>
-    <td valign="top">
-      <%= commitment_entries_for(resource, Staff, editing) %>
-    </td>
-<% if known_user? %>
-    <td valign="top">
-      <%= commitment_entries_for(resource, Pupil, editing) %>
-    </td>
-<% end %>
-    <td valign="top">
-      <%= commitment_entries_for(resource, Group, editing) %>
-    </td>
-    <td valign="top">
-      <%= commitment_entries_for(resource, Location, editing) %>
-    </td>
-<% if known_user? %>
-    <td valign="top">
-      <%= commitment_entries_for(resource, Service, editing) %>
-    </td>
-    <td valign="top">
-      <%= commitment_entries_for(resource, Property, editing) %>
-    </td>
-<% end %>
-  </tr>
-</table>
 

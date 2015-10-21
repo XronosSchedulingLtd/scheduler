@@ -88,8 +88,16 @@ class User < ActiveRecord::Base
   #  not worth it as each user is likely to own only a small number
   #  of elements.
   #
-  def owns?(element)
-    !!concerns.owned.detect {|c| (c.element_id == element.id)}
+  #  item can be an element or an event.
+  #
+  def owns?(item)
+    if item.instance_of?(Element)
+      !!concerns.owned.detect {|c| (c.element_id == item.id)}
+    elsif item.instance_of?(Event)
+      item.owner_id == self.id
+    else
+      false
+    end
   end
 
   #
@@ -118,6 +126,7 @@ class User < ActiveRecord::Base
       end
     end
   end
+
   def free_colour
     available = DECENT_COLOURS - self.concerns.collect {|i| i.colour}
     if available.size > 0
@@ -177,7 +186,9 @@ class User < ActiveRecord::Base
   #  Returns two values - edit and retime.
   #
   def can_retime?(event)
-    if self.admin ||
+    if event.id == nil
+      can_retime = true
+    elsif self.admin ||
        (self.element_owner &&
         self.create_events? &&
         event.involves_any?(self.controlled_elements, true))
@@ -188,6 +199,20 @@ class User < ActiveRecord::Base
       can_retime = false
     end
     can_retime
+  end
+
+  #
+  #  Does this user have appropriate permissions to approve/decline
+  #  the indicated commitment?
+  #
+  def can_approve?(commitment)
+    self.owns?(commitment.element)
+  end
+
+  def permissions_pending
+    self.concerns.owned.inject(0) do |total, concern|
+      total + concern.permissions_pending
+    end
   end
 
   def events_on(start_date = nil,

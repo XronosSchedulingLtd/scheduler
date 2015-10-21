@@ -1,0 +1,19 @@
+<h3>Requests for <%= request_set.element.name %></h3>
+<% if request_set.anything_outstanding? %>
+  <% if request_set.pending_commitments.size > 0 %>
+    <h5>Awaiting approval</h5>
+    <table>
+      <%= approval_table_header %>
+      <%= render request_set.pending_commitments %>
+    </table>
+  <% end %>
+  <% if request_set.rejected_commitments.size > 0 %>
+    <h5>Previously rejected</h5>
+    <table>
+      <%= approval_table_header %>
+      <%= render request_set.rejected_commitments %>
+    </table>
+    <% end %>
+<% else %>
+  Nothing pending.
+<% end %>

@@ -199,17 +199,24 @@ class EventsController < ApplicationController
   #  been dragged to all-day, or vice versa.
   #
   def moved
-    new_start = params[:event][:new_start]
-    new_all_day = (params[:event][:all_day] == "true")
-    @event.set_timing(new_start, new_all_day)
-    respond_to do |format|
-      if false # @event.save
-        format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
-        format.json { render :show, status: :ok, location: @event }
-      else
+    if current_user.can_retime?(@event)
+      new_start = params[:event][:new_start]
+      new_all_day = (params[:event][:all_day] == "true")
+      @event.set_timing(new_start, new_all_day)
+      respond_to do |format|
+        if @event.save
+          format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
+          format.json { render :show, status: :ok, location: @event }
+        else
+          format.html { render :edit }
+          format.json { render :revert, status: :failed }
+  #        format.json { render json: @event.errors, status: :unprocessable_entity }
+        end
+      end
+    else
+      respond_to do |format|
         format.html { render :edit }
         format.json { render :revert, status: :failed }
-#        format.json { render json: @event.errors, status: :unprocessable_entity }
       end
     end
   end

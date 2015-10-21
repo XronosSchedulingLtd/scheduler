@@ -1,0 +1,28 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-10-21T09:27:45+01:00
+
+====== Wednesday 21 Oct 2015 ======
+
+In my big job of implementing permissions, my main aim today is to re-work the way the assets attached to an event are listed.  It would make sense to use suitably formatted <UL> sections to list them.  If I have time, I could also list members of groups for events involving groups - perhaps only for a "show" and not for an "edit" - then provide the means for someone with edit permission to switch to a "show" view.
+
+All the work of listing a set of resources is done by a method called commitment_entries_for in helpers/commitments_helper.rb.  I should be able to make my changes there.  I need to vary what's produced depending on various things.
+
+* If the user is editing, then an X box appears allowing the commitment to be removed.
+* If the commitment is tentative and the user owns the element, then Yes/No boxes are provided
+* If the commitment is constraining, and the user owns the element then a "Cancel" box is provided
+* If the commitment is rejected, and the user owns the element then an "Approve" box is provided
+
+Note that the approve/reject stuff can still be provided, even if the user is not editing.  This is because the approver might own the element (giving the means to approve things) but not control it (giving the means to edit any event involving it). If the user is in the position to approve/reject, then the X button should probably be suppressed regardless, since it would be surprising to the requester if the commitment were simply deleted.  Perhaps all of them can go on the left?  The trouble with using a UL is that it then becomes very difficult to align the entries.
+
+Interesting point - if a user has approval permission, and //owns// the event he should still get an X box, because otherwise there is no way for him to remove the commitment.  Arguably this situation shouldn't arise, because he should never have been able to make a tentative commitment in the first place, but just in case...
+
+Despite everything, perhaps I should still use a table?
+
+I think the time has come to deploy my modified code on the staging server so that others can comment on it.  Steps needed.
+
+[ ] Fresh copy of live database
+[ ] Make sure I'm running normal master code on scheduler
+[ ] Load data
+[ ] Put my current branch on the git repository
+[ ] Pull it down to the staging server

@@ -2,7 +2,7 @@
   <td>
     <%=
       link_to found_event.starts_at_text,
-              schedule_show_path + "?date=#{found_event.starts_at.to_date.strftime("%Y-%m-%d")}"
+              schedule_show_path + "?date=#{found_event.jump_date_text}"
     %>
   </td>
   <td title="<%= found_event.body %>">

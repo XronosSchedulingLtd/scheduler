@@ -60,13 +60,13 @@ We then need additional functionality as follows:
 [*] Likewise, when generating a calendar download, don't include tentative commitments.
 [*] Whenever an event has tentative commitments, flag it as incomplete.
 [*] Remove owned elements from those offered in the groups dialogue
-[ ] Constrain editing of constrained events by their owners.  No time changes.
-[ ] Need to apply these constraints at the server end too.
-[ ] For element owners, provide a visual indication when the element has tentative commitments
-[ ] Allow element owners then to view and approve or reject such commitments
+[*] Constrain editing of constrained events by their owners.  No time changes.
+[*] Need to apply these constraints at the server end too.
+[*] For element owners, provide a visual indication when the element has tentative commitments
+[*] Allow element owners then to view and approve or reject such commitments
 [ ] Enhance the user editing dialogue to allow ownership to be given and/or taken away.
 [ ] Allow element owners to choose to receive e-mail notifications of requests
-[ ] When approving a commitment, one should be able to see what other approvals are still needed for that event.
+[*] When approving a commitment, one should be able to see what other approvals are still needed for that event.
 [ ] If an owned element loses its last remaining owner, should I automatically approve all tentative commitments? This might cause problems if, for instance, the person responsible for the calendar is changing and whoever does it deletes the old person before setting up the new one.
 [ ] In an ideal world, one should also be able to have groups of resources to request - meeting room, mini-bus.
 

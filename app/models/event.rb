@@ -197,6 +197,10 @@ class Event < ActiveRecord::Base
     self.starts_at = value
   end
 
+  def jump_date_text
+    self.starts_at.to_date.strftime("%Y-%m-%d")
+  end
+
   #
   #  Returns the last date of this event.  Processing differs depending
   #  on whether or not this is an all-day event.
@@ -255,6 +259,26 @@ class Event < ActiveRecord::Base
       else
         ends_at.rfc822
       end
+    end
+  end
+
+  def created_at_text
+    self.created_at ? self.created_at.strftime("%d/%m/%Y %H:%M") : ""
+  end
+
+  def updated_at_text
+    self.updated_at ? self.updated_at.strftime("%d/%m/%Y %H:%M") : ""
+  end
+
+  #
+  #  For a timed event, ends when it starts.
+  #  For an all day event, lasts just the one day.
+  #
+  def minimal_duration?
+    if self.all_day
+      self.starts_at + 1.day == self.ends_at
+    else
+      self.starts_at == self.ends_at
     end
   end
 
