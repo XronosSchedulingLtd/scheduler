@@ -63,7 +63,9 @@
               <ul id="drop1" class="f-dropdown" data-dropdown-content>
                 <li><%= link_to "Groups", groups_path %></li>
                 <li><%= link_to "Find free", new_freefinder_path %></li>
+<% if current_user.element_owner %>
                 <li><%= link_to "Approvals", commitments_path %></li>
+<% end %>
               </ul>
             </li>
             <li class="divider"></li>
