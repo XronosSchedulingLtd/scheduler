@@ -8,6 +8,7 @@ Had a bit of a hiatus on Friday due to Dad's problems with TalkTalk.  Now see wh
 
 [*] Tidy up the colours of the approve/reject buttons
 [*] Add a message to each rejection, and record who rejected it.
+[ ] Drag-n-drop currently circumvents the permissions structure - fix that.
 [ ] Send an e-mail to the event's owner when it is complete or something gets rejected
 [ ] A flag to refresh the screen when the dialogue closes
 [ ] Update the count in the menu more often?
