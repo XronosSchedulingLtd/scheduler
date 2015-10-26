@@ -16,6 +16,7 @@ class Concern < ActiveRecord::Base
   scope :owned, -> {where(owns: true)}
   scope :not_owned, -> {where.not(owns: true)}
   scope :controlling, -> {where(controls: true)}
+  scope :not_controlling, -> {where.not(controls: true)}
 
   scope :visible, -> { where(visible: true) }
 
@@ -116,13 +117,43 @@ class Concern < ActiveRecord::Base
         end
       end
     end
+    #
+    # Need to take the calendar away from Nick
+    #
+    u = User.find_by(name: "Nick Lloyd")
+    e = Element.find_by(name: "Calendar")
+    if u && e
+      c = Concern.where(user_id: u.id).where(element_id: e.id).take
+      if c
+        if c.owns || c.controls
+          c.owns = false
+          c.controls = false
+          c.save
+          messages << "Removed Nick's control of the Calendar."
+        else
+          messages << "Already removed Nick's connection to the Calendar."
+        end
+      else
+        messages << "Couldn't find concern connecting Nick to the Calendar."
+      end
+    else
+      messages << "Couldn't find Nick Lloyd and/or Calendar."
+    end
     Concern.owned.each do |concern|
-      messages << "#{concern.user.name} owns #{concern.element.name}."
       #
       #  Do a dummy save to cause the element and user to be updated
       #  as being owned/owners.
       #
       concern.save
+    end
+    Concern.owned.controlling.each do |concern|
+      messages << "#{concern.user.name} owns and controls #{concern.element.name}."
+    end
+    Concern.owned.not_controlling.each do |concern|
+      messages << "#{concern.user.name} owns #{concern.element.name}."
+    end
+    Concern.not_owned.controlling.each do |concern|
+      messages << "#{concern.user.name} controls #{concern.element.name}."
     end
     messages.each do |message|
       puts message

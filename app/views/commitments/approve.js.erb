@@ -1,3 +1,4 @@
 <% if @event %>
 $('#event_resources').html("<%=j render partial: "events/resource", object: @event, locals: {editing: @editing} %>")
+$('.rejection-link').click(window.noClicked)
 <% end %>

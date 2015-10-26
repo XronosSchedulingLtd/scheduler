@@ -44,7 +44,9 @@ module CommitmentsHelper
   def reject_link(commitment, text)
     "<span class=\"commitment-no\">#{
       link_to(text, reject_commitment_path(commitment),
-              :method => :put, :remote => true)
+              :method => :put,
+              :remote => true,
+              :class => "rejection-link")
      }</span>"
   end
 

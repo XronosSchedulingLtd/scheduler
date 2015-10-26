@@ -64,6 +64,9 @@ We then need additional functionality as follows:
 [*] Need to apply these constraints at the server end too.
 [*] For element owners, provide a visual indication when the element has tentative commitments
 [*] Allow element owners then to view and approve or reject such commitments
+[ ] Make sure event search doesn't pick up tentative events
+[ ] E-mail notifications of completeness or rejection
+[ ] Gather a reason for rejection.  Record this, plus who did it.
 [ ] Enhance the user editing dialogue to allow ownership to be given and/or taken away.
 [ ] Allow element owners to choose to receive e-mail notifications of requests
 [*] When approving a commitment, one should be able to see what other approvals are still needed for that event.

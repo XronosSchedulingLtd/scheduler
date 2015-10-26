@@ -51,27 +51,34 @@
 .tentative-commitment {
   background: #ffa500;
   border-radius: 2px;
+  padding-left: 3px;
+  padding-right: 3px;
 }
 
 .rejected-commitment {
-  color: white;
-  background: red;
+  background: #ff7070;
   border-radius: 2px;
+  padding-left: 3px;
+  padding-right: 3px;
 }
 
 .constraining-commitment {
-  background: #98fb98;      // Pale green
+  background: #98fb50;      // Pale green
   border-radius: 2px;
+  padding-left: 3px;
+  padding-right: 3px;
 }
 
 .commitment-yes {
-  background: #005500;
-  color: white;
+  background: #98fb50;      // Pale green
+  padding-left: 3px;
+  padding-right: 3px;
   border-radius: 2px;
 }
 
 .commitment-no {
-  background: #cc0000;
-  color: white;
+  background: #ff7070;
+  padding-left: 3px;
+  padding-right: 3px;
   border-radius: 2px;
 }

@@ -32,6 +32,7 @@ $(document).ready ->
     $('.datetimepicker').datetimepicker
       dateFormat: "dd/mm/yy"
       stepMinute: 5
+    $('.rejection-link').click(window.noClicked)
     $('#event_starts_at').change( (event) ->
       starts_at = new Date($('#event_starts_at').val())
       ends_at = new Date($('#event_ends_at').val())
@@ -199,3 +200,15 @@ window.activateDragging = ->
 window.refreshConcerns = ->
   $('#current_user').load('/concerns/sidebar', window.activateCheckboxes)
   $('#fullcalendar').fullCalendar('refetchEvents')
+
+window.noClicked = (event) ->
+  response = prompt("Please give a brief reason for rejecting this request:")
+  #
+  #  It shouldn't happen, but it's just possible we might get called
+  #  twice.  Make sure we don't add the modifier to the string twice.
+  #
+  base_url = event.target.href.split("?")[0]
+  new_url = base_url + "?reason=" + encodeURIComponent(response)
+  $(this).attr('href', new_url)
+  #$(this).attr('href', event.target.href + "?reason=" + encodeURIComponent(response))
+  #alert(event.target.href)

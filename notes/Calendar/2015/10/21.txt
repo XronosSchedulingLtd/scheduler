@@ -25,4 +25,18 @@ I think the time has come to deploy my modified code on the staging server so th
 [ ] Make sure I'm running normal master code on scheduler
 [ ] Load data
 [ ] Put my current branch on the git repository
-[ ] Pull it down to the staging server
+[ ] Pull it down to the staging server - git pull origin permissions:permissions
+
+Damn - I did that wrong - it's tried to merge the permissions branch with the master branch on scheduler.  How can I undo that.  "git reset --hard <previous sha>".  Now, how should I have pulled down the branch
+
+[ ] git fetch origin permissions
+[ ] git checkout permissions
+[ ] export RAILS_ENV=production
+[ ] rake db:migrate
+[ ] rake assets:precompile
+[ ] touch tmp/restart.txt
+[ ] rails c
+[ ] Concern.tidy_ownerships
+[ ] Remove calendar ownership from Nick
+
+And then set up various requested events, and send people an e-mail.
