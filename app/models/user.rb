@@ -32,7 +32,12 @@ class User < ActiveRecord::Base
 
   has_many :concerns,   :dependent => :destroy
 
-  has_many :events,   foreign_key: :owner_id
+  has_many :events, foreign_key: :owner_id, dependent: :nullify
+
+  has_many :controlled_commitments,
+           class_name: "Commitment",
+           foreign_key: "by_whom_id",
+           dependent: :nullify
 
   belongs_to :preferred_event_category, class_name: Eventcategory
 

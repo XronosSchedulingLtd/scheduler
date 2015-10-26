@@ -22,6 +22,8 @@ ActiveRecord::Schema.define(version: 20151015094648) do
     t.boolean "tentative",    default: false
     t.boolean "rejected",     default: false
     t.boolean "constraining", default: false
+    t.string  "reason",       default: ""
+    t.integer "by_whom_id"
   end
 
   add_index "commitments", ["constraining"], name: "index_commitments_on_constraining", using: :btree

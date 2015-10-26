@@ -27,7 +27,7 @@ I think the time has come to deploy my modified code on the staging server so th
 [ ] Put my current branch on the git repository
 [ ] Pull it down to the staging server - git pull origin permissions:permissions
 
-Damn - I did that wrong - it's tried to merge the permissions branch with the master branch on scheduler.  How can I undo that.  "git reset --hard <previous sha>".  Now, how should I have pulled down the branch
+Damn - I did that wrong - it's tried to merge the permissions branch with the master branch on scheduler.  How can I undo that.  "git reset --hard <previous sha>".  Now, how should I have pulled down the branch?
 
 [ ] git fetch origin permissions
 [ ] git checkout permissions

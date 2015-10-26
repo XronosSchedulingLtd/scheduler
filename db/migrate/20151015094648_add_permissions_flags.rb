@@ -8,6 +8,8 @@ class AddPermissionsFlags < ActiveRecord::Migration
     add_column :commitments, :tentative,    :boolean, :default => false
     add_column :commitments, :rejected,     :boolean, :default => false
     add_column :commitments, :constraining, :boolean, :default => false
+    add_column :commitments, :reason,       :string, :default => ""
+    add_column :commitments, :by_whom_id,   :integer
 
     add_index :commitments, :tentative
     add_index :commitments, :constraining

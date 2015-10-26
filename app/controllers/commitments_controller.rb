@@ -118,7 +118,7 @@ class CommitmentsController < ApplicationController
     @event = @commitment.event
     @editing = current_user.can_edit?(@event)
     if current_user.can_approve?(@commitment) && @commitment.tentative
-      @commitment.approve_and_save!
+      @commitment.approve_and_save!(current_user)
       @event.reload
     end
     respond_to do |format|
@@ -132,7 +132,7 @@ class CommitmentsController < ApplicationController
     @editing = current_user.can_edit?(@event)
     if current_user.can_approve?(@commitment) &&
       (@commitment.tentative || @commitment.constraining)
-      @commitment.reject_and_save!
+      @commitment.reject_and_save!(current_user, params[:reason])
       @event.reload
     end
     respond_to do |format|

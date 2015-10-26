@@ -7,6 +7,7 @@ class Commitment < ActiveRecord::Base
 
   belongs_to :event
   belongs_to :element
+  belongs_to :by_whom, class_name: "User"
 
   validates_presence_of :event, :element
   validates_associated  :event,   :message => "Event does not exist"
@@ -82,14 +83,18 @@ class Commitment < ActiveRecord::Base
   #  Approve this commitment if it wasn't already, and save it to
   #  the d/b.
   #
-  def approve_and_save!
+  def approve_and_save!(user)
     self.tentative = false
+    self.by_whom = user
+    self.reason = ""
     self.save!
   end
 
-  def reject_and_save!
+  def reject_and_save!(user, reason)
     self.tentative = true
     self.rejected  = true
+    self.by_whom = user
+    self.reason = reason
     self.save!
   end
 

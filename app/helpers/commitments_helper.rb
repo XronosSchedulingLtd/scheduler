@@ -68,7 +68,7 @@ module CommitmentsHelper
       #  Does it need any embellishment?
       #
       if commitment.rejected
-        body = "<span class=\"rejected-commitment\">#{body}</span>"
+        body = "<span class=\"rejected-commitment\" title=\"#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : "" }\">#{body}</span>"
       elsif commitment.tentative
         body = "<span class=\"tentative-commitment\">#{body}</span>"
       elsif commitment.constraining
