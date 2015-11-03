@@ -214,6 +214,14 @@ class User < ActiveRecord::Base
     self.owns?(commitment.element)
   end
 
+  #
+  #  Does this user need permission to create a commitment for this
+  #  element?
+  #
+  def needs_permission_for?(element)
+    element.owned && !self.owns?(element)
+  end
+
   def permissions_pending
     self.concerns.owned.inject(0) do |total, concern|
       total + concern.permissions_pending

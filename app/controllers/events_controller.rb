@@ -70,26 +70,6 @@ class EventsController < ApplicationController
         end
       end
     end
-    #
-    #  If the event is now complete enough to save to the database,
-    #  then save it.  We will thus go on to edit it instead of
-    #  the creation dialogue.  This is kind of breaking the rules
-    #  of verbs, but it makes for a slicker user experience.
-    #
-    #  Actually - it leads to too many problems.  If the user then
-    #  cancels the dialogue the event is still in the d/b but doesn't
-    #  appear on the screen, causing confusion.  Turned off again.
-    #
-#    if @event.valid?
-#      @event.save
-#      @commitment = Commitment.new
-#      @commitment.event = @event
-#    else
-#      #
-#      #  Don't whinge prematurely.
-#      #
-#      @event.errors.clear
-#    end
     if request.xhr?
       @minimal = true
       render :layout => false
@@ -136,6 +116,7 @@ class EventsController < ApplicationController
         current_user.concerns.auto_add.each do |concern|
           c = Commitment.new
           c.event = @event
+          c.tentative = current_user.needs_permission_for?(concern.element)
           c.element = concern.element
           c.save
         end
@@ -151,6 +132,7 @@ class EventsController < ApplicationController
             unless current_user.concerns.auto_add.detect {|c| c.element == element}
               c = Commitment.new
               c.event = @event
+              c.tentative = current_user.needs_permission_for?(element)
               c.element = element
               c.save
             end

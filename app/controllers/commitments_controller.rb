@@ -39,18 +39,18 @@ class CommitmentsController < ApplicationController
     if current_user.element_owner
       @requests = Array.new
       current_user.concerns.owned.each do |concern|
-        Rails.logger.debug("Processing concern with #{concern.element.name}")
+#        Rails.logger.debug("Processing concern with #{concern.element.name}")
         requests = ElementWithRequests.new(concern.element)
         concern.element.commitments.tentative.each do |commitment|
-          Rails.logger.debug("Event ends at #{commitment.event.ends_at}")
-          Rails.logger.debug("Currently #{Date.today}")
+#          Rails.logger.debug("Event ends at #{commitment.event.ends_at}")
+#          Rails.logger.debug("Currently #{Date.today}")
           if commitment.event.ends_at >= Date.today
             requests.note(commitment)
           end
         end
         @requests << requests
       end
-      Rails.logger.debug("Got #{@requests.size} owned elements.")
+#      Rails.logger.debug("Got #{@requests.size} owned elements.")
     else
       #
       #  Shouldn't be able to get here, but if someone is playing at
@@ -63,15 +63,9 @@ class CommitmentsController < ApplicationController
   # POST /commitments
   # POST /commitments.json
   def create
-    Rails.logger.debug("Creating a commitment.")
     @commitment = Commitment.new(commitment_params)
-    Rails.logger.debug("@commitment.element.owned = #{@commitment.element.owned}")
-    Rails.logger.debug("current_user.owns?(@commitment.element) = #{current_user.owns?(@commitment.element)}")
-    if @commitment.element.owned &&
-       !current_user.owns?(@commitment.element)
-      @commitment.tentative = true
-      Rails.logger.debug("Set tentative to true.")
-    end
+    @commitment.tentative =
+      current_user.needs_permission_for?(@commitment.element)
     #
     #  Not currently checking the result of this, because regardless
     #  of whether it succeeds or fails, we just display the list of
@@ -79,7 +73,6 @@ class CommitmentsController < ApplicationController
     #
     @commitment.save!
     @commitment.reload
-    Rails.logger.debug("Commitment.tentative = #{@commitment.tentative}")
     @event = @commitment.event
     respond_to do |format|
       format.js
