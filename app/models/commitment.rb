@@ -47,6 +47,7 @@ class Commitment < ActiveRecord::Base
   scope :tentative, -> { where(:tentative => true) }
   scope :not_rejected, -> { where(:rejected => false) }
   scope :constraining, -> { where(:constraining => true) }
+  scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}
 
   #
   #  Call-backs.

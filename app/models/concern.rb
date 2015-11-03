@@ -96,7 +96,7 @@ class Concern < ActiveRecord::Base
   #
   def permissions_pending
     if self.owns
-      self.element.commitments.tentative.not_rejected.count
+      self.element.commitments.future.tentative.not_rejected.count
     else
       0
     end
