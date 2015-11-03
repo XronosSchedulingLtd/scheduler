@@ -106,6 +106,8 @@ class Event < ActiveRecord::Base
   scope :all_day, lambda { where("all_day = true") }
   scope :involving, lambda {|element| joins(:commitments).where("commitments.element_id = ?", element.id)}
   scope :excluding_category, lambda {|ec| where("eventcategory_id != ?", ec.id) }
+  scope :complete, lambda { where(complete: true) }
+  scope :incomplete, lambda { where.not(complete: true) }
 
   before_destroy :being_destroyed
 

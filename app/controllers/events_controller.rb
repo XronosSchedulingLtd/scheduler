@@ -248,7 +248,7 @@ class EventsController < ApplicationController
     if search_text.blank? || calendar_property == nil
       redirect_to :back
     else
-      selector = Event.beginning(Setting.current_era.starts_on)
+      selector = Event.beginning(Setting.current_era.starts_on).complete
       unless current_user && current_user.staff?
         selector = selector.involving(calendar_property.element)
       end
@@ -286,21 +286,6 @@ class EventsController < ApplicationController
       end
       @found_events = selector.page(page_param)
       @full_details = current_user && current_user.staff?
-
-#      if current_user && current_user.known?
-#        @found_events =
-#          Event.beginning(Setting.current_era.starts_on).
-#                where("body like ?", "%" + search_text + "%").
-#                order(:starts_at).
-#                page(params[:page])
-#      else
-#        @found_events =
-#          Event.beginning(Setting.current_era.starts_on).
-#                involving(calendar_property.element).
-#                where("body like ?", "%" + search_text + "%").
-#                order(:starts_at).
-#                page(params[:page])
-#      end
     end
   end
 
