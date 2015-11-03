@@ -248,9 +248,9 @@ class EventsController < ApplicationController
     if search_text.blank? || calendar_property == nil
       redirect_to :back
     else
-      selector = Event.beginning(Setting.current_era.starts_on).complete
+      selector = Event.beginning(Setting.current_era.starts_on)
       unless current_user && current_user.staff?
-        selector = selector.involving(calendar_property.element)
+        selector = selector.involving(calendar_property.element).complete
       end
       selector = invisible_categories.inject(selector) { |memo, ic|
         memo.excluding_category(ic)
