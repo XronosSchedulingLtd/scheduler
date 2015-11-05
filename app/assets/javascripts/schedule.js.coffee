@@ -46,6 +46,7 @@ $(document).ready ->
   $(document).on('closed', '[data-reveal]', ->
     flag = $('#fullcalendar').data("dorefresh")
     if flag == "1"
+      $('#fullcalendar').data("dorefresh", "0")
       $('#fullcalendar').fullCalendar('refetchEvents')
     )
   if ($('.withedit').length)
