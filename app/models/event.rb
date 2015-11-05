@@ -62,7 +62,9 @@ class Event < ActiveRecord::Base
   belongs_to :eventcategory
   belongs_to :eventsource
   has_many :commitments, :dependent => :destroy
-  has_many :elements, :through => :commitments
+  has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
+  has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
+  has_many :elements, :through => :firm_commitments
 
   belongs_to :owner, :class_name => :User
 
@@ -703,22 +705,6 @@ class Event < ActiveRecord::Base
     end
     ends_at.strftime("#{ends_at.day.ordinalize} %B")
   end
-
-#  def to_csv(add_duration = false, date = nil)
-#    if self.all_day
-#      ["", 
-#       (add_duration &&
-#        (self.ends_at > self.starts_at + 1.day) &&
-#        (self.ends_at > date + 1.day)) ?
-#       "#{self.tidied_body} (to #{self.short_end_date_str})" :
-#       self.tidied_body,
-#       self.locations.collect {|l| l.name}.join(",")].to_csv
-#    else
-#      [" #{self.duration_string}",
-#       self.tidied_body,
-#       self.locations.collect {|l| l.name}.join(",")].to_csv
-#    end
-#  end
 
   #
   #  Default to sorting events by time.  If two events start at precisely
