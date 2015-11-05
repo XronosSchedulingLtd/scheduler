@@ -20,7 +20,8 @@
   <td>
     <%=
       link_to "View",
-              schedule_show_path + "?date=#{commitment.event.jump_date_text}"
+              schedule_show_path +
+              "?date=#{commitment.event.jump_date_text}&concern_id=#{concern_id}"
      %>
   </td>
 </tr>

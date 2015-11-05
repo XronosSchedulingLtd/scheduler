@@ -1,12 +1,12 @@
 class CommitmentsController < ApplicationController
   before_action :set_commitment, only: [:approve, :reject, :destroy, :view]
 
-  class ElementWithRequests
+  class ConcernWithRequests
 
-    attr_reader :element, :pending_commitments, :rejected_commitments
+    attr_reader :concern, :pending_commitments, :rejected_commitments
 
-    def initialize(element)
-      @element = element
+    def initialize(concern)
+      @concern = concern
       @pending_commitments = Array.new
       @rejected_commitments = Array.new
     end
@@ -40,7 +40,7 @@ class CommitmentsController < ApplicationController
       @requests = Array.new
       current_user.concerns.owned.each do |concern|
 #        Rails.logger.debug("Processing concern with #{concern.element.name}")
-        requests = ElementWithRequests.new(concern.element)
+        requests = ConcernWithRequests.new(concern)
         concern.element.commitments.tentative.each do |commitment|
 #          Rails.logger.debug("Event ends at #{commitment.event.ends_at}")
 #          Rails.logger.debug("Currently #{Date.today}")

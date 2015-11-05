@@ -176,6 +176,26 @@ class ScheduleController < ApplicationController
       #  or she won't be sent back to this date.
       #
       session[:last_start_date] = Time.zone.parse(params[:date])
+      #
+      #  We also allow the possibility of specifying a particular
+      #  concern belonging to the user which should be set to visible.
+      #  This is to facilitate the approval of event requests.
+      #
+      concern_id = params[:concern_id]
+      if concern_id
+        #
+        #  Possible we might get nonsense here - don't want to
+        #  raise an error.  Calling just find() would raise an
+        #  error if the concern id was invalid.
+        #
+        concern = Concern.find_by(id: concern_id)
+        if concern && concern.user == current_user
+          unless concern.visible
+            concern.visible = true
+            concern.save
+          end
+        end
+      end
       redirect_to :root
     else
       #

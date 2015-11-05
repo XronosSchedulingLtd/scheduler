@@ -43,6 +43,11 @@ $(document).ready ->
       ends_at = new Date($('#event_ends_at').val())
       if starts_at > ends_at
         $('#event_starts_at').val($('#event_ends_at').val())))
+  $(document).on('closed', '[data-reveal]', ->
+    flag = $('#fullcalendar').data("dorefresh")
+    if flag == "1"
+      $('#fullcalendar').fullCalendar('refetchEvents')
+    )
   if ($('.withedit').length)
     $('#fullcalendar').fullCalendar
       currentTimezone: 'Europe/London'
@@ -200,6 +205,11 @@ window.activateDragging = ->
 window.refreshConcerns = ->
   $('#current_user').load('/concerns/sidebar', window.activateCheckboxes)
   $('#fullcalendar').fullCalendar('refetchEvents')
+
+window.replaceCommitments = (new_html) ->
+  $('#event_resources').html(new_html)
+  $('.rejection-link').click(window.noClicked)
+  $('#fullcalendar').data("dorefresh", "1")
 
 window.noClicked = (event) ->
   response = prompt("Please give a brief reason for rejecting this request:")

@@ -52,7 +52,7 @@ module CommitmentsHelper
 
   def header_menu_text(user)
     if user.element_owner
-      "Menu (#{user.permissions_pending})"
+      "Menu (<span id='pending_count'>#{user.permissions_pending}</span>)".html_safe
     else
       "Menu"
     end

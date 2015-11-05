@@ -1,4 +1,8 @@
 <% if @event %>
-$('#event_resources').html("<%=j render partial: "events/resource", object: @event, locals: {editing: @editing} %>")
-$('.rejection-link').click(window.noClicked)
+window.replaceCommitments(
+  "<%=j render partial: "events/resource",
+               object: @event,
+               locals: {editing: @editing}
+  %>")
+$('#pending_count').html("<%= current_user.permissions_pending %>")
 <% end %>
