@@ -12,4 +12,41 @@ class UserMailer < ActionMailer::Base
          subject: "Possible cover issues")
   end
 
+  def commitment_rejected_email(commitment)
+    @event = commitment.event
+    @element = commitment.element
+    if commitment.reason.blank?
+      @reason = "no reason was given"
+    else
+      @reason = commitment.reason
+    end
+    if commitment.by_whom
+      @rejecter = commitment.by_whom.name
+    else
+      @rejecter = "the system"
+    end
+    if @event && @element && @reason
+      #
+      #  Who the e-mail goes to depends on what information is in the
+      #  event.
+      #
+      if @event.organiser
+        email = @event.organiser.entity.email
+      else
+        email = @event.owner.email
+      end
+      mail(to: email, subject: "Resource request declined")
+    end
+  end
+
+  def event_complete_email(event)
+    @event = event
+    if @event.organiser
+      email = @event.organiser.entity.email
+    else
+      email = @event.owner.email
+    end
+    mail(to: email, subject: "Event now complete")
+  end
+
 end
