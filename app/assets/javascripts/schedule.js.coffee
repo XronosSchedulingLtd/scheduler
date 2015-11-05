@@ -214,12 +214,16 @@ window.replaceCommitments = (new_html) ->
 
 window.noClicked = (event) ->
   response = prompt("Please give a brief reason for rejecting this request:")
-  #
-  #  It shouldn't happen, but it's just possible we might get called
-  #  twice.  Make sure we don't add the modifier to the string twice.
-  #
-  base_url = event.target.href.split("?")[0]
-  new_url = base_url + "?reason=" + encodeURIComponent(response)
-  $(this).attr('href', new_url)
-  #$(this).attr('href', event.target.href + "?reason=" + encodeURIComponent(response))
-  #alert(event.target.href)
+  if response == null
+    #
+    #  User clicked cancel.
+    #
+    return false
+  else
+    #
+    #  It shouldn't happen, but it's just possible we might get called
+    #  twice.  Make sure we don't add the modifier to the string twice.
+    #
+    base_url = event.target.href.split("?")[0]
+    new_url = base_url + "?reason=" + encodeURIComponent(response)
+    $(this).attr('href', new_url)
