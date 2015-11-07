@@ -1,3 +1,7 @@
 <% if @event %>
-$('#event_resources').html("<%=j render partial: "events/resource", object: @event, locals: {editing: true} %>")
+window.replaceCommitments(
+  "<%=j render partial: "events/resource",
+               object: @event,
+               locals: {editing: true}
+  %>")
 <% end %>

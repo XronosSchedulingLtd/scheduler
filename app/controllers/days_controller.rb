@@ -27,7 +27,9 @@ class DaysController < ApplicationController
       clock_format:     :twenty_four_hour,
       end_times:        true,
       do_breaks:        false,
-      suppress_empties: false
+      suppress_empties: false,
+      show_tentative:   false,
+      show_firm:        true
     }
     era = Setting.next_era || Setting.current_era
     start_date   = Date.today
@@ -99,6 +101,17 @@ class DaysController < ApplicationController
     if params.has_key?(:suppress_empties)
       options[:suppress_empties] = true
     end
+    #
+    #  Must check tentative before firm, because tentative will unset
+    #  firm, and then someone might want to put it back again.
+    #
+    if params.has_key?(:tentative)
+      options[:show_tentative] = true
+      options[:show_firm] = false
+    end
+    if params.has_key?(:firm)
+      options[:show_firm] = true
+    end
     if params[:categories]
       #
       #  The requester wants to limit the request to certain categories
@@ -113,12 +126,19 @@ class DaysController < ApplicationController
     categories = category_names.collect { |cn|
       Eventcategory.find_by_name(cn)
     }.compact.select {|cc| cc.publish}
-    dbevents =
-      element.commitments_on(startdate: start_date,
-                             enddate: end_date,
-                             eventcategory: categories).
-         preload(event: :eventcategory).
-         collect {|c| c.event}.uniq
+    selector = element.commitments_on(startdate: start_date,
+                                      enddate: end_date,
+                                      eventcategory: categories)
+    if options[:show_tentative]
+      unless options[:show_firm]
+        selector = selector.tentative
+      end
+    else
+      selector = selector.firm
+    end
+    dbevents = selector.
+               preload(event: :eventcategory).
+               collect {|c| c.event}.uniq
     @days = []
     start_date.upto(end_date) do |date|
       start_of_day = Time.zone.parse(date.strftime("%Y-%m-%d"))

@@ -15,14 +15,20 @@ class ScheduleController < ApplicationController
     #  A bit of messing about is needed to generate a constant hash with
     #  a default value.
     #
-#    KNOWN_COLOUR_NAMES = lambda do
-#      known_colour_names = {
-#        "red"   => "#FF0000",
-#        "pink"  => "#FFC0CB",
-#        "green" => "#008000"
-#      }.default = "#000000"
-#      known_colour_names
-#    end.call
+    #  I got this from a blog posting and it doesn't actually work.
+    #  it returns a string, not a hash.  It also appears to be quite
+    #  unnecessary, since the straightforward approach works without
+    #  even producing a warning.
+    #
+    #KNOWN_COLOUR_NAMES = lambda do
+    #  known_colour_names = {
+    #    "red"   => "#FF0000",
+    #    "pink"  => "#FFC0CB",
+    #    "green" => "#008000"
+    #  }.default = "#000000"
+    #  known_colour_names
+    #end.call
+    #
     KNOWN_COLOUR_NAMES = {
       "red"   => "#FF0000",
       "pink"  => "#FFC0CB",
@@ -42,6 +48,9 @@ class ScheduleController < ApplicationController
       red_bit   = colour[1,2].hex
       green_bit = colour[3,2].hex
       blue_bit  = colour[5,2].hex
+      #
+      #  Each bit is half way between its original shade and full blast.
+      #
       red_bit   = (255 - (255 - red_bit)   / 2)
       green_bit = (255 - (255 - green_bit) / 2)
       blue_bit  = (255 - (255 - blue_bit)  / 2)
@@ -54,7 +63,15 @@ class ScheduleController < ApplicationController
          }"
     end
 
-    def initialize(event, current_user = nil, colour = nil, mine = false)
+    def redden(colour)
+      "#ff7070"
+    end
+
+    def initialize(event,
+                   via_element,
+                   current_user = nil,
+                   colour = nil,
+                   mine = false)
       @event  = event
       if colour
         @colour = colour
@@ -81,22 +98,67 @@ class ScheduleController < ApplicationController
 #        @colour = "#3366ff"
 #        @colour = "#00476b"  # Distinguised blue
       end
+      #
+      #  Conditions for washing out the colour.
+      #
+      #  1) The event is non-existent.
+      #  2) The event is incomplete *and* we aren't accessing it via
+      #     an element which we own.  If we are accessing it via an
+      #     element which we own, then we grey out only if the corresponding
+      #     commitment is still tentative.
+      #
       if event.non_existent
         @colour = washed_out(@colour)
+      else
+        unless event.complete
+          if current_user.owns?(via_element)
+            #
+            #  Has the commitment been approved?
+            #
+            c = Commitment.find_by(element_id: via_element.id,
+                                   event_id: event.id)
+            if c
+              if c.tentative
+                if c.rejected
+                  @colour = redden(@colour)
+                else
+                  @colour = washed_out(@colour)
+                end
+              end
+            else
+              #
+              #  Odd - can't find the corresponding commitment.
+              #  Err on the side of caution and wash it out.
+              #
+              @colour = washed_out(@colour)
+            end
+          else
+            @colour = washed_out(@colour)
+          end
+        end
       end
-      @editable = current_user ? current_user.can_edit?(event) : false
+#      Rails.logger.debug("Current user is #{current_user.email}")
+      #
+      #  Note that our idea of editable is slightly different from
+      #  FullCalendar's.  If I set editable on the event data, then
+      #  FullCalendar will let us drag it around - i.e. change the time.
+      #  This corresponds to our idea of being retimeable.
+      #
+      @editable = current_user ? current_user.can_retime?(event) : false
+      @edit_dialogue = current_user ? current_user.can_edit?(event) : false
     end
 
     def as_json(options = {})
       {
-        :id        => "#{@event.id}",
-        :title     => @event.body,
-        :start     => @event.starts_at_for_fc,
-        :end       => @event.ends_at_for_fc,
-        :allDay    => @event.all_day,
-        :recurring => false,
-        :editable  => @editable,
-        :color     => @colour
+        :id            => "#{@event.id}",
+        :title         => @event.body,
+        :start         => @event.starts_at_for_fc,
+        :end           => @event.ends_at_for_fc,
+        :allDay        => @event.all_day,
+        :recurring     => false,
+        :editable      => @editable,
+        :edit_dialogue => @edit_dialogue,
+        :color         => @colour
       }
     end
 
@@ -114,6 +176,26 @@ class ScheduleController < ApplicationController
       #  or she won't be sent back to this date.
       #
       session[:last_start_date] = Time.zone.parse(params[:date])
+      #
+      #  We also allow the possibility of specifying a particular
+      #  concern belonging to the user which should be set to visible.
+      #  This is to facilitate the approval of event requests.
+      #
+      concern_id = params[:concern_id]
+      if concern_id
+        #
+        #  Possible we might get nonsense here - don't want to
+        #  raise an error.  Calling just find() would raise an
+        #  error if the concern id was invalid.
+        #
+        concern = Concern.find_by(id: concern_id)
+        if concern && concern.user == current_user
+          unless concern.visible
+            concern.visible = true
+            concern.save
+          end
+        end
+      end
       redirect_to :root
     else
       #
@@ -193,16 +275,19 @@ class ScheduleController < ApplicationController
         @schedule_events =
           my_owned_events.collect {|e|
             ScheduleEvent.new(e,
+                              nil,
                               current_user,
                               current_user.colour_not_involved)
           } +
           my_organised_events.collect {|e|
             ScheduleEvent.new(e,
+                              nil,
                               current_user,
                               current_user.colour_not_involved)
           } +
           schoolwide_events.collect {|e|
             ScheduleEvent.new(e,
+                              nil,
                               current_user)
           }
       else
@@ -219,13 +304,13 @@ class ScheduleController < ApplicationController
           element = concern.element
           if element.entity.instance_of?(Property)
             #
-            #  The .all forces the lambda to be evaluated now.  We don't
+            #  The .to_a forces the lambda to be evaluated now.  We don't
             #  want the database being queried again and again for the
             #  same answer.
             #
-            event_categories = Eventcategory.not_schoolwide.visible.all
+            event_categories = Eventcategory.not_schoolwide.visible.to_a
           else
-            event_categories = Eventcategory.visible.all
+            event_categories = Eventcategory.visible.to_a
           end
           @schedule_events =
             element.events_on(start_date,
@@ -233,8 +318,10 @@ class ScheduleController < ApplicationController
                               event_categories,
                               nil,
                               true,
-                              true).collect {|e|
+                              true,
+                              concern.owns).collect {|e|
               ScheduleEvent.new(e,
+                                element,
                                 current_user,
                                 concern.colour,
                                 concern.equality)
@@ -253,7 +340,7 @@ class ScheduleController < ApplicationController
       if calendar_element
         @schedule_events =
           calendar_element.events_on(start_date, end_date).collect {|e|
-            ScheduleEvent.new(e)
+            ScheduleEvent.new(e, nil)
           }
       else
         @schedule_events = []

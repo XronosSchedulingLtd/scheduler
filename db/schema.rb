@@ -11,19 +11,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151011084943) do
+ActiveRecord::Schema.define(version: 20151015094648) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
     t.integer "element_id"
     t.integer "covering_id"
-    t.boolean "names_event", default: false
+    t.boolean "names_event",  default: false
     t.integer "source_id"
+    t.boolean "tentative",    default: false
+    t.boolean "rejected",     default: false
+    t.boolean "constraining", default: false
+    t.string  "reason",       default: ""
+    t.integer "by_whom_id"
   end
 
+  add_index "commitments", ["constraining"], name: "index_commitments_on_constraining", using: :btree
   add_index "commitments", ["covering_id"], name: "index_commitments_on_covering_id", using: :btree
   add_index "commitments", ["element_id"], name: "index_commitments_on_element_id", using: :btree
   add_index "commitments", ["event_id"], name: "index_commitments_on_event_id", using: :btree
+  add_index "commitments", ["tentative"], name: "index_commitments_on_tentative", using: :btree
 
   create_table "concerns", force: true do |t|
     t.integer  "user_id"
@@ -66,6 +73,7 @@ ActiveRecord::Schema.define(version: 20151011084943) do
     t.boolean  "current",          default: false
     t.integer  "owner_id"
     t.string   "preferred_colour"
+    t.boolean  "owned",            default: false
   end
 
   add_index "elements", ["entity_id"], name: "index_elements_on_entity_id", using: :btree
@@ -118,8 +126,11 @@ ActiveRecord::Schema.define(version: 20151011084943) do
     t.string   "source_hash"
     t.integer  "organiser_id"
     t.text     "organiser_ref"
+    t.boolean  "complete",         default: true
+    t.boolean  "constrained",      default: false
   end
 
+  add_index "events", ["complete"], name: "index_events_on_complete", using: :btree
   add_index "events", ["ends_at"], name: "index_events_on_ends_at", using: :btree
   add_index "events", ["eventcategory_id"], name: "index_events_on_eventcategory_id", using: :btree
   add_index "events", ["organiser_id"], name: "index_events_on_organiser_id", using: :btree
@@ -254,6 +265,7 @@ ActiveRecord::Schema.define(version: 20151011084943) do
     t.integer  "next_era_id"
     t.integer  "previous_era_id"
     t.integer  "perpetual_era_id"
+    t.boolean  "enforce_permissions", default: false
   end
 
   create_table "staffs", force: true do |t|
@@ -310,6 +322,7 @@ ActiveRecord::Schema.define(version: 20151011084943) do
     t.integer  "firstday",                    default: 0
     t.string   "default_event_text",          default: ""
     t.boolean  "public_groups",               default: false
+    t.boolean  "element_owner",               default: false
   end
 
 end

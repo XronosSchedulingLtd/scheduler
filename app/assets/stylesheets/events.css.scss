@@ -47,3 +47,38 @@
     height: 1%; }
   *:first-child + html .digg_pagination {
     overflow: hidden; }
+
+.tentative-commitment {
+  background: #ffa500;
+  border-radius: 2px;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+.rejected-commitment {
+  background: #ff7070;
+  border-radius: 2px;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+.constraining-commitment {
+  background: #98fb50;      // Pale green
+  border-radius: 2px;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+.commitment-yes {
+  background: #98fb50;      // Pale green
+  padding-left: 3px;
+  padding-right: 3px;
+  border-radius: 2px;
+}
+
+.commitment-no {
+  background: #ff7070;
+  padding-left: 3px;
+  padding-right: 3px;
+  border-radius: 2px;
+}

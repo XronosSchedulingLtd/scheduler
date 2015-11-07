@@ -1,0 +1,19 @@
+<h3>Requests for <%= request_set.concern.element.name %></h3>
+<% if request_set.anything_outstanding? %>
+  <% if request_set.pending_commitments.size > 0 %>
+    <h5>Awaiting approval</h5>
+    <table>
+      <%= approval_table_header %>
+      <%= render partial: "commitment", collection: request_set.pending_commitments, locals: {concern_id: request_set.concern.id} %>
+    </table>
+  <% end %>
+  <% if request_set.rejected_commitments.size > 0 %>
+    <h5>Previously rejected</h5>
+    <table>
+      <%= approval_table_header %>
+      <%= render partial: "commitment", collection: request_set.rejected_commitments, locals: {concern_id: request_set.concern.id} %>
+    </table>
+    <% end %>
+<% else %>
+  Nothing pending.
+<% end %>

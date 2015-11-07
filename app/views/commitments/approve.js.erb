@@ -2,8 +2,7 @@
 window.replaceCommitments(
   "<%=j render partial: "events/resource",
                object: @event,
-               locals: {editing: true}
+               locals: {editing: @editing}
   %>")
-$('#commitment_element_name').val("")
-$('#commitment_element_id').val("")
+$('#pending_count').html("<%= current_user.permissions_pending %>")
 <% end %>

@@ -26,10 +26,17 @@ class ElementsController < ApplicationController
     render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
   end
 
-  def show
-    @element = Element.find(params[:id])
-    @mwd_set = @element.memberships_by_duration(start_date: nil,
-                                                end_date: nil)
+  def autocomplete_unowned_element_name
+    term = params[:term].split(" ").join("%")
+    elements =
+      Element.current.
+              disowned.
+              mine_or_system(current_user).
+              where('name LIKE ?', "%#{term}%").
+              order("LENGTH(elements.name)").
+              order(:name).
+              all
+    render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
   end
 
   def autocomplete_staff_element_name
@@ -54,6 +61,12 @@ class ElementsController < ApplicationController
               order(:name).
               all
     render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+  end
+
+  def show
+    @element = Element.find(params[:id])
+    @mwd_set = @element.memberships_by_duration(start_date: nil,
+                                                end_date: nil)
   end
 
   IcalDataSet = Struct.new(:prefix, :data)
@@ -187,6 +200,7 @@ class ElementsController < ApplicationController
                                 enddate: ends_on,
                                 eventcategory: basic_categories,
                                 effective_date: Setting.current_era.starts_on).
+                 firm.
                  includes(event: {elements: :entity}).collect {|c| c.event} +
                Event.events_on(starts_on, ends_on, extra_categories).
                      includes(elements: :entity)).uniq
@@ -209,7 +223,7 @@ class ElementsController < ApplicationController
                 commitments_on(startdate:      starts_on,
                                enddate:        ends_on,
                                eventcategory:  categories,
-                               effective_date: Setting.current_era.starts_on)
+                               effective_date: Setting.current_era.starts_on).firm
             if include_cover && !include_non_cover
               selector = selector.covering_commitment
             elsif include_non_cover && !include_cover

@@ -32,6 +32,7 @@ $(document).ready ->
     $('.datetimepicker').datetimepicker
       dateFormat: "dd/mm/yy"
       stepMinute: 5
+    $('.rejection-link').click(window.noClicked)
     $('#event_starts_at').change( (event) ->
       starts_at = new Date($('#event_starts_at').val())
       ends_at = new Date($('#event_ends_at').val())
@@ -42,6 +43,12 @@ $(document).ready ->
       ends_at = new Date($('#event_ends_at').val())
       if starts_at > ends_at
         $('#event_starts_at').val($('#event_ends_at').val())))
+  $(document).on('closed', '[data-reveal]', ->
+    flag = $('#fullcalendar').data("dorefresh")
+    if flag == "1"
+      $('#fullcalendar').data("dorefresh", "0")
+      $('#fullcalendar').fullCalendar('refetchEvents')
+    )
   if ($('.withedit').length)
     $('#fullcalendar').fullCalendar
       currentTimezone: 'Europe/London'
@@ -72,7 +79,7 @@ $(document).ready ->
         url: '/schedule/events'
       }]
       eventClick: (event, jsEvent, view) ->
-        if event.editable
+        if event.edit_dialogue
           $('#eventModal').foundation('reveal', 'open', {
             url: '/events/' + event.id + '/edit'
           })
@@ -80,7 +87,7 @@ $(document).ready ->
           $('#eventModal').foundation('reveal',
                                       'open',
                                       '/events/' + event.id)
-      eventDrop: (event, revertFunc) ->
+      eventDrop: (event, delta, revertFunc) ->
         jQuery.ajax
           url:  "/events/" + event.id + "/moved"
           type: "PUT"
@@ -199,3 +206,24 @@ window.activateDragging = ->
 window.refreshConcerns = ->
   $('#current_user').load('/concerns/sidebar', window.activateCheckboxes)
   $('#fullcalendar').fullCalendar('refetchEvents')
+
+window.replaceCommitments = (new_html) ->
+  $('#event_resources').html(new_html)
+  $('.rejection-link').click(window.noClicked)
+  $('#fullcalendar').data("dorefresh", "1")
+
+window.noClicked = (event) ->
+  response = prompt("Please give a brief reason for rejecting this request:")
+  if response == null
+    #
+    #  User clicked cancel.
+    #
+    return false
+  else
+    #
+    #  It shouldn't happen, but it's just possible we might get called
+    #  twice.  Make sure we don't add the modifier to the string twice.
+    #
+    base_url = event.target.href.split("?")[0]
+    new_url = base_url + "?reason=" + encodeURIComponent(response)
+    $(this).attr('href', new_url)

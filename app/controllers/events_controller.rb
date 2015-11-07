@@ -70,26 +70,6 @@ class EventsController < ApplicationController
         end
       end
     end
-    #
-    #  If the event is now complete enough to save to the database,
-    #  then save it.  We will thus go on to edit it instead of
-    #  the creation dialogue.  This is kind of breaking the rules
-    #  of verbs, but it makes for a slicker user experience.
-    #
-    #  Actually - it leads to too many problems.  If the user then
-    #  cancels the dialogue the event is still in the d/b but doesn't
-    #  appear on the screen, causing confusion.  Turned off again.
-    #
-#    if @event.valid?
-#      @event.save
-#      @commitment = Commitment.new
-#      @commitment.event = @event
-#    else
-#      #
-#      #  Don't whinge prematurely.
-#      #
-#      @event.errors.clear
-#    end
     if request.xhr?
       @minimal = true
       render :layout => false
@@ -136,6 +116,7 @@ class EventsController < ApplicationController
         current_user.concerns.auto_add.each do |concern|
           c = Commitment.new
           c.event = @event
+          c.tentative = current_user.needs_permission_for?(concern.element)
           c.element = concern.element
           c.save
         end
@@ -151,6 +132,7 @@ class EventsController < ApplicationController
             unless current_user.concerns.auto_add.detect {|c| c.element == element}
               c = Commitment.new
               c.event = @event
+              c.tentative = current_user.needs_permission_for?(element)
               c.element = element
               c.save
             end
@@ -199,16 +181,24 @@ class EventsController < ApplicationController
   #  been dragged to all-day, or vice versa.
   #
   def moved
-    new_start = params[:event][:new_start]
-    new_all_day = (params[:event][:all_day] == "true")
-    @event.set_timing(new_start, new_all_day)
-    respond_to do |format|
-      if @event.save
-        format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
-        format.json { render :show, status: :ok, location: @event }
-      else
+    if current_user.can_retime?(@event)
+      new_start = params[:event][:new_start]
+      new_all_day = (params[:event][:all_day] == "true")
+      @event.set_timing(new_start, new_all_day)
+      respond_to do |format|
+        if @event.save
+          format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
+          format.json { render :show, status: :ok, location: @event }
+        else
+          format.html { render :edit }
+          format.json { render :revert, status: :failed }
+  #        format.json { render json: @event.errors, status: :unprocessable_entity }
+        end
+      end
+    else
+      respond_to do |format|
         format.html { render :edit }
-        format.json { render json: @event.errors, status: :unprocessable_entity }
+        format.json { render :revert, status: :failed }
       end
     end
   end
@@ -260,7 +250,7 @@ class EventsController < ApplicationController
     else
       selector = Event.beginning(Setting.current_era.starts_on)
       unless current_user && current_user.staff?
-        selector = selector.involving(calendar_property.element)
+        selector = selector.involving(calendar_property.element).complete
       end
       selector = invisible_categories.inject(selector) { |memo, ic|
         memo.excluding_category(ic)
@@ -296,21 +286,6 @@ class EventsController < ApplicationController
       end
       @found_events = selector.page(page_param)
       @full_details = current_user && current_user.staff?
-
-#      if current_user && current_user.known?
-#        @found_events =
-#          Event.beginning(Setting.current_era.starts_on).
-#                where("body like ?", "%" + search_text + "%").
-#                order(:starts_at).
-#                page(params[:page])
-#      else
-#        @found_events =
-#          Event.beginning(Setting.current_era.starts_on).
-#                involving(calendar_property.element).
-#                where("body like ?", "%" + search_text + "%").
-#                order(:starts_at).
-#                page(params[:page])
-#      end
     end
   end
 

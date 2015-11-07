@@ -43,6 +43,10 @@
                             :name,
                             { :prompt => true }) %>
   </div>
+  <div class="field">
+    <%= f.label :enforce_permissions %><br>
+    <%= f.check_box :enforce_permissions %>
+  </div>
   <div class="actions">
     <%= f.submit %>
   </div>

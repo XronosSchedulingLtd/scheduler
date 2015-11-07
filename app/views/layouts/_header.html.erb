@@ -57,12 +57,15 @@
               </ul>
             </li>
             <li class="divider"></li>
-          <% elsif current_user.create_groups? %>
+          <% elsif current_user.staff? %>
             <li class="has-dropdown">
-              <a href="#" data-dropdown="drop1" data-options="is_hover:true">Groups</a>
+              <a href="#" data-dropdown="drop1" data-options="is_hover:true"><%= header_menu_text(current_user) %></a>
               <ul id="drop1" class="f-dropdown" data-dropdown-content>
-                <li><%= link_to "Mine", groups_path %></li>
+                <li><%= link_to "Groups", groups_path %></li>
                 <li><%= link_to "Find free", new_freefinder_path %></li>
+<% if current_user.element_owner %>
+                <li><%= link_to "Approvals", commitments_path %></li>
+<% end %>
               </ul>
             </li>
             <li class="divider"></li>

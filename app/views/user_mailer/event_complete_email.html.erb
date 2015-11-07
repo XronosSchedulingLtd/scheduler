@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <p>
+      All the resources which you requested for "<%=
+        @event.body
+      %>" on <%=
+        @event.starts_at.strftime("%d/%m/%Y")
+      %> have now been approved and your event is complete.
+    </p>
+  </body>
+</html>

@@ -30,11 +30,14 @@ class User < ActiveRecord::Base
                     "#556B2F",      # DarkOliveGreen
                     "#FF6347"]      # Tomato
 
-  has_many :ownerships, :dependent => :destroy
-  has_many :interests,  :dependent => :destroy
   has_many :concerns,   :dependent => :destroy
 
-  has_many :events,   foreign_key: :owner_id
+  has_many :events, foreign_key: :owner_id, dependent: :nullify
+
+  has_many :controlled_commitments,
+           class_name: "Commitment",
+           foreign_key: "by_whom_id",
+           dependent: :nullify
 
   belongs_to :preferred_event_category, class_name: Eventcategory
 
@@ -52,7 +55,9 @@ class User < ActiveRecord::Base
   validates :firstday, :numericality => true
 
   scope :arranges_cover, lambda { where("arranges_cover = true") }
+  scope :element_owner, lambda { where(:element_owner => true) }
 
+  before_destroy :being_destroyed
   after_save :find_matching_resources
 
   def known?
@@ -88,8 +93,43 @@ class User < ActiveRecord::Base
   #  not worth it as each user is likely to own only a small number
   #  of elements.
   #
-  def owns?(element)
-    !!concerns.detect {|c| (c.element_id == element.id) && c.owns}
+  #  item can be an element or an event.
+  #
+  def owns?(item)
+    if item.instance_of?(Element)
+      !!concerns.owned.detect {|c| (c.element_id == item.id)}
+    elsif item.instance_of?(Event)
+      item.owner_id == self.id
+    else
+      false
+    end
+  end
+
+  #
+  #  The hint tells us whether the invoking concern is an owning
+  #  concern.  If it is, then we are definitely owned.  If it is
+  #  not then we might not be owned any more.
+  #
+  def update_owningness(hint)
+    unless @being_destroyed || self.destroyed?
+      if hint
+        unless self.element_owner
+          self.element_owner = true
+          self.save!
+        end
+      else
+        if self.element_owner
+          #
+          #  It's possible our last remaining ownership just went away.
+          #  This is the most expensive case to check.
+          #
+          if self.concerns.owned.count == 0
+            self.element_owner = false
+            self.save!
+          end
+        end
+      end
+    end
   end
 
   def free_colour
@@ -135,12 +175,56 @@ class User < ActiveRecord::Base
     if item.instance_of?(Event)
       self.admin ||
       (self.create_events? && item.owner_id == self.id) ||
-      (self.create_events? && item.involves_any?(self.controlled_elements))
+      (self.create_events? && item.involves_any?(self.controlled_elements, true))
     elsif item.instance_of?(Group)
       self.admin ||
       (self.create_groups? && item.owner_id == self.id)
     else
       false
+    end
+  end
+
+  #
+  #  And specifically for events, can the user re-time the event?
+  #  Sometimes users can edit, but not re-time.
+  #
+  #  Returns two values - edit and retime.
+  #
+  def can_retime?(event)
+    if event.id == nil
+      can_retime = true
+    elsif self.admin ||
+       (self.element_owner &&
+        self.create_events? &&
+        event.involves_any?(self.controlled_elements, true))
+      can_retime = true
+    elsif self.create_events? && event.owner_id == self.id
+      can_retime = !event.constrained
+    else
+      can_retime = false
+    end
+    can_retime
+  end
+
+  #
+  #  Does this user have appropriate permissions to approve/decline
+  #  the indicated commitment?
+  #
+  def can_approve?(commitment)
+    self.owns?(commitment.element)
+  end
+
+  #
+  #  Does this user need permission to create a commitment for this
+  #  element?
+  #
+  def needs_permission_for?(element)
+    Setting.enforce_permissions? && element.owned && !self.owns?(element)
+  end
+
+  def permissions_pending
+    self.concerns.owned.inject(0) do |total, concern|
+      total + concern.permissions_pending
     end
   end
 
@@ -180,8 +264,8 @@ class User < ActiveRecord::Base
         got_something = true
         concern = self.concern_with(staff.element)
         if concern
-          unless concern.owns
-            concern.owns = true
+          unless concern.equality
+            concern.equality = true
             concern.save!
           end
         else
@@ -189,7 +273,7 @@ class User < ActiveRecord::Base
             concern.user_id    = self.id
             concern.element_id = staff.element.id
             concern.equality   = true
-            concern.owns       = true
+            concern.owns       = false
             concern.visible    = true
             concern.colour     = "#225599"
           end
@@ -200,8 +284,8 @@ class User < ActiveRecord::Base
         got_something = true
         concern = self.concern_with(pupil.element)
         if concern
-          unless concern.owns
-            concern.owns = true
+          unless concern.equality
+            concern.equality = true
             concern.save!
           end
         else
@@ -209,7 +293,7 @@ class User < ActiveRecord::Base
             concern.user_id    = self.id
             concern.element_id = pupil.element.id
             concern.equality   = true
-            concern.owns       = true
+            concern.owns       = false
             concern.visible    = true
             concern.colour     = "#225599"
           end
@@ -371,6 +455,12 @@ class User < ActiveRecord::Base
       puts text
     end
     nil
+  end
+
+  protected
+
+  def being_destroyed
+    @being_destroyed = true
   end
 
 end

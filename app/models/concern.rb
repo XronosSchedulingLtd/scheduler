@@ -16,12 +16,16 @@ class Concern < ActiveRecord::Base
   scope :owned, -> {where(owns: true)}
   scope :not_owned, -> {where.not(owns: true)}
   scope :controlling, -> {where(controls: true)}
+  scope :not_controlling, -> {where.not(controls: true)}
 
   scope :visible, -> { where(visible: true) }
 
   scope :between, ->(user, element) {where(user_id: user.id, element_id: element.id)}
 
   scope :auto_add, -> { where(auto_add: true) }
+
+  after_save :update_after_save
+  after_destroy :update_after_destroy
 
   #
   #  This isn't a real field in the d/b.  It exists to allow a name
@@ -83,7 +87,78 @@ class Concern < ActiveRecord::Base
   #
   #  Can the relevant user delete this concern?
   def user_can_delete?
-     self.user.staff? && !(self.owns || self.controls)
+     self.user.staff? && !(self.equality || self.owns || self.controls)
+  end
+
+  #
+  #  How many permissions are pending for the element pointed to by
+  #  this concern?
+  #
+  def permissions_pending
+    if self.owns
+      self.element.commitments.future.tentative.not_rejected.count
+    else
+      0
+    end
+  end
+
+  #
+  #  A maintenance method to clear up some unwanted ownership bits.
+  #
+  def self.tidy_ownerships
+    messages = Array.new
+    Concern.all.each do |concern|
+      if concern.owns
+        if concern.element.entity_type == "Staff" ||
+           concern.element.entity_type == "Pupil"
+          messages << "Removing ownership of #{concern.element.name} by #{concern.user.name}."
+          concern.owns = false
+          concern.save
+        end
+      end
+    end
+    #
+    # Need to take the calendar away from Nick
+    #
+    u = User.find_by(name: "Nick Lloyd")
+    e = Element.find_by(name: "Calendar")
+    if u && e
+      c = Concern.where(user_id: u.id).where(element_id: e.id).take
+      if c
+        if c.owns || c.controls
+          c.owns = false
+          c.controls = false
+          c.save
+          messages << "Removed Nick's control of the Calendar."
+        else
+          messages << "Already removed Nick's connection to the Calendar."
+        end
+      else
+        messages << "Couldn't find concern connecting Nick to the Calendar."
+      end
+    else
+      messages << "Couldn't find Nick Lloyd and/or Calendar."
+    end
+    Concern.owned.each do |concern|
+      #
+      #  Do a dummy save to cause the element and user to be updated
+      #  as being owned/owners.
+      #
+      concern.save
+    end
+    Concern.owned.controlling.each do |concern|
+      messages << "#{concern.user.name} owns and controls #{concern.element.name}."
+    end
+    Concern.owned.not_controlling.each do |concern|
+      messages << "#{concern.user.name} owns #{concern.element.name}."
+    end
+    Concern.not_owned.controlling.each do |concern|
+      messages << "#{concern.user.name} controls #{concern.element.name}."
+    end
+    messages.each do |message|
+      puts message
+    end
+    nil
   end
 
   #
@@ -139,5 +214,25 @@ class Concern < ActiveRecord::Base
 #    puts "Didn't copy #{interests_not_copied} interests and #{ownerships_not_copied} ownerships."
 #    nil
 #  end
+
+  protected
+
+  def update_after_destroy
+    if self.element
+      self.element.update_ownedness(false)
+    end
+    if self.user
+      self.user.update_owningness(false)
+    end
+  end
+
+  def update_after_save
+    if self.element
+      self.element.update_ownedness(self.owns)
+    end
+    if self.user
+      self.user.update_owningness(self.owns)
+    end
+  end
 
 end

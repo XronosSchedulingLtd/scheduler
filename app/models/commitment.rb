@@ -7,6 +7,7 @@ class Commitment < ActiveRecord::Base
 
   belongs_to :event
   belongs_to :element
+  belongs_to :by_whom, class_name: "User"
 
   validates_presence_of :event, :element
   validates_associated  :event,   :message => "Event does not exist"
@@ -42,6 +43,18 @@ class Commitment < ActiveRecord::Base
   scope :non_covering_commitment, lambda { where("covering_id IS NULL") }
   scope :covered_commitment, -> { joins(:covered) }
   scope :uncovered_commitment, -> { joins("left outer join `commitments` `covereds_commitments` ON `covereds_commitments`.`covering_id` = `commitments`.`id`").where("covereds_commitments.id IS NULL") }
+  scope :firm, -> { where(:tentative => false) }
+  scope :tentative, -> { where(:tentative => true) }
+  scope :not_rejected, -> { where(:rejected => false) }
+  scope :constraining, -> { where(:constraining => true) }
+  scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}
+
+  #
+  #  Call-backs.
+  #
+  after_save    :update_event_after_save
+  after_destroy :update_event_after_destroy
+
   #
   #  This isn't a real field in the d/b.  It exists to allow a name
   #  to be typed in the dialogue for creating a commitment record.
@@ -52,6 +65,38 @@ class Commitment < ActiveRecord::Base
 
   def element_name=(en)
     @element_name = en
+  end
+
+  #
+  #  Override the default setter.
+  #
+  def tentative=(new_value)
+    if self.tentative && !new_value
+      self.constraining = true
+      self.rejected = false
+    elsif !self.tentative && new_value
+      self.constraining = false
+    end
+    super(new_value)
+  end
+
+  #
+  #  Approve this commitment if it wasn't already, and save it to
+  #  the d/b.
+  #
+  def approve_and_save!(user)
+    self.tentative = false
+    self.by_whom = user
+    self.reason = ""
+    self.save!
+  end
+
+  def reject_and_save!(user, reason)
+    self.tentative = true
+    self.rejected  = true
+    self.by_whom = user
+    self.reason = reason
+    self.save!
   end
 
   #
@@ -499,5 +544,19 @@ class Commitment < ActiveRecord::Base
 #    end
 #    puts "Set #{flags_set} flags."
 #  end
+
+  protected
+
+  def update_event_after_save
+    if self.event
+      self.event.update_from_commitments(self.tentative, self.constraining)
+    end
+  end
+
+  def update_event_after_destroy
+    if self.event
+      self.event.update_from_commitments(false, false)
+    end
+  end
 
 end

@@ -43,7 +43,7 @@ class ApplicationController < ActionController::Base
 
   def current_user
     @current_user ||=
-      User.includes(:ownerships).find_by(id: session[:user_id]) if session[:user_id]
+      User.includes(:concerns).find_by(id: session[:user_id]) if session[:user_id]
   end
 
 end
