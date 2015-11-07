@@ -4,4 +4,5 @@ window.replaceCommitments(
                object: @event,
                locals: {editing: @editing}
   %>")
+$('#pending_count').html("<%= current_user.permissions_pending %>")
 <% end %>
