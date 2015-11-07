@@ -265,6 +265,7 @@ ActiveRecord::Schema.define(version: 20151015094648) do
     t.integer  "next_era_id"
     t.integer  "previous_era_id"
     t.integer  "perpetual_era_id"
+    t.boolean  "enforce_permissions", default: false
   end
 
   create_table "staffs", force: true do |t|

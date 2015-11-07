@@ -1,4 +1,4 @@
-<h1>Listing settings</h1>
+<h1>Current system settings</h1>
 
 <table class="zftable">
   <tbody>
@@ -20,6 +20,10 @@
         <td><%= setting.perpetual_era ? setting.perpetual_era.name : "Era not set" %></td>
       </tr>
       <tr>
+        <td>Enforcing permissions</td>
+        <td><%= setting.enforce_permissions ? "Yes" : "No" %></td>
+      </tr>
+      <tr>
         <td><%= link_to 'Edit', edit_setting_path(setting) %></td>
         <td></td>
       </tr>
@@ -29,4 +33,3 @@
 
 <br>
 
-<%= link_to 'New Setting', new_setting_path %>

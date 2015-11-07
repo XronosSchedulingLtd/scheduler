@@ -14,6 +14,8 @@ class Setting < ActiveRecord::Base
   @@checked_perpetual_era = false
   @@hostname = nil
   @@got_hostname = false
+  @@enforce_permissions = false
+  @@checked_enforce_permissions = false
 
   belongs_to :current_era, class_name: :Era
   belongs_to :next_era, class_name: :Era
@@ -43,6 +45,8 @@ class Setting < ActiveRecord::Base
     @@checked_previous_era = false
     @@perpetual_era = nil
     @@checked_perpetual_era = false
+    @@enforce_permissions = nil
+    @@checked_enforce_permissions = false
   end
 
   def self.current_era
@@ -94,6 +98,17 @@ class Setting < ActiveRecord::Base
       @@checked_perpetual_era = true
     end
     @@perpetual_era
+  end
+
+  def self.enforce_permissions?
+    unless @@checked_enforce_permissions
+      setting = Setting.first
+      if setting
+        @@enforce_permissions = setting.enforce_permissions
+      end
+      @@checked_enforce_permissions = true
+    end
+    @@enforce_permissions
   end
 
   #

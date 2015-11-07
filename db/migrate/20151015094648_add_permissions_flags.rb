@@ -18,5 +18,7 @@ class AddPermissionsFlags < ActiveRecord::Migration
 
     add_column :users, :element_owner, :boolean, :default => false
 
+    add_column :settings, :enforce_permissions, :boolean, :default => false
+
   end
 end

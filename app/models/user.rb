@@ -219,7 +219,7 @@ class User < ActiveRecord::Base
   #  element?
   #
   def needs_permission_for?(element)
-    element.owned && !self.owns?(element)
+    Setting.enforce_permissions? && element.owned && !self.owns?(element)
   end
 
   def permissions_pending
