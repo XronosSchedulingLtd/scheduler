@@ -49,6 +49,7 @@ $(document).ready ->
       $('#fullcalendar').data("dorefresh", "0")
       $('#fullcalendar').fullCalendar('refetchEvents')
     )
+  $(window).resize(window.resized)
   if ($('.withedit').length)
     $('#fullcalendar').fullCalendar
       currentTimezone: 'Europe/London'
@@ -227,3 +228,8 @@ window.noClicked = (event) ->
     base_url = event.target.href.split("?")[0]
     new_url = base_url + "?reason=" + encodeURIComponent(response)
     $(this).attr('href', new_url)
+
+window.resized = (event) ->
+  $('#fullcalendar').fullCalendar('option',
+                                  'height',
+                                  $(window).height() - 46)
