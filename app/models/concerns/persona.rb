@@ -15,4 +15,10 @@ module Persona
   module ClassMethods
   end
 
+  #
+  #  Default to true, but individual personae may override this.
+  #
+  def user_editable?
+    true
+  end
 end

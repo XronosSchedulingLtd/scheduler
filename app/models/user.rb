@@ -179,7 +179,9 @@ class User < ActiveRecord::Base
       (self.create_events? && item.involves_any?(self.controlled_elements, true))
     elsif item.instance_of?(Group)
       self.admin ||
-      (self.create_groups? && item.owner_id == self.id)
+      (self.create_groups? &&
+       item.owner_id == self.id &&
+       item.user_editable?)
     else
       false
     end

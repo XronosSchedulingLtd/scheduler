@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151015094648) do
+ActiveRecord::Schema.define(version: 20151110090045) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -285,6 +285,14 @@ ActiveRecord::Schema.define(version: 20151015094648) do
   end
 
   add_index "staffs", ["source_id"], name: "index_staffs_on_source_id", using: :btree
+
+  create_table "taggrouppersonae", force: true do |t|
+    t.integer  "source_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "taggrouppersonae", ["source_id"], name: "index_taggrouppersonae_on_source_id", using: :btree
 
   create_table "teachinggrouppersonae", force: true do |t|
     t.integer  "source_id"

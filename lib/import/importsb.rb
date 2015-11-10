@@ -1916,6 +1916,175 @@ class SB_ExtraSuspension
 end
 
 
+class SB_Taggroup
+  FILE_NAME = "tags.csv"
+  REQUIRED_COLUMNS = [Column["TagNo",      :taggroup_ident, true],
+                      Column["TagUse",     :name,           false],
+                      Column["TagDate",    :starts_at,      false],
+                      Column["TagDelDate", :ends_at,        false],
+                      Column["UserIdent",  :staff_ident,    true],
+                      Column["TagPrivate", :is_private,     true]]
+  include Slurper
+
+  FIELDS_TO_UPDATE = [:name]
+  DB_CLASS = Taggroup
+  DB_KEY_FIELD = :source_id
+  FIELDS_TO_CREATE = [:name, :current, :era_id, :owner_id]
+
+  include DatabaseAccess
+
+  attr_reader :staff, :owner_id, :records
+
+  def initialize
+    @staff = nil
+    @owner_id = nil
+    @records = Array.new
+    @current = true
+    @era_id = Setting.perpetual_era.id
+  end
+
+  def add(record)
+    @records << record
+  end
+
+  def adjust(loader)
+    @staff = loader.staff_hash[@staff_ident]
+    #
+    #  Arguably we could get a new staff record and new tag groups
+    #  for that same staff member in the same run.  It would be
+    #  necessary for the new staff member to log in between those
+    #  two bits of processing though, so I don't think we need to
+    #  worry about it.  In practice, the tag groups will just
+    #  be delayed by a day.
+    #
+    if @staff &&
+       @staff.dbrecord &&
+       @staff.dbrecord.element &&
+       @staff.dbrecord.element.concerns.me.size > 0
+      @owner_id = @staff.dbrecord.element.concerns.me[0].user_id
+    end
+  end
+
+  def wanted?(loader)
+    @staff != nil && @owner_id != nil
+  end
+
+  def source_id
+    @taggroup_ident
+  end
+
+  def current
+    true
+  end
+
+  def num_pupils
+    @records.size
+  end
+
+  def ensure_db(loader)
+    loaded_count           = 0
+    changed_count          = 0
+    unchanged_count        = 0
+    reincarnated_count     = 0
+    member_loaded_count    = 0
+    member_removed_count   = 0
+    member_unchanged_count = 0
+    #
+    #  First call the method, then we can access @dbrecord directly.
+    #
+    self.dbrecord
+    if @dbrecord
+      #
+      #  It's possible that, although there is a record in the d/b
+      #  it is no longer current.
+      #
+      unless @dbrecord.current
+        @dbrecord.reincarnate
+        @dbrecord.reload
+        reincarnated_count += 1
+      end
+      #
+      #  Need to check the group details still match.
+      #
+      if self.check_and_update
+        changed_count += 1
+      else
+        unchanged_count += 1
+      end
+    else
+      if self.save_to_db(starts_on: loader.start_date)
+        loaded_count += 1
+      end
+    end
+    if @dbrecord
+      #
+      #  And now sort out the pupils for this tag group.
+      #
+      db_member_ids =
+        @dbrecord.members(loader.start_date).collect {|s| s.source_id}
+      sb_member_ids = self.records.collect {|r| r.pupil_ident}
+      missing_from_db = sb_member_ids - db_member_ids
+      missing_from_db.each do |pupil_id|
+        pupil = loader.pupil_hash[pupil_id]
+        if pupil && pupil.dbrecord
+          begin
+            if @dbrecord.add_member(pupil.dbrecord, loader.start_date)
+              member_loaded_count += 1
+            else
+              puts "Failed to add #{pupil.name} to taggroup #{self.name}"
+            end
+          rescue ActiveRecord::RecordInvalid => e
+            puts "Failed to add #{pupil.name} to taggroup #{self.name}"
+            puts e
+          end
+        end
+      end
+      extra_in_db = db_member_ids - sb_member_ids
+      extra_in_db.each do |pupil_id|
+        pupil = loader.pupil_hash[pupil_id]
+        if pupil && pupil.dbrecord
+          @dbrecord.remove_member(pupil.dbrecord, loader.start_date)
+          member_removed_count += 1
+        end
+      end
+      member_unchanged_count += (db_member_ids.size - extra_in_db.size)
+    end
+    [loaded_count,
+     reincarnated_count,
+     changed_count,
+     unchanged_count,
+     member_loaded_count,
+     member_removed_count,
+     member_unchanged_count]
+  end
+
+end
+
+class SB_Taggroupmembership
+  FILE_NAME = "puptag.csv"
+  REQUIRED_COLUMNS = [Column["PupOrigNum", :pupil_ident, true],
+                      Column["TagNo",      :taggroup_ident, true]]
+
+  include Slurper
+
+  attr_reader :pupil, :taggroup
+
+  def initialize
+    @pupil    = nil
+    @taggroup = nil
+  end
+
+  def adjust(loader)
+    @pupil    = loader.pupil_hash[@pupil_ident]
+    @taggroup = loader.taggroup_hash[@taggroup_ident]
+  end
+
+  def wanted?(loader)
+    @pupil != nil && @taggroup != nil
+  end
+
+end
+
 class SB_Timetableentry
   FILE_NAME = "timetable.csv"
   SUSPENDABLE_TYPES = [:assembly,
@@ -2607,7 +2776,11 @@ class SB_Loader
                    InputSource[:rtrotaweek, SB_RotaWeek, false,
                                :rota_week, :rota_week_ident],
                    InputSource[:other_half, SB_OtherHalfOccurence, false,
-                               :other_half, :oh_occurence_ident]]
+                               :other_half, :oh_occurence_ident],
+                   InputSource[:taggroups, SB_Taggroup, true,
+                               :taggroup, :taggroup_ident],
+                   InputSource[:taggroupmemberships, SB_Taggroupmembership,
+                               true]]
 
     EXTRA_GROUP_FILES = [
       {file_name: "extra_staff_groups.yml", dbclass: Staff},
@@ -2624,6 +2797,7 @@ class SB_Loader
               :curriculum_hash,
               :date_hash,
               :group_hash,
+              :taggroup_hash,
               :location_hash,
               :pupil_hash,
               :rota_week_hash,
@@ -2759,6 +2933,11 @@ class SB_Loader
       end
     end
     puts "Finished sorting academic records." if @verbose
+    puts "Sorting tag group memberships into tag groups." if @verbose
+    @taggroupmemberships.each do |tgm|
+      tgm.taggroup.add(tgm)
+    end
+    puts "Finished sorting tag group memberships." if @verbose
     puts "Merging compound timetable entries." if @verbose
     puts "#{@timetable_entries.size} timetable entries before merge." if @verbose
     @timetable_entries =
@@ -4609,6 +4788,74 @@ class SB_Loader
     end
   end
 
+  def do_taggroups
+    tg_loaded_count          = 0
+    tg_reincarnated_count    = 0
+    tg_changed_count         = 0
+    tg_unchanged_count       = 0
+    tg_deleted_count         = 0
+    tgmember_loaded_count    = 0
+    tgmember_removed_count   = 0
+    tgmember_unchanged_count = 0
+    @taggroups.each do |tg|
+      #
+      #  We only bother with tag groups which belong to an identifiable
+      #  member of staff, and where that member of staff has already
+      #  logged on to Scheduler.  This has been checked at initialisation.
+      #
+      loaded,
+      reincarnated,
+      changed,
+      unchanged,
+      member_loaded,
+      member_removed,
+      member_unchanged = tg.ensure_db(self)
+      tg_loaded_count          += loaded
+      tg_reincarnated_count    += reincarnated
+      tg_changed_count         += changed
+      tg_unchanged_count       += unchanged
+      tgmember_loaded_count    += member_loaded
+      tgmember_removed_count   += member_removed
+      tgmember_unchanged_count += member_unchanged
+    end
+    #
+    #  And are there any in the database which have disappeared from
+    #  SB?  This is the only way they're going to get deleted, since
+    #  users can't delete them through the Scheduler web i/f.
+    #
+    Group.taggroups.all.each do |dbtg|
+      unless taggroup_hash[dbtg.source_id]
+        puts "Tag group \"#{dbtg.name}\" seems to have gone from SB."
+        dbtg.ceases_existence
+        tg_deleted_count += 1
+      end
+    end
+    if @verbose || tg_deleted_count > 0
+      puts "#{tg_deleted_count} tag group records deleted."
+    end
+    if @verbose || tg_changed_count > 0
+      puts "#{tg_changed_count} tag group records amended."
+    end
+    if @verbose
+      puts "#{tg_unchanged_count} tag group records untouched."
+    end
+    if @verbose || tg_loaded_count > 0
+      puts "#{tg_loaded_count} tag group records created."
+    end
+    if @verbose || tg_reincarnated_count > 0
+      puts "#{tg_reincarnated_count} tag group records reincarnated."
+    end
+    if @verbose || tgmember_removed_count > 0
+      puts "Removed #{tgmember_removed_count} pupils from tag groups."
+    end
+    if @verbose
+      puts "Left #{tgmember_unchanged_count} pupils where they were."
+    end
+    if @verbose || tgmember_loaded_count > 0
+      puts "Added #{tgmember_loaded_count} pupils to tag groups."
+    end
+  end
+
 end
 
 def finished(options, stage)
@@ -4693,6 +4940,8 @@ begin
       finished(options, "extra groups")
       loader.do_duties
       finished(options, "duties")
+      loader.do_taggroups
+      finished(options, "tagggroups")
     end
   end
 rescue RuntimeError => e
