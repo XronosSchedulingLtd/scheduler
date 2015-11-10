@@ -890,6 +890,162 @@ class SB_OtherHalfOccurence
 end
 
 
+class SB_OtherHalfGroup
+  #
+  #  This one doesn't come directly from SB, but is constructed like
+  #  a tutor group.
+  #
+  FIELDS_TO_UPDATE = [:name, :era_id, :current]
+  DB_CLASS = OtherHalfgroup
+  DB_KEY_FIELD = :source_id
+  FIELDS_TO_CREATE = [:name, :era_id, :current]
+
+  include DatabaseAccess
+
+  attr_accessor :name,
+                :era_id,
+                :records,
+                :source_id
+
+
+  def initialize(name, source_id, era)
+    @records = Array.new
+    @current = true
+    @name    = name
+    @source_id = source_id
+    @era_id     = era.id
+  end
+
+  def add(record)
+    @records << record
+  end
+
+  def num_pupils
+    @records.size
+  end
+
+  #
+  #  Ensure this other half group is correctly represented in the
+  #  database.
+  #
+  def ensure_db(loader)
+    loaded_count           = 0
+    changed_count          = 0
+    unchanged_count        = 0
+    reincarnated_count     = 0
+    member_loaded_count    = 0
+    member_removed_count   = 0
+    member_unchanged_count = 0
+    #
+    #  First call the method, then we can access @dbrecord directly.
+    #
+    self.dbrecord
+    if @dbrecord
+      #
+      #  It's possible that, although there is a record in the d/b
+      #  no longer current.
+      #
+      unless @dbrecord.current
+        @dbrecord.reincarnate
+        @dbrecord.reload
+        #
+        #  Reincarnating a group sets its end date to nil, but we kind
+        #  of want it to be the end of the current era.
+        #
+        @dbrecord.ends_on = loader.era.ends_on
+        @dbrecord.save
+        reincarnated_count += 1
+      end
+      #
+      #  Need to check the group details still match.
+      #
+      if self.check_and_update
+        changed_count += 1
+      else
+        unchanged_count += 1
+      end
+    else
+      if num_pupils > 0
+        if self.save_to_db(starts_on: loader.start_date,
+                           ends_on: loader.era.ends_on)
+          loaded_count += 1
+        end
+      end
+    end
+    if @dbrecord
+      #
+      #  And now sort out the pupils for this tutor group.
+      #
+      db_member_ids =
+        @dbrecord.members(loader.start_date).collect {|s| s.source_id}
+      sb_member_ids = self.records.collect {|r| r.pupil_ident}
+      missing_from_db = sb_member_ids - db_member_ids
+      missing_from_db.each do |pupil_id|
+        pupil = loader.pupil_hash[pupil_id]
+        if pupil && pupil.dbrecord
+          begin
+            if @dbrecord.add_member(pupil.dbrecord, loader.start_date)
+              #
+              #  Adding a pupil to a tutor group effectively changes the
+              #  pupil's element name.  Save the pupil record so the
+              #  element name gets updated.
+              #
+              pupil.force_save
+              member_loaded_count += 1
+            else
+              puts "Failed to add #{pupil.name} to tutorgroup #{self.name}"
+            end
+          rescue ActiveRecord::RecordInvalid => e
+            puts "Failed to add #{pupil.name} to tutorgroup #{self.name}"
+            puts e
+          end
+        end
+      end
+      extra_in_db = db_member_ids - sb_member_ids
+      extra_in_db.each do |pupil_id|
+        pupil = loader.pupil_hash[pupil_id]
+        if pupil && pupil.dbrecord
+          @dbrecord.remove_member(pupil.dbrecord, loader.start_date)
+          #
+          #  Likewise, removing a pupil can change his element name.
+          #
+          pupil.force_save
+          member_removed_count += 1
+        end
+      end
+      member_unchanged_count += (db_member_ids.size - extra_in_db.size)
+    end
+    [loaded_count,
+     reincarnated_count,
+     changed_count,
+     unchanged_count,
+     member_loaded_count,
+     member_removed_count,
+     member_unchanged_count]
+  end
+
+
+end
+
+class SB_OtherHalfMembership
+  FILE_NAME = "rtrwpupils.csv"
+  REQUIRED_COLUMNS = [Column["PupOrigNum", :pupil_ident, true],
+                      Column["RTRWGroupsIdent", :oh_occurence_ident, true]]
+
+  include Slurper
+
+  def initialize
+  end
+
+  def adjust(loader)
+  end
+
+  def wanted?(loader)
+    true
+  end
+end
+
+
 class SB_Period
   FILE_NAME = "period.csv"
   REQUIRED_COLUMNS = [Column["Period",         :period_ident,    true],
@@ -2777,6 +2933,8 @@ class SB_Loader
                                :rota_week, :rota_week_ident],
                    InputSource[:other_half, SB_OtherHalfOccurence, false,
                                :other_half, :oh_occurence_ident],
+                   InputSource[:other_half_memberships,
+                               SB_OtherHalfMembership, false],
                    InputSource[:taggroups, SB_Taggroup, true,
                                :taggroup, :taggroup_ident],
                    InputSource[:taggroupmemberships, SB_Taggroupmembership,
