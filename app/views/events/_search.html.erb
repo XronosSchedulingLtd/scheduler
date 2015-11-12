@@ -3,12 +3,7 @@
 <%= form_for(@searchevent,
             :url => {:controller => :events, :action => :search},
             :html => {:method => :get }) do |f| %>
-
-  <div class="row collapse">
-    <div class="large-8 small-9 columns">
-      <%= f.text_field :body, :placeholder => "Search"  %>
-    </div>
-  </div>
+  <%= f.text_field :body, :placeholder => "Search"  %>
 <% end %>
 </li>
 

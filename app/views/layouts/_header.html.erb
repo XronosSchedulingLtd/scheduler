@@ -12,11 +12,12 @@
   </head>
 
   <body>
-  <nav class="top-bar">
+  <nav class="top-bar" data-topbar role="navigation">
     <ul class="title-area">
       <li class="name">
         <h1><%= link_to title_text, root_path %></h1>
       </li>
+      <li class="toggle-topbar menu-icon"><a href=""><span>Menu</span></a></li>
     </ul>
     <section class="top-bar-section">
 <% if @show_jump %>
@@ -27,70 +28,71 @@
       <ul class="right">
         <%= render :partial => "/events/search" %>
         <li class="divider"></li>
-        <% if current_user %>
-          <% if current_user.admin %>
+
+<% if current_user %>
+<%   if current_user.staff? %>
+        <li class="has-dropdown">
+          <a href="#"><%= header_menu_text(current_user) %></a>
+          <ul class="dropdown">
+<%     if current_user.admin %>
             <li class="has-dropdown">
-              <a href="#" data-dropdown="drop1" data-options="is_hover:true">Models</a>
-              <ul id="drop1" class="f-dropdown" data-dropdown-content>
-                <li><%= link_to "Settings", settings_path %></li>
+              <%= link_to "Groups", groups_path %>
+              <ul class="dropdown">
+                <li><%= link_to "All", groups_path %></li>
+                <li><%= link_to "Mine", groups_path(:mine => true) %></li>
+                <li><%= link_to "Tutor", tutorgroups_path %></li>
+              </ul>
+            </li>
+<%     else %>
+            <li><%= link_to "Groups", groups_path %></li>
+<%     end %>
+            <li><%= link_to "Find free", new_freefinder_path %></li>
+<%     if current_user.element_owner %>
+            <li><%= link_to "Approvals", commitments_path %></li>
+<%     end %>
+<%     if current_user.admin %>
+            <li class="has-dropdown">
+              <a href="#">Models</a>
+              <ul class="dropdown">
                 <li><%= link_to "Eras", eras_path %></li>
                 <li><%= link_to "Events", events_path %></li>
                 <li><%= link_to "Categories", eventcategories_path %></li>
                 <li><%= link_to "Sources", eventsources_path %></li>
-                <li><%= link_to "Locations", locations_path %></li>
-                <li><%= link_to "Aliases", locationaliases_path %></li>
+                <li class="has-dropdown">
+                  <%= link_to "Locations", locations_path %>
+                  <ul class="dropdown">
+                    <li><%= link_to "Aliases", locationaliases_path %></li>
+                  </ul>
+                </li>
                 <li><%= link_to "Pupils", pupils_path %></li>
-                <li><%= link_to "Staff", staffs_path %></li>
-                <li><%= link_to "Active", staffs_path(:active => true) %></li>
-                <li><%= link_to "Inactive", staffs_path(:inactive => true) %></li>
-                <li><%= link_to "Groups", groups_path %></li>
-                <li><%= link_to "Mine", groups_path(:mine => true) %></li>
-                <li><%= link_to "Tutor", tutorgroups_path %></li>
+                <li class="has-dropdown">
+                  <%= link_to "Staff", staffs_path %>
+                  <ul class="dropdown">
+                    <li><%= link_to "Active", staffs_path(:active => true) %></li>
+                    <li><%= link_to "Inactive", staffs_path(:inactive => true) %></li>
+                  </ul>
+                </li>
                 <li><%= link_to "Users", users_path %></li>
               </ul>
             </li>
-            <li class="divider"></li>
-            <li class="has-dropdown">
-              <a href="#" data-dropdown="drop2" data-options="is_hover:true">Import</a>
-              <ul id="drop2" class="f-dropdown" data-dropdown-content>
-                <li><%= link_to "Files", imports_index_path %></li>
-              </ul>
-            </li>
-            <li class="divider"></li>
-          <% elsif current_user.staff? %>
-            <li class="has-dropdown">
-              <a href="#" data-dropdown="drop1" data-options="is_hover:true"><%= header_menu_text(current_user) %></a>
-              <ul id="drop1" class="f-dropdown" data-dropdown-content>
-                <li><%= link_to "Groups", groups_path %></li>
-                <li><%= link_to "Find free", new_freefinder_path %></li>
-<% if current_user.element_owner %>
-                <li><%= link_to "Approvals", commitments_path %></li>
+            <li><%= link_to "Settings", settings_path %></li>
+<%     end %>
+          </ul>
+        </li>
+        <li class="divider">
+<%   end %>
+        <li>
+<%   if current_user.known? %>
+          <a href="/users/<%= current_user.id %>/edit" data-reveal-id="eventModal" data-reveal-ajax="true"><%= current_user.name %></a>
+<%   else %>
+          <%= link_to current_user.name %>
+<%   end %>
+        </li>
+        <li class="divider"></li>
+        <li><%= link_to "Sign out", signout_path %></li>
+<% else %>
+        <li><%= link_to "Sign in", signin_path %></li>
 <% end %>
-              </ul>
-            </li>
-            <li class="divider"></li>
-          <% end %>
-          <% if current_user.can_trigger_cover_check? %>
-            <li class="has-dropdown">
-              <a href="#" data-dropdown="drop3" data-options="is_hover:true">Cover</a>
-              <ul id="drop3" class="f-dropdown" data-dropdown-content>
-                <li><%= link_to "Check", settings_path %></li>
-              </ul>
-            </li>
-            <li class="divider"></li>
-          <% end %>
-          <li>
-            <% if current_user.known? %>
-              <a href="/users/<%= current_user.id %>/edit" data-reveal-id="eventModal" data-reveal-ajax="true"><%= current_user.name %></a>
-            <% else %>
-              <%= link_to current_user.name %>
-            <% end %>
-            </li>
-          <li class="divider"></li>
-          <li><%= link_to "Sign out", signout_path %></li>
-        <% else %>
-          <li><%= link_to "Sign in", signin_path %></li>
-        <% end %>
       </ul>
     </section>
   </nav>
