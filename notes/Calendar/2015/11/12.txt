@@ -1,0 +1,36 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-11-12T08:47:36+00:00
+
+====== Thursday 12 Nov 2015 ======
+
+Objectives for today:
+
+[*] Create a new group type for OH sets
+[*] Get OH sets created
+[*] Attach them to events
+[*] Adjust their population
+[*] Allow loading of OH data slightly late
+[ ] Daily report on outstanding approvals
+[ ] Merge all recent changes
+[ ] Deploy to staging server, documenting the necessary upgrade process
+
+On the OH sets front, a bit of subtlety is needed.  The set membership records are effectively tied to the event record, rather than to the group record, although the event does reference an actual group record in SB.  The group record is set to a negative year, so currently gets discarded.
+
+Currently I process only future events, so usually only one for each group.  It is however possible that I could end up processing two or more, if Stuart sorts out his loading mess.  I also currently miss some because Stuart loads the data late, resulting in Monday (and sometimes Tuesday) being missed.
+
+I think I can cope with the latter problem by adjusting the effective date of processing.  This is either given on the command line, or it's today's date.  I load events for today and forwards, but ignore anything before today.  Just for the OH processing, I could adjust this day back to the Sunday of the current week.  Thus if the data arrive late they will still get into my system, but I won't go ridiculously into the past.
+
+SB effectively has a new group for each activity each week.  I can cope with varying membership so I think I just need to make sure I do them chronologically.  Steps I think are something like this.
+
+* Select start date (Sun of week of given date)
+* Discard any OH event records before that date
+* Make sure each of the required groups exists, using the ID of the SB group for uniqueness - don't worry about membership at this stage.
+* Process the OH events in chronological order making sure that each event is a) in the database, b) has its group attached, c) has the right membership on that date.
+
+The group memberships will thus fluctuate over time, but there shouldn't be any unnecessary churn.
+
+Give it a go.  Start by getting a copy of last night's backup and the current SB data.  I have a vague recollection of having done the "Sunday of the current week" bit of processing before somewhere.  Yes, indeed I have.
+
+
+I think it would make sense to create a rake task for generating my report.  Leave that for now, and try to merge all I've done so far.  Some of it is on Knight.
