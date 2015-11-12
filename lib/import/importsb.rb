@@ -5048,7 +5048,6 @@ begin
   SB_Loader.new(options) do |loader|
     unless options.just_initialise
       finished(options, "initialisation")
-if false
       loader.do_pupils
       finished(options, "pupils")
       loader.do_staff
@@ -5063,10 +5062,8 @@ if false
       finished(options, "timetable")
       loader.do_cover
       finished(options, "cover")
-end
       loader.do_other_half
       finished(options, "other half")
-if false
       loader.do_auto_groups
       finished(options, "automatic groups")
       loader.do_extra_groups
@@ -5075,7 +5072,6 @@ if false
       finished(options, "duties")
       loader.do_taggroups
       finished(options, "tagggroups")
-end
     end
   end
 rescue RuntimeError => e
