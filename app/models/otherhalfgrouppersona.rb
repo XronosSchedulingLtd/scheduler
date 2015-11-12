@@ -3,21 +3,17 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-module Persona
-  extend ActiveSupport::Concern
+class Otherhalfgrouppersona < ActiveRecord::Base
 
-  included do
-    has_one :group, :as => :persona
+  include Persona
 
-  end
+  self.per_page = 15
 
-  module ClassMethods
-  end
-
-  #
-  #  Default to true, but individual personae may override this.
-  #
-  def user_editable?
+  def active
     true
+  end
+
+  def user_editable?
+    false
   end
 end

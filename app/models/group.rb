@@ -27,6 +27,7 @@ class Group < ActiveRecord::Base
   belongs_to :tutorgrouppersona, -> { where(groups: {persona_type: 'Tutorgrouppersona'}) }, foreign_key: :persona_id
   belongs_to :teachinggrouppersona, -> { where(groups: {persona_type: 'Teachinggrouppersona'}) }, foreign_key: :persona_id
   belongs_to :taggrouppersona, -> { where(groups: {persona_type: 'Taggrouppersona'}) }, foreign_key: :persona_id
+  belongs_to :otherhalfgrouppersona, -> { where(groups: {persona_type: 'Otherhalfgrouppersona'}) }, foreign_key: :persona_id
   has_many :memberships, :dependent => :destroy
 
   validates :starts_on, presence: true
@@ -41,6 +42,7 @@ class Group < ActiveRecord::Base
   scope :tutorgroups, -> { where(persona_type: 'Tutorgrouppersona') }
   scope :teachinggroups, -> { where(persona_type: 'Teachinggrouppersona') }
   scope :taggroups, -> { where(persona_type: 'Taggrouppersona') }
+  scope :otherhalfgroups, -> { where(persona_type: 'Otherhalfgrouppersona') }
   scope :vanillagroups, -> { where(persona_type: nil) }
 
   #

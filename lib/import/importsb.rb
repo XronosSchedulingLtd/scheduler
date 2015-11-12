@@ -809,13 +809,16 @@ class SB_OtherHalfOccurence
   attr_reader :starts_at,
               :ends_at,
               :staff,
-              :group,
+              :db_group,
               :location
+
+  def initialize
+    @members = Array.new
+  end
 
   def adjust(loader)
     got_time = false
     got_staff = false
-    got_pupils = false
     got_location = false
     #
     #  Can we establish when this is occuring?
@@ -852,20 +855,13 @@ class SB_OtherHalfOccurence
     @staff.uniq!
     got_staff = !@staff.empty?
     #
-    #  And which group of pupils?
-    #
-    if @group_ident && loader.group_hash[@group_ident]
-      @group = loader.group_hash[@group_ident]
-      got_pupils = true
-    end
-    #
     #  And where?
     #
     if @room_ident && loader.location_hash[@room_ident]
       @location = loader.location_hash[@room_ident]
       got_location = true
     end
-    @complete = got_time && (got_staff || got_pupils)
+    @complete = got_time && got_staff
 #    if !@complete && loader.verbose
 #      puts "Other half activity #{@activity_name} rejected because:"
 #      puts "  No time" unless got_time
@@ -887,145 +883,80 @@ class SB_OtherHalfOccurence
     self.starts_at <=> other.starts_at
   end
 
-end
-
-
-class SB_OtherHalfGroup
-  #
-  #  This one doesn't come directly from SB, but is constructed like
-  #  a tutor group.
-  #
-  FIELDS_TO_UPDATE = [:name, :era_id, :current]
-  DB_CLASS = OtherHalfgroup
-  DB_KEY_FIELD = :source_id
-  FIELDS_TO_CREATE = [:name, :era_id, :current]
-
-  include DatabaseAccess
-
-  attr_accessor :name,
-                :era_id,
-                :records,
-                :source_id
-
-
-  def initialize(name, source_id, era)
-    @records = Array.new
-    @current = true
-    @name    = name
-    @source_id = source_id
-    @era_id     = era.id
-  end
-
-  def add(record)
-    @records << record
-  end
-
-  def num_pupils
-    @records.size
+  def note_member(loader, membership_record)
+    pupil = loader.pupil_hash[membership_record.pupil_ident]
+    if pupil
+      @members << pupil
+    end
   end
 
   #
-  #  Ensure this other half group is correctly represented in the
-  #  database.
+  #  Ensure that the right group for this OH occurence exists in
+  #  the database.  Note that this method is called in strict
+  #  chronological order as the events are being loaded into the database.
+  #  We can therefore safely adjust the membership as we go.
   #
-  def ensure_db(loader)
-    loaded_count           = 0
-    changed_count          = 0
-    unchanged_count        = 0
-    reincarnated_count     = 0
-    member_loaded_count    = 0
-    member_removed_count   = 0
-    member_unchanged_count = 0
-    #
-    #  First call the method, then we can access @dbrecord directly.
-    #
-    self.dbrecord
-    if @dbrecord
+  #  Groups are identified by the source id of the linked SB group,
+  #  although that group doesn't actually exist, or contain the
+  #  membership.
+  #
+  def ensure_group(effective_date)
+    groups_created  = 0
+    members_added   = 0
+    members_removed = 0
+    @db_group = Otherhalfgroup.find_by(source_id: self.group_ident)
+    unless @db_group
       #
-      #  It's possible that, although there is a record in the d/b
-      #  no longer current.
+      #  Need to create a new one.
       #
-      unless @dbrecord.current
-        @dbrecord.reincarnate
-        @dbrecord.reload
-        #
-        #  Reincarnating a group sets its end date to nil, but we kind
-        #  of want it to be the end of the current era.
-        #
-        @dbrecord.ends_on = loader.era.ends_on
-        @dbrecord.save
-        reincarnated_count += 1
+      @db_group = Otherhalfgroup.new
+      @db_group.name        = self.activity_name
+      @db_group.starts_on   = effective_date
+      @db_group.era         = Setting.current_era
+      @db_group.current     = true
+      if @staff[0] &&
+         @staff[0].dbrecord
+        @db_group.owner = @staff[0].dbrecord.corresponding_user
       end
-      #
-      #  Need to check the group details still match.
-      #
-      if self.check_and_update
-        changed_count += 1
+      @db_group.make_public = true
+      @db_group.source_id   = self.group_ident
+      if @db_group.save
+        @db_group.reload
+        groups_created += 1
       else
-        unchanged_count += 1
-      end
-    else
-      if num_pupils > 0
-        if self.save_to_db(starts_on: loader.start_date,
-                           ends_on: loader.era.ends_on)
-          loaded_count += 1
+        puts "Failed to create Other Half group - \"#{self.activity_name}\"."
+        @db_group.errors.each do |error|
+          puts error.inspect
         end
+        @db_group = nil
       end
     end
-    if @dbrecord
+    if @db_group
       #
-      #  And now sort out the pupils for this tutor group.
+      #  Let's make sure the membership is right at this date too.
+      #  We use element ids to identify members uniquely.
       #
-      db_member_ids =
-        @dbrecord.members(loader.start_date).collect {|s| s.source_id}
-      sb_member_ids = self.records.collect {|r| r.pupil_ident}
-      missing_from_db = sb_member_ids - db_member_ids
-      missing_from_db.each do |pupil_id|
-        pupil = loader.pupil_hash[pupil_id]
-        if pupil && pupil.dbrecord
-          begin
-            if @dbrecord.add_member(pupil.dbrecord, loader.start_date)
-              #
-              #  Adding a pupil to a tutor group effectively changes the
-              #  pupil's element name.  Save the pupil record so the
-              #  element name gets updated.
-              #
-              pupil.force_save
-              member_loaded_count += 1
-            else
-              puts "Failed to add #{pupil.name} to tutorgroup #{self.name}"
-            end
-          rescue ActiveRecord::RecordInvalid => e
-            puts "Failed to add #{pupil.name} to tutorgroup #{self.name}"
-            puts e
-          end
-        end
+      effective_date = self.starts_at.to_date
+      intended_member_ids = @members.collect {|m| m.element_id}.compact
+      current_member_ids =
+        @db_group.members(effective_date, false, false).
+                  collect {|m| m.element.id}
+      ids_to_remove = current_member_ids - intended_member_ids
+      ids_to_add = intended_member_ids - current_member_ids
+      ids_to_remove.each do |member_id|
+        @db_group.remove_member(Element.find(member_id), effective_date)
+        members_removed += 1
       end
-      extra_in_db = db_member_ids - sb_member_ids
-      extra_in_db.each do |pupil_id|
-        pupil = loader.pupil_hash[pupil_id]
-        if pupil && pupil.dbrecord
-          @dbrecord.remove_member(pupil.dbrecord, loader.start_date)
-          #
-          #  Likewise, removing a pupil can change his element name.
-          #
-          pupil.force_save
-          member_removed_count += 1
-        end
+      ids_to_add.each do |member_id|
+        @db_group.add_member(Element.find(member_id), effective_date)
+        members_added += 1
       end
-      member_unchanged_count += (db_member_ids.size - extra_in_db.size)
     end
-    [loaded_count,
-     reincarnated_count,
-     changed_count,
-     unchanged_count,
-     member_loaded_count,
-     member_removed_count,
-     member_unchanged_count]
+    [groups_created, members_added, members_removed]
   end
 
-
 end
+
 
 class SB_OtherHalfMembership
   FILE_NAME = "rtrwpupils.csv"
@@ -1221,6 +1152,19 @@ class SB_Pupil
   def force_save
     if self.dbrecord
       self.dbrecord.save!
+    end
+  end
+
+  #
+  #  Returns the corresponding element id in the database, or nil
+  #  if none exists.
+  #
+  def element_id
+    if self.dbrecord &&
+       self.dbrecord.element
+      self.dbrecord.element.id
+    else
+      nil
     end
   end
 
@@ -2114,10 +2058,11 @@ class SB_Taggroup
     #  be delayed by a day.
     #
     if @staff &&
-       @staff.dbrecord &&
-       @staff.dbrecord.element &&
-       @staff.dbrecord.element.concerns.me.size > 0
-      @owner_id = @staff.dbrecord.element.concerns.me[0].user_id
+       @staff.dbrecord
+      owner = @staff.dbrecord.corresponding_user
+      if owner
+        @owner_id = owner.id
+      end
     end
   end
 
@@ -3178,6 +3123,15 @@ class SB_Loader
             WhoTeachesWhat.note_ps_invigilator(staff)
           end
         end
+      end
+    end
+    #
+    #  Sort the OH membership records into the relevant occurences.
+    #
+    @other_half_memberships.each do |ohm|
+      other_half_occurence = @other_half_hash[ohm.oh_occurence_ident]
+      if other_half_occurence
+        other_half_occurence.note_member(self, ohm)
       end
     end
     #
@@ -4397,12 +4351,21 @@ class SB_Loader
     oh_events_retimed_count = 0
     oh_event_commitments_added_count = 0
     oh_event_commitments_removed_count = 0
+    oh_groups_created_count = 0
+    oh_groups_members_added_count = 0
+    oh_groups_members_removed_count = 0
+    oh_start_date = @start_date.beginning_of_week(:sunday)
     @other_half.sort.each do |oh|
 #      puts "#{oh.activity_name} from #{oh.starts_at.to_s} to #{oh.ends_at.to_s}"
 #      unless oh.staff.empty?
 #        puts "With #{oh.staff.collect {|s| s.name}.join(", ")}"
 #      end
-      if oh.starts_at >= @start_date
+      if oh.starts_at >= oh_start_date
+        groups_created, members_added, members_removed =
+          oh.ensure_group(oh_start_date)
+        oh_groups_created_count += groups_created
+        oh_groups_members_added_count += members_added
+        oh_groups_members_removed_count += members_removed
         event = Event.find_by(source_id: oh.oh_occurence_ident,
                               eventcategory_id: @other_half_category.id,
                               eventsource_id: @event_source.id)
@@ -4462,8 +4425,8 @@ class SB_Loader
             sb_element_ids << s.dbrecord.element.id
           end
         end
-        if oh.group && oh.group.dbrecord
-          sb_element_ids << oh.group.dbrecord.element.id
+        if oh.db_group
+          sb_element_ids << oh.db_group.element.id
         end
         if oh.location &&
            oh.location.dbrecord &&
@@ -4498,7 +4461,7 @@ class SB_Loader
     #
     events = Event.eventsource_id(@event_source.id).
                    eventcategory_id(@other_half_category.id).
-                   beginning(@start_date).
+                   beginning(oh_start_date).
                    until(@era.ends_on)
     puts "Checking #{events.size} other half events for possible deletion." if @verbose
     oh_events_deleted_count = 0
@@ -4522,6 +4485,15 @@ class SB_Loader
     end
     if @verbose || oh_events_deleted_count > 0
       puts "Deleted #{oh_events_deleted_count} other half events."
+    end
+    if @verbose || oh_groups_created_count > 0
+      puts "Created #{oh_groups_created_count} other half groups."
+    end
+    if @verbose || oh_groups_members_added_count > 0
+      puts "#{oh_groups_members_added_count} pupils added to other half groups."
+    end
+    if @verbose || oh_groups_members_removed_count > 0
+      puts "#{oh_groups_members_removed_count} pupils removed from other half groups."
     end
   end
 
@@ -5076,6 +5048,7 @@ begin
   SB_Loader.new(options) do |loader|
     unless options.just_initialise
       finished(options, "initialisation")
+if false
       loader.do_pupils
       finished(options, "pupils")
       loader.do_staff
@@ -5090,8 +5063,10 @@ begin
       finished(options, "timetable")
       loader.do_cover
       finished(options, "cover")
+end
       loader.do_other_half
       finished(options, "other half")
+if false
       loader.do_auto_groups
       finished(options, "automatic groups")
       loader.do_extra_groups
@@ -5100,6 +5075,7 @@ begin
       finished(options, "duties")
       loader.do_taggroups
       finished(options, "tagggroups")
+end
     end
   end
 rescue RuntimeError => e

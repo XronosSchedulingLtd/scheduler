@@ -84,4 +84,16 @@ class Staff < ActiveRecord::Base
     result
   end
 
+  #
+  #  Returns the corresponding user record, or nil if none exists.
+  #
+  def corresponding_user
+    if self.element &&
+       self.element.concerns.me.size > 0
+      self.element.concerns.me[0].user
+    else
+      nil
+    end
+  end
+
 end

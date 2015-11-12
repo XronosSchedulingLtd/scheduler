@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151110090045) do
+ActiveRecord::Schema.define(version: 20151112093808) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -220,6 +220,14 @@ ActiveRecord::Schema.define(version: 20151110090045) do
 
   add_index "memberships", ["element_id"], name: "index_memberships_on_element_id", using: :btree
   add_index "memberships", ["group_id"], name: "index_memberships_on_group_id", using: :btree
+
+  create_table "otherhalfgrouppersonae", force: true do |t|
+    t.integer  "source_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "otherhalfgrouppersonae", ["source_id"], name: "index_otherhalfgrouppersonae_on_source_id", using: :btree
 
   create_table "ownerships", force: true do |t|
     t.integer  "user_id"
