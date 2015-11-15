@@ -45,6 +45,7 @@ class Commitment < ActiveRecord::Base
   scope :uncovered_commitment, -> { joins("left outer join `commitments` `covereds_commitments` ON `covereds_commitments`.`covering_id` = `commitments`.`id`").where("covereds_commitments.id IS NULL") }
   scope :firm, -> { where(:tentative => false) }
   scope :tentative, -> { where(:tentative => true) }
+  scope :rejected, -> { where(:rejected => true) }
   scope :not_rejected, -> { where(:rejected => false) }
   scope :constraining, -> { where(:constraining => true) }
   scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}

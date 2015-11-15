@@ -1,0 +1,23 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-11-15T09:05:28+00:00
+
+====== Sunday 15 Nov 2015 ======
+
+Two objectives for today:
+
+[ ] E-mail reports on outstanding requests to resource owners and the system admin.
+[*] Allow AMB to put stuff in the calendar without permission, but not to own it.
+
+This will need a couple of extra flags.
+
+* A flag in the user record to say whether they want to receive e-mails.  Default to true, and they can turn it off.
+* A flag in the concern record, allowing permissions to be by-passed.
+
+I've already had a little go at this, but I think I might create a fresh branch.  Or I could work on the current one.  Ah - I know what I don't want.  I also started adding the missing date fields to the commitment record, but I'd like a lot more testing on that before it goes live.  Put the current branch aside and start a new one.
+
+Just discovered I can no longer adjust the duration of an event by dragging.  This affects the live system too.  Presumably an artefact of my recent changes.  Damn.  Why not?  In all honesty, I don't know when this functionality went away.  Need to investigate.  Could it have happened when I did a small update to fullcalendar a little while back?  Has the i/f changed?  I seem to be using 2.0.2.0.
+
+No - it is to do with my code for dynamic re-sizing of the calendar.  If I take that out, the dragging comes back.  Perhaps I should disable that for now since the dragging is probably more important.
+
+For now, the e-mail report is coming just to me.  I will do it more thoroughly later.

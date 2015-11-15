@@ -12,7 +12,7 @@ Objectives for today:
 [*] Adjust their population
 [*] Allow loading of OH data slightly late
 [ ] Daily report on outstanding approvals
-[ ] Merge all recent changes
+[*] Merge all recent changes
 [ ] Deploy to staging server, documenting the necessary upgrade process
 
 On the OH sets front, a bit of subtlety is needed.  The set membership records are effectively tied to the event record, rather than to the group record, although the event does reference an actual group record in SB.  The group record is set to a negative year, so currently gets discarded.
@@ -34,3 +34,57 @@ Give it a go.  Start by getting a copy of last night's backup and the current SB
 
 
 I think it would make sense to create a rake task for generating my report.  Leave that for now, and try to merge all I've done so far.  Some of it is on Knight.
+
+Now merged all the recent changes and ready to try deploying them on the staging server.  This will be slightly different from before because I have cached all the necessary gems in the vendor directory.
+
+[*] Load fresh copy of live database
+[*] export RAILS_ENV=production
+[*] Import last night's data using existing tools
+[*] Check output.txt
+[*] Fetch down new code
+[*] bundle install --local
+[*] rake db:migrate
+[*] rake assets:precompile
+[*] touch tmp/restart.txt
+[*] Check general appearance seems to be OK.  New menus working.
+[*] Re-import last night's data.
+And then after that I probably want to import data for a few days before I think about promoting this to live.
+
+First run of import took 3m39.634s
+
+Re-import took 16m47s.  Re-run to check idempotency took 4m7.9s, so not too much of a slow-down.
+
+I could now take a look at running a batch job as a rake task.
+
+Just realised that for some weird reason, my commitments table lacks created_at and updated_at fields.  How did that happen?  Does it affect any of the other tables?  No, apparently not.  I must have had a brainstorm and deleted the relevant line when creating the table.  Can I add it now?  Will rails cope with the field being there but not initialised.
+
+It seems you need to do an actual change to the commitment record to get updated_at to change, but it seems to be sufficient to modify created_at.  Time for another maintenance method.  When I get around to doing this on the live system it would probably make sense to shut down the server for the duration.  It takes quite a while.  It's also using steadily more memory.
+
+Perhaps do them in batches.  ActiveRecord seems to have a find_in_batches function.  Let's try that.  Actually, find_each makes it even easier.  There's no way around it taking a long time though.  Ah, yes there is - do it as a direct mysql command.  Then it takes only 3 seconds to do the lot, rather than several hours as a Ruby script.
+
+Now back to logging the checking of approvals.
+
+It's now Saturday, and I propose to promote the code to the live system.  Before that, I'd like to do it again on the staging server.  I should be able to see boys being added to and then removed from other half sets.  Perhaps do it first of all on my development machine.  I've added an extra line to the loader code to log the removal of a pupil from an other half group.  I think I should be able to see such a pupil being in the group last week, then out of it for the coming week, assuming everything is working properly.
+
+Incredibly, that does seem to have worked.  Pupils were added for the current week, then removed for next week.  Check that for, for instance, Noah Williams in my programming group.  Incredibly, it seems to work.
+
+Let's do it on the staging server again then.
+
+What version of software is currently on Mach2?
+
+'''
+commit e03704d2eb2e276a885ee4d5e076045cea4f8ecf
+Author: John Winters <john@sinodun.org.uk>
+Date:   Sat Nov 7 10:38:58 2015 +0000
+
+	Reduce pending count on rejections.  Select editors.
+	
+	Corrected an error which prevented the number of outstanding approvals
+	being reduced when you rejected one.  Added a scope to the User model
+	for selecting editors.
+'''
+
+
+OK - I know where I might need to go back to.  Done the script on the live system - it took 45m13s.  Seems to have worked though.  Happy.
+
+Do tag groups ever get deleted on my system?  Must check that.  I'll delete my Jamesian tag group now, and see whether my code copes in the morning.
