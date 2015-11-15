@@ -15,8 +15,13 @@ class Concern < ActiveRecord::Base
   scope :not_me, -> {where.not(equality: true)}
   scope :owned, -> {where(owns: true)}
   scope :not_owned, -> {where.not(owns: true)}
+  scope :skip_permissions, -> {where(skip_permissions: true)}
   scope :controlling, -> {where(controls: true)}
   scope :not_controlling, -> {where.not(controls: true)}
+  #
+  #  ActiveRecord scopes are not good at OR conditions, so resort to SQL.
+  #
+  scope :can_commit, -> {where("owns = ? OR skip_permissions = ?", true, true)}
 
   scope :visible, -> { where(visible: true) }
 
@@ -86,8 +91,9 @@ class Concern < ActiveRecord::Base
 
   #
   #  Can the relevant user delete this concern?
+  #
   def user_can_delete?
-     self.user.staff? && !(self.equality || self.owns || self.controls)
+    !(self.equality || self.owns || self.controls || self.skip_permissions)
   end
 
   #

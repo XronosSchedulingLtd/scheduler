@@ -31,45 +31,20 @@
 
 <% if current_user.admin %>
 
-  <div class="row collapse">
-    <div class="small-1 columns">
-      <%= f.label :admin, class: "right inline" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :admin, :disabled => !current_user.admin %>
-    </div>
-    <div class="small-1 columns">
-      <%= f.label :editor, class: "right inline" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :editor, :disabled => !current_user.admin %>
-    </div>
-    <div class="small-1 columns">
-      <%= f.label :cover, class: "right inline" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :arranges_cover, :disabled => !current_user.admin %>
-    </div>
-    <div class="small-1 columns">
-      <%= f.label :secretary, class: "right inline" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :secretary, :disabled => !current_user.admin %>
-    </div>
-    <div class="small-1 columns">
-      <%= f.label :privileged, class: "right inline" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :privileged, :disabled => !current_user.admin %>
-    </div>
-    <div class="small-1 columns">
-      <%= f.label :public_groups, class: "right inline" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :public_groups, :disabled => !current_user.admin %>
-    </div>
-  </div>
-
+  <%= flag_setter(f, :admin,  "Is this user a system administrator?") %>
+  <%= flag_setter(f, :editor, "Can this user create and edit events?") %>
+  <%= flag_setter(f, :arranges_cover,
+                  "Does this user administer cover?", "Cover") %>
+  <%= flag_setter(f, :secretary,
+                  "Does this user enter events on behalf of other people? Causes the Owner field in new events to be left blank.") %>
+  <%= flag_setter(f, :privileged,
+                  "Can this user put events into the privileged event categories?") %>
+  <%= flag_setter(f, :public_groups,
+                  "Can this user create publicly visible groups?") %>
+<% end %>
+<% if current_user.admin || current_user.editor %>
+  <%= flag_setter(f, :email_notification,
+                  "Should the system send daily e-mail notifications of pending requests?") %>
 <% end %>
 
   <div class="row collapse">
@@ -82,12 +57,9 @@
                               :id,
                               :name) %>
     </div>
-    <div class="small-7 columns"></div>
-  </div>
 
 <% if current_user.editor || current_user.admin %>
-
-  <div class="row collapse">
+    <div class="small-1 columns"></div>
     <div class="small-3 columns">
       <%= f.label "Preferred event category", class: "right inline" %><br>
     </div>
@@ -98,7 +70,7 @@
                               :name,
                               {:include_blank => "--None--"}) %>
     </div>
-    <div class="small-7 columns"></div>
+    <div class="small-1 columns"></div>
   </div>
 
   <div class="row collapse">
@@ -110,6 +82,9 @@
     </div>
   </div>
 
+<% else %>
+    <div class="small-7 columns"></div>
+  </div>
 <% end %>
 
   <div class="actions">

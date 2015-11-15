@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151112093808) do
+ActiveRecord::Schema.define(version: 20151115091047) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -35,14 +35,15 @@ ActiveRecord::Schema.define(version: 20151112093808) do
   create_table "concerns", force: true do |t|
     t.integer  "user_id"
     t.integer  "element_id"
-    t.boolean  "equality",   default: false, null: false
-    t.boolean  "owns",       default: false, null: false
-    t.boolean  "visible",    default: true,  null: false
-    t.string   "colour",                     null: false
+    t.boolean  "equality",         default: false, null: false
+    t.boolean  "owns",             default: false, null: false
+    t.boolean  "visible",          default: true,  null: false
+    t.string   "colour",                           null: false
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "auto_add",   default: false
-    t.boolean  "controls",   default: false
+    t.boolean  "auto_add",         default: false
+    t.boolean  "controls",         default: false
+    t.boolean  "skip_permissions", default: false
   end
 
   add_index "concerns", ["element_id"], name: "index_concerns_on_element_id", using: :btree
@@ -339,6 +340,7 @@ ActiveRecord::Schema.define(version: 20151112093808) do
     t.string   "default_event_text",          default: ""
     t.boolean  "public_groups",               default: false
     t.boolean  "element_owner",               default: false
+    t.boolean  "email_notification",          default: true
   end
 
 end

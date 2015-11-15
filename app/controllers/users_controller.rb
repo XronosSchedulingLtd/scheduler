@@ -117,17 +117,20 @@ class UsersController < ApplicationController
                       :secretary,
                       :privileged,
                       :public_groups,
+                      :email_notification,
                       :firstday,
                       :preferred_event_category_id,
                       :default_event_text)
       elsif current_user.editor
         params.require(:user).
                permit(:firstday,
+                      :email_notification,
                       :preferred_event_category_id,
                       :default_event_text)
       else
         params.require(:user).
-               permit(:firstday)
+               permit(:firstday,
+                      :email_notification)
       end
     end
 end

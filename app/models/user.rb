@@ -188,6 +188,18 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Can this user delete the indicated item?
+  #  We can only delete our own, and sometimes not even then.
+  #
+  def can_delete?(item)
+    if item.instance_of?(Concern)
+      item.user_id == self.id && self.staff? && item.user_can_delete?
+    else
+      false
+    end
+  end
+
+  #
   #  And specifically for events, can the user re-time the event?
   #  Sometimes users can edit, but not re-time.
   #
@@ -218,11 +230,21 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Can this user create a firm commitment for this element?  Note
+  #  that this is slightly different from being able to approve a
+  #  commitment.  Some users can bypass permissions, but don't actually
+  #  have authority for approvals.
+  #
+  def can_commit?(element)
+    !!concerns.can_commit.detect {|c| (c.element_id == element.id)}
+  end
+
+  #
   #  Does this user need permission to create a commitment for this
   #  element?
   #
   def needs_permission_for?(element)
-    Setting.enforce_permissions? && element.owned && !self.owns?(element)
+    Setting.enforce_permissions? && element.owned && !self.can_commit?(element)
   end
 
   def permissions_pending
