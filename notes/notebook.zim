@@ -1,6 +1,12 @@
 [Notebook]
-name=Scheduler
 version=0.4
+name=Scheduler
+interwiki=
+home=Home
+icon=
+document_root=
+shared=True
 endofline=unix
-profile=None
+disable_trash=False
+profile=
 

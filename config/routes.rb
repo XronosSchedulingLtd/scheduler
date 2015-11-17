@@ -75,6 +75,8 @@ Rails.application.routes.draw do
 
   end
 
+  resources :itemreports
+
   resources :elements do
     get :autocomplete_element_name, :on => :collection
     get :autocomplete_unowned_element_name, :on => :collection

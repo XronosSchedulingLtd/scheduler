@@ -18,6 +18,7 @@
 //= require moment
 //= require fullcalendar
 //= require jquery-ui-timepicker-addon
+//= require spectrum
 //= require_tree .
 
 $(function(){ $(document).foundation(); });

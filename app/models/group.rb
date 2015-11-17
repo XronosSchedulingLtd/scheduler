@@ -90,6 +90,10 @@ class Group < ActiveRecord::Base
     name
   end
 
+  def description
+    "#{self.type} group"
+  end
+
   def active
     true
   end

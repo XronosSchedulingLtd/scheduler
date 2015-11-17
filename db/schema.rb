@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151115091047) do
+ActiveRecord::Schema.define(version: 20151117140132) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -186,6 +186,30 @@ ActiveRecord::Schema.define(version: 20151115091047) do
 
   add_index "interests", ["element_id"], name: "index_interests_on_element_id", using: :btree
   add_index "interests", ["user_id"], name: "index_interests_on_user_id", using: :btree
+
+  create_table "itemreports", force: true do |t|
+    t.integer  "concern_id"
+    t.boolean  "compact",          default: false
+    t.boolean  "duration",         default: false
+    t.boolean  "mark_end",         default: false
+    t.boolean  "locations",        default: false
+    t.boolean  "staff",            default: false
+    t.boolean  "pupils",           default: false
+    t.boolean  "periods",          default: false
+    t.date     "starts_on"
+    t.date     "ends_on"
+    t.boolean  "twelve_hour",      default: false
+    t.boolean  "end_time",         default: true
+    t.boolean  "breaks",           default: false
+    t.boolean  "suppress_empties", default: false
+    t.boolean  "tentative",        default: false
+    t.boolean  "firm",             default: false
+    t.string   "categories",       default: ""
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "itemreports", ["concern_id"], name: "index_itemreports_on_concern_id", using: :btree
 
   create_table "locationaliases", force: true do |t|
     t.string   "name"

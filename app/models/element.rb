@@ -320,6 +320,10 @@ class Element < ActiveRecord::Base
     entity.short_name
   end
 
+  def description
+    entity.description
+  end
+
   def tabulate_name(columns)
     entity.tabulate_name(columns)
   end

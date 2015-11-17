@@ -93,6 +93,13 @@ module Elemental
   end
 
   #
+  #  Default description.
+  #
+  def description
+    self.class.to_s
+  end
+
+  #
   #  And shims to provide access to the instance methods in Element
   #
   def groups(given_date = nil, recurse = true)

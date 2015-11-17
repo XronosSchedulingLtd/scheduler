@@ -1,6 +1,6 @@
 <tr>
-  <td style="background-color:<%= concern.colour %>;color:white;font-size:90%;padding-top:0px;padding-bottom:0px;" class="dynamic-element rounded-corners" concern_id="<%= concern.id %>" data-cid="<%= concern.id %>" data-eid="<%= concern.element_id %>" title="<%= concern.element_id %>">
-    <%= concern.element.name %>
+  <td style="background-color:<%= concern.colour %>;color:white;font-size:90%;padding-top:0px;padding-bottom:0px;" class="dynamic-element rounded-corners concern-link" concern_id="<%= concern.id %>" data-cid="<%= concern.id %>" data-eid="<%= concern.element_id %>" title="<%= concern.element_id %>">
+    <%= link_to concern.element.name, edit_concern_path(concern) %>
   </td>
   <td style="padding-top:0px;padding-bottom:0px;">
     <input type="checkbox"

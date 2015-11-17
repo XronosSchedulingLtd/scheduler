@@ -183,6 +183,8 @@ class User < ActiveRecord::Base
       (self.create_groups? &&
        item.owner_id == self.id &&
        item.user_editable?)
+    elsif item.instance_of?(Concern)
+      item.user_id == self.id && self.staff?
     else
       false
     end

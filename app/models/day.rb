@@ -69,7 +69,7 @@ class Day
       @locations_string =
         event.locations.collect {|l| l.friendly_name}.join(", ")
       @staff_string =
-        event.staff.collect {|s| s.short_name}.join(", ")
+        event.staff(true).collect {|s| s.short_name}.join(", ")
       @pupil_string =
         event.pupils(true).collect {|s| s.short_name}.join(", ")
       @period_no = period_no(event)

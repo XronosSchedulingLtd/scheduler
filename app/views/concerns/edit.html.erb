@@ -1,0 +1,97 @@
+<h2><%= @concern.element.name %></h2>
+<p><%= @concern.element.description %></p>
+<hr/>
+<h3>Appearance</h3>
+<%= form_for(@concern) do |f| %>
+  <% if @concern.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@group.errors.count, "error") %> prohibited this group from being saved:</h2>
+
+      <ul>
+<% @group.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+<% end %>
+      </ul>
+    </div>
+  <% end %>
+
+<div class="row collapse">
+  <div class="small-3 columns">
+    <label>Colour</label>
+    <div class="concern-block">
+      <div class="concern-button" id="colour-sample" style="background-color:<%= @concern.colour %>">
+        <span class="concern-spacer"></span>
+        <div class="concern-text"><%= @concern.element.name %></div>
+      </div>
+      <span style="float: right">
+        <%= f.hidden_field :colour, :id => :colour_picker %>
+      </span>
+    </div>
+  </div>
+  <div class="small-3 columns">
+    <label>Options</label>
+    <%= f.check_box :visible %>
+    <%= f.label :visible, title: "Should this resource's events be visible currently." %>
+    <%= f.check_box :auto_add %>
+    <%= f.label :auto_add, title: "When creating a new event, should this resource be automatically added." %>
+  </div>
+  <div class="small-1 columns">
+    <%= f.submit "Save changes", :class => "button tiny radius" %>
+  </div>
+  <div class="small-5 columns">
+  </div>
+</div>
+<% end %>
+
+<hr/>
+
+<h3>Report</h3>
+<p>You can get a listing of all events involving this resource.</p>
+
+<%= form_for(@item_report) do |f| %>
+<%= f.hidden_field :concern_id %>
+<div class="row collapse">
+  <div class="small-3 columns">
+    <label>Start date</label>
+<%= f.date_field :starts_on %>
+  </div>
+  <div class="small-1 columns">
+    &nbsp;
+  </div>
+  <div class="small-3 columns">
+    <label>End date</label>
+<%= f.date_field :ends_on %>
+  </div>
+  <div class="small-5 columns">
+  </div>
+</div>
+<div class="row collapse">
+  <div class="small-5 columns">
+    <label>Duration</label>
+<%= single_flag(f, :compact, "If set, multi-day events will be mentioned only on their first day.") %>
+<%= single_flag(f, :duration, "For use with the previous option - will cause the end-date of the event to be appended to the entry on the first day.") %>
+<%= single_flag(f, :mark_end, "If set, causes the end day of a multi-day event to be annotated too.") %>
+<%= single_flag(f, :periods, "For events which align with the school's standard periods, list them by period number instead of by time.") %>
+  </div>
+  <div class="small-7 columns"></div>
+</div>
+<div class="row collapse">
+  <div class="small-5 columns">
+    <label>Resources</label>
+<%= single_flag(f, :locations, "Include the (short) names of locations for each event.") %>
+<%= single_flag(f, :staff, "List staff involved in each event.") %>
+<%= single_flag(f, :pupils, "List pupils involved in each event.") %>
+  </div>
+  <div class="small-7 columns">
+    <label>Formatting</label>
+<%= single_flag(f, :breaks, "Put each event on a separate line of its own.") %>
+<%= single_flag(f, :suppress_empties, "Don't produce output for days with no events.") %>
+  </div>
+</div>
+<%= f.submit "Generate" %>
+<% end %>
+
+<hr/>
+
+<p>Detailed information about the element</p>
+

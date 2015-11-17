@@ -1,5 +1,5 @@
 class ConcernsController < ApplicationController
-#  before_action :set_concern, only: [:flipped]
+  before_action :set_concern, only: [:edit, :update]
 
   # POST /concerns
   # POST /concerns.json
@@ -78,6 +78,29 @@ class ConcernsController < ApplicationController
     @concern = Concern.new
   end
 
+  def edit
+    unless current_user.can_edit?(@concern)
+      redirect_to :back
+    end
+    @item_report = Itemreport.new
+    @item_report.concern = @concern
+  end
+
+  def update
+    if current_user.can_edit?(@concern)
+      respond_to do |format|
+        if @concern.update(concern_params)
+          format.html { redirect_to :root }
+        else
+          format.html { render :edit }
+        end
+      end
+    else
+      redirect_to :back
+    end
+  end
+
+
   def flipped
     #
     #  Special case until the calendar is an element.
@@ -132,6 +155,6 @@ class ConcernsController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def concern_params
-    params.require(:concern).permit(:element_id, :name)
+    params.require(:concern).permit(:element_id, :name, :visible, :colour, :auto_add)
   end
 end

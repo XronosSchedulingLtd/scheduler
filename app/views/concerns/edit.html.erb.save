@@ -1,0 +1,51 @@
+<h2><%= @concern.element.name %></h2>
+<p><%= @concern.element.description %></p>
+<hr/>
+<h3>Appearance</h3>
+<%= form_for(@concern) do |f| %>
+  <% if @concern.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@group.errors.count, "error") %> prohibited this group from being saved:</h2>
+
+      <ul>
+<% @group.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+<% end %>
+      </ul>
+    </div>
+  <% end %>
+
+<div class="row collapse">
+  <div class="small-1 columns">
+    <%= f.label :colour, class: "right inline" %>
+  </div>
+  <div class="small-3 columns">
+    <div class="concern-block">
+      <div class="concern-button" id="colour-sample" style="background-color:<%= @concern.colour %>"><%= @concern.element.name %></div>
+      <span style="float: right">
+        <%= f.hidden_field :colour, :id => :colour_picker %>
+      </span>
+    </div>
+  </div>
+  <div class="small-1 columns">
+    <%= f.label :visible, class: "right inline" %>
+  </div>
+  <div class="small-1 columns">
+    <%= f.check_box :visible %>
+  </div>
+  <div class="small-1 columns">
+    <%= f.submit "Update", :class => "button tiny radius" %>
+  </div>
+  <div class="small-5 columns">
+  </div>
+</div>
+<% end %>
+
+<hr/>
+
+<p>Ability to generate a report on this concern's element</p>
+
+<hr/>
+
+<p>Detailed information about the element</p>
+

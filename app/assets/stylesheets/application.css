@@ -16,6 +16,7 @@
  *= require jquery.ui.all
  *= require jquery-ui-timepicker-addon
  *= require fullcalendar
+ *= require spectrum
  *= require_tree .
 
  */

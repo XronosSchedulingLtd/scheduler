@@ -1,0 +1,30 @@
+.concern-link {
+  a, a:visited {
+    color: white;
+  }
+}
+
+.concern-block {
+  width: 230px;
+  height: 30px;
+}
+
+.concern-button {
+  float: left;
+  border-radius: 3px;
+  width: 180px;
+  height: 30px;
+  color: white;
+  font-size: 90%;
+  text-align: center;
+}
+
+.concern-text {
+  height: 22px;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+.concern-spacer {
+  line-height: 30px;
+}

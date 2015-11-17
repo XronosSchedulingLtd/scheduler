@@ -38,6 +38,10 @@ class Staff < ActiveRecord::Base
     self.initials
   end
 
+  def description
+    "Member of staff"
+  end
+
   def tabulate_name(columns)
     if columns == 3
       "<tr><td>#{self.initials}</td><td>#{self.forename}</td><td>#{self.surname}</td></tr>".html_safe
