@@ -863,6 +863,15 @@ class Event < ActiveRecord::Base
     nil
   end
 
+  def self.count_commitments
+    total_resources = 0
+    Event.find_each do |e|
+      total_resources += e.all_atomic_resources.count
+    end
+    puts "Total resources attached to events - #{total_resources}."
+    nil
+  end
+
   private
 
   def become_all_day

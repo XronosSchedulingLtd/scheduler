@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <p>
+      The following resources in Scheduler currently have requests
+      awaiting your approval.
+    </p>
+<% @user_set.pending_sets.each do |ps| %>
+    <h3>
+      <%= ps.element.name %>
+    </h3>
+<%   ps.pending.each do |commitment| %>
+    <p>
+      <%= commitment.event.owners_initials %> proposes "<%= commitment.event.body %>" on <%= commitment.event.starts_at_text %>
+    </p>
+<%   end %>
+<% end %>
+  </body>
+</html>

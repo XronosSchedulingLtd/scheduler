@@ -49,4 +49,9 @@ class UserMailer < ActionMailer::Base
     mail(to: email, subject: "Event now complete")
   end
 
+  def pending_approvals_email(email, user_set)
+    @user_set = user_set
+    mail(to: email, subject: "Pending event approvals")
+  end
+
 end
