@@ -4953,7 +4953,7 @@ class SB_Loader
     #  SB?  This is the only way they're going to get deleted, since
     #  users can't delete them through the Scheduler web i/f.
     #
-    Group.taggroups.all.each do |dbtg|
+    Group.taggroups.current.each do |dbtg|
       unless taggroup_hash[dbtg.source_id]
         puts "Tag group \"#{dbtg.name}\" seems to have gone from SB."
         dbtg.ceases_existence

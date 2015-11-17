@@ -26,3 +26,5 @@
 # Some zim files change too much
 notes/.zim/*
 
+# Ignore compiled assets
+public/assets/*
