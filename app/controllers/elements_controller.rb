@@ -58,6 +58,7 @@ class ElementsController < ApplicationController
               agroup.
               mine_or_system(current_user).
               where('name LIKE ?', "%#{term}%").
+              order("LENGTH(elements.name)").
               order(:name).
               all
     render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }

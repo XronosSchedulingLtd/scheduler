@@ -29,24 +29,6 @@
     </div>
   </div>
 
-<% if current_user.admin %>
-
-  <%= flag_setter(f, :admin,  "Is this user a system administrator?") %>
-  <%= flag_setter(f, :editor, "Can this user create and edit events?") %>
-  <%= flag_setter(f, :arranges_cover,
-                  "Does this user administer cover?", "Cover") %>
-  <%= flag_setter(f, :secretary,
-                  "Does this user enter events on behalf of other people? Causes the Owner field in new events to be left blank.") %>
-  <%= flag_setter(f, :privileged,
-                  "Can this user put events into the privileged event categories?") %>
-  <%= flag_setter(f, :public_groups,
-                  "Can this user create publicly visible groups?") %>
-<% end %>
-<% if current_user.admin || current_user.editor %>
-  <%= flag_setter(f, :email_notification,
-                  "Should the system send daily e-mail notifications of pending requests?") %>
-<% end %>
-
   <div class="row collapse">
     <div class="small-3 columns">
       <%= f.label "Week display to start on", class: "right inline" %><br>
@@ -85,6 +67,55 @@
 <% else %>
     <div class="small-7 columns"></div>
   </div>
+<% end %>
+
+<% if current_user.admin %>
+
+<div class="row collapse">
+  <%= flag_group(f, 12, 6, "Permissions",
+                 [
+                   {field: :admin,
+                    annotation: "Is this user a system administrator?",
+                    disabled: current_user == @user },
+                   {field: :editor,
+                    prompt: "Events",
+                    annotation: "Can this user create and edit events?"},
+                   {field: :privileged,
+                    annotation: "Can this user put events into the privileged event categories?"},
+                   {field: :can_has_groups,
+                    prompt: "Groups",
+                    annotation: "Can this user create and edit groups?"},
+                   {field: :public_groups,
+                    prompt: "Public",
+                    annotation: "Can this user create publicly visible groups?"},
+                   {field: :can_find_free,
+                    prompt: "Find free",
+                    annotation: "Can this user do searches for free resources?"},
+                   {field: :can_add_concerns,
+                    prompt: "Adjust view",
+                    annotation: "Can this user add and remove resources from his calendar view?"},
+                   {field: :can_su,
+                    annotation: "Can this user become another user?"}
+                 ]) %>
+  <%= flag_group(f, 12, 6, "Information",
+                 [
+                   {field: :arranges_cover,
+                    prompt: "Cover",
+                    annotation: "Does this user administer cover?"},
+                   {field: :secretary,
+                    annotation: "Does this user enter events on behalf of other people? Causes the Owner field in new events to be left blank."}
+                 ]) %>
+</div>
+
+<% end %>
+<% if current_user.admin || current_user.editor %>
+<div class="row collapse">
+  <%= flag_group(f, 12, 6, "Preferences",
+                 [
+                   {field: :email_notification,
+                    annotation: "Should the system send daily e-mail notifications of pending requests?"}
+                 ]) %>
+</div>
 <% end %>
 
   <div class="actions">
