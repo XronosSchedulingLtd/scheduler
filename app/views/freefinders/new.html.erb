@@ -78,9 +78,11 @@
                    :class => "button small radius" %>
     </div>
     <div class="small-2 columns">
+<% if current_user.can_has_groups %>
       <%= f.submit "Create group",
                    :name => :create,
                    :class => "button small radius" %>
+<% end %>
     </div>
     <div class="small-3 columns">
     </div>
