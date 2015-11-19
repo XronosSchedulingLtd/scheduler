@@ -108,7 +108,7 @@
 </div>
 
 <% end %>
-<% if current_user.admin || current_user.editor %>
+<% if current_user.admin || current_user.element_owner %>
 <div class="row collapse">
   <%= flag_group(f, 12, 6, "Preferences",
                  [
