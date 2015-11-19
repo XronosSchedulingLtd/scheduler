@@ -119,7 +119,8 @@ class User < ActiveRecord::Base
     self.admin ||
     self.editor ||
     self.can_has_groups ||
-    self.can_find_free
+    self.can_find_free ||
+    self.element_owner
   end
 
   #

@@ -143,7 +143,11 @@ class CommitmentsController < ApplicationController
 
   private
     def authorized?(action = action_name, resource = nil)
-      logged_in? && current_user.create_events?
+      logged_in? && (current_user.create_events? ||
+                     (current_user.element_owner &&
+                      (action == "index" ||
+                       action == "approve" ||
+                       action == "reject")))
     end
 
     # Use callbacks to share common setup or constraints between actions.
