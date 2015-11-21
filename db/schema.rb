@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151117140132) do
+ActiveRecord::Schema.define(version: 20151119091237) do
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -357,7 +357,6 @@ ActiveRecord::Schema.define(version: 20151117140132) do
     t.boolean  "arranges_cover",              default: false
     t.integer  "preferred_event_category_id"
     t.boolean  "secretary",                   default: false
-    t.boolean  "show_calendar",               default: false
     t.boolean  "show_owned",                  default: true
     t.boolean  "privileged",                  default: false
     t.integer  "firstday",                    default: 0
@@ -365,6 +364,10 @@ ActiveRecord::Schema.define(version: 20151117140132) do
     t.boolean  "public_groups",               default: false
     t.boolean  "element_owner",               default: false
     t.boolean  "email_notification",          default: true
+    t.boolean  "can_has_groups",              default: false
+    t.boolean  "can_find_free",               default: false
+    t.boolean  "can_add_concerns",            default: false
+    t.boolean  "can_su",                      default: false
   end
 
 end

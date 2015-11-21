@@ -9,7 +9,7 @@
            <%= concern.visible ? "checked" : "" %> />
   </td>
   <td style="padding-top:0px;padding-bottom:0px;">
-    <% if concern.user_can_delete? %>
+    <% if current_user.can_delete?(concern) %>
       <%= link_to '&#215;'.html_safe, concern, remote: true, method: :delete %>
     <% end %>
   </td>

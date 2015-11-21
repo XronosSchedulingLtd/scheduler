@@ -9,7 +9,7 @@ class UsersController < ApplicationController
   # GET /users
   # GET /users.json
   def index
-    @users = User.page(params[:page]).order('id')
+    @users = User.order(:name).page(params[:page]).order('id')
   end
 
   # GET /users/1
@@ -118,6 +118,10 @@ class UsersController < ApplicationController
                       :privileged,
                       :public_groups,
                       :email_notification,
+                      :can_has_groups,
+                      :can_find_free,
+                      :can_add_concerns,
+                      :can_su,
                       :firstday,
                       :preferred_event_category_id,
                       :default_event_text)

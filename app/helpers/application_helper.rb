@@ -20,4 +20,35 @@ module ApplicationHelper
     current_user && current_user.public_groups?
   end
 
+  def single_flag(f, content)
+    result = Array.new
+    if content[:disabled]
+      result << "    #{f.check_box(content[:field], disabled: true)}"
+    else
+      result << "    #{f.check_box(content[:field])}"
+    end
+    if content[:prompt]
+      result << "    #{f.label(content[:field],
+                               content[:prompt],
+                               title: content[:annotation])}"
+    else
+      result << "    #{f.label(content[:field],
+                               title: content[:annotation])}"
+    end
+    result.join("\n").html_safe
+  end
+
+  def flag_group(f, small_cols, med_cols, label, contents)
+    result = Array.new
+    result << "<div class='small-#{small_cols} medium-#{med_cols} columns'>"
+    result << "  <label>#{label}</label>"
+    contents.each_with_index do |content, i|
+      result << single_flag(f, content)
+      if (i + 1) % 3 == 0
+        result << "<br/>"
+      end
+    end
+    result << "</div>"
+    result.join("\n").html_safe
+  end
 end

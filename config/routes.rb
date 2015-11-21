@@ -11,6 +11,8 @@ Rails.application.routes.draw do
   get 'sessions/create'
 
   get 'sessions/destroy'
+ 
+  put 'sessions/become/:user_id' => 'sessions#become', as: :become
 
   get '/ical/:id' => 'elements#ical'
 

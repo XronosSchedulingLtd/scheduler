@@ -71,6 +71,11 @@ class User < ActiveRecord::Base
                 self.own_element.entity.class == Staff)
   end
 
+  def pupil?
+    @pupil ||= (self.own_element != nil &&
+                self.own_element.entity.class == Pupil)
+  end
+
   def own_element
     unless @own_element
       my_own_concern = self.concerns.me[0]
@@ -105,6 +110,17 @@ class User < ActiveRecord::Base
     else
       false
     end
+  end
+
+  #
+  #  Can this user meaninfully see the menu in the top bar?
+  #
+  def sees_menu?
+    self.admin ||
+    self.editor ||
+    self.can_has_groups ||
+    self.can_find_free ||
+    self.element_owner
   end
 
   #
@@ -196,7 +212,11 @@ class User < ActiveRecord::Base
   #
   def can_delete?(item)
     if item.instance_of?(Concern)
-      item.user_id == self.id && self.staff? && item.user_can_delete?
+      #
+      #  If you can't add concerns, then you can't delete them either.
+      #  You get what you're given.
+      #
+      item.user_id == self.id && self.can_add_concerns && item.user_can_delete?
     else
       false
     end
@@ -287,7 +307,7 @@ class User < ActiveRecord::Base
   def find_matching_resources
     if self.email && !self.known?
       got_something = false
-      staff = Staff.find_by_email(self.email)
+      staff = Staff.active.find_by_email(self.email)
       if staff
         got_something = true
         concern = self.concern_with(staff.element)
@@ -478,6 +498,35 @@ class User < ActiveRecord::Base
       end
     else
       results << "Unable to find Calendar element."
+    end
+    results.each do |text|
+      puts text
+    end
+    nil
+  end
+
+  #
+  #  After the addition of finer-grained permission flags, give them
+  #  some initial values.
+  #
+  def set_initial_permissions
+    if self.staff?
+      self.can_has_groups   = true
+      self.can_find_free    = true
+      self.can_add_concerns = true
+      self.save!
+      "#{self.name} with email #{self.email} gets staff permissions."
+    elsif self.pupil?
+      "#{self.name} is a pupil."
+    else
+      "#{self.name} with email #{self.email} is unknown."
+    end
+  end
+
+  def self.set_initial_permissions
+    results = Array.new
+    User.all.each do |u|
+      results << u.set_initial_permissions
     end
     results.each do |text|
       puts text

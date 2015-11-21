@@ -1,5 +1,5 @@
 <table class="zftable">
-<% if current_user.staff? %>
+<% if current_user.can_add_concerns %>
 <tr>
   <td colspan="3">
     <%= form_for(@concern, remote: true) do |f| %>
@@ -12,6 +12,8 @@
     <% end %>
   <td>
 </tr>
+<% end %>
+<% if current_user.editor %>
 <tr>
   <td style="background-color:<%= current_user.colour_not_involved %>;color:white;font-size:90%;padding-top:0px;padding-bottom:0px;" class="rounded-corners">
     My events
