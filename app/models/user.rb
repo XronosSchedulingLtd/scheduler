@@ -200,7 +200,7 @@ class User < ActiveRecord::Base
        item.owner_id == self.id &&
        item.user_editable?)
     elsif item.instance_of?(Concern)
-      item.user_id == self.id && self.staff?
+      item.user_id == self.id
     else
       false
     end

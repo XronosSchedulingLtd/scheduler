@@ -11,3 +11,7 @@ $(document).ready ->
     appendTo: $('#colour-sample')
     change: (colour) ->
       $('#colour-sample').css('background-color', colour.toHexString())
+  $('.reportdate').datepicker
+    showOtherMonths: true
+    selectOtherMonths: true
+    dateFormat: 'yy-mm-dd'

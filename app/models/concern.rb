@@ -6,7 +6,7 @@
 class Concern < ActiveRecord::Base
   belongs_to :user
   belongs_to :element
-  has_many   :itemreports, :dependent => :destroy
+  has_one    :itemreport, :dependent => :destroy
 
   validates :user,    :presence => true
   validates :element, :presence => true

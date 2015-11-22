@@ -79,11 +79,34 @@ class ConcernsController < ApplicationController
   end
 
   def edit
-    unless current_user.can_edit?(@concern)
+    if current_user.can_edit?(@concern)
+      if @concern.itemreport
+        @item_report = @concern.itemreport
+      else
+        @item_report = Itemreport.new
+        @item_report.concern = @concern
+      end
+      #
+      #  There's quite a bit of thinking about what flags to show, so
+      #  do it here rather than in the view.
+      #
+      @options_flags = [
+        {field: :visible,
+         annotation: "Should this resource's events be visible currently?"}]
+      if current_user.editor
+        @options_flags <<
+          {field: :auto_add,
+           annotation: "When creating a new event, should this resource be added automatically?"}
+      end
+      if @concern.equality
+        @options_flags <<
+          {field: :owns,
+           prompt: "Approve events",
+           annotation: "Do you want to approve events as you are added to them?"}
+      end
+    else
       redirect_to :back
     end
-    @item_report = Itemreport.new
-    @item_report.concern = @concern
   end
 
   def update
@@ -155,6 +178,6 @@ class ConcernsController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def concern_params
-    params.require(:concern).permit(:element_id, :name, :visible, :colour, :auto_add)
+    params.require(:concern).permit(:element_id, :name, :visible, :colour, :auto_add, :owns)
   end
 end
