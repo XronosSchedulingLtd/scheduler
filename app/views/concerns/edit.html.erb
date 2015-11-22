@@ -1,5 +1,5 @@
 <h2><%= @concern.element.name %></h2>
-<p><%= @concern.element.description %></p>
+<p><%= link_to @concern.element.description, element_path(@concern.element) %></p>
 <hr/>
 <h3>Appearance</h3>
 <%= form_for(@concern) do |f| %>
@@ -15,8 +15,8 @@
     </div>
   <% end %>
 
-<div class="row collapse">
-  <div class="small-3 columns">
+<div class="row">
+  <div class="small-12 medium-6 large-4 columns">
     <label>Colour</label>
     <div class="concern-block">
       <div class="concern-button" id="colour-sample" style="background-color:<%= @concern.colour %>">
@@ -28,17 +28,17 @@
       </span>
     </div>
   </div>
-  <div class="small-3 columns">
+  <div class="small-12 medium-6 large-4 columns">
     <label>Options</label>
     <%= f.check_box :visible %>
     <%= f.label :visible, title: "Should this resource's events be visible currently." %>
     <%= f.check_box :auto_add %>
     <%= f.label :auto_add, title: "When creating a new event, should this resource be automatically added." %>
+    Auto-add
+    If me, then do I want noficiations?
   </div>
-  <div class="small-1 columns">
+  <div class="small-12 medium-6 large-4 columns">
     <%= f.submit "Save changes", :class => "button tiny radius" %>
-  </div>
-  <div class="small-5 columns">
   </div>
 </div>
 <% end %>
@@ -94,4 +94,18 @@
 <hr/>
 
 <p>Detailed information about the element</p>
+<div class="row">
+  <div class="small-12 medium-6 large-4 columns">
+    <h3>General information</h3>
+    Administered by.  Name. Tutor. House. Year.
+  </div>
+  <div class="small-12 medium-6 large-4 columns">
+    <h3>Member of</h3>
+    Broken down by type of group.  Just current membership.
+  </div>
+  <div class="small-12 medium-6 large-4 columns">
+    <h3>Members</h3>
+    Appears only for groups.
+  </div>
+</div>
 

@@ -1,0 +1,16 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-11-22T12:17:40+00:00
+
+====== Sunday 22 Nov 2015 ======
+
+Moving up towards a releasable (although not complete) version of commitment editing.  What's needed to make it useful?
+
+[ ] Finish off the flags for reports from the daily controller.
+[ ] Get the date fields working too.
+[ ] Save the flags (and dates?) between invocations.
+[ ] Produce a useful listing of group memberships.
+[ ] Basic info in three cols at the bottom - or just suppress that bit for now?
+[ ] For elements with a preferred colour, can I add that colour to the colour picker?
+
+And then I think I'll be able to show it to people.

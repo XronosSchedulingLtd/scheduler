@@ -136,8 +136,7 @@ $(document).ready ->
           })
     $('.dynamic-element').each (index) ->
       window.addEventSource($(this).attr('concern_id'))
-      $(this).draggable({revert: true, revertDuration: 0, zIndex: 100, cursorAt: { top: 0 }})
-      $(this).droppable();
+    window.activateDragging()
   else
     $('#fullcalendar').fullCalendar
       currentTimezone: 'Europe/London'
@@ -173,6 +172,7 @@ $(document).ready ->
                                     '/events/' + event.id)
     $('.dynamic-element').each (index) ->
       window.addEventSource($(this).attr('concern_id'))
+    window.activateDragging()
 
 window.addEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('addEventSource',
@@ -198,9 +198,18 @@ window.activateCheckboxes = ->
     window.checkboxFlipped(this))
 
 window.activateDragging = ->
+  $('.dynamic-element').each (index) ->
+    $(this).click(window.concernClicked)
   if ($('.withedit').length)
     $('.dynamic-element').each (index) ->
-      $(this).draggable({revert: true, revertDuration: 0, zIndex: 100, cursorAt: { top: 0 }})
+      $(this).draggable
+        revert: true
+        revertDuration: 0
+        zIndex: 100
+        cursorAt:
+          top: 0
+        start: (event, ui) ->
+          $(this).addClass('noclick')
       $(this).droppable();
 
 window.refreshConcerns = ->
@@ -227,6 +236,12 @@ window.noClicked = (event) ->
     base_url = event.target.href.split("?")[0]
     new_url = base_url + "?reason=" + encodeURIComponent(response)
     $(this).attr('href', new_url)
+
+window.concernClicked = (event) ->
+  if $(this).hasClass('noclick')
+    $(this).removeClass('noclick')
+  else
+    location.href = $(this).data('link-target')
 
 window.resized = (event) ->
   $('#fullcalendar').fullCalendar('option',

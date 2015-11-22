@@ -419,6 +419,30 @@ class Membership < ActiveRecord::Base
       @grouped_mwds.size == 0
     end
 
+    #
+    #  End date is more significant.
+    #
+    def grouped_mwds_sorted_for_display
+      @grouped_mwds.sort do |a, b|
+        a_member = a[0]
+        b_member = b[0]
+        if a_member.end_date == b_member.end_date
+          #
+          #  Want reverse ordering.
+          #
+          b_member.start_date <=> a_member.start_date
+        else
+          if a_member.end_date == nil
+            -1
+          elsif b_member.end_date == nil
+            1
+          else
+            b_member.end_date <=> a_member.end_date
+          end
+        end
+      end
+    end
+
   end
 
   #
