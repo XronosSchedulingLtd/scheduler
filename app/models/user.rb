@@ -359,6 +359,7 @@ class User < ActiveRecord::Base
             end
           end
         end
+        set_initial_permissions
       end
     end
   end
