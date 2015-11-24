@@ -1,0 +1,28 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-11-24T09:46:47+00:00
+
+====== Tuesday 24 Nov 2015 ======
+
+DJD has just come up with a request for a way of finding things which have //not// been put into the calendar (and, by implication, should have been).  An interesting one, because "should have been put in the calendar" is a very subjective thing.
+
+The thought which I've come up with so far is to add an "exclude" option to the days controller, so you ask for all events involving one particular resource (e.g. the sport calendar) but not another one (e.g. the calendar).  A bit restricting, in that the user interface would kind of expect only one exclusion.
+
+How about setting up a group which contains both the sport calendar and the main calendar, then taking a calendar feed for that group and diffing it with a plain calendar feed?  Try it on my development system with a fresh download.
+
+No - that's the wrong way around.  The calendar lists only events which have that element attached, not events for all the members of that group.  Can I add that simply to ical?  Not so simple.
+
+I think it makes more sense to add an exclude option to the "days" controller.  You can exclude the events involving specified resources.  Potentially computationally expensive, but it is so to speak the punter's problem.  If you don't use it then it won't cost you anything.
+
+The days controller can accept a comma-separated list of element numbers to exclude.  The front end for now will allow you only to choose one Property.
+
+Steps needed to load onto staging/live server
+
+[ ] Fresh backup/load of database
+[ ] If re-loading, then drop the itemreports table
+[ ] Fetch new software
+[ ] export RAILS_ENV=production
+[ ] bundle install --local
+[ ] rake [[db:migrate]]
+[ ] rake [[assets:precompile]]
+[ ] touch tmp/restart.txt
