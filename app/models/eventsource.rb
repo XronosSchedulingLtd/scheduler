@@ -13,4 +13,9 @@ class Eventsource < ActiveRecord::Base
    def <=>(other)
      self.name <=> other.name
    end
+
+   def can_destroy?
+     self.events.count == 0
+   end
+
 end

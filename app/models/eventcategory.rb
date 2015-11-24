@@ -109,6 +109,10 @@ class Eventcategory < ActiveRecord::Base
     end
   end
 
+  def can_destroy?
+    self.events.count == 0
+  end
+
   #
   #  Maintenance methods to add relevant properties to existing events.
   #

@@ -5,5 +5,9 @@
   <td><%= era.source_id %></td>
   <td><%= link_to 'Show', era %></td>
   <td><%= link_to 'Edit', edit_era_path(era) %></td>
-  <td><%= link_to 'Destroy', era, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+  <td>
+    <% if era.can_destroy? %>
+      <%= link_to 'Destroy', era, method: :delete, data: { confirm: 'Are you sure?' } %>
+    <% end %>
+  </td>
 </tr>

@@ -32,7 +32,11 @@
         <td><%= eventcategory.privileged %></td>
         <td><%= link_to 'Show', eventcategory %></td>
         <td><%= link_to 'Edit', edit_eventcategory_path(eventcategory) %></td>
-        <td><%= link_to 'Destroy', eventcategory, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <td>
+          <% if eventcategory.can_destroy? %>
+            <%= link_to 'Destroy', eventcategory, method: :delete, data: { confirm: 'Are you sure?' } %>
+          <% end %>
+        </td>
       </tr>
     <% end %>
   </tbody>

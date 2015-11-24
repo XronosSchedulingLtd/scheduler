@@ -35,6 +35,10 @@ Rails.application.routes.draw do
 
   resources :pupils
 
+  resources :properties
+
+  resources :services
+
   resources :users
 
   resources :commitments do

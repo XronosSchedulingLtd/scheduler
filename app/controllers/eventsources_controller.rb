@@ -59,10 +59,14 @@ class EventsourcesController < ApplicationController
   # DELETE /eventsources/1
   # DELETE /eventsources/1.json
   def destroy
-    @eventsource.destroy
-    respond_to do |format|
-      format.html { redirect_to eventsources_url }
-      format.json { head :no_content }
+    if @eventsource.can_destroy?
+      @eventsource.destroy
+      respond_to do |format|
+        format.html { redirect_to eventsources_url }
+        format.json { head :no_content }
+      end
+    else
+      redirect_to :back
     end
   end
 

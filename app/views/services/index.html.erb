@@ -1,0 +1,33 @@
+<h1>Listing services</h1>
+<p id="notice"><%= notice %></p>
+
+<%= will_paginate @services %>
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Owners</th>
+      <th colspan="2"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @services.each do |service| %>
+      <tr>
+        <td><%= service.name %></td>
+        <td><%= service.owners_initials %></td>
+        <td><%= link_to 'Edit', edit_service_path(service) %></td>
+        <td>
+          <% if service.can_destroy? %>
+            <%= link_to 'Destroy', service, method: :delete, data: { confirm: 'Are you sure?' } %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= will_paginate @services %>
+
+<br>
+
+<%= link_to 'New Service', new_service_path, :class => "button small radius" %>

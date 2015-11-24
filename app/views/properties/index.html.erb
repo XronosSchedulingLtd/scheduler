@@ -1,0 +1,33 @@
+<h1>Listing properties</h1>
+<p id="notice"><%= notice %></p>
+
+<%= will_paginate @properties %>
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Owners</th>
+      <th colspan="2"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @properties.each do |property| %>
+      <tr>
+        <td><%= property.name %></td>
+        <td><%= property.owners_initials %></td>
+        <td><%= link_to 'Edit', edit_property_path(property) %></td>
+        <td>
+          <% if property.can_destroy? %>
+            <%= link_to 'Destroy', property, method: :delete, data: { confirm: 'Are you sure?' } %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= will_paginate @properties %>
+
+<br>
+
+<%= link_to 'New Property', new_property_path, :class => "button small radius" %>

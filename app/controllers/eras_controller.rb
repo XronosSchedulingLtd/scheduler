@@ -64,10 +64,14 @@ class ErasController < ApplicationController
   # DELETE /eras/1
   # DELETE /eras/1.json
   def destroy
-    @era.destroy
-    respond_to do |format|
-      format.html { redirect_to eras_url }
-      format.json { head :no_content }
+    if @era.can_destroy?
+      @era.destroy
+      respond_to do |format|
+        format.html { redirect_to eras_url }
+        format.json { head :no_content }
+      end
+    else
+      redirect_to :back
     end
   end
 

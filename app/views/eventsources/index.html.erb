@@ -4,6 +4,7 @@
   <thead>
     <tr>
       <th>Name</th>
+      <th>Events</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -12,9 +13,14 @@
     <% @eventsources.each do |eventsource| %>
       <tr>
         <td><%= eventsource.name %></td>
+        <td><%= eventsource.events.count %></td>
         <td><%= link_to 'Show', eventsource %></td>
         <td><%= link_to 'Edit', edit_eventsource_path(eventsource) %></td>
-        <td><%= link_to 'Destroy', eventsource, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <td>
+          <% if eventsource.can_destroy? %>
+            <%= link_to 'Destroy', eventsource, method: :delete, data: { confirm: 'Are you sure?' } %>
+          <% end %>
+        </td>
       </tr>
     <% end %>
   </tbody>

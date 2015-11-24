@@ -6,6 +6,7 @@
 class Property < ActiveRecord::Base
 
   validates :name, presence: true
+  validates :name, uniqueness: true
 
   include Elemental
 
@@ -35,6 +36,10 @@ class Property < ActiveRecord::Base
     end
   end
 
+  def owners_initials
+    self.element.owners.collect {|o| o.initials}.join(", ")
+  end
+
   #
   #  Ensure a property of the given name exists in the database.
   #  Return it.
@@ -48,6 +53,15 @@ class Property < ActiveRecord::Base
       p.reload
     end
     p
+  end
+
+  #
+  #  Deleting a property with dependent stuff could be disastrous.
+  #  Major loss of information.  Allow deletion only if we have no
+  #  commitments.
+  #
+  def can_destroy?
+    self.element.commitments.count == 0
   end
 
 end

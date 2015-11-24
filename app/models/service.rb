@@ -21,4 +21,17 @@ class Service < ActiveRecord::Base
     name
   end
 
+  def owners_initials
+    self.element.owners.collect {|o| o.initials}.join(", ")
+  end
+
+  #
+  #  Deleting a service with dependent stuff could be disastrous.
+  #  Major loss of information.  Allow deletion only if we have no
+  #  commitments.
+  #
+  def can_destroy?
+    self.element.commitments.count == 0
+  end
+
 end

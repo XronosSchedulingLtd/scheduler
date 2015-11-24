@@ -26,3 +26,16 @@ Steps needed to load onto staging/live server
 [ ] rake [[db:migrate]]
 [ ] rake [[assets:precompile]]
 [ ] touch tmp/restart.txt
+
+
+Something very odd has just been pointed out to me.  There are weeks in 2016 where we see no events at all.
+
+Weeks beginning:
+
+28th Feb
+13th Mar
+20th Mar
+
+This happens on my development system too.  Now, why?  Focus on w/b 20th Mar.  If I'm logged in I //can //see events, even calendar events, but if I'm not logged in then I can't.  That's really weird.  Happily that does mean the events are definitely in the database, so it must be a logic error on my part.  Yes, it's an application error.  Some sort of event is breaking my code.
+
+Yes, I'm trying to check whether the current user owns the via_element, but if you're not logged in there is no current user.  Why does that only fail on very particular events - why not all the time?

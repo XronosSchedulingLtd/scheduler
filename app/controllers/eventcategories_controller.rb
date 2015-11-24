@@ -59,10 +59,14 @@ class EventcategoriesController < ApplicationController
   # DELETE /eventcategories/1
   # DELETE /eventcategories/1.json
   def destroy
-    @eventcategory.destroy
-    respond_to do |format|
-      format.html { redirect_to eventcategories_url }
-      format.json { head :no_content }
+    if @eventcategory.can_destroy?
+      @eventcategory.destroy
+      respond_to do |format|
+        format.html { redirect_to eventcategories_url }
+        format.json { head :no_content }
+      end
+    else
+      redirect_to :back
     end
   end
 

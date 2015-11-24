@@ -31,4 +31,8 @@ class Era < ActiveRecord::Base
     end
     nil
   end
+
+  def can_destroy?
+    self.groups.size == 0
+  end
 end

@@ -67,6 +67,14 @@ class Element < ActiveRecord::Base
   end
 
   #
+  #  Provide a list of the users who are recorded as "own"ing this element.
+  #  That is - they can approve commitments of it.
+  #
+  def owners
+    self.concerns.owned.collect {|c| c.user}
+  end
+
+  #
   #  The start of complete re-work of how we find commitments.
   #
   #  The purpose of this method is to find a list of all the groups
