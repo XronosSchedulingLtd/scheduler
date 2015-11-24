@@ -1,3 +1,7 @@
+<h3>Events involving <%= @element.name %></h3>
+<% unless @excluded_elements.empty? %>
+  <h5>(but not involving <%= @excluded_elements.collect { |ee| ee.name }.join(",") %>)</h5>
+<% end %>
 <table class="zftable">
   <thead>
     <tr>

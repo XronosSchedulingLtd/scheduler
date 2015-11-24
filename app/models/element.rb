@@ -13,7 +13,10 @@ class Element < ActiveRecord::Base
            :class_name => "Event",
            :foreign_key => :organiser_id,
            :dependent => :nullify
-
+  has_many :excluded_itemreports,
+           :class_name => :Itemreport,
+           :foreign_key => :excluded_element_id,
+           :dependent => :nullify
   belongs_to :owner, :class_name => :User
 
   scope :current, -> { where(current: true) }

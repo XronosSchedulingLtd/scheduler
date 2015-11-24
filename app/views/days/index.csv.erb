@@ -1,1 +1,5 @@
+Events involving <%= @element.name %>
+<% unless @excluded_elements.empty? %>
+,(except events involving <%= @excluded_elements.collect {|ee| ee.name}.join(",") %>)
+<% end %>
 <%= render @days.select {|d| !d.suppress? } %>

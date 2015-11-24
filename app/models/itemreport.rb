@@ -2,6 +2,19 @@ require 'uri'
 
 class Itemreport < ActiveRecord::Base
   belongs_to :concern
+  belongs_to :excluded_element,
+             :class_name => :Element
+
+  def excluded_element_name
+    if self.excluded_element
+      excluded_element.name
+    else
+      ""
+    end
+  end
+
+  def excluded_element_name=(name)
+  end
 
   #
   #  Build a URL to generate this report.
@@ -22,6 +35,7 @@ class Itemreport < ActiveRecord::Base
     extras << "suppress_empties" if self.suppress_empties
     extras << "tentative" if self.tentative
     extras << "firm" if self.firm
+    extras << "exclude=#{self.excluded_element_id}" if self.excluded_element_id
     extras << "start_date=#{self.starts_on}" if self.starts_on
     extras << "end_date=#{self.ends_on}" if self.ends_on
     unless self.categories.empty?

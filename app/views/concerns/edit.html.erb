@@ -1,5 +1,9 @@
 <h2><%= @concern.element.name %></h2>
-<p><%= link_to @concern.element.description, element_path(@concern.element) %></p>
+<p>
+  Unique ID: <%= @concern.element_id %><br/>
+  Type: <%= @concern.element.description %>
+  <%= link_to "Full details", element_path(@concern.element) %>
+</p>
 <hr/>
 <h3>Appearance</h3>
 <%= form_for(@concern) do |f| %>
@@ -24,7 +28,13 @@
         <div class="concern-text"><%= @concern.element.name %></div>
       </div>
       <span style="float: right">
-        <%= f.hidden_field :colour, :id => :colour_picker %>
+        <% if @concern.element.preferred_colour.blank? %>
+          <%= f.hidden_field :colour, :id => :colour_picker %>
+        <% else %>
+          <%= f.hidden_field :colour,
+            :id => :colour_picker,
+            "data-default-colour" => @concern.element.preferred_colour %>
+        <% end %>
       </span>
     </div>
   </div>
@@ -42,26 +52,30 @@
 
 <%= form_for(@item_report) do |f| %>
 <%= f.hidden_field :concern_id %>
-<div class="row collapse">
-  <div class="small-4 medium-2 columns">
+<div class="row">
+  <div class="small-6 medium-2 columns">
     <label>Start date</label>
 <%= f.text_field :starts_on, :class => "reportdate" %>
   </div>
-  <div class="small-2 medium-1 columns">
-    &nbsp;
-  </div>
-  <div class="small-4 medium-2 columns">
+  <div class="small-6 medium-2 columns">
     <label>End date</label>
 <%= f.text_field :ends_on, :class => "reportdate" %>
   </div>
-  <div class="small-2 medium-1 columns">
-    &nbsp;
-  </div>
-  <div class="small-12 medium-6 columns">
+  <div class="small-12 medium-5 columns">
     <label>Event categories</label>
     <%= f.text_field :categories,
                      placeholder: "Comma-separated list of categories",
                      title: "Enter a comma-separated list of event categories to which to restrict the report.  Leave blank for all categories." %>
+  </div>
+  <div class="small-12 medium-3 columns">
+    <label>Exclude</label>
+    <%= f.autocomplete_field :excluded_element_name,
+                             autocomplete_property_element_name_elements_path,
+                             :id_element => '#itemreport_excluded_element_id',
+                             :placeholder => "Exclude events from",
+                             :title => "You can enter here the name of a property.  All events with that property will then be excluded from your report.",
+                             "data-auto-focus" => true %>
+    <%= f.text_field :excluded_element_id, :type => :hidden %>
   </div>
 </div>
 <div class="row collapse">
@@ -104,20 +118,3 @@
 <% end %>
 
 <hr/>
-
-<p>Detailed information about the element</p>
-<div class="row">
-  <div class="small-12 medium-6 large-4 columns">
-    <h3>General information</h3>
-    Administered by.  Name. Tutor. House. Year.
-  </div>
-  <div class="small-12 medium-6 large-4 columns">
-    <h3>Member of</h3>
-    Broken down by type of group.  Just current membership.
-  </div>
-  <div class="small-12 medium-6 large-4 columns">
-    <h3>Members</h3>
-    Appears only for groups.
-  </div>
-</div>
-

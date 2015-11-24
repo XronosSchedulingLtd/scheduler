@@ -18,6 +18,7 @@ class CreateItemreports < ActiveRecord::Migration
       t.boolean :tentative,        :default => false
       t.boolean :firm,             :default => false
       t.string  :categories,       :default => ""
+      t.integer :excluded_element_id
       t.timestamps
     end
     add_index :itemreports, :concern_id

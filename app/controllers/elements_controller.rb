@@ -64,6 +64,18 @@ class ElementsController < ApplicationController
     render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
   end
 
+  def autocomplete_property_element_name
+    term = params[:term].split(" ").join("%")
+    elements =
+      Element.current.
+              property.
+              where('name LIKE ?', "%#{term}%").
+              order("LENGTH(elements.name)").
+              order(:name).
+              all
+    render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+  end
+
   def show
     @element = Element.find(params[:id])
     @mwd_set = @element.memberships_by_duration(start_date: nil,

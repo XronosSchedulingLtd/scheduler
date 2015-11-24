@@ -84,6 +84,7 @@ Rails.application.routes.draw do
     get :autocomplete_unowned_element_name, :on => :collection
     get :autocomplete_staff_element_name, :on => :collection
     get :autocomplete_group_element_name, :on => :collection
+    get :autocomplete_property_element_name, :on => :collection
     get :ical, :on => :member
 
   end

@@ -35,6 +35,7 @@ class DaysController < ApplicationController
     start_date   = Date.today
     end_date     = era.ends_on
     category_names = DEFAULT_CATEGORIES
+    excluded_elements = Array.new
     #
     #  Have we been given a specified element?
     #
@@ -123,6 +124,14 @@ class DaysController < ApplicationController
       #
       category_names = params[:categories].split(",")
     end
+    if params[:exclude]
+      params[:exclude].split(",").each do |element_id|
+        excluded_element = Element.find_by(id: element_id)
+        if excluded_element
+          excluded_elements << excluded_element
+        end
+      end
+    end
     categories = category_names.collect { |cn|
       Eventcategory.find_by_name(cn)
     }.compact.select {|cc| cc.publish}
@@ -139,6 +148,17 @@ class DaysController < ApplicationController
     dbevents = selector.
                preload(event: :eventcategory).
                collect {|c| c.event}.uniq
+    #
+    #  This next bit is potentially expensive, but won't happen unless
+    #  you specify something to exclude.
+    #
+    excluded_elements.each do |ee|
+      exclusion_selector = ee.commitments_on(startdate: start_date,
+                                             enddate: end_date,
+                                             eventcategory: categories)
+      to_remove = exclusion_selector.collect {|c| c.event}.uniq
+      dbevents -= to_remove
+    end
     @days = []
     start_date.upto(end_date) do |date|
       start_of_day = Time.zone.parse(date.strftime("%Y-%m-%d"))
@@ -159,6 +179,8 @@ class DaysController < ApplicationController
       end
       @days << day
     end
+    @element = element
+    @excluded_elements = excluded_elements
     respond_to do |format|
       format.html
       format.doc
