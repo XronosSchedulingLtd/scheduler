@@ -11,7 +11,9 @@ Moving up towards a releasable (although not complete) version of commitment edi
 [*] Save the flags (and dates?) between invocations.
 [ ] Produce a useful listing of group memberships.
 [ ] Basic info in three cols at the bottom - or just suppress that bit for now?
-[ ] For elements with a preferred colour, can I add that colour to the colour picker?
+[*] For elements with a preferred colour, can I add that colour to the colour picker?
 [ ] Need to enhance the days model to make it take notice of the tentative and firm flags.
 
 And then I think I'll be able to show it to people.
+
+Three things above didn't make the cut.
