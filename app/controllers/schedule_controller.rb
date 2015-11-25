@@ -111,29 +111,35 @@ class ScheduleController < ApplicationController
         @colour = washed_out(@colour)
       else
         unless event.complete
-          if current_user.owns?(via_element)
-            #
-            #  Has the commitment been approved?
-            #
-            c = Commitment.find_by(element_id: via_element.id,
-                                   event_id: event.id)
-            if c
-              if c.tentative
-                if c.rejected
-                  @colour = redden(@colour)
-                else
-                  @colour = washed_out(@colour)
+          #
+          #  Users who aren't logged in don't get to know nuances
+          #  about whether events are complete or not.
+          #
+          if current_user && current_user.known?
+            if current_user.owns?(via_element)
+              #
+              #  Has the commitment been approved?
+              #
+              c = Commitment.find_by(element_id: via_element.id,
+                                     event_id: event.id)
+              if c
+                if c.tentative
+                  if c.rejected
+                    @colour = redden(@colour)
+                  else
+                    @colour = washed_out(@colour)
+                  end
                 end
+              else
+                #
+                #  Odd - can't find the corresponding commitment.
+                #  Err on the side of caution and wash it out.
+                #
+                @colour = washed_out(@colour)
               end
             else
-              #
-              #  Odd - can't find the corresponding commitment.
-              #  Err on the side of caution and wash it out.
-              #
               @colour = washed_out(@colour)
             end
-          else
-            @colour = washed_out(@colour)
           end
         end
       end
