@@ -16,6 +16,7 @@ class ItemreportsController < ApplicationController
         item_report.update(itemreport_params)
       else
         item_report = Itemreport.new(itemreport_params)
+        item_report.note_type(params[:commit])
         item_report.save
       end
       if item_report.concern
@@ -31,6 +32,7 @@ class ItemreportsController < ApplicationController
   def update
     item_report = Itemreport.find(params[:id])
     if item_report.update(itemreport_params)
+      item_report.note_type(params[:commit])
       redirect_to item_report.url
     else
       redirect_to :back

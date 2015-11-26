@@ -89,7 +89,7 @@
                  {field: :periods,
                   annotation: "For events which align with the school's standard periods, list them by period number instead of by time."},
                  {field: :twelve_hour,
-                  annotation: "Use the 12 hour clock instead of the default 24 hour clock in repoers."},
+                  annotation: "Use the 12 hour clock instead of the default 24 hour clock in reports."},
                  {field: :end_time,
                   annotation: "For events with a duration, show the end time as well as the start time."}
                   ]) %>
@@ -114,7 +114,9 @@
                  ]) %>
 </div>
 
-<%= f.submit "Generate", :class => "button tiny radius" %>
+<%= f.submit "Display", :class => "button tiny radius" %>
+<%= f.submit "doc", :class => "button tiny radius" %>
+<%= f.submit "csv", :class => "button tiny radius" %>
 <% end %>
 
 <hr/>

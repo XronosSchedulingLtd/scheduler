@@ -16,11 +16,26 @@ class Itemreport < ActiveRecord::Base
   def excluded_element_name=(name)
   end
 
+  def note_type(commit_type)
+    if commit_type == "csv"
+      @report_type = :csv
+    elsif commit_type == "doc"
+      @report_type = :doc
+    else
+      @report_type = :html
+    end
+  end
+
   #
   #  Build a URL to generate this report.
   #
   def url
     base = "/item/#{self.concern.element_id}/days"
+    if @report_type == :csv
+      base += ".csv"
+    elsif @report_type == :doc
+      base += ".doc"
+    end
     extras = Array.new
     extras << "compact" if self.compact
     extras << "duration" if self.duration
