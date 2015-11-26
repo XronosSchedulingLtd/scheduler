@@ -57,16 +57,22 @@
               <a href="#">Models</a>
               <ul class="dropdown">
                 <li><%= link_to "Eras", eras_path %></li>
-                <li><%= link_to "Events", events_path %></li>
-                <li><%= link_to "Categories", eventcategories_path %></li>
-                <li><%= link_to "Sources", eventsources_path %></li>
+                <li class="has-dropdown">
+                  <%= link_to "Events", events_path %>
+                  <ul class="dropdown">
+                    <li><%= link_to "Categories", eventcategories_path %></li>
+                    <li><%= link_to "Sources", eventsources_path %></li>
+                  </ul>
+                </li>
                 <li class="has-dropdown">
                   <%= link_to "Locations", locations_path %>
                   <ul class="dropdown">
                     <li><%= link_to "Aliases", locationaliases_path %></li>
                   </ul>
                 </li>
+                <li><%= link_to "Properties", properties_path %></li>
                 <li><%= link_to "Pupils", pupils_path %></li>
+                <li><%= link_to "Services", services_path %></li>
                 <li class="has-dropdown">
                   <%= link_to "Staff", staffs_path %>
                   <ul class="dropdown">
@@ -74,8 +80,6 @@
                     <li><%= link_to "Inactive", staffs_path(:inactive => true) %></li>
                   </ul>
                 </li>
-                <li><%= link_to "Properties", properties_path %></li>
-                <li><%= link_to "Services", services_path %></li>
                 <li><%= link_to "Users", users_path %></li>
               </ul>
             </li>
