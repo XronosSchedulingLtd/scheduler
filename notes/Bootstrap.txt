@@ -14,7 +14,7 @@ We start by assuming you have installed Debian Jessie (currently 8.1) on a clean
 As root, install sudo and add your user to the list of those permitted to use it.  At the same time you might as well install a few other things, which will be needed later.
 
 '''
-# apt-get install sudo vim curl zim git libicu-dev
+# apt-get install sudo vim curl zim git libicu-dev memcached
 # adduser <user-name> sudo
 # adduser <user-name> staff
 # update-alternatives --config editor
@@ -190,10 +190,10 @@ Now nginx needs to be told about our application.  Edit the file ''/opt/nginx/co
 
 '''
 server {
-    listen 80;
-    server_name <fully qualified domain name of your server>;
-    root /home/<username>/Work/Coding/scheduler/public;
-    passenger_enabled on;
+	listen 80;
+	server_name <fully qualified domain name of your server>;
+	root /home/<username>/Work/Coding/scheduler/public;
+	passenger_enabled on;
 }
 '''
 
