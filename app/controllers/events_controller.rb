@@ -16,6 +16,12 @@ class EventsController < ApplicationController
   # GET /events/1
   # GET /events/1.json
   def show
+    if current_user && current_user.known?
+      @note =
+        @event.notes.find_by(owner: current_user) ||
+          Note.new({parent: @event, owner: current_user})
+      @files = Array.new
+    end
     if request.xhr?
       @minimal = true
       render :layout => false
@@ -287,6 +293,20 @@ class EventsController < ApplicationController
       @found_events = selector.page(page_param)
       @full_details = current_user && current_user.staff?
     end
+  end
+
+  #
+  #  Receive an incoming file.
+  #
+  def upload
+    uploaded_io = params[:attachment]
+    if uploaded_io
+      File.open(Rails.root.join('staging',
+                                uploaded_io.original_filename), 'wb') do |file|
+        file.write(uploaded_io.read)
+      end
+    end
+    redirect_to :back
   end
 
   private

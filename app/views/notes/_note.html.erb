@@ -1,0 +1,13 @@
+<div class="row">
+<%= form_for(@note, remote: true) do |f| %>
+  <div class="small-12 columns">
+    <%= f.text_area :contents, rows: 15 %>
+    <%= f.hidden_field :parent_id %>
+    <%= f.hidden_field :parent_type %>
+    <%= f.hidden_field :owner_id %>
+  </div>
+  <div class="small-12 columns">
+    <%= f.submit "Save note", :class => "button tiny radius" %>
+  </div>
+<% end %>
+</div>

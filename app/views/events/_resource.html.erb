@@ -1,44 +1,44 @@
 <% if known_user? %>
 <div class="row collapse">
   <div class="small-12 medium-4 columns">
-    <h5>Staff</h5>
+    <label>Staff</label>
     <%= commitment_entries_for(resource, Staff, editing, current_user) %>
   </div>
   <div class="small-12 medium-4 columns">
-    <h5>Pupils</h5>
+    <label>Pupils</label>
     <%= commitment_entries_for(resource, Pupil, editing, current_user) %>
   </div>
   <div class="small-12 medium-4 columns">
-    <h5>Groups</h5>
+    <label>Groups</label>
     <%= commitment_entries_for(resource, Group, editing, current_user) %>
   </div>
 </div>
 <div class="row collapse">
   <div class="small-12 medium-4 columns">
-    <h5>Locations</h5>
+    <label>Locations</label>
     <%= commitment_entries_for(resource, Location, editing, current_user) %>
   </div>
   <div class="small-12 medium-4 columns">
-    <h5>Services</h5>
+    <label>Services</label>
     <%= commitment_entries_for(resource, Service, editing, current_user) %>
   </div>
   <div class="small-12 medium-4 columns">
-    <h5>Properties</h5>
+    <label>Properties</label>
     <%= commitment_entries_for(resource, Property, editing, current_user) %>
   </div>
 </div>
 <% else %>
 <div class="row collapse">
   <div class="small-12 medium-4 columns">
-    <h5>Staff</h5>
+    <label>Staff</label>
     <%= commitment_entries_for(resource, Staff, editing, current_user) %>
   </div>
   <div class="small-12 medium-4 columns">
-    <h5>Groups</h5>
+    <label>Groups</label>
     <%= commitment_entries_for(resource, Group, editing, current_user) %>
   </div>
   <div class="small-12 medium-4 columns">
-    <h5>Locations</h5>
+    <label>Locations</label>
     <%= commitment_entries_for(resource, Location, editing, current_user) %>
   </div>
 </div>

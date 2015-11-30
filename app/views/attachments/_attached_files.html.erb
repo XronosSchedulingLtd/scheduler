@@ -1,0 +1,11 @@
+<div class="row">
+  <div class="small-12 columns">
+Hello there - I'm a list of files.
+  </div>
+  <div class="small-12 columns">
+    <%= form_tag({action: :upload}, multipart: true) do %>
+      <%= file_field_tag 'attachment' %>
+      <%= submit_tag 'Upload' %>
+    <% end %>
+  </div>
+</div>

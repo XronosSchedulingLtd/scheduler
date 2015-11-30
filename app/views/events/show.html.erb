@@ -3,85 +3,89 @@
 <% end %>
 
 <div class="row">
-  <div class="small-3 columns">
-    <strong class="right">Description:</strong>
-  </div>
-  <div class="small-9 columns">
-    <%= @event.body %>
-  </div>
-</div>
+  <div class="small-12 medium-3 columns">
 
-<% if known_user? %>
-<div class="row">
-  <div class="small-3 columns">
-    <strong class="right">Event category:</strong>
-  </div>
-  <div class="small-3 columns">
-    <%= @event.eventcategory.name %>
-  </div>
-  <div class="small-3 columns">
-    <strong class="right">Event source:</strong>
-  </div>
-  <div class="small-3 columns">
-    <%= @event.eventsource.name %>
-  </div>
-</div>
+    <div class="row">
+      <div class="small-12 columns">
+        <label>Description</label>
+        <p><%= @event.body %></p>
+      </div>
+    </div>
 
-<div class="row">
-  <div class="small-3 columns">
-    <strong class="right">Event id:</strong>
-  </div>
-  <div class="small-3 columns">
-    <%= @event.id %>
-  </div>
-  <div class="small-3 columns">
-    <strong class="right">Owner:</strong>
-  </div>
-  <div class="small-3 columns">
-    <%= @event.owner_id == nil || @event.owner_id == 0 ?
-        "System" :
-        @event.owner.name %>
-  </div>
-</div>
+    <% if known_user? %>
+    <div class="row">
+      <div class="small-12 columns">
+        <label>Event category</label>
+        <p><%= @event.eventcategory.name %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Event source</label>
+        <p><%= @event.eventsource.name %></p>
+      </div>
+    </div>
 
-<% end %>
+    <div class="row">
+      <div class="small-12 columns">
+        <label>Event id</label>
+        <p><%= @event.id %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Owner</label>
+        <p><%= @event.owner_id == nil || @event.owner_id == 0 ?
+            "System" :
+            @event.owner.name %></p>
+      </div>
+    </div>
 
-<div class="row">
-  <div class="small-3 columns">
-    <strong class="right">Organiser:</strong>
-  </div>
-  <div class="small-9 columns">
-    <%= @event.organiser ?
-        @event.organiser.name :
-        "" %>
-  </div>
-</div>
-<div class="row">
-  <% if @event.minimal_duration? %>
-    <div class="small-3 columns"%>
-      <strong class="right"><%= @event.all_day ? "On" : "At" %>:</strong>
-    </div>
-    <div class="small-9 columns"%>
-      <%= @event.starts_at_text %>
-    </div>
-  <% else %>
-    <div class="small-3 columns"%>
-      <strong class="right">Starts <%= @event.all_day ? "on" : "at" %>:</strong>
-    </div>
-    <div class="small-3 columns"%>
-      <%= @event.starts_at_text %>
-    </div>
-    <div class="small-3 columns"%>
-      <strong class="right">Ends <%= @event.all_day ? "on" : "at" %>:</strong>
-    </div>
-    <div class="small-3 columns"%>
-      <%= @event.ends_at_text %>
-    </div>
-  <% end %>
-</div>
+    <% end %>
 
-<div id="event_resources">
-  <%= render partial: "resource", object: @event, locals: {editing: false} %>
+    <% unless @event.organiser == nil %>
+      <div class="row">
+        <div class="small-12 columns">
+          <label>Organiser</label>
+          <p>
+          <%= @event.organiser ?  @event.organiser.name : "" %>
+          </p>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="row">
+      <% if @event.minimal_duration? %>
+        <div class="small-12 columns"%>
+          <label><%= @event.all_day ? "On" : "At" %>:</label>
+          <%= @event.starts_at_text %>
+        </div>
+      <% else %>
+        <div class="small-12 columns"%>
+          <label>Starts</label>
+          <p><%= @event.starts_at_text %></p>
+        </div>
+        <div class="small-12 columns"%>
+          <label>Ends</label>
+          <p><%= @event.ends_at_text %></p>
+        </div>
+      <% end %>
+    </div>
+
+  </div>
+  <div class="small-12 medium-9 columns">
+    <div id="event_resources">
+      <%=
+        render partial: "resource",
+          object: @event,
+          locals: {editing: false}
+        %>
+    </div>
+    <% if current_user && current_user.known? %>
+      <div id="event_note">
+        <%= render @note %>
+      </div>
+      <div id="attached_files">
+        <%= render partial: "attachments/attached_files", object: @files %>
+      </div>
+    <% end %>
+  </div>
 </div>
 
 <% if !@minimal %>

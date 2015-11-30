@@ -11,7 +11,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151121140132) do
+ActiveRecord::Schema.define(version: 20151129120134) do
+
+  create_table "attachments", force: true do |t|
+    t.integer  "note_id"
+    t.string   "original_file_name"
+    t.string   "saved_as"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "attachments", ["note_id"], name: "index_attachments_on_note_id", using: :btree
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -246,6 +256,21 @@ ActiveRecord::Schema.define(version: 20151121140132) do
 
   add_index "memberships", ["element_id"], name: "index_memberships_on_element_id", using: :btree
   add_index "memberships", ["group_id"], name: "index_memberships_on_group_id", using: :btree
+
+  create_table "notes", force: true do |t|
+    t.string   "title",       default: ""
+    t.text     "contents"
+    t.integer  "parent_id"
+    t.string   "parent_type"
+    t.integer  "owner_id"
+    t.integer  "visibility",  default: 0
+    t.integer  "note_type",   default: 0
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "notes", ["owner_id"], name: "index_notes_on_owner_id", using: :btree
+  add_index "notes", ["parent_id"], name: "index_notes_on_parent_id", using: :btree
 
   create_table "otherhalfgrouppersonae", force: true do |t|
     t.integer  "source_id"

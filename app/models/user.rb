@@ -50,6 +50,7 @@ class User < ActiveRecord::Base
   #
   has_many :elements, foreign_key: :owner_id
   has_many :groups,   foreign_key: :owner_id, :dependent => :destroy
+  has_many :notes,    foreign_key: :owner_id, :dependent => :destroy
 
   validates :firstday, :presence => true
   validates :firstday, :numericality => true

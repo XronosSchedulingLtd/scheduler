@@ -1,0 +1,6 @@
+class Attachment < ActiveRecord::Base
+  belongs_to :note
+
+  validates :note, :presence => true
+  validates :original_file_name, :presence => true
+end
