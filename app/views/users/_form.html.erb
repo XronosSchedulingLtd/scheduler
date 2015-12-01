@@ -12,15 +12,15 @@
   <% end %>
 
   <div class="row">
-    <div class="small-12 medium-6 columns">
+    <div class="small-12 medium-6 large-4 columns">
       <label>Name</label>
       <%= f.text_field :name, :disabled => !current_user.admin %>
     </div>
-    <div class="small-12 medium-6 columns">
+    <div class="small-12 medium-6 large-4 columns">
       <label>E-mail</label>
       <%= f.text_field :email, :disabled => !current_user.admin %>
     </div>
-    <div class="small-12 medium-6 columns">
+    <div class="small-12 medium-6 large-4 columns">
       <label>Start week on</label>
       <%= f.collection_select(:firstday,
                               @user.list_days,
@@ -41,11 +41,9 @@
         </span>
       </div>
     </div>
-  </div>
 
 <% if current_user.editor || current_user.admin %>
-  <div class="row">
-    <div class="small-12 medium-4 columns">
+    <div class="small-12 medium-6 large-3 columns">
       <label>Preferred event category</label>
       <%= f.collection_select(:preferred_event_category_id,
                               Eventcategory.categories_for(current_user),
@@ -53,12 +51,12 @@
                               :name,
                               {:include_blank => "--None--"}) %>
     </div>
-    <div class="small-12 medium-8 columns">
+    <div class="small-12 medium-8 large-5 columns">
       <label>Default event description</label>
       <%= f.text_field(:default_event_text) %>
     </div>
-  </div>
 <% end %>
+  </div>
 
 <% if current_user.admin %>
 
