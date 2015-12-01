@@ -14,14 +14,18 @@
 ActiveRecord::Schema.define(version: 20151129120134) do
 
   create_table "attachments", force: true do |t|
-    t.integer  "note_id"
+    t.string   "description"
+    t.integer  "parent_id"
+    t.string   "parent_type"
     t.string   "original_file_name"
+    t.string   "meta_data"
     t.string   "saved_as"
+    t.boolean  "visible_guest",      default: false
+    t.boolean  "visible_staff",      default: true
+    t.boolean  "visible_pupil",      default: false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
-
-  add_index "attachments", ["note_id"], name: "index_attachments_on_note_id", using: :btree
 
   create_table "commitments", force: true do |t|
     t.integer "event_id"
@@ -258,13 +262,15 @@ ActiveRecord::Schema.define(version: 20151129120134) do
   add_index "memberships", ["group_id"], name: "index_memberships_on_group_id", using: :btree
 
   create_table "notes", force: true do |t|
-    t.string   "title",       default: ""
+    t.string   "title",         default: ""
     t.text     "contents"
     t.integer  "parent_id"
     t.string   "parent_type"
     t.integer  "owner_id"
-    t.integer  "visibility",  default: 0
-    t.integer  "note_type",   default: 0
+    t.boolean  "visible_guest", default: false
+    t.boolean  "visible_staff", default: true
+    t.boolean  "visible_pupil", default: false
+    t.integer  "note_type",     default: 0
     t.datetime "created_at"
     t.datetime "updated_at"
   end

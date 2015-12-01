@@ -16,12 +16,8 @@ class EventsController < ApplicationController
   # GET /events/1
   # GET /events/1.json
   def show
-    if current_user && current_user.known?
-      @note =
-        @event.notes.find_by(owner: current_user) ||
-          Note.new({parent: @event, owner: current_user})
-      @files = Array.new
-    end
+    @notes = @event.notes.visible_to(current_user)
+    @files = Array.new
     if request.xhr?
       @minimal = true
       render :layout => false
@@ -94,12 +90,20 @@ class EventsController < ApplicationController
     #  own events.
     #
     if current_user.can_edit?(@event)
-      if request.xhr?
-        @minimal = true
-        render :layout => false
-      else
-        @minimal = false
-        render
+      respond_to do |format|
+        format.html do
+          if request.xml_http_request?
+            @minimal = true
+            render :layout => false
+          else
+            @minimal = false
+            render
+          end
+        end
+        format.js do
+          @minimal = true
+          render
+        end
       end
     else
       @minimal = true

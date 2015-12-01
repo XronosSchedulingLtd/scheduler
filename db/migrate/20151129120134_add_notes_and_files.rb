@@ -6,7 +6,9 @@ class AddNotesAndFiles < ActiveRecord::Migration
       t.integer :parent_id
       t.string  :parent_type
       t.integer :owner_id
-      t.integer :visibility, :default => 0
+      t.boolean :visible_guest, :default => false
+      t.boolean :visible_staff, :default => true
+      t.boolean :visible_pupil, :default => false
       t.integer :note_type,  :default => 0
 
       t.timestamps
@@ -15,12 +17,17 @@ class AddNotesAndFiles < ActiveRecord::Migration
     add_index :notes, :owner_id
 
     create_table :attachments do |t|
-      t.integer :note_id
+      t.string  :description
+      t.integer :parent_id
+      t.string  :parent_type
       t.string  :original_file_name
+      t.string  :meta_data
       t.string  :saved_as
+      t.boolean :visible_guest, :default => false
+      t.boolean :visible_staff, :default => true
+      t.boolean :visible_pupil, :default => false
 
       t.timestamps
     end
-    add_index :attachments, :note_id
   end
 end

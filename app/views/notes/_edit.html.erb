@@ -1,0 +1,23 @@
+<div class="row">
+<%= form_for(@note.id ? @note : [@event, @note], remote: true) do |f| %>
+  <div class="small-12 columns">
+    <%= f.text_area :contents, rows: 15 %>
+    <%= f.hidden_field :parent_id %>
+    <%= f.hidden_field :parent_type %>
+    <%= f.hidden_field :owner_id %>
+  </div>
+  <%= flag_group(f, 12, 12, "Visible to", [
+    {field: :visible_guest,
+     prompt: "Guests",
+     annotation: "Should this note be visible to guest users?"},
+    {field: :visible_staff,
+     prompt: "Staff",
+     annotation: "Should this note be visible to colleagues - e.g. cover work?"},
+    {field: :visible_pupil,
+     prompt: "Pupils",
+     annotation: "Should this note be visible to pupils - e.g. prep?"}]) %>
+  <div class="small-12 columns">
+    <%= f.submit @note.id ? "Update" : "Save", :class => "button tiny radius" %>
+  </div>
+<% end %>
+</div>

@@ -151,7 +151,12 @@ class ScheduleController < ApplicationController
       #  This corresponds to our idea of being retimeable.
       #
       @editable = current_user ? current_user.can_retime?(event) : false
-      @edit_dialogue = current_user ? current_user.can_edit?(event) : false
+      #
+      #  We used to let the user go straight into editing an event.  Now
+      #  we display it first, because there's so much information.
+      #
+      #@edit_dialogue = current_user ? current_user.can_edit?(event) : false
+      @edit_dialogue = false
     end
 
     def as_json(options = {})

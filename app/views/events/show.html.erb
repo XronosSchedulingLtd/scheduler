@@ -2,6 +2,7 @@
 <a class="close-reveal-modal">&#215;</a>
 <% end %>
 
+<div id="wholeForm">
 <div class="row">
   <div class="small-12 medium-3 columns">
 
@@ -68,6 +69,16 @@
       <% end %>
     </div>
 
+    <% if current_user && current_user.can_edit?(@event) %>
+      <div class="row">
+        <div class="small-12 columns">
+          <div class="note_link">
+            <%= link_to "Edit", edit_event_path(@event), remote: true %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
   </div>
   <div class="small-12 medium-9 columns">
     <div id="event_resources">
@@ -77,18 +88,20 @@
           locals: {editing: false}
         %>
     </div>
-    <% if current_user && current_user.known? %>
-      <div id="event_note">
-        <%= render @note %>
-      </div>
-      <div id="attached_files">
-        <%= render partial: "attachments/attached_files", object: @files %>
-      </div>
-    <% end %>
+    <div id="event_notes">
+      <%= render partial: "notes", object: @notes %>
+      <%= render partial: "done_button" %>
+    </div>
+<% if false %>
+    <div id="attached_files">
+      <%= render partial: "attachments/attached_files", object: @files %>
+    </div>
+<% end %>
   </div>
 </div>
+</div>
 
-<% if !@minimal %>
+<% unless @minimal %>
 <%= link_to 'Edit', edit_event_path(@event) %> |
 <%= link_to 'Back', events_path %>
 <% end %>

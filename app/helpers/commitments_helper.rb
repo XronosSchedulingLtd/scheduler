@@ -64,41 +64,51 @@ module CommitmentsHelper
     result = ["<ul class=\"no-bullet\">"]
     commitments.each do |commitment|
       body = element_name_with_cover(commitment)
-      #
-      #  Does it need any embellishment?
-      #
-      if commitment.rejected
-        body = "<span class=\"rejected-commitment\" title=\"#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : "" }\">#{body}</span>"
-      elsif commitment.tentative
-        body = "<span class=\"tentative-commitment\">#{body}</span>"
-      elsif commitment.constraining
-        body = "<span class=\"constraining-commitment\">#{body}</span>"
-      end
-      #
-      #  And any buttons?
-      #
-      if (commitment.tentative || commitment.constraining) &&
-         user.can_approve?(commitment)
+      if user
         #
-        #  Usually we don't get a delete link, but it's just possible
-        #  we might.  If we actually own the event, rather than just
-        #  having overriding edit permission (usually brought on by
-        #  controlling one of the resources) then we still need the button.
+        #  Does it need any embellishment?
         #
-        if editing && user.owns?(event)
+        if commitment.rejected
+          body = "<span class=\"rejected-commitment\" title=\"#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : "" }\">#{body}</span>"
+        elsif commitment.tentative
+          body = "<span class=\"tentative-commitment\">#{body}</span>"
+        elsif commitment.constraining
+          body = "<span class=\"constraining-commitment\">#{body}</span>"
+        end
+        #
+        #  And any buttons?
+        #
+        if (commitment.tentative || commitment.constraining) &&
+           user.can_approve?(commitment)
+          #
+          #  Usually we don't get a delete link, but it's just possible
+          #  we might.  If we actually own the event, rather than just
+          #  having overriding edit permission (usually brought on by
+          #  controlling one of the resources) then we still need the button.
+          #
+          if editing && user.owns?(event)
+            body = "#{body} #{delete_link(commitment)}"
+          end
+          if commitment.rejected
+            body = "#{body} #{approve_link(commitment, "Yes")}" 
+          elsif commitment.tentative
+            body = "#{body} #{approve_link(commitment, "Yes")}/#{reject_link(commitment, "No")}" 
+          else
+            body = "#{body} #{reject_link(commitment, "No")}" 
+          end
+        elsif editing
           body = "#{body} #{delete_link(commitment)}"
         end
-        if commitment.rejected
-          body = "#{body} #{approve_link(commitment, "Yes")}" 
-        elsif commitment.tentative
-          body = "#{body} #{approve_link(commitment, "Yes")}/#{reject_link(commitment, "No")}" 
-        else
-          body = "#{body} #{reject_link(commitment, "No")}" 
+        result << "<li>#{body}</li>"
+      else
+        #
+        #  Non logged-in users just get to see firm commitments, and
+        #  don't get any colours or buttons.
+        #
+        unless commitment.tentative || commitment.rejected
+          result << "<li>#{body}</li>"
         end
-      elsif editing
-        body = "#{body} #{delete_link(commitment)}"
       end
-      result << "<li>#{body}</li>"
     end
     result << "</ul>"
     result.join("\n").html_safe

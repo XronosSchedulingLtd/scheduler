@@ -1,0 +1,19 @@
+<div class="row">
+  <div class="small-12 columns">
+    <hr/>
+    <label>Notes</label>
+    <div>
+    <% unless @notes.empty? %>
+      <%= render partial: "events/note", collection: notes %>
+    <% end %>
+    </div>
+<% if current_user && current_user.staff? %>
+    <div class="note_link">
+      <%=
+        link_to "Add note", new_event_note_path(@event), remote: true
+      %>
+  </div>
+<% end %>
+    <hr/>
+  </div>
+</div>

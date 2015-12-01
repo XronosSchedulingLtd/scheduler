@@ -1,0 +1,30 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-12-01T07:31:24+00:00
+
+====== Tuesday 01 Dec 2015 ======
+
+It's occurred to me that I've got two branches on the go, which are kind of converging.  Both affect the display and editing of events.
+
+* In the private_events branch I've started re-designing the event editing screen.
+* In the notes branch I've started displaying notes in the event display screen.
+
+I'm wondering about making all the editing more selective.  If you click on an event, then by default you're taken to an event display - not event editing - even if you have edit permissions.  Different bits of the display have small text links saying "Amend" or "Edit", and if you click on one of those then part of your display is replaced by an edit form.  On completing the form, you then go back to the display version.
+
+Let's try and see if I can do it with the notes first, and if it works then I'll think about converting the main event parameters too.  I also want to separate notes and attachments - it's too complicated (and quite unnecessary) to have one depending on the other.
+
+A quick aside to see whether I can do user editing of colours first.  Done that - pleasing.  Let's grab the re-arranged user editing page from the private events branch, just a copy, then work in the notes branch.
+
+It may be that I'll need to show brief exerts of notes, then allow them to be expanded on demand.  It depends on how crowded they get.
+
+Visibility:
+
+How about three flags.  Visible to:
+
+* Guests
+* Staff
+* Pupils
+
+But would one want to allow visibility just to those involved?  You need to be able to add visible stuff even if you don't own the event because one might want to leave cover work for a colleague attached to a lesson.  One does however want to stop general users from adding stuff which is visible to guests.  And indeed, one might want to be able to add stuff which is visible to pupils (e.g. setting prep) but also stuff which isn't (e.g. plans for a lesson).  Still needs thought.  Only someone who can edit the event should be able to add something visible to guests.
+
+When approvers go to approve commitments, they should be able to do it from the "Show" screen, whilst viewing any relevant notes.  Golly!  It seems that already works, and I've only just thought of it.  Wow!

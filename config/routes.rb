@@ -33,8 +33,6 @@ Rails.application.routes.draw do
 
   resources :locations
 
-  resources :notes
-
   resources :pupils
 
   resources :properties
@@ -55,6 +53,7 @@ Rails.application.routes.draw do
   resources :staffs
 
   resources :events do
+    resources :notes, shallow: true
     member do
       put 'moved'
       post :clone

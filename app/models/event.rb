@@ -66,6 +66,7 @@ class Event < ActiveRecord::Base
   has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
   has_many :elements, :through => :firm_commitments
   has_many :notes, as: :parent, :dependent => :destroy
+  has_many :attachments, as: :parent, :dependent => :destroy
 
   belongs_to :owner, :class_name => :User
 

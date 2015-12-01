@@ -29,6 +29,7 @@ $(document).ready ->
   $(document).on('opened', '[data-reveal]', ->
     $('#first_field').focus()
     $('#first_field').select()
+    window.primeCloser()
     $('.datetimepicker').datetimepicker
       dateFormat: "dd/mm/yy"
       stepMinute: 5
@@ -242,6 +243,10 @@ window.concernClicked = (event) ->
     $(this).removeClass('noclick')
   else
     location.href = $(this).data('link-target')
+
+window.primeCloser = ->
+  $('.closer').click ->
+    $('#eventModal').foundation('reveal', 'close')
 
 window.resized = (event) ->
   $('#fullcalendar').fullCalendar('option',
