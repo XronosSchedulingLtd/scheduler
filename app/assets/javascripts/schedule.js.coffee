@@ -33,6 +33,7 @@ $(document).ready ->
       dateFormat: "dd/mm/yy"
       stepMinute: 5
     $('.rejection-link').click(window.noClicked)
+    window.activateColourPicker('#dynamic_colour_picker', '#dynamic_colour_sample')
     $('#event_starts_at').change( (event) ->
       starts_at = new Date($('#event_starts_at').val())
       ends_at = new Date($('#event_ends_at').val())
@@ -247,3 +248,22 @@ window.resized = (event) ->
   $('#fullcalendar').fullCalendar('option',
                                   'height',
                                   $(window).height() - 46)
+
+window.activateColourPicker = (field_id, sample_id) ->
+  palette = ["#483D8B", "#CD5C5C", "#B8860B", "#7B68EE",
+             "#808000", "#6B8E23", "#DB7093", "#2E8B57",
+             "#A0522D", "#008080", "#3CB371", "#2F4F4F",
+             "#556B2F", "#FF6347"]
+  extra = $(field_id).data('default-colour')
+  if extra
+    palette.push extra
+  $(field_id).spectrum
+    preferredFormat: "hex"
+    showInitial: true
+    showPalette: true
+    showSelectionPalette: true
+    palette: palette
+    appendTo: $(sample_id)
+    change: (colour) ->
+      $(sample_id).css('background-color', colour.toHexString())
+

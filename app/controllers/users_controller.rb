@@ -65,10 +65,12 @@ class UsersController < ApplicationController
   # PATCH/PUT /users/1.json
   def update
     original_firstday = @user.firstday
+    original_colour = @user.colour_not_involved
     respond_to do |format|
       if @user.update(user_params)
         @success = true
         @changed_firstday = (@user.firstday != original_firstday)
+        @changed_colour = (@user.colour_not_involved != original_colour)
         format.html { redirect_to @user, notice: 'User was successfully updated.' }
         format.json { render :show, status: :ok, location: @user }
         format.js
@@ -124,16 +126,19 @@ class UsersController < ApplicationController
                       :can_su,
                       :firstday,
                       :preferred_event_category_id,
+                      :colour_not_involved,
                       :default_event_text)
       elsif current_user.editor
         params.require(:user).
                permit(:firstday,
                       :email_notification,
                       :preferred_event_category_id,
+                      :colour_not_involved,
                       :default_event_text)
       else
         params.require(:user).
                permit(:firstday,
+                      :colour_not_involved,
                       :email_notification)
       end
     end

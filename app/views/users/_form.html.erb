@@ -11,67 +11,58 @@
     </div>
   <% end %>
 
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :name, class: "right inline" %><br>
-    </div>
-    <div class="small-9 columns">
+  <div class="row">
+    <div class="small-12 medium-6 columns">
+      <label>Name</label>
       <%= f.text_field :name, :disabled => !current_user.admin %>
     </div>
-  </div>
-
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :email, class: "right inline" %><br>
-    </div>
-    <div class="small-9 columns">
+    <div class="small-12 medium-6 columns">
+      <label>E-mail</label>
       <%= f.text_field :email, :disabled => !current_user.admin %>
     </div>
-  </div>
-
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label "Week display to start on", class: "right inline" %><br>
-    </div>
-    <div class="small-2 columns">
+    <div class="small-12 medium-6 columns">
+      <label>Start week on</label>
       <%= f.collection_select(:firstday,
                               @user.list_days,
                               :id,
                               :name) %>
     </div>
+    <div class="small-12 medium-6 large-4 columns">
+      <label>Colour for own events</label>
+      <div class="concern-block">
+        <div class="concern-button" id="<%= @minimal ? "dynamic_colour_sample" : "colour-sample" %>" style="background-color:<%= @user.colour_not_involved %>">
+          <span class="concern-spacer"></span>
+          <div class="concern-text">My events</div>
+        </div>
+        <span style="float: right">
+          <%= f.hidden_field :colour_not_involved,
+            :id => @minimal ? :dynamic_colour_picker : :colour_picker,
+            "data-default-colour" => "#254117" %>
+        </span>
+      </div>
+    </div>
+  </div>
 
 <% if current_user.editor || current_user.admin %>
-    <div class="small-1 columns"></div>
-    <div class="small-3 columns">
-      <%= f.label "Preferred event category", class: "right inline" %><br>
-    </div>
-    <div class="small-2 columns">
+  <div class="row">
+    <div class="small-12 medium-4 columns">
+      <label>Preferred event category</label>
       <%= f.collection_select(:preferred_event_category_id,
                               Eventcategory.categories_for(current_user),
                               :id,
                               :name,
                               {:include_blank => "--None--"}) %>
     </div>
-    <div class="small-1 columns"></div>
-  </div>
-
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label "Default event description", class: "right inline" %><br>
-    </div>
-    <div class="small-9 columns">
+    <div class="small-12 medium-8 columns">
+      <label>Default event description</label>
       <%= f.text_field(:default_event_text) %>
     </div>
-  </div>
-
-<% else %>
-    <div class="small-7 columns"></div>
   </div>
 <% end %>
 
 <% if current_user.admin %>
 
-<div class="row collapse">
+<div class="row">
   <%= flag_group(f, 12, 6, "Permissions",
                  [
                    {field: :admin,
@@ -108,17 +99,19 @@
 </div>
 
 <% end %>
+<div class="row">
 <% if current_user.admin || current_user.element_owner %>
-<div class="row collapse">
   <%= flag_group(f, 12, 6, "Preferences",
                  [
                    {field: :email_notification,
                     annotation: "Should the system send daily e-mail notifications of pending requests?"}
                  ]) %>
-</div>
 <% end %>
-
-  <div class="actions">
-    <%= f.submit %>
+  <div class="small-12 medium-6 columns">
+    <div class="actions">
+      <%= f.submit "Update", :class => "button tiny radius" %>
+    </div>
   </div>
+</div>
+
 <% end %>

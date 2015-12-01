@@ -1,6 +1,6 @@
 <% if @success %>
 $('#eventModal').foundation('reveal', 'close')
-<% if @changed_firstday %>
+<% if @changed_firstday || @changed_colour %>
 location.reload();
 <% end %>
 <% else %>
