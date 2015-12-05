@@ -1,0 +1,26 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-12-05T07:14:31+00:00
+
+====== Saturday 05 Dec 2015 ======
+
+Things to do to get to having something demonstrable, although not finished:
+
+[ ] Allow approvals from show screen
+[ ] Amending a requirement should unapprove the resource
+[ ] Finishing off editing should throw you into show if there are any notes needed.
+[*] Newer version of the editing page (from the private events branch)
+[*] Amend note template to have two fields
+[*] Link note to template (delete => nullify)
+[ ] Remove capability of public viewing from requirements
+[ ] Provide a "Cancel" button on note editing, and on event editing
+[ ] Do we actually want a "Refuse" option?  Would it not be better to have "Accept" and "Send back message".
+[ ] Get attachments working?
+[ ] Print notes in the Days report when requested.
+[ ] Need scope for a reminder prompt in the event editing dialogue - "Think about services - porters, parking..."
+[*] Allow for a template which simply adds a note to the event - which the user can't edit - giving them a message.
+[ ] Add minimal event information to the bottom of the show form, and remove it from the edit form.
+[ ] Perhaps move the delete and clone buttons too.
+[ ] Need to be able to delete promptnotes.
+
+The template provides some default contents for the note, but until the user first edits the note the text is not copied across.  The template's default contents are displayed as if they were the contents of the note.  That way, if the owner of the template amends it then the display will change too.  If the user has no edit permission for the note, then the contents will never get copied over.  The default contents might be just a message - "Please submit a catering request form".

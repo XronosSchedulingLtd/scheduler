@@ -55,6 +55,32 @@ class CategoryValidator < ActiveModel::Validator
   end
 end
 
+class CommitmentSet < Array
+  attr_reader :commitment_type
+
+  def initialize(commitment_type)
+    @commitment_type = commitment_type
+  end
+
+  def element_names
+    self.collect {|c| c.element.name}
+  end
+
+  def label_text
+    #
+    #  Early on I failed to set up a special case, so my app thinks
+    #  that the plural of Staff is Staffs.  I can't now change this
+    #  without renaming database tables etc, so I need to special
+    #  case it here.
+    #
+    if self.size == 1 || self.commitment_type == "Staff"
+      self.commitment_type
+    else
+      self.commitment_type.pluralize
+    end
+  end
+end
+
 class Event < ActiveRecord::Base
 
   include ActiveModel::Validations
@@ -392,6 +418,39 @@ class Event < ActiveRecord::Base
   end
 
   #
+  #  Assemble all the commitments to this event which this user is allowed
+  #  to see.  Preload the corresponding elements.
+  #
+  def commitments_for(user)
+    by_type = Hash.new
+    all_commitments =
+      self.commitments.preload(:element).to_a   # to_a to force the d/b hit.
+    all_commitments.each do |c|
+      by_type[c.element.entity_type] ||=
+        CommitmentSet.new(c.element.entity_type)
+      by_type[c.element.entity_type] << c
+    end
+    if user
+      #
+      #  Not yet separating out the ones which this user can approve.
+      #
+      [[by_type["Staff"],
+        by_type["Pupil"],
+        by_type["Group"],
+        by_type["Location"],
+        by_type["Service"],
+        by_type["Property"]].compact, []]
+    else
+      #
+      #  The general public get to see just Staff, Locations and Groups.
+      #
+      [[by_type["Staff"],
+        by_type["Group"],
+        by_type["Location"]].compact, []]
+    end
+  end
+
+  #
   #  These need enhancing to take account of the fact that particular
   #  types of resource might be involved in an event by dint of being
   #  members of a group.  Pupils especially, but it could apply to anything.
@@ -432,6 +491,13 @@ class Event < ActiveRecord::Base
 
   def properties
     self.resources.select {|r| r.instance_of?(Property)}
+  end
+
+  def all_notes_for(user)
+    self.commitments.collect { |commitment|
+      commitment.notes.visible_to(user).to_a
+    }.flatten +
+    self.notes.visible_to(user).to_a
   end
 
   # Returns an array of events for the indicated category, resource

@@ -99,7 +99,9 @@
                  {field: :staff,
                   annotation: "List staff involved in each event."},
                  {field: :pupils,
-                  annotation: "List pupils involved in each event."}]) %>
+                  annotation: "List pupils involved in each event."},
+                 {field: :notes,
+                  annotation: "Show notes associated with each event."}]) %>
   <%= flag_group(f, 12, 6, "Formatting", [
                  {field: :breaks,
                   annotation: "Put each event on a separate line of its own."},
@@ -120,3 +122,19 @@
 <% end %>
 
 <hr/>
+
+<% if @concern.owns && !@concern.equality %>
+  <h3>Requirements pro-forma</h3>
+  <p>This is what will be shown to users who request this item for their events.</p>
+  <div id="pro_forma_space">
+    <% if @concern.element.promptnote %>
+      <%= render @concern.element.promptnote %>
+    <% else %>
+      <div>None specified</div>
+      <div class="note_link">
+        <%= link_to "Create", new_element_promptnote_path(@concern.element), :remote => true %>
+      </div>
+    <% end %>
+    <hr/>
+  </div>
+<% end %>

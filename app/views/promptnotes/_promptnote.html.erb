@@ -1,0 +1,16 @@
+<div class="row">
+  <div class="small-12 columns">
+    <label>Prompt</label>
+    <pre><%= promptnote.prompt %></pre>
+  </div>
+  <div class="small-12 columns">
+    <label>Default contents</label>
+    <pre><%= promptnote.default_contents %></pre>
+    <% if promptnote.read_only %>
+      <p>Read only</p>
+    <% end %>
+  </div>
+  <div class="note_link">
+    <%= link_to "Edit", edit_promptnote_path(promptnote), :remote => true %>
+  </div>
+</div>

@@ -1,16 +1,24 @@
-<% if @minimal %>
-<a class="close-reveal-modal">&#215;</a>
-<% end %>
-
 <div id="wholeForm">
+<h3><%= @event.body %></h3>
 <div class="row">
-  <div class="small-12 medium-3 columns">
+  <div class="small-12 medium-3 columns right_border">
 
     <div class="row">
-      <div class="small-12 columns">
-        <label>Description</label>
-        <p><%= @event.body %></p>
-      </div>
+      <% if @event.minimal_duration? %>
+        <div class="small-12 columns"%>
+          <label><%= @event.all_day ? "On" : "At" %>:</label>
+          <p><%= @event.starts_at_text %></p>
+        </div>
+      <% else %>
+        <div class="small-12 columns"%>
+          <label>Starts</label>
+          <p><%= @event.starts_at_text %></p>
+        </div>
+        <div class="small-12 columns"%>
+          <label>Ends</label>
+          <p><%= @event.ends_at_text %></p>
+        </div>
+      <% end %>
     </div>
 
     <% if known_user? %>
@@ -51,29 +59,29 @@
       </div>
     <% end %>
 
-    <div class="row">
-      <% if @event.minimal_duration? %>
-        <div class="small-12 columns"%>
-          <label><%= @event.all_day ? "On" : "At" %>:</label>
-          <%= @event.starts_at_text %>
+    <% if known_user? %>
+      <small>
+        <div id="meta_data">
+          Source id: <%= @event.source_id %> Event id: <%= @event.id %><br/>
+          Created: <%= @event.created_at_text %><br/>
+          Updated: <%= @event.updated_at_text %>
         </div>
-      <% else %>
-        <div class="small-12 columns"%>
-          <label>Starts</label>
-          <p><%= @event.starts_at_text %></p>
-        </div>
-        <div class="small-12 columns"%>
-          <label>Ends</label>
-          <p><%= @event.ends_at_text %></p>
-        </div>
-      <% end %>
-    </div>
+      </small>
+    <% end %>
 
     <% if current_user && current_user.can_edit?(@event) %>
       <div class="row">
         <div class="small-12 columns">
-          <div class="note_link">
-            <%= link_to "Edit", edit_event_path(@event), remote: true %>
+          <% unless @minimal %>
+            <div class="back_link">
+            <%= link_to 'Back', events_path %>
+            </div>
+          <% end %>
+          <div class="delete_link">
+            Delete
+          </div>
+          <div class="edit_link">
+            <%= link_to "Edit", edit_event_path(@event), remote: @minimal %>
           </div>
         </div>
       </div>
@@ -82,11 +90,12 @@
   </div>
   <div class="small-12 medium-9 columns">
     <div id="event_resources">
-      <%=
-        render partial: "resource",
-          object: @event,
-          locals: {editing: false}
+      <div class="row">
+        <%= render partial: "commitment_set",
+          collection: @visible_commitments,
+          locals: {singleton: @visible_commitments.size == 1}
         %>
+      </div>
     </div>
     <div id="event_notes">
       <%= render partial: "notes", object: @notes %>
@@ -101,7 +110,3 @@
 </div>
 </div>
 
-<% unless @minimal %>
-<%= link_to 'Edit', edit_event_path(@event) %> |
-<%= link_to 'Back', events_path %>
-<% end %>

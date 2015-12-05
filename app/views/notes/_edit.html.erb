@@ -1,6 +1,14 @@
 <div class="row">
 <%= form_for(@note.id ? @note : [@event, @note], remote: true) do |f| %>
   <div class="small-12 columns">
+    <% unless @note.title.empty? %>
+      <label><%= @note.title %></label>
+    <% end %>
+    <% if @note.parent_type == "Commitment" &&
+         @note.promptnote &&
+         !@note.promptnote.prompt.blank? %>
+       <p><pre><%= @note.promptnote.prompt %></pre></p>
+    <% end %>
     <%= f.text_area :contents, rows: 15 %>
     <%= f.hidden_field :parent_id %>
     <%= f.hidden_field :parent_type %>

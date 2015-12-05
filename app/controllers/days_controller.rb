@@ -29,7 +29,8 @@ class DaysController < ApplicationController
       do_breaks:        false,
       suppress_empties: false,
       show_tentative:   false,
-      show_firm:        true
+      show_firm:        true,
+      show_notes:       false
     }
     era = Setting.next_era || Setting.current_era
     start_date   = Date.today
@@ -112,6 +113,9 @@ class DaysController < ApplicationController
     end
     if params.has_key?(:firm)
       options[:show_firm] = true
+    end
+    if params.has_key?(:notes)
+      options[:show_notes] = true
     end
     if params[:categories]
       #

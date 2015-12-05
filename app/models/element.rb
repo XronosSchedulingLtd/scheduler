@@ -17,6 +17,7 @@ class Element < ActiveRecord::Base
            :class_name => :Itemreport,
            :foreign_key => :excluded_element_id,
            :dependent => :nullify
+  has_one :promptnote, :dependent => :destroy
   belongs_to :owner, :class_name => :User
 
   scope :current, -> { where(current: true) }

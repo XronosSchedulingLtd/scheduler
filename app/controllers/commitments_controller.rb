@@ -71,9 +71,27 @@ class CommitmentsController < ApplicationController
     #  of whether it succeeds or fails, we just display the list of
     #  committed resources again.
     #
-    @commitment.save!
-    @commitment.reload
-    @event = @commitment.event
+    if @commitment.save
+      @commitment.reload
+      @event = @commitment.event
+      if @commitment.element.promptnote
+        note = Note.new
+        note.title = @commitment.element.name
+        note.parent = @commitment
+        note.promptnote = @commitment.element.promptnote
+        #
+        #  Don't set the contents yet.  They will be set when the user
+        #  first tries to edit it.  That way if the default contents
+        #  change, they will appear to change in the note too.
+        #
+        #note.contents = @commitment.element.promptnote.contents
+        note.read_only = @commitment.element.promptnote.read_only
+        note.owner = current_user
+        note.save
+      end
+    else
+      @event = @commitment.event
+    end
     respond_to do |format|
       format.js
     end

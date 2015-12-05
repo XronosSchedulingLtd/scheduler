@@ -50,6 +50,7 @@ class Itemreport < ActiveRecord::Base
     extras << "suppress_empties" if self.suppress_empties
     extras << "tentative" if self.tentative
     extras << "firm" if self.firm
+    extras << "notes" if self.notes
     extras << "exclude=#{self.excluded_element_id}" if self.excluded_element_id
     extras << "start_date=#{self.starts_on}" if self.starts_on
     extras << "end_date=#{self.ends_on}" if self.ends_on

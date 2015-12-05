@@ -6,9 +6,11 @@ class AddNotesAndFiles < ActiveRecord::Migration
       t.integer :parent_id
       t.string  :parent_type
       t.integer :owner_id
+      t.integer :promptnote_id
       t.boolean :visible_guest, :default => false
       t.boolean :visible_staff, :default => true
       t.boolean :visible_pupil, :default => false
+      t.boolean :read_only,     :default => false
       t.integer :note_type,  :default => 0
 
       t.timestamps
@@ -29,5 +31,19 @@ class AddNotesAndFiles < ActiveRecord::Migration
 
       t.timestamps
     end
+
+    create_table :promptnotes do |t|
+      t.string  :title,    :default => ""
+      t.text    :prompt
+      t.text    :default_contents
+      t.integer :element_id
+      t.boolean :read_only, :default => false
+
+      t.timestamps
+    end
+    add_index :promptnotes, :element_id
+
+    add_column :itemreports, :notes, :boolean, :default => false
+
   end
 end

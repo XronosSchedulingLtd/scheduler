@@ -19,10 +19,10 @@ class NotesController < ApplicationController
     @note = Note.new(note_params)
     respond_to do |format|
       if @note.save
-        @notes = @event.notes.visible_to(current_user)
+        @notes = @event.all_notes_for(current_user)
         format.js
       else
-        @notes = @event.notes.visible_to(current_user)
+        @notes = @event.all_notes_for(current_user)
         format.js
       end
     end
@@ -30,6 +30,7 @@ class NotesController < ApplicationController
 
   def edit
     @note = Note.find(params[:id])
+    @go_ahead = current_user.can_edit?(@note)
     respond_to do |format|
       format.js
     end
@@ -37,25 +38,39 @@ class NotesController < ApplicationController
 
   def update
     @note = Note.find(params[:id])
-    @event = @note.parent
+    parent = @note.parent
+    if parent.instance_of?(Event)
+      @event = parent
+    else
+      @event = parent.event
+    end
+    #
+    #  If the user doesn't have permission to edit the note then
+    #  I'm not quite sure how we got here.  He has somehow
+    #  got himself into the edit dialogue, so try to get him
+    #  out again.
+    #
+    if current_user.can_edit?(@note)
+      @note.update(note_params)
+    end
+    @notes = @event.all_notes_for(current_user)
     respond_to do |format|
-      if @note.update(note_params)
-        @notes = @event.notes.visible_to(current_user)
-        format.js
-      else
-        @notes = @event.notes.visible_to(current_user)
-        format.js
-      end
+      format.js
     end
   end
 
   def destroy
     @note = Note.find(params[:id])
-    @event = @note.parent
-    if current_user.can_edit?(@note)
+    parent = @note.parent
+    if parent.instance_of?(Event)
+      @event = parent
+    else
+      @event = parent.event
+    end
+    if current_user.can_delete?(@note)
       @note.destroy
     end
-    @notes = @event.notes.visible_to(current_user)
+    @notes = @event.all_notes_for(current_user)
     respond_to do |format|
       format.js
     end
@@ -64,7 +79,7 @@ class NotesController < ApplicationController
   private
 
   def authorized?(action = action_name, resource = nil)
-    (logged_in? && current_user.known?)
+    (logged_in? && current_user.staff?)
   end
 
   def note_params

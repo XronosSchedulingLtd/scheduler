@@ -14,45 +14,26 @@
                    :type => :hidden,
                    :readonly => true %>
 
-  <div class="row collapse">
-    <div class="small-2 columns">
-      <%= f.label :description, class: "right inline" %>
-    </div>
-    <div class="small-10 columns">
+  <div class="row">
+    <div class="small-9 columns">
+      <label>Description</label>
       <%= f.text_field :body,
                        :id => "first_field",
                        :placeholder => "Please describe what is happening" %>
     </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-2 columns">
-      <%= f.label :eventcategory_id, class: "right inline" %>
-    </div>
     <div class="small-3 columns">
+      <label>Event category</label>
       <%= f.collection_select(:eventcategory_id,
                               @event.suitable_categories(current_user).sort,
                               :id,
                               :name,
                               { :prompt => true }) %>
-    </div>
-    <div class="small-2 columns">
-      <%= f.label :eventsource_id, class: "right inline" %>
-    </div>
-    <div class="small-3 columns">
-    <%= f.collection_select(:eventsource_id,
-                            Eventsource.all.sort,
-                            :id,
-                            :name,
-                            { :prompt => true }) %>
-    </div>
-    <div class="small-2 columns">
+      <%= f.hidden_field :eventsource_id %>
     </div>
   </div>
-  <div class="row collapse">
-    <div class="small-2 columns">
-      <%= f.label :starts, class: "right inline" %>
-    </div>
+  <div class="row">
     <div class="small-3 columns">
+      <label>Starts</label>
       <% if current_user.can_retime?(@event) %>
         <%= f.text_field :starts_at_text,
                          :class => :datetimepicker %>
@@ -61,10 +42,8 @@
                          :disabled => true %>
       <% end %>
     </div>
-    <div class="small-2 columns">
-      <%= f.label :ends, class: "right inline" %>
-    </div>
     <div class="small-3 columns">
+      <label>Ends</label>
       <% if current_user.can_retime?(@event) %>
         <%= f.text_field :ends_at_text,
                          :class => :datetimepicker %>
@@ -73,18 +52,14 @@
                          :disabled => true %>
       <% end %>
     </div>
-    <div class="small-1 columns">
-      <%= f.label :all_day, class: "right" %>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :all_day_field %>
-    </div>
+    <%= flag_group(f, 4, 4, "Flags", [
+                   {field: :all_day,
+                    annotation: "The event lasts all day.  Time fields will be ignored."}]) %>
+
   </div>
-  <div class="row collapse">
-    <div class="small-2 columns">
-      <%= f.label :organiser, class: "right inline" %>
-    </div>
+  <div class="row">
     <div class="small-3 columns">
+      <label>Organiser</label>
       <%= f.autocomplete_field :organiser_name,
                                autocomplete_staff_element_name_elements_path,
                                :id_element => '#event_organiser_id',
@@ -93,21 +68,21 @@
                                "data-auto-focus" => true %>
       <%= f.text_field :organiser_id, :type => :hidden %>
     </div>
-    <div class="small-2 columns">
-      <%= f.label :reference, class: "right inline" %>
-    </div>
     <div class="small-5 columns">
+      <label>Reference</label>
       <%= f.text_field :organiser_ref,
                        :placeholder => "additional information (optional)" %>
     </div>
-  </div>
-  <div class="row">
-    <div class="small-9 small-offset-3 columns">
-      <%= f.submit %>
+    <div class="small-4 columns">
+      <div class="float_rb">
+        <%= f.submit @event.id ? "Update" : "Create", :class => "button tiny radius" %>
+      </div>
     </div>
   </div>
 <% end %>
 <br/>
+  <div class="row">
+    <div class="small-12 columns">
 <% if @event.id %>
   <%= form_for(@commitment, remote: true) do |f| %>
     <%= f.autocomplete_field :element_name,
@@ -135,8 +110,10 @@
     <span id="cloned_message" style="display: none; color: red;">Cloned</span>
   </div>
 <% else %>
-  <p>Save the event in order to allow resources to be added.</p>
+  <p>Create the event first in order to allow resources to be added.</p>
 <% end %>
+    </div>
+  </div>
 <% if known_user? %>
 <small>
 <div id="meta_data">

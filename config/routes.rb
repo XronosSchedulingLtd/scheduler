@@ -86,6 +86,7 @@ Rails.application.routes.draw do
   resources :itemreports
 
   resources :elements do
+    resources :promptnotes, shallow: true
     get :autocomplete_element_name, :on => :collection
     get :autocomplete_unowned_element_name, :on => :collection
     get :autocomplete_staff_element_name, :on => :collection

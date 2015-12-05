@@ -203,7 +203,9 @@ class User < ActiveRecord::Base
     elsif item.instance_of?(Concern)
       item.user_id == self.id
     elsif item.instance_of?(Note)
-      item.owner_id == self.id
+      (item.owner_id == self.id ||
+       (item.parent_type == "Commitment" && self.owns?(item.parent.element))) &&
+       !item.read_only
     else
       false
     end
@@ -220,6 +222,13 @@ class User < ActiveRecord::Base
       #  You get what you're given.
       #
       item.user_id == self.id && self.can_add_concerns && item.user_can_delete?
+    elsif item.instance_of?(Note)
+      #
+      #  You can delete the ones you own, provided they're attached
+      #  to events.  If they're attached to commitments, you have to
+      #  delete the commitment instead.
+      #
+      item.owner_id == self.id && item.parent_type == "Event"
     else
       false
     end

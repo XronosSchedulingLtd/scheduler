@@ -8,6 +8,7 @@ class Commitment < ActiveRecord::Base
   belongs_to :event
   belongs_to :element
   belongs_to :by_whom, class_name: "User"
+  has_many :notes, as: :parent, :dependent => :destroy
 
   validates_presence_of :event, :element
   validates_associated  :event,   :message => "Event does not exist"

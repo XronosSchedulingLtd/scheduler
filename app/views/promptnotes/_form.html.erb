@@ -1,0 +1,18 @@
+<div class="row">
+<%= form_for(@promptnote.id ? @promptnote : [@element, @promptnote], remote: true) do |f| %>
+  <div class="small-12 columns">
+    <label>Prompt</label>
+    <%= f.text_area :prompt, rows: 15 %>
+  </div>
+  <div class="small-12 columns">
+    <label>Default contents</label>
+    <%= f.text_area :default_contents, rows: 3 %>
+  </div>
+  <%= flag_group(f, 12, 12, "Flags", [
+    {field: :read_only,
+     prompt: "Read only",
+     annotation: "If set, the note created for this requirement will note be editable by the user.  Typically used to re-direct to another form."}]) %>
+  <%= f.hidden_field :element_id %>
+<%= f.submit "Save", :class => "button tiny radius" %>
+<% end %>
+</div>

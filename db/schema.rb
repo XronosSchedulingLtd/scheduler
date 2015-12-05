@@ -222,6 +222,7 @@ ActiveRecord::Schema.define(version: 20151129120134) do
     t.integer  "excluded_element_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "notes",               default: false
   end
 
   add_index "itemreports", ["concern_id"], name: "index_itemreports_on_concern_id", using: :btree
@@ -267,9 +268,11 @@ ActiveRecord::Schema.define(version: 20151129120134) do
     t.integer  "parent_id"
     t.string   "parent_type"
     t.integer  "owner_id"
+    t.integer  "promptnote_id"
     t.boolean  "visible_guest", default: false
     t.boolean  "visible_staff", default: true
     t.boolean  "visible_pupil", default: false
+    t.boolean  "read_only",     default: false
     t.integer  "note_type",     default: 0
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -294,6 +297,18 @@ ActiveRecord::Schema.define(version: 20151129120134) do
     t.boolean  "equality",   default: false
     t.string   "colour",     default: "#225599"
   end
+
+  create_table "promptnotes", force: true do |t|
+    t.string   "title",            default: ""
+    t.text     "prompt"
+    t.text     "default_contents"
+    t.integer  "element_id"
+    t.boolean  "read_only",        default: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "promptnotes", ["element_id"], name: "index_promptnotes_on_element_id", using: :btree
 
   create_table "properties", force: true do |t|
     t.string   "name"

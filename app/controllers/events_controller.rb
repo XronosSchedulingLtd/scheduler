@@ -16,8 +16,16 @@ class EventsController < ApplicationController
   # GET /events/1
   # GET /events/1.json
   def show
-    @notes = @event.notes.visible_to(current_user)
+    @notes = @event.all_notes_for(current_user)
     @files = Array.new
+    #
+    #  Make an intelligent selection of which commitments this viewer is
+    #  allowed to see.  Guests get only a sub-set.  Logged in users
+    #  get to see any kind, but some may be sifted out as requiring
+    #  approval.
+    #
+    @visible_commitments, @approvable_commitments =
+      @event.commitments_for(current_user)
     if request.xhr?
       @minimal = true
       render :layout => false
@@ -314,6 +322,7 @@ class EventsController < ApplicationController
   end
 
   private
+
     def authorized?(action = action_name, resource = nil)
       (logged_in? && current_user.create_events?) ||
       action == 'show' || action == "search"

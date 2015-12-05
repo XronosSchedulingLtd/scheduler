@@ -1,7 +1,6 @@
 <div class="row">
   <div class="small-12 columns">
     <hr/>
-    <label>Notes</label>
     <div>
     <% unless @notes.empty? %>
       <%= render partial: "events/note", collection: notes %>
@@ -12,8 +11,8 @@
       <%=
         link_to "Add note", new_event_note_path(@event), remote: true
       %>
-  </div>
-<% end %>
+    </div>
     <hr/>
+<% end %>
   </div>
 </div>
