@@ -1415,7 +1415,11 @@ class SB_StaffCover
       #  is actually needed at all.  Identify this case, and if we
       #  have it then do no further checks.
       #
-      unless cover_commitment.element == cover_commitment.covering.element
+      #  Need to be careful here, because we also check clashes for
+      #  Invigilations, and there there is nothing being covered.
+      #
+      unless (cover_commitment.covering != nil) &&
+             (cover_commitment.element == cover_commitment.covering.element)
         event_ids_seen = []
         all_commitments =
           cover_commitment.element.commitments_during(
