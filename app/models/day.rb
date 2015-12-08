@@ -42,7 +42,7 @@ class Day
                     MonFriPeriods,  # Friday
                     nil]            # Saturday
 
-    attr_reader :csv_text, :table_text
+    attr_reader :csv_text, :table_text, :note_contents
 
     #
     #  Try to identify the period number for a given event.
@@ -65,7 +65,7 @@ class Day
       end
     end
 
-    def initialize(event, day)
+    def initialize(event, day, current_user)
       @locations_string =
         event.locations.collect {|l| l.friendly_name}.join(", ")
       @staff_string =
@@ -74,6 +74,7 @@ class Day
         event.pupils(true).collect {|s| s.short_name}.join(", ")
       @period_no = period_no(event)
 #      Rails.logger.debug("@period_no = #{@period_no}")
+      @note_contents = Array.new
       if event.all_day
         #
         #  If:
@@ -124,6 +125,18 @@ class Day
         @table_text =
           @table_text.chomp(".") + " - " + @locations_string + "."
       end
+      if day.options[:show_notes]
+        #
+        #  Need to accumulate the notes suitable for the current user,
+        #  who may not be logged in.  Non logged in users get just
+        #  public notes.  We therefore need to know who the user is.
+        #
+        event.all_notes_for(current_user).each do |n|
+          unless n.contents.blank?
+            @note_contents << n.contents
+          end
+        end
+      end
       @csv_data = [@duration_string, @csv_text]
       if day.options[:add_staff]
         @csv_data << @staff_string
@@ -134,6 +147,19 @@ class Day
       if day.options[:add_locations]
         @csv_data << @locations_string
       end
+      if day.options[:show_notes]
+        @note_contents.each do |note|
+          #
+          #  Some spreadsheets seem to struggle with line feeds
+          #  embedded in fields.  Strip them out.
+          #
+          @csv_data << note.gsub(/\r\n?/, " ")
+        end
+      end
+    end
+
+    def any_notes?
+      !@note_contents.empty?
     end
 
     def to_csv
@@ -149,20 +175,21 @@ class Day
               :ends_at,
               :options
 
-  def initialize(date, options)
+  def initialize(date, options, user)
     @date = date
     @starts_at = Time.zone.parse(date.strftime("%Y-%m-%d"))
     @ends_at   = Time.zone.parse((date + 1.day).strftime("%Y-%m-%d"))
     @options   = options
+    @user      = user
     @all_day_events = []
     @timed_events   = []
   end
 
   def <<(event)
     if event.all_day
-      @all_day_events << EventDetails.new(event, self)
+      @all_day_events << EventDetails.new(event, self, @user)
     else
-      @timed_events << EventDetails.new(event, self)
+      @timed_events << EventDetails.new(event, self, @user)
     end
   end
 
@@ -175,8 +202,8 @@ class Day
   end
 
   def events_texts_for_table
-    self.all_day_events.collect { |e| e.table_text } +
-    self.timed_events.collect { |e| e.table_text }
+    self.all_day_events.each { |e| yield e.table_text, e.note_contents }
+    self.timed_events.each { |e| yield e.table_text, e.note_contents }
   end
 
   def to_csv

@@ -1,6 +1,7 @@
 <% if @success %>
 $('#fullcalendar').data('dorefresh', '1')
-$('#eventModal').foundation('reveal', 'close')
+$('#wholeForm').html("<%=j render 'show_event' %>")
+window.primeCloser()
 <% else %>
 $('#for_errors').html("<%=j render "error_msgs" %>")
 <% end %>

@@ -98,13 +98,6 @@
     <%= render partial: "resource", object: @event, locals: {editing: true} %>
   </div>
   <hr width="100%"></hr>
-  <%= link_to "Delete event entirely",
-              @event,
-              remote: @minimal,
-              method: :delete,
-              data: {
-                confirm: "Are you sure you want to delete #{@event.body}?"
-              } %>
   <div style="min-height: 18px;">
     <span id="clone_button"><%= link_to "Clone event", clone_event_path(@event), remote: @minimal, method: :post %></span>
     <span id="cloned_message" style="display: none; color: red;">Cloned</span>
@@ -114,14 +107,4 @@
 <% end %>
     </div>
   </div>
-<% if known_user? %>
-<small>
-<div id="meta_data">
-  Source id: <%= @event.source_id %> Event id: <%= @event.id %>
-  Owner: <%= @event.owner_id ? @event.owner.name : "System" %>
-  Created: <%= @event.created_at_text %>
-  Updated: <%= @event.updated_at_text %>
-</div>
-</small>
-<% end %>
 

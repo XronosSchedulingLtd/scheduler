@@ -6,6 +6,7 @@ class Note < ActiveRecord::Base
 
   validates :parent, presence: true
 
+  scope :visible_guest, -> { where(visible_guest: true) }
   #
   #  Visibility values
   #

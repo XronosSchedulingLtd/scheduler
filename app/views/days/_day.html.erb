@@ -3,9 +3,20 @@
   <td><%= day.date_text %></td>
   <td><%=
     if day.do_breaks?
-      day.events_texts_for_table.collect {|t| h(t)}.join("<br/>").html_safe
+      entries = Array.new
+      day.events_texts_for_table do |t, notes|
+        entries << h(t)
+        notes.each do |note|
+          entries << "<pre class='note-text'>#{note}</pre>"
+        end
+      end
+      entries.join("<br/>").html_safe
     else
-      day.events_texts_for_table.collect {|t| h(t)}.join(" ").html_safe
+      entries = Array.new
+      day.events_texts_for_table do |t, notes|
+        entries << h(t)
+      end
+      entries.join(" ").html_safe
     end
   %></td>
 </tr>

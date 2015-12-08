@@ -116,6 +116,11 @@ class DaysController < ApplicationController
     end
     if params.has_key?(:notes)
       options[:show_notes] = true
+      #
+      #  Trying to show notes without each event on its own separate
+      #  line is just too difficult.
+      #
+      options[:do_breaks] = true
     end
     if params[:categories]
       #
@@ -167,7 +172,7 @@ class DaysController < ApplicationController
     start_date.upto(end_date) do |date|
       start_of_day = Time.zone.parse(date.strftime("%Y-%m-%d"))
       end_of_day = Time.zone.parse((date + 1.day).strftime("%Y-%m-%d"))
-      day = Day.new(date, options)
+      day = Day.new(date, options, current_user)
       dbevents.select {|dbe| dbe.starts_at < end_of_day &&
                              dbe.ends_at   > start_of_day}.
                select {|dbe| !options[:do_compact] ||

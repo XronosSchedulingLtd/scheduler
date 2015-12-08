@@ -1,0 +1,114 @@
+<h3><%= @event.body %></h3>
+<div class="row">
+  <div class="small-12 medium-3 columns right_border">
+
+    <div class="row">
+      <% if @event.minimal_duration? %>
+        <div class="small-12 columns"%>
+          <label><%= @event.all_day ? "On" : "At" %>:</label>
+          <p><%= @event.starts_at_text %></p>
+        </div>
+      <% else %>
+        <div class="small-12 columns"%>
+          <label>Starts</label>
+          <p><%= @event.starts_at_text %></p>
+        </div>
+        <div class="small-12 columns"%>
+          <label>Ends</label>
+          <p><%= @event.ends_at_text %></p>
+        </div>
+      <% end %>
+    </div>
+
+    <% if known_user? %>
+    <div class="row">
+      <div class="small-12 columns">
+        <label>Event category</label>
+        <p><%= @event.eventcategory.name %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Event source</label>
+        <p><%= @event.eventsource.name %></p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="small-12 columns">
+        <label>Event id</label>
+        <p><%= @event.id %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Owner</label>
+        <p><%= @event.owner_id == nil || @event.owner_id == 0 ?
+            "System" :
+            @event.owner.name %></p>
+      </div>
+    </div>
+
+    <% end %>
+
+    <% unless @event.organiser == nil %>
+      <div class="row">
+        <div class="small-12 columns">
+          <label>Organiser</label>
+          <p>
+          <%= @event.organiser ?  @event.organiser.name : "" %>
+          </p>
+        </div>
+      </div>
+    <% end %>
+
+    <% if current_user && current_user.can_edit?(@event) %>
+      <div class="row">
+        <div class="small-12 columns">
+          <div class="delete_link">
+            <%=
+              link_to "Delete event entirely",
+              @event,
+              remote: @minimal,
+              method: :delete,
+              data: {
+                confirm: "Are you sure you want to delete \"#{@event.body}\"?"
+              }
+            %>
+          </div>
+          <div class="edit_link">
+            <%= link_to "Edit", edit_event_path(@event), remote: @minimal %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <% if known_user? %>
+      <p>
+      <small>
+        <div id="meta_data">
+          Created: <%= @event.created_at_text %><br/>
+          Updated: <%= @event.updated_at_text %>
+        </div>
+      </small>
+      </p>
+    <% end %>
+
+  </div>
+  <div class="small-12 medium-9 columns">
+    <div id="event_resources">
+      <div class="row">
+        <%= render partial: "commitment_set",
+          collection: @visible_commitments,
+          locals: {singleton: @visible_commitments.size == 1}
+        %>
+      </div>
+    </div>
+    <div id="event_notes">
+      <%= render partial: "notes", object: @notes %>
+      <%= render partial: "done_button" %>
+    </div>
+<% if false %>
+    <div id="attached_files">
+      <%= render partial: "attachments/attached_files", object: @files %>
+    </div>
+<% end %>
+  </div>
+</div>
+

@@ -180,6 +180,10 @@ class EventsController < ApplicationController
     respond_to do |format|
       if @event.update(event_params)
         @success = true
+        @notes = @event.all_notes_for(current_user)
+        @files = Array.new
+        @visible_commitments, @approvable_commitments =
+          @event.commitments_for(current_user)
         format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
         format.json { render :show, status: :ok, location: @event }
         format.js
