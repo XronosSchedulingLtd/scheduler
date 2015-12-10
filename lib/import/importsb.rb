@@ -2981,15 +2981,13 @@ class SB_Loader
         self.send(is.extra)
       end
     end
+    #
+    #  We used to load the hiatuses here, *and* attach them to events,
+    #  but we can't really do the attaching until compound events have
+    #  been merged.  Hence the latter part has been moved to just after
+    #  the merge operation.
+    #
     load_hiatuses
-    #
-    #  Now need to give all our timetable entries the chance to take
-    #  note of our hiatuses.  These may have come from a file, or from
-    #  the d/b, so we can't do it until now.
-    #
-    @timetable_entries.each do |te|
-      te.note_hiatuses(self, @hiatuses)
-    end
     #
     #  If we get this far then all the files have been succesfully read.
     #  We can perform initial organisation on our data.
@@ -3050,6 +3048,15 @@ class SB_Loader
     @timetable_entries =
       SB_Timetableentry.sort_and_merge(self, @timetable_entries)
     puts "#{@timetable_entries.size} timetable entries after merge." if @verbose
+    #
+    #  Now need to give all our timetable entries the chance to take
+    #  note of our hiatuses.  These may have come from a file, or from
+    #  the d/b, and we need to merge compound events before we can do
+    #  this.
+    #
+    @timetable_entries.each do |te|
+      te.note_hiatuses(self, @hiatuses)
+    end
     #
     #  Let's have a separate hash for finding compound ttes.
     #
