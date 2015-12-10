@@ -1,0 +1,28 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-12-10T12:10:31+00:00
+
+====== Thursday 10 Dec 2015 ======
+
+Need to work out why assembly is getting suspended on the first Wed back.  It's when the 5th year exams are on, but that shouldn't be enough to get the assembly suspended, because it involves more years.  Error in ICF's suspension, or in my logic?  Probably my logic, but I need to work it out.
+
+SB's data are in suspendedlessons.csv  The relevant line reads:
+
+'''
+SusIdent,SusStartdate,SusEndDate,YearIdent,SusReason,GroupIdent,ClassIdent,StartPeriod,EndPeriod,Ptype,SubIdent
+35,4789,4795,21,"5th year Mock exams",,,25,23,60,
+'''
+
+
+35 is the record number
+4789 is 5th Jan, 2016
+4795 is 11th Jan, 2016
+21 is the Fifth year
+25 is 510,510   08:30 - 08:30
+23 is 940,985  15:40 - 16:25
+
+So in other words, lessons for the fifth year (only) should be suspended from 08:30 to 16:25 on each of those days.
+
+Fifth year are involved in assembly, but they're not the only year involved so it shouldn't have been suspended.  Check why it was.  I can look at the Hiatuses.yml file to see what was stored.
+
+The function ''note_hiatuses()'' seems to be the one which filters to hiatuses which match the year group(s).  Does it get called before or after compound events are merged?  Ah - it's being called before they are merged.  This may be the problem.  The year_ident method already takes account of whether the entry is compound or not, but it's being called too soon.  Try simply moving the identification of suitable hiatuses to after the merging of compound events.
