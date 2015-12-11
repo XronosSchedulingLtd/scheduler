@@ -5,7 +5,7 @@
 
 class EventsController < ApplicationController
   before_action :set_event,
-                only: [:show, :edit, :update, :moved, :clone, :destroy]
+                only: [:show, :edit, :update, :moved, :clone, :destroy, :shownotes]
 
   # GET /events
   # GET /events.json
@@ -308,6 +308,13 @@ class EventsController < ApplicationController
       end
       @found_events = selector.page(page_param)
       @full_details = current_user && current_user.staff?
+    end
+  end
+
+  def shownotes
+    @notes = @event.all_notes_for(current_user)
+    respond_to do |format|
+      format.js
     end
   end
 

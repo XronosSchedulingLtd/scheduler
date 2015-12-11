@@ -1,5 +1,5 @@
-<div class="row">
 <%= form_for(@note.id ? @note : [@event, @note], remote: true) do |f| %>
+<div class="row">
   <div class="small-12 columns">
     <% unless @note.title.empty? %>
       <label><%= @note.title %></label>
@@ -24,8 +24,9 @@
     {field: :visible_pupil,
      prompt: "Pupils",
      annotation: "Should this note be visible to pupils - e.g. prep?"}]) %>
-  <div class="small-12 columns">
-    <%= f.submit @note.id ? "Update" : "Save", :class => "button tiny radius" %>
-  </div>
-<% end %>
 </div>
+<div id="saveButton">
+  <%= link_to "Cancel", shownotes_event_path(@event), :remote => true, :class => "button tiny radius" %>
+  <%= f.submit @note.id ? "Update" : "Save", :class => "button tiny radius" %>
+</div>
+<% end %>

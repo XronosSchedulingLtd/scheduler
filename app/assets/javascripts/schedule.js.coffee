@@ -249,6 +249,12 @@ window.primeCloser = ->
   $('.closer').click ->
     $('#eventModal').foundation('reveal', 'close')
 
+window.hideCloser = ->
+  $('#doneButton').hide()
+
+window.showCloser = ->
+  $('#doneButton').show()
+
 window.resized = (event) ->
   $('#fullcalendar').fullCalendar('option',
                                   'height',

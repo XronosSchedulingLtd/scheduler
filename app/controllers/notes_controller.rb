@@ -31,6 +31,12 @@ class NotesController < ApplicationController
   def edit
     @note = Note.find(params[:id])
     @go_ahead = current_user.can_edit?(@note)
+    parent = @note.parent
+    if parent.instance_of?(Event)
+      @event = parent
+    else
+      @event = parent.event
+    end
     respond_to do |format|
       format.js
     end

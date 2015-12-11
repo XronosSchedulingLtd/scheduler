@@ -107,3 +107,27 @@
 .delete_link {
   float: left;
 }
+
+#wholeForm {
+  position: relative;
+}
+
+#event_notes {
+  position: relative;
+}
+
+#doneButton {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+}
+
+#saveButton {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+}
+
+.bottom-spacer {
+  height: 50px;
+}
