@@ -92,15 +92,16 @@
 
   </div>
   <div class="small-12 medium-9 columns">
-    <div id="event_resources">
-      <div class="row">
-        <%= render partial: "commitment_set",
-          collection: @visible_commitments,
-          locals: {singleton: @visible_commitments.size == 1}
-        %>
-      </div>
+    <div class="row">
+      <%= render partial: "commitment_set",
+        collection: @visible_commitments,
+        locals: {singleton: @visible_commitments.size == 1}
+      %>
     </div>
-    <div id="event_notes">
+    <div id="event_resources">
+      <%= render partial: "approvable_commitments", object: @approvable_commitments %>
+    </div>
+    <div id="event-notes">
       <%= render partial: "notes", object: @notes %>
     </div>
 <% if false %>

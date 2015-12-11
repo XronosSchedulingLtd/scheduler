@@ -5,7 +5,14 @@
 
 class EventsController < ApplicationController
   before_action :set_event,
-                only: [:show, :edit, :update, :moved, :clone, :destroy, :shownotes]
+                only: [:show,
+                       :edit,
+                       :update,
+                       :moved,
+                       :clone,
+                       :destroy,
+                       :shownotes,
+                       :canceledit]
 
   # GET /events
   # GET /events.json
@@ -13,9 +20,7 @@ class EventsController < ApplicationController
     @events = Event.page(params[:page]).order('starts_at')
   end
 
-  # GET /events/1
-  # GET /events/1.json
-  def show
+  def assemble_event_info
     @notes = @event.all_notes_for(current_user)
     @files = Array.new
     #
@@ -26,12 +31,26 @@ class EventsController < ApplicationController
     #
     @visible_commitments, @approvable_commitments =
       @event.commitments_for(current_user)
+  end
+
+  # GET /events/1
+  # GET /events/1.json
+  def show
+    assemble_event_info
     if request.xhr?
       @minimal = true
       render :layout => false
     else
       @minimal = false
       render
+    end
+  end
+
+  def canceledit
+    assemble_event_info
+    @minimal = true
+    respond_to do |format|
+      format.js
     end
   end
 
@@ -186,7 +205,7 @@ class EventsController < ApplicationController
           @event.commitments_for(current_user)
         format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
         format.json { render :show, status: :ok, location: @event }
-        format.js
+        format.js { @minimal = true; render :update }
       else
         @success = false
         format.html { render :edit }

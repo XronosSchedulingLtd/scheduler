@@ -3,6 +3,7 @@
 <% else %>
 <h2>New event</h2>
 <% end %>
+<div id="event-editing-upper">
 <%= form_for(@event, remote: @minimal) do |f| %>
   <div id="for_errors">
     <% if @event.errors.any? %>
@@ -74,12 +75,18 @@
                        :placeholder => "additional information (optional)" %>
     </div>
     <div class="small-4 columns">
-      <div class="float_rb">
-        <%= f.submit @event.id ? "Update" : "Create", :class => "button tiny radius" %>
-      </div>
     </div>
   </div>
+  <div id="event-dialogue-buttons">
+    <%= f.submit @event.id ? "Update" : "Create", :class => "button tiny radius" %>
+    <% if @event.id %>
+      <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => "button tiny radius" %>
+    <% else %>
+      <div class="button tiny radius closer">Cancel</div>
+    <% end %>
+  </div>
 <% end %>
+</div>
 <br/>
   <div class="row">
     <div class="small-12 columns">

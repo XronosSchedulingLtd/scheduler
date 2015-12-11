@@ -70,14 +70,12 @@
 }
 
 .commitment-yes {
-  background: #98fb50;      // Pale green
   padding-left: 3px;
   padding-right: 3px;
   border-radius: 2px;
 }
 
 .commitment-no {
-  background: #ff7070;
   padding-left: 3px;
   padding-right: 3px;
   border-radius: 2px;
@@ -108,15 +106,25 @@
   float: left;
 }
 
-#wholeForm {
+#events-dialogue {
   position: relative;
 }
 
-#event_notes {
+#event-notes {
   position: relative;
 }
 
-#doneButton {
+#event-editing-upper {
+  position: relative;
+}
+
+#event-dialogue-buttons {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+}
+
+#event-done-button {
   position: absolute;
   bottom: 0px;
   right: 0px;

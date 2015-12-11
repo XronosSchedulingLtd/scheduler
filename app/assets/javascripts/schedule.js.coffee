@@ -224,7 +224,7 @@ window.replaceCommitments = (new_html) ->
   $('#fullcalendar').data("dorefresh", "1")
 
 window.noClicked = (event) ->
-  response = prompt("Please give a brief reason for rejecting this request:")
+  response = prompt("Please state the problem briefly:")
   if response == null
     #
     #  User clicked cancel.
@@ -250,10 +250,10 @@ window.primeCloser = ->
     $('#eventModal').foundation('reveal', 'close')
 
 window.hideCloser = ->
-  $('#doneButton').hide()
+  $('#event-done-button').hide()
 
 window.showCloser = ->
-  $('#doneButton').show()
+  $('#event-done-button').show()
 
 window.resized = (event) ->
   $('#fullcalendar').fullCalendar('option',

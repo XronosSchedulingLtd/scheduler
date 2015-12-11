@@ -78,25 +78,7 @@ module CommitmentsHelper
         #
         #  And any buttons?
         #
-        if (commitment.tentative || commitment.constraining) &&
-           user.can_approve?(commitment)
-          #
-          #  Usually we don't get a delete link, but it's just possible
-          #  we might.  If we actually own the event, rather than just
-          #  having overriding edit permission (usually brought on by
-          #  controlling one of the resources) then we still need the button.
-          #
-          if editing && user.owns?(event)
-            body = "#{body} #{delete_link(commitment)}"
-          end
-          if commitment.rejected
-            body = "#{body} #{approve_link(commitment, "Yes")}" 
-          elsif commitment.tentative
-            body = "#{body} #{approve_link(commitment, "Yes")}/#{reject_link(commitment, "No")}" 
-          else
-            body = "#{body} #{reject_link(commitment, "No")}" 
-          end
-        elsif editing
+        if editing
           body = "#{body} #{delete_link(commitment)}"
         end
         result << "<li>#{body}</li>"

@@ -56,6 +56,7 @@ Rails.application.routes.draw do
     resources :notes, shallow: true
     member do
       get :shownotes
+      get :canceledit
       put 'moved'
       post :clone
       post :upload

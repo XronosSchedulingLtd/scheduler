@@ -1,5 +1,5 @@
 <% if @event %>
-$('#editing_form').html("<%=j render partial: "form", object: @event, locals: {editing: true} %>");
+$('#events-dialogue').html("<%=j render partial: "form", object: @event, locals: {editing: true} %>");
 $('.datetimepicker').datetimepicker( { dateFormat: "dd/mm/yy", stepMinute: 5 });
 $('#clone_button').hide()
 $('#cloned_message').show("fade", 1000, function() {$('#cloned_message').hide("fade", 1000, function () {$('#clone_button').show()})});

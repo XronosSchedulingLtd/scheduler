@@ -423,12 +423,18 @@ class Event < ActiveRecord::Base
   #
   def commitments_for(user)
     by_type = Hash.new
+    approvables = Array.new
     all_commitments =
       self.commitments.preload(:element).to_a   # to_a to force the d/b hit.
     all_commitments.each do |c|
-      by_type[c.element.entity_type] ||=
-        CommitmentSet.new(c.element.entity_type)
-      by_type[c.element.entity_type] << c
+      if user && user.can_approve?(c) &&
+         (c.tentative || c.rejected || c.constraining)
+        approvables << c
+      else
+        by_type[c.element.entity_type] ||=
+          CommitmentSet.new(c.element.entity_type)
+        by_type[c.element.entity_type] << c
+      end
     end
     if user
       #
@@ -439,7 +445,7 @@ class Event < ActiveRecord::Base
         by_type["Group"],
         by_type["Location"],
         by_type["Service"],
-        by_type["Property"]].compact, []]
+        by_type["Property"]].compact, approvables]
     else
       #
       #  The general public get to see just Staff, Locations and Groups.

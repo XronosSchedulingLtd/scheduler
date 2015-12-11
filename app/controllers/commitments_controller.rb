@@ -127,7 +127,6 @@ class CommitmentsController < ApplicationController
   #
   def approve
     @event = @commitment.event
-    @editing = current_user.can_edit?(@event)
     if current_user.can_approve?(@commitment) && @commitment.tentative
       @commitment.approve_and_save!(current_user)
       @event.reload
@@ -139,6 +138,8 @@ class CommitmentsController < ApplicationController
         UserMailer.event_complete_email(@event).deliver
       end
     end
+    visible_commitments, @approvable_commitments =
+      @event.commitments_for(current_user)
     respond_to do |format|
       format.js
     end
@@ -147,13 +148,14 @@ class CommitmentsController < ApplicationController
   # PUT /commitments/1/reject.js
   def reject
     @event = @commitment.event
-    @editing = current_user.can_edit?(@event)
     if current_user.can_approve?(@commitment) &&
       (@commitment.tentative || @commitment.constraining)
       @commitment.reject_and_save!(current_user, params[:reason])
       @event.reload
       UserMailer.commitment_rejected_email(@commitment).deliver
     end
+    visible_commitments, @approvable_commitments =
+      @event.commitments_for(current_user)
     respond_to do |format|
       format.js
     end
