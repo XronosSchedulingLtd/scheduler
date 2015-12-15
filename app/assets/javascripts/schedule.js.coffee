@@ -218,9 +218,13 @@ window.refreshConcerns = ->
   $('#current_user').load('/concerns/sidebar', window.activateCheckboxes)
   $('#fullcalendar').fullCalendar('refetchEvents')
 
-window.replaceCommitments = (new_html) ->
-  $('#event_resources').html(new_html)
+window.replaceShownCommitments = (new_html) ->
+  $('#show-all-commitments').html(new_html)
   $('.rejection-link').click(window.noClicked)
+  $('#fullcalendar').data("dorefresh", "1")
+
+window.replaceEditingCommitments = (new_html) ->
+  $('#event_resources').html(new_html)
   $('#fullcalendar').data("dorefresh", "1")
 
 window.noClicked = (event) ->

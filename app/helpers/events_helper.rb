@@ -38,9 +38,9 @@ module EventsHelper
     if commitment.rejected
       text = "#{text} #{approve_link(commitment, "Confirm")}"
     elsif commitment.tentative
-      text = "#{text} #{approve_link(commitment, "Confirm")} / #{reject_link(commitment, "Send back message")}"
+      text = "#{text} #{approve_link(commitment, "Confirm")} / #{reject_link(commitment, "Raise issue")}"
     else
-      text = "#{text} #{reject_link(commitment, "Send back message")}"
+      text = "#{text} #{reject_link(commitment, "Raise issue")}"
     end
     text.html_safe
   end

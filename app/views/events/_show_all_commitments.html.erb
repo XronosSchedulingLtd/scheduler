@@ -1,0 +1,13 @@
+<div class="row">
+  <%= render partial: "events/commitment_set",
+    collection: @visible_commitments,
+    locals: {singleton: @visible_commitments.size == 1}
+  %>
+</div>
+<% if @approvable_commitments.size > 0 %>
+  <div class="row">
+    <%= render partial: "events/commitment_for_approval",
+               collection: @approvable_commitments %>
+  </div>
+<% end %>
+

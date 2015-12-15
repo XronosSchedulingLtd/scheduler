@@ -43,6 +43,7 @@ class NotesController < ApplicationController
   end
 
   def update
+    @commitment_updated = false
     @note = Note.find(params[:id])
     parent = @note.parent
     if parent.instance_of?(Event)
@@ -58,6 +59,13 @@ class NotesController < ApplicationController
     #
     if current_user.can_edit?(@note)
       @note.update(note_params)
+      if @note.parent.instance_of?(Commitment) &&
+         (@note.parent.rejected || @note.parent.constraining)
+        @note.parent.revert_and_save!
+        @visible_commitments, @approvable_commitments =
+          @event.commitments_for(current_user)
+        @commitment_updated = true
+      end
     end
     @notes = @event.all_notes_for(current_user)
     respond_to do |format|

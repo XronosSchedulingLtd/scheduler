@@ -85,7 +85,6 @@ class CommitmentsController < ApplicationController
         #  change, they will appear to change in the note too.
         #
         #note.contents = @commitment.element.promptnote.contents
-        note.read_only = @commitment.element.promptnote.read_only
         note.owner = current_user
         note.save
       end
@@ -138,7 +137,7 @@ class CommitmentsController < ApplicationController
         UserMailer.event_complete_email(@event).deliver
       end
     end
-    visible_commitments, @approvable_commitments =
+    @visible_commitments, @approvable_commitments =
       @event.commitments_for(current_user)
     respond_to do |format|
       format.js
@@ -154,7 +153,7 @@ class CommitmentsController < ApplicationController
       @event.reload
       UserMailer.commitment_rejected_email(@commitment).deliver
     end
-    visible_commitments, @approvable_commitments =
+    @visible_commitments, @approvable_commitments =
       @event.commitments_for(current_user)
     respond_to do |format|
       format.js

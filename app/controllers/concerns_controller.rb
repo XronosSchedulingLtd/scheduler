@@ -86,6 +86,7 @@ class ConcernsController < ApplicationController
         @item_report = Itemreport.new
         @item_report.concern = @concern
       end
+      @element = @concern.element
       #
       #  There's quite a bit of thinking about what flags to show, so
       #  do it here rather than in the view.

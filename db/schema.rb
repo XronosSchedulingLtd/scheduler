@@ -272,7 +272,6 @@ ActiveRecord::Schema.define(version: 20151129120134) do
     t.boolean  "visible_guest", default: false
     t.boolean  "visible_staff", default: true
     t.boolean  "visible_pupil", default: false
-    t.boolean  "read_only",     default: false
     t.integer  "note_type",     default: 0
     t.datetime "created_at"
     t.datetime "updated_at"

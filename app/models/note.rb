@@ -61,4 +61,15 @@ class Note < ActiveRecord::Base
       read_attribute(:contents)
     end
   end
+
+  #
+  #  This used to be a database field, but it's now calculated
+  #  dynamically.  To be read only, we need to have a prompt
+  #  note and that prompt note needs to have the read only
+  #  flag set.
+  #
+  def read_only
+    self.promptnote && self.promptnote.read_only
+  end
+
 end

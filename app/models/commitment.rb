@@ -101,6 +101,12 @@ class Commitment < ActiveRecord::Base
     self.save!
   end
 
+  def revert_and_save!
+    self.tentative = true
+    self.rejected  = false
+    self.save!
+  end
+
   #
   #  Clone an existing commitment and save to d/b.
   #  Note that you *must* provide at least one modifier or the save
@@ -110,6 +116,12 @@ class Commitment < ActiveRecord::Base
     new_self = self.dup
     modifiers.each do |key, value|
       new_self.send("#{key}=", value)
+    end
+    #
+    #  Existing approvals don't get carried over.
+    #
+    if new_self.constraining
+      new_self.tentative = true
     end
     new_self.save!
     new_self

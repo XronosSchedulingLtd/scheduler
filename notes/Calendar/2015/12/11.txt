@@ -52,16 +52,14 @@ Now let's see if we can get the whole sequence going.
 [*] Done closes the dialogue.
 [*] Cloning should work as it does at present.  The new event is shown.
 [*] When you start to edit a note, your cursor should be positioned in the text box.
-[ ] Approvals should be done from the show screen.
-[ ] Changing the timing of an event should reset approvals to pending
-[ ] Changing the text of a note attached to a commitment should reset that commitment to pending
-[ ] Choices should be "Confirm" and "Send back message".
-[ ] A cloned copy of an event should not carry over any approvals.
-[ ] The means to delete a pro-forma.
-[ ] The read-only bit should only be in the pro-forma.  Thus it can be changed after the note is created.
-[ ] Pro-forma should have Save and Cancel buttons.
-[ ] A constrained event should not be draggable.
-[ ] Adding the same resource twice should be handled cleanly.
+[*] Approvals should be done from the show screen.
+[*] Changing the text of a note attached to a commitment should reset that commitment to pending
+[*] Choices should be "Confirm" and "Send back message".
+[*] A cloned copy of an event should not carry over any approvals.
+[*] The means to delete a pro-forma.
+[*] The read-only bit should only be in the pro-forma.  Thus it can be changed after the note is created.
+[*] A constrained event should not be draggable.
+[*] Adding the same resource twice should be handled cleanly.
 
 I think I need an upper div, within the event editing form, to which to anchor the save and cancel buttons.  They don't make sense to go below the resources.  Why am I still getting a close box on my edit form?  Fixed that.
 
@@ -70,5 +68,7 @@ Created a new div with an id of event-editing-upper which will enclose the whole
 It occurs to me that it feels the wrong way around to have "Cancel" "Update" buttons.  Part of me really wants them to go "Update" "Cancel".  Switch them.
 
 Now, I need a way to make the cancel button work.  If I'm merely at the event creation stage then all I need to do is close the dialogue.  Otherwise I need to go back to the host for information to display.  It's much like a show, except that instead of opening the dialogue I'm just providing replacement data for the existing dialogue.
+
+Hah!  If I edit a note, that can change the approval status so updating a note needs to refresh that bit of the screen.  For consistency, I should probably refresh all commitments at all stages when one changes.
 
 Interesting - the second time I try to edit an event, I go to a full screen form.  Why?  Because I'm failing to set @minimal when re-displaying it.  Likewise I think I need to set it in the update code.

@@ -6,8 +6,8 @@ Creation-Date: 2015-12-05T07:14:31+00:00
 
 Things to do to get to having something demonstrable, although not finished:
 
-[ ] Allow approvals from show screen
-[ ] Amending a requirement should unapprove the resource
+[*] Allow approvals from show screen
+[*] Amending a requirement should unapprove the resource
 [*] Finishing off editing should throw you into show if there are any notes needed.
 [*] Newer version of the editing page (from the private events branch)
 [*] Amend note template to have two fields
@@ -19,8 +19,8 @@ Things to do to get to having something demonstrable, although not finished:
 [ ] Need scope for a reminder prompt in the event editing dialogue - "Think about services - porters, parking..."
 [*] Allow for a template which simply adds a note to the event - which the user can't edit - giving them a message.
 [*] Add minimal event information to the bottom of the show form, and remove it from the edit form.
-[ ] Perhaps move the delete and clone buttons too.
-[ ] Need to be able to delete promptnotes.
+[*] Perhaps move the delete and clone buttons too.
+[*] Need to be able to delete promptnotes.
 
 The template provides some default contents for the note, but until the user first edits the note the text is not copied across.  The template's default contents are displayed as if they were the contents of the note.  That way, if the owner of the template amends it then the display will change too.  If the user has no edit permission for the note, then the contents will never get copied over.  The default contents might be just a message - "Please submit a catering request form".
 

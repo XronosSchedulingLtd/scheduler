@@ -1,2 +1,5 @@
 $('#event-notes').html("<%=j render partial: "events/notes", object: @notes %>")
+<% if @commitment_updated %>
+  window.replaceShownCommitments("<%=j render partial: "events/show_all_commitments" %>")
+<% end %>
 window.showCloser()

@@ -1,7 +1,5 @@
 <% if @event %>
-window.replaceCommitments(
-  "<%=j render partial: "events/approvable_commitments",
-               object: @approvable_commitments
-  %>")
+window.replaceShownCommitments(
+  "<%=j render partial: "events/show_all_commitments" %>")
 $('#pending_count').html("<%= current_user.permissions_pending %>")
 <% end %>

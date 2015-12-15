@@ -10,7 +10,12 @@
       <p>Read only</p>
     <% end %>
   </div>
-  <div class="note_link">
-    <%= link_to "Edit", edit_promptnote_path(promptnote), :remote => true %>
+  <div class="small-12 columns">
+    <div class="delete_link">
+      <%= link_to "Delete pro-forma", promptnote, remote: true, method: :delete, data: { confirm: "Are you sure you want to delete this pro-forma entirely?" } %>
+    </div>
+    <div class="edit_link">
+      <%= link_to "Edit", edit_promptnote_path(promptnote), :remote => true %>
+    </div>
   </div>
 </div>

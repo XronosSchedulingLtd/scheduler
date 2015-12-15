@@ -126,14 +126,11 @@
 <% if @concern.owns && !@concern.equality %>
   <h3>Requirements pro-forma</h3>
   <p>This is what will be shown to users who request this item for their events.</p>
-  <div id="pro_forma_space">
+  <div id="pro-forma-space">
     <% if @concern.element.promptnote %>
       <%= render @concern.element.promptnote %>
     <% else %>
-      <div>None specified</div>
-      <div class="note_link">
-        <%= link_to "Create", new_element_promptnote_path(@concern.element), :remote => true %>
-      </div>
+      <%= render "promptnotes/no_promptnote.html.erb" %>
     <% end %>
     <hr/>
   </div>

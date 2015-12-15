@@ -206,6 +206,8 @@ class User < ActiveRecord::Base
       (item.owner_id == self.id ||
        (item.parent_type == "Commitment" && self.owns?(item.parent.element))) &&
        !item.read_only
+    elsif item.instance_of?(Promptnote)
+      self.owns?(item.element)
     else
       false
     end
