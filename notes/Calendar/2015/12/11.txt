@@ -1,0 +1,74 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2015-12-11T09:52:31+00:00
+
+====== Friday 11 Dec 2015 ======
+
+Now pushing to finish off the note editing.  I need to organise the structure of divs in my dialogue box and make sure all cases are covered.
+
+Divs are:
+
+'''
+<div belonging to Foundation>
+  Filled in as the dialogue box is opened, with either
+  the show form or the edit form.
+  <div id="events-dialogue">
+	Div to allow me to replace the entire contents of the
+	dialogue without closing it.  Must be created by either
+	show.html.erb or edit.html.erb, whichever appears first.
+	
+	Within this, the edit dialogue has a simple form, but
+	it can replace part of it once the event has actually been
+	created.  I should standardise the buttons at bottom
+	right.
+
+	The show dialogue has columns (provided by Foundation) and
+	the ability to replace part of the right hand column by
+	a note editing dialogue.  Whilst that is on view, the
+	"Done" button is hidden.
+
+  </div>
+</div>
+'''
+
+Also need to cope with showing and editing //without// using the dialogue.
+
+Does anything now set or use the @minute variable?  I think I may have used it before to suppress the X top right.  This is going now anyway.  Need clear documentation of what the controllers need to set in order for the forms to be displayed.
+
+Now the editing form currently uses an enclosing div called "editing_form".  Is that referenced anywhere?  Yes, it's used in the clone partial to re-render the whole form.
+
+I am inclined to unify this and try to settle on some kind of naming convention.  Neither wholeForm nor editing_form is quite appropriate.  Something like "events_dialogue"?  Or should that be "events-dialogue" or "eventsDialogue".  What is the accepted convention for html divs?
+
+Done a bit of reading.  There do seem to be technical reasons why the hyphen is slightly preferred (can't be confused with a JavaScript object name, where the hyphen isn't allowed) so some style guides recommend you always get a hyphen in there somehow.  Since I have no other driving force at present, I'll go with that.  My global div is going to be called "events-dialogue".  Likewise, rename event_notes as event-notes.
+
+Now let's see if we can get the whole sequence going.
+
+[*] Create an event (needs a cancel button)
+[*] Before the event is created, the cancel closes the dialogue.  After, it takes you to show.
+[*] Add resources
+[*] Saving it then takes you to the show dialogue
+[*] Clicking edit on an existing event takes you to editing
+[*] Ending the edit takes you back to show.
+[*] Done closes the dialogue.
+[*] Cloning should work as it does at present.  The new event is shown.
+[*] When you start to edit a note, your cursor should be positioned in the text box.
+[ ] Approvals should be done from the show screen.
+[ ] Changing the timing of an event should reset approvals to pending
+[ ] Changing the text of a note attached to a commitment should reset that commitment to pending
+[ ] Choices should be "Confirm" and "Send back message".
+[ ] A cloned copy of an event should not carry over any approvals.
+[ ] The means to delete a pro-forma.
+[ ] The read-only bit should only be in the pro-forma.  Thus it can be changed after the note is created.
+[ ] Pro-forma should have Save and Cancel buttons.
+[ ] A constrained event should not be draggable.
+[ ] Adding the same resource twice should be handled cleanly.
+
+I think I need an upper div, within the event editing form, to which to anchor the save and cancel buttons.  They don't make sense to go below the resources.  Why am I still getting a close box on my edit form?  Fixed that.
+
+Created a new div with an id of event-editing-upper which will enclose the whole upper part of the form.  The buttons can then be anchored to that.  They go in a div with an id of event-dialogue-buttons.
+
+It occurs to me that it feels the wrong way around to have "Cancel" "Update" buttons.  Part of me really wants them to go "Update" "Cancel".  Switch them.
+
+Now, I need a way to make the cancel button work.  If I'm merely at the event creation stage then all I need to do is close the dialogue.  Otherwise I need to go back to the host for information to display.  It's much like a show, except that instead of opening the dialogue I'm just providing replacement data for the existing dialogue.
+
+Interesting - the second time I try to edit an event, I go to a full screen form.  Why?  Because I'm failing to set @minimal when re-displaying it.  Likewise I think I need to set it in the update code.

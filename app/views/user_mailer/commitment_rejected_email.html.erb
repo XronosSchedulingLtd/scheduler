@@ -7,7 +7,7 @@
     <p>
       Unfortunately, <%=
         @rejecter
-      %> has declined your request to use <%=
+      %> has identified a problem with your request to use <%=
         @element.name
       %> for "<%=
         @event.body
@@ -17,6 +17,9 @@
     </p>
     <p>
       <%= @reason %>
+    </p>
+    <p>
+      Is it possible to adjust your requirements?
     </p>
   </body>
 </html>
