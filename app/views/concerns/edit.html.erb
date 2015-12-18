@@ -99,9 +99,17 @@
                  {field: :staff,
                   annotation: "List staff involved in each event."},
                  {field: :pupils,
-                  annotation: "List pupils involved in each event."},
-                 {field: :notes,
-                  annotation: "Show notes associated with each event."}]) %>
+                  annotation: "List pupils involved in each event."}]) %>
+  <%= flag_group(f, 12, 6, "Notes", [
+                 {field: :my_notes,
+                  prompt: "Mine",
+                  annotation: "Show notes specifically relating to this item's commitment to the event(s)."},
+                 {field: :other_notes,
+                  prompt: "Other",
+                  annotation: "Show notes relating to the commitment of other items to the event(s)."},
+                 {field: :general_notes,
+                  prompt: "General",
+                  annotation: "Show general notes attached to the event(s), not related to particular items."}]) %>
   <%= flag_group(f, 12, 6, "Formatting", [
                  {field: :breaks,
                   annotation: "Put each event on a separate line of its own."},

@@ -30,7 +30,7 @@ class DaysController < ApplicationController
       suppress_empties: false,
       show_tentative:   false,
       show_firm:        true,
-      show_notes:       false
+      show_notes:       ""
     }
     era = Setting.next_era || Setting.current_era
     start_date   = Date.today
@@ -115,7 +115,7 @@ class DaysController < ApplicationController
       options[:show_firm] = true
     end
     if params.has_key?(:notes)
-      options[:show_notes] = true
+      options[:show_notes] = params[:notes]
       #
       #  Trying to show notes without each event on its own separate
       #  line is just too difficult.
@@ -172,7 +172,7 @@ class DaysController < ApplicationController
     start_date.upto(end_date) do |date|
       start_of_day = Time.zone.parse(date.strftime("%Y-%m-%d"))
       end_of_day = Time.zone.parse((date + 1.day).strftime("%Y-%m-%d"))
-      day = Day.new(date, options, current_user)
+      day = Day.new(date, options, current_user, element)
       dbevents.select {|dbe| dbe.starts_at < end_of_day &&
                              dbe.ends_at   > start_of_day}.
                select {|dbe| !options[:do_compact] ||

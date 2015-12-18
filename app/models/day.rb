@@ -125,15 +125,39 @@ class Day
         @table_text =
           @table_text.chomp(".") + " - " + @locations_string + "."
       end
-      if day.options[:show_notes]
+      unless day.options[:show_notes].empty?
         #
         #  Need to accumulate the notes suitable for the current user,
         #  who may not be logged in.  Non logged in users get just
         #  public notes.  We therefore need to know who the user is.
         #
+        #  Three flag letters M, O and G.
+        #  M for notes connected to the current item
+        #  O for notes connected to other items
+        #  G for general notes, not specific to an item.
+        #
+        selector = day.options[:show_notes]
         event.all_notes_for(current_user).each do |n|
           unless n.contents.blank?
-            @note_contents << n.contents
+            #
+            #  Now need to decide what category it falls into, and
+            #  thus whether to include it.
+            #
+            if n.parent_type == "Commitment"
+              if n.parent.element_id == day.element.id
+                if selector.include?("M")
+                  @note_contents << n.contents
+                end
+              else
+                if selector.include?("O")
+                  @note_contents << n.contents
+                end
+              end
+            else
+              if selector.include?("G")
+                @note_contents << n.contents
+              end
+            end
           end
         end
       end
@@ -169,14 +193,16 @@ class Day
   end
 
   attr_reader :date,
+              :element,
               :all_day_events,
               :timed_events,
               :starts_at,
               :ends_at,
               :options
 
-  def initialize(date, options, user)
+  def initialize(date, options, user, element)
     @date = date
+    @element = element
     @starts_at = Time.zone.parse(date.strftime("%Y-%m-%d"))
     @ends_at   = Time.zone.parse((date + 1.day).strftime("%Y-%m-%d"))
     @options   = options

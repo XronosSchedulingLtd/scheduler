@@ -19,3 +19,26 @@ Just noticed something - if the owner of a resource adds it to an event then it 
 Ah - no notes are being attached at all.  It also takes two goes to attach a note-enabled resource.  Clearly I've broken something, but what?  Trying to write to the read_only attribute seems to be the problem.  Why does it succeed at the second attempt?  The second attempt doesn't create the commitment - it just refreshes the display.  Fixed that.
 
 I think I'm approaching the point where I could promote it to my staging server.  Most of the issues have now been addressed.
+
+To deploy the new code on the staging server, we push the branch to the origin and then do:
+
+'''
+git fetch origin notes
+git checkout notes
+'''
+
+
+The new code has not yet been merged back into the master branch.
+
+Fetched over the latest backup d/b from the live system and loaded it onto the staging server.  Applied last night's updates.
+
+I will need to do the following:
+
+[*] export RAILS_ENV=production
+[*] git fetch origin notes:notes
+[*] git checkout notes
+[*] rake db:migrate
+[*] rake assets:precompile
+[*] touch tmp/restart.txt
+
+Then create my two new services and attach reasonably stupid criteria to them.  Then send an e-mail asking people to take a look.

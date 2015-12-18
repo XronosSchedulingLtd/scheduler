@@ -5,6 +5,40 @@ class Itemreport < ActiveRecord::Base
   belongs_to :excluded_element,
              :class_name => :Element
 
+  #
+  #  Note that the concept of my_notes here relates to the item.  It's
+  #  not a question of who owns the note, but whether it relates to
+  #  this item's commitment to each event.
+  #
+  store :note_flags, accessors: [:my_notes, :other_notes, :general_notes]
+
+  #
+  #  Force the above to store as booleans.
+  #
+  def my_notes=(value)
+    if value == "1"
+      super(true)
+    else
+      super(false)
+    end
+  end
+
+  def other_notes=(value)
+    if value == "1"
+      super(true)
+    else
+      super(false)
+    end
+  end
+
+  def general_notes=(value)
+    if value == "1"
+      super(true)
+    else
+      super(false)
+    end
+  end
+
   def excluded_element_name
     if self.excluded_element
       excluded_element.name
@@ -24,6 +58,10 @@ class Itemreport < ActiveRecord::Base
     else
       @report_type = :html
     end
+  end
+
+  def note_options
+    "#{self.my_notes ? "M" : ""}#{self.other_notes ? "O" : ""}#{self.general_notes ? "G" : ""}"
   end
 
   #
@@ -50,7 +88,9 @@ class Itemreport < ActiveRecord::Base
     extras << "suppress_empties" if self.suppress_empties
     extras << "tentative" if self.tentative
     extras << "firm" if self.firm
-    extras << "notes" if self.notes
+    if self.my_notes || self.other_notes || self.general_notes
+      extras << "notes=#{note_options}"
+    end
     extras << "exclude=#{self.excluded_element_id}" if self.excluded_element_id
     extras << "start_date=#{self.starts_on}" if self.starts_on
     extras << "end_date=#{self.ends_on}" if self.ends_on

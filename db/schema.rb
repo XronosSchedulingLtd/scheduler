@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151129120134) do
+ActiveRecord::Schema.define(version: 20151218103729) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -223,6 +223,7 @@ ActiveRecord::Schema.define(version: 20151129120134) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.boolean  "notes",               default: false
+    t.string   "note_flags",          default: ""
   end
 
   add_index "itemreports", ["concern_id"], name: "index_itemreports_on_concern_id", using: :btree

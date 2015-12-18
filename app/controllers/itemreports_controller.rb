@@ -51,7 +51,7 @@ class ItemreportsController < ApplicationController
                   :staff, :pupils, :periods, :starts_on,
                   :ends_on, :twelve_hour, :end_time,
                   :breaks, :suppress_empties, :tentative,
-                  :firm, :notes, :categories,
+                  :firm, :my_notes, :other_notes, :general_notes, :categories,
                   :excluded_element_name, :excluded_element_id)
   end
 
