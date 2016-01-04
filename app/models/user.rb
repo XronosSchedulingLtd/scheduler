@@ -526,6 +526,7 @@ class User < ActiveRecord::Base
   #
   def set_initial_permissions
     if self.staff?
+      self.editor           = true
       self.can_has_groups   = true
       self.can_find_free    = true
       self.can_add_concerns = true

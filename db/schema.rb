@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151218103729) do
+ActiveRecord::Schema.define(version: 20160104162125) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -21,7 +21,7 @@ ActiveRecord::Schema.define(version: 20151218103729) do
     t.string   "meta_data"
     t.string   "saved_as"
     t.boolean  "visible_guest",      default: false
-    t.boolean  "visible_staff",      default: true
+    t.boolean  "visible_staff",      default: false
     t.boolean  "visible_pupil",      default: false
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -271,7 +271,7 @@ ActiveRecord::Schema.define(version: 20151218103729) do
     t.integer  "owner_id"
     t.integer  "promptnote_id"
     t.boolean  "visible_guest", default: false
-    t.boolean  "visible_staff", default: true
+    t.boolean  "visible_staff", default: false
     t.boolean  "visible_pupil", default: false
     t.integer  "note_type",     default: 0
     t.datetime "created_at"
