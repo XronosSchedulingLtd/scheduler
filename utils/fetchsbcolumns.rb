@@ -47,7 +47,7 @@ class SchoolBaseScanner
       else
         if (row[type_index] == "TABLE")
           table_name = row[name_index]
-          self.invoke_sql("select count(*) from #{table_name};", "#{TARGET_DIR}#{table_name}.count")
+          self.invoke_sql("select count(*) from [#{table_name}];", "#{TARGET_DIR}#{table_name}.count")
         end
       end
     end
