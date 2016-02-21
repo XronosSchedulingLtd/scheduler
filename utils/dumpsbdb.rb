@@ -15,6 +15,7 @@
 
 require 'tempfile'
 require 'csv'
+require 'tiny_tds'
 
 TARGET_DIR="/home/john/Work/Coding/scheduler/import/tables/dump/"
 UTILITY="/usr/bin/isql"
@@ -22,7 +23,7 @@ UTILITY="/usr/bin/isql"
 class SchoolBaseDumper
   @@password = nil
 
-  def self.invoke_sql(command, output_file = nil)
+  def self.old_invoke_sql(command, output_file = nil)
     tf = Tempfile.new("foo")
     puts "Temporary file is #{tf.path}"
     tf.puts command 
@@ -36,6 +37,34 @@ class SchoolBaseDumper
       puts "Command is \"#{command}\""
       `#{command}`
     end
+  end
+
+  def self.invoke_sql(command, output_file = nil)
+    client = TinyTds::Client.new(
+      username: "winters",
+      password: @@password,
+      dataserver: "Schoolbase",
+      database: "Schoolbase")
+    result = client.execute(command)
+    fields = result.fields
+    if output_file
+      CSV.open(output_file, "wb") do |csv|
+        csv << fields
+        result.each do |row|
+          csv << fields.collect {|f| row[f]}
+        end
+      end
+      csv_string = ""
+    else
+      csv_string = CSV.generate do |csv|
+        csv << fields
+        result.each do |row|
+          csv << fields.collect {|f| row[f]}
+        end
+      end
+    end
+    client.close
+    csv_string
   end
 
   def self.dump_tables
