@@ -69,7 +69,7 @@ class SchoolBaseDumper
 
   def self.dump_tables
     get_password unless @@password
-    listing = self.invoke_sql("help")
+    listing = self.old_invoke_sql("help")
     processed = CSV.parse(listing)
     name_index = nil
     type_index = nil
