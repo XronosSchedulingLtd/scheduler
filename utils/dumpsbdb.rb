@@ -50,8 +50,15 @@ class SchoolBaseDumper
     if output_file
       CSV.open(output_file, "wb") do |csv|
         csv << fields
-        result.each do |row|
-          csv << fields.collect {|f| row[f]}
+        result.each(:cache_rows => false) do |row|
+          csv << fields.collect do |f|
+            data = row[f]
+            if data.class == String && data.encoding != Encoding::UTF_8
+              data.force_encoding("iso-8859-1").encode("utf-8")
+            else
+              data
+            end
+          end
         end
       end
       csv_string = ""
