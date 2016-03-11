@@ -83,6 +83,7 @@ class Itemreport < ActiveRecord::Base
     extras << "pupils" if self.pupils
     extras << "periods" if self.periods
     extras << "twelve_hour" if self.twelve_hour
+    extras << "no_space" if self.no_space
     extras << "no_end_time" unless self.end_time
     extras << "breaks" if self.breaks
     extras << "suppress_empties" if self.suppress_empties

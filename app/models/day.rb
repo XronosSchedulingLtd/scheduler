@@ -107,7 +107,8 @@ class Day
           @duration_string =
             event.duration_string(day.options[:clock_format],
                                   day.options[:end_times] ||
-                                  !event.compactable?)
+                                  !event.compactable?,
+                                  day.options[:no_space])
         end
         @table_text =
           "#{@duration_string} #{event.tidied_body(true)}"

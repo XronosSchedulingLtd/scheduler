@@ -56,4 +56,6 @@ gem 'daemons'
 gem 'chronic_duration'
 gem 'dalli'
 gem 'spectrum-rails'
-gem 'tiny_tds'
+group :production do
+  gem 'tiny_tds'
+end

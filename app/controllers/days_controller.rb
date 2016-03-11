@@ -25,6 +25,7 @@ class DaysController < ApplicationController
       add_pupils:       false,
       by_period:        false,
       clock_format:     :twenty_four_hour,
+      no_space:         false,
       end_times:        true,
       do_breaks:        false,
       suppress_empties: false,
@@ -93,6 +94,9 @@ class DaysController < ApplicationController
     end
     if params.has_key?(:twelve_hour)
       options[:clock_format] = :twelve_hour
+    end
+    if params.has_key?(:no_space)
+      options[:no_space] = true
     end
     if params.has_key?(:no_end_time)
       options[:end_times] = false

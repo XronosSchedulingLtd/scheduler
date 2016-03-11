@@ -49,7 +49,7 @@ class ItemreportsController < ApplicationController
     params.require(:itemreport).
            permit(:concern_id, :compact, :duration, :mark_end, :locations,
                   :staff, :pupils, :periods, :starts_on,
-                  :ends_on, :twelve_hour, :end_time,
+                  :ends_on, :twelve_hour, :no_space, :end_time,
                   :breaks, :suppress_empties, :tentative,
                   :firm, :my_notes, :other_notes, :general_notes, :categories,
                   :excluded_element_name, :excluded_element_id)
