@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160311110710) do
+ActiveRecord::Schema.define(version: 20160514080030) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -58,6 +58,7 @@ ActiveRecord::Schema.define(version: 20160311110710) do
     t.boolean  "auto_add",         default: false
     t.boolean  "controls",         default: false
     t.boolean  "skip_permissions", default: false
+    t.boolean  "seek_permission",  default: false
   end
 
   add_index "concerns", ["element_id"], name: "index_concerns_on_element_id", using: :btree

@@ -17,12 +17,13 @@ class Concern < ActiveRecord::Base
   scope :owned, -> {where(owns: true)}
   scope :not_owned, -> {where.not(owns: true)}
   scope :skip_permissions, -> {where(skip_permissions: true)}
+  scope :seek_permission, -> {where(seek_permission: true)}
   scope :controlling, -> {where(controls: true)}
   scope :not_controlling, -> {where.not(controls: true)}
   #
   #  ActiveRecord scopes are not good at OR conditions, so resort to SQL.
   #
-  scope :can_commit, -> {where("owns = ? OR skip_permissions = ?", true, true)}
+  scope :can_commit, -> {where("(owns = ? OR skip_permissions = ?) AND seek_permission = ?", true, true, false)}
 
   scope :visible, -> { where(visible: true) }
 

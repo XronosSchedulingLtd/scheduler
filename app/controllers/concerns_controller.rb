@@ -105,6 +105,11 @@ class ConcernsController < ApplicationController
            prompt: "Approve events",
            annotation: "Do you want to approve events as you are added to them?"}
       end
+      if @concern.owns || @concern.skip_permissions
+        @options_flags <<
+          {field: :seek_permission,
+           annotation: "Although you can add this resource without permission, would you like to go through the permissions process anyway?"}
+      end
     else
       redirect_to :back
     end
@@ -179,6 +184,6 @@ class ConcernsController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def concern_params
-    params.require(:concern).permit(:element_id, :name, :visible, :colour, :auto_add, :owns)
+    params.require(:concern).permit(:element_id, :name, :visible, :colour, :auto_add, :owns, :seek_permission)
   end
 end
