@@ -68,6 +68,8 @@ Rails.application.routes.draw do
     get :index, :on => :collection
   end
 
+  resources :datasources
+
   resources :eventsources
 
   resources :eventcategories

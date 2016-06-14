@@ -9,6 +9,8 @@ class Pupil < ActiveRecord::Base
 
   include Elemental
 
+  belongs_to :datasource
+
   self.per_page = 15
 
   scope :current, -> { where(current: true) }

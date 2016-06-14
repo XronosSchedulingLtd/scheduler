@@ -9,6 +9,7 @@ class Staff < ActiveRecord::Base
 
   include Elemental
 
+  belongs_to :datasource
   #
   #  Has only one per year, but in terms of data structues, has many.
   #

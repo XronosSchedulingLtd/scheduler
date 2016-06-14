@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160514080030) do
+ActiveRecord::Schema.define(version: 20160614155709) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -63,6 +63,12 @@ ActiveRecord::Schema.define(version: 20160514080030) do
 
   add_index "concerns", ["element_id"], name: "index_concerns_on_element_id", using: :btree
   add_index "concerns", ["user_id"], name: "index_concerns_on_user_id", using: :btree
+
+  create_table "datasources", force: true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "delayed_jobs", force: true do |t|
     t.integer  "priority",   default: 0, null: false
@@ -329,9 +335,11 @@ ActiveRecord::Schema.define(version: 20160514080030) do
     t.integer  "source_id"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "current",      default: false
+    t.boolean  "current",       default: false
+    t.integer  "datasource_id"
   end
 
+  add_index "pupils", ["datasource_id"], name: "index_pupils_on_datasource_id", using: :btree
   add_index "pupils", ["source_id"], name: "index_pupils_on_source_id", using: :btree
 
   create_table "services", force: true do |t|
@@ -361,11 +369,13 @@ ActiveRecord::Schema.define(version: 20160514080030) do
     t.boolean  "active"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "current",    default: false
+    t.boolean  "current",       default: false
     t.boolean  "teaches"
     t.boolean  "does_cover"
+    t.integer  "datasource_id"
   end
 
+  add_index "staffs", ["datasource_id"], name: "index_staffs_on_datasource_id", using: :btree
   add_index "staffs", ["source_id"], name: "index_staffs_on_source_id", using: :btree
 
   create_table "taggrouppersonae", force: true do |t|
