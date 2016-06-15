@@ -10,7 +10,6 @@ require 'optparse/date'
 require 'ostruct'
 require 'yaml'
 require 'nokogiri'
-#require 'ruby-prof'
 
 #
 #  The following line means I can just run this as a Ruby script, rather
@@ -128,17 +127,122 @@ class IS_Loader
 
   end
 
-  def read_isams_data
+  def read_isams_data(options)
     data = Nokogiri::XML(File.open(Rails.root.join(IMPORT_DIR, "data.xml")))
-    staff =  IS_Staff.slurp(data)
-    puts "Got #{staff.count} staff."
-    puts staff[0].inspect
-    pupils = IS_Pupil.slurp(data)
-    puts "Got #{pupils.count} pupils."
-    puts pupils[0].inspect
+    @staff =  IS_Staff.slurp(data)
+    puts "Got #{staff.count} staff." if options.verbose
+    @pupils = IS_Pupil.slurp(data)
+    puts "Got #{pupils.count} pupils." if options.verbose
+  end
+
+  def do_staff
+  end
+
+  #
+  #  Compare our list of pupils read from iSAMS with those currently
+  #  held in Scheduler.  Update as appropriate.
+  #
+  def do_pupils
+    if @pupils
+    else
+    end
+  end
+
+  def initialize(options)
+    read_isams_data(options)
+    yield self if block_given?
+  end
+
+end
+
+def finished(options, stage)
+  if options.do_timings
+    puts "#{Time.now.strftime("%H:%M:%S")} finished #{stage}."
   end
 end
 
-loader = IS_Loader.new
-loader.read_isams_data
+begin
+  options = OpenStruct.new
+  options.verbose         = false
+  options.full_load       = false
+  options.just_initialise = false
+  options.send_emails     = false
+  options.do_timings      = false
+  options.era             = nil
+  options.start_date      = nil
+  OptionParser.new do |opts|
+    opts.banner = "Usage: importsb.rb [options]"
+
+    opts.on("-i", "--initialise", "Initialise only") do |i|
+      options.just_initialise = i
+    end
+
+    opts.on("-v", "--verbose", "Run verbosely") do |v|
+      options.verbose = v
+    end
+
+    opts.on("-f", "--full",
+            "Do a full load",
+            "(as opposed to incremental.  Doesn't",
+            "actually affect what gets loaded, but",
+            "does affect when it's loaded from.)") do |f|
+      options.full_load = f
+    end
+
+    opts.on("-e", "--era [ERA NAME]",
+            "Specify the era to load data into.") do |era|
+      options.era = era
+    end
+
+    opts.on("--email",
+            "Generate e-mails about cover issues.") do |email|
+      options.send_emails = email
+    end
+
+    opts.on("--timings",
+            "Log the time at various stages in the processing.") do |timings|
+      options.do_timings = timings
+    end
+
+    opts.on("-s", "--start [DATE]", Date,
+            "Specify an over-riding start date",
+            "for loading events.") do |date|
+      options.start_date = date
+    end
+
+  end.parse!
+
+  IS_Loader.new(options) do |loader|
+    unless options.just_initialise
+      finished(options, "initialisation")
+      loader.do_pupils
+      finished(options, "pupils")
+      loader.do_staff
+      finished(options, "staff")
+#      loader.do_locations
+#      finished(options, "locations")
+#      loader.do_tutorgroups
+#      finished(options, "tutor groups")
+#      loader.do_teachinggroups
+#      finished(options, "teaching groups")
+#      loader.do_timetable
+#      finished(options, "timetable")
+#      loader.do_cover
+#      finished(options, "cover")
+#      loader.do_other_half
+#      finished(options, "other half")
+#      loader.do_auto_groups
+#      finished(options, "automatic groups")
+#      loader.do_extra_groups
+#      finished(options, "extra groups")
+#      loader.do_duties
+#      finished(options, "duties")
+#      loader.do_taggroups
+#      finished(options, "tagggroups")
+    end
+  end
+rescue RuntimeError => e
+  puts e
+end
+
 
