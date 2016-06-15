@@ -22,14 +22,18 @@ class Datasource < ActiveRecord::Base
        staff_count = 0
        pupil_count = 0
        Staff.all.each do |s|
-         s.datasource = ds
-         s.save!
-         staff_count += 1
+         unless s.datasource
+           s.datasource = ds
+           s.save!
+           staff_count += 1
+         end
        end
        Pupil.all.each do |p|
-         p.datasource = ds
-         p.save!
-         pupil_count += 1
+         unless p.datasource
+           p.datasource = ds
+           p.save!
+           pupil_count += 1
+         end
        end
        puts "Grabbed #{staff_count} staff and #{pupil_count} pupils."
        nil
