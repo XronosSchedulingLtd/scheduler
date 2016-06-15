@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2016 John Winters
-# Portions Copyright (C) 2014 Abingdon School
+# Portions Copyright (C) 2014-16 Abingdon School
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -84,6 +84,163 @@ module Creator
       results
     end
   end
+end
+
+module DatabaseAccess
+
+  def self.included(base)
+    @dbrecord = nil
+    @belongs_to_era = nil
+    @checked_dbrecord = false
+    @element_id = nil
+  end
+
+  #
+  #  Compares selected fields in a database record and a memory record,
+  #  and updates any which differ.  If anything is changed, then saves
+  #  the record back to the database.  Gives the calling code a chance
+  #  to add changes too.
+  #
+  def check_and_update(extras = nil)
+    #
+    #  For this first reference, we call the dbrecord method, rather than
+    #  accessing the instance variable directly.  This is in order to cause
+    #  it to be initialised if it isn't already.
+    #
+    return false unless dbrecord
+    changed = false
+    self.class.const_get(:FIELDS_TO_UPDATE).each do |field_name|
+      if @dbrecord.send(field_name) != self.instance_variable_get("@#{field_name}")
+        puts "Field #{field_name} differs for #{self.name}"
+        puts "d/b: \"#{@dbrecord.send(field_name)}\" SB: \"#{self.instance_variable_get("@#{field_name}")}\""
+#        @dbrecord[field_name] = self.instance_variable_get("@#{field_name}")
+#                entry.send("#{attr_name}=", row[column_hash[attr_name]])
+         @dbrecord.send("#{field_name}=",
+                        self.instance_variable_get("@#{field_name}"))
+        changed = true
+      end
+    end
+    if extras
+      #
+      #  extras should be a hash of additional things to change.
+      #
+      extras.each do |key, value|
+        dbvalue = @dbrecord.send("#{key}")
+        if dbvalue != value
+          puts "Field #{key} differs for #{self.name}"
+          puts "d/b: \"#{dbvalue}\"  SB: \"#{value}\""
+          @dbrecord.send("#{key}=", value)
+          changed = true
+        end
+      end
+    end
+    if changed
+      if @dbrecord.save
+        true
+      else
+        puts "Failed to save #{self.class} record #{self.name}"
+        false
+      end
+    else
+      false
+    end
+  end
+
+  def save_to_db(extras = nil)
+    if dbrecord
+      puts "Attempt to re-create d/b record of type #{self.class.const_get(:DB_CLASS)} for #{self.source_id}"
+      false
+    else
+      newrecord = self.class.const_get(:DB_CLASS).new
+      key_field = self.class.const_get(:DB_KEY_FIELD)
+      if key_field.instance_of?(Array)
+        key_field.each do |kf|
+          newrecord.send("#{kf}=",
+                         self.send("#{kf}"))
+        end
+      else
+        newrecord.send("#{key_field}=",
+                       self.send("#{key_field}"))
+      end
+      self.class.const_get(:FIELDS_TO_CREATE).each do |field_name|
+         newrecord.send("#{field_name}=",
+                        self.instance_variable_get("@#{field_name}"))
+      end
+      if extras
+        extras.each do |key, value|
+          newrecord.send("#{key}=", value)
+        end
+      end
+      if newrecord.save
+        newrecord.reload
+        @dbrecord = newrecord
+        @belongs_to_era = newrecord.respond_to?(:era)
+        @checked_dbrecord = true
+        true
+      else
+        puts "Failed to create d/b record of type #{self.class.const_get(:DB_CLASS)} for #{self.source_id}"
+        false
+      end
+    end
+  end
+
+  def dbrecord
+    #
+    #  Don't keep checking the database if it isn't there.
+    #
+    if @checked_dbrecord
+      @dbrecord
+    else
+      @checked_dbrecord = true
+      db_class = self.class.const_get(:DB_CLASS)
+      #
+      #  Does this particular database record hang off an era?
+      #
+      @belongs_to_era = db_class.new.respond_to?(:era)
+      key_field = self.class.const_get(:DB_KEY_FIELD)
+      find_hash = Hash.new
+      if key_field.instance_of?(Array)
+        key_field.each do |kf|
+          find_hash[kf] = self.send("#{kf}")
+        end
+      else
+        find_hash[key_field] = self.send("#{key_field}")
+      end
+      if @belongs_to_era
+        find_hash[:era_id] = self.instance_variable_get("@era_id")
+      end
+      @dbrecord =
+        db_class.find_by(find_hash)
+#        self.class.const_get(:DB_CLASS).find_by_source_id(self.source_id)
+    end
+  end
+
+  #
+  #  A defensive (and cached) way to get this item's element id.
+  #
+  def element_id
+    unless @element_id
+      dbr = dbrecord
+      if dbr
+        #
+        #  Special processing needed for locations.
+        #
+        if dbr.class == Locationalias
+          if dbr.location
+            if dbr.location.element
+              @element_id = dbr.location.element.id
+            end
+          end
+        else
+          if dbr.element
+            @element_id = dbr.element.id
+          end
+        end
+      end
+    end
+    @element_id
+  end
+
 end
 
 class IS_Loader
