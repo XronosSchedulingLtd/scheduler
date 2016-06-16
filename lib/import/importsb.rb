@@ -392,6 +392,20 @@ end
 module DatabaseAccess
 
   def self.included(base)
+    #
+    #  These lines of code here basically don't work.  They're trying to
+    #  set up instance variables, but at completely the wrong time.
+    #  This code is executed during the definition of the class,
+    #  as it includes the module.  No instances even exist then.
+    #
+    #  To see it done properly, look at the importis.rb equivalent.
+    #  I will fix this one when I next have reason to make a real
+    #  change to this code.
+    #
+    #  Incidentally, the reason the rest of the code still works is
+    #  because all these initializers are setting to nil or false, which
+    #  is what un-defined instance variables behave as anyway.
+    #
     @dbrecord = nil
     @belongs_to_era = nil
     @checked_dbrecord = false
