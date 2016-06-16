@@ -34,6 +34,13 @@ module Creator
   end
 
   #
+  #  Default to true.  May well be over-ridden in the class.
+  #
+  def wanted
+    true
+  end
+
+  #
   #  I could just call this function initialize, but give it a slightly
   #  different name so that the includer can add more processing before or
   #  after our work.
@@ -76,7 +83,10 @@ module Creator
       entries = data.css(self::SELECTOR)
       if entries && entries.size > 0
         entries.each do |entry|
-          results << self.new(entry)
+          rec = self.new(entry)
+          if rec.wanted
+            results << rec
+          end
         end
       else
         puts "Unable to find entries using selector \"#{self::SELECTOR}\"."
@@ -88,11 +98,42 @@ end
 
 module DatabaseAccess
 
+  PRIMARY_DATA_SOURCE = "iSAMS"
+  SECONDARY_DATA_SOURCE = "SchoolBase"
+
+  #
+  #  There's quite a bit of fun here setting up variables to be used
+  #  later.  Some of them are to be instance variables, and thus can
+  #  be set up only when the including class is instantiated.  It is
+  #  thus done by hooking into that class's intialize method.
+  #
+  #  Others are to be class instance variables (not to be confused with
+  #  class variables - which begin with @@ - and are now apparently out
+  #  of fashion).  They can be set at the time we are included.
+  #
+  module Initializer
+    def initialize options = {}
+      @dbrecord = nil
+      @belongs_to_era = nil
+      @checked_dbrecord = false
+      @element_id = nil
+      @needs_converting = false
+      super
+    end
+
+  end
+
   def self.included(base)
-    @dbrecord = nil
-    @belongs_to_era = nil
-    @checked_dbrecord = false
-    @element_id = nil
+    base.send :prepend, Initializer
+    base.instance_variable_set(
+      "@primary_datasource_id",
+       Datasource.find_by(name: PRIMARY_DATA_SOURCE).id)
+    base.instance_variable_set(
+      "@secondary_datasource_id",
+       Datasource.find_by(name: SECONDARY_DATA_SOURCE).id)
+  end
+
+  def setvars
   end
 
   #
@@ -188,9 +229,7 @@ module DatabaseAccess
     #
     #  Don't keep checking the database if it isn't there.
     #
-    if @checked_dbrecord
-      @dbrecord
-    else
+    unless @checked_dbrecord
       @checked_dbrecord = true
       db_class = self.class.const_get(:DB_CLASS)
       #
@@ -204,15 +243,41 @@ module DatabaseAccess
           find_hash[kf] = self.send("#{kf}")
         end
       else
+        if key_field == :source_id
+          find_hash[:datasource_id] =
+            self.class.instance_variable_get("@primary_datasource_id")
+        end
         find_hash[key_field] = self.send("#{key_field}")
       end
       if @belongs_to_era
         find_hash[:era_id] = self.instance_variable_get("@era_id")
       end
+#      puts "Trying: #{find_hash.inspect}"
       @dbrecord =
         db_class.find_by(find_hash)
-#        self.class.const_get(:DB_CLASS).find_by_source_id(self.source_id)
+      unless @dbrecord
+        #
+        #  Didn't find it that way.  It may be possible to do
+        #  it a slightly different way.
+        #
+        if key_field == :source_id
+          find_hash = Hash.new
+          find_hash[:datasource_id] =
+            self.class.instance_variable_get("@secondary_datasource_id")
+          find_hash[key_field] = self.send("#{key_field}", true)
+          if @belongs_to_era
+            find_hash[:era_id] = self.instance_variable_get("@era_id")
+          end
+#          puts "Trying: #{find_hash.inspect}"
+          @dbrecord =
+            db_class.find_by(find_hash)
+          if @dbrecord
+            @needs_converting = true
+          end
+        end
+      end
     end
+    @dbrecord
   end
 
   #
@@ -243,53 +308,116 @@ module DatabaseAccess
 
 end
 
+class IS_Staff
+  SELECTOR = "HRManager CurrentStaff StaffMember"
+  REQUIRED_FIELDS = [
+    IsamsField["Id",                 :isams_id, :integer],
+    IsamsField["PreviousMISId",      :sb_id,    :integer],
+    IsamsField["Initials",           :initials, :string],
+    IsamsField["Title",              :title,    :string],
+    IsamsField["Forename",           :forename, :string],
+    IsamsField["Surname",            :surname,  :string],
+    IsamsField["SchoolEmailAddress", :email,    :string]
+  ]
+
+  include Creator
+
+  def initialize(entry)
+    do_initialize(entry)
+  end
+
+end
+
+class IS_Pupil
+  SELECTOR = "PupilManager CurrentPupils Pupil"
+  REQUIRED_FIELDS = [
+    IsamsField["Id",                 :isams_id,  :integer],
+    IsamsField["SchoolCode",         :sb_id,     :integer],
+    IsamsField["Initials",           :initials,  :string],
+    IsamsField["Title",              :title,     :string],
+    IsamsField["Forename",           :forename,  :string],
+    IsamsField["Surname",            :surname,   :string],
+    IsamsField["EmailAddress",       :email,     :string],
+    IsamsField["NCYear",             :nc_year,   :integer],
+    IsamsField["Fullname",           :full_name, :string]
+  ]
+
+  DB_CLASS = Pupil
+  DB_KEY_FIELD = :source_id
+  FIELDS_TO_CREATE = [
+    :name,
+    :surname,
+    :forename,
+    :known_as,
+    :email,
+    :current
+  ]
+
+  FIELDS_TO_UPDATE = [
+    :name,
+    :surname,
+    :forename,
+    :known_as,
+    :email
+  ]
+
+  include Creator
+  include DatabaseAccess
+
+  def initialize(entry)
+    do_initialize(entry)
+    setvars
+  end
+
+  def wanted
+    @nc_year && @nc_year < 20
+  end
+
+  def source_id(secondary = false)
+    if secondary
+      @sb_id
+    else
+      @isams_id
+    end
+  end
+
+  #
+  #  In what year would this pupil have started in the 1st year (NC year 7).
+  #  Calculated from his current year group, plus the current academic
+  #  year.
+  #
+  def effective_start_year(era)
+    era.starts_on.year + 7 - self.nc_year
+  end
+end
+
+
 class IS_Loader
-  class IS_Staff
-    SELECTOR = "HRManager CurrentStaff StaffMember"
-    REQUIRED_FIELDS = [
-      IsamsField["Id",                 :isams_id, :integer],
-      IsamsField["PreviousMISId",      :sb_id,    :integer],
-      IsamsField["Initials",           :initials, :string],
-      IsamsField["Title",              :title,    :string],
-      IsamsField["Forename",           :forename, :string],
-      IsamsField["Surname",            :surname,  :string],
-      IsamsField["SchoolEmailAddress", :email,    :string]
-    ]
 
-    include Creator
-
-    def initialize(entry)
-      do_initialize(entry)
-    end
-
-  end
-
-  class IS_Pupil
-    SELECTOR = "PupilManager CurrentPupils Pupil"
-    REQUIRED_FIELDS = [
-      IsamsField["Id",                 :isams_id, :integer],
-      IsamsField["SchoolCode",         :sb_id,    :integer],
-      IsamsField["Initials",           :initials, :string],
-      IsamsField["Title",              :title,    :string],
-      IsamsField["Forename",           :forename, :string],
-      IsamsField["Surname",            :surname,  :string],
-      IsamsField["EmailAddress",       :email,    :string]
-    ]
-
-    include Creator
-
-    def initialize(entry)
-      do_initialize(entry)
-    end
-
-  end
+  attr_reader :verbose, :full_load, :era, :send_emails
 
   def read_isams_data(options)
     data = Nokogiri::XML(File.open(Rails.root.join(IMPORT_DIR, "data.xml")))
     @staff =  IS_Staff.slurp(data)
-    puts "Got #{staff.count} staff." if options.verbose
+    puts "Got #{@staff.count} staff." if options.verbose
     @pupils = IS_Pupil.slurp(data)
-    puts "Got #{pupils.count} pupils." if options.verbose
+    puts "Got #{@pupils.count} pupils." if options.verbose
+  end
+
+  def initialize(options)
+    @verbose     = options.verbose
+    @full_load   = options.full_load
+    @send_emails = options.send_emails
+    if options.era
+      @era = Era.find_by_name(options.era)
+      raise "Era #{options.era} not found in d/b." unless @era
+    else
+      @era = Setting.current_era
+      raise "Current era not set." unless @era
+    end
+    raise "Perpetual era not set." unless Setting.perpetual_era
+    read_isams_data(options)
+    yield self if block_given?
   end
 
   def do_staff
@@ -301,13 +429,34 @@ class IS_Loader
   #
   def do_pupils
     if @pupils
+      prep_count = 0
+      found_count = 0
+      notfound_count = 0
+      noyear_count = 0
+      @pupils.each do |pupil|
+        if pupil.nc_year
+          if pupil.nc_year >= 20
+            prep_count += 1
+          else
+            if pupil.dbrecord
+              found_count += 1
+            else
+              puts "Pupil #{pupil.full_name} isn't in the d/b."
+              notfound_count += 1
+            end
+          end
+        else
+          puts "Pupil #{pupil.full_name} has no NC year."
+        end
+      end
+      puts "Done pupils."
+      puts "  #{prep_count} at the prep school."
+      puts "  #{found_count} in the database already."
+      puts "  #{notfound_count} not found in the database."
+      puts "  #{noyear_count} pupils with no NC year."
     else
+      puts "Don't seem to have any pupils to process."
     end
-  end
-
-  def initialize(options)
-    read_isams_data(options)
-    yield self if block_given?
   end
 
 end
