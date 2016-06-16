@@ -41,6 +41,12 @@ module Creator
   end
 
   #
+  #  Likewise, may well be over-ridden.
+  #
+  def adjust
+  end
+
+  #
   #  I could just call this function initialize, but give it a slightly
   #  different name so that the includer can add more processing before or
   #  after our work.
@@ -84,6 +90,7 @@ module Creator
       if entries && entries.size > 0
         entries.each do |entry|
           rec = self.new(entry)
+          rec.adjust
           if rec.wanted
             results << rec
           end
@@ -117,7 +124,6 @@ module DatabaseAccess
       @belongs_to_era = nil
       @checked_dbrecord = false
       @element_id = nil
-      @needs_converting = false
       super
     end
 
@@ -131,9 +137,6 @@ module DatabaseAccess
     base.instance_variable_set(
       "@secondary_datasource_id",
        Datasource.find_by(name: SECONDARY_DATA_SOURCE).id)
-  end
-
-  def setvars
   end
 
   #
@@ -153,7 +156,7 @@ module DatabaseAccess
     self.class.const_get(:FIELDS_TO_UPDATE).each do |field_name|
       if @dbrecord.send(field_name) != self.instance_variable_get("@#{field_name}")
         puts "Field #{field_name} differs for #{self.name}"
-        puts "d/b: \"#{@dbrecord.send(field_name)}\" SB: \"#{self.instance_variable_get("@#{field_name}")}\""
+        puts "d/b: \"#{@dbrecord.send(field_name)}\" IS: \"#{self.instance_variable_get("@#{field_name}")}\""
 #        @dbrecord[field_name] = self.instance_variable_get("@#{field_name}")
 #                entry.send("#{attr_name}=", row[column_hash[attr_name]])
          @dbrecord.send("#{field_name}=",
@@ -169,7 +172,7 @@ module DatabaseAccess
         dbvalue = @dbrecord.send("#{key}")
         if dbvalue != value
           puts "Field #{key} differs for #{self.name}"
-          puts "d/b: \"#{dbvalue}\"  SB: \"#{value}\""
+          puts "d/b: \"#{dbvalue}\"  IS: \"#{value}\""
           @dbrecord.send("#{key}=", value)
           changed = true
         end
@@ -272,7 +275,15 @@ module DatabaseAccess
           @dbrecord =
             db_class.find_by(find_hash)
           if @dbrecord
-            @needs_converting = true
+            #
+            #  To make things as transparent as possible to the
+            #  calling code, we're going to fix this now.
+            #
+            @dbrecord.source_id = self.send("#{key_field}")
+            @dbrecord.datasource_id =
+              self.class.instance_variable_get("@primary_datasource_id")
+            @dbrecord.save!
+            @dbrecord.reload
           end
         end
       end
@@ -339,7 +350,8 @@ class IS_Pupil
     IsamsField["Surname",            :surname,   :string],
     IsamsField["EmailAddress",       :email,     :string],
     IsamsField["NCYear",             :nc_year,   :integer],
-    IsamsField["Fullname",           :full_name, :string]
+    IsamsField["Fullname",           :full_name, :string],
+    IsamsField["Preferredname",      :known_as,  :string]
   ]
 
   DB_CLASS = Pupil
@@ -350,7 +362,8 @@ class IS_Pupil
     :forename,
     :known_as,
     :email,
-    :current
+    :current,
+    :datasource_id
   ]
 
   FIELDS_TO_UPDATE = [
@@ -358,15 +371,28 @@ class IS_Pupil
     :surname,
     :forename,
     :known_as,
-    :email
+    :email,
+    :current
   ]
 
   include Creator
   include DatabaseAccess
 
+  attr_reader :name, :datasource_id
+
   def initialize(entry)
     do_initialize(entry)
-    setvars
+    #
+    #  These two are used if a new d/b record is created.
+    #
+    @current = true
+    @datasource_id =
+      self.class.instance_variable_get("@primary_datasource_id")
+  end
+
+  def adjust
+    @email.downcase!
+    @name = "#{@known_as} #{@surname}"
   end
 
   def wanted
@@ -389,6 +415,7 @@ class IS_Pupil
   def effective_start_year(era)
     era.starts_on.year + 7 - self.nc_year
   end
+
 end
 
 
@@ -402,6 +429,10 @@ class IS_Loader
     puts "Got #{@staff.count} staff." if options.verbose
     @pupils = IS_Pupil.slurp(data)
     puts "Got #{@pupils.count} pupils." if options.verbose
+    @pupil_hash = Hash.new
+    @pupils.each do |pupil|
+      @pupil_hash[pupil.isams_id] = pupil
+    end
   end
 
   def initialize(options)
@@ -428,34 +459,54 @@ class IS_Loader
   #  held in Scheduler.  Update as appropriate.
   #
   def do_pupils
-    if @pupils
-      prep_count = 0
-      found_count = 0
-      notfound_count = 0
-      noyear_count = 0
-      @pupils.each do |pupil|
-        if pupil.nc_year
-          if pupil.nc_year >= 20
-            prep_count += 1
-          else
-            if pupil.dbrecord
-              found_count += 1
-            else
-              puts "Pupil #{pupil.full_name} isn't in the d/b."
-              notfound_count += 1
-            end
-          end
+    pupils_changed_count   = 0
+    pupils_unchanged_count = 0
+    pupils_loaded_count    = 0
+    original_pupil_count = Pupil.current.count
+    @pupils.each do |pupil|
+      dbrecord = pupil.dbrecord
+      unless dbrecord.current
+        puts "Pupil #{dbrecord.name} does not seem to be current."
+      end
+      if dbrecord
+        if pupil.check_and_update({start_year: pupil.effective_start_year(@era)})
+          pupils_changed_count += 1
         else
-          puts "Pupil #{pupil.full_name} has no NC year."
+          pupils_unchanged_count += 1
+        end
+      else
+        if pupil.save_to_db({start_year: pupil.effective_start_year(@era)})
+          pupils_loaded_count += 1
         end
       end
-      puts "Done pupils."
-      puts "  #{prep_count} at the prep school."
-      puts "  #{found_count} in the database already."
-      puts "  #{notfound_count} not found in the database."
-      puts "  #{noyear_count} pupils with no NC year."
-    else
-      puts "Don't seem to have any pupils to process."
+    end
+    #
+    #  Need to check for pupils who have now left.
+    #
+    pupils_left_count = 0
+    Pupil.current.each do |dbpupil|
+      pupil = @pupil_hash[dbpupil.source_id]
+      unless pupil && dbpupil.datasource_id == pupil.datasource_id
+        dbpupil.current = false
+        dbpupil.save!
+        pupils_left_count += 1
+      end
+    end
+    final_pupil_count = Pupil.current.count
+    if @verbose || pupils_changed_count > 0
+      puts "#{pupils_changed_count} pupil record(s) amended."
+    end
+    if @verbose || pupils_loaded_count > 0
+      puts "#{pupils_loaded_count} pupil record(s) created."
+    end
+    if @verbose || pupils_left_count > 0
+      puts "#{pupils_left_count} pupil record(s) marked as left."
+    end
+    if @verbose
+      puts "#{pupils_unchanged_count} pupil record(s) untouched."
+    end
+    if @verbose || original_pupil_count != final_pupil_count
+      puts "Started with #{original_pupil_count} current pupils and finished with #{final_pupil_count}."
     end
   end
 
