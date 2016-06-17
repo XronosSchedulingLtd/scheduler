@@ -24,6 +24,14 @@
         <td><%= setting.enforce_permissions ? "Yes" : "No" %></td>
       </tr>
       <tr>
+        <td>Current MIS</td>
+        <td><%= setting.current_mis %></td>
+      </tr>
+      <tr>
+        <td>Previous MIS</td>
+        <td><%= setting.previous_mis %></td>
+      </tr>
+      <tr>
         <td><%= link_to 'Edit', edit_setting_path(setting) %></td>
         <td></td>
       </tr>

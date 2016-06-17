@@ -1,0 +1,21 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-06-16T07:17:16+01:00
+
+====== Thursday 16 Jun 2016 ======
+
+Yesterday was a bit of a wash-out because Ian gave me a cover right in the middle of the day.  I did a bit of pottering, but there wasn't enough uninterrupted time to get properly into the zone.  Try to do better today.
+
+I'm working on the database access methods from my script.  There's an additional complication in that I have to handle the transition from SB record ids to iSAMS ones.
+
+Interesting early point - the pupil record which I get from iSAMS carries no indication of which school they're in.  I may need to use the NC year to separate them.
+
+Most seem to match up, but one pupil "Frederick Ward" seems to be there in iSAMS but not in Scheduler.  I can find him fine in Scheduler, so why isn't it matching up?  Ah - he appears to have been edited, probably by Niki.  His school code now contains "WARD10FC".  I know Freddie is Niki's go-to pupil for this kind of amendment.  Another reason not to change the school codes, at least at first.
+
+Policy decision - do I update pupils/staff with SB references the very first time I come across them, or only when they need some other kind of update.
+
+If I update immediately, then what might have been intended as a purely read operation on the database becomes a write.
+
+If I leave it until there is another update due, it could drag on forever.
+
+Currently I incline to the former.  It will make the first run significantly slower, but then it will be out of the way. If I do it in the DatabaseAccess module, then it will mean that the client code never has to worry about it (apart from providing the secondary source id in the first place).

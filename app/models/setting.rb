@@ -16,6 +16,10 @@ class Setting < ActiveRecord::Base
   @@got_hostname = false
   @@enforce_permissions = false
   @@checked_enforce_permissions = false
+  @@checked_current_mis = false
+  @@current_mis = nil
+  @@checked_previous_mis = false
+  @@previous_mis = nil
 
   belongs_to :current_era, class_name: :Era
   belongs_to :next_era, class_name: :Era
@@ -109,6 +113,28 @@ class Setting < ActiveRecord::Base
       @@checked_enforce_permissions = true
     end
     @@enforce_permissions
+  end
+
+  def self.current_mis
+    unless @@checked_current_mis
+      setting = Setting.first
+      if setting
+        @@current_mis = setting.current_mis
+      end
+      @@checked_current_mis = true
+    end
+    @@current_mis
+  end
+
+  def self.previous_mis
+    unless @@checked_previous_mis
+      setting = Setting.first
+      if setting
+        @@previous_mis = setting.previous_mis
+      end
+      @@checked_previous_mis = true
+    end
+    @@previous_mis
   end
 
   #

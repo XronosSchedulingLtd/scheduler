@@ -528,7 +528,7 @@ begin
   options.era             = nil
   options.start_date      = nil
   OptionParser.new do |opts|
-    opts.banner = "Usage: importsb.rb [options]"
+    opts.banner = "Usage: importis.rb [options]"
 
     opts.on("-i", "--initialise", "Initialise only") do |i|
       options.just_initialise = i

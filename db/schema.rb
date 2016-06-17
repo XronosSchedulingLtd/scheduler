@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160614155709) do
+ActiveRecord::Schema.define(version: 20160617133714) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -356,6 +356,8 @@ ActiveRecord::Schema.define(version: 20160614155709) do
     t.integer  "previous_era_id"
     t.integer  "perpetual_era_id"
     t.boolean  "enforce_permissions", default: false
+    t.string   "current_mis"
+    t.string   "previous_mis"
   end
 
   create_table "staffs", force: true do |t|
