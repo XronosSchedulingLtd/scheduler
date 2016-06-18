@@ -13,27 +13,6 @@ class MIS_Pupil
     IsamsField["Preferredname",      :known_as,  :string]
   ]
 
-  DB_CLASS = Pupil
-  DB_KEY_FIELD = :source_id
-  FIELDS_TO_CREATE = [
-    :name,
-    :surname,
-    :forename,
-    :known_as,
-    :email,
-    :current,
-    :datasource_id
-  ]
-
-  FIELDS_TO_UPDATE = [
-    :name,
-    :surname,
-    :forename,
-    :known_as,
-    :email,
-    :current
-  ]
-
   include Creator
 
   attr_reader :name, :datasource_id

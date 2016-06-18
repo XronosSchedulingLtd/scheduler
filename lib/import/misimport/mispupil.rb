@@ -1,14 +1,29 @@
 class MIS_Pupil < MIS_Record
   #
-  #  The following data items must be provided by MIS platform-specific
-  #  code.
+  #  The data items referenced here must be provided by the MIS-specific
+  #  code.  That is, there should be an instance variable called @name,
+  #  one called @surname, etc.
   #
-#  attr_reader :name,
-#              :surname,
-#              :forename,
-#              :known_as,
-#              :email
+  DB_CLASS = Pupil
+  DB_KEY_FIELD = :source_id
+  FIELDS_TO_CREATE = [
+    :name,
+    :surname,
+    :forename,
+    :known_as,
+    :email,
+    :current,
+    :datasource_id
+  ]
 
+  FIELDS_TO_UPDATE = [
+    :name,
+    :surname,
+    :forename,
+    :known_as,
+    :email,
+    :current
+  ]
   #
   #  Likewise, the platform-specific code must provide the following
   #  instance methods.
@@ -20,4 +35,5 @@ class MIS_Pupil < MIS_Record
   #
   #  slurp
   #
+
 end

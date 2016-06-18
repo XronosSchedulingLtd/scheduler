@@ -1,6 +1,0 @@
-Got 593 staff.
-Got 1270 pupils.
-@fred = Banana
-Trying: {:datasource_id=>3, :source_id=>46}
-Trying: {:datasource_id=>1, :source_id=>46}
-#<Pupil:0x0000000248e9d0>

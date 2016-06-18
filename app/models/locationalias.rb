@@ -7,6 +7,7 @@ class Locationalias < ActiveRecord::Base
 
   validates :name, presence: true
   belongs_to :location
+  belongs_to :datasource
 
   after_create :create_corresponding_location
 

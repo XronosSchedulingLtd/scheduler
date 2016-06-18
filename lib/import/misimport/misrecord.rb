@@ -185,8 +185,7 @@ class MIS_Record
             #  calling code, we're going to fix this now.
             #
             @dbrecord.source_id = self.send("#{key_field}")
-            @dbrecord.datasource_id =
-              self.class.instance_variable_get("@primary_datasource_id")
+            @dbrecord.datasource_id = @@primary_datasource_id
             @dbrecord.save!
             @dbrecord.reload
           end
