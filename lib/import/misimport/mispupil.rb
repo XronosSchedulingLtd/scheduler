@@ -5,7 +5,7 @@ class MIS_Pupil < MIS_Record
   #  one called @surname, etc.
   #
   DB_CLASS = Pupil
-  DB_KEY_FIELD = :source_id
+  DB_KEY_FIELD = [:source_id, :datasource_id]
   FIELDS_TO_CREATE = [
     :name,
     :surname,

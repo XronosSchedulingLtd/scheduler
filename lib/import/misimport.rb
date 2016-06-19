@@ -24,10 +24,19 @@ require_relative '../../config/environment'
 #  processing which is common between platforms should be shared.
 #
 
+#
+#  Support files.
+#
 require_relative 'misimport/misrecord.rb'
+require_relative 'misimport/misgroup.rb'
+#
+#  Actual identifiable database things.
+#
 require_relative 'misimport/mispupil.rb'
 require_relative 'misimport/misstaff.rb'
+require_relative 'misimport/mislocation.rb'
 require_relative 'misimport/misloader.rb'
+require_relative 'misimport/mistutorgroup.rb'
 
 #
 #  Now we actually access the database to discover what MIS is in use.
@@ -45,6 +54,8 @@ if current_mis
     require_relative 'isams/creator.rb'
     require_relative 'isams/mispupil.rb'
     require_relative 'isams/misstaff.rb'
+    require_relative 'isams/mislocation.rb'
+    require_relative 'isams/mistutorgroup.rb'
   elsif current_mis == "SchoolBase"
   else
     raise "Don't know how to handle #{current_mis} as our current MIS."
@@ -118,10 +129,10 @@ begin
       finished(options, "pupils")
       loader.do_staff
       finished(options, "staff")
-#      loader.do_locations
-#      finished(options, "locations")
-#      loader.do_tutorgroups
-#      finished(options, "tutor groups")
+      loader.do_locations
+      finished(options, "locations")
+      loader.do_tutorgroups
+      finished(options, "tutor groups")
 #      loader.do_teachinggroups
 #      finished(options, "teaching groups")
 #      loader.do_timetable

@@ -1,25 +1,28 @@
 class MIS_Staff
   SELECTOR = "HRManager CurrentStaff StaffMember"
   REQUIRED_FIELDS = [
-    IsamsField["Id",                 :isams_id, :integer],
-    IsamsField["PreviousMISId",      :sb_id,    :integer],
-    IsamsField["Initials",           :initials, :string],
-    IsamsField["Title",              :title,    :string],
-    IsamsField["Forename",           :forename, :string],
-    IsamsField["Surname",            :surname,  :string],
-    IsamsField["SchoolEmailAddress", :email,    :string],
-    IsamsField["FullName",           :name,     :string]
+    IsamsField["Id",                 :isams_id, :attribute, :integer],
+    IsamsField["PreviousMISId",      :sb_id,    :data,      :integer],
+    IsamsField["Initials",           :initials, :data,      :string],
+    IsamsField["Title",              :title,    :data,      :string],
+    IsamsField["Forename",           :forename, :data,      :string],
+    IsamsField["Surname",            :surname,  :data,      :string],
+    IsamsField["SchoolEmailAddress", :email,    :data,      :string],
+    IsamsField["FullName",           :name,     :data,      :string]
   ]
 
   include Creator
 
+  attr_reader :datasource_id
+
   def initialize(entry)
-    do_initialize(entry)
+    puts "In MIS_Staff initialize"
     #
     #  These two are used if a new d/b record is created.
     #
     @current = true
     @datasource_id = @@primary_datasource_id
+    super
   end
 
   def adjust
@@ -43,12 +46,19 @@ class MIS_Staff
     @active = !!(@email =~ /\@abingdon\.org\.uk$/)
   end
 
-  def source_id(secondary = false)
-    if secondary
-      @sb_id
-    else
-      @isams_id
-    end
+  def source_id
+    @isams_id
+  end
+
+  def alternative_find_hash
+    {
+      :source_id => @sb_id,
+      :datasource_id => @@secondary_datasource_id
+    }
+  end
+
+  def self.construct(loader, isams_data)
+    self.slurp(isams_data)
   end
 
 end

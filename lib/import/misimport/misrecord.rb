@@ -40,6 +40,7 @@ class MIS_Record
   #  super
   #
   def initialize(*params)
+    puts "In MIS_Record initialize."
     @dbrecord = nil
     @belongs_to_era = nil
     @checked_dbrecord = false
@@ -153,9 +154,6 @@ class MIS_Record
           find_hash[kf] = self.send("#{kf}")
         end
       else
-        if key_field == :source_id
-          find_hash[:datasource_id] = @@primary_datasource_id
-        end
         find_hash[key_field] = self.send("#{key_field}")
       end
       if @belongs_to_era
@@ -169,10 +167,8 @@ class MIS_Record
         #  Didn't find it that way.  It may be possible to do
         #  it a slightly different way.
         #
-        if key_field == :source_id
-          find_hash = Hash.new
-          find_hash[:datasource_id] = @@secondary_datasource_id
-          find_hash[key_field] = self.send("#{key_field}", true)
+        if self.respond_to?(:alternative_find_hash)
+          find_hash = self.alternative_find_hash
           if @belongs_to_era
             find_hash[:era_id] = self.instance_variable_get("@era_id")
           end
@@ -184,8 +180,17 @@ class MIS_Record
             #  To make things as transparent as possible to the
             #  calling code, we're going to fix this now.
             #
-            @dbrecord.source_id = self.send("#{key_field}")
-            @dbrecord.datasource_id = @@primary_datasource_id
+            #  Update the d/b record so the original key field(s)
+            #  would work.
+            #
+            key_field = self.class.const_get(:DB_KEY_FIELD)
+            if key_field.instance_of?(Array)
+              key_field.each do |kf|
+                @dbrecord.send("#{kf}=", self.send("#{kf}"))
+              end
+            else
+              @dbrecord.send("#{key_field}=", self.send("#{key_field}"))
+            end
             @dbrecord.save!
             @dbrecord.reload
           end

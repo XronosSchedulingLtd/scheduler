@@ -1,16 +1,17 @@
 class MIS_Pupil
   SELECTOR = "PupilManager CurrentPupils Pupil"
   REQUIRED_FIELDS = [
-    IsamsField["Id",                 :isams_id,  :integer],
-    IsamsField["SchoolCode",         :sb_id,     :integer],
-    IsamsField["Initials",           :initials,  :string],
-    IsamsField["Title",              :title,     :string],
-    IsamsField["Forename",           :forename,  :string],
-    IsamsField["Surname",            :surname,   :string],
-    IsamsField["EmailAddress",       :email,     :string],
-    IsamsField["NCYear",             :nc_year,   :integer],
-    IsamsField["Fullname",           :full_name, :string],
-    IsamsField["Preferredname",      :known_as,  :string]
+    IsamsField["Id",                 :isams_id,  :attribute, :integer],
+    IsamsField["SchoolCode",         :sb_id,     :data,      :integer],
+    IsamsField["Initials",           :initials,  :data,      :string],
+    IsamsField["Title",              :title,     :data,      :string],
+    IsamsField["Forename",           :forename,  :data,      :string],
+    IsamsField["Surname",            :surname,   :data,      :string],
+    IsamsField["EmailAddress",       :email,     :data,      :string],
+    IsamsField["NCYear",             :nc_year,   :data,      :integer],
+    IsamsField["Fullname",           :full_name, :data,      :string],
+    IsamsField["Preferredname",      :known_as,  :data,      :string],
+    IsamsField["Form",               :form_name, :data,      :string]
   ]
 
   include Creator
@@ -18,7 +19,6 @@ class MIS_Pupil
   attr_reader :name, :datasource_id
 
   def initialize(entry)
-    do_initialize(entry)
     #
     #  These two are used if a new d/b record is created.
     #
@@ -36,12 +36,15 @@ class MIS_Pupil
     @nc_year && @nc_year < 20
   end
 
-  def source_id(secondary = false)
-    if secondary
-      @sb_id
-    else
-      @isams_id
-    end
+  def source_id
+    @isams_id
+  end
+
+  def alternative_find_hash
+    {
+      :source_id => @sb_id,
+      :datasource_id => @@secondary_datasource_id
+    }
   end
 
   #
@@ -53,4 +56,7 @@ class MIS_Pupil
     era.starts_on.year + 7 - self.nc_year
   end
 
+  def self.construct(loader, isams_data)
+    self.slurp(isams_data)
+  end
 end

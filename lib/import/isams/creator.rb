@@ -1,8 +1,9 @@
-IsamsField = Struct.new(:selector, :attr_name, :target_type)
+IsamsField = Struct.new(:selector, :attr_name, :source_type, :target_type)
 
 module Creator
   def self.included(parent)
     parent.extend ClassMethods
+    parent.prepend Initializer
     parent::REQUIRED_FIELDS.each do |field|
       attr_accessor field[:attr_name]
     end
@@ -21,41 +22,51 @@ module Creator
   def adjust
   end
 
-  #
-  #  I could just call this function initialize, but give it a slightly
-  #  different name so that the includer can add more processing before or
-  #  after our work.
-  #
-  def do_initialize(entry)
-    self.class::REQUIRED_FIELDS.each do |field|
-      attr_name = field[:attr_name]
-      if field[:selector] == "Id"
-        #
-        #  Special case.  This one comes through as an attribute and
-        #  is always numeric.
-        #
-        self.send("#{attr_name}=", entry.attribute("Id").value.to_i)
-      else
-        contents = entry.at_css(field[:selector])
-        if contents
-          if field[:target_type] == :string
-            self.send("#{attr_name}=", contents.text)
+  module Initializer
+
+    def initialize(entry)
+      puts "In Creator initialize"
+      self.class::REQUIRED_FIELDS.each do |field|
+        attr_name = field[:attr_name]
+        if field[:source_type] == :attribute
+          attr = entry.attribute(field[:selector])
+          if attr
+            if field[:target_type] == :string
+              self.send("#{attr_name}=", attr.value)
+            else
+              self.send("#{attr_name}=", attr.value.to_i)
+            end
           else
-            self.send("#{attr_name}=", contents.text.to_i)
+            if field[:target_type] == :string
+              self.send("#{attr_name}=", "")
+            else
+              self.send("#{attr_name}=", nil)
+            end
           end
         else
-          #
-          #  For ease of processing, missing strings are taken as
-          #  empty strings, but missing values are set as nil.
-          #
-          if field[:target_type] == :string
-            self.send("#{attr_name}=", "")
+          contents = entry.at_css(field[:selector])
+          if contents
+            if field[:target_type] == :string
+              self.send("#{attr_name}=", contents.text)
+            else
+              self.send("#{attr_name}=", contents.text.to_i)
+            end
           else
-            self.send("#{attr_name}=", nil)
+            #
+            #  For ease of processing, missing strings are taken as
+            #  empty strings, but missing values are set as nil.
+            #
+            if field[:target_type] == :string
+              self.send("#{attr_name}=", "")
+            else
+              self.send("#{attr_name}=", nil)
+            end
           end
         end
       end
+      super
     end
+
   end
 
   module ClassMethods

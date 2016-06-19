@@ -1,6 +1,6 @@
 class MIS_Loader
 
-  attr_reader :verbose, :full_load, :era, :send_emails
+  attr_reader :verbose, :full_load, :era, :send_emails, :pupils, :staff_hash
 
   def read_mis_data(options)
     #
@@ -9,18 +9,21 @@ class MIS_Loader
     #  data structure, or simply a file handle.
     #
     whatever = prepare(options)
-    @pupils = MIS_Pupil.slurp(whatever)
+    @pupils = MIS_Pupil.construct(self, whatever)
     puts "Got #{@pupils.count} pupils." if options.verbose
     @pupil_hash = Hash.new
     @pupils.each do |pupil|
       @pupil_hash[pupil.source_id] = pupil
     end
-    @staff = MIS_Staff.slurp(whatever)
+    @staff = MIS_Staff.construct(self, whatever)
     puts "Got #{@staff.count} staff." if options.verbose
     @staff_hash = Hash.new
     @staff.each do |staff|
       @staff_hash[staff.source_id] = staff
     end
+    @locations = MIS_Location.construct(self, whatever)
+    @tutorgroups = MIS_Tutorgroup.construct(self, whatever)
+    puts "Got #{@tutorgroups.count} tutorgroups."
   end
 
   def initialize(options)
@@ -168,4 +171,35 @@ class MIS_Loader
     end
   end
 
+  def do_locations
+    locations_loaded_count    = 0
+    locations_changed_count   = 0
+    locations_unchanged_count = 0
+    @locations.each do |location|
+      dbrecord = location.dbrecord
+      if dbrecord
+        if location.check_and_update
+          locations_changed_count += 1
+        else
+          locations_unchanged_count += 1
+        end
+      else
+        if location.save_to_db
+          locations_loaded_count += 1
+        end
+      end
+    end
+    if @verbose || locations_loaded_count > 0
+      puts "#{locations_loaded_count} location records created."
+    end
+    if @verbose || locations_changed_count > 0
+      puts "#{locations_changed_count} location records amended."
+    end
+    if @verbose || locations_unchanged_count > 0
+      puts "#{locations_unchanged_count} location records unchanged."
+    end
+  end
+
+  def do_tutorgroups
+  end
 end

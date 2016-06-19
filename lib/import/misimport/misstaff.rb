@@ -1,6 +1,6 @@
 class MIS_Staff < MIS_Record
   DB_CLASS = Staff
-  DB_KEY_FIELD = :source_id
+  DB_KEY_FIELD = [:source_id, :datasource_id]
   FIELDS_TO_CREATE = [:name,
                       :initials,
                       :surname,
