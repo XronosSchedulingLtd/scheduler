@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-06-22T10:35:12+01:00
+
+====== MisImport ======
+Created Wednesday 22 June 2016
+
+The MisImport utility imports crucial information from a separate MIS system.  It follows on from several earlier versions which were specific to particular data sources, but tries to generalise things.
+
+{{./diagram.png?type=diagram}}

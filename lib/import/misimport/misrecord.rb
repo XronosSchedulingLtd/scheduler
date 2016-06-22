@@ -40,7 +40,7 @@ class MIS_Record
   #  super
   #
   def initialize(*params)
-    puts "In MIS_Record initialize."
+#    puts "In MIS_Record initialize."
     @dbrecord = nil
     @belongs_to_era = nil
     @checked_dbrecord = false
@@ -130,7 +130,10 @@ class MIS_Record
         @checked_dbrecord = true
         true
       else
-        puts "Failed to create d/b record of type #{self.class.const_get(:DB_CLASS)} for #{self.source_id}"
+        puts "Failed to create d/b record of type #{self.class.const_get(:DB_CLASS)}."
+        newrecord.errors.messages.each do |key, msgs|
+          puts "#{key}: #{msgs.join(",")}"
+        end
         false
       end
     end

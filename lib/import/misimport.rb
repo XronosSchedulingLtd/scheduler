@@ -116,7 +116,7 @@ begin
 
     opts.on("-s", "--start [DATE]", Date,
             "Specify an over-riding start date",
-            "for loading events.") do |date|
+            "for loading events and groups.") do |date|
       options.start_date = date
     end
 

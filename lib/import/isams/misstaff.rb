@@ -16,7 +16,7 @@ class MIS_Staff
   attr_reader :datasource_id
 
   def initialize(entry)
-    puts "In MIS_Staff initialize"
+#    puts "In MIS_Staff initialize"
     #
     #  These two are used if a new d/b record is created.
     #

@@ -25,7 +25,7 @@ module Creator
   module Initializer
 
     def initialize(entry)
-      puts "In Creator initialize"
+#      puts "In Creator initialize"
       self.class::REQUIRED_FIELDS.each do |field|
         attr_name = field[:attr_name]
         if field[:source_type] == :attribute

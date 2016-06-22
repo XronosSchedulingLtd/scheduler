@@ -1,0 +1,35 @@
+digraph sheets {
+  rankdir = BT;
+  node [shape=box, style="filled,rounded", fillcolor=lightskyblue2];
+  
+  subgraph cluster_database_access {
+    label = "Database access";
+    "MIS_Group" -> "MIS_Record";
+  }
+
+  subgraph cluster_mis_independent {
+    label = "MIS Independent";
+    "MIS_Pupil" -> "MIS_Record";
+    "MIS_Staff" -> "MIS_Record";
+    "MIS_Location" -> "MIS_Record";
+    "MIS_Tutorgroup" -> "MIS_Group";
+    "MIS_Teachinggroup" -> "MIS_Group";
+    "MIS_Taggroup" -> "MIS_Group";
+  }
+
+  subgraph cluster_mis_dependent {
+    label = "MIS Dependent";
+    MIS_PupilA [label="MIS_Pupil"];
+    MIS_StaffA [label="MIS_Staff"];
+    MIS_LocationA [label="MIS_Location"];
+    MIS_TutorgroupA [label="MIS_Tutorgroup"];
+    MIS_TeachinggroupA [label="MIS_Teachinggroup"];
+    MIS_TaggroupA [label="MIS_Taggroup"];
+    MIS_PupilA -> "MIS_Pupil";
+    MIS_StaffA -> "MIS_Staff";
+    MIS_LocationA -> "MIS_Location";
+    MIS_TutorgroupA -> "MIS_Tutorgroup";
+    MIS_TeachinggroupA -> "MIS_Teachinggroup";
+    MIS_TaggroupA -> "MIS_Taggroup";
+  }
+}

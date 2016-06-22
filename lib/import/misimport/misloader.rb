@@ -1,6 +1,12 @@
 class MIS_Loader
 
-  attr_reader :verbose, :full_load, :era, :send_emails, :pupils, :staff_hash
+  attr_reader :verbose,
+              :full_load,
+              :era,
+              :start_date,
+              :send_emails,
+              :pupils,
+              :staff_hash
 
   def read_mis_data(options)
     #
@@ -23,7 +29,7 @@ class MIS_Loader
     end
     @locations = MIS_Location.construct(self, whatever)
     @tutorgroups = MIS_Tutorgroup.construct(self, whatever)
-    puts "Got #{@tutorgroups.count} tutorgroups."
+    puts "Got #{@tutorgroups.count} tutorgroups." if options.verbose
   end
 
   def initialize(options)
@@ -38,6 +44,20 @@ class MIS_Loader
       raise "Current era not set." unless @era
     end
     raise "Perpetual era not set." unless Setting.perpetual_era
+    #
+    #  If an explicit date has been specified then we use that.
+    #  Otherwise, if a full load has been specified then we use
+    #  the start date of the era.
+    #  Otherwise, we use either today's date, or the start date of
+    #  the era, whichever is the later.
+    #
+    if options.start_date
+      @start_date = options.start_date
+    elsif @full_load || Date.today < @era.starts_on
+      @start_date = @era.starts_on
+    else
+      @start_date = Date.today
+    end
     read_mis_data(options)
     yield self if block_given?
   end
@@ -195,11 +215,97 @@ class MIS_Loader
     if @verbose || locations_changed_count > 0
       puts "#{locations_changed_count} location records amended."
     end
-    if @verbose || locations_unchanged_count > 0
+    if @verbose
       puts "#{locations_unchanged_count} location records unchanged."
     end
   end
 
   def do_tutorgroups
+    tg_changed_count      = 0
+    tg_unchanged_count    = 0
+    tg_loaded_count       = 0
+    tg_reincarnated_count = 0
+    tgmember_removed_count   = 0
+    tgmember_unchanged_count = 0
+    tgmember_loaded_count    = 0
+    pupils_renamed           = 0
+    tg_at_start = Tutorgroup.current.count
+    @tutorgroups.each do |tg|
+      #
+      #  There must be a more idiomatic way of doing this.
+      #
+      loaded,
+      reincarnated,
+      changed,
+      unchanged,
+      member_loaded,
+      member_removed,
+      member_unchanged = tg.ensure_db(self)
+      tg_loaded_count          += loaded
+      tg_reincarnated_count    += reincarnated
+      tg_changed_count         += changed
+      tg_unchanged_count       += unchanged
+      tgmember_loaded_count    += member_loaded
+      tgmember_removed_count   += member_removed
+      tgmember_unchanged_count += member_unchanged
+    end
+    #
+    #  It's possible that a tutor group has ceased to exist entirely,
+    #  in which case we will still have a record in our d/b for it (possibly
+    #  with members) but we need to record its demise.
+    #
+    tg_deleted_count = 0
+    sb_tg_ids = @tg_hash.collect { |key, tg| tg.dbrecord.id }.compact
+    db_tg_ids = Tutorgroup.current.collect {|dbtg| dbtg.id}
+    extra_ids = db_tg_ids - sb_tg_ids
+    extra_ids.each do |eid|
+      dbtg = Tutorgroup.find(eid)
+      puts "Tutor group #{dbtg.name} exists in the d/b but not in the files." if @verbose
+      #
+      #  All the pupils in this group will need to have their names updated.
+      #
+      erstwhile_pupils =
+        dbtg.members(nil, false, true).select {|member| member.class == Pupil}
+      dbtg.ceases_existence(@start_date)
+      erstwhile_pupils.each do |pupil|
+        pupil.reload
+        if pupil.element_name != pupil.element.name
+          pupil.save
+          pupils_renamed += 1
+        end
+      end
+      tg_deleted_count += 1
+    end
+    tg_at_end = Tutorgroup.current.count
+    if @verbose || tg_deleted_count > 0
+      puts "#{tg_deleted_count} tutor group records deleted."
+      if pupils_renamed > 0
+        puts "as a result of which, #{pupils_renamed} pupils were renamed."
+      end
+    end
+    if @verbose || tg_changed_count > 0
+      puts "#{tg_changed_count} tutor group records amended."
+    end
+    if @verbose
+      puts "#{tg_unchanged_count} tutor group records untouched."
+    end
+    if @verbose || tg_loaded_count > 0
+      puts "#{tg_loaded_count} tutor group records created."
+    end
+    if @verbose || tg_reincarnated_count > 0
+      puts "#{tg_reincarnated_count} tutor group records reincarnated."
+    end
+    if @verbose || tgmember_removed_count > 0
+      puts "Removed #{tgmember_removed_count} pupils from tutor groups."
+    end
+    if @verbose
+      puts "Left #{tgmember_unchanged_count} pupils where they were."
+    end
+    if @verbose || tgmember_loaded_count > 0
+      puts "Added #{tgmember_loaded_count} pupils to tutor groups."
+    end
+    if @verbose || tg_at_start != tg_at_end
+      puts "Started with #{tg_at_start} tutor groups and finished with #{tg_at_end}."
+    end
   end
 end

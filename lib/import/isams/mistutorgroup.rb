@@ -25,6 +25,25 @@ class MIS_Tutorgroup
     @year_id && @year_id < 20
   end
 
+  def note_era(era)
+    @era = era
+  end
+
+  def start_year
+    @year_id + @era.starts_on.year - 7
+  end
+  #
+  #  Slightly messy, in that in iSAMS, tutor groups aren't directly
+  #  linked to houses.  Have to get it from one of the pupil records.
+  #
+  def house
+    if @pupils.empty?
+      "Don't know"
+    else
+      @pupils.first.house
+    end
+  end
+
   def self.construct(loader, isams_data)
     tgs = self.slurp(isams_data)
     tgs_hash = Hash.new
@@ -34,6 +53,7 @@ class MIS_Tutorgroup
       if staff
         tg.note_staff(staff)
       end
+      tg.note_era(loader.era)
     end
     #
     #  Now - can I populate them?
@@ -47,7 +67,7 @@ class MIS_Tutorgroup
       end
     end
     tgs.each do |tg|
-      puts "Tutor group #{tg.constructed_name} (#{tg.isams_id}) has #{tg.size} pupils."
+      puts "Tutor group #{tg.constructed_name} (#{tg.isams_id}) has #{tg.size} pupils." if loader.verbose
       tg.finalize
     end
     tgs
