@@ -12,7 +12,7 @@ class MIS_Pupil
     IsamsField["Fullname",           :full_name, :data,      :string],
     IsamsField["Preferredname",      :known_as,  :data,      :string],
     IsamsField["Form",               :form_name, :data,      :string],
-    IsamsField["Academic House",     :house,     :data,      :string]
+    IsamsField["AcademicHouse",      :house,     :data,      :string]
   ]
 
   include Creator

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160618105854) do
+ActiveRecord::Schema.define(version: 20160622164511) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -180,7 +180,7 @@ ActiveRecord::Schema.define(version: 20160618105854) do
   add_index "freefinders", ["owner_id"], name: "index_freefinders_on_owner_id", using: :btree
 
   create_table "groups", force: true do |t|
-    t.date     "starts_on",                    null: false
+    t.date     "starts_on",                     null: false
     t.date     "ends_on"
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -188,13 +188,19 @@ ActiveRecord::Schema.define(version: 20160618105854) do
     t.string   "persona_type"
     t.string   "name"
     t.integer  "era_id"
-    t.boolean  "current",      default: false
+    t.boolean  "current",       default: false
     t.integer  "owner_id"
-    t.boolean  "make_public",  default: false
+    t.boolean  "make_public",   default: false
+    t.integer  "source_id"
+    t.string   "source_id_str"
+    t.integer  "datasource_id"
   end
 
+  add_index "groups", ["datasource_id"], name: "index_groups_on_datasource_id", using: :btree
   add_index "groups", ["era_id"], name: "index_groups_on_era_id", using: :btree
   add_index "groups", ["owner_id"], name: "index_groups_on_owner_id", using: :btree
+  add_index "groups", ["source_id"], name: "index_groups_on_source_id", using: :btree
+  add_index "groups", ["source_id_str"], name: "index_groups_on_source_id_str", using: :btree
 
   create_table "interests", force: true do |t|
     t.integer  "user_id"

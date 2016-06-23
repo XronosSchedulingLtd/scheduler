@@ -9,7 +9,7 @@ class MIS_Tutorgroup
 
   include Creator
 
-  attr_reader :datasource_id
+  attr_reader :datasource_id, :era
 
   def initialize(entry)
     @pupils = Array.new
@@ -22,7 +22,7 @@ class MIS_Tutorgroup
   end
 
   def wanted
-    @year_id && @year_id < 20
+    @tutor_id && @year_id && @year_id < 20
   end
 
   def note_era(era)
@@ -30,7 +30,7 @@ class MIS_Tutorgroup
   end
 
   def start_year
-    @year_id + @era.starts_on.year - 7
+    (@era.starts_on.year - @year_id) + 7
   end
   #
   #  Slightly messy, in that in iSAMS, tutor groups aren't directly
@@ -40,6 +40,9 @@ class MIS_Tutorgroup
     if @pupils.empty?
       "Don't know"
     else
+      puts "Calculating house."
+      puts "First pupil is #{@pupils.first.name}"
+      puts "House is #{@pupils.first.house}"
       @pupils.first.house
     end
   end

@@ -231,6 +231,8 @@ class MIS_Loader
     pupils_renamed           = 0
     tg_at_start = Tutorgroup.current.count
     @tutorgroups.each do |tg|
+      puts "Processing #{tg.constructed_name}"
+      puts tg.inspect
       #
       #  There must be a more idiomatic way of doing this.
       #

@@ -160,7 +160,7 @@ class MIS_Record
         find_hash[key_field] = self.send("#{key_field}")
       end
       if @belongs_to_era
-        find_hash[:era_id] = self.instance_variable_get("@era_id")
+        find_hash[:era_id] = self.send(:era).id
       end
 #      puts "Trying: #{find_hash.inspect}"
       @dbrecord =
@@ -173,7 +173,7 @@ class MIS_Record
         if self.respond_to?(:alternative_find_hash)
           find_hash = self.alternative_find_hash
           if @belongs_to_era
-            find_hash[:era_id] = self.instance_variable_get("@era_id")
+            find_hash[:era_id] = self.send(:era).id
           end
 #          puts "Trying: #{find_hash.inspect}"
           @dbrecord =

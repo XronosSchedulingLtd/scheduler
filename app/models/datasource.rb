@@ -5,6 +5,7 @@ class Datasource < ActiveRecord::Base
    has_many :staffs, dependent: :nullify
    has_many :pupils, dependent: :nullify
    has_many :locationaliases, dependent: :nullify
+   has_many :groups, dependent: :nullify
 
    def <=>(other)
      self.name <=> other.name
@@ -23,6 +24,7 @@ class Datasource < ActiveRecord::Base
        staff_count = 0
        pupil_count = 0
        la_count = 0
+       group_count = 0
        Staff.all.each do |s|
          unless s.datasource
            s.datasource = ds
@@ -46,7 +48,20 @@ class Datasource < ActiveRecord::Base
            end
          end
        end
-       puts "Grabbed #{staff_count} staff, #{pupil_count} pupils and #{la_count} location aliases."
+       Group.all.each do |g|
+         if g.persona_type == "Teachinggrouppersona" ||
+            g.persona_type == "Taggrouppersona"
+           if g.persona.source_id && g.persona.source_id != 0
+             unless g.datasource
+               g.source_id == g.persona.source_id
+               g.datasource = ds
+               g.save!
+               group_count += 1
+             end
+           end
+         end
+       end
+       puts "Grabbed #{staff_count} staff, #{pupil_count} pupils, #{la_count} location aliases and #{group_count} groups."
        nil
      else
        puts "Can't find SchoolBase datasource."

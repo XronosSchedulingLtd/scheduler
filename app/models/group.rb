@@ -19,6 +19,7 @@ class Group < ActiveRecord::Base
   belongs_to :era
   belongs_to :owner, :class_name => :User
   belongs_to :persona, :polymorphic => true, :dependent => :destroy
+  belongs_to :datasource
   #
   #  Since we can't do joins on polymorphic relationships, we need
   #  explicit ones too.  These should really be defined elsewhere, but

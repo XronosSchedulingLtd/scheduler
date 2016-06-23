@@ -34,6 +34,7 @@ class MIS_Group < MIS_Record
     #
     self.dbrecord
     if @dbrecord
+      raise "Found existing tutor group."
       #
       #  It's possible that, although there is a record in the d/b
       #  no longer current.
@@ -58,6 +59,7 @@ class MIS_Group < MIS_Record
         unchanged_count += 1
       end
     else
+      raise "Failed to find existing tutor group."
       if @member_list.size > 0
         if self.save_to_db(starts_on: loader.start_date,
                            ends_on: loader.era.ends_on,
