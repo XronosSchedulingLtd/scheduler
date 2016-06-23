@@ -9,13 +9,19 @@ class MIS_Tutorgroup
 
   include Creator
 
-  attr_reader :datasource_id, :era
+  attr_reader :datasource_id, :era, :era_id, :current
 
   def initialize(entry)
     @pupils = Array.new
     @staff = nil
+    @current = true
+    @datasource_id = @@primary_datasource_id
     #
     super
+  end
+
+  def source_id_str
+    @isams_id
   end
 
   def adjust
@@ -27,6 +33,7 @@ class MIS_Tutorgroup
 
   def note_era(era)
     @era = era
+    @era_id = era.id
   end
 
   def start_year
@@ -40,9 +47,9 @@ class MIS_Tutorgroup
     if @pupils.empty?
       "Don't know"
     else
-      puts "Calculating house."
-      puts "First pupil is #{@pupils.first.name}"
-      puts "House is #{@pupils.first.house}"
+#      puts "Calculating house."
+#      puts "First pupil is #{@pupils.first.name}"
+#      puts "House is #{@pupils.first.house}"
       @pupils.first.house
     end
   end
@@ -70,7 +77,7 @@ class MIS_Tutorgroup
       end
     end
     tgs.each do |tg|
-      puts "Tutor group #{tg.constructed_name} (#{tg.isams_id}) has #{tg.size} pupils." if loader.verbose
+      puts "Tutor group #{tg.name} has #{tg.size} pupils." if loader.verbose
       tg.finalize
     end
     tgs

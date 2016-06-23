@@ -11,11 +11,11 @@ class MIS_Group < MIS_Record
   #  Each thing must have a dbrecord method, and each dbrecord must
   #  have an element, which has an id.
   #
-  def assemble_membership_list(members)
-    @member_list = members.collect do |member|
-      member.try(:dbrecord).try(:element).try(:id)
-    end.compact
-  end
+#  def assemble_membership_list(members)
+#    @member_list = members.collect do |member|
+#      member.try(:dbrecord).try(:element).try(:id)
+#    end.compact
+#  end
 
   #
   #  Ensure this group is correctly represented in the
@@ -34,7 +34,7 @@ class MIS_Group < MIS_Record
     #
     self.dbrecord
     if @dbrecord
-      raise "Found existing tutor group."
+#      puts "Found existing tutor group."
       #
       #  It's possible that, although there is a record in the d/b
       #  no longer current.
@@ -59,23 +59,26 @@ class MIS_Group < MIS_Record
         unchanged_count += 1
       end
     else
-      raise "Failed to find existing tutor group."
-      if @member_list.size > 0
-        if self.save_to_db(starts_on: loader.start_date,
-                           ends_on: loader.era.ends_on,
-                           era: loader.era)
-          loaded_count += 1
-        end
+#      puts "Failed to find existing tutor group."
+      if self.save_to_db(starts_on: loader.start_date,
+                         ends_on: loader.era.ends_on,
+                         era: loader.era)
+        loaded_count += 1
       end
     end
     if @dbrecord
       #
-      #  And now sort out the pupils for this tutor group.
+      #  And now sort out the members for this group.
+      #  Note that we handle only members who seem to have originated
+      #  from our current MIS.
       #
       db_member_ids =
-        @dbrecord.members(loader.start_date).collect {|s| s.source_id}
-      sb_member_ids = self.records.collect {|r| r.pupil_ident}
-      missing_from_db = sb_member_ids - db_member_ids
+        @dbrecord.members(loader.start_date).
+                  select {|m| m.datasource_id == @@primary_datasource_id}.
+                  collect {|m| m.source_id}
+      mis_member_ids =
+        self.members.collect {|m| m.source_id}
+      missing_from_db = mis_member_ids - db_member_ids
       missing_from_db.each do |pupil_id|
         pupil = loader.pupil_hash[pupil_id]
         if pupil && pupil.dbrecord
@@ -97,7 +100,7 @@ class MIS_Group < MIS_Record
           end
         end
       end
-      extra_in_db = db_member_ids - sb_member_ids
+      extra_in_db = db_member_ids - mis_member_ids
       extra_in_db.each do |pupil_id|
         pupil = loader.pupil_hash[pupil_id]
         if pupil && pupil.dbrecord

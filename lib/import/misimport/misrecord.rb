@@ -62,13 +62,11 @@ class MIS_Record
     return false unless dbrecord
     changed = false
     self.class.const_get(:FIELDS_TO_UPDATE).each do |field_name|
-      if @dbrecord.send(field_name) != self.instance_variable_get("@#{field_name}")
+      if @dbrecord.send(field_name) != self.send("#{field_name}")
         puts "Field #{field_name} differs for #{self.name}"
-        puts "d/b: \"#{@dbrecord.send(field_name)}\" IS: \"#{self.instance_variable_get("@#{field_name}")}\""
-#        @dbrecord[field_name] = self.instance_variable_get("@#{field_name}")
-#                entry.send("#{attr_name}=", row[column_hash[attr_name]])
+        puts "d/b: \"#{@dbrecord.send(field_name)}\" IS: \"#{self.send("#{field_name}")}\""
          @dbrecord.send("#{field_name}=",
-                        self.instance_variable_get("@#{field_name}"))
+                        self.send("#{field_name}"))
         changed = true
       end
     end
@@ -116,7 +114,7 @@ class MIS_Record
       end
       self.class.const_get(:FIELDS_TO_CREATE).each do |field_name|
          newrecord.send("#{field_name}=",
-                        self.instance_variable_get("@#{field_name}"))
+                        self.send("#{field_name}"))
       end
       if extras
         extras.each do |key, value|

@@ -17,7 +17,7 @@ class MIS_Pupil
 
   include Creator
 
-  attr_reader :name, :datasource_id
+  attr_reader :name, :datasource_id, :current
 
   def initialize(entry)
     #

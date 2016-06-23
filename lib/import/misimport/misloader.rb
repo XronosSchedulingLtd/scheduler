@@ -6,6 +6,7 @@ class MIS_Loader
               :start_date,
               :send_emails,
               :pupils,
+              :pupil_hash,
               :staff_hash
 
   def read_mis_data(options)
@@ -231,8 +232,8 @@ class MIS_Loader
     pupils_renamed           = 0
     tg_at_start = Tutorgroup.current.count
     @tutorgroups.each do |tg|
-      puts "Processing #{tg.constructed_name}"
-      puts tg.inspect
+#      puts "Processing #{tg.name}"
+#      puts tg.inspect
       #
       #  There must be a more idiomatic way of doing this.
       #
@@ -257,7 +258,7 @@ class MIS_Loader
     #  with members) but we need to record its demise.
     #
     tg_deleted_count = 0
-    sb_tg_ids = @tg_hash.collect { |key, tg| tg.dbrecord.id }.compact
+    sb_tg_ids = @tutorgroups.collect { |tg| tg.dbrecord.id }.compact
     db_tg_ids = Tutorgroup.current.collect {|dbtg| dbtg.id}
     extra_ids = db_tg_ids - sb_tg_ids
     extra_ids.each do |eid|

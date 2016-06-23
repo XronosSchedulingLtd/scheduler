@@ -10,7 +10,7 @@ My first thought was to add  a "next_era" bit so that they could run until the e
 
 I do however see a potential need for a "next_era", and indeed a "previous_era" in handling end-of-year processing, so I think I'll leave those in, but I won't use them for the calendar downloads.
 
-I could set up some sort of parameter of [[:never]] to be passed to the events_on method, which is then implemented as an unfeasibly far future date, or by removing the condition from the d/b query.  The latter would arguably be slightly more efficient (by how much?) but the former is easier to implement.  You can't pass nil to indicate no end date, because that already means that the end date is the same as the start date.
+I could set up some sort of parameter of :never to be passed to the events_on method, which is then implemented as an unfeasibly far future date, or by removing the condition from the d/b query.  The latter would arguably be slightly more efficient (by how much?) but the former is easier to implement.  You can't pass nil to indicate no end date, because that already means that the end date is the same as the start date.
 
 I also need to change my processing for producing a .csv output, because that runs from the start date to the end date, and it can't do that if there isn't an actual end date.  It will need to look at the data which it has collected and find the last actual date.
 

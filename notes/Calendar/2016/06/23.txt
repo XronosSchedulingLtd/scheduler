@@ -4,4 +4,65 @@ Creation-Date: 2016-06-23T06:31:29+01:00
 
 ====== Thursday 23 Jun 2016 ======
 
-Hello
+A further thought occurred last night.
+
+So far I have been trying to identify and adopt all the records previously created by SB.  For staff, pupils and rooms this makes perfect sense.  However it doesn't make any sense for things which belong to an era - tutor groups, teaching groups, etc.  For these, we simply want to stop using the old lot and start a new set in a new era.  The only time when this wouldn't work is if one were changing MIS in mid-year, and despite what iSAMS say, that really isn't feasible.  In any case, we're not doing it, so onwards and upwards.
+
+It would make sense for me to put the next era - Academic Year 2017/18 - into the live Scheduler and re-dump the database.  Then re-load it and convert it, documenting all the steps needed to do it.
+
+Interesting, in that my existing academic years have a source ID, which maps into SB somewhere.  I've set the new one to 0 for now - I may need to change that later if I find something similar in iSAMS.
+
+For a real system:
+* Back up database
+* Install new software
+* bundle install
+
+For a development system:
+* Load copy of live database
+* If you have previously run this version, delete the datasources table
+
+And then:
+* rake db:migrate
+* Run up application
+* Edit settings to set current MIS as iSAMS, and previous MIS as SchoolBase
+* Edit Models => DataSources and create ones called SchoolBase and iSAMS
+* Stop the application
+* In "rails c", run ''Datasource.land_grab''
+
+And at this point it's probably worth dumping the database so you can get back to this point quickly for testing.
+
+Now let's get the tutor groups loaded.  Our key is to be the source id, our era is next year, our start date is 2016-09-01 and the name is whatever we get from iSAMS.  When they fix the naming in iSAMS, ours will be fixed too.
+
+My code is becoming inconsistent - sometimes I use instance_variable_get and sometimes I expect a method.  This needs tidying up.  Although it conflicts with what I thought yesterday, I'm inclined to move towards using a method.  That then gives more flexibility in the implementation, in that an object can either provide an attr_reader for an instance variable, or a dynamic method.  Also, if something is missing, then I get an error rather than a silent nil.
+
+Mind you, I'm still getting a blank house and the method doesn't seem to be called.  Why?  Fixed that.
+
+OK - got to the point where it runs, although not sure whether it's doing quite the right things.
+
+[*] It says it is deleting the old TGs, but they don't seem to get affected.
+[*] It says it has added just 3 pupils to the new tutor groups.
+[*] I started with 80 tutor groups and finished with 192.
+
+Run it a second time and see how it feels.  Ah - the iSAMS file seems to contain 112 tutor groups.  80 + 112 = 192.
+
+At the second attempt, it leaves my 3 pupils alone, but ignores all the others.  Clearly something not quite right.  Am I using the wrong IDs.
+
+I am definitely using the wrong names - I took a decision to use the names from iSAMS, even though they are currently wrong.  When they are fixed in iSAMS they will be fixed in Scheduler.
+
+Ah - interesting problem.  I am trying to load the data into the next academic year, but what I'm getting from iSAMS currently matches the current academic year.  Thus my calculation of their effective start year comes out wrongly.
+
+E.g. Danny May is currently in the 4th year, and his start year (when he would have started in the first year) is thus 2012.  I'm trying to load him in next year though, and as he still appears to be a 4th year he gets loaded with a start year of 2013, which is wrong.  It will be right once iSAMS has been rolled over.  Why do I need this info in Scheduler anyway?  I'm not sure it's even used any more.  The idea was to calculate tutor group names dynamically (as in Markbook) but Scheduler doesn't really need to do that.  Ignore for now.
+
+I can explain the lack of deletion of the TGs.  What actually happens is that there end date gets set.  Since I'm loading for 2016-09-01, their end date is set to 2016-08-31.  This is still in the future so they don't quite go yet.  All is well.
+
+Now - why so few pupils.  I suspect I'm getting my IDs crossed.
+
+It occurs to me that, having established that the date and era stuff work, I would be better off taking them out of my invocation again.  That way the pupils would be in the right years, and I could see the old tutor groups getting turned off.  Try it.  Yes, that worked well.  Carry on with it.
+
+Now - how about some population for my tutor groups?  JAC 5a seems to be there just fine, but has no members.  What am I doing wrong?
+
+Ah - my existing code seems to use source IDs to compare memberships.  I thought I was using element IDs.  The danger I have now is that I need knowledge of what identifier any given member might use.  I am in fact using source IDs for my pupils, but I might not be, or they might belong to a different source system.
+
+Can I do it by element ID?  I could, but I'll stick to source IDs for now.
+
+Tutor groups now loaded.  What's next on my song sheet?

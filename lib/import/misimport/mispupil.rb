@@ -36,4 +36,10 @@ class MIS_Pupil < MIS_Record
   #  slurp
   #
 
+  def force_save
+    if self.dbrecord
+      self.dbrecord.save!
+    end
+  end
+
 end

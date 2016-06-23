@@ -13,7 +13,7 @@ class MIS_Staff
 
   include Creator
 
-  attr_reader :datasource_id
+  attr_reader :datasource_id, :current, :active
 
   def initialize(entry)
 #    puts "In MIS_Staff initialize"

@@ -77,7 +77,7 @@ One thing I've discovered is that commitments_on isn't nearly as efficient as I 
 
 I think I've spotted a small efficiency improvement already.  Test with friend Angus Alder.  As things currently stand he takes 13638ms (Active Record 603.1ms).   One change.  12653ms (509.9ms).  Preload got it down to 10082ms (639.3ms)
 
-Hah!  If I preload [:element, [[:element]] => :entity] I get it down to 3954ms (238.7ms)
+Hah!  If I preload [:element, :element => :entity] I get it down to 3954ms (238.7ms)
 
 Let's capture a log file to see what the sequence of searches is.
 

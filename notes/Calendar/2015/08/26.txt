@@ -8,7 +8,7 @@ Nothing yesterday because I was in school in the morning giving a bit of trainin
 
 Today I aim to tidy up my implementation.  Three things I don't like:
 
-* Two different conventions for having no start/end date.  nil or [[:never.]]  Since the existing commitments_on uses [[:never]] (and nil to mean "today") I think I should stick to that and re-work my new code.  It needs to understand [[:never]] and it should never receive nil.  Perhaps allow [[:always]] for a start date?
+* Two different conventions for having no start/end date.  nil or :never.  Since the existing commitments_on uses :never (and nil to mean "today") I think I should stick to that and re-work my new code.  It needs to understand :never and it should never receive nil.  Perhaps allow :always for a start date?
 * Membership duration is stored as dates, inclusive.  Events are stored as datetimes (with time zone), exclusive.  Too big a change to change the memberships now (and too confusing for the viewer), but I need to make sure my conversions work consistently.
 * Some of the code is rather scrappy.  I need neat and encapsulated ways to convert dates and to produce sql snippets.
 
@@ -29,9 +29,9 @@ start_date = Date.parse("2014-09-01")
 end_date = nil
 results = e.memberships_by_duration(start_date: start_date, end_date: end_date)
 Commitment.commitments_for_element_and_mwds(element: e,
-                                            startdate: start_date,
-                                            enddate: end_date,
-                                            mwd_set: results)
+											startdate: start_date,
+											enddate: end_date,
+											mwd_set: results)
 '''
 
 
@@ -41,7 +41,7 @@ Tidied a bit - now I need to re-implement the whole of commitments_on, for a sin
 
 Although I have previously provided a commitments_during method (used solely by the commitments_on) method, we don't really provide the means to request commitments with a finer granularity than a day.  None of our client code needs it, although it would theoretically be possible.  Memberships work only in whole days, but we could potentially expand indicated times to a whole day, sort out all the membership stuff, then filter the actual events back to the original times given.  It would need a lot of re-working of my code though, and as I currently have no use for it I'm not going to do it.  Press on and mimic Element#commitments_on using my new code.
 
-Responsibility for handling dates etc. passed as strings passes to the Element#commitments_on method, plus converting [[:never]] to nil.
+Responsibility for handling dates etc. passed as strings passes to the Element#commitments_on method, plus converting :never to nil.
 
 Code is still not complete (doesn't do eventcategory, eventsource or owned_by yet), but let's try it for timing.
 
