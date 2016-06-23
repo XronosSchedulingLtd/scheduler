@@ -53,7 +53,7 @@ class Datasource < ActiveRecord::Base
             g.persona_type == "Taggrouppersona"
            if g.persona.source_id && g.persona.source_id != 0
              unless g.datasource
-               g.source_id == g.persona.source_id
+               g.source_id = g.persona.source_id
                g.datasource = ds
                g.save!
                group_count += 1

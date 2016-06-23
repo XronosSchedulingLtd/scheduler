@@ -32,4 +32,11 @@ class Teachinggroup
     self.where(given_hash).take
   end
 
+  def self.all
+    Group.where(persona_type: "Teachinggrouppersona")
+  end
+
+  def self.find(id)
+    Group.find(id)
+  end
 end

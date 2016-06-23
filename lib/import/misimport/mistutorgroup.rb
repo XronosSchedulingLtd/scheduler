@@ -5,7 +5,7 @@ class MIS_Tutorgroup < MIS_Group
   FIELDS_TO_CREATE = [:name, :era_id, :staff_id, :house, :start_year, :current]
   FIELDS_TO_UPDATE = [:name, :era_id, :staff_id, :house, :start_year, :current]
 
-  attr_reader :staff_id, :member_ids
+  attr_reader :staff_id
 
   def add_pupil(pupil)
     @pupils << pupil
@@ -29,8 +29,6 @@ class MIS_Tutorgroup < MIS_Group
   #  who our members are.
   #
   def finalize
-#    @member_ids = assemble_membership_list(@pupils)
-#    puts "#{self.name} has #{@member_ids.count} apparent members."
   end
 
 end

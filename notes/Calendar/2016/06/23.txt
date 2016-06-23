@@ -65,4 +65,20 @@ Ah - my existing code seems to use source IDs to compare memberships.  I thought
 
 Can I do it by element ID?  I could, but I'll stick to source IDs for now.
 
-Tutor groups now loaded.  What's next on my song sheet?
+Tutor groups now loaded.  What's next on my song sheet?  Teaching groups.
+
+Looking at my existing teaching groups, which already had a source_id in their personae, I notice this has not been copied over into the new field in the actual group record.  Sounds like my land_grab method is incomplete.  The datasource_id has been filled in.  Ah yes, used == where I should have used =.  Need to reset and do it again.
+
+I seem to have managed to load some teaching groups, albeit only 112 of them.  I started with 1592 and ended with 112.
+
+Start with a clean slate again and see what happens.  The numbers don't quite seem to add up at present.
+
+Ah - the count of 112 is for tutor groups, not teaching groups.  Things start to make more sense.
+
+Check for idempotence - what happens in a second run.  Seems fine.  OK - I have 678 teaching groups and 8400 memberships.
+
+Try again from a reset d/b and time it.  7 mins 30 seconds.  Not bad.
+
+It occurs to me that I need some way to decide what timetable events to drop.  As it stands, I will get all ours, plus all the prep school ones.  What criterion can I use to drop theirs?  Which week they reference?
+
+There seems to be nothing in the schedule which I can use.

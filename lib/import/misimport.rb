@@ -37,6 +37,8 @@ require_relative 'misimport/misstaff.rb'
 require_relative 'misimport/mislocation.rb'
 require_relative 'misimport/misloader.rb'
 require_relative 'misimport/mistutorgroup.rb'
+require_relative 'misimport/misteachinggroup.rb'
+require_relative 'misimport/mistimetable.rb'
 
 #
 #  Now we actually access the database to discover what MIS is in use.
@@ -56,6 +58,8 @@ if current_mis
     require_relative 'isams/misstaff.rb'
     require_relative 'isams/mislocation.rb'
     require_relative 'isams/mistutorgroup.rb'
+    require_relative 'isams/misteachinggroup.rb'
+    require_relative 'isams/mistimetable.rb'
   elsif current_mis == "SchoolBase"
   else
     raise "Don't know how to handle #{current_mis} as our current MIS."
@@ -133,10 +137,10 @@ begin
       finished(options, "locations")
       loader.do_tutorgroups
       finished(options, "tutor groups")
-#      loader.do_teachinggroups
-#      finished(options, "teaching groups")
-#      loader.do_timetable
-#      finished(options, "timetable")
+      loader.do_teachinggroups
+      finished(options, "teaching groups")
+      loader.do_timetable
+      finished(options, "timetable")
 #      loader.do_cover
 #      finished(options, "cover")
 #      loader.do_other_half

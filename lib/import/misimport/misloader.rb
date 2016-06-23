@@ -31,6 +31,10 @@ class MIS_Loader
     @locations = MIS_Location.construct(self, whatever)
     @tutorgroups = MIS_Tutorgroup.construct(self, whatever)
     puts "Got #{@tutorgroups.count} tutorgroups." if options.verbose
+    @teachinggroups = MIS_Teachinggroup.construct(self, whatever)
+    puts "Got #{@teachinggroups.count} teaching groups." if options.verbose
+    @timetableentries = MIS_Timetable.construct(self, whatever)
+    puts "Got #{@timetableentries.count} timetable entries." if options.verbose
   end
 
   def initialize(options)
@@ -311,4 +315,83 @@ class MIS_Loader
       puts "Started with #{tg_at_start} tutor groups and finished with #{tg_at_end}."
     end
   end
+
+  def do_teachinggroups
+    tg_changed_count      = 0
+    tg_unchanged_count    = 0
+    tg_loaded_count       = 0
+    tg_reincarnated_count = 0
+    tgmember_removed_count   = 0
+    tgmember_unchanged_count = 0
+    tgmember_loaded_count    = 0
+    tg_at_start = Teachinggroup.current.count
+    @teachinggroups.each do |tg|
+#      puts "Processing #{tg.name}"
+#      puts tg.inspect
+      #
+      #  There must be a more idiomatic way of doing this.
+      #
+      loaded,
+      reincarnated,
+      changed,
+      unchanged,
+      member_loaded,
+      member_removed,
+      member_unchanged = tg.ensure_db(self)
+      tg_loaded_count          += loaded
+      tg_reincarnated_count    += reincarnated
+      tg_changed_count         += changed
+      tg_unchanged_count       += unchanged
+      tgmember_loaded_count    += member_loaded
+      tgmember_removed_count   += member_removed
+      tgmember_unchanged_count += member_unchanged
+    end
+    #
+    #  It's possible that a teaching group has ceased to exist entirely,
+    #  in which case we will still have a record in our d/b for it (possibly
+    #  with members) but we need to record its demise.
+    #
+    tg_deleted_count = 0
+    sb_tg_ids = @teachinggroups.collect { |tg| tg.dbrecord.id }.compact
+    db_tg_ids = Teachinggroup.current.collect {|dbtg| dbtg.id}
+    extra_ids = db_tg_ids - sb_tg_ids
+    extra_ids.each do |eid|
+      dbtg = Teachinggroup.find(eid)
+      puts "Teaching group #{dbtg.name} exists in the d/b but not in the files." if @verbose
+      dbtg.ceases_existence(@start_date)
+      tg_deleted_count += 1
+    end
+    tg_at_end = Teachinggroup.current.count
+    if @verbose || tg_deleted_count > 0
+      puts "#{tg_deleted_count} teaching group records deleted."
+    end
+    if @verbose || tg_changed_count > 0
+      puts "#{tg_changed_count} teaching group records amended."
+    end
+    if @verbose
+      puts "#{tg_unchanged_count} teaching group records untouched."
+    end
+    if @verbose || tg_loaded_count > 0
+      puts "#{tg_loaded_count} teaching group records created."
+    end
+    if @verbose || tg_reincarnated_count > 0
+      puts "#{tg_reincarnated_count} teaching group records reincarnated."
+    end
+    if @verbose || tgmember_removed_count > 0
+      puts "Removed #{tgmember_removed_count} pupils from teaching groups."
+    end
+    if @verbose
+      puts "Left #{tgmember_unchanged_count} pupils where they were."
+    end
+    if @verbose || tgmember_loaded_count > 0
+      puts "Added #{tgmember_loaded_count} pupils to teaching groups."
+    end
+    if @verbose || tg_at_start != tg_at_end
+      puts "Started with #{tg_at_start} teaching groups and finished with #{tg_at_end}."
+    end
+  end
+
+  def do_timetable
+  end
+
 end
