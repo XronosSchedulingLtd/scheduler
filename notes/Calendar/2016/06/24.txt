@@ -1,0 +1,31 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-06-24T06:27:37+01:00
+
+====== Friday 24 Jun 2016 ======
+
+Now today we will move on to events - the timetable itself.
+
+My immediate plan is to spend today, and as much of the weekend as I can manage, doing the Scheduler import.  On Monday I will need to  switch to vetting iSAMS's latest data load.  I need to get my change log, and go through it making sure each change has had the desired effect.
+
+I'm into yet another area where the big need is for me to establish a good structure on what is currently a blank canvas.  There needs to be MIS-specific code, generic code, and a clear interface between them.
+
+I've already managed to load all the Weeks, Days and Periods, plus the schedule entries to go in them.  I think I should also be able to get enough information to decide, for any given date, which is the appropriate day.  Take a look at the data file and see what's there.
+
+Ah - we have school divisions.  Can I tell from that which bits relate to the senior school?  It seems to give me only the years.  I'd have to have a mapping from schedule items to years, and I'm not sure there is one.  I am however already doing filtering via years for other bits.  I could drive that from divisions rather than having it hard-coded as it is at present.
+
+TimetableManager is the section for the timetable.  It does contain the prep timetable, which could well be useful.
+
+Ah - TimetableAllocations seems to be what we're after.  They link particular weeks of a year to which timetable week they are.  Thus week 21 of 2016 is a timetable week 1.  Week 24 is a timetable week 2.  Why the gap?  Ah - they're just not quite listed in order.  Handily, Ruby's date object includes the means to generate dates from week numbers.  Can it go the other way?  Yes indeedy - just pass %W to strftime.  What I want it as a number?  Then you use Date#cweek.  Seems straightforward enough.
+
+I want a method which I call, passing an actual date, which then returns an array of all the lessons on that date.  Each lesson should know when it is to occur.
+
+Time for some lunch I think.
+
+Aaaaaaaargh!  I've just spent ages diagnosing something really stupid.  This week (Mon 20th - Sun 26th June, 2016) is week number 25 in the standard week numbering system.  However, iSAMS seems to think it is week 26.
+
+I suspect I will need to write my own week number code, probably built on Date#yday, which gives the day number in the year.  Thus 1st Jan is 1, 1st Feb is 32 etc.  I will however have to take account of the day of the week as well.
+
+I'm guessing that they are running weeks from Sun to Sat, and taking the first week or part of week as week 1.  That's my working hypothesis for now.
+
+Something like, take the day number and subtract the day of the week.  0 is Sunday, so that gets me back to the day number of the Sunday.  If I then add 6 and divide by 7 and add 1, I should be there?  No - it's add 12 and divide by 7.  Always fun.

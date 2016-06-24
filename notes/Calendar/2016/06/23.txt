@@ -81,4 +81,6 @@ Try again from a reset d/b and time it.  7 mins 30 seconds.  Not bad.
 
 It occurs to me that I need some way to decide what timetable events to drop.  As it stands, I will get all ours, plus all the prep school ones.  What criterion can I use to drop theirs?  Which week they reference?
 
-There seems to be nothing in the schedule which I can use.
+There seems to be nothing in the schedule which I can use.  Perhaps I'll do it by week name.
+
+Anyway - my events already contain an eventsource_id so I should probably carry on using that.  Some intelligence will be needed in purging old events from SB.  I don't think iSAMS will need the concept of a compound event, but I am yet to see.  For now I'll go without it.

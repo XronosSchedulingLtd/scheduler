@@ -52,6 +52,7 @@ require_relative 'misimport/mistimetable.rb'
 current_mis = Setting.current_mis
 if current_mis
   if current_mis == "iSAMS"
+    require_relative 'isams/dateextra.rb'
     require_relative 'isams/misloader.rb'
     require_relative 'isams/creator.rb'
     require_relative 'isams/mispupil.rb'
