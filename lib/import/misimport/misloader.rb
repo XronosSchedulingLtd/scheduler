@@ -34,7 +34,7 @@ class MIS_Loader
     @teachinggroups = MIS_Teachinggroup.construct(self, whatever)
     puts "Got #{@teachinggroups.count} teaching groups." if options.verbose
     @timetable = MIS_Timetable.new(self, whatever)
-    puts "Got #{@timetable.entries.count} timetable entries." if options.verbose
+    puts "Got #{@timetable.entry_count} timetable entries." if options.verbose
   end
 
   def initialize(options)

@@ -175,6 +175,11 @@ class ISAMS_Schedule
       end
     end
   end
+
+  def entry_count
+    @entries.count
+  end
+
 end
 
 class ISAMS_WeekAllocation
@@ -199,8 +204,6 @@ end
 
 class MIS_Timetable
 
-  attr_reader :entries
-
   def initialize(loader, isams_data)
     @week_allocations = ISAMS_WeekAllocation.construct(isams_data)
     @week_allocations_hash = Hash.new
@@ -209,6 +212,10 @@ class MIS_Timetable
     end
     puts "Got #{@week_allocations.size} week allocations."
     @schedule = ISAMS_Schedule.new(loader, isams_data)
+  end
+
+  def entry_count
+    @schedule.entry_count
   end
 
   def lessons_on(date)
