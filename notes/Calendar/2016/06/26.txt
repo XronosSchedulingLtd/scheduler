@@ -45,3 +45,18 @@ Hmmm.  It appears that none of the lessons in the timetable currently has a set 
 I can see what's wrong with the teachers though - I need to index by that long string.  Done.
 
 And I know why we have two lessons in the same room too - it's because we moved anything from the Greening wing or Little School into randomly selected science classrooms.  Excellent.  I think I'll put this on my demo system.
+
+It's occurred to me that I'm not currently handling:
+
+[ ] Lessons taught in tutor groups
+[ ] Custom groups
+
+iSAMS has the same design error as SB, in that a lesson can only involve a teaching group.  They must have added some sort of glue to create a sort of pseudo teaching group which references a tutor group for its membership.  Can I disentangle that?
+
+Adam Suardi is in S1 Ar 4.  May well be called something else in iSAMS, but I'm fairly certain that Oliver has loaded at least some of the 1st year lessons.  We have 1R Ar 4.  Hang on - this is probably one of the very few things for which the 1st year are //not// taught in tutor groups.  Pick another one.  1C La.
+
+Ah - some light dawns.  These ones have a SetId of 0 in the schedule.  It appears that the SetId is simply a misnomer (and mis-documented).  Or perhaps not?  The membership of 1C La does not seem to be defined anywhere.
+
+It seems we should have SetLists and TeachingForms in our output.  I am processing SetLists.  Do I have TeachingForms?  Yes I do - and their ID numbers overlap - luverly.  However, there seems to be no connection between lessons and teachingforms.  Neither the name nor the set ID is the same.  Great.
+
+I can use source_id_str instead of source_id to manage them, or I could add an arbitrary large constant to the number.  Or I could make it negative.

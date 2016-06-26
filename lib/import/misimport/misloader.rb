@@ -8,7 +8,6 @@ class MIS_Loader
               :pupils,
               :pupil_hash,
               :staff_hash,
-              :secondary_staff_hash,
               :location_hash,
               :teachinggroup_hash
 
@@ -17,6 +16,10 @@ class MIS_Loader
     #  We have no idea what "whatever" is - it's just something
     #  defined by the MIS-specific components.  Could be a large
     #  data structure, or simply a file handle.
+    #
+    #  Some of the hashes which we're setting up here are really
+    #  iSAMS-specific.  They should be moved into the isams-related
+    #  files.
     #
     whatever = prepare(options)
     @pupils = MIS_Pupil.construct(self, whatever)
@@ -28,18 +31,8 @@ class MIS_Loader
     @staff = MIS_Staff.construct(self, whatever)
     puts "Got #{@staff.count} staff." if options.verbose
     @staff_hash = Hash.new
-    @secondary_staff_hash = Hash.new
     @staff.each do |staff|
       @staff_hash[staff.source_id] = staff
-      #
-      #  iSAMS's API is a bit brain-dead, in that sometimes they refer
-      #  to staff by their ID, and sometimes by what they call a UserCode
-      #
-      #  The UserCode seems to be being phased out (marked as legacy on
-      #  form records), but on lessons at least it is currently the
-      #  only way to find the relevant staff member.
-      #
-      @secondary_staff_hash[staff.secondary_key] = staff
     end
     @locations = MIS_Location.construct(self, whatever)
     @location_hash = Hash.new
@@ -54,6 +47,7 @@ class MIS_Loader
     @teachinggroups.each do |tg|
       @teachinggroup_hash[tg.source_id] = tg
     end
+    self.mis_specific_preparation
     @timetable = MIS_Timetable.new(self, whatever)
     puts "Got #{@timetable.entry_count} timetable entries." if options.verbose
     @event_source = Eventsource.find_by(name: Setting.current_mis)

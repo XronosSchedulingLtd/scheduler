@@ -142,9 +142,16 @@ class MIS_ScheduleEntry
     #  Needs reinforcing.
     #
     @groups = Array.new
-    group = loader.teachinggroup_hash[@set_id]
-    if group
-      @groups << group
+    if @set_id == 1             # By set
+      group = loader.tegs_by_name_hash[@code]
+      if group
+        @groups << group
+      end
+    elsif @set_id == 0          # By form (tutor group)
+      group = loader.tugs_by_name_hash[@code.split[0]]
+      if group
+        @groups << group
+      end
     end
     @staff = Array.new
     staff = loader.secondary_staff_hash[@teacher_id]
