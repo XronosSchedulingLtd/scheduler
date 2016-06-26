@@ -1,3 +1,13 @@
+class MIS_PeriodTime
+  def initialize(starts_at, ends_at)
+    @starts_at    = starts_at
+    @ls_starts_at = starts_at
+    @ends_at      = ends_at
+    @ls_ends_at   = ends_at
+  end
+
+end
+
 class ISAMS_Period
   SELECTOR = "Periods Period"
   REQUIRED_FIELDS = [
@@ -10,9 +20,13 @@ class ISAMS_Period
   
   include Creator
 
-  attr_reader :day
+  attr_reader :day, :period_time
 
   def initialize(entry)
+  end
+
+  def adjust
+    @period_time = MIS_PeriodTime.new(@start_time, @end_time)
   end
 
   def note_day(day)
@@ -97,15 +111,15 @@ class ISAMS_Week
 
 end
 
-class ISAMS_ScheduleEntry
+class MIS_ScheduleEntry
   SELECTOR = "TimetableManager PublishedTimetables Timetable Schedules Schedule"
   REQUIRED_FIELDS = [
-    IsamsField["Id",        :isams_id,  :attribute, :integer],
-    IsamsField["Code",      :code,      :data,      :string],
-    IsamsField["Teacher",   :teacher,   :data,      :string],
-    IsamsField["PeriodId",  :period_id, :data,      :integer],
-    IsamsField["RoomId",    :room_id,   :data,      :integer],
-    IsamsField["SetId",     :set_id,    :data,      :integer]
+    IsamsField["Id",        :isams_id,   :attribute, :integer],
+    IsamsField["Code",      :code,       :data,      :string],
+    IsamsField["Teacher",   :teacher_id, :data,      :string],
+    IsamsField["PeriodId",  :period_id,  :data,      :integer],
+    IsamsField["RoomId",    :room_id,    :data,      :integer],
+    IsamsField["SetId",     :set_id,     :data,      :integer]
   ]
 
   include Creator
@@ -116,6 +130,34 @@ class ISAMS_ScheduleEntry
   def adjust
   end
 
+  def find_resources(loader)
+    #
+    #  iSAMS suffers from the same design flaw as SB, in that each
+    #  lesson can involve at most one teacher, one group and one
+    #  room.  I may need to implement a merging strategy as I did
+    #  for SB.
+    #
+    #  This code also currently suffers from a lack of defensiveness.
+    #  It assumes that the data coming from iSAMS will be correct.
+    #  Needs reinforcing.
+    #
+    @groups = Array.new
+    group = loader.teachinggroup_hash[@set_id]
+    if group
+      @groups << group
+    end
+    @staff = Array.new
+    staff = loader.secondary_staff_hash[@teacher_id]
+    if staff
+      @staff << staff
+    end
+    @rooms = Array.new
+    room = loader.location_hash[@room_id]
+    if room
+      @rooms << room
+    end
+  end
+
   def source_id
     @isams_id
   end
@@ -124,13 +166,43 @@ class ISAMS_ScheduleEntry
     @period = period
   end
 
+  def period_time
+    @period.period_time
+  end
+
+  def source_hash
+    #
+    #  Although numeric, return as a string.
+    #
+    "#{@isams_id}"
+  end
+
+  def body_text
+    @code
+  end
+
+  def eventcategory
+    #
+    #  This needs fixing very quickly.
+    #
+    Eventcategory.find_by(name: "Lesson")
+  end
+
+  def lower_school
+    false
+  end
+
+  def suspended_on?(date)
+    false
+  end
+
   def self.construct(loader, isams_data)
     self.slurp(isams_data)
   end
 
 end
 
-class ISAMS_Schedule
+class MIS_Schedule
 
   attr_reader :week_hash
 
@@ -159,7 +231,7 @@ class ISAMS_Schedule
         end
       end
     end
-    @entries = ISAMS_ScheduleEntry.construct(loader, isams_data)
+    @entries = MIS_ScheduleEntry.construct(loader, isams_data)
     #
     #  Now each timetable entry needs linking to the relevant day
     #  so that we given a date subsequently, we can work out what day
@@ -173,6 +245,9 @@ class ISAMS_Schedule
       else
         puts "Lesson #{entry.code} references period #{entry.period_id} which doesn't seem to exist."
       end
+    end
+    @entries.each do |entry|
+      entry.find_resources(loader)
     end
   end
 
@@ -211,7 +286,7 @@ class MIS_Timetable
       @week_allocations_hash["#{wa.year}/#{wa.week}"] = wa
     end
     puts "Got #{@week_allocations.size} week allocations."
-    @schedule = ISAMS_Schedule.new(loader, isams_data)
+    @schedule = MIS_Schedule.new(loader, isams_data)
   end
 
   def entry_count
