@@ -17,6 +17,18 @@ class MIS_ScheduleEntry
   attr_reader :dbrecord, :groups, :staff, :rooms
 
   #
+  #  These next two functions should be over-ridden by the MIS-specific
+  #  code.
+  #
+  def exists_on?(date)
+    true
+  end
+
+  def suspended_on?(date)
+    false
+  end
+
+  #
   #  The job of this function is to ensure that an appropriate
   #  matching database entry exists with the right time.  We either
   #  find an existing one on the indicated date (adjusting the time

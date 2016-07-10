@@ -7,6 +7,7 @@ module Creator
     parent::REQUIRED_FIELDS.each do |field|
       attr_accessor field[:attr_name]
     end
+    attr_reader :entry
   end
 
   #
@@ -26,6 +27,7 @@ module Creator
 
     def initialize(entry)
 #      puts "In Creator initialize"
+      @entry = entry
       self.class::REQUIRED_FIELDS.each do |field|
         attr_name = field[:attr_name]
         if field[:source_type] == :attribute

@@ -1,10 +1,8 @@
 class MIS_Loader
 
-  attr_reader :verbose,
-              :full_load,
+  attr_reader :options,
               :era,
               :start_date,
-              :send_emails,
               :pupils,
               :pupil_hash,
               :staff_hash,
@@ -12,6 +10,7 @@ class MIS_Loader
               :teachinggroup_hash
 
   def read_mis_data(options)
+    @options = options
     #
     #  We have no idea what "whatever" is - it's just something
     #  defined by the MIS-specific components.  Could be a large
@@ -257,7 +256,7 @@ class MIS_Loader
     pupils_renamed           = 0
     tg_at_start = Tutorgroup.current.count
     @tutorgroups.each do |tg|
-#      puts "Processing #{tg.name}"
+      puts "Processing #{tg.name}"
 #      puts tg.inspect
       #
       #  There must be a more idiomatic way of doing this.
@@ -283,7 +282,8 @@ class MIS_Loader
     #  with members) but we need to record its demise.
     #
     tg_deleted_count = 0
-    sb_tg_ids = @tutorgroups.collect { |tg| tg.dbrecord.id }.compact
+    sb_tg_ids =
+      @tutorgroups.collect { |tg| tg.dbrecord ? tg.dbrecord.id : nil }.compact
     db_tg_ids = Tutorgroup.current.collect {|dbtg| dbtg.id}
     extra_ids = db_tg_ids - sb_tg_ids
     extra_ids.each do |eid|
@@ -425,6 +425,7 @@ class MIS_Loader
       puts "Processing #{date}" if @verbose
       lessons = @timetable.lessons_on(date)
       if lessons
+        lessons = lessons.select {|lesson| lesson.exists_on?(date)}
         puts "#{lessons.count} lessons for #{date.to_s}"
         lessons.each do |lesson|
           #
@@ -444,75 +445,40 @@ class MIS_Loader
       else
         puts "No lessons for #{date.to_s}"
       end
-if false
+      #
+      #  Anything in the database which we need to remove?
+      #
+      dbevents = Event.events_on(date,          # Start date
+                                 nil,           # End date
+                                 nil,           # Categories
+                                 @event_source, # Event source
+                                 nil,           # Resource
+                                 nil,           # Owner
+                                 true)          # And non-existent
+      dbhashes = dbevents.collect {|dbe| dbe.source_hash}.uniq
       if lessons
-        lessons = lessons.select {|lesson| lesson.exists_on?(date)}
-        lesson_hash = Hash.new
-        lessons.each do |lesson|
-          lesson_hash[lesson.source_hash] = lesson
-        end
-        dbevents = Event.events_on(date,          # Start date
-                                   nil,           # End date
-                                   nil,           # Categories
-                                   @event_source, # Event source
-                                   nil,           # Resource
-                                   nil,           # Owner
-                                   true)          # And non-existent
-        dbhashes = dbevents.collect {|dbe| dbe.source_hash}.uniq
         mishashes = lessons.collect {|lesson| lesson.source_hash}
-        puts "#{mishashes.size} events in MIS and #{dbhashes.size} in the d/b."
-        #
-        #  Anything in the database, but not in the MIS files?
-        #
-        dbonly = dbhashes - mishashes
-        if dbonly.size > 0
-          puts "Deleting #{dbonly.size} events." if @verbose
-          #
-          #  These I'm afraid have to go.  Given only the source
-          #  hash we don't have enough to find the record in the d/b
-          #  (because they repeat every fortnight) but happily we
-          #  already have the relevant d/b record in memory.
-          #
-          dbonly.each do |dbo|
-            dbrecord = dbevents.find {|dbe| dbe.source_hash == dbo}
-            if dbrecord
-              dbrecord.destroy
-            end
-            event_deleted_count += 1
-          end
-        end
-        #
-        #  And now anything in the MIS files which isn't in the d/b?
-        #
-        misonly = mishashes - dbhashes
-        if misonly.size > 0
-          puts "Adding #{misonly.size} events." if @verbose
-          misonly.each do |miso|
-            lesson = lesson_hash[miso]
-            lesson.add_to_db
-          end
-        end
-        #
-        #  All the right events should now be in the database.
-        #  Run through them making sure they have the right time and
-        #  the right resources.
-        #
-        lessons.each do |lesson|
-          if event = dbevents.detect {
-            |dbe| dbe.source_hash == lesson.source_hash
-          }
-            #
-            #  Now have a d/b record (event) and a SB record (lesson).
-            #
-            lesson.ensure_time_and_resources(event)
-          else
-            puts "Very odd - d/b record #{lesson.source_hash} has disappeared."
-          end
-        end
       else
-        puts "Couldn't find lesson entries for #{date.strftime("%A")}."
+        mishashes = []
       end
-end
+      puts "#{mishashes.size} events in MIS and #{dbhashes.size} in the d/b."
+      dbonly = dbhashes - mishashes
+      if dbonly.size > 0
+        puts "Deleting #{dbonly.size} events." if @verbose
+        #
+        #  These I'm afraid have to go.  Given only the source
+        #  hash we don't have enough to find the record in the d/b
+        #  (because they repeat every fortnight) but happily we
+        #  already have the relevant d/b record in memory.
+        #
+        dbonly.each do |dbo|
+          dbrecord = dbevents.find {|dbe| dbe.source_hash == dbo}
+          if dbrecord
+            dbrecord.destroy
+          end
+          event_deleted_count += 1
+        end
+      end
     end
     if event_created_count > 0 || @verbose
       puts "#{event_created_count} timetable events added."

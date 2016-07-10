@@ -112,7 +112,7 @@ class ISAMS_Week
 end
 
 class MIS_ScheduleEntry
-  SELECTOR = "TimetableManager PublishedTimetables Timetable Schedules Schedule"
+  SELECTOR = "Schedules Schedule"
   REQUIRED_FIELDS = [
     IsamsField["Id",        :isams_id,   :attribute, :integer],
     IsamsField["Code",      :code,       :data,      :string],
@@ -213,7 +213,7 @@ class MIS_Schedule
 
   attr_reader :week_hash
 
-  def initialize(loader, isams_data)
+  def initialize(loader, isams_data, timetable)
     @weeks = ISAMS_Week.construct(loader, isams_data)
     if false
       puts "Found #{@weeks.size} weeks."
@@ -238,7 +238,7 @@ class MIS_Schedule
         end
       end
     end
-    @entries = MIS_ScheduleEntry.construct(loader, isams_data)
+    @entries = MIS_ScheduleEntry.construct(loader, timetable.entry)
     #
     #  Now each timetable entry needs linking to the relevant day
     #  so that we given a date subsequently, we can work out what day
@@ -284,6 +284,35 @@ class ISAMS_WeekAllocation
 
 end
 
+#
+#  We may well find several iSAMS timetables, one of which will be the
+#  one we use to build our MIS_Timetable.
+#
+class ISAMS_Timetable
+  REQUIRED_FIELDS = [
+    IsamsField["Id",     :isams_id,  :attribute, :integer],
+    IsamsField["Name",   :name,      :data,      :string]
+  ]
+
+  include Creator
+
+  def initialize(entry)
+  end
+
+  def self.construct(isams_data)
+    self.slurp(isams_data)
+  end
+
+end
+
+class ISAMS_DevelopmentTimetable < ISAMS_Timetable
+  SELECTOR = "TimetableManager DevelopmentTimetables Timetable"
+end
+
+class ISAMS_PublishedTimetable < ISAMS_Timetable
+  SELECTOR = "TimetableManager PublishedTimetables Timetable"
+end
+
 class MIS_Timetable
 
   def initialize(loader, isams_data)
@@ -293,7 +322,37 @@ class MIS_Timetable
       @week_allocations_hash["#{wa.year}/#{wa.week}"] = wa
     end
     puts "Got #{@week_allocations.size} week allocations."
-    @schedule = MIS_Schedule.new(loader, isams_data)
+    if loader.options.timetable_name
+      puts "Timetable called \"#{loader.options.timetable_name}\" specified."
+      timetable_name = loader.options.timetable_name
+    else
+      puts "No timetable specified."
+      entries = isams_data.css("TimetableManager PublishedTimetables Timetable Name")
+      if entries && entries.size > 0
+        timetable_name = entries[0].text
+        puts "Using #{timetable_name}."
+      else
+        raise "No published timetable in iSAMS data. Specify one explicitly by name."
+      end
+    end
+    #
+    #  Now we are responsible for finding the right timetable and passing
+    #  it to the scheduler loader.
+    #
+    timetables = ISAMS_PublishedTimetable.construct(isams_data) +
+                 ISAMS_DevelopmentTimetable.construct(isams_data)
+    puts "Found #{timetables.size} timetables."
+    timetables.each do |t|
+      puts t.name
+    end
+    matching_timetables = timetables.select {|t| t.name == timetable_name}
+    if matching_timetables.size == 1
+      @schedule = MIS_Schedule.new(loader, isams_data, matching_timetables[0])
+    else
+      raise "#{matching_timetables.size} timetables match \"timetable_name\"."
+    end
+    puts "Got #{@schedule.entry_count} schedule entries."
+    @schedule
   end
 
   def entry_count

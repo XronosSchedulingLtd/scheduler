@@ -27,6 +27,7 @@ require_relative '../../config/environment'
 #
 #  Support files.
 #
+require_relative 'misimport/options.rb'
 require_relative 'misimport/misrecord.rb'
 require_relative 'misimport/misgroup.rb'
 #
@@ -53,6 +54,7 @@ current_mis = Setting.current_mis
 if current_mis
   if current_mis == "iSAMS"
     require_relative 'isams/dateextra.rb'
+    require_relative 'isams/options.rb'
     require_relative 'isams/misloader.rb'
     require_relative 'isams/creator.rb'
     require_relative 'isams/mispupil.rb'
@@ -77,56 +79,7 @@ def finished(options, stage)
 end
 
 begin
-  options = OpenStruct.new
-  options.verbose         = false
-  options.full_load       = false
-  options.just_initialise = false
-  options.send_emails     = false
-  options.do_timings      = false
-  options.era             = nil
-  options.start_date      = nil
-  OptionParser.new do |opts|
-    opts.banner = "Usage: misimport.rb [options]"
-
-    opts.on("-i", "--initialise", "Initialise only") do |i|
-      options.just_initialise = i
-    end
-
-    opts.on("-v", "--verbose", "Run verbosely") do |v|
-      options.verbose = v
-    end
-
-    opts.on("-f", "--full",
-            "Do a full load",
-            "(as opposed to incremental.  Doesn't",
-            "actually affect what gets loaded, but",
-            "does affect when it's loaded from.)") do |f|
-      options.full_load = f
-    end
-
-    opts.on("-e", "--era [ERA NAME]",
-            "Specify the era to load data into.") do |era|
-      options.era = era
-    end
-
-    opts.on("--email",
-            "Generate e-mails about cover issues.") do |email|
-      options.send_emails = email
-    end
-
-    opts.on("--timings",
-            "Log the time at various stages in the processing.") do |timings|
-      options.do_timings = timings
-    end
-
-    opts.on("-s", "--start [DATE]", Date,
-            "Specify an over-riding start date",
-            "for loading events and groups.") do |date|
-      options.start_date = date
-    end
-
-  end.parse!
-
+  options = Options.new
   MIS_Loader.new(options) do |loader|
     unless options.just_initialise
       finished(options, "initialisation")

@@ -77,10 +77,14 @@ class MIS_Tutorgroup
       end
     end
     tgs.each do |tg|
-      puts "Tutor group #{tg.name} has #{tg.size} pupils." if loader.verbose
+      puts "Tutor group #{tg.name} has #{tg.size} pupils." if loader.options.verbose
       tg.finalize
     end
-    tgs
+    without_tutor, with_tutor = tgs.partition {|tg| tg.staff == nil}
+    without_tutor.each do |tg|
+      puts "Dropping tutor group #{tg.name} because it has no tutor."
+    end
+    with_tutor
   end
 
 end
