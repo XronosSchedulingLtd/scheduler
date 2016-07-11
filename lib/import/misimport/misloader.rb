@@ -49,6 +49,7 @@ class MIS_Loader
     self.mis_specific_preparation
     @timetable = MIS_Timetable.new(self, whatever)
     puts "Got #{@timetable.entry_count} timetable entries." if options.verbose
+    @timetable.note_hiatuses(self, @hiatuses)
     @event_source = Eventsource.find_by(name: Setting.current_mis)
     if @event_source
       puts "Current MIS is #{@event_source.name}"
@@ -83,6 +84,7 @@ class MIS_Loader
     else
       @start_date = Date.today
     end
+    @hiatuses = Hiatus.load_hiatuses(self)
     read_mis_data(options)
     yield self if block_given?
   end
@@ -256,7 +258,7 @@ class MIS_Loader
     pupils_renamed           = 0
     tg_at_start = Tutorgroup.current.count
     @tutorgroups.each do |tg|
-      puts "Processing #{tg.name}"
+#      puts "Processing #{tg.name}"
 #      puts tg.inspect
       #
       #  There must be a more idiomatic way of doing this.
@@ -284,6 +286,18 @@ class MIS_Loader
     tg_deleted_count = 0
     sb_tg_ids =
       @tutorgroups.collect { |tg| tg.dbrecord ? tg.dbrecord.id : nil }.compact
+    #
+    #  This next line isn't quite the right selection.  The problem is
+    #  we're simply selecting tutorgroups which are current *now*, but
+    #  if the start date which we're working on is in the future then
+    #  we we really want to know which ones will be current then.
+    #
+    #  The effect is we keep setting an end-date for these groups,
+    #  in the future, and we do it again every time the program is
+    #  run.
+    #
+    #  Should fix.
+    #
     db_tg_ids = Tutorgroup.current.collect {|dbtg| dbtg.id}
     extra_ids = db_tg_ids - sb_tg_ids
     extra_ids.each do |eid|
@@ -426,7 +440,7 @@ class MIS_Loader
       lessons = @timetable.lessons_on(date)
       if lessons
         lessons = lessons.select {|lesson| lesson.exists_on?(date)}
-        puts "#{lessons.count} lessons for #{date.to_s}"
+        puts "#{lessons.count} lessons for #{date.to_s}" if @verbose
         lessons.each do |lesson|
           #
           #  Make sure each of these lessons exists in the d/b and
@@ -443,7 +457,7 @@ class MIS_Loader
           resources_removed_count += removed_count
         end
       else
-        puts "No lessons for #{date.to_s}"
+        puts "No lessons for #{date.to_s}" if @verbose
       end
       #
       #  Anything in the database which we need to remove?
@@ -461,7 +475,7 @@ class MIS_Loader
       else
         mishashes = []
       end
-      puts "#{mishashes.size} events in MIS and #{dbhashes.size} in the d/b."
+      puts "#{mishashes.size} events in MIS and #{dbhashes.size} in the d/b." if @verbose
       dbonly = dbhashes - mishashes
       if dbonly.size > 0
         puts "Deleting #{dbonly.size} events." if @verbose
@@ -482,6 +496,9 @@ class MIS_Loader
     end
     if event_created_count > 0 || @verbose
       puts "#{event_created_count} timetable events added."
+    end
+    if event_amended_count > 0 || @verbose
+      puts "#{event_amended_count} timetable events amended."
     end
     if event_deleted_count > 0 || @verbose
       puts "#{event_deleted_count} timetable events deleted."

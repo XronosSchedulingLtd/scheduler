@@ -16,16 +16,32 @@ class MIS_ScheduleEntry
 
   attr_reader :dbrecord, :groups, :staff, :rooms
 
-  #
-  #  These next two functions should be over-ridden by the MIS-specific
-  #  code.
-  #
+  def note_hiatuses(loader, hiatuses)
+    #
+    #  Are there any suspensions which might apply to this lesson?
+    #
+    @gaps, @suspensions =
+      hiatuses.select { |hiatus|
+        hiatus.applies_to_year?(self.yeargroup(loader))
+      }.partition { |hiatus|
+        hiatus.hard?
+      }
+  end
+
   def exists_on?(date)
-    true
+    if @gaps
+      @gaps.detect {|gap| gap.applies_to_lesson?(date, self.period_time)} == nil
+    else
+      true
+    end
   end
 
   def suspended_on?(date)
-    false
+    if @suspensions
+      @suspensions.detect {|s| s.applies_to_lesson?(date, self.period_time)} != nil
+    else
+      false
+    end
   end
 
   #
@@ -57,7 +73,7 @@ class MIS_ScheduleEntry
       ).source_hash(self.source_hash).take
     if @dbrecord
       #
-      #  Just need to make sure the time is right.
+      #  Need to make sure other things about it are correct.
       #
       changed = false
       if @dbrecord.starts_at != starts_at
@@ -66,6 +82,14 @@ class MIS_ScheduleEntry
       end
       if @dbrecord.ends_at != ends_at
         @dbrecord.ends_at = ends_at
+        changed = true
+      end
+      if @dbrecord.non_existent != self.suspended_on?(date)
+        @dbrecord.non_existent = self.suspended_on?(date)
+        changed = true
+      end
+      if @dbrecord.body != self.body_text
+        @dbrecord.body = self.body_text
         changed = true
       end
       if changed
@@ -144,7 +168,21 @@ class MIS_ScheduleEntry
 end
 
 class MIS_Schedule
+  def note_hiatuses(loader, hiatuses)
+    @entries.each do |entry|
+      entry.note_hiatuses(loader, hiatuses)
+    end
+  end
 end
 
 class MIS_Timetable
+
+  #
+  #  This method goes through all the scheduled events in the timetable
+  #  making a note of any hiatuses which might apply to them.
+  #
+  def note_hiatuses(loader, hiatuses)
+    @schedule.note_hiatuses(loader, hiatuses)
+  end
+
 end

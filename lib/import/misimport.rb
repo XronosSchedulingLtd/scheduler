@@ -33,6 +33,7 @@ require_relative 'misimport/misgroup.rb'
 #
 #  Actual identifiable database things.
 #
+require_relative 'misimport/hiatus.rb'
 require_relative 'misimport/mispupil.rb'
 require_relative 'misimport/misstaff.rb'
 require_relative 'misimport/mislocation.rb'

@@ -199,8 +199,19 @@ class MIS_ScheduleEntry
     false
   end
 
-  def suspended_on?(date)
-    false
+  #
+  #  What year group (in Scheduler's terms) are involved in this event.
+  #  Return 0 if we don't know, or have a mixture.
+  #
+  def yeargroup(loader)
+    if @groups.size > 0
+      #
+      #  Really we should ask them all.
+      #
+      @groups[0].yeargroup(loader)
+    else
+      0
+    end
   end
 
   def self.construct(loader, isams_data)
@@ -321,16 +332,16 @@ class MIS_Timetable
     @week_allocations.each do |wa|
       @week_allocations_hash["#{wa.year}/#{wa.week}"] = wa
     end
-    puts "Got #{@week_allocations.size} week allocations."
+#    puts "Got #{@week_allocations.size} week allocations."
     if loader.options.timetable_name
-      puts "Timetable called \"#{loader.options.timetable_name}\" specified."
+#      puts "Timetable called \"#{loader.options.timetable_name}\" specified."
       timetable_name = loader.options.timetable_name
     else
-      puts "No timetable specified."
+#      puts "No timetable specified."
       entries = isams_data.css("TimetableManager PublishedTimetables Timetable Name")
       if entries && entries.size > 0
         timetable_name = entries[0].text
-        puts "Using #{timetable_name}."
+#        puts "Using #{timetable_name}."
       else
         raise "No published timetable in iSAMS data. Specify one explicitly by name."
       end
@@ -341,18 +352,17 @@ class MIS_Timetable
     #
     timetables = ISAMS_PublishedTimetable.construct(isams_data) +
                  ISAMS_DevelopmentTimetable.construct(isams_data)
-    puts "Found #{timetables.size} timetables."
-    timetables.each do |t|
-      puts t.name
-    end
+#    puts "Found #{timetables.size} timetables."
+#    timetables.each do |t|
+#      puts t.name
+#    end
     matching_timetables = timetables.select {|t| t.name == timetable_name}
     if matching_timetables.size == 1
       @schedule = MIS_Schedule.new(loader, isams_data, matching_timetables[0])
     else
       raise "#{matching_timetables.size} timetables match \"timetable_name\"."
     end
-    puts "Got #{@schedule.entry_count} schedule entries."
-    @schedule
+#    puts "Got #{@schedule.entry_count} schedule entries."
   end
 
   def entry_count
@@ -360,32 +370,32 @@ class MIS_Timetable
   end
 
   def lessons_on(date)
-    puts "Asked for lessons on #{date.to_s}"
-    puts "Using hash #{date.year}/#{date.loony_isams_cweek}"
+#    puts "Asked for lessons on #{date.to_s}"
+#    puts "Using hash #{date.year}/#{date.loony_isams_cweek}"
     week_allocation = @week_allocations_hash["#{date.year}/#{date.loony_isams_cweek}"]
     if week_allocation
-      puts "Found week_allocation with year #{week_allocation.year}, week #{week_allocation.week}"
+#      puts "Found week_allocation with year #{week_allocation.year}, week #{week_allocation.week}"
       week = @schedule.week_hash[week_allocation.timetableweek_id]
       if week
-        puts "Week: #{week.name}"
+#        puts "Week: #{week.name}"
         day = week.day_hash[date.strftime("%a")]
         if day
           day.lessons
         else
-          puts "Unable to find day for #{date.to_s}"
-          puts "date.strftime(\"%a\") = #{date.strftime("%a")}"
-          puts "Hash contains:"
-          week.day_hash.each do |key, record|
-            puts "  #{key} (#{key.class})"
-          end
+#          puts "Unable to find day for #{date.to_s}"
+#          puts "date.strftime(\"%a\") = #{date.strftime("%a")}"
+#          puts "Hash contains:"
+#          week.day_hash.each do |key, record|
+#            puts "  #{key} (#{key.class})"
+#          end
           nil
         end
       else
-        puts "Unable to find week for #{date.to_s}"
+#        puts "Unable to find week for #{date.to_s}"
         nil
       end
     else
-      puts "Unable to find week allocation for #{date.to_s}."
+#      puts "Unable to find week allocation for #{date.to_s}."
       nil
     end
   end
