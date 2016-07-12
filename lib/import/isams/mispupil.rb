@@ -1,23 +1,23 @@
 class MIS_Pupil
   SELECTOR = "PupilManager CurrentPupils Pupil"
   REQUIRED_FIELDS = [
-    IsamsField["Id",                 :isams_id,  :attribute, :integer],
-    IsamsField["SchoolCode",         :sb_id,     :data,      :integer],
-    IsamsField["Initials",           :initials,  :data,      :string],
-    IsamsField["Title",              :title,     :data,      :string],
-    IsamsField["Forename",           :forename,  :data,      :string],
-    IsamsField["Surname",            :surname,   :data,      :string],
-    IsamsField["EmailAddress",       :email,     :data,      :string],
-    IsamsField["NCYear",             :nc_year,   :data,      :integer],
-    IsamsField["Fullname",           :full_name, :data,      :string],
-    IsamsField["Preferredname",      :known_as,  :data,      :string],
-    IsamsField["Form",               :form_name, :data,      :string],
-    IsamsField["AcademicHouse",      :house,     :data,      :string]
+    IsamsField["Id",                 :isams_id,   :attribute, :integer],
+    IsamsField["SchoolCode",         :sb_id,      :data,      :integer],
+    IsamsField["Initials",           :initials,   :data,      :string],
+    IsamsField["Title",              :title,      :data,      :string],
+    IsamsField["Forename",           :forename,   :data,      :string],
+    IsamsField["Surname",            :surname,    :data,      :string],
+    IsamsField["EmailAddress",       :email,      :data,      :string],
+    IsamsField["NCYear",             :nc_year,    :data,      :integer],
+    IsamsField["Fullname",           :full_name,  :data,      :string],
+    IsamsField["Preferredname",      :known_as,   :data,      :string],
+    IsamsField["Form",               :form_name,  :data,      :string],
+    IsamsField["AcademicHouse",      :house_name, :data,      :string]
   ]
 
   include Creator
 
-  attr_reader :name, :datasource_id, :current
+  attr_reader :name, :datasource_id, :current, :house
 
   def initialize(entry)
     #
@@ -31,6 +31,7 @@ class MIS_Pupil
   def adjust
     @email.downcase!
     @name = "#{@known_as} #{@surname}"
+    @house = MIS_House.by_name(@house_name)
   end
 
   def wanted

@@ -21,17 +21,24 @@ class MIS_Loader
     #  files.
     #
     whatever = prepare(options)
-    @pupils = MIS_Pupil.construct(self, whatever)
-    puts "Got #{@pupils.count} pupils." if options.verbose
-    @pupil_hash = Hash.new
-    @pupils.each do |pupil|
-      @pupil_hash[pupil.source_id] = pupil
-    end
+    #
+    #  Need staff before houses, to be able to find housemasters.
+    #
     @staff = MIS_Staff.construct(self, whatever)
     puts "Got #{@staff.count} staff." if options.verbose
     @staff_hash = Hash.new
     @staff.each do |staff|
       @staff_hash[staff.source_id] = staff
+    end
+    #
+    #  Need houses before pupils, to be able to link them.
+    #
+    @houses = MIS_House.construct(self, whatever)
+    @pupils = MIS_Pupil.construct(self, whatever)
+    puts "Got #{@pupils.count} pupils." if options.verbose
+    @pupil_hash = Hash.new
+    @pupils.each do |pupil|
+      @pupil_hash[pupil.source_id] = pupil
     end
     @locations = MIS_Location.construct(self, whatever)
     @location_hash = Hash.new
@@ -509,6 +516,233 @@ class MIS_Loader
     if resources_removed_count > 0 || @verbose
       puts "#{resources_removed_count} resources removed from timetable events."
     end
+  end
+
+  #
+  #  Pass the name of the group and array of the members that should be
+  #  in it.
+  #
+  #  These used to go in the current era, but now go in the perpetual
+  #  era.  Any left over in the current era get moved to the perpetual
+  #  era.
+  #
+  def ensure_membership(group_name, members, member_class)
+    members_added   = 0
+    members_removed = 0
+    group = Group.system.vanillagroups.find_by(name: group_name,
+                                               era_id: Setting.perpetual_era.id)
+    unless group
+      group = Group.system.vanillagroups.find_by(name: group_name,
+                                                 era_id: @era.id)
+      if group
+        #
+        #  Need to move this to the perpetual era.
+        #
+        group.era     = Setting.perpetual_era
+        group.ends_on = nil
+        group.save
+        puts "Moved group #{group.name} to the perpetual era."
+      end
+    end
+    unless group
+      group = Vanillagroup.new(name:      group_name,
+                               era:       Setting.perpetual_era,
+                               starts_on: @start_date,
+                               current:   true)
+      group.save!
+      group.reload
+      puts "\"#{group_name}\" group created."
+    end
+
+    #
+    #  We don't intend to have mixtures of types in groups, but we might.
+    #  Therefore use element_ids as our unique identifiers, rather than
+    #  the entity's ids.  The latter are unique for a given type of entity,
+    #  but not across types.
+    #
+    #  Also allow for the odd nil entry by ignoring it.
+    #
+    intended_member_ids = members.compact.collect {|m| m.element.id}
+    current_member_ids = group.members(@start_date, false, false).collect {|m| m.element.id}
+    to_remove = current_member_ids - intended_member_ids
+    to_add = intended_member_ids - current_member_ids
+    to_remove.each do |member_id|
+      group.remove_member(Element.find(member_id), @start_date)
+      members_removed += 1
+    end
+    to_add.each do |member_id|
+      group.add_member(Element.find(member_id), @start_date)
+      members_added += 1
+    end
+    if @verbose || members_removed > 0
+      puts "#{members_removed} removed from \"#{group_name}\" group."
+    end
+    if @verbose || members_added > 0
+      puts "#{members_added} added to \"#{group_name}\" group."
+    end
+  end
+
+  #
+  #  Create some hard-coded special groups, using information available
+  #  only at this point.
+  #
+  def do_auto_groups
+    ensure_membership("All staff",
+                      Staff.active.current.to_a,
+                      Staff)
+    #
+    #  Staff by house they are tutors in.
+    #
+    all_tutors = []
+    tutors_by_year = {}
+    tges_by_year = {}
+    @houses.each do |house|
+      tutors = []
+      pupils = []
+      house_tges_by_year = {}
+      house.tugs.each do |tug|
+        tutors << tug.staff.dbrecord
+        all_tutors << tug.staff.dbrecord
+        tutors_by_year[tug.yeargroup] ||= []
+        tutors_by_year[tug.yeargroup] << tug.staff.dbrecord
+        #
+        #  And now, each of the pupils.
+        #
+        tug.pupils.each do |pupil|
+          tges_by_year[tug.yeargroup] ||= []
+          tges_by_year[tug.yeargroup] << pupil.dbrecord
+          house_tges_by_year[tug.yeargroup] ||= []
+          house_tges_by_year[tug.yeargroup] << pupil.dbrecord
+          pupils << pupil.dbrecord
+        end
+      end
+      if house.name == "Lower School"
+        ensure_membership("#{house.name} tutors",
+                          tutors,
+                          Staff)
+        ensure_membership("#{house.name} pupils",
+                          pupils,
+                          Pupil)
+      else
+        ensure_membership("#{house.name} House tutors",
+                          tutors,
+                          Staff)
+        ensure_membership("#{house.name} House pupils",
+                          pupils,
+                          Pupil)
+        house_tges_by_year.each do |year_group, pupils|
+          ensure_membership("#{house.name} House #{year_group.ordinalize} year",
+                            pupils,
+                            Pupil)
+        end
+      end
+    end
+    middle_school_tutors = []
+    upper_school_tutors = []
+    tutors_by_year.each do |year_group, tutors|
+      ensure_membership("#{year_group.ordinalize} year tutors",
+                        tutors,
+                        Staff)
+      #
+      #  Lower school tutors already have their own group from the house
+      #  processing.
+      #
+      if year_group == 3 ||
+         year_group == 4 ||
+         year_group == 5
+        middle_school_tutors += tutors
+      elsif year_group == 6 ||
+            year_group == 7
+        upper_school_tutors += tutors
+      end
+    end
+    tges_by_year.each do |year_group, pupils|
+      ensure_membership("#{year_group.ordinalize} year",
+                        pupils,
+                        Pupil)
+    end
+    ensure_membership("Middle school tutors", middle_school_tutors, Staff)
+    ensure_membership("Upper school tutors", upper_school_tutors, Staff)
+    ensure_membership("All tutors", all_tutors, Staff)
+    ensure_membership("All pupils",
+                      Pupil.current.to_a,
+                      Pupil)
+if false
+    WhoTeachesWhat.teachers_by_subject do |subject, teachers|
+      dbteachers = teachers.collect {|t| @staff_hash[t.staff_ident].dbrecord}.compact.select {|dbr| dbr.active}
+      if dbteachers.size > 0
+        ensure_membership("#{subject} teachers",
+                          dbteachers,
+                          Staff)
+      else
+        puts "Subject \"#{subject}\" has no apparent teachers."
+      end
+    end
+    WhoTeachesWhat.teachers_by_subject_and_year do |subject, year_num, teachers|
+      dbteachers = teachers.collect {|t| @staff_hash[t.staff_ident].dbrecord}.compact.select {|dbr| dbr.active}
+      if dbteachers.size > 0
+        ensure_membership("#{(year_num - 6).ordinalize} year #{subject} teachers",
+                          dbteachers,
+                          Staff)
+      else
+        puts "Subject \"#{subject}\" has no apparent teachers."
+      end
+    end
+    WhoTeachesWhat.teachers_by_year do |year_num, teachers|
+      dbteachers = teachers.collect {|t| @staff_hash[t.staff_ident].dbrecord}.compact.select {|dbr| dbr.active}
+      if dbteachers.size > 0
+        ensure_membership("#{(year_num - 6).ordinalize} year teachers",
+                          dbteachers,
+                          Staff)
+      else
+        puts "Year \"#{year_num}\" has no apparent teachers."
+      end
+    end
+    WhoTeachesWhat.groups_by_subject do |subject, groups|
+      dbgroups =
+        groups.collect {|g| @group_hash[g.group_ident].dbrecord}.compact
+      if dbgroups.size > 0
+        ensure_membership("#{subject} pupils",
+                          dbgroups,
+                          Group)
+      else
+        puts "Subject \"#{subject}\" has no apparent groups."
+      end
+    end
+    WhoTeachesWhat.groups_by_subject_and_year do |subject, year_num, groups|
+      dbgroups = groups.collect {|g| @group_hash[g.group_ident].dbrecord}.compact
+      if dbgroups.size > 0
+        ensure_membership("#{(year_num - 6).ordinalize} year #{subject} pupils",
+                          dbgroups,
+                          Group)
+      else
+        puts "Subject \"#{subject}\" has no apparent groups."
+      end
+    end
+    ps_invigilators =
+      WhoTeachesWhat.ps_invigilators.collect {|t|
+        t.dbrecord
+#        @staff_hash[t.staff_ident].dbrecord
+      }.compact.select {|dbr| dbr.active}
+    if ps_invigilators.size > 0
+      ensure_membership("Supervised study invigilators",
+                        ps_invigilators,
+                        Staff)
+    else
+      puts "There don't seem to be any supervised study invigilators."
+    end
+    actual_teachers =
+      WhoTeachesWhat.all_teachers.collect {|t|
+        t.dbrecord
+      }.compact.select {|dbr| dbr.active}
+    if actual_teachers.size > 0
+      ensure_membership("Teaching staff",
+                        actual_teachers,
+                        Staff)
+    else
+      puts "Don't seem to have any teachers at all."
+    end
+end
   end
 
 end

@@ -39,9 +39,31 @@ class MIS_Tutorgroup
   def start_year
     (@era.starts_on.year - @year_id) + 7
   end
+
+  #
+  #  Return the yeargroup of this tutor group, in the form that Scheduler
+  #  expects.  This is configurable, but generally corresponds to the
+  #  years which the school naturally uses.  Thus for Abingdon we
+  #  have:
+  #
+  #    1        NC 7
+  #    2        NC 8
+  #    3        NC 9
+  #    4        NC 10
+  #    5        NC 11
+  #    6        NC 12
+  #    7        NC 13
+  #
+  def yeargroup(loader = nil)
+    @year_id - 6
+  end
+
   #
   #  Slightly messy, in that in iSAMS, tutor groups aren't directly
   #  linked to houses.  Have to get it from one of the pupil records.
+  #
+  #  This thus means that if a tutor group is empty, we have no way
+  #  of knowing what house it belongs to.
   #
   def house
     if @pupils.empty?
@@ -50,7 +72,16 @@ class MIS_Tutorgroup
 #      puts "Calculating house."
 #      puts "First pupil is #{@pupils.first.name}"
 #      puts "House is #{@pupils.first.house}"
-      @pupils.first.house
+      @pupils.first.house_name
+    end
+  end
+
+  def link_to_house
+    @house_rec = MIS_House.by_name(self.house)
+    if @house_rec
+      @house_rec.note_tutorgroup(self)
+    else
+      puts "Tutor group #{self.name} can't find house #{self.house}."
     end
   end
 
@@ -83,6 +114,12 @@ class MIS_Tutorgroup
     without_tutor, with_tutor = tgs.partition {|tg| tg.staff == nil}
     without_tutor.each do |tg|
       puts "Dropping tutor group #{tg.name} because it has no tutor."
+    end
+    #
+    #  And link them to houses?
+    #
+    with_tutor.each do |tug|
+      tug.link_to_house
     end
     with_tutor
   end

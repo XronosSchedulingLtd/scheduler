@@ -41,6 +41,10 @@ require_relative 'misimport/misloader.rb'
 require_relative 'misimport/mistutorgroup.rb'
 require_relative 'misimport/misteachinggroup.rb'
 require_relative 'misimport/mistimetable.rb'
+#
+#  Not actually database.
+#
+require_relative 'misimport/mishouse.rb'
 
 #
 #  Now we actually access the database to discover what MIS is in use.
@@ -64,6 +68,7 @@ if current_mis
     require_relative 'isams/mistutorgroup.rb'
     require_relative 'isams/misteachinggroup.rb'
     require_relative 'isams/mistimetable.rb'
+    require_relative 'isams/mishouse.rb'
   elsif current_mis == "SchoolBase"
   else
     raise "Don't know how to handle #{current_mis} as our current MIS."
@@ -72,6 +77,12 @@ else
   raise "No current MIS configured - can't import."
 end
 
+#
+#  And finally allow for school-specific adjustments.
+#
+Dir["school/*.rb"].each do |file|
+  require_relative file
+end
 
 def finished(options, stage)
   if options.do_timings
@@ -100,8 +111,8 @@ begin
 #      finished(options, "cover")
 #      loader.do_other_half
 #      finished(options, "other half")
-#      loader.do_auto_groups
-#      finished(options, "automatic groups")
+      loader.do_auto_groups
+      finished(options, "automatic groups")
 #      loader.do_extra_groups
 #      finished(options, "extra groups")
 #      loader.do_duties

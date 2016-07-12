@@ -5,7 +5,7 @@ class MIS_Tutorgroup < MIS_Group
   FIELDS_TO_CREATE = [:name, :era_id, :staff_id, :house, :start_year, :current]
   FIELDS_TO_UPDATE = [:name, :era_id, :staff_id, :house, :start_year, :current]
 
-  attr_reader :staff_id, :staff
+  attr_reader :staff_id, :staff, :pupils
 
   def add_pupil(pupil)
     @pupils << pupil
@@ -22,20 +22,6 @@ class MIS_Tutorgroup < MIS_Group
 
   def size
     @pupils.count
-  end
-
-  #
-  #  What year group do our pupils belong to?  Return 0 if we have
-  #  a mixture.
-  #
-  def yeargroup(loader)
-    ygs =
-      @pupils.select {|p| p.dbrecord}.collect {|p| p.dbrecord.year_group}.uniq
-    if ygs.size == 1
-      ygs[0]
-    else
-      0
-    end
   end
 
   #
