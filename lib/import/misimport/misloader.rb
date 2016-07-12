@@ -7,6 +7,7 @@ class MIS_Loader
               :pupil_hash,
               :staff_hash,
               :location_hash,
+              :subject_hash,
               :teachinggroup_hash
 
   def read_mis_data(options)
@@ -45,6 +46,12 @@ class MIS_Loader
     @locations.each do |location|
       @location_hash[location.source_id] = location
     end
+    @subjects = MIS_Subject.construct(self, whatever)
+    puts "Got #{@subjects.count} subjects." if options.verbose
+    @subject_hash = Hash.new
+    @subjects.each do |subject|
+      @subject_hash[subject.source_id] = subject
+    end
     @tutorgroups = MIS_Tutorgroup.construct(self, whatever)
     puts "Got #{@tutorgroups.count} tutorgroups." if options.verbose
     @teachinggroups = MIS_Teachinggroup.construct(self, whatever)
@@ -57,6 +64,7 @@ class MIS_Loader
     @timetable = MIS_Timetable.new(self, whatever)
     puts "Got #{@timetable.entry_count} timetable entries." if options.verbose
     @timetable.note_hiatuses(self, @hiatuses)
+    @timetable.note_subjects_taught
     @event_source = Eventsource.find_by(name: Setting.current_mis)
     if @event_source
       puts "Current MIS is #{@event_source.name}"
@@ -667,82 +675,78 @@ class MIS_Loader
     ensure_membership("All pupils",
                       Pupil.current.to_a,
                       Pupil)
-if false
-    WhoTeachesWhat.teachers_by_subject do |subject, teachers|
-      dbteachers = teachers.collect {|t| @staff_hash[t.staff_ident].dbrecord}.compact.select {|dbr| dbr.active}
+    @subjects.each do |subject|
+      #
+      #  Who teaches this subject at all?
+      #
+      dbteachers =
+        subject.teachers.collect {|t| t.dbrecord}.
+                compact.select {|dbr| dbr.active}
       if dbteachers.size > 0
-        ensure_membership("#{subject} teachers",
+        ensure_membership("#{subject.name} teachers",
                           dbteachers,
                           Staff)
-      else
-        puts "Subject \"#{subject}\" has no apparent teachers."
       end
-    end
-    WhoTeachesWhat.teachers_by_subject_and_year do |subject, year_num, teachers|
-      dbteachers = teachers.collect {|t| @staff_hash[t.staff_ident].dbrecord}.compact.select {|dbr| dbr.active}
-      if dbteachers.size > 0
-        ensure_membership("#{(year_num - 6).ordinalize} year #{subject} teachers",
-                          dbteachers,
-                          Staff)
-      else
-        puts "Subject \"#{subject}\" has no apparent teachers."
+      #
+      #  And by year?
+      #
+      subject.year_teachers.each do |yeargroup, teachers|
+        dbteachers =
+          teachers.collect {|t| t.dbrecord}.
+                  compact.select {|dbr| dbr.active}
+        if dbteachers.size > 0
+          ensure_membership("#{yeargroup.ordinalize} year #{subject.name} teachers",
+                            dbteachers,
+                            Staff)
+        end
       end
-    end
-    WhoTeachesWhat.teachers_by_year do |year_num, teachers|
-      dbteachers = teachers.collect {|t| @staff_hash[t.staff_ident].dbrecord}.compact.select {|dbr| dbr.active}
-      if dbteachers.size > 0
-        ensure_membership("#{(year_num - 6).ordinalize} year teachers",
-                          dbteachers,
-                          Staff)
-      else
-        puts "Year \"#{year_num}\" has no apparent teachers."
-      end
-    end
-    WhoTeachesWhat.groups_by_subject do |subject, groups|
-      dbgroups =
-        groups.collect {|g| @group_hash[g.group_ident].dbrecord}.compact
+      #
+      #  Who studies this subject?  We don't actually make the pupils
+      #  direct members of our automatic group.  Instead we make their
+      #  teaching groups members, and thus the pupils inherit membership.
+      #
+      dbgroups = subject.groups.collect {|g| g.dbrecord}.compact
       if dbgroups.size > 0
-        ensure_membership("#{subject} pupils",
+        ensure_membership("#{subject.name} pupils",
                           dbgroups,
                           Group)
-      else
-        puts "Subject \"#{subject}\" has no apparent groups."
+      end
+      #
+      #  And again, but broken down by year.
+      #
+      subject.year_groups.each do |yeargroup, groups|
+        dbgroups = groups.collect {|g| g.dbrecord}.compact
+        if dbgroups.size > 0
+          ensure_membership("#{yeargroup.ordinalize} year #{subject.name} pupils",
+                            dbgroups,
+                            Group)
+        end
       end
     end
-    WhoTeachesWhat.groups_by_subject_and_year do |subject, year_num, groups|
-      dbgroups = groups.collect {|g| @group_hash[g.group_ident].dbrecord}.compact
-      if dbgroups.size > 0
-        ensure_membership("#{(year_num - 6).ordinalize} year #{subject} pupils",
-                          dbgroups,
-                          Group)
-      else
-        puts "Subject \"#{subject}\" has no apparent groups."
+    #
+    #  Teachers by the year group which they teach - very useful for
+    #  parents' evenings.
+    #
+    MIS_Subject.teachers_by_year do |yeargroup, teachers|
+      dbteachers =
+        teachers.collect {|t| t.dbrecord}.
+                compact.select {|dbr| dbr.active}
+      if dbteachers.size > 0
+        ensure_membership("#{yeargroup.ordinalize} year teachers",
+                          dbteachers,
+                          Staff)
       end
     end
-    ps_invigilators =
-      WhoTeachesWhat.ps_invigilators.collect {|t|
-        t.dbrecord
-#        @staff_hash[t.staff_ident].dbrecord
-      }.compact.select {|dbr| dbr.active}
-    if ps_invigilators.size > 0
-      ensure_membership("Supervised study invigilators",
-                        ps_invigilators,
-                        Staff)
-    else
-      puts "There don't seem to be any supervised study invigilators."
-    end
-    actual_teachers =
-      WhoTeachesWhat.all_teachers.collect {|t|
-        t.dbrecord
-      }.compact.select {|dbr| dbr.active}
-    if actual_teachers.size > 0
+    #
+    #  And now a collection of everyone who teaches at all.
+    #
+    dbteachers = MIS_Subject.all_teachers.collect {|t| t.dbrecord}.
+                             compact.select {|dbr| dbr.active}
+    if dbteachers.size > 0
       ensure_membership("Teaching staff",
-                        actual_teachers,
+                        dbteachers,
                         Staff)
-    else
-      puts "Don't seem to have any teachers at all."
     end
-end
   end
 
 end

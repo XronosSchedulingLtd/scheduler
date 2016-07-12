@@ -28,6 +28,21 @@ class MIS_ScheduleEntry
       }
   end
 
+  #
+  #  Note that subjects are being taught, by whom and to whom.
+  #
+  def note_subjects_taught
+    self.groups.each do |group|
+      #
+      #  Some are teaching groups and some are tutor groups.  The latter
+      #  don't understand the concept of subject.
+      #
+      if group.respond_to?(:subject) && group.subject
+        group.subject.note_lesson(self.staff, group)
+      end
+    end
+  end
+
   def exists_on?(date)
     if @gaps
       @gaps.detect {|gap| gap.applies_to_lesson?(date, self.period_time)} == nil
@@ -173,6 +188,13 @@ class MIS_Schedule
       entry.note_hiatuses(loader, hiatuses)
     end
   end
+
+  def note_subjects_taught
+    @entries.each do |entry|
+      entry.note_subjects_taught
+    end
+  end
+
 end
 
 class MIS_Timetable
@@ -185,4 +207,7 @@ class MIS_Timetable
     @schedule.note_hiatuses(loader, hiatuses)
   end
 
+  def note_subjects_taught
+    @schedule.note_subjects_taught
+  end
 end

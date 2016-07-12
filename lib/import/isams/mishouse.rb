@@ -18,9 +18,13 @@ class MIS_House
   end
 
   def find_housemaster(loader)
-    @housemaster = loader.staff_hash[self.housemaster_id]
-    unless @housemaster
-      puts "Couldn't find housemaster with id #{self.housemaster_id} for #{self.name}."
+    if self.housemaster_id
+      @housemaster = loader.staff_hash[self.housemaster_id]
+      unless @housemaster
+        puts "Couldn't find housemaster with id #{self.housemaster_id} for #{self.name}."
+      end
+    else
+      puts "House #{self.name} has no identified housemaster."
     end
   end
 

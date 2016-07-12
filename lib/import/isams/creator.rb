@@ -79,6 +79,9 @@ module Creator
         entries.each do |entry|
           rec = self.new(entry)
           rec.adjust
+          if rec.respond_to?(:initialize_generic_bit)
+            rec.initialize_generic_bit
+          end
           if rec.wanted
             results << rec
           end

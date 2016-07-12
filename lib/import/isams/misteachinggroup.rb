@@ -28,7 +28,7 @@ class MIS_Teachinggroup
 
   include Creator
 
-  attr_reader :datasource_id, :era, :era_id, :current
+  attr_reader :datasource_id, :era, :era_id, :current, :subject
 
   def initialize(entry)
     @pupils = Array.new
@@ -54,8 +54,16 @@ class MIS_Teachinggroup
     @era_id = era.id
   end
 
+  def note_subject(subject_hash)
+    @subject = subject_hash[self.subject_id]
+  end
+
   def start_year
     (@era.starts_on.year - @year_id) + 7
+  end
+
+  def yeargroup(loader = nil)
+    @year_id - 6
   end
 
   def self.construct(loader, isams_data)
@@ -64,6 +72,7 @@ class MIS_Teachinggroup
     tgs.each do |tg|
       tgs_hash[tg.isams_id] = tg
       tg.note_era(loader.era)
+      tg.note_subject(loader.subject_hash)
     end
     #
     #  Now - can I populate them?
