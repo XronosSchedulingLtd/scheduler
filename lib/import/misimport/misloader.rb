@@ -144,7 +144,8 @@ class MIS_Loader
           #
           if dbrecord.element &&
              (dbrecord.element.memberships.count > 0 ||
-              dbrecord.element.commitments.count > 0)
+              dbrecord.element.commitments.count > 0 ||
+              dbrecord.element.concerns.count > 0)
             #
             #  Useful information about this staff member which should
             #  be kept.
