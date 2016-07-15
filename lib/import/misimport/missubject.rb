@@ -27,7 +27,7 @@ class MIS_Subject
     end
     staffa.each do |s|
       unless @teachers.include?(s)
-        puts "Adding #{s.name} to #{self.name} teachers."
+#        puts "Adding #{s.name} to #{self.name} teachers."
         @teachers << s
       end
       unless @@all_teachers.include?(s)
@@ -35,7 +35,7 @@ class MIS_Subject
       end
     end
     unless @groups.include?(group)
-      puts "Adding group #{group.name} to those studying #{self.name}."
+#     puts "Adding group #{group.name} to those studying #{self.name}."
       @groups << group
     end
     yeargroup = group.yeargroup
@@ -43,20 +43,20 @@ class MIS_Subject
       year_record = @year_teachers[yeargroup] ||= Array.new
       staffa.each do |s|
         unless year_record.include?(s)
-          puts "Adding #{s.name} to #{yeargroup.ordinalize} year #{self.name} teachers."
+#         puts "Adding #{s.name} to #{yeargroup.ordinalize} year #{self.name} teachers."
           year_record << s
         end
       end
       year_record = @@teachers_by_year[yeargroup] ||= Array.new
       staffa.each do |s|
         unless year_record.include?(s)
-          puts "Adding #{s.name} to #{yeargroup.ordinalize} year teachers."
+#         puts "Adding #{s.name} to #{yeargroup.ordinalize} year teachers."
           year_record << s
         end
       end
       year_group_record = @year_groups[yeargroup] ||= Array.new
       unless year_group_record.include?(group)
-        puts "Adding group #{group.name} to #{yeargroup.ordinalize} year #{self.name} groups."
+#       puts "Adding group #{group.name} to #{yeargroup.ordinalize} year #{self.name} groups."
         year_group_record << group
       end
     end

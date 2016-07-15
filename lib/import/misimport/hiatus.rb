@@ -57,6 +57,12 @@ class Hiatus
     @yeargroups << year
   end
 
+  def list_yeargroups
+    @yeargroups.each do |yg|
+      puts "  #{yg}"
+    end
+  end
+
   def complete?
     if @times_by_day
       !(@start_date == nil ||
@@ -142,6 +148,8 @@ class Hiatus
     event.pupil_year_groups(true).each do |year|
       hiatus.note_yeargroup(year)
     end
+    puts "Hiatus #{event.body} at #{event.starts_at} applies to:"
+    hiatus.list_yeargroups
     hiatus
   end
 

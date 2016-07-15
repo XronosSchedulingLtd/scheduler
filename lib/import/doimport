@@ -1,2 +1,2 @@
 #!/bin/bash
-./misimport.rb --timetable "Abingdon TT v0.2" --era "Academic Year 2016/17" --start 2016-09-01
+./misimport.rb --timetable "Abingdon TT v0.2" --era "Academic Year 2016/17" --start 2016-09-01 --ahead 1

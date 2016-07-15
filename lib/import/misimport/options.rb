@@ -7,7 +7,8 @@ class Options
               :send_emails,
               :do_timings,
               :era,
-              :start_date
+              :start_date,
+              :ahead
 
   #
   #  These next two are intended to be over-ridden by MIS-specific
@@ -27,6 +28,7 @@ class Options
     @do_timings      = false
     @era             = nil
     @start_date      = nil
+    @ahead           = 0
     more_defaults
     OptionParser.new do |opts|
       opts.banner = "Usage: misimport.rb [options]"
@@ -58,7 +60,8 @@ class Options
       end
 
       opts.on("--timings",
-              "Log the time at various stages in the processing.") do |timings|
+              "Log the time at various stages in the",
+              "processing.") do |timings|
         @do_timings = timings
       end
 
@@ -66,6 +69,14 @@ class Options
               "Specify an over-riding start date",
               "for loading events and groups.") do |date|
         @start_date = date
+      end
+
+      opts.on("-a", "--ahead [YEARS]", Integer,
+              "When loading data ahead of time, that is -",
+              "loading data for next year before the MIS",
+              "has been rolled over, add this value to",
+              "pupils' year numbers etc.") do |years|
+        @ahead = years
       end
 
       more_options(opts)
