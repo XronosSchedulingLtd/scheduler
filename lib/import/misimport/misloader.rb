@@ -85,6 +85,12 @@ class MIS_Loader
       raise "Current era not set." unless @era
     end
     raise "Perpetual era not set." unless Setting.perpetual_era
+    @week_letter_category = Eventcategory.find_by(name: "Week letter")
+    raise "No category for week letters." unless @week_letter_category
+    @duty_category = Eventcategory.find_by(name: "Duty")
+    raise "No category for duties." unless @duty_category
+    @yaml_source = Eventsource.find_by(name: "Yaml")
+    raise "No event source for YAML." unless @yaml_source
     #
     #  If an explicit date has been specified then we use that.
     #  Otherwise, if a full load has been specified then we use
@@ -782,4 +788,203 @@ class MIS_Loader
     end
   end
 
+  def get_week_letter(date)
+    events = @week_letter_category.events_on(date)
+    if events.size == 1
+      if events[0].body == "WEEK A"
+        "A"
+      elsif events[0].body == "WEEK B"
+        "B"
+      else
+        nil
+      end
+    else
+      nil
+    end
+  end
+
+  def do_duties
+    puts "Processing duties" if @verbose
+    duties_added_count = 0
+    duties_deleted_count = 0
+    resources_added_count = 0
+    resources_removed_count = 0
+    file_data =
+      YAML.load(
+        File.open(Rails.root.join(IMPORT_DIR, "Duties.yml")))
+    #raise file_data.inspect
+    @start_date.upto(@era.ends_on) do |date|
+      puts "Processing #{date}" if @verbose
+      week_letter = get_week_letter(date)
+      if week_letter
+        duties = file_data[week_letter][date.strftime("%A")]
+        if duties && duties.size > 0
+          existing_duties = @duty_category.events_on(date, date, @yaml_source)
+          #
+          #  We count duties from our input file and the database as being
+          #  the same one if they have the same title, the same start time
+          #  and the same end time.
+          #
+          duties.each do |duty|
+            starts_at =
+              Time.zone.parse("#{date.to_s} #{duty[:starts]}")
+            ends_at =
+              Time.zone.parse("#{date.to_s} #{duty[:ends]}")
+            existing_duty = existing_duties.detect {|ed|
+              ed.body      == duty[:title] &&
+              ed.starts_at == starts_at &&
+              ed.ends_at   == ends_at
+            }
+            if existing_duty
+              #
+              #  Remove from the array.  We will deal with any leftovers
+              #  at the end.
+              #
+              existing_duties = existing_duties - [existing_duty]
+            else
+              #
+              #  Event needs creating in the database.
+              #
+              existing_duty = Event.new
+              existing_duty.body = duty[:title]
+              existing_duty.eventcategory = @duty_category
+              existing_duty.eventsource   = @yaml_source
+              existing_duty.starts_at     = starts_at
+              existing_duty.ends_at       = ends_at
+              existing_duty.save!
+              existing_duty.reload
+              duties_added_count += 1
+            end
+            #
+            #  Now check that the resources match.
+            #
+            element_id = nil
+            if duty[:staff]
+              staff = Staff.find_by(initials: duty[:staff])
+              if staff
+                element_id = staff.element.id
+              end
+            elsif duty[:group]
+              group = Group.find_by(name: duty[:group])
+              if group
+                element_id = group.element.id
+              end
+            end
+            if element_id
+              required_ids = [element_id]
+              existing_ids = existing_duty.elements.collect {|e| e.id}
+              db_only = existing_ids - required_ids
+              input_only = required_ids - existing_ids
+              if db_only.size > 0
+                existing_duty.commitments.each do |c|
+                  if db_only.include?(c.element_id)
+                    c.destroy
+                    resources_removed_count += 1
+                  end
+                end
+              end
+              input_only.each do |id|
+                c = Commitment.new
+                c.event_id = existing_duty.id
+                c.element_id = id
+                c.save!
+                resources_added_count += 1
+              end
+            else
+              puts "Couldn't find duty resource for #{duty.inspect}"
+            end
+          end
+          #
+          #  Any of the existing duties left?
+          #
+          existing_duties.each do |ed|
+            ed.destroy
+            duties_deleted_count += 1
+          end
+        else
+          puts "Couldn't find duties for #{date.strftime("%A")} of week #{week_letter}."
+        end
+      end
+    end
+    if duties_added_count > 0 || @verbose
+      puts "Added #{duties_added_count} duty events."
+    end
+    if duties_deleted_count > 0 || @verbose
+      puts "Deleted #{duties_deleted_count} duty events."
+    end
+    if resources_added_count > 0 || @verbose
+      puts "Added #{resources_added_count} resources to duty events."
+    end
+    if resources_removed_count > 0 || @verbose
+      puts "Removed #{resources_removed_count} resources from duty events."
+    end
+  end
+
+  def do_taggroups
+    tg_loaded_count          = 0
+    tg_reincarnated_count    = 0
+    tg_changed_count         = 0
+    tg_unchanged_count       = 0
+    tg_deleted_count         = 0
+    tgmember_loaded_count    = 0
+    tgmember_removed_count   = 0
+    tgmember_unchanged_count = 0
+    @taggroups.each do |tg|
+      #
+      #  We only bother with tag groups which belong to an identifiable
+      #  member of staff, and where that member of staff has already
+      #  logged on to Scheduler.  This has been checked at initialisation.
+      #
+      loaded,
+      reincarnated,
+      changed,
+      unchanged,
+      member_loaded,
+      member_removed,
+      member_unchanged = tg.ensure_db(self)
+      tg_loaded_count          += loaded
+      tg_reincarnated_count    += reincarnated
+      tg_changed_count         += changed
+      tg_unchanged_count       += unchanged
+      tgmember_loaded_count    += member_loaded
+      tgmember_removed_count   += member_removed
+      tgmember_unchanged_count += member_unchanged
+    end
+    #
+    #  And are there any in the database which have disappeared from
+    #  SB?  This is the only way they're going to get deleted, since
+    #  users can't delete them through the Scheduler web i/f.
+    #
+    Group.taggroups.current.each do |dbtg|
+      unless taggroup_hash[dbtg.source_id]
+        puts "Tag group \"#{dbtg.name}\" seems to have gone from SB."
+        dbtg.ceases_existence
+        tg_deleted_count += 1
+      end
+    end
+    if @verbose || tg_deleted_count > 0
+      puts "#{tg_deleted_count} tag group records deleted."
+    end
+    if @verbose || tg_changed_count > 0
+      puts "#{tg_changed_count} tag group records amended."
+    end
+    if @verbose
+      puts "#{tg_unchanged_count} tag group records untouched."
+    end
+    if @verbose || tg_loaded_count > 0
+      puts "#{tg_loaded_count} tag group records created."
+    end
+    if @verbose || tg_reincarnated_count > 0
+      puts "#{tg_reincarnated_count} tag group records reincarnated."
+    end
+    if @verbose || tgmember_removed_count > 0
+      puts "Removed #{tgmember_removed_count} pupils from tag groups."
+    end
+    if @verbose
+      puts "Left #{tgmember_unchanged_count} pupils where they were."
+    end
+    if @verbose || tgmember_loaded_count > 0
+      puts "Added #{tgmember_loaded_count} pupils to tag groups."
+    end
+  end
 end

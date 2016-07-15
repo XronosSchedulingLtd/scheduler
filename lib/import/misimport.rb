@@ -117,8 +117,8 @@ begin
       finished(options, "automatic groups")
       loader.do_extra_groups
       finished(options, "extra groups")
-#      loader.do_duties
-#      finished(options, "duties")
+      loader.do_duties
+      finished(options, "duties")
 #      loader.do_taggroups
 #      finished(options, "tagggroups")
     end
