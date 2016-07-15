@@ -148,8 +148,8 @@ class Hiatus
     event.pupil_year_groups(true).each do |year|
       hiatus.note_yeargroup(year)
     end
-    puts "Hiatus #{event.body} at #{event.starts_at} applies to:"
-    hiatus.list_yeargroups
+#    puts "Hiatus #{event.body} at #{event.starts_at} applies to:"
+#    hiatus.list_yeargroups
     hiatus
   end
 
@@ -165,10 +165,10 @@ class Hiatus
     KNOWN_HIATUS_TYPES.each do |key, hs|
       property = Property.find_by(name: key)
       if property
-        puts "Found property: #{key}"
+#        puts "Found property: #{key}"
         property.element.events_on(loader.start_date,
                                    loader.era.ends_on).each do |event|
-          puts "Processing a #{key}"
+#          puts "Processing a #{key}"
           hiatuses << Hiatus.create_from_event(hs, event)
         end
       else

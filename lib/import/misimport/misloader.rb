@@ -750,4 +750,36 @@ class MIS_Loader
     end
   end
 
+  EXTRA_GROUP_FILES = [
+    {file_name: "extra_staff_groups.yml", dbclass: Staff},
+    {file_name: "extra_pupil_groups.yml", dbclass: Pupil},
+    {file_name: "extra_group_groups.yml", dbclass: Group}
+  ]
+
+  def do_extra_groups
+    EXTRA_GROUP_FILES.each do |control_data|
+      file_data =
+        YAML.load(
+          File.open(Rails.root.join(IMPORT_DIR, control_data[:file_name])))
+      file_data.each do |group_name, members|
+        if members
+          dbrecords = members.collect do |m|
+            if control_data[:dbclass].respond_to?(:active)
+              dbrecord = control_data[:dbclass].active.current.find_by(name: m)
+            else
+              dbrecord = control_data[:dbclass].current.find_by(name: m)
+            end
+            unless dbrecord
+              puts "Can't find #{m} for extra group #{group_name}"
+            end
+            dbrecord
+          end.compact
+        else
+          dbrecords = []
+        end
+        ensure_membership(group_name, dbrecords, control_data[:dbclass])
+      end
+    end
+  end
+
 end

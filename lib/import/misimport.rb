@@ -115,8 +115,8 @@ begin
 #      finished(options, "other half")
       loader.do_auto_groups
       finished(options, "automatic groups")
-#      loader.do_extra_groups
-#      finished(options, "extra groups")
+      loader.do_extra_groups
+      finished(options, "extra groups")
 #      loader.do_duties
 #      finished(options, "duties")
 #      loader.do_taggroups
