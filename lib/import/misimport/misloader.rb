@@ -67,9 +67,11 @@ class MIS_Loader
     @timetable.note_hiatuses(self, @hiatuses)
     @timetable.note_subjects_taught
     @customgroups = MIS_Customgroup.construct(self, whatever)
-    puts "Got #{@customgroups.size} custom groups."
+    puts "Got #{@customgroups.size} custom groups." if options.verbose
+    @customgroup_hash = Hash.new
     @customgroups.each do |cg|
-      cg.report
+      @customgroup_hash[cg.source_id_str] = cg
+#      cg.report
     end
   end
 
@@ -962,26 +964,24 @@ class MIS_Loader
     end
     #
     #  And are there any in the database which have disappeared from
-    #  SB?  This is the only way they're going to get deleted, since
+    #  the MIS?  This is the only way they're going to get deleted, since
     #  users can't delete them through the Scheduler web i/f.
     #
-    #  TODO Don't delete taggroups left over from SB yet.  Treat the
-    #  ones from iSAMS as a separate group and maintain them fully.
+    #  Note that this uses a different algorithm from that used by
+    #  teaching groups.  There we look at the dbrecord ids and see if
+    #  there are any extra ones.  Here we're relying on the source_id_str
+    #  Not sure which I prefer, but it's worth noting and thinking about.
     #
-    #  We'll need to have a switch-over day, where people can create
-    #  copies of the ones which they want to keep, then delete the old
-    #  ones.  Or we could just give individual users the means to delete
-    #  tag groups which came from SB.
-    #
-if false
-    Group.taggroups.current.each do |dbtg|
-      unless taggroup_hash[dbtg.source_id]
-        puts "Tag group \"#{dbtg.name}\" seems to have gone from SB."
+    Group.taggroups.
+          current.
+          where(datasource_id: MIS_Record.primary_datasource_id).
+          each do |dbtg|
+      unless @customgroup_hash[dbtg.source_id_str]
+        puts "Custom group \"#{dbtg.name}\" seems to have gone from MIS."
         dbtg.ceases_existence
         tg_deleted_count += 1
       end
     end
-end
     if @verbose || tg_deleted_count > 0
       puts "#{tg_deleted_count} tag group records deleted."
     end

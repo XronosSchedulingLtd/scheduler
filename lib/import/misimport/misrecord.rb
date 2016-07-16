@@ -227,4 +227,7 @@ class MIS_Record
     @element_id
   end
 
+  def self.primary_datasource_id
+    @@primary_datasource_id
+  end
 end

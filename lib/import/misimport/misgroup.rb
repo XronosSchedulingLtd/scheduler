@@ -44,9 +44,9 @@ class MIS_Group < MIS_Record
         @dbrecord.reload
         #
         #  Reincarnating a group sets its end date to nil, but we kind
-        #  of want it to be the end of the current era.
+        #  of want it to be the end of the indicated era.
         #
-        @dbrecord.ends_on = loader.era.ends_on
+        @dbrecord.ends_on = self.era.ends_on
         @dbrecord.save
         reincarnated_count += 1
       end
@@ -89,11 +89,9 @@ class MIS_Group < MIS_Record
               #  pupil's element name.  Save the pupil record so the
               #  element name gets updated.
               #
-              #  TODO Hang on - this applies only to tutor groups.  Need
-              #  to add a conditional here so we don't keep doing it for
-              #  all groups.
-              #
-              pupil.force_save
+              if self.class.const_get(:DB_CLASS) == Tutorgroup
+                pupil.force_save
+              end
               member_loaded_count += 1
             else
               puts "Failed to add #{pupil.name} to tutorgroup #{self.name}"
@@ -112,7 +110,9 @@ class MIS_Group < MIS_Record
           #
           #  Likewise, removing a pupil can change his element name.
           #
-          pupil.force_save
+          if self.class.const_get(:DB_CLASS) == Tutorgroup
+            pupil.force_save
+          end
           member_removed_count += 1
         end
       end

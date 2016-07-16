@@ -83,7 +83,10 @@ class MIS_Customgroup
   end
 
   def source_id_str
-    @isams_id
+    #
+    #  Force to a string.
+    #
+    "#{@isams_id}"
   end
 
   def adjust
