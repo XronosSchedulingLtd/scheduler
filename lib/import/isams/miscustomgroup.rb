@@ -70,6 +70,7 @@ class MIS_Customgroup
   def initialize(entry)
     @pupils = Array.new
     @current = true
+    @make_public = false
     @datasource_id = @@primary_datasource_id
     #
     #  TODO Work out why we have both of these next two and get rid
@@ -78,6 +79,15 @@ class MIS_Customgroup
     @era = Setting.perpetual_era
     @era_id = @era.id
     @owner = nil
+    super
+  end
+
+  def source_id_str
+    @isams_id
+  end
+
+  def adjust
+    @shared = (@shared_flag == 1)
     #
     #  The staff record definitely should exist (modulo inconsistent
     #  data in iSAMS) but the user record may well not.  It doesn't
@@ -89,17 +99,16 @@ class MIS_Customgroup
       @owner = @owner_staff.dbrecord.corresponding_user
       if @owner
         @owner_id = @owner.id
+        #
+        #  Now we know who the owner is, we can decide whether or
+        #  not actually to make this one public.
+        #
+        #  Its public iff the owner has permission *and* it has
+        #  come from iSAMS as shared.
+        #
+        @make_public = @owner.public_groups && @shared
       end
     end
-    super
-  end
-
-  def source_id_str
-    @isams_id
-  end
-
-  def adjust
-    @shared = (@shared_flag == 1)
   end
 
   def wanted

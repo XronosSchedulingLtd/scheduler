@@ -2,10 +2,10 @@ class MIS_Customgroup < MIS_Group
 
   DB_CLASS = Taggroup
   DB_KEY_FIELD = [:source_id_str, :datasource_id]
-  FIELDS_TO_CREATE = [:name, :era_id, :owner_id, :current]
-  FIELDS_TO_UPDATE = [:name, :era_id, :owner_id, :current]
+  FIELDS_TO_CREATE = [:name, :era_id, :owner_id, :current, :make_public]
+  FIELDS_TO_UPDATE = [:name, :era_id, :owner_id, :current, :make_public]
 
-  attr_reader :pupils, :era_id, :owner_id, :current
+  attr_reader :pupils, :era_id, :owner_id, :current, :make_public
 
   def add_pupil(pupil)
     @pupils << pupil
