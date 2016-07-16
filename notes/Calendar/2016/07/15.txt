@@ -1,0 +1,35 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-07-15T08:36:27+01:00
+
+====== Friday 15 Jul 2016 ======
+
+Noticed an interesting problem in the area of lesson suspensions this morning.  If I start with a fresh copy of the database, and then load my timetable twice, a few adjustments in the area of suspensions occur at the second load.  I strongly suspect this is to do with the roll-over not having happened yet - 3rd year sets are populated with apparent 2nd year pupils - but that doesn't explain why it behaves differently first and second times.
+
+I need to find out exactly what is happening and why.  I suspect I'm not going to be able to get exactly the right results until the years have been rolled over, but my code should at least be consistent - especially as I'd thought it was the same code being invoked twice.
+
+A thought - do the pupils get adjusted as part of the second load?
+
+Concentrating firstly on "3F Fr2a" which I seem to think is a 3rd year French group.  Both times I think it is a 3rd year group.
+
+Ah - I may have it (but need to check).  My hiatuses (gaps and suspensions) are loaded during initialisation, and it's at that point when I decide which pupil year groups they relate to.
+
+During the first run, I then go on to adjust the year groups of various pupils.  (How do I decide what year group they are to be in?)  I also adjust the membership of the "3rd year pupils" group.
+
+Yes, the first time my program is run, the hiatus appears to apply to pupils in years 1,2,3 which is what I want.
+
+By the time it is run a second time, it appears to apply to pupils in years 0,1,2.  This is because I have adjusted all the pupils' start years, which makes their effective school years appear one less.  To take an example, Danny May (notionally) started in 2012, making him now just finishing in the 4th year, and about to start in the 5th.  His year gets adjusted to 2013, because iSAMS currently thinks he is a 4th year, and I'm loading the data for 2016/17.  iSAMS's view is of the academic year just ending, but I'm fibbing to my program and saying it is for the one just starting.
+
+Could I perhaps add an extra switch to the program - "--ahead" or something like that, which tells it to adjust things appropriately.  What else would it affect?
+
+I've had a walk and a bit of a think, and I'm inclined to put that option in.  It will always be slightly messy - what exactly is to be moved ahead? - but potentially useful.  For now, it will simply move pupils ahead. They will get their academic year adjusted to suit next year.  I'll make it "--ahead=1".
+
+That seems to work fine and to have the desired result.  Good.
+
+On then to "extra" groups.  I'm inclined to think that all of these should move to being managed by individuals, but the facility might still be useful even after that.  It should be entirely MIS-agnostic.
+
+Extra groups code seemed to work straight off, although they highlighted one problem with the transfer of staff from SB to iSAMS.  iSAMS constructs the staff member's name from their preferred forename + their surname.  SB has a preferred forename field, but it seems we haven't been using it - instead we've been overriding the overall name.  This means that, Alex Stuart for instance has come through as Alexander Stuart.  These will simply need to be edited in iSAMS.  I do at least get the preferred name coming through in the API feed.  I should make use of it.  Done all I can in that area.
+
+On to Custom Groups (aka Tag Groups).  These seem to come in various categories.  I don't have the concept of categories, but I could tag it on to the name of the group.  Thusly: "DofE 2016 (Trips)".  I am looking therefore for custom pupil groups.
+
+Custom groups seem to have a public flag.  I should probably make the group public when this is set, iff the corresponding user has permission to have public groups.  It should also update if the user's permissions change.  Ah - perhaps it refers to a user rather than to a member of staff?

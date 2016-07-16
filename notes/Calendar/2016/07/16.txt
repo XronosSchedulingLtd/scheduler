@@ -1,0 +1,43 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-07-16T06:50:45+01:00
+
+====== Saturday 16 Jul 2016 ======
+
+Started processing of custom groups yesterday, but didn't quite finish it.  I would very much like to have it finished off this weekend.
+
+Things to do:
+
+[*] Load iSAMS custom groups
+[*] Tidy up MIS_Group code to make it cope with Tutor, Teaching and Tag groups cleanly.
+[*] Seems to be double-creating custom groups.  Needs to be idempotent.  Yes, definitely double-creating.
+[*] They seem to be in the academic year, rather than the perpetual era.
+[*] Allow users to edit and delete old TagGroups from SB.
+[*] If a user has permission to create public groups, then carry public-ness through into Scheduler.
+[*] Investigate why so many lessons lack teaching groups.
+[*] When custom groups go away in iSAMS, delete them in Scheduler.
+
+A lot of the custom groups in the system don't seem to match up with a corresponding member of staff.  Could the IDs be wrong, or do they all belong to APS staff?  Where they do match up, they don't seem to match up with the right person.  Odd.
+
+The second custom group has an AuthorID of 375, and a legacy name of Louisa Hayden.  Why don't I find her?  Lou's source ID seems to be 427.  Odd?  Could it be because I cut and pasted the custom groups from a different extraction?  No, she's 427 in file 5 too.
+
+Could it be that it refers to a user, rather than to a member of staff?  Yes, it does.  Same as Scheduler really.  How then can one match up staff and user?  The long string like this:
+
+LouisaHayden264593052692928
+
+Seems to be the way to do it.  It's called by several different names:
+
+SchoolId in the user record.
+TeacherCode in the cover record.
+UserCode in the staff record.
+Author in the custom pupil group Id.
+
+but it does at least seem to stay the same.  I don't think I actually need to indirect through the user record, because this string will allow me to go straight from group to staff, but it is marked as "Legacy" in the group record so there's a danger it will go away.  Then I'd need to go Group => User => Staff.  I'd still need to use the same string to go from User to Staff, but it isn't marked as legacy there.
+
+Looking at double creation.  The group is being created with the right source and source_id_str.  Why isn't it then found?  Could it be because the era is wrong too?  Seems likely as that's one of the search keys.  Why is it being set to the command line era, rather than the perpetual era as intended?  Ah - it's hard coded in the MIS_Group bit.  Needs to use the object's own idea of the era, and not the command line one.  Objects which obey the command line (Tutor and Teaching groups) already have their own copy.  These groups use the perpetual one.
+
+Yes, now seems to be in the perpetual era.  Does that solve the other problem?  Seems to.  What if we run things again from scratch?
+
+Looked into missing rooms - they're missing in iSAMS.
+
+Just noticed something odd.  Martin Poon has a lesson on Tue of week A in period 6, but it's running from 13:45 to 14:50.  Should end at 14:40.  How was it when I sent the periods over?
