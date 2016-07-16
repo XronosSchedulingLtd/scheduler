@@ -40,6 +40,7 @@ require_relative 'misimport/mislocation.rb'
 require_relative 'misimport/misloader.rb'
 require_relative 'misimport/mistutorgroup.rb'
 require_relative 'misimport/misteachinggroup.rb'
+require_relative 'misimport/miscustomgroup.rb'
 require_relative 'misimport/mistimetable.rb'
 #
 #  Not actually database.
@@ -68,6 +69,7 @@ if current_mis
     require_relative 'isams/mislocation.rb'
     require_relative 'isams/mistutorgroup.rb'
     require_relative 'isams/misteachinggroup.rb'
+    require_relative 'isams/miscustomgroup.rb'
     require_relative 'isams/mistimetable.rb'
     require_relative 'isams/mishouse.rb'
     require_relative 'isams/missubject.rb'
@@ -119,8 +121,8 @@ begin
       finished(options, "extra groups")
       loader.do_duties
       finished(options, "duties")
-#      loader.do_taggroups
-#      finished(options, "tagggroups")
+      loader.do_customgroups
+      finished(options, "customgroups")
     end
   end
 rescue RuntimeError => e

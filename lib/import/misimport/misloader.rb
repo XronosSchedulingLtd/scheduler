@@ -5,6 +5,7 @@ class MIS_Loader
               :start_date,
               :pupils,
               :pupil_hash,
+              :staff,
               :staff_hash,
               :location_hash,
               :subject_hash,
@@ -65,11 +66,10 @@ class MIS_Loader
     puts "Got #{@timetable.entry_count} timetable entries." if options.verbose
     @timetable.note_hiatuses(self, @hiatuses)
     @timetable.note_subjects_taught
-    @event_source = Eventsource.find_by(name: Setting.current_mis)
-    if @event_source
-      puts "Current MIS is #{@event_source.name}"
-    else
-      raise "Can't find current MIS (#{Setting.current_mis}) as an event source."
+    @customgroups = MIS_Customgroup.construct(self, whatever)
+    puts "Got #{@customgroups.size} custom groups."
+    @customgroups.each do |cg|
+      cg.report
     end
   end
 
@@ -91,6 +91,12 @@ class MIS_Loader
     raise "No category for duties." unless @duty_category
     @yaml_source = Eventsource.find_by(name: "Yaml")
     raise "No event source for YAML." unless @yaml_source
+    @event_source = Eventsource.find_by(name: Setting.current_mis)
+    if @event_source
+      puts "Current MIS is #{@event_source.name}"
+    else
+      raise "Can't find current MIS (#{Setting.current_mis}) as an event source."
+    end
     #
     #  If an explicit date has been specified then we use that.
     #  Otherwise, if a full load has been specified then we use
@@ -920,7 +926,11 @@ class MIS_Loader
     end
   end
 
-  def do_taggroups
+  #
+  #  The name "Tag Groups" comes from SchoolBase, but they can be any
+  #  kind of ad-hoc group which your MIS lets individual users set up.
+  #
+  def do_customgroups
     tg_loaded_count          = 0
     tg_reincarnated_count    = 0
     tg_changed_count         = 0
@@ -929,9 +939,9 @@ class MIS_Loader
     tgmember_loaded_count    = 0
     tgmember_removed_count   = 0
     tgmember_unchanged_count = 0
-    @taggroups.each do |tg|
+    @customgroups.each do |tg|
       #
-      #  We only bother with tag groups which belong to an identifiable
+      #  We only bother with custom groups which belong to an identifiable
       #  member of staff, and where that member of staff has already
       #  logged on to Scheduler.  This has been checked at initialisation.
       #
@@ -955,6 +965,15 @@ class MIS_Loader
     #  SB?  This is the only way they're going to get deleted, since
     #  users can't delete them through the Scheduler web i/f.
     #
+    #  TODO Don't delete taggroups left over from SB yet.  Treat the
+    #  ones from iSAMS as a separate group and maintain them fully.
+    #
+    #  We'll need to have a switch-over day, where people can create
+    #  copies of the ones which they want to keep, then delete the old
+    #  ones.  Or we could just give individual users the means to delete
+    #  tag groups which came from SB.
+    #
+if false
     Group.taggroups.current.each do |dbtg|
       unless taggroup_hash[dbtg.source_id]
         puts "Tag group \"#{dbtg.name}\" seems to have gone from SB."
@@ -962,6 +981,7 @@ class MIS_Loader
         tg_deleted_count += 1
       end
     end
+end
     if @verbose || tg_deleted_count > 0
       puts "#{tg_deleted_count} tag group records deleted."
     end

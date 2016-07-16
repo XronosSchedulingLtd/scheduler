@@ -34,7 +34,7 @@ class MIS_Group < MIS_Record
     #
     self.dbrecord
     if @dbrecord
-#      puts "Found existing tutor group."
+#      puts "Found existing group."
       #
       #  It's possible that, although there is a record in the d/b
       #  no longer current.
@@ -59,10 +59,10 @@ class MIS_Group < MIS_Record
         unchanged_count += 1
       end
     else
-#      puts "Failed to find existing tutor group."
+#      puts "Failed to find existing group."
       if self.save_to_db(starts_on: loader.start_date,
-                         ends_on: loader.era.ends_on,
-                         era: loader.era)
+                         ends_on: self.era.ends_on,
+                         era: self.era)
         loaded_count += 1
       end
     end
@@ -88,6 +88,10 @@ class MIS_Group < MIS_Record
               #  Adding a pupil to a tutor group effectively changes the
               #  pupil's element name.  Save the pupil record so the
               #  element name gets updated.
+              #
+              #  TODO Hang on - this applies only to tutor groups.  Need
+              #  to add a conditional here so we don't keep doing it for
+              #  all groups.
               #
               pupil.force_save
               member_loaded_count += 1

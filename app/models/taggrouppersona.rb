@@ -14,6 +14,10 @@ class Taggrouppersona < ActiveRecord::Base
   end
 
   def user_editable?
-    false
+    if group.datasource.name == Setting.current_mis
+      false
+    else
+      true
+    end
   end
 end
