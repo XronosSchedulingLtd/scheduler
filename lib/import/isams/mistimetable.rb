@@ -111,7 +111,7 @@ class ISAMS_Week
 
 end
 
-class MIS_ScheduleEntry
+class ISAMS_ScheduleEntry < MIS_ScheduleEntry
   SELECTOR = "Schedules Schedule"
   REQUIRED_FIELDS = [
     IsamsField["Id",        :isams_id,   :attribute, :integer],
@@ -165,10 +165,6 @@ class MIS_ScheduleEntry
     end
   end
 
-  def source_id
-    @isams_id
-  end
-
   def note_period(period)
     @period = period
   end
@@ -178,10 +174,7 @@ class MIS_ScheduleEntry
   end
 
   def source_hash
-    #
-    #  Although numeric, return as a string.
-    #
-    "#{@isams_id}"
+    "Lesson #{@isams_id}"
   end
 
   def body_text
@@ -193,10 +186,6 @@ class MIS_ScheduleEntry
     #  This needs fixing very quickly.
     #
     Eventcategory.find_by(name: "Lesson")
-  end
-
-  def lower_school
-    false
   end
 
   #
@@ -216,6 +205,115 @@ class MIS_ScheduleEntry
 
   def self.construct(loader, isams_data)
     self.slurp(isams_data)
+  end
+
+end
+
+class ISAMS_MeetingEntry < MIS_ScheduleEntry
+  SELECTOR = "StaffMeetings StaffMeeting"
+  REQUIRED_FIELDS = [
+    IsamsField["Id",             :isams_id,   :attribute, :integer],
+    IsamsField["PeriodId",       :period_id,  :data,      :integer],
+    IsamsField["TeacherId",      :teacher_id, :data,      :string],
+    IsamsField["MeetingGroupId", :meeting_id, :data,      :integer],
+    IsamsField["DisplayName",    :name,       :data,      :string]
+  ]
+
+  include Creator
+
+  def initialize(entry)
+    @teacher_ids = Array.new
+  end
+
+  def adjust
+    @teacher_ids << @teacher_id
+  end
+
+  def merge(other)
+    #
+    #  Merge another of the same into this one.
+    #
+    @teacher_ids << other.teacher_id
+  end
+
+  def find_resources(loader)
+    #
+    #  iSAMS suffers from the same design flaw as SB, in that each
+    #  lesson can involve at most one teacher, one group and one
+    #  room.  I may need to implement a merging strategy as I did
+    #  for SB.
+    #
+    #  This code also currently suffers from a lack of defensiveness.
+    #  It assumes that the data coming from iSAMS will be correct.
+    #  Needs reinforcing.
+    #
+    @groups = Array.new
+    @rooms = Array.new
+    #
+    #  The two above stay empty for now.
+    #
+    @staff = Array.new
+    @teacher_ids.each do |teacher_id|
+      staff = loader.secondary_staff_hash[teacher_id]
+      if staff
+        @staff << staff
+      end
+    end
+  end
+
+  def note_period(period)
+    @period = period
+  end
+
+  def period_time
+    @period.period_time
+  end
+
+  def source_hash
+    #
+    #  Although numeric, return as a string.
+    #
+    "Meeting #{@isams_id}"
+  end
+
+  def body_text
+    @name
+  end
+
+  def eventcategory
+    #
+    #  This needs fixing very quickly.
+    #
+    Eventcategory.find_by(name: "Meeting")
+  end
+
+  #
+  #  What year group (in Scheduler's terms) are involved in this event.
+  #  Return 0 if we don't know, or have a mixture.
+  #
+  def yeargroup(loader)
+    0
+  end
+
+  def self.construct(loader, isams_data)
+    meetings = self.slurp(isams_data)
+    #
+    #  iSAMS provides one entry per teacher at a meeting.  Need to merge
+    #  these to create on entry per meeting.
+    #
+    meeting_hash = Hash.new
+    meetings.each do |meeting|
+      existing = meeting_hash[meeting.meeting_id]
+      if existing
+        existing.merge(meeting)
+      else
+        meeting_hash[meeting.meeting_id] = meeting
+      end
+    end
+    #
+    #  And return the resulting reduced list.
+    #
+    meeting_hash.values
   end
 
 end
@@ -249,7 +347,12 @@ class MIS_Schedule
         end
       end
     end
-    @entries = MIS_ScheduleEntry.construct(loader, timetable.entry)
+    lessons = ISAMS_ScheduleEntry.construct(loader, timetable.entry)
+    #
+    #  Now get the meetings.
+    #
+    meetings = ISAMS_MeetingEntry.construct(loader, timetable.entry)
+    @entries = lessons + meetings
     #
     #  Now each timetable entry needs linking to the relevant day
     #  so that we given a date subsequently, we can work out what day
