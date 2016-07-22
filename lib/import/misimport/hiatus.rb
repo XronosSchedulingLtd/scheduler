@@ -138,14 +138,14 @@ class Hiatus
     self.effective_end_date >= date
   end
 
-  def self.create_from_event(hard_or_soft, event)
+  def self.create_from_event(hard_or_soft, event, era)
     hiatus = Hiatus.new(hard_or_soft, false)
     hiatus.note_start_and_end(event.starts_at,
                               event.ends_at)
     #
     #  Need a list of the year groups involved in this event.
     #
-    event.pupil_year_groups(true).each do |year|
+    event.pupil_year_groups(true, era).each do |year|
       hiatus.note_yeargroup(year)
     end
 #    puts "Hiatus #{event.body} at #{event.starts_at} applies to:"
@@ -169,7 +169,7 @@ class Hiatus
         property.element.events_on(loader.start_date,
                                    loader.era.ends_on).each do |event|
 #          puts "Processing a #{key}"
-          hiatuses << Hiatus.create_from_event(hs, event)
+          hiatuses << Hiatus.create_from_event(hs, event, loader.era)
         end
       else
         puts "Unable to find property: #{key}."

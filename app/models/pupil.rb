@@ -71,9 +71,9 @@ class Pupil < ActiveRecord::Base
   #  should give the year in which this pupil would have started in your
   #  year 1.
   #
-  def year_group
-    if Setting.current_era
-      Setting.current_era.starts_on.year - self.start_year + 1
+  def year_group(in_era = Setting.current_era)
+    if in_era
+      in_era.starts_on.year - self.start_year + 1
     else
       0
     end

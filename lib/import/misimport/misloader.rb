@@ -95,7 +95,7 @@ class MIS_Loader
     raise "No event source for YAML." unless @yaml_source
     @event_source = Eventsource.find_by(name: Setting.current_mis)
     if @event_source
-      puts "Current MIS is #{@event_source.name}"
+      puts "Current MIS is #{@event_source.name}" if @verbose
     else
       raise "Can't find current MIS (#{Setting.current_mis}) as an event source."
     end

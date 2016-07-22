@@ -479,8 +479,8 @@ class Event < ActiveRecord::Base
     end
   end
 
-  def pupil_year_groups(and_by_group = false)
-    self.pupils(and_by_group).collect {|p| p.year_group}.uniq
+  def pupil_year_groups(and_by_group = false, in_era = Setting.current_era)
+    self.pupils(and_by_group).collect {|p| p.year_group(in_era)}.uniq
   end
 
   def staff(and_by_group = false)

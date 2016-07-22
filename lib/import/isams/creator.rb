@@ -72,7 +72,7 @@ module Creator
   end
 
   module ClassMethods
-    def slurp(data)
+    def slurp(data, verbose = true)
       results = Array.new
       entries = data.css(self::SELECTOR)
       if entries && entries.size > 0
@@ -87,7 +87,7 @@ module Creator
           end
         end
       else
-        puts "Unable to find entries using selector \"#{self::SELECTOR}\"."
+        puts "Unable to find entries using selector \"#{self::SELECTOR}\"." if verbose
       end
       results
     end

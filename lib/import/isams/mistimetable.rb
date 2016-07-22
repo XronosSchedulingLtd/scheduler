@@ -311,7 +311,7 @@ class ISAMS_Timetable
   end
 
   def self.construct(isams_data)
-    self.slurp(isams_data)
+    self.slurp(isams_data, false)
   end
 
 end
