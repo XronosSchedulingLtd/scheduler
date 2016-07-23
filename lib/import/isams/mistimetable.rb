@@ -348,6 +348,7 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
     IsamsField["Name",                   :name,       :data,      :string],
     IsamsField["NationalCurriculumYear", :nc_year,    :data,      :integer],
     IsamsField["PeriodId",               :period_id,  :data,      :integer],
+    IsamsField["RoomId",                 :room_id,    :data,      :integer],
     IsamsField["TeacherId",              :teacher_id, :data,      :string]
   ]
 
@@ -362,7 +363,11 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
   def find_resources(loader)
     @groups = [ISAMS_DummyGroup.group_for_nc_year(@nc_year)]
     @staff = []
-    @rooms = []
+    @rooms = Array.new
+    room = loader.location_hash[@room_id]
+    if room
+      @rooms << room
+    end
   end
 
   def note_period(period)
