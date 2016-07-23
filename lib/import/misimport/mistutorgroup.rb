@@ -5,7 +5,7 @@ class MIS_Tutorgroup < MIS_Group
   FIELDS_TO_CREATE = [:name, :era_id, :staff_id, :house, :start_year, :current]
   FIELDS_TO_UPDATE = [:name, :era_id, :staff_id, :house, :start_year, :current]
 
-  attr_reader :staff_id, :staff, :pupils
+  attr_reader :staff, :pupils
 
   def add_pupil(pupil)
     @pupils << pupil
@@ -17,7 +17,14 @@ class MIS_Tutorgroup < MIS_Group
 
   def note_staff(staff)
     @staff = staff
-    @staff_id = staff.dbrecord.id
+  end
+
+  def staff_id
+    if @staff.dbrecord
+      @staff.dbrecord.id
+    else
+      nil
+    end
   end
 
   def size
