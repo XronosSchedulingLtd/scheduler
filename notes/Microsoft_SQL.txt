@@ -37,7 +37,7 @@ and then added them in with:
 
 '''
 sudo odbcinst -i -d -f tds.driver.template
-odbcinst -i s -f tds.datasource.template
+odbcinst -i -s -f tds.datasource.template
 '''
 
 
