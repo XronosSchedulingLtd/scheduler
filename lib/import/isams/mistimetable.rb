@@ -355,13 +355,24 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
   include Creator
 
   def initialize(entry)
+    @nc_years = Array.new
+    @isams_ids = Array.new
   end
 
   def adjust
+    @nc_years << @nc_year
+    @isams_ids << @isams_id
+  end
+
+  def merge(other)
+    @nc_years << other.nc_year
+    @isams_ids << other.isams_id
   end
 
   def find_resources(loader)
-    @groups = [ISAMS_DummyGroup.group_for_nc_year(@nc_year)]
+    @groups = @nc_years.collect do |ncy|
+      ISAMS_DummyGroup.group_for_nc_year(ncy)
+    end
     @staff = []
     @rooms = Array.new
     room = loader.location_hash[@room_id]
@@ -382,11 +393,15 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
     #
     #  Although numeric, return as a string.
     #
-    "Year commitment #{@isams_id}"
+    "Year commitment #{@isams_ids.sort.join(",")}"
   end
 
   def body_text
     @name
+  end
+
+  def hash_key
+    "#{@name} period #{@period_id} location #{@room_id}"
   end
 
   def eventcategory
@@ -412,7 +427,17 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
   end
 
   def self.construct(loader, isams_data)
-    self.slurp(isams_data)
+    events = self.slurp(isams_data)
+    event_hash = Hash.new
+    events.each do |event|
+      existing = event_hash[event.hash_key]
+      if existing
+        existing.merge(event)
+      else
+        event_hash[event.hash_key] = event
+      end
+    end
+    event_hash.values
   end
 
 end
