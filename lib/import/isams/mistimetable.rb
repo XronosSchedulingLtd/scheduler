@@ -413,6 +413,8 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
       Eventcategory.find_by(name: "Religious service")
     elsif @name == "Assembly"
       Eventcategory.find_by(name: "Assembly")
+    elsif /Core Sport/ =~ @name
+      Eventcategory.find_by(name: "Sport")
     else
       Eventcategory.find_by(name: "Activity")
     end

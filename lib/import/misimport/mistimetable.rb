@@ -111,6 +111,10 @@ class MIS_ScheduleEntry
         @dbrecord.body = self.body_text
         changed = true
       end
+      if @dbrecord.eventcategory != self.eventcategory
+        @dbrecord.eventcategory = self.eventcategory
+        changed = true
+      end
       if changed
         if @dbrecord.save
           #
