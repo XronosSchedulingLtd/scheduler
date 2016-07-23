@@ -318,6 +318,100 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
 
 end
 
+class ISAMS_DummyGroup
+  #
+  #  All we actually need to provide for timetable loading to work
+  #  is the right element id.
+  #
+  @group_hash = Hash.new
+
+  attr_reader :element_id
+
+  def initialize(nc_year)
+    g = Group.find_by(name: "#{(nc_year - 6).ordinalize} year",
+                      era: Setting.perpetual_era)
+    if g
+      @element_id = g.element.id
+    end
+  end
+
+  def self.group_for_nc_year(nc_year)
+    @group_hash[nc_year] ||= self.new(nc_year)
+  end
+
+end
+
+class ISAMS_YeargroupEntry < MIS_ScheduleEntry
+  SELECTOR = "YearSchedules YearSchedule"
+  REQUIRED_FIELDS = [
+    IsamsField["Id",                     :isams_id,   :attribute, :integer],
+    IsamsField["Name",                   :name,       :data,      :string],
+    IsamsField["NationalCurriculumYear", :nc_year,    :data,      :integer],
+    IsamsField["PeriodId",               :period_id,  :data,      :integer],
+    IsamsField["TeacherId",              :teacher_id, :data,      :string]
+  ]
+
+  include Creator
+
+  def initialize(entry)
+  end
+
+  def adjust
+  end
+
+  def find_resources(loader)
+    @groups = [ISAMS_DummyGroup.group_for_nc_year(@nc_year)]
+    @staff = []
+    @rooms = []
+  end
+
+  def note_period(period)
+    @period = period
+  end
+
+  def period_time
+    @period.period_time
+  end
+
+  def source_hash
+    #
+    #  Although numeric, return as a string.
+    #
+    "Year commitment #{@isams_id}"
+  end
+
+  def body_text
+    @name
+  end
+
+  def eventcategory
+    #
+    #  This needs fixing very quickly.  Could be Chapel, Assembly or
+    #  something else.
+    #
+    if @name == "Chapel"
+      Eventcategory.find_by(name: "Religious service")
+    elsif @name == "Assembly"
+      Eventcategory.find_by(name: "Assembly")
+    else
+      Eventcategory.find_by(name: "Activity")
+    end
+  end
+
+  #
+  #  What year group (in Scheduler's terms) are involved in this event.
+  #  Return 0 if we don't know, or have a mixture.
+  #
+  def yeargroup(loader)
+    @nc_year - 6
+  end
+
+  def self.construct(loader, isams_data)
+    self.slurp(isams_data)
+  end
+
+end
+
 class MIS_Schedule
 
   attr_reader :week_hash
@@ -352,7 +446,11 @@ class MIS_Schedule
     #  Now get the meetings.
     #
     meetings = ISAMS_MeetingEntry.construct(loader, timetable.entry)
-    @entries = lessons + meetings
+    #
+    #  And full year events.
+    #
+    year_events = ISAMS_YeargroupEntry.construct(loader, timetable.entry)
+    @entries = lessons + meetings + year_events
     #
     #  Now each timetable entry needs linking to the relevant day
     #  so that we given a date subsequently, we can work out what day
