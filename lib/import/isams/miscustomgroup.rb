@@ -14,7 +14,7 @@ class ISAMS_CustomgroupCategory
     #
     #  For convenience, we return ourselves as a hash.
     #
-    categories = self.slurp(isams_data)
+    categories = self.slurp(isams_data.xml)
     category_hash = Hash.new
     categories.each do |category|
       category_hash[category.isams_id] = category
@@ -37,7 +37,7 @@ class ISAMS_CustomgroupMembershipItem
   end
 
   def self.construct(loader, isams_data, group_hash)
-    memberships = self.slurp(isams_data)
+    memberships = self.slurp(isams_data.xml)
     #
     #  Now add each of our pupils to the corresponding group.
     #
@@ -173,7 +173,7 @@ class MIS_Customgroup
       @staff_by_user_code[staff.user_code] = staff
     end
     @categories = ISAMS_CustomgroupCategory.construct(loader, isams_data)
-    @groups = self.slurp(isams_data)
+    @groups = self.slurp(isams_data.xml)
     @groups.each do |group|
       group.note_category(@categories[group.category_id])
     end

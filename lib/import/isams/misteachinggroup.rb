@@ -12,7 +12,7 @@ class MIS_SetMembership
   end
 
   def self.construct(loader, isams_data)
-    self.slurp(isams_data)
+    self.slurp(isams_data.xml)
   end
 
 end
@@ -67,7 +67,7 @@ class MIS_Teachinggroup
   end
 
   def self.construct(loader, isams_data)
-    tgs = self.slurp(isams_data)
+    tgs = self.slurp(isams_data.xml)
     tgs_hash = Hash.new
     tgs.each do |tg|
       tgs_hash[tg.isams_id] = tg

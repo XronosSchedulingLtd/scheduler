@@ -106,7 +106,7 @@ class ISAMS_Week
   end
 
   def self.construct(loader, isams_data)
-    self.slurp(isams_data)
+    self.slurp(isams_data.xml)
   end
 
 end
@@ -203,8 +203,8 @@ class ISAMS_ScheduleEntry < MIS_ScheduleEntry
     end
   end
 
-  def self.construct(loader, isams_data)
-    self.slurp(isams_data)
+  def self.construct(loader, inner_data)
+    self.slurp(inner_data)
   end
 
 end
@@ -295,8 +295,8 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
     0
   end
 
-  def self.construct(loader, isams_data)
-    meetings = self.slurp(isams_data)
+  def self.construct(loader, inner_data)
+    meetings = self.slurp(inner_data)
     #
     #  iSAMS provides one entry per teacher at a meeting.  Need to merge
     #  these to create on entry per meeting.
@@ -428,8 +428,8 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
     @nc_year - 6
   end
 
-  def self.construct(loader, isams_data)
-    events = self.slurp(isams_data)
+  def self.construct(loader, inner_data)
+    events = self.slurp(inner_data)
     event_hash = Hash.new
     events.each do |event|
       existing = event_hash[event.hash_key]
@@ -523,7 +523,7 @@ class ISAMS_WeekAllocation
   end
 
   def self.construct(isams_data)
-    self.slurp(isams_data)
+    self.slurp(isams_data.xml)
   end
 
 end
@@ -544,7 +544,7 @@ class ISAMS_Timetable
   end
 
   def self.construct(isams_data)
-    self.slurp(isams_data, false)
+    self.slurp(isams_data.xml, false)
   end
 
 end
@@ -571,7 +571,7 @@ class MIS_Timetable
       timetable_name = loader.options.timetable_name
     else
 #      puts "No timetable specified."
-      entries = isams_data.css("TimetableManager PublishedTimetables Timetable Name")
+      entries = isams_data.xml.css("TimetableManager PublishedTimetables Timetable Name")
       if entries && entries.size > 0
         timetable_name = entries[0].text
 #        puts "Using #{timetable_name}."

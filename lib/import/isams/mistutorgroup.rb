@@ -86,7 +86,7 @@ class MIS_Tutorgroup
   end
 
   def self.construct(loader, isams_data)
-    tgs = self.slurp(isams_data)
+    tgs = self.slurp(isams_data.xml)
     tgs_hash = Hash.new
     tgs.each do |tg|
       tgs_hash[tg.isams_id] = tg

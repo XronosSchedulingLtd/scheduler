@@ -29,7 +29,7 @@ class MIS_House
   end
 
   def self.construct(loader, isams_data)
-    houses = self.slurp(isams_data)
+    houses = self.slurp(isams_data.xml)
     @namehash = Hash.new
     houses.each do |house|
       @namehash[house.name] = house

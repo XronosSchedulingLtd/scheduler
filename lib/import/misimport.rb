@@ -62,6 +62,11 @@ if current_mis
   if current_mis == "iSAMS"
     require_relative 'isams/dateextra.rb'
     require_relative 'isams/options.rb'
+    require_relative 'isams/slurper.rb'
+    require_relative 'isams/depender.rb'
+    require_relative 'isams/activityevent.rb'
+    require_relative 'isams/activityeventoccurrence.rb'
+    require_relative 'isams/activityeventteacherlink.rb'
     require_relative 'isams/misloader.rb'
     require_relative 'isams/creator.rb'
     require_relative 'isams/mispupil.rb'

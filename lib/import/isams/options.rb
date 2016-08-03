@@ -3,10 +3,6 @@ class Options
 
   attr_reader :timetable_name
 
-  #
-  #  These next two are intended to be over-ridden by MIS-specific
-  #  versions.
-  #
   def more_defaults
     @timetable_name = nil
   end

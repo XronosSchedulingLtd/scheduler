@@ -19,6 +19,6 @@ class MIS_Subject
   end
 
   def self.construct(loader, isams_data)
-    self.slurp(isams_data)
+    self.slurp(isams_data.xml)
   end
 end
