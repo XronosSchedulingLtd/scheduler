@@ -318,6 +318,136 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
 
 end
 
+class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
+
+  attr_reader :period_time, :date
+
+  def initialize(db_entry)
+    #
+    #  Need to create a period time record to suit ourselves.
+    #  It would make sense for all occurences of a particular event
+    #  to make use of the same one, since the timing actually comes
+    #  from the event and not from the occurence.  Or at least, some
+    #  of the timing comes from the event.
+    #
+#    puts "Processing #{db_entry.event.subject}."
+    unless db_entry.event.timeslot
+      #
+      #  Create an MIS_PeriodTime record and save it in the db_entry event.
+      #
+      db_entry.event.timeslot =
+        MIS_PeriodTime.new(db_entry.event.start_time,
+                           db_entry.event.end_time)
+    end
+    @period_time   = db_entry.event.timeslot
+    @date          = db_entry.datetime.to_date
+    @name          = db_entry.event.subject
+    @isams_id      = db_entry.ident
+    @location_name = db_entry.event.location.gsub(/ \([^\)]*\)$/, "")
+#    if @date
+#      puts "Got date - #{@date.iso8601}"
+#    else
+#      puts "No date"
+#    end
+    @teacher_ids = db_entry.event.teacher_ids
+  end
+
+  def adjust
+  end
+
+  def find_resources(loader)
+    #
+    #  iSAMS suffers from the same design flaw as SB, in that each
+    #  lesson can involve at most one teacher, one group and one
+    #  room.  I may need to implement a merging strategy as I did
+    #  for SB.
+    #
+    #  This code also currently suffers from a lack of defensiveness.
+    #  It assumes that the data coming from iSAMS will be correct.
+    #  Needs reinforcing.
+    #
+    @groups = Array.new
+    #
+    #  The two one stays empty for now.
+    #
+    @staff = Array.new
+    @teacher_ids.each do |teacher_id|
+      staff = loader.secondary_staff_hash[teacher_id]
+      if staff
+        @staff << staff
+      end
+    end
+    @rooms = Array.new
+    room = loader.secondary_location_hash[@location_name]
+    if room
+      @rooms << room
+#    else
+#      puts "Failed to find \"#{@location_name}\"."
+    end
+  end
+
+  def source_hash
+    #
+    #  Although numeric, return as a string.
+    #
+    "Other half #{@isams_id}"
+  end
+
+  def body_text
+    @name
+  end
+
+  def eventcategory
+    #
+    #  This needs fixing very quickly.
+    #
+    Eventcategory.find_by(name: "Other Half")
+  end
+
+  #
+  #  What year group (in Scheduler's terms) are involved in this event.
+  #  Return 0 if we don't know, or have a mixture.
+  #
+  def yeargroup(loader)
+    0
+  end
+
+  def self.construct(loader)
+    #
+    #  We need to get details of OH event occurences from the loader.
+    #
+    oh_events = Array.new
+    occurrences = loader[:eventoccurrences]
+    if occurrences
+      occurrences.each do |key, record|
+        oh_events << self.new(record)
+      end
+    else
+      raise "Can't find OH event occurrences."
+    end
+    @events_by_date = Hash.new
+    oh_events.each do |ohe|
+      slot = @events_by_date[ohe.date.iso8601] ||= Array.new
+      slot << ohe
+    end
+    oh_events
+  end
+
+  def self.events_on(date)
+    result = @events_by_date[date.iso8601]
+    #
+    #  Don't want to set the hash's default value to an empty array
+    #  because I want to be able to test for nil elsewhere.
+    #
+    if result
+      result
+    else
+      []
+    end
+  end
+
+end
+
 class ISAMS_DummyGroup
   #
   #  All we actually need to provide for timetable loading to work
@@ -482,6 +612,11 @@ class MIS_Schedule
     #  And full year events.
     #
     year_events = ISAMS_YeargroupEntry.construct(loader, timetable.entry)
+    #
+    #  And OH events.
+    #
+    oh_events = ISAMS_OtherHalfEntry.construct(isams_data)
+    #
     @entries = lessons + meetings + year_events
     #
     #  Now each timetable entry needs linking to the relevant day
@@ -498,6 +633,9 @@ class MIS_Schedule
       end
     end
     @entries.each do |entry|
+      entry.find_resources(loader)
+    end
+    oh_events.each do |entry|
       entry.find_resources(loader)
     end
   end
@@ -613,7 +751,7 @@ class MIS_Timetable
 #        puts "Week: #{week.name}"
         day = week.day_hash[date.strftime("%a")]
         if day
-          day.lessons
+          lessons = day.lessons
         else
 #          puts "Unable to find day for #{date.to_s}"
 #          puts "date.strftime(\"%a\") = #{date.strftime("%a")}"
@@ -621,17 +759,32 @@ class MIS_Timetable
 #          week.day_hash.each do |key, record|
 #            puts "  #{key} (#{key.class})"
 #          end
-          nil
+          lessons = nil
         end
       else
 #        puts "Unable to find week for #{date.to_s}"
-        nil
+        lessons = nil
       end
     else
 #      puts "Unable to find week allocation for #{date.to_s}."
-      nil
+      lessons = nil
+    end
+    oh = ISAMS_OtherHalfEntry.events_on(date)
+    if lessons
+      if oh
+        lessons + oh
+      else
+        lessons
+      end
+    else
+      if oh
+        oh
+      else
+        nil
+      end
     end
   end
+
 end
 
 

@@ -30,6 +30,7 @@ class MIS_Loader
   end
 
   attr_reader :secondary_staff_hash,
+              :secondary_location_hash,
               :tegs_by_name_hash,
               :tugs_by_name_hash
 
@@ -49,6 +50,10 @@ class MIS_Loader
       #  only way to find the relevant staff member.
       #
       @secondary_staff_hash[staff.secondary_key] = staff
+    end
+    @secondary_location_hash = Hash.new
+    @locations.each do |location|
+      @secondary_location_hash[location.name] = location
     end
     #
     #  Likewise, the schedule records are a bit broken, in that they

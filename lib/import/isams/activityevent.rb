@@ -10,8 +10,8 @@ class ISAMS_ActivityEvent
     Column["TblActivityManagerEventId",    :ident,       :integer],
     Column["txtSubject",                   :subject,     :string],
     Column["txtLocation",                  :location,    :string],
-    Column["dteStartDate",                 :start_date,  :date],
-    Column["dteEndDate",                   :end_date,    :date],
+    Column["dteStartDate",                 :start_date,  :time],
+    Column["dteEndDate",                   :end_date,    :time],
     Column["blnAllDayEvent",               :all_day,     :boolean],
     Column["intGroup",                     :group_id,    :integer],
     Column["intActivity",                  :activity_id, :integer]
@@ -19,9 +19,14 @@ class ISAMS_ActivityEvent
 
   include Slurper
 
+  attr_accessor :timeslot
+
+  attr_reader :teacher_ids
+
   def adjust(accumulator)
     @complete = true
     @teacher_ids = Array.new
+    @timeslot = nil
   end
 
   def wanted?
@@ -30,7 +35,15 @@ class ISAMS_ActivityEvent
 
   def note_teacher(teacher_link)
     @teacher_ids << teacher_link.teacher_id
-    puts "Event #{@subject} (#{@ident}) has #{@teacher_ids.size} teachers."
+#    puts "Event #{@subject} (#{@ident}) has #{@teacher_ids.size} teachers."
+  end
+
+  def start_time
+    @start_date.strftime("%H:%M")
+  end
+
+  def end_time
+    @end_date.strftime("%H:%M")
   end
 
   #

@@ -9,7 +9,7 @@ class ISAMS_ActivityEventOccurrence
   REQUIRED_COLUMNS = [
     Column["TblActivityManagerEventOccurrenceId", :ident,     :integer],
     Column["intEventId",                          :event_id,  :integer],
-    Column["dteOccurrenceDate",                   :datetime,  :date],
+    Column["dteOccurrenceDate",                   :datetime,  :time],
     Column["blnCancelled",                        :cancelled, :boolean]
   ]
 
@@ -23,10 +23,22 @@ class ISAMS_ActivityEventOccurrence
 
   def adjust(accumulator)
     @complete = find_dependencies(accumulator, DEPENDENCIES)
+    if @complete
+      if self.start_time != @event.start_time
+        puts "Other half oddity - start times are not the same."
+        puts "Event #{@event.subject}"
+        puts "Event has #{@event.start_date}"
+        puts "Event occurenct has #{@datetime}"
+      end
+    end
   end
 
   def wanted?
     @complete
+  end
+
+  def start_time
+    @datetime.strftime("%H:%M")
   end
 
   #

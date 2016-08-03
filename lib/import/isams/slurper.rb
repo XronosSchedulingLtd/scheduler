@@ -14,6 +14,7 @@
 #  :boolean
 #  :integer
 #  :date
+#  :time
 #
 #  but for reverse compatibility, false will still be taken as meaning
 #  a string and true as meaning an integer.
