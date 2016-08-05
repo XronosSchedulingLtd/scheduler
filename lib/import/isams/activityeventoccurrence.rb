@@ -30,6 +30,9 @@ class ISAMS_ActivityEventOccurrence
         puts "Event has #{@event.start_date}"
         puts "Event occurenct has #{@datetime}"
       end
+      if accumulator.loader.start_date > @datetime
+        @complete = false
+      end
     end
   end
 

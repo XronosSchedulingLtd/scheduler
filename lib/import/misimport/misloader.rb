@@ -456,6 +456,9 @@ class MIS_Loader
     end
   end
 
+  def do_otherhalfgroups
+  end
+
   def do_timetable
     puts "Loading events from #{@start_date} to #{@era.ends_on}" if @verbose
     event_created_count         = 0

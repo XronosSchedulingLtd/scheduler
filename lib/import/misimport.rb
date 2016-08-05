@@ -42,6 +42,7 @@ require_relative 'misimport/mistutorgroup.rb'
 require_relative 'misimport/misteachinggroup.rb'
 require_relative 'misimport/miscustomgroup.rb'
 require_relative 'misimport/mistimetable.rb'
+require_relative 'misimport/misohgroup.rb'
 #
 #  Not actually database.
 #
@@ -76,6 +77,7 @@ if current_mis
     require_relative 'isams/misteachinggroup.rb'
     require_relative 'isams/miscustomgroup.rb'
     require_relative 'isams/mistimetable.rb'
+    require_relative 'isams/misohgroup.rb'
     require_relative 'isams/mishouse.rb'
     require_relative 'isams/missubject.rb'
   elsif current_mis == "SchoolBase"
@@ -114,12 +116,12 @@ begin
       finished(options, "tutor groups")
       loader.do_teachinggroups
       finished(options, "teaching groups")
+      loader.do_otherhalfgroups
+      finished(options, "other half groups")
       loader.do_timetable
       finished(options, "timetable")
 #      loader.do_cover
 #      finished(options, "cover")
-#      loader.do_other_half
-#      finished(options, "other half")
       loader.do_auto_groups
       finished(options, "automatic groups")
       loader.do_extra_groups

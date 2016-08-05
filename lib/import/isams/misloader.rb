@@ -4,7 +4,7 @@ ISAMS_IMPORT_DIR = 'import/isams'
 class MIS_Loader
 
   class ISAMS_Data < Hash
-    attr_reader :xml
+    attr_reader :xml, :loader
 
     TO_SLURP = [
       ISAMS_ActivityEvent,
@@ -12,8 +12,9 @@ class MIS_Loader
       ISAMS_ActivityEventTeacherLink
     ]
 
-    def initialize
-      super
+    def initialize(loader)
+      super()
+      @loader = loader
       full_dir_path = Rails.root.join(ISAMS_IMPORT_DIR)
       @xml =
         Nokogiri::XML(File.open(File.expand_path("data.xml", full_dir_path)))
@@ -35,7 +36,7 @@ class MIS_Loader
               :tugs_by_name_hash
 
   def prepare(options)
-    ISAMS_Data.new
+    ISAMS_Data.new(self)
   end
 
   def mis_specific_preparation
