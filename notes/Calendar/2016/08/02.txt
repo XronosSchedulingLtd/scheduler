@@ -1,0 +1,21 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-08-02T07:41:49+01:00
+
+====== Tuesday 02 Aug 2016 ======
+
+I established last night that there seems to be a bug in Ruby 2.1.1p76, in that it doesn't have a working copy of "fiddle", on which tiny_tds relies.  I had been diverted earlier by a Gem of the same name (fiddle), but it seems that fiddle is now a standard part of Ruby.  I've tried a fresh installation of 2.1.1 and it has exactly the same problem.
+
+What I don't understand is how and why it works on mach2.  That has 2.1.1p76 and it seems to work fine.  On any other installation of that version of Ruby I get an error if I invoke irb and type "require 'fiddle'".  Switching to any other version of Ruby makes it work fine.
+
+I am therefore inclined to move Scheduler to the last of the 2.1 family, which appears to be 2.1.10.  It would probably be safe to move it to 2.2 or 2.3, but I'm going to go for minimum change for now.
+
+In theory this should be fairly safe, but I'm always nervous of this kind of fundamental change.  Check first that 2.1.10 is indeed the last of the 2.1 series.  Yes, according to the Ruby web site it does seem to be.  It's already installed on Knight, so I should just be able to change the settings in my Scheduler development directory.  As soon as I cd'ed into the directory again it created the necessary gemset.  Now a "''bundle install''"?  Ah no - no Rails.
+
+''gem install rails --version 4.1.0''
+
+That should give us bundle, and then bundle install should work.  Seems to be doing.  Does Scheduler then run?  It seems to.  Fingers crossed.  I can at least now pass the "require 'fiddle'" test.  Try to run my extraction utility.
+
+Now it doesn't like the connection parameters which I'm giving.
+
+Found I needed another freetds configuration file in /etc/freetds - logical really.  Now managed to fetch out my first shot at the data which I need.  Probably fetched a lot of tables which I don't need, and I would guess I've probably missed something which I do need.  Enough to get started on developing the import program though.

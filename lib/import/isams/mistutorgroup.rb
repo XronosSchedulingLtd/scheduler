@@ -9,7 +9,7 @@ class MIS_Tutorgroup
 
   include Creator
 
-  attr_reader :datasource_id, :era, :era_id, :current
+  attr_reader :datasource_id, :current
 
   def initialize(entry)
     @pupils = Array.new
@@ -31,13 +31,8 @@ class MIS_Tutorgroup
     @tutor_id && @year_id && @year_id < 20
   end
 
-  def note_era(era)
-    @era = era
-    @era_id = era.id
-  end
-
   def start_year
-    (@era.starts_on.year - @year_id) + 7
+    (self.era.starts_on.year - @year_id) + 7
   end
 
   #
@@ -86,6 +81,7 @@ class MIS_Tutorgroup
   end
 
   def self.construct(loader, isams_data)
+    super
     tgs = self.slurp(isams_data.xml)
     tgs_hash = Hash.new
     tgs.each do |tg|
@@ -94,7 +90,6 @@ class MIS_Tutorgroup
       if staff
         tg.note_staff(staff)
       end
-      tg.note_era(loader.era)
     end
     #
     #  Now - can I populate them?

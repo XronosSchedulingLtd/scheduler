@@ -61,6 +61,8 @@ class MIS_Loader
     @teachinggroups.each do |tg|
       @teachinggroup_hash[tg.source_id] = tg
     end
+    @ohgroups = MIS_Otherhalfgroup.construct(self, whatever)
+    puts "Got #{@ohgroups.count} other half groups."
     self.mis_specific_preparation
     @timetable = MIS_Timetable.new(self, whatever)
     puts "Got #{@timetable.entry_count} timetable entries." if options.verbose

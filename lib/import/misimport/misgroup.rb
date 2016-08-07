@@ -5,17 +5,46 @@
 class MIS_Group < MIS_Record
 
   #
-  #  Given an array of records of things, assemble a list of their
-  #  element ids, which is what drives membership in Scheduler.
+  #  Some common items are required by all groups.  Specific types of
+  #  groups may require more.
   #
-  #  Each thing must have a dbrecord method, and each dbrecord must
-  #  have an element, which has an id.
+  #  Note that whilst we *define* what the critical items are here,
+  #  it may well be up to the platform-specific implementation actually
+  #  to provide them.
   #
-#  def assemble_membership_list(members)
-#    @member_list = members.collect do |member|
-#      member.try(:dbrecord).try(:element).try(:id)
-#    end.compact
-#  end
+  DB_KEY_FIELD = [:source_id_str, :datasource_id]
+  FIELDS_TO_CREATE = [:name, :era, :starts_on, :ends_on, :current]
+  FIELDS_TO_UPDATE = [:name, :era, :ends_on, :current]
+
+  #
+  #  A helper method to simplify the task fo adding to the above arrays.
+  #
+  #  You call it in the definition of a sub-class with something like:
+  #
+  #  add_fields(:FIELDS_TO_CREATE, [:able, :baker])
+  #
+  #  It creates a new constant attached to the sub-class, containing
+  #  all the values from the parent, plus your extras.
+  #
+  def self.add_fields(identifier, values)
+    self.const_set(identifier,
+                   self.superclass.const_get(identifier) + values)
+  end
+
+  #
+  #  Sub-classes may well want to override these.
+  #
+  def starts_on
+    @@loader.start_date
+  end
+
+  def ends_on
+    @@loader.era.ends_on
+  end
+
+  def era
+    @@loader.era
+  end
 
   #
   #  Ensure this group is correctly represented in the
@@ -60,9 +89,10 @@ class MIS_Group < MIS_Record
       end
     else
 #      puts "Failed to find existing group."
-      if self.save_to_db(starts_on: loader.start_date,
-                         ends_on: self.era.ends_on,
-                         era: self.era)
+#      if self.save_to_db(starts_on: loader.start_date,
+#                         ends_on: self.era.ends_on,
+#                         era: self.era)
+      if self.save_to_db
         loaded_count += 1
       end
     end
@@ -126,4 +156,18 @@ class MIS_Group < MIS_Record
      member_removed_count,
      member_unchanged_count]
   end
+
+  #
+  #  Note that this method doesn't do nearly enough, and the assumption
+  #  is that most of the functionality will be provided by the platform-
+  #  specific code.  However that code should call "super" in order to
+  #  let this do a bit too.
+  #
+  #  We have no idea what the whatever parameter is, nor how to interpret
+  #  it.  It's there solely so the calling code can just do "super".
+  #
+  def self.construct(loader, whatever)
+    @@loader = loader
+  end
+
 end

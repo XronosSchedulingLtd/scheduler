@@ -1,9 +1,8 @@
 class MIS_Tutorgroup < MIS_Group
 
   DB_CLASS = Tutorgroup
-  DB_KEY_FIELD = [:source_id_str, :datasource_id]
-  FIELDS_TO_CREATE = [:name, :era_id, :staff_id, :house, :start_year, :current]
-  FIELDS_TO_UPDATE = [:name, :era_id, :staff_id, :house, :start_year, :current]
+  add_fields(:FIELDS_TO_CREATE, [:staff_id, :house, :start_year])
+  add_fields(:FIELDS_TO_UPDATE, [:staff_id, :house, :start_year])
 
   attr_reader :staff, :pupils
 

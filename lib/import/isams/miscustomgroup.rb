@@ -65,21 +65,23 @@ class MIS_Customgroup
 
   include Creator
 
-  attr_reader :datasource_id, :era, :owner, :shared
+  attr_reader :datasource_id, :owner, :shared, :era
 
   def initialize(entry)
     @pupils = Array.new
     @current = true
     @make_public = false
     @datasource_id = @@primary_datasource_id
-    #
-    #  TODO Work out why we have both of these next two and get rid
-    #  of one.
-    #
     @era = Setting.perpetual_era
-    @era_id = @era.id
     @owner = nil
     super
+  end
+
+  #
+  #  Override the usual ends-on date.
+  #
+  def ends_on
+    nil
   end
 
   def source_id_str
@@ -155,6 +157,7 @@ class MIS_Customgroup
   end
 
   def self.construct(loader, isams_data)
+    super
     @loader = loader
     #
     #  Matching groups up with members of staff is actually quite

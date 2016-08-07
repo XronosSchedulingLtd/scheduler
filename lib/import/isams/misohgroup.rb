@@ -1,6 +1,6 @@
 class MIS_Otherhalfgroup
 
-  attr_reader :datasource_id, :era, :era_id, :current, :subject
+  attr_reader :datasource_id, :current, :subject
 
   def initialize(entry)
     @pupils = Array.new
@@ -21,11 +21,6 @@ class MIS_Otherhalfgroup
     @year_id && @year_id < 20
   end
 
-  def note_era(era)
-    @era = era
-    @era_id = era.id
-  end
-
   def note_subject(subject_hash)
     @subject = subject_hash[self.subject_id]
   end
@@ -39,11 +34,11 @@ class MIS_Otherhalfgroup
   end
 
   def self.construct(loader, isams_data)
+    super
     tgs = self.slurp(isams_data.xml)
     tgs_hash = Hash.new
     tgs.each do |tg|
       tgs_hash[tg.isams_id] = tg
-      tg.note_era(loader.era)
       tg.note_subject(loader.subject_hash)
     end
     #

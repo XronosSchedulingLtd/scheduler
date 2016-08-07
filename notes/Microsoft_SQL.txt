@@ -82,4 +82,16 @@ select * from curriculum;
 john@mach2:~/testsql$ isql Schoolbase winters trondheim -b -d, -q -c < curriculum.sql >curriculum.csv
 '''
 
+It seems there is another config file to worry about - ''/etc/freetds/freetds.conf''[[.]]
 
+It's not totally clear which is used for what, but this one seems to be needed if you're going to use tiny_tds from within a program.  To get my program going, mine needed to contain:
+
+'''
+[isams]
+		host = 94.236.47.32
+		port = 1433
+		tds version = 7.2
+'''
+
+
+and then it magically works.

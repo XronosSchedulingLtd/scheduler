@@ -1,0 +1,108 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-08-03T07:20:21+01:00
+
+====== Wednesday 03 Aug 2016 ======
+
+I've been thinking about how to process the files which I've got from iSAMS by direct d/b access.  Two general approaches suggest themselves.
+
+1. Read them as CSV files as before.
+2. Convert them to XML and add to the existing input file.
+
+The second is sort of elegantly appealing because it could make the actual loading utility simpler.  It wouldn't know that the data came by two different mechanisms.  The code to implement iSAMS's API must be pretty trivial, because it provides little more than a database dump, formatted as XML.  The code to implement the configuration UI must be far larger.  The trouble with this is, it's 99% certain that when and if iSAMS do implement the rest of the API, the way they do it won't match the way I've done it.  I'm also very experienced at reading and linking CSV files, so I suspect that's the way to do it.  I can lift code from the existing SB exporter program.
+
+Given that I'm going for option 1, I'll need to make some small changes to the existing import code.  Currently I read in one XML file and then pass around its contents for analysis.  I'll now need to read in the one XML file plus N CSV files, and pass those around.  The platform independent code doesn't care - it just handles a "whatever", so provided I've done it right the changes should be purely in the isams directory.
+
+I've come across something interesting already.  It seems that the occurences stored in the EventOccurence table have a start time, but no duration or end time.
+
+I need to find some actual activities in Activites Manager, then find the same ones in my d/b files.
+
+There is something called "Computer Project (Advanced)", but it seems to have no schedule.  Need something with a schedule.  Try it the other way around - find something with an occurence, preferably in the future, and look for it in the UI.
+
+Yes, there definitely are some.  Activity 185 has occurrences all through October and November.  What is it?  Junior Strings in the Amey Theatry Foyer.  Good.  Let's focus on that.  Need to tick the "Future" box under OH Music to get them to show.
+
+OK - it's Junior Strings, listed as being for Lower School on Mondays in period 5.  Who takes it?  It is listed as having one teacher, but not immediately who it is.  Ah yes - it's Mariette Pringle.  Can I pick up that information from the database records?  Doesn't seem to be in the event record, but then I wouldn't expect it to be.  Ah yes, there's a separate table linking staff to events.  Excellent stuff.  And one for groups too.
+
+I will make it a general rule to load tables so that if table A contains a reference to table B, table A is loaded //after// table B.  That way the references can be resolved at load time.  It may then be necessary for an object created from a row in table A, to inform the corresponding object from table B of its existence.  For instance, the teacher linking record will tell the event record about the existence of the teacher.
+
+There appears to be a bit of jiggery-pokery going on with dates and times.  The occurence record has a start time but no duration or end time.  The event record has two date time fields, which seem to give the duration of when the event is to be scheduled - 1/9/16 to 12/12/16 - that sort of thing.  The times in those same fields then seem to give the duration of the event.  Ah, no.  The end date is simply the end of the week.  Thus my event 185 has:
+
+dteStartDate: 2016-09-12 13:10:00 +0100
+dteEndDate: 2016-09-18 13:55:00 +0100
+
+The first one is when the first occurence starts.  The second one has the date six days later (is this always the case?) and contains the end time.  That certainly isn't the end date, but it looks like the time from this field might be useful.  This particular event actually keeps happening until the 17th December.  This is specified in the txtRecurrenceRule field, in an ical like format, but I don't think I actually need to process that.  The occurences table should give me all I need.  When does it have the last occurence of this event?  On the 12th of December.  That is indeed the last Monday before the end of term.
+
+What do I need for my entries?
+
+* Time and duration
+* Name
+* Staff
+* Pupils (or groups)
+* Location
+
+Let's take it in stages.  I'll leave the pupil groups for now - in any case I'm not sure there are any in iSAMS yet - and focus on the rest.  I believe that all I need may now be there.  Need to implement an accumulator as before, and link together my records.
+
+I'm inclined to set them up in two stages - as I load the CSV files I do inter-linking between them, then the inter-linked CSV files are passed like the XML file to the object creators.  They will lift information from both places to create the necessary objects.
+
+The main item with which I'm going to deal are event occurences - from there I need to be able to find the parent events, and the teachers.
+
+OK - now I'm parsing, but not processing, the data coming from the iSAMS d/b.  Now to get back into the event code and create a new kind of event - OH.  This involves what is effectively a second parsing stage.  Where before I have parsed the XML to build my events, now I'm going to need to pull the data out of the objects created from the d/b records.
+
+All my entries derive from MIS_ScheduleEntry, with extra code for the particular type.  Currently I have:
+
+* ISAMS_ScheduleEntry (slight misnomer - ordinary timetable slot)
+* ISAMS_MeetingEntry
+* ISAMS_YeargroupEntry
+
+so it would seem logical to create another one called ISAMS_OtherHalfEntry.  It will need a tiny bit more code because it won't be able to use the Creator module, which builds things from XML.
+
+Ah - hit an interesting little problem, in that everything which I've loaded so far comes in a recurring form.  I construct the term's schedule from events which are specified by time, day and week.  09:00 - 09:55, Wed, Week B.  That sort of thing.  I'm getting the information about Other Half events in a rather different way - there is no assumption that they will recur.  I may therefore need to set up a slightly different way of returning them.
+
+Currently my code provides all known events for a given date.  The loading code says, "Give me the events for the 11th of October" and my code says, well, the 11th of October is a Tuesday in week B, so here are the events suitable for Tuesday of week B.
+
+My other half events on the other hand are arriving pre-dated, and whilst ours happen to recur weekly, there is no guarantee of that.  One could have an event which was on Mon 1st, Tue 9th, Wed 17th etc.
+
+I think I need to store all my OH events by date (there may be quite a lot) and then add them to what is selected.  My code which provides a group of lessons would thus go:
+
+* 11th October is a Tuesday in week B, so here are the recurring events.
+* And here are the events specific to 11th October.
+
+How best to store them?  I just need to be able to identify them by day.  Say "2016-10-11" as a hash key?  OK
+
+Thinking forward to handling the groups of pupils, there is a significant amount of work still to do there because I need to handle the chronology of the groups, plus set them up first, then attach them to events.  I'm not going to attempt it today.
+
+Having a slight problem with locations, in that I seem to have managed only a few, and I'm fairly certain that others have locations.  Need some debug code.
+
+Two problems:
+
+1. iSAMS seems to let you put a whole building in as a location for an activity - e.g. "Arts Centre".  I could just ignore it, or allow whole buildings to be locations.
+2. When a location has been entered, it comes through with a compound name - "Amey Theatre Foyer (ATF)".
+
+The latter case should be more straightforward to deal with.  I can remove the last bit with a regex I think.
+
+It gets more interesting.  Clearly just lazy programming by someone at iSAMS who didn't want to bother doing a join when retrieving the information, so stored the location name as text.  But sometimes it's really messed up - e.g.
+
+"Ingham Room (A202) (A202)"
+
+and that's the raw database record!  It's not poor presentation; it's corrupt data.  Presumably there's some sort of code to append the last bit when the record is saved.  I could either cut everything after (and including) the first " (", or I could remove my anchor and get both in one go.  Oddly, when I test this code:
+
+'''
+2.1.10 :005 > name = "Ingham Room (A202) (A202)"
+ => "Ingham Room (A202) (A202)" 
+2.1.10 :006 > name.gsub(/ \(.*\)$/, "")
+ => "Ingham Room" 
+2.1.10 :007 >
+'''
+ 
+
+they both seem to go.  Not sure why given the anchor.  Why then am I not coping with some rooms?
+
+Ah - it's the other way around.  Someone has changed the name of the Ingham Room to "Ingham Room (A202)" which is cock-eyed.  Or was it me?  It was indeed me.  Doesn't make it any less cock-eyed.  I will however just need to cope with it.  I need to amend my code to strip off only one bracketed thing.  Perhaps also try for a match without stripping.
+
+Ah - I know why it's taking all if it - it's matching the first ( and the last ) - going for as much as possible.  I need to specify that there can't be an embedded ).  I'm sure I've done this before somewhere.  Fixed it.
+
+All that seems to be working.  It's loading on the staging server.  Thinking now about groups and their membership.
+
+iSAMS is almost as good as scheduler with some aspects of groups.  It understands the concept of a start date and an end date, for both the group itself, and each membership record.  I may be able to map that over directly and reduce the amount of processing which I usually need to do.
+
+I also want to improve my main group handling code, so that memberships never extend beyond the end date of the group - if it has one.

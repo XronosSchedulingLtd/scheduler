@@ -1,0 +1,11 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-08-05T06:06:44+01:00
+
+====== Friday 05 Aug 2016 ======
+
+Start today by dumping the database as it currently stands.  I can thus modify my code and then run it, checking that it doesn't alter it in ways which I'm not expecting.  By having a dump, I can do it as many times as I like.
+
+Just noticed something interesting about the way the activities data are structured.
+
+Normally, when an event involves a group I would expect the event record to reference the group.  That's how I do it, and it's how the iSAMS timetable does it.  Ah no, I'm wrong - that's how the Activities manager does it too.  The Event record refers to the group record.  It therefore makes perfect sense for me to load the groups first, then the events.
