@@ -6,7 +6,15 @@ class MIS_Loader
   class ISAMS_Data < Hash
     attr_reader :xml, :loader
 
+    #
+    #  The order of these is perhaps slightly surprising.  At present
+    #  I'm using the Event => Group link from the iSAMS d/b, but there
+    #  is also a Group => Event link.  I may well switch to the latter,
+    #  in which case events will need to be loaded before groups.
+    #
     TO_SLURP = [
+      ISAMS_ActivityGroup,
+      ISAMS_ActivityGroupPupilLink,
       ISAMS_ActivityEvent,
       ISAMS_ActivityEventOccurrence,
       ISAMS_ActivityEventTeacherLink

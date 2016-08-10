@@ -17,14 +17,20 @@ class ISAMS_ActivityEvent
     Column["intActivity",                  :activity_id, :integer]
   ]
 
+  DEPENDENCIES = [
+    #          Accumulator key  Record ident   Our attribute  Required
+    Dependency[:groups,         :group_id,     :group,        false]
+  ]
+
   include Slurper
+  include Depender
 
   attr_accessor :timeslot
 
   attr_reader :teacher_ids
 
   def adjust(accumulator)
-    @complete = true
+    @complete = find_dependencies(accumulator, DEPENDENCIES)
     @teacher_ids = Array.new
     @timeslot = nil
   end

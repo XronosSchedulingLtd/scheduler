@@ -68,6 +68,8 @@ if current_mis
     require_relative 'isams/activityevent.rb'
     require_relative 'isams/activityeventoccurrence.rb'
     require_relative 'isams/activityeventteacherlink.rb'
+    require_relative 'isams/activitygroup.rb'
+    require_relative 'isams/activitygrouppupillink.rb'
     require_relative 'isams/misloader.rb'
     require_relative 'isams/creator.rb'
     require_relative 'isams/mispupil.rb'

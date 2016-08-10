@@ -35,29 +35,26 @@ class MIS_Otherhalfgroup
 
   def self.construct(loader, isams_data)
     super
-    tgs = self.slurp(isams_data.xml)
-    tgs_hash = Hash.new
-    tgs.each do |tg|
-      tgs_hash[tg.isams_id] = tg
-      tg.note_subject(loader.subject_hash)
+    oh_groups = Array.new
+    isams_groups = isams_data[:groups]
+    if isams_groups
+      isams_groups.each do |key, record|
+        oh_groups << MIS_Otherhalfgroup.new(record)
+      end
+    else
+      puts "Can't find OH groups."
     end
     #
     #  Now - can I populate them?
     #
-    memberships = MIS_SetMembership.construct(loader, isams_data)
-    memberships.each do |membership|
-      tg = tgs_hash[membership.set_id]
-      pupil = loader.pupil_hash[membership.pupil_id]
-      if tg && pupil
-        #
-        #  We are dropping a lot of teaching groups which belong
-        #  to the prep school.  Don't complain about corresponding
-        #  membership records.
-        #
-        tg.add_pupil(pupil)
+    memberships = isams_data[:grouppupillinks]
+    if memberships
+      memberships.each do |key, record|
       end
+    else
+      puts "Failed to find memberships."
     end
-    tgs
+    oh_groups
   end
 
 end
