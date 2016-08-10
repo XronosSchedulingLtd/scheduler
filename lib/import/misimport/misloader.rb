@@ -9,7 +9,9 @@ class MIS_Loader
               :staff_hash,
               :location_hash,
               :subject_hash,
-              :teachinggroup_hash
+              :teachinggroup_hash,
+              :ohgroups,
+              :oh_groups_hash
 
   def read_mis_data(options)
     @options = options
@@ -63,6 +65,10 @@ class MIS_Loader
     end
     @ohgroups = MIS_Otherhalfgroup.construct(self, whatever)
     puts "Got #{@ohgroups.count} other half groups."
+    @oh_groups_hash = Hash.new
+    @ohgroups.each do |ohg|
+      @oh_groups_hash[ohg.isams_id] = ohg
+    end
     self.mis_specific_preparation
     @timetable = MIS_Timetable.new(self, whatever)
     puts "Got #{@timetable.entry_count} timetable entries." if options.verbose
@@ -459,6 +465,78 @@ class MIS_Loader
   end
 
   def do_otherhalfgroups
+    changed_count      = 0
+    unchanged_count    = 0
+    loaded_count       = 0
+    reincarnated_count = 0
+    member_removed_count   = 0
+    member_unchanged_count = 0
+    member_loaded_count    = 0
+    at_start = Otherhalfgroup.current.count
+    @ohgroups.each do |g|
+      puts "Processing #{g.name}"
+#      puts g.inspect
+      #
+      #  There must be a more idiomatic way of doing this.
+      #
+      loaded,
+      reincarnated,
+      changed,
+      unchanged,
+      member_loaded,
+      member_removed,
+      member_unchanged = g.ensure_db(self)
+      loaded_count          += loaded
+      reincarnated_count    += reincarnated
+      changed_count         += changed
+      unchanged_count       += unchanged
+      member_loaded_count    += member_loaded
+      member_removed_count   += member_removed
+      member_unchanged_count += member_unchanged
+    end
+    #
+    #  It's possible that a group has ceased to exist entirely,
+    #  in which case we will still have a record in our d/b for it (possibly
+    #  with members) but we need to record its demise.
+    #
+    deleted_count = 0
+    sb_g_ids = @ohgroups.collect { |g| g.dbrecord.id }.compact
+    db_g_ids = Otherhalfgroup.current.collect {|dbg| dbg.id}
+    extra_ids = db_g_ids - sb_g_ids
+    extra_ids.each do |eid|
+      dbg = Otherhalfgroup.find(eid)
+      puts "Other half group #{dbg.name} exists in the d/b but not in the files." if @verbose
+      dbg.ceases_existence(@start_date)
+      deleted_count += 1
+    end
+    at_end = Otherhalfgroup.current.count
+    if @verbose || deleted_count > 0
+      puts "#{deleted_count} other half group records deleted."
+    end
+    if @verbose || changed_count > 0
+      puts "#{changed_count} other half group records amended."
+    end
+    if @verbose
+      puts "#{unchanged_count} other half group records untouched."
+    end
+    if @verbose || loaded_count > 0
+      puts "#{loaded_count} other half group records created."
+    end
+    if @verbose || reincarnated_count > 0
+      puts "#{reincarnated_count} other half group records reincarnated."
+    end
+    if @verbose || member_removed_count > 0
+      puts "Removed #{member_removed_count} pupils from other half groups."
+    end
+    if @verbose
+      puts "Left #{member_unchanged_count} pupils where they were."
+    end
+    if @verbose || member_loaded_count > 0
+      puts "Added #{member_loaded_count} pupils to other half groups."
+    end
+    if @verbose || at_start != at_end
+      puts "Started with #{at_start} other half groups and finished with #{at_end}."
+    end
   end
 
   def do_timetable

@@ -30,9 +30,23 @@ class ISAMS_ActivityEvent
   attr_reader :teacher_ids
 
   def adjust(accumulator)
-    @complete = find_dependencies(accumulator, DEPENDENCIES)
-    @teacher_ids = Array.new
-    @timeslot = nil
+    #
+    #  Can't drop events just because their end_date is in the past.
+    #  iSAMS stores the wrong value there.  The end_date is generally
+    #  the same as the start date, and the real end date is actually
+    #  stored in the repeat information field.  I can't be bothered
+    #  to parse it out of there for now, and as we we don't copy the
+    #  events into our d/b, it shouldn't be a problem.
+    #
+#    if @end_date && @end_date < accumulator.loader.start_date
+#      @complete = false
+#    else
+      @complete = find_dependencies(accumulator, DEPENDENCIES, false)
+      if @complete
+        @teacher_ids = Array.new
+        @timeslot = nil
+      end
+#    end
   end
 
   def wanted?

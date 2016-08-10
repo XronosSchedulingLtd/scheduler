@@ -1,0 +1,131 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-08-10T07:23:53+01:00
+
+====== Wednesday 10 Aug 2016 ======
+
+I've been pottering at this stuff at RAL, but now I've taken a day back (today) to try to push things to a tidier state and finish off loose ends.  I am aiming to set up a year-end/migration procedure which will get me onto the new VPS, and ready for the new year, completing it next week.  To start that, I need to have got the importer to a known, nearly finished, state.  It can't be quite finished because some data are still missing from our iSAMS installation.  Things which will need tweaking are cover and other half group membership.  Things which I can do now though:
+
+[*] Create an OH group with a couple of pupils for next term.
+[*] Get a fresh data extraction from iSAMS
+[*] Complete OH groups
+[*] Fix group code to correct memberships which outlast the group
+[ ] Add an option to do conversion (--convert) to the utility.  Off by default.  Perhaps just do conversion?
+[ ] Produce automation scripts
+[ ] Adjust year-end dates.  Roll-over in mid August.
+[ ] Code to tidy up all groups from the year just ending.
+[ ] Document the process for doing the roll-over
+[ ] Re-merge my development branch
+
+Almost certainly more there than I can do today.
+
+Started by moving the work which I did at RAL back from my laptop.  Not a lot of it, but a little.  Now, can I create an OH group for next term?
+
+I have added James Hogge to "Computer Project (Advanced)", run by APW.  Let's then see if that appears in my data.  I may well have added him as an individual rather than as a member of a group, but we'll see.  Now for a data extraction.  Not sure I remember how to do this.  The script to invoke the API is currently:
+
+''/home/john/Work/Coding/isams/feed/tryit''
+
+which just downloads the xml file.  Copied that to my Scheduler area as ''data.10.xml''.  Linked that as the current ''data.xml''.  Now for the direct d/b access.  Not sure where that is at all.
+
+''/home/john/Work/Coding/scheduler/utils/fetchisdata''
+
+where we have a ''setvars'' file which sets the password, and then ''extractor.rb'' which does the work.  Note that it is currently extracting 44 tables, of which only about 5 are needed.  In the end I may use a few more so keep extracting all 44 for now.  Seems to run anyway.  Any mention of James in my files?  Not by name anyway.  There is however an entry in ''TblActivityManagerGroupPupilLink.csv'' which appears to have been created by me.  Ah, yes - it contains James's long numerical ID.  Good.  Is that the file which I am already processing?  Yes, it seems to be - excellent.  I can now finish off the code in that area.  It links to group 261.
+
+What happens if I just run my import utility now?  How much changes?
+
+Some of the lower school tutor groups seem to have been renamed as 3rd year tutor groups - slightly odd but acceptable.  Various teaching groups have changed their names.  A lot more pupils have been added to teaching groups.  Quite a bit of messing with the timetable.
+
+Immediate questions:
+
+[*] Is it idempotent?  Yes, seems to be.
+[*] Do we get sensible looking timetables appearing?
+
+It took 3m9s to run.  And the second run?  2m47s.  Seems OK.
+
+Take a couple of timetables from iSAMS and compare them to Scheduler.  Samantha and Martin.  It's noteable that the printed timetables from iSAMS appear as if they should include the staff member's photo, but they don't.  SEP.
+
+My display does not currently include tutor periods etc, but this is because of the way Ollie has entered them.  iSAMS doesn't show them either, for the same reason.
+
+Samantha's timetable checks out fine.  Mine is better in two ways:
+* It has the times right.
+* It includes OH activities.
+
+iSAMS knows the right times internally, but the design of the print-out is such that it can't cope with different period times on different days.
+
+Martin's timetable checks out too.  Excellent.  Now let's get my OH group loading.  Interesting point of note - Peter Willis currently appears as Alan Willis.  Is this my fault?  He's listed as "Alan Willis (Peter)" in iSAMS.  I'm just taking the full name direct from iSAMS.  I could adjust it, but I probably shouldn't - it's up to the admin staff to get it right in iSAMS.
+
+Peter is indeed timetabled to take my old Computer Project.  Not sure why it now becomes "Advanced".
+
+Added code to (perhaps) create the OH groups, and dumped my database before I run it.  Let's see.
+
+Golly!  Actually managed to make some other half groups.  Need to fix them to have the right dates though.  I also seem to have created them all originally with current set to "true", then changed it to "false" on the reload.  I may need to re-think the processing of current.  I regard them as current unless their end date is in the past.
+
+Puzzled as to why they seem to have been created with current set to true.  Let's re-load the backup and take a look.  Ah - it may have been before I created that variable.
+
+Perhaps I do want them loaded as "not current".  They should be updated automatically when the date comes, and I believe my display code is purely date driven anyway - it still shows events for old, non-current, groups from the past.  Test it.
+
+The dates now seem to be coming through correctly, and the group has been created with current set to false.  Looks hopeful.  Next I need to add some members to the groups.  Only one for now.
+
+Hmm.  Still a slight problem with things getting amended on the second run.  I'm not sure all these messages are quite right, but I need to work out what's going on.  We have differences in end date and in currency, but they're not the same for all groups.  Take a sample to analyse.
+
+'''
+Processing Music Theory
+Field ends_on differs for Music Theory
+d/b: "2017-08-31" IS: "2016-12-16"
+Field current differs for Music Theory
+d/b: "true" IS: "false"
+Processing Lower School Band
+Field ends_on differs for Lower School Band
+d/b: "2017-08-31" IS: "2016-12-16"
+Field current differs for Lower School Band
+d/b: "true" IS: "false"
+Processing Junior Strings
+Field ends_on differs for Junior Strings
+d/b: "2017-08-31" IS: "2016-12-16"
+Field current differs for Junior Strings
+d/b: "true" IS: "false"
+Processing Joint Choral Society
+Field ends_on differs for Joint Choral Society
+d/b: "2017-08-31" IS: "2016-12-16"
+Field current differs for Joint Choral Society
+d/b: "true" IS: "false"
+Processing GCSE Astronomy with Partner Schools
+Field ends_on differs for GCSE Astronomy with Partner Schools
+d/b: "2017-08-31" IS: "2016-12-16"
+Field current differs for GCSE Astronomy with Partner Schools
+d/b: "true" IS: "false"
+Processing Model United Nations
+Field ends_on differs for Model United Nations
+d/b: "2017-08-31" IS: "2016-12-16"
+Field current differs for Model United Nations
+d/b: "true" IS: "false"
+'''
+
+
+Let's re-load the database again, then examine these specific groups to see their state at the end of the first run.
+
+Interesting - I've just checked the last two and they have end dates of 2016-12-16 and current set to false.  Why does the loader think they have something different?  Or have they somehow got changed before the loader got to look at them?  I'm inclining towards the latter, but I really can't think how it's happening - particularly the end date.
+
+Found it.  It's because the groups are marked as not being current.  My code assumes that if they're not current then it's because they have ceased to be current, and now need to be brought back.  In fact these ones are not current because they haven't started yet.  Need a more sophisticated test.  Done that - see if it works.  Seems to - good.  Of course, I can't yet test that it will activate the groups successfully at the right time.
+
+Let's now try for some membership - just James at present.  There seems to be quite a bit of inconsistency in how records are identified within the d/b.  Have I got a hash already set up for pupils' internal IDs?  No - I'm not even currently loading it from the XML file.  It's called <SchoolId> there.
+
+Shit!  Someone - I presume Niki - has done something rather unfortunate.  He's gone through changing the "Previous MIS Id" on each of our pupils.  This means it is now impossible to match the records up.  I think I can work around it - happily I have kept older copies of the ''data.xml'' file.  If I process one of those first, the identifying IDs can be changed, and then I can do an up to date one.  Changing the IDs of existing pupils is a one-off process which doesn't need to be repeated.  Messy.
+
+He seems to have done it only in the last copy of the file.  Has the data been retained anywhere?  It seems to be coincidentally the ID of the record, but this is presumably just because they were loaded in order starting from 1.  Is it true for every single pupil?  It does appear to be the case - we might just be OK.  Perhaps I should write a bit of test code which processes the previous version of the file and flags any discrepancies?
+
+Interesting - I seem to have two different groups called "Computer Project (Advanced)", one of which runs from 12/7/16 to 12/8/16, and then one which runs from 6/9/16 to 16/12/16.  Yes, that exactly matches what I'm getting from iSAMS.  Fairy-nuff.  James is now a member of the second one.  His membership starts on the right date, but does currently go on indefinitely.
+
+Just need to add that group to the event and it might appear on his timetable.
+
+Had an interesting problem with the system trying to add Harry Fishpool to groups where I don't think he should be - and failing.  Why?  Harry Fishpool is 109744944391.  There do seem to be records there for him.  How did they get there?  He seems to be a member of 256, 253 and 219.  All the memberships are in the past, which is why he fails to add now.
+
+I think I'm going to take a decision that I'm not going to attempt to process groups or memberships which are entirely in the past.  If they have an end date, and that date is in the past, then I just drop them.  This will then cause any corresponding groups already in the d/b to be terminated, but that's fine.  I don't delete groups - just terminate them - and since they're already in the past (relative to my load date) they should already have been terminated.
+
+If I do that, I should ideally get just the one "Computer Project (Advanced)" group being created.  Let's see.
+
+Yes, it's certainly dropping some groups, but then complaining about other things which have gone.  Needs a spot more tidying.  Should also drop events which are entirely in the past.  Add that.
+
+Ah - I need to check and drop pupil links //before// trying to link them to groups, otherwise one gets a warning.  Likewise for event occurences.
+
+I can't drop events on the basis of their end date, because that is often wrong.  The real end date is embedded in the recurrence rule, but I can't be bothered to parse that out.  Since the event is linked to the group, rather than the group to the event as it should be, that then leads to events being loaded and lacking their corresponding groups.  Suppress such messages.

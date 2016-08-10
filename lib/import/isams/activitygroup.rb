@@ -19,19 +19,25 @@ class ISAMS_ActivityGroup
 
   attr_accessor :timeslot
 
-  attr_reader :teacher_ids
+  attr_reader :pupil_ids
 
   def adjust(accumulator)
     @complete = true
+    @pupil_ids = Array.new
     #
-    #  It seems that currently all the groups are inactive.  Load
-    #  them anyway for now.
+    #  Don't want any group records which lie entirely in the past.
     #
-    #@complete = @active
+    if end_date && end_date < accumulator.loader.start_date
+      @complete = false
+    end
   end
 
   def wanted?
     @complete
+  end
+
+  def note_pupil_id(pupil_id)
+    @pupil_ids << pupil_id
   end
 
   #

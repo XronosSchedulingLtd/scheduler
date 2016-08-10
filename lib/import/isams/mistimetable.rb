@@ -343,6 +343,7 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
     @date          = db_entry.datetime.to_date
     @name          = db_entry.event.subject
     @isams_id      = db_entry.ident
+    @group         = db_entry.event.group
     @location_name = db_entry.event.location.gsub(/ \([^\)]*\)$/, "")
 #    if @date
 #      puts "Got date - #{@date.iso8601}"
@@ -367,9 +368,10 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
     #  Needs reinforcing.
     #
     @groups = Array.new
-    #
-    #  The two one stays empty for now.
-    #
+    group = loader.oh_groups_hash[@group.ident]
+    if group
+      @groups << group
+    end
     @staff = Array.new
     @teacher_ids.each do |teacher_id|
       staff = loader.secondary_staff_hash[teacher_id]

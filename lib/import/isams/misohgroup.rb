@@ -1,13 +1,21 @@
 class MIS_Otherhalfgroup
 
-  attr_reader :datasource_id, :current, :subject
+  attr_reader :datasource_id, :current, :subject, :isams_id
 
   def initialize(entry)
     @pupils = Array.new
-    @current = true
+    @name = entry.name
+    @current = entry.active
+    @isams_id = entry.ident
     @datasource_id = @@primary_datasource_id
-    #
+    @starts_on = entry.start_date.to_date
+    @ends_on = entry.end_date.to_date
+    @pupil_ids = entry.pupil_ids
     super
+  end
+
+  def source_id_str
+    @isams_id
   end
 
   def source_id
@@ -33,6 +41,25 @@ class MIS_Otherhalfgroup
     @year_id - 6
   end
 
+  def starts_on
+    @starts_on
+  end
+
+  def ends_on
+    @ends_on
+  end
+
+  def find_pupils(loader)
+    @pupil_ids.each do |pid|
+      pupil = loader.pupils_by_school_id_hash[pid]
+      if pupil
+        @pupils << pupil
+      else
+        puts "Couldn't find pupil with id #{pid}."
+      end
+    end
+  end
+
   def self.construct(loader, isams_data)
     super
     oh_groups = Array.new
@@ -44,19 +71,18 @@ class MIS_Otherhalfgroup
     else
       puts "Can't find OH groups."
     end
-    #
-    #  Now - can I populate them?
-    #
-    memberships = isams_data[:grouppupillinks]
-    if memberships
-      memberships.each do |key, record|
-      end
-    else
-      puts "Failed to find memberships."
-    end
     oh_groups
   end
 
+  #
+  #  We can't populate the OH groups until other data structures have
+  #  been set up.
+  #
+  def self.populate(loader)
+    loader.ohgroups.each do |ohg|
+      ohg.find_pupils(loader)
+    end
+  end
 end
 
 

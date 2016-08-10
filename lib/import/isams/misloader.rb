@@ -41,13 +41,18 @@ class MIS_Loader
   attr_reader :secondary_staff_hash,
               :secondary_location_hash,
               :tegs_by_name_hash,
-              :tugs_by_name_hash
+              :tugs_by_name_hash,
+              :pupils_by_school_id_hash
 
   def prepare(options)
     ISAMS_Data.new(self)
   end
 
   def mis_specific_preparation
+    @pupils_by_school_id_hash = Hash.new
+    @pupils.each do |pupil|
+      @pupils_by_school_id_hash[pupil.school_id] = pupil
+    end
     @secondary_staff_hash = Hash.new
     @staff.each do |staff|
       #
@@ -77,5 +82,9 @@ class MIS_Loader
     @tutorgroups.each do |tug|
       @tugs_by_name_hash[tug.name] = tug
     end
+    #
+    #  Only now can we populate the other half groups.
+    #
+    MIS_Otherhalfgroup.populate(self)
   end
 end

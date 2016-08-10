@@ -3,6 +3,7 @@ class MIS_Pupil
   REQUIRED_FIELDS = [
     IsamsField["Id",                 :isams_id,   :attribute, :integer],
     IsamsField["SchoolCode",         :sb_id,      :data,      :integer],
+    IsamsField["SchoolId",           :school_id,  :data,      :string],
     IsamsField["Initials",           :initials,   :data,      :string],
     IsamsField["Title",              :title,      :data,      :string],
     IsamsField["Forename",           :forename,   :data,      :string],

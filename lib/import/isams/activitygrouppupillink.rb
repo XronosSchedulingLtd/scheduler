@@ -32,7 +32,14 @@ class ISAMS_ActivityGroupPupilLink
   attr_reader :teacher_ids
 
   def adjust(accumulator)
-    @complete = find_dependencies(accumulator, DEPENDENCIES)
+    if end_date && end_date < accumulator.loader.start_date
+      @complete = false
+    else
+      @complete = find_dependencies(accumulator, DEPENDENCIES)
+      if @complete
+        self.group.note_pupil_id(self.pupil_id)
+      end
+    end
   end
 
   def wanted?

@@ -55,6 +55,7 @@ class MIS_Group < MIS_Record
     changed_count          = 0
     unchanged_count        = 0
     reincarnated_count     = 0
+    begun_count            = 0
     member_loaded_count    = 0
     member_removed_count   = 0
     member_unchanged_count = 0
@@ -66,18 +67,37 @@ class MIS_Group < MIS_Record
 #      puts "Found existing group."
       #
       #  It's possible that, although there is a record in the d/b
-      #  no longer current.
+      #  it's not current and we think it should be.
       #
-      unless @dbrecord.current
-        @dbrecord.reincarnate
-        @dbrecord.reload
+      if self.current && !@dbrecord.current
         #
-        #  Reincarnating a group sets its end date to nil, but we kind
-        #  of want it to be the end of the indicated era.
+        #  Two possibilities.
         #
-        @dbrecord.ends_on = self.era.ends_on
-        @dbrecord.save
-        reincarnated_count += 1
+        #  1) This is an old group which is coming back.
+        #  2) This is a new (future) group which is just coming alive
+        #     for the first time.
+        #
+        if @dbrecord.ends_on && @dbrecord.ends_on < loader.start_date
+          #
+          #  Case 1 - reincarnation.
+          #
+          @dbrecord.reincarnate
+          @dbrecord.reload
+          #
+          #  Reincarnating a group sets its end date to nil, but we kind
+          #  of want it to be the end of the indicated era.
+          #
+          @dbrecord.ends_on = self.era.ends_on
+          @dbrecord.save
+          reincarnated_count += 1
+        else
+          #
+          #  Case 2 - just starting.
+          #
+          @dbrecord.current = true
+          @dbrecord.save
+          begun_count += 1
+        end
       end
       #
       #  Need to check the group details still match.
@@ -102,8 +122,18 @@ class MIS_Group < MIS_Record
       #  Note that we handle only members who seem to have originated
       #  from our current MIS.
       #
+      #  It is possible that the group starts its existence at a later
+      #  date than our loader start date - we are loading it in advance.
+      #  In that case, use the start date of the group, rather than
+      #  the loader's start date.
+      #
+      if self.starts_on > loader.start_date
+        start_date = self.starts_on
+      else
+        start_date = loader.start_date
+      end
       db_member_ids =
-        @dbrecord.members(loader.start_date).
+        @dbrecord.members(start_date).
                   select {|m| m.datasource_id == @@primary_datasource_id}.
                   collect {|m| m.source_id}
       mis_member_ids =
@@ -113,7 +143,7 @@ class MIS_Group < MIS_Record
         pupil = loader.pupil_hash[pupil_id]
         if pupil && pupil.dbrecord
           begin
-            if @dbrecord.add_member(pupil.dbrecord, loader.start_date)
+            if @dbrecord.add_member(pupil.dbrecord, start_date)
               #
               #  Adding a pupil to a tutor group effectively changes the
               #  pupil's element name.  Save the pupil record so the
@@ -124,10 +154,10 @@ class MIS_Group < MIS_Record
               end
               member_loaded_count += 1
             else
-              puts "Failed to add #{pupil.name} to tutorgroup #{self.name}"
+              puts "Failed to add #{pupil.name} to group #{self.name}"
             end
           rescue ActiveRecord::RecordInvalid => e
-            puts "Failed to add #{pupil.name} to tutorgroup #{self.name}"
+            puts "Failed to add #{pupil.name} to group #{self.name}"
             puts e
           end
         end
@@ -136,7 +166,7 @@ class MIS_Group < MIS_Record
       extra_in_db.each do |pupil_id|
         pupil = loader.pupil_hash[pupil_id]
         if pupil && pupil.dbrecord
-          @dbrecord.remove_member(pupil.dbrecord, loader.start_date)
+          @dbrecord.remove_member(pupil.dbrecord, start_date)
           #
           #  Likewise, removing a pupil can change his element name.
           #

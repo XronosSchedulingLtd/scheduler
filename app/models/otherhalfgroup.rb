@@ -52,4 +52,8 @@ class Otherhalfgroup
     self.where(given_hash).take
   end
 
+  def self.find(id)
+    Group.find(id)
+  end
+
 end

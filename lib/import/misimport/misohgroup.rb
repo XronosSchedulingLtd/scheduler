@@ -2,6 +2,8 @@ class MIS_Otherhalfgroup < MIS_Group
 
   DB_CLASS = Otherhalfgroup
 
+  attr_reader :name, :current
+
   def add_pupil(pupil)
     @pupils << pupil
   end
