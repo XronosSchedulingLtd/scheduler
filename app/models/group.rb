@@ -363,6 +363,12 @@ class Group < ActiveRecord::Base
         membership.group = self
         membership.element = element
         membership.starts_on = as_of
+        #
+        #  If the group has an end date, the membership should have the
+        #  same end date.  If it doesn't then the membership shouldn't.
+        #  This next line achieves both of these.
+        #
+        membership.ends_on   = self.ends_on
         membership.inverse = false
         membership.save!
         result = true
@@ -389,6 +395,7 @@ class Group < ActiveRecord::Base
         membership.group = self
         membership.element = element
         membership.starts_on = as_of
+        membership.ends_on   = self.ends_on
         membership.inverse = false
         membership.save!
         # Rails.logger.info("Created new membership record.")
@@ -1010,6 +1017,36 @@ class Group < ActiveRecord::Base
     messages.each do |m|
       puts m
     end
+    nil
+  end
+
+  #
+  #  A pair of maintenance methods to go through all groups, making sure
+  #  none of the memberships outlasts its parent group.
+  #
+  def trim_memberships
+    if self.ends_on
+      trimmed = 0
+      self.memberships.each do |m|
+        if m.ends_on == nil ||
+           m.ends_on > self.ends_on
+          m.ends_on = self.ends_on
+          m.save!
+          trimmed += 1
+        end
+      end
+      trimmed
+    else
+      0
+    end
+  end
+
+  def self.trim_memberships
+    trimmed = 0
+    Group.all.each do |group|
+      trimmed += group.trim_memberships
+    end
+    puts "#{trimmed} memberships trimmed."
     nil
   end
 
