@@ -57,14 +57,27 @@ class MIS_Staff
   end
 
   def alternative_find_hash
-    {
-      :source_id => @sb_id,
-      :datasource_id => @@secondary_datasource_id
-    }
+    if do_convert
+      {
+        :source_id => @sb_id,
+        :datasource_id => @@secondary_datasource_id
+      }
+    else
+      nil
+    end
+  end
+
+  def do_convert
+    self.class.do_convert
   end
 
   def self.construct(loader, isams_data)
+    @do_convert = loader.options.do_convert
     self.slurp(isams_data.xml)
+  end
+
+  def self.do_convert
+    @do_convert
   end
 
 end

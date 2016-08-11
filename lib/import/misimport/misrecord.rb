@@ -170,30 +170,32 @@ class MIS_Record
         #
         if self.respond_to?(:alternative_find_hash)
           find_hash = self.alternative_find_hash
-          if @belongs_to_era
-            find_hash[:era_id] = self.send(:era).id
-          end
-#          puts "Trying: #{find_hash.inspect}"
-          @dbrecord =
-            db_class.find_by(find_hash)
-          if @dbrecord
-            #
-            #  To make things as transparent as possible to the
-            #  calling code, we're going to fix this now.
-            #
-            #  Update the d/b record so the original key field(s)
-            #  would work.
-            #
-            key_field = self.class.const_get(:DB_KEY_FIELD)
-            if key_field.instance_of?(Array)
-              key_field.each do |kf|
-                @dbrecord.send("#{kf}=", self.send("#{kf}"))
-              end
-            else
-              @dbrecord.send("#{key_field}=", self.send("#{key_field}"))
+          if find_hash
+            if @belongs_to_era
+              find_hash[:era_id] = self.send(:era).id
             end
-            @dbrecord.save!
-            @dbrecord.reload
+  #          puts "Trying: #{find_hash.inspect}"
+            @dbrecord =
+              db_class.find_by(find_hash)
+            if @dbrecord
+              #
+              #  To make things as transparent as possible to the
+              #  calling code, we're going to fix this now.
+              #
+              #  Update the d/b record so the original key field(s)
+              #  would work.
+              #
+              key_field = self.class.const_get(:DB_KEY_FIELD)
+              if key_field.instance_of?(Array)
+                key_field.each do |kf|
+                  @dbrecord.send("#{kf}=", self.send("#{kf}"))
+                end
+              else
+                @dbrecord.send("#{key_field}=", self.send("#{key_field}"))
+              end
+              @dbrecord.save!
+              @dbrecord.reload
+            end
           end
         end
       end

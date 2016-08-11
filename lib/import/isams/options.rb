@@ -1,16 +1,23 @@
 
 class Options
 
-  attr_reader :timetable_name
+  attr_reader :timetable_name, :do_check
 
   def more_defaults
     @timetable_name = nil
+    @do_check = false
   end
 
   def more_options(opts)
     opts.on("-t", "--timetable [TIMETABLE NAME]",
             "Specify the name of the timetable to use.") do |t|
       @timetable_name = t
+    end
+
+    opts.on("-c", "--check",
+            "Check that iSAMS pupil IDs match the SB",
+            "ones.") do |c|
+      @do_check = c
     end
   end
 end

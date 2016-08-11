@@ -28,6 +28,7 @@ And then:
 * Edit Models => DataSources and create ones called SchoolBase and iSAMS
 * Stop the application
 * In "rails c", run ''Datasource.land_grab''
+* Likewise, Group.trim_memberships
 
 And at this point it's probably worth dumping the database so you can get back to this point quickly for testing.
 

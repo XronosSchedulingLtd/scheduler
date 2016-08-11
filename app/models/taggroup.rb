@@ -32,4 +32,8 @@ class Taggroup
     self.where(given_hash).take
   end
 
+  def self.all
+    Group.where(persona_type: "Taggrouppersona")
+  end
+
 end

@@ -2,7 +2,7 @@ class MIS_Pupil
   SELECTOR = "PupilManager CurrentPupils Pupil"
   REQUIRED_FIELDS = [
     IsamsField["Id",                 :isams_id,   :attribute, :integer],
-    IsamsField["SchoolCode",         :sb_id,      :data,      :integer],
+    IsamsField["SchoolCode",         :school_code,:data,      :string],
     IsamsField["SchoolId",           :school_id,  :data,      :string],
     IsamsField["Initials",           :initials,   :data,      :string],
     IsamsField["Title",              :title,      :data,      :string],
@@ -18,7 +18,7 @@ class MIS_Pupil
 
   include Creator
 
-  attr_reader :name, :datasource_id, :current, :house
+  attr_reader :name, :datasource_id, :current, :house, :sb_id
 
   def initialize(entry)
     #
@@ -33,6 +33,11 @@ class MIS_Pupil
     @email.downcase!
     @name = "#{@known_as} #{@surname}"
     @house = MIS_House.by_name(@house_name)
+    #
+    #  This isn't really right, but unfortunately Niki has overwritten
+    #  the previous MIS ID field with a new value.
+    #
+    @sb_id = @isams_id
   end
 
   def wanted
@@ -44,14 +49,22 @@ class MIS_Pupil
   end
 
   def alternative_find_hash
-    {
-      :source_id => @sb_id,
-      :datasource_id => @@secondary_datasource_id
-    }
+    if do_convert
+      {
+        :source_id => @sb_id,
+        :datasource_id => @@secondary_datasource_id
+      }
+    else
+      nil
+    end
   end
 
   def ahead
     self.class.ahead
+  end
+
+  def do_convert
+    self.class.do_convert
   end
 
   #
@@ -70,12 +83,29 @@ class MIS_Pupil
     era.starts_on.year + 7 - (self.nc_year + ahead)
   end
 
+  def check_idents
+    if self.isams_id != self.sb_id
+      puts "Pupil has isams id #{self.isams_id} and SB id #{self.sb_id}."
+    end
+  end
+
   def self.construct(loader, isams_data)
     @ahead = loader.options.ahead
-    self.slurp(isams_data.xml)
+    @do_convert = loader.options.do_convert
+    records = self.slurp(isams_data.xml)
+    if loader.options.do_check
+      records.each do |rec|
+        rec.check_idents
+      end
+    end
+    records
   end
 
   def self.ahead
     @ahead
+  end
+
+  def self.do_convert
+    @do_convert
   end
 end

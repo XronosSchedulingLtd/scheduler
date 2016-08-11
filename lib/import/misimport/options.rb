@@ -8,7 +8,8 @@ class Options
               :do_timings,
               :era,
               :start_date,
-              :ahead
+              :ahead,
+              :do_convert
 
   #
   #  These next two are intended to be over-ridden by MIS-specific
@@ -29,6 +30,7 @@ class Options
     @era             = nil
     @start_date      = nil
     @ahead           = 0
+    @do_convert      = false
     more_defaults
     OptionParser.new do |opts|
       opts.banner = "Usage: misimport.rb [options]"
@@ -77,6 +79,11 @@ class Options
               "has been rolled over, add this value to",
               "pupils' year numbers etc.") do |years|
         @ahead = years
+      end
+
+      opts.on("--convert",
+              "Convert record IDs from a previous MIS") do |c|
+        @do_convert = c
       end
 
       more_options(opts)

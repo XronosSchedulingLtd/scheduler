@@ -474,7 +474,7 @@ class MIS_Loader
     member_loaded_count    = 0
     at_start = Otherhalfgroup.current.count
     @ohgroups.each do |g|
-      puts "Processing #{g.name}"
+#      puts "Processing #{g.name}"
 #      puts g.inspect
       #
       #  There must be a more idiomatic way of doing this.

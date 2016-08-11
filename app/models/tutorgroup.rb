@@ -68,4 +68,9 @@ class Tutorgroup
   def self.find(id)
     Group.find(id)
   end
+
+  def self.all
+    Group.where(persona_type: "Tutorgrouppersona")
+  end
+
 end

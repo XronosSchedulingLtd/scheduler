@@ -56,4 +56,8 @@ class Otherhalfgroup
     Group.find(id)
   end
 
+  def self.all
+    Group.where(persona_type: "Otherhalfgrouppersona")
+  end
+
 end

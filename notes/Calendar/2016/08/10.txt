@@ -10,7 +10,10 @@ I've been pottering at this stuff at RAL, but now I've taken a day back (today) 
 [*] Get a fresh data extraction from iSAMS
 [*] Complete OH groups
 [*] Fix group code to correct memberships which outlast the group
-[ ] Add an option to do conversion (--convert) to the utility.  Off by default.  Perhaps just do conversion?
+[*] Add an option to do conversion (--convert) to the utility.  Off by default.  Perhaps just do conversion?
+[ ] Can I add a method to make all era-connected groups end when their era does?
+[ ] Source_id is now in the group record itself.  Amend where() method in individual group objects to reflect this.
+[ ] Upgraded land_grab method to update OH groups too.
 [ ] Produce automation scripts
 [ ] Adjust year-end dates.  Roll-over in mid August.
 [ ] Code to tidy up all groups from the year just ending.
