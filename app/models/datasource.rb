@@ -49,8 +49,15 @@ class Datasource < ActiveRecord::Base
          end
        end
        Group.all.each do |g|
+         #
+         #  This surely isn't quite right?  What about tutor groups?
+         #  Also, there are two different jobs here -
+         #  1) Set datasource as SB.
+         #  2) Move the source_id to the main group record.
+         #
          if g.persona_type == "Teachinggrouppersona" ||
-            g.persona_type == "Taggrouppersona"
+            g.persona_type == "Taggrouppersona" ||
+            g.persona_type == "Otherhalfgroup"
            if g.persona.source_id && g.persona.source_id != 0
              unless g.datasource
                g.source_id = g.persona.source_id

@@ -21,28 +21,8 @@ class Otherhalfgroup
   end
 
   def self.where(given_hash)
-    #
-    #  Does anything need re-directing to a join?
-    #
-    if given_hash[:source_id]
-      #
-      #  Need to split this up.
-      #
-      outer_hash = Hash.new
-      inner_hash = Hash.new
-      given_hash.each do |key, value|
-        if key == :source_id
-          inner_hash[key] = value
-        else
-          outer_hash[key] = value
-        end
-      end
-      outer_hash[:otherhalfgrouppersonae] = inner_hash
-      Group.joins(:otherhalfgrouppersona).where(outer_hash)
-    else
-      given_hash[:persona_type] = "Otherhalfgrouppersona"
-      Group.where(given_hash)
-    end
+    given_hash[:persona_type] = "Otherhalfgrouppersona"
+    Group.where(given_hash)
   end
 
   #
