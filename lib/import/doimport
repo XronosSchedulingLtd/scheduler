@@ -1,2 +1,2 @@
 #!/bin/bash
-./misimport.rb --era "Academic Year 2016/17" --start 2016-09-01
+~/Work/Coding/scheduler/lib/import/misimport.rb --era "Academic Year 2016/17" --start 2016-09-01

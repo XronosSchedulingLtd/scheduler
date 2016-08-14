@@ -1,5 +1,5 @@
 IMPORT_DIR = 'import'
-ISAMS_IMPORT_DIR = 'import/isams'
+ISAMS_IMPORT_DIR = 'import/isams/Current'
 
 class MIS_Loader
 

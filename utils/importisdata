@@ -1,0 +1,45 @@
+#!/bin/bash
+. /etc/profile
+#
+#  The next file contains confidential authentication information,
+#  specifically the apikey for the API and the password for direct
+#  d/b access.  In a separate file so we can commit this file
+#  to version control.
+#
+. ~/etc/isauth
+cd ~/Work/Coding/scheduler/import/isams
+rm -f Incoming/*
+#curl --silent https://abingdon.isams.co.uk:443/api/batch/1.0/xml.ashx?apikey=$APIKEY --output Incoming/data.xml
+echo "Not fetching"
+cp ~/Work/Coding/isams/feed/data.xml Incoming
+if [ $? -eq 0 ]; then
+  #
+  #  Access to the iSAMS d/b seems to have been (temporarily?) blocked
+  #  from this IP address, so for now just copy the files which we
+  #  have already.
+  #
+  #../../utils/fetchisdata/extractor.rb --target Incoming --extract
+  cp OriginalStuff/TblActivityManagerEvent.csv OriginalStuff/TblActivityManagerEventOccurrence.csv OriginalStuff/TblActivityManagerEventPupilLink.csv OriginalStuff/TblActivityManagerEventTeacherLink.csv OriginalStuff/TblActivityManagerGroup.csv OriginalStuff/TblActivityManagerGroupPupilLink.csv Incoming
+  if [ $? -eq 0 ]; then
+    #
+    #  We now appear to have a set of data files.  Move them to Current
+    #  and then archive them.
+    #
+    rm -f Current/*
+    mv Incoming/* Current
+    TARGET_DIR="Archive/`date +%Y/%m/%d`"
+    echo $TARGET_DIR
+    mkdir -p $TARGET_DIR
+    cp Current/* $TARGET_DIR
+    bzip2 -f $TARGET_DIR/*.csv $TARGET_DIR/*.xml
+    #
+    #  And now invoke the import utility to bring the new data into Scheduler.
+    #
+    ../../lib/import/doimport | tee import.log
+    echo "Done it."
+  else
+    echo "Failed to fetch data from iSAMS d/b."
+  fi
+else
+  echo "Failed to fetch data from iSAMS API."
+fi

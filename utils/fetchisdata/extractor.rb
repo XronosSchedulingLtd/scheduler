@@ -46,9 +46,9 @@ class DatabaseTable
     end
   end
 
-  def dump
+  def dump(target_dir)
     get_password unless @@password
-    csv = CSV.open(@table_name + ".csv", "wb")
+    csv = CSV.open(File.join(target_dir, @table_name + ".csv"), "wb")
     client = TinyTds::Client.new(
       username: "AbingdonAccess",
       password: @@password,
@@ -93,7 +93,7 @@ class DatabaseTable
     DatabaseTable.new("TblActivityManagerGroupPupilLink", :all)
   ]
 
-  def self.dump_tables
+  def self.dump_tables(target_dir)
     #
     #  Require tiny_tds only if we are actually doing a data dump.
     #  This is because it has dependencies which might not be available
@@ -102,7 +102,7 @@ class DatabaseTable
     require 'tiny_tds'
 
     TABLES.each do |table|
-      table.dump
+      table.dump(target_dir)
     end
   end
 
@@ -112,11 +112,16 @@ begin
   options = OpenStruct.new
   options.verbose           = false
   options.do_extract        = false
+  options.target_dir        = "."
   o = OptionParser.new do |opts|
     opts.banner = "Usage: extractor.rb [options]"
 
     opts.on("-e", "--extract", "Extract data from iSAMS to CSV files") do |e|
       options.do_extract = e
+    end
+
+    opts.on("-t", "--target [dirname]", "Specify target directory") do |t|
+      options.target_dir = t
     end
 
     opts.on("-v", "--verbose", "Run verbosely") do |v|
@@ -133,7 +138,7 @@ begin
   end
 
   if options.do_extract
-    DatabaseTable.dump_tables
+    DatabaseTable.dump_tables(options.target_dir)
   end
 
 end
