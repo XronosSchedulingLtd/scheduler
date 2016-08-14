@@ -50,21 +50,36 @@ class Datasource < ActiveRecord::Base
        end
        Group.all.each do |g|
          #
-         #  This surely isn't quite right?  What about tutor groups?
-         #  Also, there are two different jobs here -
-         #  1) Set datasource as SB.
-         #  2) Move the source_id to the main group record.
+         #  Tutor group personae never had a source id, but they
+         #  still came from SB.
+         #
+         #  We will assume that if the datasource has been set,
+         #  then any necessary copying of the source_id has been
+         #  done too.
          #
          if g.persona_type == "Teachinggrouppersona" ||
             g.persona_type == "Taggrouppersona" ||
-            g.persona_type == "Otherhalfgroup"
-           if g.persona.source_id && g.persona.source_id != 0
-             unless g.datasource
-               g.source_id = g.persona.source_id
-               g.datasource = ds
-               g.save!
-               group_count += 1
+            g.persona_type == "Otherhalfgrouppersona" ||
+            g.persona_type == "Tutorgrouppersona"
+           #
+           #  One which might need work.  Check it has not already been
+           #  done.
+           #
+           unless g.datasource
+             #
+             #  Not already done.
+             #
+             g.datasource = ds
+             #
+             #  Tutor groups had no source_id with SB.
+             #
+             unless g.persona_type == "Tutorgrouppersona"
+               if g.persona.source_id && g.persona.source_id != 0
+                 g.source_id = g.persona.source_id
+               end
              end
+             g.save!
+             group_count += 1
            end
          end
        end
