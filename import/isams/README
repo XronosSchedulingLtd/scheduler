@@ -1,0 +1,30 @@
+Four directories to handle data arriving from iSAMS.
+
+PreFetched:
+- this directory can be used to suppress the data fetching
+behaviour of described for the following three directories.
+If the necessary files are found here, then they are copied
+from here instead of using the API and d/b access.
+
+Incoming:
+- is used as an initial repository as data are fetched.
+Each time a fetch is scheduled to happen, this directory will
+first be emptied and then the fetch will be run.
+Provided the fetch appears to have been succesful, the files
+are almost immediately moved to:
+
+Current:
+- once we are happy that we have a good new set of files in
+Incoming, the files in Current are deleted and the files in
+Incoming are moved to Current.  That way we always have a
+good set in Current.  As soon as the move is done, we create
+a new dated directory under:
+
+Archive:
+and copy the files from Current to that directory.  The copy
+is done as soon as we have the files, rather than just before
+we intend to replace them simply in order to make generating
+the right date easier.  The files in Archive are then compressed
+to save space.
+
+Heirarchical directory naming - 2016/08/13/file.xml.gz etc.
