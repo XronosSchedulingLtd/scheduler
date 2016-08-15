@@ -9,17 +9,27 @@
 . ~/etc/isauth
 cd ~/Work/Coding/scheduler/import/isams
 rm -f Incoming/*
-#curl --silent https://abingdon.isams.co.uk:443/api/batch/1.0/xml.ashx?apikey=$APIKEY --output Incoming/data.xml
-echo "Not fetching"
-cp ~/Work/Coding/isams/feed/data.xml Incoming
+if [ -f PreFetched/data.xml ]; then
+  echo "Using pre-fetched data.xml"
+  cp PreFetched/data.xml Incoming
+else
+#  curl --silent https://abingdon.isams.co.uk:443/api/batch/1.0/xml.ashx?apikey=$APIKEY --output Incoming/data.xml
+  echo "Not fetching"
+fi
 if [ $? -eq 0 ]; then
-  #
-  #  Access to the iSAMS d/b seems to have been (temporarily?) blocked
-  #  from this IP address, so for now just copy the files which we
-  #  have already.
-  #
-  #../../utils/fetchisdata/extractor.rb --target Incoming --extract
-  cp OriginalStuff/TblActivityManagerEvent.csv OriginalStuff/TblActivityManagerEventOccurrence.csv OriginalStuff/TblActivityManagerEventPupilLink.csv OriginalStuff/TblActivityManagerEventTeacherLink.csv OriginalStuff/TblActivityManagerGroup.csv OriginalStuff/TblActivityManagerGroupPupilLink.csv Incoming
+  if [ -f PreFetched/TblActivityManagerEvent.csv ]; then
+    echo "Using pre-fetched csv files."
+    cp PreFetched/*.csv Incoming
+  else
+    #
+    #  Access to the iSAMS d/b seems to have been (temporarily?) blocked
+    #  from this IP address, so for now just copy the files which we
+    #  have already.
+    #
+    #../../utils/fetchisdata/extractor.rb --target Incoming --extract
+    echo "Using OriginalStuff"
+    cp OriginalStuff/TblActivityManagerEvent.csv OriginalStuff/TblActivityManagerEventOccurrence.csv OriginalStuff/TblActivityManagerEventPupilLink.csv OriginalStuff/TblActivityManagerEventTeacherLink.csv OriginalStuff/TblActivityManagerGroup.csv OriginalStuff/TblActivityManagerGroupPupilLink.csv Incoming
+  fi
   if [ $? -eq 0 ]; then
     #
     #  We now appear to have a set of data files.  Move them to Current
@@ -28,7 +38,6 @@ if [ $? -eq 0 ]; then
     rm -f Current/*
     mv Incoming/* Current
     TARGET_DIR="Archive/`date +%Y/%m/%d`"
-    echo $TARGET_DIR
     mkdir -p $TARGET_DIR
     cp Current/* $TARGET_DIR
     bzip2 -f $TARGET_DIR/*.csv $TARGET_DIR/*.xml
