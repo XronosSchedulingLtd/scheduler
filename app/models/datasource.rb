@@ -25,6 +25,10 @@ class Datasource < ActiveRecord::Base
        pupil_count = 0
        la_count = 0
        group_count = 0
+       tug_count = 0
+       teg_count = 0
+       ohg_count = 0
+       tag_count = 0
        Staff.all.each do |s|
          unless s.datasource
            s.datasource = ds
@@ -80,10 +84,21 @@ class Datasource < ActiveRecord::Base
              end
              g.save!
              group_count += 1
+             case g.persona_type
+             when "Teachinggrouppersona"
+               teg_count += 1
+             when "Taggrouppersona"
+               tag_count += 1
+             when "Otherhalfgrouppersona"
+               ohg_count += 1
+             when "Tutorgrouppersona"
+               tug_count += 1
+             end
            end
          end
        end
        puts "Grabbed #{staff_count} staff, #{pupil_count} pupils, #{la_count} location aliases and #{group_count} groups."
+       puts "#{tug_count} tutor, #{teg_count} teaching, #{ohg_count} other half and #{tag_count} tag groups."
        nil
      else
        puts "Can't find SchoolBase datasource."
