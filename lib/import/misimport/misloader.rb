@@ -917,72 +917,74 @@ class MIS_Loader
           #  and the same end time.
           #
           duties.each do |duty|
-            starts_at =
-              Time.zone.parse("#{date.to_s} #{duty[:starts]}")
-            ends_at =
-              Time.zone.parse("#{date.to_s} #{duty[:ends]}")
-            existing_duty = existing_duties.detect {|ed|
-              ed.body      == duty[:title] &&
-              ed.starts_at == starts_at &&
-              ed.ends_at   == ends_at
-            }
-            if existing_duty
-              #
-              #  Remove from the array.  We will deal with any leftovers
-              #  at the end.
-              #
-              existing_duties = existing_duties - [existing_duty]
-            else
-              #
-              #  Event needs creating in the database.
-              #
-              existing_duty = Event.new
-              existing_duty.body = duty[:title]
-              existing_duty.eventcategory = @duty_category
-              existing_duty.eventsource   = @yaml_source
-              existing_duty.starts_at     = starts_at
-              existing_duty.ends_at       = ends_at
-              existing_duty.save!
-              existing_duty.reload
-              duties_added_count += 1
-            end
-            #
-            #  Now check that the resources match.
-            #
-            element_id = nil
-            if duty[:staff]
-              staff = Staff.find_by(initials: duty[:staff])
-              if staff
-                element_id = staff.element.id
+            unless duty[:title] == "Ignore"
+              starts_at =
+                Time.zone.parse("#{date.to_s} #{duty[:starts]}")
+              ends_at =
+                Time.zone.parse("#{date.to_s} #{duty[:ends]}")
+              existing_duty = existing_duties.detect {|ed|
+                ed.body      == duty[:title] &&
+                ed.starts_at == starts_at &&
+                ed.ends_at   == ends_at
+              }
+              if existing_duty
+                #
+                #  Remove from the array.  We will deal with any leftovers
+                #  at the end.
+                #
+                existing_duties = existing_duties - [existing_duty]
+              else
+                #
+                #  Event needs creating in the database.
+                #
+                existing_duty = Event.new
+                existing_duty.body = duty[:title]
+                existing_duty.eventcategory = @duty_category
+                existing_duty.eventsource   = @yaml_source
+                existing_duty.starts_at     = starts_at
+                existing_duty.ends_at       = ends_at
+                existing_duty.save!
+                existing_duty.reload
+                duties_added_count += 1
               end
-            elsif duty[:group]
-              group = Group.find_by(name: duty[:group])
-              if group
-                element_id = group.element.id
-              end
-            end
-            if element_id
-              required_ids = [element_id]
-              existing_ids = existing_duty.elements.collect {|e| e.id}
-              db_only = existing_ids - required_ids
-              input_only = required_ids - existing_ids
-              if db_only.size > 0
-                existing_duty.commitments.each do |c|
-                  if db_only.include?(c.element_id)
-                    c.destroy
-                    resources_removed_count += 1
-                  end
+              #
+              #  Now check that the resources match.
+              #
+              element_id = nil
+              if duty[:staff]
+                staff = Staff.find_by(initials: duty[:staff])
+                if staff
+                  element_id = staff.element.id
+                end
+              elsif duty[:group]
+                group = Group.find_by(name: duty[:group])
+                if group
+                  element_id = group.element.id
                 end
               end
-              input_only.each do |id|
-                c = Commitment.new
-                c.event_id = existing_duty.id
-                c.element_id = id
-                c.save!
-                resources_added_count += 1
+              if element_id
+                required_ids = [element_id]
+                existing_ids = existing_duty.elements.collect {|e| e.id}
+                db_only = existing_ids - required_ids
+                input_only = required_ids - existing_ids
+                if db_only.size > 0
+                  existing_duty.commitments.each do |c|
+                    if db_only.include?(c.element_id)
+                      c.destroy
+                      resources_removed_count += 1
+                    end
+                  end
+                end
+                input_only.each do |id|
+                  c = Commitment.new
+                  c.event_id = existing_duty.id
+                  c.element_id = id
+                  c.save!
+                  resources_added_count += 1
+                end
+              else
+                puts "Couldn't find duty resource for #{duty.inspect}"
               end
-            else
-              puts "Couldn't find duty resource for #{duty.inspect}"
             end
           end
           #
