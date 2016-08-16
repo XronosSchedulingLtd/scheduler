@@ -7,14 +7,17 @@
 #  to version control.
 #
 . ~/etc/isauth
+#
+#  Are we on development or live?
+#
+. ~/etc/whichsystem
 cd ~/Work/Coding/scheduler/import/isams
 rm -f Incoming/*
 if [ -f PreFetched/data.xml ]; then
   echo "Using pre-fetched data.xml"
   cp PreFetched/data.xml Incoming
 else
-#  curl --silent https://abingdon.isams.co.uk:443/api/batch/1.0/xml.ashx?apikey=$APIKEY --output Incoming/data.xml
-  echo "Not fetching"
+  curl --silent https://abingdon.isams.co.uk:443/api/batch/1.0/xml.ashx?apikey=$APIKEY --output Incoming/data.xml
 fi
 if [ $? -eq 0 ]; then
   if [ -f PreFetched/TblActivityManagerEvent.csv ]; then
