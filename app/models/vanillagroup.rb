@@ -39,4 +39,18 @@ class Vanillagroup
   def self.find(id)
     Group.find(id)
   end
+
+  def self.purge_spurious_isams_groups
+    grps = Group.where("created_at > ? AND created_at < ? AND persona_type IS NULL",
+                          Date.parse("2016-08-15"),
+                          Date.parse("2016-08-16"))
+    purged_count = 0
+    grps.each do |grp|
+      puts "Deleting #{grp.name}"
+      grp.destroy
+      purged_count += 1
+    end
+    puts "Purged #{purged_count} groups."
+    nil
+  end
 end
