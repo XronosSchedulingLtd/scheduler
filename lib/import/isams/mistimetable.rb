@@ -631,7 +631,9 @@ class MIS_Schedule
         entry.note_period(period)
         period.day.note_lesson(entry)
       else
-        puts "Lesson #{entry.code} references period #{entry.period_id} which doesn't seem to exist."
+        unless entry.code.blank?
+          puts "Lesson #{entry.code} references period #{entry.period_id} which doesn't seem to exist."
+        end
       end
     end
     @entries.each do |entry|

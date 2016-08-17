@@ -31,8 +31,10 @@ class MIS_Loader
           puts "Failed to load #{is_type}"
         end
       end
-      self.each do |key, data|
-        puts "Got #{data.count} records with index #{key}."
+      if loader.options.verbose
+        self.each do |key, data|
+          puts "Got #{data.count} records with index #{key}."
+        end
       end
     end
 

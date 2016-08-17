@@ -126,9 +126,9 @@ module Slurper
             end
           end
         end
-        if dropped > 0
-          puts "Slurper dropped #{dropped} #{self} entries out of #{read_count}."
-        end
+#        if dropped > 0
+#          puts "Slurper dropped #{dropped} #{self} entries out of #{read_count}."
+#        end
         if allow_empty || entries.size > 0
           return entries, nil
         else

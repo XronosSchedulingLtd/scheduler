@@ -54,6 +54,7 @@ class MIS_Loader
     @subject_hash = Hash.new
     @subjects.each do |subject|
       @subject_hash[subject.source_id] = subject
+#      puts "Got subject called \"#{subject.name}\"."
     end
     @tutorgroups = MIS_Tutorgroup.construct(self, whatever)
     puts "Got #{@tutorgroups.count} tutorgroups." if options.verbose
@@ -64,7 +65,7 @@ class MIS_Loader
       @teachinggroup_hash[tg.source_id] = tg
     end
     @ohgroups = MIS_Otherhalfgroup.construct(self, whatever)
-    puts "Got #{@ohgroups.count} other half groups."
+    puts "Got #{@ohgroups.count} other half groups." if options.verbose
     @oh_groups_hash = Hash.new
     @ohgroups.each do |ohg|
       @oh_groups_hash[ohg.isams_id] = ohg

@@ -53,7 +53,6 @@ if [ $? -eq 0 ]; then
     #  And now invoke the import utility to bring the new data into Scheduler.
     #
     ../../lib/import/misimport.rb | tee import.log
-    echo "Done it."
   else
     echo "Failed to fetch data from iSAMS d/b."
   fi
