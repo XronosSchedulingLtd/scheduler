@@ -1,0 +1,17 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-08-17T07:58:04+01:00
+
+====== VPS ======
+Created Wednesday 17 August 2016
+
+Things which need doing on the VPS.
+
+[ ] Latest version of source
+[ ] Check correct version of Ruby throughout.  Passenger.  RVM aliases etc.
+[ ] Config files in ~/etc
+[ ] New security key, held in config files.
+[ ] Outgoing e-mail configured
+[ ] Cron jobs
+[ ] Backups
+[ ] Google login

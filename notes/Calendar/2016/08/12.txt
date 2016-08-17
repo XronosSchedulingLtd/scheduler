@@ -15,12 +15,13 @@ Before that, I will need to do several test conversions on my staging server to 
 * Latest code
 * Copy of live system data
 * Convert database (rake db:migrate)
-* Run maintenance methods (land_grab etc)
+* Run maintenance methods (land_grab, trim_memberships)
 
-At which point you have a system which has simply been updated to the latest version of software.  I would then be inclined to to the end of year processing, which is documented one one of last year's pages.
+At which point you have a system which has simply been updated to the latest version of software.  I would then be inclined to move to the end of year processing, which is documented one one of last year's pages.
 
 * Edit era dates to make them end on, say, 12th August
 * Run end_of_era method
 * Create new next_era
 
 And then we progress to loading the new year's data.  I think I need to do all of this on a development system and see how it goes.  Probably want to merge my developments back into the master stream before I start all of this.
+

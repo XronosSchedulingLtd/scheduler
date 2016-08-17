@@ -1,0 +1,121 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-08-17T07:32:23+01:00
+
+====== Wednesday 17 Aug 2016 ======
+
+Started the day by merging a couple of duplicated rooms for Nick (Ingham Room and Drama Studio).  This was necessary because the name in iSAMS is just slightly different from the name in SB.  Following on from that, need to:
+
+[*] Take a copy of the d/b now on mach2.
+[*] Load on dev system.
+[*] Check import from iSAMS doesn't now change anything.
+[*] Generate a list of all rooms added by iSAMS import.
+[*] Check for any other duplicates and remove.
+[*] See whether we can get a fresh update from iSAMS.
+
+And then there's subject names, followed by Markbook exam results.  See yesterday's full list.
+
+My new locations were all created on 15/8/2016.  Perhaps I can select by that?  Mind you, it's a created_at datetime, so I'll probably need to provide a 24 hour window for the selection.  There seem now to be 39, which is about right as there were originally 41 and I've deleted two.  And the list is:
+
+'''
+Print Making (A203)
+Ceramics (A204)
+Music Tech (A213)
+Music ClRoom (A214)
+Music Study (A215)
+Painting Std (A219)
+Library BS
+G101
+G102
+G103
+G104
+G105
+G106
+G107
+G108
+G109
+G201
+G202
+G203
+G204
+G205
+G206
+G207
+G208
+G209
+G100
+G200
+Library Pre
+Room 1A
+Room 3J
+Room 4J
+Room 4T
+Room 5L
+Room 5S
+Room 8R
+Sports Hall Pre
+Swimming Pool Pre
+Sports Hall SC
+Swimming Pool SC
+'''
+
+
+Most of those seem fine.  Either new rooms, or places at the prep school.  The exceptions are the following:
+
+'''
+Print Making (A203)     => A203
+Ceramics (A204)         => A204
+Music Tech (A213)       => A213
+Music ClRoom (A214)     => A214
+Music Study (A215)      => A215
+Painting Std (A219)     => A219
+Library BS              => Library
+Sports Hall SC          => Sports Hall
+'''
+
+The first six are currently known in Scheduler purely by their numbers.  They could probably do with a location alias too, after we've done the merge.  Library and Sports Hall are known by those names without the suffixes.
+
+So - it would appear I have 8 more to do merges on.  I might want to set current to false for some of the prep school locations to stop them appearing in lists etc.
+
+Done all the stuff from today.  Back to yesterday's list.  Subject names seems like a good one to go at.  I don't actually store subjects in Scheduler, but they do lead to the creation of extra groups, and the subjects which I have currently have got "(S)" in them, which isn't really needed.  I'd prefer to continue the old groups and get rid of the new ones with "(S)"s.  First need a list of the new groups.
+
+Quite a long list of these groups, but I should simply be able to delete them in bulk.  Can I generate a list of the underlying subjects?  Only 29 in the end.
+
+'''
+Art (S) 
+Biology (S) 
+Chemistry (S) 
+Ancient History (S) 
+Greek (S) 
+Latin (S) 
+Drama (S) 
+Theatre Studies (S) 
+Business Studies (S) 
+Economics (S) 
+English (S) 
+French (S) 
+Geography (S) 
+German (S) 
+Govt. and Politics (S) pupils
+History (S) 
+Computing (S) 
+Mandarin Chinese (S) 
+Further Maths (S) 
+Mathematics (S) 
+Music (S) 
+PSHCE (S) 
+Electronics (S) 
+Physics (S) 
+Psychology (S) 
+Philosophy (S) 
+Religious Studies (S) 
+Spanish (S) 
+Physical Education (S)
+'''
+ 
+
+I would hope that each of these would have a report name as well, and far more of those will coincide with the old subject names.
+
+Hang on - I seem to have code there already which should be achieving this.  I think I put it in for precisely this reason - why has it stopped working?  I thought this had worked before and was puzzled to find that my data files had always had the Ss in.  I'm pretty sure this was tested and working,  but then for some reason has stopped.  Find out why.  Just noticed, the code to exclude APS houses is also not working.  Suggests that the files in the school directory have stopped being included.  Investigate.  Yes - the code for including those files requires the current directory to be where the utility itself is.  OK - how to make that work correctly.  Done.  That also now stops me getting spurious houses from the prep school.
+
+Now I need to tidy all that up and make the same changes on the live system.  The dangerous one is the deletion of the mistaken vanilla groups - but it's pretty selective.  Register the changes which I want.  Remove the changes which I don't, then test again with a re-loaded copy of the live data.

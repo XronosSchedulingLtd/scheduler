@@ -1,0 +1,12 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-08-14T11:02:31+01:00
+
+====== Sunday 14 Aug 2016 ======
+
+Plan for tomorrow.
+
+* Set up automated updates on dev system, but without cronjob, creating full instructions for end-of-year and data conversion.  Merge back into master branch.
+* Do the same on the staging server, but with the cronjob.
+
+Aim to have the live system converted and taking data before Thursday.

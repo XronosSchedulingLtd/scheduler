@@ -174,7 +174,7 @@ Installing to the Abingdon VPS I hit a problem with the machine wanting to downl
 
 ''$ sudo apt-get install libcpre3-dev''
 
-To get nginx (the web server) to start automatically you need an init script.  You'll gfind one in the source tree at:
+To get nginx (the web server) to start automatically you need an init script.  You'll find one in the source tree at:
 
 ''Work/Coding/scheduler/scratch/nginx''
 
