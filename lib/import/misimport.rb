@@ -93,8 +93,10 @@ end
 #
 #  And finally allow for school-specific adjustments.
 #
-Dir["school/*.rb"].each do |file|
-  require_relative file
+#puts "Running from #{File.dirname(__FILE__)}"
+Dir[File.join(File.dirname(__FILE__), "school/*.rb")].each do |file|
+#  puts "Requiring \"#{file}\"."
+  require file
 end
 
 def finished(options, stage)
