@@ -39,6 +39,8 @@ class MIS_ScheduleEntry
       #
       if group.respond_to?(:subject) && group.subject
         group.subject.note_lesson(self.staff, group)
+      elsif self.respond_to?(:subject) && self.subject
+        self.subject.note_lesson(self.staff, group)
       end
     end
   end

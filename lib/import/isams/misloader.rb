@@ -44,7 +44,8 @@ class MIS_Loader
               :secondary_location_hash,
               :tegs_by_name_hash,
               :tugs_by_name_hash,
-              :pupils_by_school_id_hash
+              :pupils_by_school_id_hash,
+              :subjects_by_name_hash
 
   def prepare(options)
     ISAMS_Data.new(self)
@@ -83,6 +84,10 @@ class MIS_Loader
     @tugs_by_name_hash = Hash.new
     @tutorgroups.each do |tug|
       @tugs_by_name_hash[tug.name] = tug
+    end
+    @subjects_by_name_hash = Hash.new
+    @subjects.each do |subject|
+      @subjects_by_name_hash[subject.name] = subject
     end
     #
     #  Only now can we populate the other half groups.

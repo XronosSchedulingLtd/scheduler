@@ -163,6 +163,14 @@ class ISAMS_ScheduleEntry < MIS_ScheduleEntry
     if room
       @rooms << room
     end
+    #
+    #  There is a bug in the iSAMS API in that there is no way of
+    #  linking up a lesson taught by form (tutor group in our case)
+    #  to its form and subject.  We need to frig to get around it.
+    #
+    if self.respond_to?(:find_subject)
+      self.find_subject(loader)
+    end
   end
 
   def note_period(period)
