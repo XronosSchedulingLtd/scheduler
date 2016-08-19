@@ -34,9 +34,9 @@ if [ $? -eq 0 ]; then
     #  from this IP address, so for now just copy the files which we
     #  have already.
     #
-    #../../utils/fetchisdata/extractor.rb --target Incoming --extract
-    echo "Using OriginalStuff"
-    cp OriginalStuff/TblActivityManagerEvent.csv OriginalStuff/TblActivityManagerEventOccurrence.csv OriginalStuff/TblActivityManagerEventPupilLink.csv OriginalStuff/TblActivityManagerEventTeacherLink.csv OriginalStuff/TblActivityManagerGroup.csv OriginalStuff/TblActivityManagerGroupPupilLink.csv Incoming
+    ../../utils/fetchisdata/extractor.rb --target Incoming --extract
+#    echo "Using OriginalStuff"
+#    cp OriginalStuff/TblActivityManagerEvent.csv OriginalStuff/TblActivityManagerEventOccurrence.csv OriginalStuff/TblActivityManagerEventPupilLink.csv OriginalStuff/TblActivityManagerEventTeacherLink.csv OriginalStuff/TblActivityManagerGroup.csv OriginalStuff/TblActivityManagerGroupPupilLink.csv Incoming
   fi
   if [ $? -eq 0 ]; then
     #
@@ -53,6 +53,8 @@ if [ $? -eq 0 ]; then
     #  And now invoke the import utility to bring the new data into Scheduler.
     #
     ../../lib/import/misimport.rb | tee import.log
+    cp import.log $TARGET_DIR
+    bzip2 -f $TARGET_DIR/import.log
   else
     echo "Failed to fetch data from iSAMS d/b."
   fi
