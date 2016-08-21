@@ -124,6 +124,9 @@ class MIS_Loader
     end
     @hiatuses = Hiatus.load_hiatuses(self)
     read_mis_data(options)
+    if self.respond_to?(:local_processing)
+      self.local_processing(options)
+    end
     yield self if block_given?
   end
 

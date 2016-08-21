@@ -1,0 +1,42 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-08-18T06:25:38+01:00
+
+====== Thursday 18 Aug 2016 ======
+
+Interesting question of the day:
+
+[*] Why is Andy Broadbent no longer a member of the "Mathematics teachers" group? 
+
+He is a member of the "1st year Mathematics teachers" group.  Odd.
+
+I start to see the light.  He's not being listed as a member of the "1st year Mathematics teachers" group either - the values there are just being carried over from last year.  No-one is being identified as a 1st year Mathematics teacher.  This may well be because they're taught by tutor group and the iSAMS API is buggy in this area.  Perhaps I'm not identifying the subject.  
+
+Also, I don't seem to have any 2nd year maths lessons at all.  Check Leo Vine on iSAMS.  No, he has no maths lessons there either.  An SEP.  Back then to the question of lessons taught by tutor group.  Is there any way I can identify what the subject is from the API, or am I going to have to resort to trickery?
+
+Alas - it's going to involve trickery.  Not only does the schedule entry lack the set id (as reported previously to iSAMS) it also lacks any way to discover the subject.  I will need to hard code something to look them up.  There seem to be the following:
+
+'''
+<Code>1M Bi</Code>
+<Code>1M En</Code>
+<Code>1M Fr</Code>
+<Code>1M Gg</Code>
+<Code>1M Hi</Code>
+<Code>1M La</Code>
+<Code>1M Li</Code>
+<Code>1M Ma</Code>
+<Code>1M Mu</Code>
+<Code>1M RS</Code>
+<Code>1M Sc</Code>
+'''
+
+and presumably the same for the other tutor groups.  Where does my code want to know the subject?  It's an explicit step in the loading process.  I'll need to add something extra to cope with this further deficiency in the iSAMS API.
+
+Jobs now pending - today and tomorrow:
+
+[ ] Exam results for John Brooks (and Sam?)
+[*] Extra documentation on FireFly for Niki
+[*] Make the data importer archive its log file too
+[ ] Data from Scheduler to Markbook
+
+

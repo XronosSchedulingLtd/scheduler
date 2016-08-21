@@ -119,3 +119,12 @@ I would hope that each of these would have a report name as well, and far more o
 Hang on - I seem to have code there already which should be achieving this.  I think I put it in for precisely this reason - why has it stopped working?  I thought this had worked before and was puzzled to find that my data files had always had the Ss in.  I'm pretty sure this was tested and working,  but then for some reason has stopped.  Find out why.  Just noticed, the code to exclude APS houses is also not working.  Suggests that the files in the school directory have stopped being included.  Investigate.  Yes - the code for including those files requires the current directory to be where the utility itself is.  OK - how to make that work correctly.  Done.  That also now stops me getting spurious houses from the prep school.
 
 Now I need to tidy all that up and make the same changes on the live system.  The dangerous one is the deletion of the mistaken vanilla groups - but it's pretty selective.  Register the changes which I want.  Remove the changes which I don't, then test again with a re-loaded copy of the live data.
+
+To fix the live system:
+
+[*] Dump database (for safety)
+[*] Get latest code
+[*] Run Vanillagroup.purge_spurious_isams_groups
+[*] Run the import utility again
+[*] And then again to check for stability
+

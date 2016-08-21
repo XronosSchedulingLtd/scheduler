@@ -586,7 +586,7 @@ end
 
 class MIS_Schedule
 
-  attr_reader :week_hash
+  attr_reader :week_hash, :weeks, :entries
 
   def initialize(loader, isams_data, timetable)
     @weeks = ISAMS_Week.construct(loader, isams_data)

@@ -209,6 +209,8 @@ end
 
 class MIS_Timetable
 
+  attr_reader :schedule
+
   #
   #  This method goes through all the scheduled events in the timetable
   #  making a note of any hiatuses which might apply to them.

@@ -1,8 +1,9 @@
 class MIS_Location
   SELECTOR = "EstateManager Buildings Building Classrooms Classroom"
   REQUIRED_FIELDS = [
-    IsamsField["Id",        :isams_id, :attribute, :integer],
-    IsamsField["Name",      :name,     :data,      :string]
+    IsamsField["Id",        :isams_id,   :attribute, :integer],
+    IsamsField["Name",      :name,       :data,      :string],
+    IsamsField["Initials",  :short_name, :data,      :string]
   ]
 
   include Creator

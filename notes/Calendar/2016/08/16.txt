@@ -36,7 +36,7 @@ Things to do today.
 [*] Go through ensuring all systems are using 2.1.10@scheduler
 [*] Set RAILS_ENV for cron job
 [*] Test cron job on staging server
-[ ] Fix subject names in auto-generated groups.  Use the report name rather than the one with (S).
+[*] Fix subject names in auto-generated groups.  Use the report name rather than the one with (S).
 [*] Nick reports Drama Studio and Ingham Room have been duplicated.  Fix.  It seems that 41 new locations were created.  I should probably check them.
 [ ] Upgrade vps to latest code and data (best done tomorrow).
 [ ] What happens if I run the importer against an empty input file?

@@ -28,7 +28,7 @@ class MIS_Teachinggroup
 
   include Creator
 
-  attr_reader :datasource_id, :current, :subject
+  attr_reader :datasource_id, :current, :subject, :pupils
 
   def initialize(entry)
     @pupils = Array.new
