@@ -7,11 +7,14 @@ Created Wednesday 17 August 2016
 
 Things which need doing on the VPS.
 
-[ ] Latest version of source
-[ ] Check correct version of Ruby throughout.  Passenger.  RVM aliases etc.
-[ ] Config files in ~/etc
-[ ] New security key, held in config files.
-[ ] Outgoing e-mail configured
+[*] Latest version of source
+[*] Copy of latest d/b loaded.
+[*] Check correct version of Ruby throughout.  Passenger.  RVM aliases etc.
+[*] Config files in ~/etc
+[*] New security key, held in config files.
+[*] Outgoing e-mail configured
+[*] iSAMS import
+[ ] Google login
 [ ] Cron jobs
 [ ] Backups
-[ ] Google login
+
