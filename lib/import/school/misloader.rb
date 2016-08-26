@@ -143,6 +143,8 @@ class SB_Tutorgroup
   end
 end
 
+PSEUDO_SUBJECTS = ["Dept. Meeting", "Tutor Period", "Invigilation"]
+
 class SB_Subject
   attr_accessor :subject_code, :subject_name, :subject_ident, :type
 
@@ -150,7 +152,7 @@ class SB_Subject
     self.subject_code  = "Don't care"
     self.subject_name  = missubject.name
     self.subject_ident = missubject.isams_id
-    self.type          = :proper_subject
+    self.type          = PSEUDO_SUBJECTS.include?(missubject.name) ? :pseudo_subject : :proper_subject
   end
 
   def self.dump(mis_subjects)
