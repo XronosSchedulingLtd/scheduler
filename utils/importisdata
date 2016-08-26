@@ -52,7 +52,7 @@ if [ $? -eq 0 ]; then
     #
     #  And now invoke the import utility to bring the new data into Scheduler.
     #
-    ../../lib/import/misimport.rb | tee import.log
+    ../../lib/import/misimport.rb --quiet | tee import.log
     cp import.log $TARGET_DIR
     bzip2 -f $TARGET_DIR/import.log
   else

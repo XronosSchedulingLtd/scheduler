@@ -2,6 +2,7 @@
 class Options
 
   attr_reader :verbose,
+              :quiet,
               :full_load,
               :just_initialise,
               :send_emails,
@@ -27,6 +28,7 @@ class Options
     @just_initialise = false
     @send_emails     = false
     @do_timings      = false
+    @quiet           = false
     @era             = nil
     @start_date      = nil
     @ahead           = 0
@@ -41,6 +43,10 @@ class Options
 
       opts.on("-v", "--verbose", "Run verbosely") do |v|
         @verbose = v
+      end
+
+      opts.on("-q", "--quiet", "Run particularly quietly") do |q|
+        @quiet = q
       end
 
       opts.on("-f", "--full",
