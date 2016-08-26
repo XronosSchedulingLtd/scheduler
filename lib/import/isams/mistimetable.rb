@@ -625,7 +625,7 @@ class MIS_Schedule
     #
     #  And OH events.
     #
-    oh_events = ISAMS_OtherHalfEntry.construct(isams_data)
+    @oh_events = ISAMS_OtherHalfEntry.construct(isams_data)
     #
     @entries = lessons + meetings + year_events
     #
@@ -647,7 +647,7 @@ class MIS_Schedule
     @entries.each do |entry|
       entry.find_resources(loader)
     end
-    oh_events.each do |entry|
+    @oh_events.each do |entry|
       entry.find_resources(loader)
     end
   end
@@ -655,6 +655,24 @@ class MIS_Schedule
   def entry_count
     @entries.count
   end
+
+  #
+  #  Note that we are deliberately over-riding this method from its
+  #  earlier definition.  We need to do more, because we have the oh_events
+  #  to worry about too.
+  #
+  def note_hiatuses(loader, hiatuses)
+    @entries.each do |entry|
+      entry.note_hiatuses(loader, hiatuses)
+    end
+    #
+    #  This is the extra bit.
+    #
+    @oh_events.each do |ohe|
+      ohe.note_hiatuses(loader, hiatuses)
+    end
+  end
+
 
 end
 
