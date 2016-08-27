@@ -216,6 +216,9 @@ class ScheduleController < ApplicationController
       start_at = session[:last_start_date] || Time.zone.now
       @default_date = start_at.strftime("%Y-%m-%d")
       @show_jump = true
+      respond_to do |format|
+        format.html
+      end
     end
   end
 
