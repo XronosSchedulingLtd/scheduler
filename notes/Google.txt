@@ -28,3 +28,5 @@ GOOGLE_CLENT_SECRET="the secret which you copied"
 export GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
 
 and restart the app.  You should now be able to log in through google.
+
+28th Aug, 2016.  Something new.  It now seems that you need to enable the API before logging in will work.  There's an "Enable" button on the main dashboard page of the developer console.  I'm trying that, but there may be more needed too.  No - that seemed to be enough.

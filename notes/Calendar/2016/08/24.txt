@@ -33,3 +33,12 @@ It may be that I broke this a while ago.  I was fiddling around with getting new
 Do seem - I hope - to have fixed the off-by-an-hour problem.
 
 Looking at that long path specification above, I'm fine up to the passenger-5.0.29 bit, but the src directory isn't there, which is odd.  Go into that gemset and explicitly re-install passenger 5.0.29.  Now it's there again.  Will nginx work?  It seems to.  Not sure how I managed to partially uninstall that gem.  Probably needs tidying up at some point.
+
+All now seems to be working.  Jobs still to do for Niki:
+
+[*] Get him logged in to the VPS
+[*] Set up a cron job on the VPS to update things
+[ ] Set up Google login for VPS
+[*] Dump database on mach2
+
+
