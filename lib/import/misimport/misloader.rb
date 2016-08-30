@@ -11,7 +11,9 @@ class MIS_Loader
               :subject_hash,
               :teachinggroup_hash,
               :ohgroups,
-              :oh_groups_hash
+              :oh_groups_hash,
+              :timetable,
+              :event_source
 
   def read_mis_data(options)
     @options = options
@@ -82,6 +84,8 @@ class MIS_Loader
       @customgroup_hash[cg.source_id_str] = cg
 #      cg.report
     end
+    @covers = MIS_Cover.construct(self, whatever)
+    puts "Got #{@covers.size} cover records." if options.verbose
   end
 
   def initialize(options)
@@ -1096,4 +1100,116 @@ class MIS_Loader
       puts "Added #{tgmember_loaded_count} pupils to tag groups."
     end
   end
+
+  #
+  #  Add cover to existing lessons.
+  #
+  def do_cover
+    covers_added = 0
+    covers_amended = 0
+    covers_deleted = 0
+    invigilations_added = 0
+    invigilations_amended = 0
+    invigilations_deleted = 0
+    cover_clashes = []
+    cover_oddities = []
+    covers_processed = 0
+    invigilations_processed = 0
+    #
+    #  First group all the proposed covers by date.
+    #
+    covers_by_date = Hash.new
+    invigilations_by_date = Hash.new
+    max_cover_date = MIS_Cover.last_existing_cover_date(@start_date)
+    max_invigilation_date = @start_date
+    @covers.each do |sc|
+      covers_processed += 1
+      if covers_by_date[sc.date]
+        covers_by_date[sc.date] << sc
+      else
+        covers_by_date[sc.date] = [sc]
+        if sc.date > max_cover_date
+          max_cover_date = sc.date
+        end
+      end
+    end
+    #
+    #  Now for the actual processing.  Note that we may well not do these
+    #  in date order, but that shouldn't actually matter.
+    #
+    #  Second thought - we do need to do them in order, because we need
+    #  to process even those dates where we haven't been given any cover
+    #  records.  There may be one in our d/b on that date which needs
+    #  removing.
+    #
+    @start_date.upto(max_cover_date) do |date|
+      mis_covers = covers_by_date[date] || []
+      #
+      #  Now need to get the existing covers for this date and check
+      #  that they match.
+      #
+      existing_covers =
+        Commitment.commitments_on(startdate: date,
+                                  include_nonexistent: true).covering_commitment
+      mis_ids = mis_covers.collect {|mc| mc.source_id}.uniq
+      db_ids = existing_covers.collect {|ec| ec.source_id}.uniq
+      db_only = db_ids - mis_ids
+      db_only.each do |db_id|
+        #
+        #  It's possible there's more than one db record with the same
+        #  id - for historical reasons this may be nil.  Need to get rid
+        #  of all of them.
+        #
+        if @verbose
+          puts "Deleting covers with source_id #{db_id ? db_id : "nil"}."
+        end
+        existing_covers.select {|ec| ec.source_id == db_id}.each do |ec|
+          ec.destroy
+          covers_deleted += 1
+        end
+      end
+      mis_covers.each do |mc|
+        added, amended, deleted, clashes, oddities = mc.ensure_db(self)
+        covers_added += added
+        covers_amended += amended
+        covers_deleted += deleted
+        cover_clashes += clashes
+        cover_oddities += oddities
+      end
+    end
+    if covers_added > 0 || @verbose
+      puts "Added #{covers_added} instances of cover."
+    end
+    if covers_amended > 0 || @verbose
+      puts "Amended #{covers_amended} instances of cover."
+    end
+    if covers_deleted > 0 || @verbose
+      puts "Deleted #{covers_deleted} instances of cover."
+    end
+    if invigilations_added > 0 || @verbose
+      puts "Added #{invigilations_added} instances of invigilation."
+    end
+    if invigilations_amended > 0 || @verbose
+      puts "#{invigilations_amended} amendments to instances of invigilation."
+    end
+    if invigilations_deleted > 0 || @verbose
+      puts "Deleted #{invigilations_deleted} instances of invigilation."
+    end
+    puts "Processed #{covers_processed} covers and #{invigilations_processed} invigilations."
+    if cover_clashes.size > 0 ||
+       cover_oddities.size > 0
+      puts "#{cover_clashes.size} apparent cover clashes."
+      puts "#{cover_oddities.size} apparent cover oddities."
+      if @send_emails
+        User.arranges_cover.each do |user|
+          UserMailer.cover_clash_email(user,
+                                       cover_clashes,
+                                       cover_oddities).deliver
+        end
+      end
+    else
+      puts "No apparent cover issues."
+    end
+  end
+
 end

@@ -614,6 +614,10 @@ class MIS_Schedule
       end
     end
     lessons = ISAMS_ScheduleEntry.construct(loader, timetable.entry)
+    @lessons_by_id = Hash.new
+    lessons.each do |lesson|
+      @lessons_by_id[lesson.isams_id] = lesson
+    end
     #
     #  Now get the meetings.
     #
@@ -650,6 +654,10 @@ class MIS_Schedule
     @oh_events.each do |entry|
       entry.find_resources(loader)
     end
+  end
+
+  def lesson_by_id(isams_id)
+    @lessons_by_id[isams_id]
   end
 
   def entry_count

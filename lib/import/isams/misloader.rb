@@ -17,7 +17,8 @@ class MIS_Loader
       ISAMS_ActivityGroupPupilLink,
       ISAMS_ActivityEvent,
       ISAMS_ActivityEventOccurrence,
-      ISAMS_ActivityEventTeacherLink
+      ISAMS_ActivityEventTeacherLink,
+      ISAMS_Cover
     ]
 
     def initialize(loader)
