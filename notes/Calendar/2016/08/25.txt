@@ -1,0 +1,21 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-08-25T17:03:07+01:00
+
+====== Thursday 25 Aug 2016 ======
+
+Jobs for tomorrow:
+
+[*] Fix importer niggle about duplicate membership records
+[*] Apply gaps to OH activities
+[*] Set up gaps for starts of coming terms
+[*] Google login for VPS
+[*] Dump d/b in cron job on VPS
+[*] Prepare Markbook end-of-year
+[ ] Accounts
+[*] Washing
+[*] Bread
+[*] Make list of early, small changes to Scheduler
+[*] Investigate invalid ICS requests for "/".
+[ ] New staff records have teaches and does_cover set to nil rather than false or true.
+
