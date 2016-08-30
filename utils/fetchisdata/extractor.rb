@@ -90,7 +90,8 @@ class DatabaseTable
     DatabaseTable.new("TblActivityManagerEventPupilLink", :all),
     DatabaseTable.new("TblActivityManagerEventTeacherLink", :all),
     DatabaseTable.new("TblActivityManagerGroup", :all),
-    DatabaseTable.new("TblActivityManagerGroupPupilLink", :all)
+    DatabaseTable.new("TblActivityManagerGroupPupilLink", :all),
+    DatabaseTable.new("TblCoverManagerCover", :all)
   ]
 
   def self.dump_tables(target_dir)
