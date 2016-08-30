@@ -52,7 +52,8 @@ class DatabaseTable
     client = TinyTds::Client.new(
       username: "AbingdonAccess",
       password: @@password,
-      dataserver: "isams",
+      host: "94.236.47.32",
+      port: 29347,
       database: "iSAMS_Abingdon")
     result = client.execute("SELECT #{columns} FROM #{@table_name};")
     fields = result.fields
