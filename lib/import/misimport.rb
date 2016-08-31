@@ -43,6 +43,7 @@ require_relative 'misimport/misteachinggroup.rb'
 require_relative 'misimport/miscustomgroup.rb'
 require_relative 'misimport/mistimetable.rb'
 require_relative 'misimport/misohgroup.rb'
+require_relative 'misimport/miscover.rb'
 #
 #  Not actually database.
 #
@@ -70,6 +71,7 @@ if current_mis
     require_relative 'isams/activityeventteacherlink.rb'
     require_relative 'isams/activitygroup.rb'
     require_relative 'isams/activitygrouppupillink.rb'
+    require_relative 'isams/covermanagercover.rb'
     require_relative 'isams/misloader.rb'
     require_relative 'isams/creator.rb'
     require_relative 'isams/mispupil.rb'
@@ -82,6 +84,7 @@ if current_mis
     require_relative 'isams/misohgroup.rb'
     require_relative 'isams/mishouse.rb'
     require_relative 'isams/missubject.rb'
+    require_relative 'isams/miscover.rb'
   elsif current_mis == "SchoolBase"
   else
     raise "Don't know how to handle #{current_mis} as our current MIS."
@@ -124,8 +127,8 @@ begin
       finished(options, "other half groups")
       loader.do_timetable
       finished(options, "timetable")
-#      loader.do_cover
-#      finished(options, "cover")
+      loader.do_cover
+      finished(options, "cover")
       loader.do_auto_groups
       finished(options, "automatic groups")
       loader.do_extra_groups
