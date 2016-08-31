@@ -28,7 +28,7 @@ class ISAMS_Cover
   end
 
   def wanted?
-    @complete
+    @complete && active
   end
 
   #
