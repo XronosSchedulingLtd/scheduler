@@ -1195,7 +1195,9 @@ class MIS_Loader
     if invigilations_deleted > 0 || @verbose
       puts "Deleted #{invigilations_deleted} instances of invigilation."
     end
-    puts "Processed #{covers_processed} covers and #{invigilations_processed} invigilations."
+    unless self.options.quiet
+      puts "Processed #{covers_processed} covers and #{invigilations_processed} invigilations."
+    end
     if cover_clashes.size > 0 ||
        cover_oddities.size > 0
       puts "#{cover_clashes.size} apparent cover clashes."
@@ -1208,7 +1210,7 @@ class MIS_Loader
         end
       end
     else
-      puts "No apparent cover issues."
+      puts "No apparent cover issues." unless self.options.quiet
     end
   end
 

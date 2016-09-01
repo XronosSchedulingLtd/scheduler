@@ -37,7 +37,9 @@ class ISAMS_Cover
   def self.construct(accumulator, import_dir)
     records, message = self.slurp(accumulator, import_dir, true)
     if records
-      puts "Got #{records.count} active cover records."
+      unless accumulator.loader.options.quiet
+        puts "Got #{records.count} active cover records."
+      end
       accumulator[:covers] = records.collect {|r| [r.ident, r]}.to_h
       true
     else
