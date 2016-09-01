@@ -55,6 +55,12 @@ if [ $? -eq 0 ]; then
     ../../lib/import/misimport.rb --quiet --email | tee import.log
     cp import.log $TARGET_DIR
     bzip2 -f $TARGET_DIR/import.log
+    #
+    #  Feed to markbook if configured.
+    #
+    if [ "$FEED_MARKBOOK" == "true" ]; then
+      rsync ../ForMarkbook/*.yml markbook:FromScheduler
+    fi
   else
     echo "Failed to fetch data from iSAMS d/b."
   fi
