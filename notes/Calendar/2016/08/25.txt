@@ -17,5 +17,5 @@ Jobs for tomorrow:
 [*] Bread
 [*] Make list of early, small changes to Scheduler
 [*] Investigate invalid ICS requests for "/".
-[ ] New staff records have teaches and does_cover set to nil rather than false or true.
+[*] New staff records have teaches and does_cover set to nil rather than false or true.
 

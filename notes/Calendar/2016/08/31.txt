@@ -1,0 +1,29 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-08-31T07:37:54+01:00
+
+====== Wednesday 31 Aug 2016 ======
+
+Still to do on the cover front.
+
+[*] Take note of the flags (published etc.) provided by iSAMS.
+[*] Check whether the clash processing code is producing suitable e-mails (and not crashing).
+[*] Cron job (commented out) on VPS.
+
+Start the day with a fresh copy of the live d/b on my test system, then load up today's files from iSAMS.
+
+For clashes, I propose to create two clashing covers, and one cover for a suspended lesson.
+
+Let's pick some clashing lessons, then have Charlotte cover one of Martin's suspended lessons.
+
+Thu 8/9 period 5.  Both Martin and Charlotte are teaching.  Put Charlotte to cover Martin's lesson.  Event 400175.  Lesson 16591.
+
+Trying it with just one clash to start with.  That seems to have produced an e-mail without difficulty.  Now let's try to add a cover for a suspended lesson.
+
+Martin's lesson in period 2 on Tue 6/9.  Event 399521.  Lesson 16024.  Set Amy Atkinson to cover it.  Should lead to two diagnostics, because it overlaps with head's assembly.
+
+No - it gives only one diagnostic because Amy's cover commitment is to a suspended lesson.  This doesn't cause a clash.  Good.  Now I just need some real covers from Ian.
+
+New job
+
+[ ] Set up Xronos server as an IMAP server and outgoing relay to sign outgoing e-mails appropriately.

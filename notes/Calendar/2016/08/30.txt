@@ -1,0 +1,22 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-08-30T07:42:23+01:00
+
+====== Tuesday 30 Aug 2016 ======
+
+Just noticed something nasty in the API documentation.  AFAICS, the API does not actually provide any information about cover slots which have been arranged.  It provides meta-data about who might do cover and why, but not the cover instances themselves.  That's a blow.  If correct (and the iSAMS documentation isn't always correct) then it will mean I need to reverse engineer the actual tables somehow.  Damn!
+
+I do have a list of all the tables, and TblCoverManagerEvents looks vaguely hopeful.  Perhaps I should add that to my daily download.  Also TblCoverManagerCover.  I could also run my help utility to query the columns in all the TblCoverManager* tables.  CoverManagerCover seems to be the right table.  Does it have any rows?  Yes, it seems it does.
+
+Let's add that table to my existing dumper and re-run the overnight import.  Seem to have it.
+
+OK - since Ian has not provided any covers for me to work on, I'll try to fake one in.  Let's pick a maths lesson just for fun, perhaps one of Martin's.  Charlotte McCutcheon can cover it, as I have an entry for her in the covers already (albeit in the past).
+
+Martin is teaching his fifth form set on Wed 7/9 in period 4.  Event 399969.  Source hash is "Lesson 18496".  What is that in iSAMS d/b speak?  That does indeed seem to be the Schedule ID.  Excellent.  Let's change Charlotte's cover to try to match it.  Seem to have managed to read it in and recognise it as a future cover.  Now need to create a portable cover record.  How does the existing cover code work?  What do I need to know in order to enter a cover commitment?
+
+* Which lesson is being covered?
+* Who is doing the cover?
+
+Is that it?  Seems to be.  I might want to add something for room cover later - my data structures will accommodate that just fine.  The "Which lesson is being covered?" bit just needs a date and a lesson ID.  Seems too simple.
+
+Good grief - it seems to be working.
