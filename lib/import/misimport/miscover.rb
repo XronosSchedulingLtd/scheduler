@@ -226,7 +226,7 @@ class MIS_Cover
                        eventsource_id(loader.event_source.id).
                        source_hash(@lesson_source_hash).take
       if dblesson
-        puts "Found the corresponding lesson."
+#        puts "Found the corresponding lesson."
         #
         #  Need to find the commitment by the covered teacher
         #  to the indicated lesson.
