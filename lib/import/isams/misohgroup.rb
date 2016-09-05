@@ -2,6 +2,12 @@ class MIS_Otherhalfgroup
 
   attr_reader :datasource_id, :current, :subject, :isams_id
 
+  #
+  #  iSAMS OH groups have an explicit start date.  It may change, so
+  #  allow it to be updated.
+  #
+  add_fields(:FIELDS_TO_UPDATE, [:starts_on])
+
   def initialize(entry)
     @pupils = Array.new
     @name = entry.name
