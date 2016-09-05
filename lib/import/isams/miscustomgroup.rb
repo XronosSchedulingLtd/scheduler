@@ -60,7 +60,8 @@ class MIS_Customgroup
     IsamsField["CategoryId", :category_id, :data,      :integer],
     IsamsField["Shared",     :shared_flag, :data,      :integer],
     IsamsField["ExpiryDate", :expiry_date, :data,      :string],
-    IsamsField["Author",     :user_code,   :data,      :string]
+    IsamsField["Author",     :user_code,   :data,      :string],
+    IsamsField["Deleted",    :deleted,     :data,      :integer]
   ]
 
   include Creator
@@ -123,7 +124,7 @@ class MIS_Customgroup
 #      puts "user_code = #{self.user_code}."
 #      puts "Would be #{@owner_staff ? @owner_staff.name : "Unknown"}."
 #    end
-    @owner != nil
+    @owner != nil && @deleted != 1
   end
 
   def add_pupil(pupil)
