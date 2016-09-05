@@ -1,0 +1,53 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-09-05T06:34:59+01:00
+
+====== Monday 05 Sep 2016 ======
+
+Interesting things to look at this morning:
+
+[*] VPS is I think running slightly out of date code.  Logs finding cover lessons
+[*] Harry Batchelor seems to belong to two separate custom groups of the same name - both created by Andy Broadbent.
+[*] Failed to add Harry Batchelor (and a number of others) to "U14 Rugby" - an OH group.
+[ ] Now have the prep timetable, so can enter it into Markbook.
+
+It looks like the problem of failing to add Harry Batchelor to U14 Rugby may be an error in my code.  He is down to be a member of the group, but not until the 6th of September (i.e. tomorrow) when the group starts its existence.  I suspect I am probably checking whether he is a member today, hence the attempt to re-add him.
+
+From a quick glance at the code, I do seem to be trying to take into account future groups.  Presumably I have made an error.
+
+If I find that group and call ''g.members.count'' I get back 89.  If I do ''g.members(Date.today).count'' I get back 0.  And if I use tomorrow's date I get back 89.  All seems as expected.  My loader code does seem to pass an explicit date.  There are 89 error messages, so the problem applies to all of them.
+
+Why just this OH group?  Is it in fact date related?
+
+Add some debug code, dump my current d/b, then try running the loader.  Debug code indicates that the group has no members on the indicated date.  Odd.  Why?  Does the problem repeat?  Ah - my calculation code indicates that the start date is 5th September - today.  That explains why the members aren't found.  Has the start date for the group changed?  No.
+
+The iSAMS file seems to think the group starts on 5th September.  My database thinks the 6th - how has that happened?
+
+I note that the starts_on field for a group is in the list of FIELDS_TO_CREATE, but not in the list of FIELDS_TO_UPDATE.  Has it perhaps changed for this group at some time.  Yes - on the 14th of August it had a start date of 6th of September.  Somewhere in between it has changed.  My code should presumably cope with this.
+
+Interestingly, the existing ''add_member()'' method in the groups model should (in theory) work fine.  If asked to add someone as a member on the 5th, where there is an existing membership record on the 6th, it will adjust appropriately.  Let's try just adding the starts_on field to the list of things to update.  Will that affect anything else?
+
+Yes - it has a catastrophic effect on everything else.  Most groups do not include a starts_on date when they come from the MIS, so we use the loading date.  It is then expected to remain unchanged.  What we'll need to do is add that field as an explicit extra for the OH groups coming from iSAMS.  I don't think I have any code which will cause membership records to be adjusted automatically when the group start date is set to later.  Let's check.  No - can't see any.
+
+Let's reverse out my last change, then try to add the update for just iSAMS OH groups.  That seems to work.  It has even adjusted the membership records back to the new start date.  This happens not as a result of changing the groups start date, but as a result of subsequently trying to add the pupils again.  The add code correctly recognizes that there is already a membership record in place and simply adjusts its start date.  Excellent.
+
+Now let's check Andy's custom groups.  Does he really have two current custom groups with the same name?  I believe they have different start dates.  Name is "U14 Rugby M16 (Trips)".  Yes, indeed I have two.  Both are Tag groups.
+
+First one was created on 3/9/16 and has a source_id_str of 81.
+Second one was created on 5/9/16 and has a source_id_str of 84.
+
+I may have added the "Trips" bit to the name.  Harry Batchelor seems to be a member of both, each from its inception.  Now custom groups come down through the API - in the .xml file.  Take a look there.
+
+There is a flag on these groups called "ExpiryDisable".  Some have that set to 0 and some 1.  Those with a 0 seem to have also an ExpiryDate field.  Does a 1 mean the group has expired?  Can I still access the API documentation?  Wow - I can!  They seem to have failed to disable my account.  Excellent.
+
+Got the relevant page.  A value of 1 seems to indicate that there is no expiry date.  One of his groups is shared and the other isn't.  Both have the same 100 members.  Both have their expiry dates disabled.  The first was created in iSAMS on 1/9 and the second on 4/9.  I think I'll ask Andy.
+
+I notice I'm not currently doing anything with the expiry date of a group.  I wonder what happens to one when it expires?
+
+Ah - there is a deleted flag in the API definition.  It's missing usually, but present and set to 1 when a group has been deleted.  I should be taking account of that in my code.  There is for instance on called "TM 19/11/16" belonging to Tess Sexon which has been deleted.  It should have gone from Scheduler, and hasn't.  Fix code.
+
+My code now says it is deleting tag groups, but should it actually be deleting them?  Is it actually deleting them?  I would expect it merely to mark them as over.  Ah, it has indeed marked them as over.  Excellent.  Another code change which can be promoted to live.
+
+I notice that some of the groups also have an expiry date in the past.  Should I mark those as over too?  I don't think I need to go back in time and delete them back then, but presumably there's no point in them still cluttering up my system.  Try that as a test change too.  Bear in mind that many of them have no ExpiryDate field.
+
+That code seems to work too.  Promote it.
