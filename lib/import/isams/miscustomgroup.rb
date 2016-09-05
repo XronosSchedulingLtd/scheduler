@@ -54,14 +54,15 @@ end
 class MIS_Customgroup
   SELECTOR = "PupilManager CustomPupilGroups CustomPupilGroup"
   REQUIRED_FIELDS = [
-    IsamsField["Id",         :isams_id,    :attribute, :integer],
-    IsamsField["AuthorID",   :author_id,   :attribute, :integer],
-    IsamsField["Name",       :isams_name,  :data,      :string],
-    IsamsField["CategoryId", :category_id, :data,      :integer],
-    IsamsField["Shared",     :shared_flag, :data,      :integer],
-    IsamsField["ExpiryDate", :expiry_date, :data,      :string],
-    IsamsField["Author",     :user_code,   :data,      :string],
-    IsamsField["Deleted",    :deleted,     :data,      :integer]
+    IsamsField["Id",            :isams_id,        :attribute, :integer],
+    IsamsField["AuthorID",      :author_id,       :attribute, :integer],
+    IsamsField["Name",          :isams_name,      :data,      :string],
+    IsamsField["CategoryId",    :category_id,     :data,      :integer],
+    IsamsField["Shared",        :shared_flag,     :data,      :integer],
+    IsamsField["ExpiryDate",    :expiry_date,     :data,      :string],
+    IsamsField["ExpiryDisable", :expiry_disabled, :data,      :integer],
+    IsamsField["Author",        :user_code,       :data,      :string],
+    IsamsField["Deleted",       :deleted,         :data,      :integer]
   ]
 
   include Creator
@@ -117,6 +118,30 @@ class MIS_Customgroup
     end
   end
 
+  def owned?
+    @owner != nil
+  end
+
+  def deleted?
+    @deleted == 1
+  end
+
+  def expired?
+    #
+    #  Missing strings come through as "".  Missing values as nil.
+    #
+    if @expiry_date.blank? || @expiry_disabled == 1
+      false
+    else
+      date = Date.parse(@expiry_date)
+      if date < loader.start_date
+        true
+      else
+        false
+      end
+    end
+  end
+
   def wanted
 #    if @owner == nil
 #      puts "Dropping custom group #{self.name} for lack of an owner."
@@ -124,7 +149,7 @@ class MIS_Customgroup
 #      puts "user_code = #{self.user_code}."
 #      puts "Would be #{@owner_staff ? @owner_staff.name : "Unknown"}."
 #    end
-    @owner != nil && @deleted != 1
+    self.owned? && !self.deleted? && !self.expired?
   end
 
   def add_pupil(pupil)
