@@ -1,16 +1,18 @@
 class ISAMS_ScheduleEntry
 
   SUBJECT_CODES = {
-    "Bi" => "Biology",
-    "En" => "English",
-    "Fr" => "French",
-    "Gg" => "Geography",
-    "Hi" => "History",
-    "La" => "Latin",
-    "Ma" => "Mathematics",
-    "Mu" => "Music",
-    "RS" => "Religious Studies",
-    "Sc" => "Science"
+    "Bi"  => "Biology",
+    "BtB" => "Be the Best",
+    "En"  => "English",
+    "Fr"  => "French",
+    "Gg"  => "Geography",
+    "Hi"  => "History",
+    "La"  => "Latin",
+    "Li"  => "Reading & Research",
+    "Ma"  => "Mathematics",
+    "Mu"  => "Music",
+    "RS"  => "Religious Studies",
+    "Sc"  => "Science"
   }
 
   def find_subject(loader)
