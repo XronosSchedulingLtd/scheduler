@@ -10,7 +10,8 @@ class Options
               :era,
               :start_date,
               :ahead,
-              :do_convert
+              :do_convert,
+              :check_recurring
 
   #
   #  These next two are intended to be over-ridden by MIS-specific
@@ -29,6 +30,7 @@ class Options
     @send_emails     = false
     @do_timings      = false
     @quiet           = false
+    @check_recurring = false
     @era             = nil
     @start_date      = nil
     @ahead           = 0
@@ -47,6 +49,13 @@ class Options
 
       opts.on("-q", "--quiet", "Run particularly quietly") do |q|
         @quiet = q
+      end
+
+      opts.on("-c", "--check",
+              "Check the YAML files used for recurring",
+              "events and report any problems.  Do no",
+              "further processing.") do |c|
+        @check_recurring = c
       end
 
       opts.on("-f", "--full",

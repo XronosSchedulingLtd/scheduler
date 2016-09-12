@@ -30,6 +30,8 @@ require_relative '../../config/environment'
 require_relative 'misimport/options.rb'
 require_relative 'misimport/misrecord.rb'
 require_relative 'misimport/misgroup.rb'
+require_relative 'misimport/parserecurring.rb'
+
 #
 #  Actual identifiable database things.
 #
@@ -113,30 +115,41 @@ begin
   MIS_Loader.new(options) do |loader|
     unless options.just_initialise
       finished(options, "initialisation")
-      loader.do_pupils
-      finished(options, "pupils")
-      loader.do_staff
-      finished(options, "staff")
-      loader.do_locations
-      finished(options, "locations")
-      loader.do_tutorgroups
-      finished(options, "tutor groups")
-      loader.do_teachinggroups
-      finished(options, "teaching groups")
-      loader.do_otherhalfgroups
-      finished(options, "other half groups")
-      loader.do_timetable
-      finished(options, "timetable")
-      loader.do_cover
-      finished(options, "cover")
-      loader.do_auto_groups
-      finished(options, "automatic groups")
-      loader.do_extra_groups
-      finished(options, "extra groups")
-      loader.do_duties
-      finished(options, "duties")
-      loader.do_customgroups
-      finished(options, "customgroups")
+      if options.check_recurring
+        loader.check_recurring
+        finished(options, "checking recurring files")
+      else
+        if false
+        loader.do_pupils
+        finished(options, "pupils")
+        loader.do_staff
+        finished(options, "staff")
+        loader.do_locations
+        finished(options, "locations")
+        loader.do_tutorgroups
+        finished(options, "tutor groups")
+        loader.do_teachinggroups
+        finished(options, "teaching groups")
+        loader.do_otherhalfgroups
+        finished(options, "other half groups")
+        loader.do_timetable
+        finished(options, "timetable")
+        loader.do_cover
+        finished(options, "cover")
+        loader.do_auto_groups
+        finished(options, "automatic groups")
+        loader.do_extra_groups
+        finished(options, "extra groups")
+        end
+  #      loader.do_duties
+  #      finished(options, "duties")
+        loader.do_recurring_events
+        finished(options, "recurring events")
+        if false
+        loader.do_customgroups
+        finished(options, "customgroups")
+        end
+      end
     end
   end
 rescue RuntimeError => e

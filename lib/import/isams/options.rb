@@ -14,10 +14,5 @@ class Options
       @timetable_name = t
     end
 
-    opts.on("-c", "--check",
-            "Check that iSAMS pupil IDs match the SB",
-            "ones.") do |c|
-      @do_check = c
-    end
   end
 end

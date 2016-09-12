@@ -1021,6 +1021,113 @@ class MIS_Loader
     end
   end
 
+  def do_recurring_events
+    puts "Processing recurring events" if @verbose
+    events_added_count = 0
+    events_deleted_count = 0
+    resources_added_count = 0
+    resources_removed_count = 0
+    #
+    #  First we need to load the events from files.
+    #
+    res = RecurringEventStore.new
+    Dir[Rails.root.join(IMPORT_DIR, "Recurring", "*.yml")].each do |filename|
+      begin
+        res.note_events(RecurringEvent.readfile(filename).select {|e| e.find_resources})
+      rescue Exception => e
+        puts "Error processing #{filename}"
+        puts e
+      end
+    end
+    @start_date.upto(@era.ends_on) do |date|
+      puts "Processing #{date}" if @verbose
+      week_letter = get_week_letter(date)
+      if week_letter &&
+        events = res.events_on(date, week_letter)
+        existing_events = Event.events_on(date, date, nil, @yaml_source)
+        #
+        #  We count duties from our input file and the database as being
+        #  the same one if they have the same title, the same start time
+        #  the same end time and the same category.
+        #
+        events.each do |event|
+          starts_at =
+            Time.zone.parse("#{date.to_s} #{event.starts}")
+          ends_at =
+            Time.zone.parse("#{date.to_s} #{event.ends}")
+          existing_event = existing_events.detect {|ed|
+            ed.body      == event.title &&
+            ed.starts_at == starts_at &&
+            ed.ends_at   == ends_at &&
+            ed.eventcategory == event.eventcategory
+          }
+          if existing_event
+            #
+            #  Remove from the array.  We will deal with any leftovers
+            #  at the end.
+            #
+            existing_events = existing_events - [existing_event]
+          else
+            #
+            #  Event needs creating in the database.
+            #
+            existing_event = Event.new
+            existing_event.body = event.title
+            existing_event.eventcategory = event.eventcategory
+            existing_event.eventsource   = @yaml_source
+            existing_event.starts_at     = starts_at
+            existing_event.ends_at       = ends_at
+            existing_event.save!
+            existing_event.reload
+            events_added_count += 1
+          end
+          #
+          #  Now check that the resources match.
+          #
+          requested_ids = event.resource_ids
+          current_ids = existing_event.elements.collect {|e| e.id}
+          to_add = requested_ids - current_ids
+          de_trop = current_ids - requested_ids
+          to_add.each do |id|
+#            puts "Adding element with id #{id}."
+            c = Commitment.new
+            c.event_id = existing_event.id
+            c.element_id = id
+            c.save!
+            resources_added_count += 1
+          end
+          if de_trop.size > 0
+            existing_event.commitments.each do |c|
+              if de_trop.include?(c.element_id)
+                c.destroy
+                resources_removed_count += 1
+              end
+            end
+          end
+        end
+        #
+        #  Any of the existing events left?
+        #
+        existing_events.each do |ed|
+          ed.destroy
+          events_deleted_count += 1
+        end
+      end
+    end
+    if events_added_count > 0 || @verbose
+      puts "Added #{events_added_count} recurring events."
+    end
+    if events_deleted_count > 0 || @verbose
+      puts "Deleted #{events_deleted_count} recurring events."
+    end
+    if resources_added_count > 0 || @verbose
+      puts "Added #{resources_added_count} resources to recurring events."
+    end
+    if resources_removed_count > 0 || @verbose
+      puts "Removed #{resources_removed_count} resources from recurring events."
+    end
+  end
+
   #
   #  The name "Tag Groups" comes from SchoolBase, but they can be any
   #  kind of ad-hoc group which your MIS lets individual users set up.
