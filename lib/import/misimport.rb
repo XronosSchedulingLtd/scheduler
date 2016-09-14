@@ -119,7 +119,6 @@ begin
         loader.check_recurring
         finished(options, "checking recurring files")
       else
-        if false
         loader.do_pupils
         finished(options, "pupils")
         loader.do_staff
@@ -140,15 +139,10 @@ begin
         finished(options, "automatic groups")
         loader.do_extra_groups
         finished(options, "extra groups")
-        end
-  #      loader.do_duties
-  #      finished(options, "duties")
         loader.do_recurring_events
         finished(options, "recurring events")
-        if false
         loader.do_customgroups
         finished(options, "customgroups")
-        end
       end
     end
   end
