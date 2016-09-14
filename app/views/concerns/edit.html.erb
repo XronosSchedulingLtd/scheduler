@@ -2,7 +2,12 @@
 <p>
   Unique ID: <%= @concern.element_id %><br/>
   Type: <%= @concern.element.description %>
-  <%= link_to "Full details", element_path(@concern.element) %>
+<%= link_to "Full details", element_path(@concern.element) %>
+<% if @concern.element.owned %>
+  <br/>
+  Approvals: <%= @concern.element.owners.collect {|u| u.name }.join(", ") %>
+<% end %>
+
 </p>
 <hr/>
 <h3>Appearance</h3>
