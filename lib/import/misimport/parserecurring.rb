@@ -343,11 +343,11 @@ class RecurringEventStore
         #  date
         #
         events = events.select {|e| e.active_on?(date) }
-      else
-        puts "No events on #{weekday}s in week #{week}."
+#      else
+#        puts "No events on #{weekday}s in week #{week}."
       end
-    else
-      puts "No events in week #{week}."
+#    else
+#      puts "No events in week #{week}."
     end
     events
   end

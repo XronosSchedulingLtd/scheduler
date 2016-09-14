@@ -1031,7 +1031,7 @@ class MIS_Loader
     #  First we need to load the events from files.
     #
     res = RecurringEventStore.new
-    Dir[Rails.root.join(IMPORT_DIR, "Recurring", "*.yml")].each do |filename|
+    Dir[Rails.root.join(IMPORT_DIR, "recurring", "*.yml")].each do |filename|
       begin
         res.note_events(RecurringEvent.readfile(filename).select {|e| e.find_resources})
       rescue Exception => e
@@ -1044,7 +1044,13 @@ class MIS_Loader
       week_letter = get_week_letter(date)
       if week_letter &&
         events = res.events_on(date, week_letter)
-        existing_events = Event.events_on(date, date, nil, @yaml_source)
+        existing_events = Event.events_on(date,
+                                          date,
+                                          nil,
+                                          @yaml_source,
+                                          nil,
+                                          nil,
+                                          true)
         #
         #  We count duties from our input file and the database as being
         #  the same one if they have the same title, the same start time
@@ -1067,6 +1073,13 @@ class MIS_Loader
             #  at the end.
             #
             existing_events = existing_events - [existing_event]
+            #
+            #  Check its greyed-ness is right.
+            #
+            if existing_event.non_existent != event.greyed
+              existing_event.non_existent = event.greyed
+              existing_event.save!
+            end
           else
             #
             #  Event needs creating in the database.
@@ -1077,6 +1090,7 @@ class MIS_Loader
             existing_event.eventsource   = @yaml_source
             existing_event.starts_at     = starts_at
             existing_event.ends_at       = ends_at
+            existing_event.non_existent  = event.greyed
             existing_event.save!
             existing_event.reload
             events_added_count += 1
