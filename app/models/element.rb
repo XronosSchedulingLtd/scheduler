@@ -328,6 +328,14 @@ class Element < ActiveRecord::Base
                                   include_nonexistent: include_nonexistent)
   end
 
+  #
+  #  Provide a short description of the kind of entity which we
+  #  represent, allowing the entity itself potentially to add more.
+  #
+  def kind_of_entity
+    "#{self.entity_type}#{self.entity.more_type_info}"
+  end
+
   def short_name
     entity.short_name
   end

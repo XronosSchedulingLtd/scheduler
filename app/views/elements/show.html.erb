@@ -1,15 +1,10 @@
 <p id="notice"><%= notice %></p>
 
-<h1>Showing element</h1>
-
-<p>
-  <strong>Name:</strong>
-  <%= @element.name %>
-</p>
+<h1>Details of <%= @element.name %></h1>
 
 <p>
   <strong>Type:</strong>
-  <%= @element.entity_type %>
+  <%= @element.kind_of_entity %>
 </p>
 
 <p>
@@ -17,11 +12,6 @@
   <%= @element.current %>
 </p>
 
-<h2>Memberships</h2>
-
-<%= render @mwd_set %>
-
-<p>Detailed information about the element</p>
 <div class="row">
   <div class="small-12 medium-6 large-4 columns">
     <h3>General information</h3>
@@ -34,6 +24,15 @@
   <div class="small-12 medium-6 large-4 columns">
     <h3>Members</h3>
     Appears only for groups.
+  </div>
+</div>
+
+<div class="row">
+  <div class="large-12 columns">
+
+    <h3>Membership history</h3>
+
+    <%= render @mwd_set %>
   </div>
 </div>
 
