@@ -49,6 +49,17 @@ class UserMailer < ActionMailer::Base
     mail(to: email, subject: "Event now complete")
   end
 
+  def resource_requested_email(owner, resource, event)
+    @resource = resource
+    @event = event
+    if @event.organiser
+      @name = @event.organiser.entity.name
+    else
+      @name = @event.owner.name
+    end
+    mail(to: owner.email, subject: "Request for #{resource.name}")
+  end
+
   def pending_approvals_email(email, user_set)
     @user_set = user_set
     mail(to: email, subject: "Pending event approvals")

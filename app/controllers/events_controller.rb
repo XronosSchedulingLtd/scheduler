@@ -198,6 +198,7 @@ class EventsController < ApplicationController
   def update
     respond_to do |format|
       if @event.update(event_params)
+        send_notifications_for(@event)
         @success = true
         @notes = @event.all_notes_for(current_user)
         @files = Array.new
@@ -353,18 +354,34 @@ class EventsController < ApplicationController
 
   private
 
-    def authorized?(action = action_name, resource = nil)
-      (logged_in? && current_user.create_events?) ||
-      action == 'show' || action == "search"
+  #
+  #  Called when a user has finished editing an event.  Sends any
+  #  notifications needed for requested resources, provided the administrator
+  #  of said resource has requested immediate notification.
+  #
+  def send_notifications_for(event)
+    event.commitments.tentative.not_rejected.each do |c|
+      resource = c.element
+      resource.owners.each do |owner|
+        if owner.immediate_notification
+          UserMailer.resource_requested_email(owner, resource, event).deliver
+        end
+      end
     end
+  end
 
-    # Use callbacks to share common setup or constraints between actions.
-    def set_event
-      @event = Event.find(params[:id])
-    end
+  def authorized?(action = action_name, resource = nil)
+    (logged_in? && current_user.create_events?) ||
+    action == 'show' || action == "search"
+  end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def event_params
-      params.require(:event).permit(:body, :eventcategory_id, :eventsource_id, :owner_id, :integer, :starts_at_text, :ends_at_text, :all_day_field, :approximate, :non_existent, :private, :reference_id, :reference_type, :new_end, :organiser_name, :organiser_id, :organiser_ref, :precommit_element_id)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_event
+    @event = Event.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def event_params
+    params.require(:event).permit(:body, :eventcategory_id, :eventsource_id, :owner_id, :integer, :starts_at_text, :ends_at_text, :all_day_field, :approximate, :non_existent, :private, :reference_id, :reference_type, :new_end, :organiser_name, :organiser_id, :organiser_ref, :precommit_element_id)
+  end
 end

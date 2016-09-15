@@ -20,6 +20,15 @@ class SessionsController < ApplicationController
     redirect_to root_url, :notice => "Signed out"
   end
 
+  def failure
+    #
+    #  Could do with some info.
+    #
+    Rails.logger.debug("Login failed")
+    Rails.logger.debug(request.env["omniauth.auth"].inspect)
+    redirect_to root_url, :notice => "Login failed"
+  end
+
   #
   #  A request to chage the user id for this session.  A testing tool.
   #  Should perhaps restrict it to the development environment only.

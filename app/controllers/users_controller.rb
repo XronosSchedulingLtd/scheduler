@@ -120,6 +120,7 @@ class UsersController < ApplicationController
                       :privileged,
                       :public_groups,
                       :email_notification,
+                      :immediate_notification,
                       :can_has_groups,
                       :can_find_free,
                       :can_add_concerns,
@@ -132,6 +133,7 @@ class UsersController < ApplicationController
         params.require(:user).
                permit(:firstday,
                       :email_notification,
+                      :immediate_notification,
                       :preferred_event_category_id,
                       :colour_not_involved,
                       :default_event_text)
@@ -139,7 +141,8 @@ class UsersController < ApplicationController
         params.require(:user).
                permit(:firstday,
                       :colour_not_involved,
-                      :email_notification)
+                      :email_notification,
+                      :immediate_notification)
       end
     end
 end

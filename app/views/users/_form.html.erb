@@ -99,10 +99,14 @@
 <% end %>
 <div class="row">
 <% if current_user.admin || current_user.element_owner %>
-  <%= flag_group(f, 12, 6, "Preferences",
+  <%= flag_group(f, 12, 6, "Notifications",
                  [
                    {field: :email_notification,
-                    annotation: "Should the system send daily e-mail notifications of pending requests?"}
+                    prompt: "Daily",
+                    annotation: "Should the system send daily e-mail notifications of pending requests?"},
+                   {field: :immediate_notification,
+                    prompt: "Immediate",
+                    annotation: "Should the system send immediate e-mail notifications of resource requests?"}
                  ]) %>
 <% end %>
   <div class="small-12 medium-6 columns">
