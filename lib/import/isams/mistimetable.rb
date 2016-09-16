@@ -481,6 +481,146 @@ class ISAMS_DummyGroup
 
 end
 
+class ISAMS_TutorialEntry < MIS_ScheduleEntry
+
+  class TutorialPeriods
+    SELECTOR = "Periods Period"
+    REQUIRED_FIELDS = [
+      IsamsField["Id",                   :isams_id,   :attribute, :integer],
+      IsamsField["PeriodId",             :period_id,  :data,      :integer]
+    ]
+
+    include Creator
+
+    def initialize(entry)
+    end
+
+    def adjust
+    end
+
+    def self.construct(loader, inner_data)
+      periods = self.slurp(inner_data)
+    end
+
+  end
+
+  class TutorialTeachers
+    SELECTOR = "Teachers Teacher"
+    REQUIRED_FIELDS = [
+      IsamsField["Id",                   :isams_id,   :attribute, :integer],
+      IsamsField["TeacherId",            :teacher_id, :data,      :string]
+    ]
+
+    include Creator
+
+    def initialize(entry)
+    end
+
+    def adjust
+    end
+
+    def self.construct(loader, inner_data)
+      teachers = self.slurp(inner_data)
+    end
+
+
+  end
+
+
+  SELECTOR = "Tutorials Tutorial"
+  REQUIRED_FIELDS = [
+    IsamsField["Id",                     :isams_id,   :attribute, :integer],
+    IsamsField["DisplayCode",            :code,       :data,      :string],
+    IsamsField["DisplayName",            :name,       :data,      :string],
+    IsamsField["RoomId",                 :room_id,    :data,      :integer]
+  ]
+
+  include Creator
+
+  attr_reader :eventcategory
+
+  def initialize(entry)
+    @period_recs = TutorialPeriods.construct(loader, entry)
+    if @period_recs.size >= 1
+      @period_id = @period_recs[0].period_id
+      if @period_recs.size > 1
+        puts "Tutorial #{self.name} is scheduled for more than one period."
+      end
+    else
+      puts "Don't seem to have any period records."
+    end
+    @teachers = TutorialTeachers.construct(loader, entry)
+  end
+
+  def adjust
+    @eventcategory = Eventcategory.find_by(name: "Lesson")
+  end
+
+  def find_resources(loader)
+    @rooms = Array.new
+    room = loader.location_hash[@room_id]
+    if room
+      @rooms << room
+    end
+    @groups = Array.new
+    @staff = Array.new
+    @teachers.each do |teacher|
+      staff = loader.secondary_staff_hash[teacher.teacher_id]
+      if staff
+        @staff << staff
+      else
+        puts "Failed to find #{teacher.teacher_id}."
+      end
+    end
+  end
+
+  def note_period(period)
+    @period = period
+  end
+
+  def period_time
+    @period.period_time
+  end
+
+  def source_hash
+    #
+    #  Although numeric, return as a string.
+    #
+    "Tutorial #{@isams_id}"
+  end
+
+  def body_text
+    @name
+  end
+
+  def hash_key
+    "#{@name} period #{@period_id} location #{@room_id}"
+  end
+
+  #
+  #  What year group (in Scheduler's terms) are involved in this event.
+  #  Return 0 if we don't know, or have a mixture.
+  #
+  def yeargroup(loader)
+    0
+  end
+
+  def loader
+    self.class.loader
+  end
+
+  def self.construct(loader, inner_data)
+    @loader = loader
+    events = self.slurp(inner_data)
+  end
+
+  def self.loader
+    @loader
+  end
+
+end
+
+
 class ISAMS_YeargroupEntry < MIS_ScheduleEntry
   SELECTOR = "YearSchedules YearSchedule"
   REQUIRED_FIELDS = [
@@ -627,11 +767,15 @@ class MIS_Schedule
     #
     year_events = ISAMS_YeargroupEntry.construct(loader, timetable.entry)
     #
+    #  And tutorials.
+    #
+    tutorial_events = ISAMS_TutorialEntry.construct(loader, timetable.entry)
+    #
     #  And OH events.
     #
     @oh_events = ISAMS_OtherHalfEntry.construct(isams_data)
     #
-    @entries = lessons + meetings + year_events
+    @entries = lessons + meetings + year_events + tutorial_events
     #
     #  Now each timetable entry needs linking to the relevant day
     #  so that we given a date subsequently, we can work out what day
