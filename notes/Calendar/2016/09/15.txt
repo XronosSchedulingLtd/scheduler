@@ -1,0 +1,9 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-09-15T10:30:29+01:00
+
+====== Thursday 15 Sep 2016 ======
+
+Actually thinking about getting started on some code enhancements.  Short list in Wunderlist.  The interesting thing is just deciding which to get started on first.
+
+I'm playing around with improving the display of general information about an element.
