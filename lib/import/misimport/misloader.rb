@@ -567,7 +567,8 @@ class MIS_Loader
           #  Make sure each of these lessons exists in the d/b and
           #  at the right time.
           #
-          created_count, amended_count = lesson.ensure_db(date, @event_source)
+          created_count, amended_count =
+            lesson.ensure_db(date, @event_source, @verbose)
           event_created_count += created_count
           event_amended_count += amended_count
           #

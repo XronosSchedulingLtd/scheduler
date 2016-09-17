@@ -1,0 +1,19 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-09-14T10:33:11+01:00
+
+====== Wednesday 14 Sep 2016 ======
+
+Been away for a few days, but did a spot of coding whilst I was there on my laptop.  I've pretty much implemented some code to load generic recurring events from YAML files.  I just need to test it against the live system data, then make sure I have exactly the right files to get the desired results.
+
+Start by taking a fresh copy of the live system's data and input files and running the import script in full.
+
+Tried to produce a new-format file for the existing staff duty slots which should produce no changes at all.  That will mean I've got all the right staff.  Failed.  It deleted 1256 recurring events (because they were going on to the end of the year) but added 23 resources which I wasn't quite expecting.  Ah - hang on.  I think I may have unified the end-of-day slots.  There were two, and now there is one.  That would be just right for adding one member of staff to each afternoon slot.  Check it.
+
+I'm getting a log message "No events in week A/B".  Probably don't want that.
+
+The resource bit seems all correct.  Let's add in the other half of term, plus the library stuff.
+
+Ah - need to take account of gaps too.  Golly!  It's already happening.  Now idea how.  WTF?  As far as I can see there is no code at all to take account of half term.  Ah, yes there is - it has no week letter.  Need to do something about gaps too though.  Week letters will do for now though.
+
+OK - pushed that to live and done a load of just the recurring events on their own.  Now re-enabled everything else on my test system and running it again.  I'll need to push out the un-crippled loader before close of play today.

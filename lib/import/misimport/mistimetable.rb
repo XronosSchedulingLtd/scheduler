@@ -72,7 +72,7 @@ class MIS_ScheduleEntry
   #  categories, lesson name etc (see importsb.rb for missing functionality)
   #  but that is still to be added.
   #
-  def ensure_db(date, event_source)
+  def ensure_db(date, event_source, verbose = false)
     created_count = 0
     amended_count = 0
     period_time = self.period_time
@@ -94,22 +94,22 @@ class MIS_ScheduleEntry
       #
       changed = false
       if @dbrecord.starts_at != starts_at
-        puts "Start time for #{self.body_text} changed from #{@dbrecord.starts_at} to #{starts_at}."
+        puts "Start time for #{self.body_text} changed from #{@dbrecord.starts_at} to #{starts_at}." if verbose
         @dbrecord.starts_at = starts_at
         changed = true
       end
       if @dbrecord.ends_at != ends_at
-        puts "End time for #{self.body_text} changed from #{@dbrecord.ends_at} to #{ends_at}."
+        puts "End time for #{self.body_text} changed from #{@dbrecord.ends_at} to #{ends_at}." if verbose
         @dbrecord.ends_at = ends_at
         changed = true
       end
       if @dbrecord.non_existent != self.suspended_on?(date)
-        puts "Suspension state for #{self.body_text} at #{@dbrecord.starts_at} changed from #{@dbrecord.non_existent} to #{self.suspended_on?(date)}."
+        puts "Suspension state for #{self.body_text} at #{@dbrecord.starts_at} changed from #{@dbrecord.non_existent} to #{self.suspended_on?(date)}." if verbose
         @dbrecord.non_existent = self.suspended_on?(date)
         changed = true
       end
       if @dbrecord.body != self.body_text
-        puts "Name changed from #{@dbrecord.body} to #{self.body_text}."
+        puts "Name changed from #{@dbrecord.body} to #{self.body_text}." if verbose
         @dbrecord.body = self.body_text
         changed = true
       end

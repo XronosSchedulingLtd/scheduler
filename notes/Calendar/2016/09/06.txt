@@ -1,0 +1,90 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-09-06T06:35:00+01:00
+
+====== Tuesday 06 Sep 2016 ======
+
+Things to do today.
+
+[*] Check and sort Vodafone
+[*] Wash car
+[*] Waitrose - potatoes
+[*] Butcher - chops
+[*] Enter accounts
+[*] Transfer money
+[*] Automate updates on mach2 - somehow
+[*] Prep timetable, at least for maths
+[*] Dauphinoise potatoes.
+[ ] Finish off mail on Xronos - SpamAssassin?
+[*] Holiday euros
+[*] Check laptop contents and connectivity
+
+
+Just noticed something interesting in the processing of subjects coming from iSAMS.  Some of them do not follow the convention of having "(S)" on the end of their names to indicate that they are senior school subjects and so are getting dropped erroneously.  Perhaps I could reverse the test and just drop those with (P) in their names?
+
+I don't actually have a concept of subjects in Scheduler (do I?), but I want them for Markbook.
+
+I do use them to create groups of students for a subject, so let's see how many extra such groups are created.  I may be relying on the absence of subjects to prevent other things happening, although the lack of, for instance, DT doesn't seem to prevent their lessons getting into Scheduler.
+
+Interesting - the only subject which seems to have been affected as far as groups are concerned is "Mindsets".  Why not DT?  Is it now in the output file, along with BtB?  Yes, it is.  OK - try passing them over to Markbook.  Load all the stuff again.
+
+My test student is Jonathan Cai - a 2nd year.  He still doesn't seem to be a member of those sets.  Why not.
+
+2R DT3 and 2C BtB
+
+2R DT3 is now in the transfer file but gets rejected.  2C BtB isn't in the transfer file.  ISTR I had to do something clever to get those to be exported in the first place, because the iSAMS API is broken.  What did I do?  I used something which I termed a DummyMisGroup.  Why am I not getting one for 2C BtB?
+
+OK - time to start being systematic.
+
+[*] Take a 1st year and a 2nd year
+[*] Identify any gaps in their timetables in markbook.
+[*] Make a full list of missing sets.
+[*] Make sure they are in the transfer files
+[*] Make sure they get loaded.
+
+My 2nd year is Jonathan Cai.  My 1st year is Sam Andersson.
+
+Both seem to have a full schedule in Scheduler.
+
+Jonathan Cai lacks 2R DT3, 2C BtB, 2C Li, plus sport, which I'm not going to worry about.
+Sam Andersson lacks 1M BtB, 1R DT2, 1M Li, plus sport, ditto
+
+Seem very similar.  Now look at the transfer files.  The DT sets are there but the BtB and Li ones aren't.  Why?
+
+Could it be that I'm failing to identify the subject in Scheduler?  I still load the event, but I don't create a group.  Do I have a lookup table somewhere?  Yes, indeed I do.  Add the two missing ones.  Re-run and see whether it then links up to the subjects.  It should adjust the membership of the groups in Scheduler, plus now export the groups for Markbook.  It's partly worked - Be the Best has been recognized, but not Library.  The BtB sets are now in the output file, but not the Library sets.  Why isn't Library being recognised as a subject?  Ah - there is no subject called "Library" in iSAMS.  There's a department, but no subject.  The only subject there is called Reading and Research.  Yes, that's what they have then.  OK.  It will mean adding a new subject in Markbook.  Ah, no it won't - it's already there.
+
+Over then to Midnight, and try importing the new files.  Don't bother with the timetable for now - just see whether we can achieve the set membership.  Still seem to be explicitly rejecting the DT sets (//all// the DT sets).  The others aren't getting a mention, but the membership is not getting sorted.  So now we need to investigate at the Markbook end.
+
+It occurs to me to wonder whether I've broken the set membership code.  It does seem to be excessively fast now.  It does actually seem to be doing stuff.  Is it considering my crucial sets - e.g. 2R DT3.  No - 2R DT3 is explicitly rejected.  2C BtB just doesn't get considered.  Why not?  They're not in the files.  Huh?!  I thought I'd checked and they were.  They are on Knight.  Did I not copy these files over?  Yes, I did.  Is my script overwriting them?  Yes, it is - silly boy.  I was copying them to the wrong place.  That fixed both problems as far as set membership is concerned.  Now let's load the whole timetable.
+
+Now I have a problem with a lot of subjects beginning "APS" appearing in my input file.  All the other problems seem to be fixed though.  Have the prep school broken the rules on subject naming too?  Indeed they have.  Some end in "(P)" and some start with "APS ".  Add to my code to filter those out.
+
+I need some extra real subjects too though.
+
+Mindsets
+Senior Tutorial
+Learning Support
+
+put those in on Nimbus and then do a fresh download.  All seems well.  Just need to save and propagate all those changes now.
+
+Just had Martin report an odd problem in Markbook.  It was reporting an error when trying to view certain class sets of book loans.  This turned out to be because it couldn't find its record of who had taken the book back in.
+
+My first thought was that I must have deleted someone who had taken books back in, and I have a vague recollection of there being some code to check whether or not an old staff member can be deleted.  I thought I had to fix it earlier on because it had deleted someone who had useful attached data.
+
+However, having now viewed the code, I can see nowhere where a teacher is ever deleted - they're just marked as left.  (Where then do I recall the long list of people being deleted?)
+
+I need to identify an actual record where this problem occurs.  James Tuffill and his copy 1309 of his Y3 maths book.
+
+Interesting - the recoverer_id is nil and the returned_at is 2016-07-04 23:00:00, or in other words - midnight.  How did that happen?  Needs more investigation.  I do have the pre-rollover d/b available if I want to re-load it.
+
+That seems the best bet - either the problem happened during the rollover or it happened before.  By re-loading the pre-rollover stuff I can at least answer that question.
+
+OK - it was like that before the rollover.  What about doing end-of-year for the books?  Had I done that then?  No - I did that on the 19th of August.  How then did it happen?  How can one set that field in a loan record without setting a recoverer, and setting it to a date rather than a date and time.
+
+Where indeed does it get set?  I can't find any code.  The code to return it sets the returner, but not that field.
+
+Ah - it seems perhaps to come from a field in the form.  This could be the problem perhaps?
+
+Just trying something out.  The form seems to specify just a date.  I'm trying doing a return whilst deliberately selecting no-one as the receiver.  Will it go through?  Loan 10699.  Yes, it does.
+
+It seems to be something very simple.  Someone has tried to mark books as returned whilst deliberately not putting themselves down as the returner.  Probably thought they had a good reason at the time.

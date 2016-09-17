@@ -1,0 +1,13 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-09-16T11:14:15+01:00
+
+====== Friday 16 Sep 2016 ======
+
+A new one today.  Ollie has started putting in things called Tutorials in iSAMS and wonders whether they could come through go Scheduler.  They seem to be in the API feed so I see no reason why not.  Just need to decide how to categorise them.
+
+Surely they still count as lessons, don't they?  Or should I give them a separate category of Tutorial?
+
+Get a fresh copy of the live database and import data to start with.
+
+iSAMS is nothing if not inconsistent in the way they store data.  Tutorials can potentially have more than one period record.  So far, that hasn't arisen but if it does then I will have to generate multiple event entries from a single tutorial record.  Not too difficult.  For now I'll take the first period, and log a warning message if I find more than one.
