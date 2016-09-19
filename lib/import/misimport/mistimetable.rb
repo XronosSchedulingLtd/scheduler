@@ -168,7 +168,12 @@ class MIS_ScheduleEntry
       (self.groups.collect {|g| g.element_id} +
        self.staff.collect {|s| s.element_id} +
        self.rooms.collect {|r| r.element_id}).compact
-    db_element_ids = @dbrecord.commitments.collect {|c| c.element_id}
+    db_element_ids =
+      @dbrecord.commitments.select {|c|
+        c.element.entity_type == "Group" ||
+        c.element.entity_type == "Staff" ||
+        c.element.entity_type == "Location" }.
+        collect {|c| c.element_id}
     db_only = db_element_ids - mis_element_ids
     mis_only = mis_element_ids - db_element_ids
     mis_only.each do |misid|

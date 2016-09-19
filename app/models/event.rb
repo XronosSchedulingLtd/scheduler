@@ -712,6 +712,37 @@ class Event < ActiveRecord::Base
     result
   end
 
+  #
+  #  Is this event covered at all?
+  #
+  def covered?
+    self.commitments.covering_commitment.count > 0
+  end
+
+  #
+  #  Lose a property if the event currently has it.
+  #
+  def lose_property(property)
+    self.commitments.each do |c|
+      if c.element_id == property.element.id
+        c.destroy
+      end
+    end
+  end
+
+  #
+  #  Add a property if the event does not already have it.
+  #
+  def add_property(property)
+    unless self.involves?(property)
+      c = Commitment.new
+      c.event = self
+      c.element = property.element
+      c.save!
+    end
+  end
+
+
   def involves?(item, even_tentative = false)
     if item.instance_of?(Element)
       resource = item

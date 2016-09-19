@@ -559,6 +559,21 @@ class Commitment < ActiveRecord::Base
 #    puts "Set #{flags_set} flags."
 #  end
 
+  def self.flag_all_covers
+    property = Property.find_by(name: "Covered")
+    if property
+      found = 0
+      Commitment.covering_commitment.each do |c|
+        found += 1
+        c.event.add_property(property)
+      end
+      puts "Found #{found} covering commitments."
+    else
+      puts "Can't find property \"Covered\"."
+    end
+    nil
+  end
+
   protected
 
   def update_event_after_save

@@ -1244,6 +1244,7 @@ class MIS_Loader
     invigilations_by_date = Hash.new
     max_cover_date = MIS_Cover.last_existing_cover_date(@start_date)
     max_invigilation_date = @start_date
+    covered_property = Property.find_by(name: "Covered")
     @covers.each do |sc|
       covers_processed += 1
       if covers_by_date[sc.date]
@@ -1286,12 +1287,16 @@ class MIS_Loader
           puts "Deleting covers with source_id #{db_id ? db_id : "nil"}."
         end
         existing_covers.select {|ec| ec.source_id == db_id}.each do |ec|
+          event = ec.event
           ec.destroy
           covers_deleted += 1
+          if covered_property && !event.covered?
+            event.lose_property(covered_property)
+          end
         end
       end
       mis_covers.each do |mc|
-        added, amended, deleted, clashes, oddities = mc.ensure_db(self)
+        added, amended, deleted, clashes, oddities = mc.ensure_db(self, covered_property)
         covers_added += added
         covers_amended += amended
         covers_deleted += deleted

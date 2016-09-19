@@ -198,7 +198,7 @@ class MIS_Cover
   #  And this function does the job of ensuring that this particular
   #  instance of cover is in the d/b.
   #
-  def ensure_db(loader)
+  def ensure_db(loader, covered_property)
     added    = 0
     amended  = 0
     deleted  = 0
@@ -252,6 +252,12 @@ class MIS_Cover
             #  Does this clash with anything?
             #
             clashes = Clash.find_clashes(cover_commitment)
+            #
+            #  Flag lesson as covered.
+            #
+            if covered_property
+              dblesson.add_property(covered_property)
+            end
           else
             puts "Failed to save cover."
             cover_commitment.errors.full_messages.each do |msg|
