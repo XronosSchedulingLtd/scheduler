@@ -13,6 +13,7 @@ class UserMailer < ActionMailer::Base
   end
 
   def commitment_rejected_email(commitment)
+    parameters = Hash.new
     @event = commitment.event
     @element = commitment.element
     if commitment.reason.blank?
@@ -22,6 +23,7 @@ class UserMailer < ActionMailer::Base
     end
     if commitment.by_whom
       @rejecter = commitment.by_whom.name
+      parameters[:reply_to] = commitment.by_whom.email
     else
       @rejecter = "the system"
     end
@@ -31,11 +33,12 @@ class UserMailer < ActionMailer::Base
       #  event.
       #
       if @event.organiser
-        email = @event.organiser.entity.email
+        parameters[:to] = @event.organiser.entity.email
       else
-        email = @event.owner.email
+        parameters[:to] = @event.owner.email
       end
-      mail(to: email, subject: "Resource request declined")
+      parameters[:subject] = "Resource request declined"
+      mail(parameters)
     end
   end
 
