@@ -15,7 +15,7 @@ class MIS_Staff
 
   include Creator
 
-  attr_reader :datasource_id, :current, :active
+  attr_reader :datasource_id, :current
 
   def initialize(entry)
 #    puts "In MIS_Staff initialize"
@@ -41,11 +41,10 @@ class MIS_Staff
     unless @email.blank?
       @email.downcase!
     end
-    #
-    #  We don't really know which of the ones we get from SB are valid
-    #  and which aren't.  We take an initial stab at it.
-    #
-    @active = !!(@email =~ /\@abingdon\.org\.uk$/)
+  end
+
+  def active
+    raise "The school specific code needs to define MIS_Staff#active."
   end
 
   def source_id
