@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+#  This script will do an initial request for a Let's Encrypt certificate
+#  for your site.
+#
+#  You need to set up the following two variables:
+#
+#SCHEDULER_DIR=~/Work/Coding/scheduler
+#FQDN=scheduler.abingdon.org.uk
+
+SCHEDULER_DIR="notset"
+FQDN="notset"
+
+if [ $SCHEDULER_DIR == "notset" ]; then
+  echo Please set the Scheduler directory
+  exit 1
+fi
+
+if [ $FQDN == "notset" ]; then
+  echo Please set your fully qualified domain name
+  exit 1
+fi
+
+cd $SCHEDULER_DIR/LetsEncrypt
+certbot certonly --logs_dir logs --config-dir config --work-dir work --webroot -w $SCHEDULER_DIR/public -d $FQDN

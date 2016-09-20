@@ -1,0 +1,10 @@
+#!/bin/bash
+SCHEDULER_DIR="notset"
+
+if [ $SCHEDULER_DIR == "notset" ]; then
+  echo Please set the Scheduler directory
+  exit 1
+fi
+
+cd $SCHEDULER_DIR/LetsEncrypt
+certbot -q renew --logs-dir logs --config-dir config --work-dir work

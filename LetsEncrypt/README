@@ -1,0 +1,119 @@
+So, you want to get Scheduler running over an https connection using
+a Let's Encrypt certificate - good idea.
+
+This guide and directory assume you already have it up and running
+in production mode over an http connection.
+
+Getting a certificate from Let's Encrypt and setting everything up is
+easy - once you've done it 3 or 4 times before.  The contents of this
+directory aim to make your first time slightly more straightforward.
+
+1. Google login
+
+Assuming your existing production installation uses Google for the login,
+you must have set up the necessary URLS in the Google Developer Console.
+Go back to that web page and add https: equivalents to the two existing
+http: URLs.  Do this first so it has time to propagate through Google's
+infrastructure before you need it.
+
+
+2. Certbot
+
+The standard utility for requesting a certificate from Let's Encrypt
+is certbot.  Assuming you're running on Debian Jessie, add the
+following line to /etc/apt/sources.list
+
+deb http://ftp.uk.debian.org/debian jessie-backports main
+
+and then install certbot with:
+
+$ sudo apt-get update
+$ sudo apt-get install certbot -t jessie-backports
+
+
+3. Request certificates
+
+Certbot expects to be run as root by default - it writes to various
+system directories.  You can do that if you want, but I prefer to reserve
+root access for where it's actually needed.  To avoid the need for root,
+you need to give the utility some directories to work in.  These are
+provided alongside this file.
+
+There is also a very brief script which will do the work of requesting
+the certificate for you, although you will need to edit it to match
+your installation first - just two variables.  If you then invoke it,
+it will request a certificate for you and save it under the config directory
+parallel to this file.
+
+**** N.B.  Your existing http-based app must be running for this to work ****
+
+The script drops a couple of files in the public directory of your app,
+and then the Let's Encrypt server requests them in order to check you are
+who you say you are.
+
+4. Configure nginx
+
+Nginx takes care of all the hard work of doing the actual encryption for you.
+In /opt/nginx/conf/nginx.conf you should already have a clause much like
+this:
+
+    server {
+        listen 80;
+        server_name <your FQDN>;
+        root <full path to your scheduler installation>/public;
+        passenger_enabled on;
+    }
+
+After that, add:
+
+    server {
+        listen 443;
+        server_name <your FQDN>;
+        ssl on;
+        ssl_certificate      <full path to your scheduler installation>/LetsEncrypt/config/live/<your FQDN>/fullchain.pem;
+        ssl_certificate_key  <full path to your scheduler installation>/LetsEncrypt/config/live/<your FQDN>/privkey.pem;
+
+        ssl_session_timeout  60m;
+
+        ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers  HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers   on;
+
+        root <full path to your scheduler installation>/public;
+        passenger_enabled on;
+    }
+
+Note that there are 3 different versions of your publishable key provided,
+along with the private key (privkey.pem).  The one which you want to use
+is fullchain.pem.  This is because Let's Encrypt do not have a root
+certificate pre-installed in browsers.  Instead their signing certificate
+is provided by one of the root certificate holders, and the browser needs
+access to the full signing chain to be sure your certificate is valid.
+
+
+5. Restart nginx
+
+And with a bit of luck you will now be able to access your installation
+of Scheduler over https as well.  You might choose to disable the
+http: entry at some point, or replace it with:
+
+    server {
+        listen 80;
+        server_name <your FQDN>;
+        return 301 https://<your FQDN>;
+    }
+
+which will cause all requests for your installation over http: to be
+redirected instead to https:
+
+
+6. Cron job
+
+Let's Encrypt certificates are valid for only 90 days.  See their web
+site for the rationale behind this.  The tools however do recognize this
+and make it easy to automate the renewal.
+
+There's another script in the same directory as this file called "renew".
+Edit that to set your directory, and then invoke it from a daily cron
+job at some unlikely time like 23 minutes last 2, or 11 minutes to 4.
+You choose your own time - not one of these two.
