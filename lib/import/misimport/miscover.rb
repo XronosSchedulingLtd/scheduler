@@ -266,7 +266,7 @@ class MIS_Cover
             puts "staff_ab_line_ident = #{@staff_ab_line_ident}"
             puts "staff_covering:"
             puts "  name #{@staff_covering.name}"
-            puts "  does_cover #{@staff_covering.does_cover}"
+#            puts "  does_cover #{@staff_covering.does_cover}"
             puts "dblesson:"
             puts "  body: #{dblesson.body}"
             puts "  eventcategory: #{dblesson.eventcategory.name}"
