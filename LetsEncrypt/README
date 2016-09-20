@@ -76,7 +76,7 @@ After that, add:
         ssl_session_timeout  60m;
 
         ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
-        ssl_ciphers  HIGH:!aNULL:!MD5;
+        ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
         ssl_prefer_server_ciphers   on;
 
         root <full path to your scheduler installation>/public;
