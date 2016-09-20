@@ -22,4 +22,4 @@ if [ $FQDN == "notset" ]; then
 fi
 
 cd $SCHEDULER_DIR/LetsEncrypt
-certbot certonly --logs_dir logs --config-dir config --work-dir work --webroot -w $SCHEDULER_DIR/public -d $FQDN
+certbot certonly --logs-dir logs --config-dir config --work-dir work --webroot -w $SCHEDULER_DIR/public -d $FQDN
