@@ -50,6 +50,41 @@ class Location < ActiveRecord::Base
   end
 
   #
+  #  Locations are sometimes presented to users with a compound name.
+  #  For instance, we have "GICT", which has an alias of "Greening
+  #  Wing ICT", and is presented as "GICT / Greening Wing ICT".
+  #
+  #  Users not unreasonably expect to be able to give any of those names
+  #  when asking for a room.  The GUI avoids the problem by providing
+  #  lists / autocompletion, but sometimes they need to be expressed in
+  #  files.
+  #
+  def self.find_generously(name)
+    #
+    #  Go for the actual location name first.
+    #
+    location = Location.find_by(name: name)
+    unless location
+      #
+      #  How about an alias?
+      #
+      la = Locationalias.find_by(name: name)
+      if la
+        location = la.location
+      else
+        #
+        #  OK - compound name, but it must be a location.
+        #
+        le = Element.find_by(name: name, entity_type: "Location")
+        if le
+          location = le.entity
+        end
+      end
+    end
+    location
+  end
+
+  #
   #  A maintenance method (although one might make it available through
   #  the web interface) to merge two locations.  The one on which it is
   #  called absorbs the other, which means it takes over the other's:

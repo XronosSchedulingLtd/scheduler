@@ -170,7 +170,7 @@ class RecurringEvent
         end
       end
       @locations.each do |l|
-        rec = Location.find_by(name: l)
+        rec = Location.find_generously(l)
         if rec
           @resource_ids << rec.element.id
         else
