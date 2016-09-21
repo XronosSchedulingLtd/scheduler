@@ -69,7 +69,7 @@ class Location < ActiveRecord::Base
       #  How about an alias?
       #
       la = Locationalias.find_by(name: name)
-      if la
+      if la && la.location
         location = la.location
       else
         #
