@@ -1,6 +1,10 @@
 $('#current_user').html("<%=j render current_user %>")
+<% if @reload_concerns %>
+  $('#fullcalendar').fullCalendar('refetchEvents');
+<% else %>
 <% if @concern_id %>
 window.addEventSource(<%= @concern_id %>);
+<% end %>
 <% end %>
 window.activateCheckboxes();
 window.activateDragging();
