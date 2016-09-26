@@ -49,7 +49,7 @@ class MIS_Tutorgroup
   #    6        NC 12
   #    7        NC 13
   #
-  def yeargroup(loader = nil)
+  def yeargroup
     @year_id - 6
   end
 

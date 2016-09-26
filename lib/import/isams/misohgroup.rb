@@ -43,7 +43,7 @@ class MIS_Otherhalfgroup
     (@era.starts_on.year - @year_id) + 7
   end
 
-  def yeargroup(loader = nil)
+  def yeargroup
     @year_id - 6
   end
 

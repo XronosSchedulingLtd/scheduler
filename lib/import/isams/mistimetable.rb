@@ -84,8 +84,9 @@ end
 class ISAMS_Week
   SELECTOR = "TimetableManager Structure Week"
   REQUIRED_FIELDS = [
-    IsamsField["Id",    :isams_id, :attribute, :integer],
-    IsamsField["Name",  :name,     :data,      :string]
+    IsamsField["Id",        :isams_id,   :attribute, :integer],
+    IsamsField["Name",      :name,       :data,      :string],
+    IsamsField["ShortName", :short_name, :data,      :string]
   ]
 
   include Creator
@@ -200,12 +201,12 @@ class ISAMS_ScheduleEntry < MIS_ScheduleEntry
   #  What year group (in Scheduler's terms) are involved in this event.
   #  Return 0 if we don't know, or have a mixture.
   #
-  def yeargroup(loader)
+  def yeargroup
     if @groups.size > 0
       #
       #  Really we should ask them all.
       #
-      @groups[0].yeargroup(loader)
+      @groups[0].yeargroup
     else
       0
     end
@@ -299,7 +300,7 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
   #  What year group (in Scheduler's terms) are involved in this event.
   #  Return 0 if we don't know, or have a mixture.
   #
-  def yeargroup(loader)
+  def yeargroup
     0
   end
 
@@ -418,7 +419,7 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
   #  What year group (in Scheduler's terms) are involved in this event.
   #  Return 0 if we don't know, or have a mixture.
   #
-  def yeargroup(loader)
+  def yeargroup
     0
   end
 
@@ -601,7 +602,7 @@ class ISAMS_TutorialEntry < MIS_ScheduleEntry
   #  What year group (in Scheduler's terms) are involved in this event.
   #  Return 0 if we don't know, or have a mixture.
   #
-  def yeargroup(loader)
+  def yeargroup
     0
   end
 
@@ -704,7 +705,7 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
   #  What year group (in Scheduler's terms) are involved in this event.
   #  Return 0 if we don't know, or have a mixture.
   #
-  def yeargroup(loader)
+  def yeargroup
     @nc_year - 6
   end
 

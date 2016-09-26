@@ -230,7 +230,7 @@ class SB_Group
       groups << SB_Group.new(DummyMisGroup.new(key,
                                                entry.subject.isams_id,
                                                key,
-                                               entry.yeargroup(loader) + 6,
+                                               entry.yeargroup + 6,
                                                entry.groups[0].pupils))
     end
     File.open(Rails.root.join(IMPORT_DIR, "ForMarkbook", "groups.yml"), "w") do |file|
@@ -375,6 +375,7 @@ class MIS_Loader
     SB_Location.dump(@locations)
     SB_Period.dump(@timetable)
     SB_Timetableentry.dump(@timetable)
+    @timetable.save_to_csv
   end
 
 end

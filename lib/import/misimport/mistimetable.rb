@@ -14,7 +14,7 @@ end
 
 class MIS_ScheduleEntry
 
-  attr_reader :dbrecord, :groups, :staff, :rooms
+  attr_reader :dbrecord, :groups, :staff, :rooms, :period
 
   def note_hiatuses(loader, hiatuses)
     #
@@ -22,7 +22,7 @@ class MIS_ScheduleEntry
     #
     @gaps, @suspensions =
       hiatuses.select { |hiatus|
-        hiatus.applies_to_year?(self.yeargroup(loader))
+        hiatus.applies_to_year?(self.yeargroup)
       }.partition { |hiatus|
         hiatus.hard?
       }
