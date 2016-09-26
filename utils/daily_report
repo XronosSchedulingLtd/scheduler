@@ -1,6 +1,5 @@
 #!/bin/bash
 . /etc/profile
+. ~/etc/whichsystem
 cd ~/Work/Coding/scheduler
-RAILS_ENV=production
-export RAILS_ENV
 ~/.rvm/wrappers/scheduler/rake daily:check_approvals

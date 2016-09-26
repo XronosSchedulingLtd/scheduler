@@ -63,7 +63,7 @@ class PendingSet
   end
 
   def empty?
-    @pending.size == 0 && @rejected.size == 0
+    @pending.size == 0
   end
 
   def report
