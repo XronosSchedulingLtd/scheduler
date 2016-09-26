@@ -1,0 +1,39 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-09-20T08:52:40+01:00
+
+====== Tuesday 20 Sep 2016 ======
+
+Spent yesterday re-building my machine infrastructure.  Moved pseudo-nimbus to a VM on black, and did a bit of configuration of Cumulus.  Tedious, but reasonably constructive.
+
+An interesting one arose this morning, in that my importer utility blew up over one of Ian's covers.  It turned out that he had used a member of staff to do cover who isn't real - 1 SH Invigilator - and thus isn't flagged as "active" in Scheduler. The actual blow-up occurred in the code which tried to produce an error message about the problem.  Various things therefore to fix.
+
+[*] Fix error message code so it doesn't crash the utility
+[*] Fix the cover handling code so it doesn't try to enter a cover for a staff member who isn't "active".
+[*] Move the "active" decision code into a module in the school directory, rather than in the isams directory.
+
+I may need to add extra code at a later date to bring in Ian's fictional staff members, especially if he uses them for invigilation.  Moving the decision code into the school directory will facilitate this.
+
+The question has arisen of switching Scheduler over to use https instead of http.  This has been on my list for a while.  I could test it by doing my Scheduler VM in house, although it wouldn't be accessible from the outside world because the https requests wouldn't get through.  The tricky part is getting Let's Encrypt to issue a certificate.  Can I persuade it to use http to do that?  There are new tools included in Debian Jessie which should enable it.  I've already done it on the Xronos host, but that is now taking all the https traffic and I don't want to switch it off.
+
+The utility is now called certbot.
+
+https://certbot.eff.org/
+
+ISTR I had problems getting it to communicate - it makes too many assumptions about what it can and can't do.
+
+Tried it on Scheduler with:
+
+# certbot certonly --webroot -w /opt/nginx/html -d scheduler.sinodun.org.uk
+
+as root.  This fails with the far end saying it got a 404 error when trying to retrieve the validation files.  I think this is because nginx doesn't like serving stuff from a directory beginning .something.
+
+Ah - no - it's because I have my app running.  Everything is re-directed to [[~/Work/Coding/scheduler/public.]]  I need to use that directory.  Can I do it as my ordinary user?  Yes, it seems I can.  The following command did it.
+
+''$ certbot certonly --logs-dir logs --config-dir config --work-dir work --webroot -w /home/john/Work/Coding/scheduler/public -d scheduler.sinodun.org.uk''
+
+Having first created all those directories to work in.  The only problem is, that now won't work with the cron job which the package manage installed.  I'll need to set up my own, probably running a script in the same directory.  Good stuff though.  Can I now add those bits to nginx?  Bear in mind, the ones which I need to provide are fullchain.pem and privkey.pem.
+
+That seems to work, but then I hit a problem trying to log on, because the https link is not configured as allowed by the re-direct in Google.  Fix that next.  Done it, but I probably need to wait half an hour for Google to catch up.  Did the school one at the same time.
+
+All seems to have worked.  I think I need to put all the necessary tools into my source repository to make it easy for fresh sites.  I can create the directory structure needed, and add some scripts.
