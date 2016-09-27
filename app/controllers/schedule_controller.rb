@@ -116,7 +116,7 @@ class ScheduleController < ApplicationController
           #  about whether events are complete or not.
           #
           if current_user && current_user.known?
-            if current_user.owns?(via_element)
+            if current_user.owns?(via_element) || current_user.admin
               #
               #  Has the commitment been approved?
               #
@@ -333,7 +333,7 @@ class ScheduleController < ApplicationController
                               nil,
                               true,
                               true,
-                              concern.owns).collect {|e|
+                              concern.owns || current_user.admin).collect {|e|
               ScheduleEvent.new(e,
                                 element,
                                 current_user,
