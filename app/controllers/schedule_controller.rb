@@ -326,20 +326,24 @@ class ScheduleController < ApplicationController
           else
             event_categories = Eventcategory.visible.to_a
           end
+          #
+          #  Deciding what events exactly to show needs specialist
+          #  knowledge of the user, the concern, the commitment connecting
+          #  element to event, and the event itself.  Delegate the task
+          #  to the element model.
+          #
           @schedule_events =
-            element.events_on(start_date,
-                              end_date,
-                              event_categories,
-                              nil,
-                              true,
-                              true,
-                              concern.owns || current_user.admin).collect {|e|
-              ScheduleEvent.new(e,
-                                element,
-                                current_user,
-                                concern.colour,
-                                concern.equality)
-            }
+            element.display_events(start_date,
+                                   end_date,
+                                   event_categories,
+                                   current_user,
+                                   concern).collect {|e|
+                      ScheduleEvent.new(e,
+                                        element,
+                                        current_user,
+                                        concern.colour,
+                                        concern.equality)
+                    }
         else
           @schedule_events = []
         end
