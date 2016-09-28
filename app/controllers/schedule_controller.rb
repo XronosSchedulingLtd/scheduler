@@ -116,7 +116,13 @@ class ScheduleController < ApplicationController
           #  about whether events are complete or not.
           #
           if current_user && current_user.known?
-            if current_user.owns?(via_element) || current_user.admin
+            #
+            #  And only those with a special interest get to know
+            #  about rejections.
+            #
+            if current_user.owns?(via_element) ||
+               current_user.admin ||
+               current_user.id == event.owner_id
               #
               #  Has the commitment been approved?
               #
