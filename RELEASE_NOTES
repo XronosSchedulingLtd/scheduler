@@ -1,0 +1,51 @@
+v0.2    2016-09-28
+
+Changes:
+
+* If a user has a resource selected for display but currently disabled -
+  that is the tick-box is unticked - then adding the same resource a
+  second time will cause it to be displayed.  This is because when a user
+  has a lot of resources selected, he or she may not notice that the
+  required one is already there.  The requirement is clearly to show
+  it, so show it.
+
+* Reduce notification e-mails.
+  The system generates daily e-mails to approvers of resources reminding
+  them about pending requests.  When checking for pending requests, the
+  system was previously including rejected requests which could lead to
+  empty reminder e-mails.  Now only generates e-mails about genuinely
+  pending requests.
+
+* Improve display of pending requests.
+  Before a request for a resource has been approved, it does not appear
+  in the general display for that resource.  Thus, if for instance someone
+  has requested that an event be included in the calendar, it doesn't actually
+  appear in the calendar until DJD has approved it.  It is however visible,
+  greyed out, to DJD and any other approver.
+
+  This led to a bit of confusion, in that the requester too couldn't see it
+  in the context of the requested resource.  He or she could see it as
+  one of "My events", and in the context of any of the other resources
+  used, but not in the context of the one awaiting approval.  Unfortunately,
+  some users were turning off all their display except for the requested
+  resource and then getting puzzled at not being able to see the event.
+
+  The rule now is: a pending request for a resource will be displayed in
+  the context of that resource to:
+
+    Approvers of the resource
+    Admin users
+    The original requester
+
+* Various chronological development notes have been added in the notes
+  directory.
+
+
+
+v0.1    2016-09-26
+
+The first release done under the GitFlow convention.  Very many things
+happened before this release, but for calibration the last such change
+was:
+
+* Dump the entire timetable to a CSV file for analysis by OTL.
