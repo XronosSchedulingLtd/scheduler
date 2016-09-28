@@ -244,6 +244,24 @@ class Element < ActiveRecord::Base
   end
 
   #
+  #  A slightly specialist method, used by the schedule controller when
+  #  requesting events to display for an element.  What you get depends
+  #  on the current user.
+  #
+  def display_events(start_date, end_date, eventcategory, user, concern)
+    self.commitments_on(startdate: start_date,
+                        enddate: end_date,
+                        eventcategory: eventcategory,
+                        include_nonexistent: true).
+           preload(:event).
+           select {|c| concern.owns ||
+                       user.admin ||
+                       !c.tentative ||
+                       c.event.owner_id == user.id }.
+           collect {|c| c.event}.uniq
+  end
+
+  #
   #  Re-work of the old commitments_on, with exactly the same signature
   #  but using the new more efficient code.  Has to do a bit more of the
   #  work.

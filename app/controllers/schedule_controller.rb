@@ -116,7 +116,13 @@ class ScheduleController < ApplicationController
           #  about whether events are complete or not.
           #
           if current_user && current_user.known?
-            if current_user.owns?(via_element)
+            #
+            #  And only those with a special interest get to know
+            #  about rejections.
+            #
+            if current_user.owns?(via_element) ||
+               current_user.admin ||
+               current_user.id == event.owner_id
               #
               #  Has the commitment been approved?
               #
@@ -326,20 +332,24 @@ class ScheduleController < ApplicationController
           else
             event_categories = Eventcategory.visible.to_a
           end
+          #
+          #  Deciding what events exactly to show needs specialist
+          #  knowledge of the user, the concern, the commitment connecting
+          #  element to event, and the event itself.  Delegate the task
+          #  to the element model.
+          #
           @schedule_events =
-            element.events_on(start_date,
-                              end_date,
-                              event_categories,
-                              nil,
-                              true,
-                              true,
-                              concern.owns).collect {|e|
-              ScheduleEvent.new(e,
-                                element,
-                                current_user,
-                                concern.colour,
-                                concern.equality)
-            }
+            element.display_events(start_date,
+                                   end_date,
+                                   event_categories,
+                                   current_user,
+                                   concern).collect {|e|
+                      ScheduleEvent.new(e,
+                                        element,
+                                        current_user,
+                                        concern.colour,
+                                        concern.equality)
+                    }
         else
           @schedule_events = []
         end

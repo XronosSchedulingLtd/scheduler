@@ -1,0 +1,19 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-09-26T11:24:32+01:00
+
+====== Monday 26 Sep 2016 ======
+
+Over the weekend, I added a bit of code to the import utility to dump the whole of the timetable to a CSV file for Oliver Lomax.  It's pretty simple because I already had an in-memory array of all the relevant events.  The code just iterates through them, asking each one to turn itself into an array, and then using the standard CSV library to write the file.  The code is currently in the "school" sub-directory of the import area because it is distinctly school-specific.
+
+Today I'll do some final testing on it and promote it to the live system.  I'm also going to tag this as release 0.1, and then start using the Gitflow conventions of git branch naming.  From now on, only releases will end up on the master branch.  I'll create a new "develop" branch and then new features will branch off that.
+
+Ah - just found what may be the answer to an earlier question which I had.
+
+I want to have some files in my repository which get installed on new systems, but are then intended to be modified on those systems to suit the particular installation.  I want to tell git that I'm not interested in getting those updates back.
+
+Apparently you can do:
+
+$ git update-index --assume-unchanged <file>
+
+which basically tells git not to keep prompting you to pull updates to this file back into the repository.  That may be what I need.
