@@ -101,7 +101,11 @@ end
 #puts "Running from #{File.dirname(__FILE__)}"
 Dir[File.join(File.dirname(__FILE__), "school/*.rb")].each do |file|
 #  puts "Requiring \"#{file}\"."
-  require file
+  #
+  #  Need to use an absolute path, because otherwise if file happens to be
+  #  something like "lib/import/school/banana.rb" then the load will fail.
+  #
+  require File.absolute_path(file)
 end
 
 def finished(options, stage)
