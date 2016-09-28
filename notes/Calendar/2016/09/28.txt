@@ -12,9 +12,9 @@ That change I did yesterday.
 
 So, initial objectives for today.
 
-[ ] Package up all my recent changes as a pending release v0.2
-[ ] Test all the changes again.
-[ ] Write release notes
+[*] Package up all my recent changes as a pending release v0.2
+[*] Test all the changes again.
+[*] Write release notes
 [ ] Actually do the release
 [ ] Install on the live system
 [ ] Transcribe my notes from yesterday's telephone conversation into Wunderlist.
