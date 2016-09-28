@@ -1,0 +1,22 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-09-28T08:10:15+01:00
+
+====== Wednesday 28 Sep 2016 ======
+
+I started yesterday working on Cumulus configuration, then got distracted by issues raised by Niki.  The most significant was Henry Barnes getting himself thoroughly confused trying to book a room.
+
+It doesn't help that people won't read instructions, and that Scheduler is being portrayed as a room-booking system rather than what it is.  However, I still need to do everything I can to prevent such confusion.  I did identify one very clear potential improvements - pending events should be displayed in the context of the pending resource to not only approvers, but also to admins and the original requester.  That way, if someone has turned off all their display except the requested resource (why?) they will at least still see their requested event, although no-one else will except the approvers and administrators.
+
+That change I did yesterday.
+
+So, initial objectives for today.
+
+[ ] Package up all my recent changes as a pending release v0.2
+[ ] Test all the changes again.
+[ ] Write release notes
+[ ] Actually do the release
+[ ] Install on the live system
+[ ] Transcribe my notes from yesterday's telephone conversation into Wunderlist.
+
+After which I might get back to working on Cumulus
