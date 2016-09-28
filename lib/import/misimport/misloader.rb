@@ -1143,6 +1143,40 @@ class MIS_Loader
     end
   end
 
+  def check_recurring
+    puts "Checking recurring events" if @verbose
+    #
+    #  Loading them will check them.
+    #
+    had_error = false
+    res = RecurringEventStore.new
+    Dir[Rails.root.join(IMPORT_DIR, "recurring", "*.yml")].each do |filename|
+      begin
+        puts "Checking #{filename}" unless @options.quiet
+        file_had_issues = false
+        res.note_events(RecurringEvent.readfile(filename).select {|e|
+          if e.find_resources
+            true
+          else
+            had_error = true
+            file_had_issues = true
+            false
+          end
+        })
+        if file_had_issues
+          puts "Issues found in #{filename}"
+        end
+      rescue Exception => e
+        puts "Error processing #{filename}"
+        puts e
+        had_error = true
+      end
+    end
+    unless had_error || @options.quiet
+      puts "No problems found."
+    end
+  end
+
   #
   #  The name "Tag Groups" comes from SchoolBase, but they can be any
   #  kind of ad-hoc group which your MIS lets individual users set up.

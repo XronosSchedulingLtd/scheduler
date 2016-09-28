@@ -4,7 +4,7 @@ class MIS_Teachinggroup < MIS_Group
 
   def add_pupil(pupil)
     if @pupils.include?(pupil)
-      puts "Not adding #{pupil.name} to #{self.name} because he's already there." unless @@loader.options.quiet
+      puts "Not adding #{pupil.name} to #{self.name} because he's already there." if @@loader.options.verbose
     else
       @pupils << pupil
     end
