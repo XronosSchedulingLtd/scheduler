@@ -112,7 +112,7 @@ class ISAMS_Week
 
 end
 
-class ISAMS_ScheduleEntry < MIS_ScheduleEntry
+class ISAMS_TimetableEntry < MIS_ScheduleEntry
   SELECTOR = "Schedules Schedule"
   REQUIRED_FIELDS = [
     IsamsField["Id",        :isams_id,   :attribute, :integer],
@@ -754,7 +754,7 @@ class MIS_Schedule
         end
       end
     end
-    lessons = ISAMS_ScheduleEntry.construct(loader, timetable.entry)
+    lessons = ISAMS_TimetableEntry.construct(loader, timetable.entry)
     @lessons_by_id = Hash.new
     lessons.each do |lesson|
       @lessons_by_id[lesson.isams_id] = lesson
