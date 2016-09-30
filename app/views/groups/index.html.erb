@@ -1,10 +1,12 @@
 <h1>Listing groups</h1>
 <p id="notice"><%= notice %></p>
 
-<%= link_to 'New Group', new_group_path, class: "button small radius" %>
+<%= link_to 'New Group', new_group_path, class: "button tiny radius" %>
 
 <% if @paginate %>
-<%= will_paginate @groups %>
+<div class="digg_pagination">
+  <%= will_paginate @groups %>
+</div>
 <% end %>
 
 <table class="zftable">
@@ -43,7 +45,9 @@
 </table>
 
 <% if @paginate %>
-<%= will_paginate @groups %>
+<div class="digg_pagination">
+  <%= will_paginate @groups %>
+</div>
 <% end %>
 
 <br>

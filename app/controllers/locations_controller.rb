@@ -9,7 +9,11 @@ class LocationsController < ApplicationController
   # GET /locations
   # GET /locations.json
   def index
-    @locations = Location.page(params[:page]).order('name')
+    if params[:owned]
+      @locations = Location.owned.page(params[:page]).order('name')
+    else
+      @locations = Location.page(params[:page]).order('name')
+    end
   end
 
   # GET /locations/1

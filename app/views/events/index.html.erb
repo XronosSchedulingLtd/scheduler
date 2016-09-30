@@ -1,7 +1,9 @@
 <h1>Listing events</h1>
 <p id="notice"><%= notice %></p>
 
-<%= will_paginate @events %>
+<div class="digg_pagination">
+  <%= will_paginate @events %>
+</div>
 <table class="zftable">
   <thead>
     <tr>
@@ -19,7 +21,9 @@
     <%= render @events %>
   </tbody>
 </table>
-<%= will_paginate @events %>
+<div class="digg_pagination">
+  <%= will_paginate @events %>
+</div>
 
 <br>
 

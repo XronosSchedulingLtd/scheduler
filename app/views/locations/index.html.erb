@@ -1,7 +1,10 @@
 <h1>Listing locations</h1>
 <p id="notice"><%= notice %></p>
 
-<%= will_paginate @locations %>
+<div class="digg_pagination">
+  <%= will_paginate @locations %>
+</div>
+
 <table class="zftable">
   <thead>
     <tr>
@@ -27,8 +30,11 @@
     <% end %>
   </tbody>
 </table>
-<%= will_paginate @locations %>
+
+<div class="digg_pagination">
+  <%= will_paginate @locations %>
+</div>
 
 <br>
 
-<%= link_to 'New Location', new_location_path %>
+<%= link_to 'New Location', new_location_path, :class => "button tiny radius" %>

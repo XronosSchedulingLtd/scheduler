@@ -69,6 +69,7 @@
                   <%= link_to "Locations", locations_path %>
                   <ul class="dropdown">
                     <li><%= link_to "Aliases", locationaliases_path %></li>
+                    <li><%= link_to "Owned", locations_path(:owned => true) %></li>
                   </ul>
                 </li>
                 <li><%= link_to "Properties", properties_path %></li>

@@ -16,6 +16,8 @@ class Location < ActiveRecord::Base
   scope :active, -> { where(active: true) }
   scope :current, -> { where(current: true) }
 
+  scope :owned, -> { joins(:element).where("elements.owned = ?", true) }
+
   def element_name
     #
     #  A constructed name to pass to our element record.
