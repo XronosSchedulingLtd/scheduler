@@ -2,7 +2,7 @@ require 'csv'
 
 class MIS_ScheduleEntry
   def entry_type
-    if self.instance_of?(ISAMS_ScheduleEntry)
+    if self.instance_of?(ISAMS_TimetableEntry)
       "Timetable"
     elsif self.instance_of?(ISAMS_MeetingEntry)
       "Meeting"
@@ -84,7 +84,7 @@ class MIS_ScheduleEntry
 
 end
 
-class ISAMS_ScheduleEntry
+class ISAMS_TimetableEntry
 
   SUBJECT_CODES = {
     "Bi"  => "Biology",

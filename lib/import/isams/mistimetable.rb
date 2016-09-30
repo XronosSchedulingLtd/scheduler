@@ -112,7 +112,7 @@ class ISAMS_Week
 
 end
 
-class ISAMS_ScheduleEntry < MIS_ScheduleEntry
+class ISAMS_TimetableEntry < MIS_ScheduleEntry
   SELECTOR = "Schedules Schedule"
   REQUIRED_FIELDS = [
     IsamsField["Id",        :isams_id,   :attribute, :integer],
@@ -126,6 +126,7 @@ class ISAMS_ScheduleEntry < MIS_ScheduleEntry
   include Creator
 
   def initialize(entry)
+    super()
   end
 
   def adjust
@@ -142,7 +143,6 @@ class ISAMS_ScheduleEntry < MIS_ScheduleEntry
     #  It assumes that the data coming from iSAMS will be correct.
     #  Needs reinforcing.
     #
-    @groups = Array.new
     if @set_id == 1             # By set
       group = loader.tegs_by_name_hash[@code]
       if group
@@ -154,12 +154,10 @@ class ISAMS_ScheduleEntry < MIS_ScheduleEntry
         @groups << group
       end
     end
-    @staff = Array.new
     staff = loader.secondary_staff_hash[@teacher_id]
     if staff
       @staff << staff
     end
-    @rooms = Array.new
     room = loader.location_hash[@room_id]
     if room
       @rooms << room
@@ -231,6 +229,7 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
   include Creator
 
   def initialize(entry)
+    super()
     @teacher_ids = Array.new
   end
 
@@ -256,12 +255,6 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
     #  It assumes that the data coming from iSAMS will be correct.
     #  Needs reinforcing.
     #
-    @groups = Array.new
-    @rooms = Array.new
-    #
-    #  The two above stay empty for now.
-    #
-    @staff = Array.new
     @teacher_ids.each do |teacher_id|
       staff = loader.secondary_staff_hash[teacher_id]
       if staff
@@ -340,6 +333,7 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
     #  of the timing comes from the event.
     #
 #    puts "Processing #{db_entry.event.subject}."
+    super()
     unless db_entry.event.timeslot
       #
       #  Create an MIS_PeriodTime record and save it in the db_entry event.
@@ -376,19 +370,16 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
     #  It assumes that the data coming from iSAMS will be correct.
     #  Needs reinforcing.
     #
-    @groups = Array.new
     group = loader.oh_groups_hash[@group.ident]
     if group
       @groups << group
     end
-    @staff = Array.new
     @teacher_ids.each do |teacher_id|
       staff = loader.secondary_staff_hash[teacher_id]
       if staff
         @staff << staff
       end
     end
-    @rooms = Array.new
     room = loader.secondary_location_hash[@location_name]
     if room
       @rooms << room
@@ -521,9 +512,29 @@ class ISAMS_TutorialEntry < MIS_ScheduleEntry
     end
 
     def self.construct(loader, inner_data)
-      teachers = self.slurp(inner_data)
+      teachers = self.slurp(inner_data, false)
     end
 
+  end
+
+  class TutorialPupils
+    SELECTOR = "Pupils Pupil"
+    REQUIRED_FIELDS = [
+      IsamsField["Id",                   :isams_id,   :attribute, :integer],
+      IsamsField["PupilId",              :pupil_id,   :data,      :string]
+    ]
+
+    include Creator
+
+    def initialize(entry)
+    end
+
+    def adjust
+    end
+
+    def self.construct(loader, inner_data)
+      self.slurp(inner_data, false)
+    end
 
   end
 
@@ -541,6 +552,7 @@ class ISAMS_TutorialEntry < MIS_ScheduleEntry
   attr_reader :eventcategory
 
   def initialize(entry)
+    super()
     @period_recs = TutorialPeriods.construct(loader, entry)
     if @period_recs.size >= 1
       @period_id = @period_recs[0].period_id
@@ -551,6 +563,7 @@ class ISAMS_TutorialEntry < MIS_ScheduleEntry
       puts "Don't seem to have any period records."
     end
     @teachers = TutorialTeachers.construct(loader, entry)
+    @pupil_recs = TutorialPupils.construct(loader, entry)
   end
 
   def adjust
@@ -558,19 +571,24 @@ class ISAMS_TutorialEntry < MIS_ScheduleEntry
   end
 
   def find_resources(loader)
-    @rooms = Array.new
     room = loader.location_hash[@room_id]
     if room
       @rooms << room
     end
-    @groups = Array.new
-    @staff = Array.new
     @teachers.each do |teacher|
       staff = loader.secondary_staff_hash[teacher.teacher_id]
       if staff
         @staff << staff
       else
         puts "Failed to find #{teacher.teacher_id}."
+      end
+    end
+    @pupil_recs.each do |pupil_rec|
+      pupil = loader.pupils_by_school_id_hash[pupil_rec.pupil_id]
+      if pupil
+        @pupils << pupil
+      else
+        puts "Failed to find #{pupil_rec.pupil_id}."
       end
     end
   end
@@ -636,6 +654,7 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
   include Creator
 
   def initialize(entry)
+    super()
     @nc_years = Array.new
     @isams_ids = Array.new
   end
@@ -654,8 +673,6 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
     @groups = @nc_years.collect do |ncy|
       ISAMS_DummyGroup.group_for_nc_year(ncy)
     end
-    @staff = []
-    @rooms = Array.new
     room = loader.location_hash[@room_id]
     if room
       @rooms << room
@@ -754,7 +771,7 @@ class MIS_Schedule
         end
       end
     end
-    lessons = ISAMS_ScheduleEntry.construct(loader, timetable.entry)
+    lessons = ISAMS_TimetableEntry.construct(loader, timetable.entry)
     @lessons_by_id = Hash.new
     lessons.each do |lesson|
       @lessons_by_id[lesson.isams_id] = lesson
