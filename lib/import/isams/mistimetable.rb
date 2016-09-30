@@ -512,7 +512,7 @@ class ISAMS_TutorialEntry < MIS_ScheduleEntry
     end
 
     def self.construct(loader, inner_data)
-      teachers = self.slurp(inner_data)
+      teachers = self.slurp(inner_data, false)
     end
 
 
