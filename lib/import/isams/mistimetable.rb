@@ -515,6 +515,26 @@ class ISAMS_TutorialEntry < MIS_ScheduleEntry
       teachers = self.slurp(inner_data, false)
     end
 
+  end
+
+  class TutorialPupils
+    SELECTOR = "Pupils Pupil"
+    REQUIRED_FIELDS = [
+      IsamsField["Id",                   :isams_id,   :attribute, :integer],
+      IsamsField["PupilId",              :pupil_id,   :data,      :string]
+    ]
+
+    include Creator
+
+    def initialize(entry)
+    end
+
+    def adjust
+    end
+
+    def self.construct(loader, inner_data)
+      self.slurp(inner_data, false)
+    end
 
   end
 
@@ -543,6 +563,7 @@ class ISAMS_TutorialEntry < MIS_ScheduleEntry
       puts "Don't seem to have any period records."
     end
     @teachers = TutorialTeachers.construct(loader, entry)
+    @pupil_recs = TutorialPupils.construct(loader, entry)
   end
 
   def adjust
@@ -560,6 +581,14 @@ class ISAMS_TutorialEntry < MIS_ScheduleEntry
         @staff << staff
       else
         puts "Failed to find #{teacher.teacher_id}."
+      end
+    end
+    @pupil_recs.each do |pupil_rec|
+      pupil = loader.pupils_by_school_id_hash[pupil_rec.pupil_id]
+      if pupil
+        @pupils << pupil
+      else
+        puts "Failed to find #{pupil_rec.pupil_id}."
       end
     end
   end
