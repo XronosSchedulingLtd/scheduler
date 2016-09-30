@@ -14,7 +14,18 @@ end
 
 class MIS_ScheduleEntry
 
-  attr_reader :dbrecord, :groups, :staff, :rooms, :period
+  attr_reader :dbrecord, :groups, :staff, :rooms, :pupils, :period
+
+  def initialize
+    #
+    #  We create these (assuming the sub-class remembers to call super())
+    #  but it's up to sub-classes to populate them.
+    #
+    @groups = Array.new
+    @staff  = Array.new
+    @rooms  = Array.new
+    @pupils = Array.new
+  end
 
   def note_hiatuses(loader, hiatuses)
     #
