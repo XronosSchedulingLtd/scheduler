@@ -61,13 +61,27 @@ class MIS_Record
     #
     return false unless dbrecord
     changed = false
+    do_reload = false
     self.class.const_get(:FIELDS_TO_UPDATE).each do |field_name|
-      if @dbrecord.send(field_name) != self.send("#{field_name}")
-        puts "Field #{field_name} differs for #{self.name}"
-        puts "d/b: \"#{@dbrecord.send(field_name)}\" IS: \"#{self.send("#{field_name}")}\""
-         @dbrecord.send("#{field_name}=",
-                        self.send("#{field_name}"))
-        changed = true
+      existing_value = @dbrecord.send(field_name)
+      proposed_value = self.send(field_name)
+      if existing_value != proposed_value
+        #
+        #  For the particular case where someone tries to set active
+        #  from true to anything else, we refuse to do it.
+        #
+        unless field_name == :active && existing_value
+          puts "Field #{field_name} differs for #{self.name}"
+          puts "d/b: \"#{existing_value}\" IS: \"#{proposed_value}\""
+          @dbrecord.send("#{field_name}=", proposed_value)
+          changed = true
+          #
+          #  The act of setting active to true will cause the record
+          #  to gain a linked element record.  Need to reload to
+          #  gain access to this.
+          #
+          do_reload = true
+        end
       end
     end
     if extras
@@ -86,6 +100,9 @@ class MIS_Record
     end
     if changed
       if @dbrecord.save
+        if do_reload
+          @dbrecord.reload
+        end
         true
       else
         puts "Failed to save #{self.class} record #{self.name}"
