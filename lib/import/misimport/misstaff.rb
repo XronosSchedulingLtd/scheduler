@@ -16,5 +16,6 @@ class MIS_Staff < MIS_Record
                       :title,
                       :forename,
                       :email,
+                      :active,
                       :current]
 end
