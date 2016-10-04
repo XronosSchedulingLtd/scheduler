@@ -1,3 +1,11 @@
+v0.5    2016-10-04
+
+* No code changes at all.
+
+  This release exists solely to test the migration to the new source
+  repository - repository.xronos.uk
+
+
 v0.4    2016-10-02
 
 * Import utility can now set staff records to active
