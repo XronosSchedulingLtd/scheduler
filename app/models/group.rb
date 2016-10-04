@@ -95,6 +95,10 @@ class Group < ActiveRecord::Base
     "#{self.type} group"
   end
 
+  def more_type_info
+    " (#{description})"
+  end
+
   def active
     true
   end

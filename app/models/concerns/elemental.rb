@@ -63,6 +63,10 @@ module Elemental
     self.name
   end
 
+  def more_type_info
+    ""
+  end
+
   def tabulate_name(columns)
     "<tr><td colspan='#{columns}'>#{self.element_name}</td></tr>".html_safe
   end
