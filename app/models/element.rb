@@ -354,6 +354,15 @@ class Element < ActiveRecord::Base
     "#{self.entity_type}#{self.entity.more_type_info}"
   end
 
+  def indefinite_kind_of_entity
+    body = self.kind_of_entity
+    if /^[AEIOU]/i =~ body
+      "An #{body}"
+    else
+      "A #{body}"
+    end
+  end
+
   def short_name
     entity.short_name
   end
@@ -368,6 +377,10 @@ class Element < ActiveRecord::Base
 
   def csv_name
     entity.csv_name
+  end
+
+  def owned?
+    self.owned
   end
 
   #

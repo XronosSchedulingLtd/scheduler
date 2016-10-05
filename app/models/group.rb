@@ -135,6 +135,14 @@ class Group < ActiveRecord::Base
     end
   end
 
+  #
+  #  Where to find a partial to display general information about this
+  #  elemental item.
+  #
+  def general_partial
+    "groups/general"
+  end
+
   def method_missing(method_sym, *arguments, &block)
     #
     #  How we behave depends on whether or not we already have

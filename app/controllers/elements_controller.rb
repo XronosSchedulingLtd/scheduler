@@ -78,6 +78,12 @@ class ElementsController < ApplicationController
 
   def show
     @element = Element.find(params[:id])
+    @direct_groups =
+      @element.groups(Date.today, false).
+               select {|g| g.owner == nil || g.make_public}.sort
+    @indirect_groups = []
+#      @element.groups.select {|g| g.owner == nil || g.make_public}.sort -
+#      @direct_groups
     @mwd_set = @element.memberships_by_duration(start_date: nil,
                                                 end_date: nil)
   end

@@ -79,6 +79,15 @@ module Elemental
   end
 
   #
+  #  Provide the name of the partial to use to render general information
+  #  about this entity.  Usually this will be in the directory of the
+  #  entity - e.g. "locations/general", but this one isn't.
+  #
+  def general_partial
+    "empty"
+  end
+
+  #
   #  Give this method a slightly different name to avoid accidentally
   #  overriding ActiveRecord's method.
   #

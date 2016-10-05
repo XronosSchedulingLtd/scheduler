@@ -34,8 +34,24 @@ class Location < ActiveRecord::Base
     end
   end
 
+  def other_alias_names
+    locationaliases.where(display: false).collect {|oa| oa.name}
+  end
+
   def display_name
     self.element_name
+  end
+
+  #
+  #  Where to find a partial to display general information about this
+  #  elemental item.
+  #
+  def general_partial
+    "locations/general"
+  end
+
+  def owned?
+    self.element && self.element.owned?
   end
 
   def friendly_name

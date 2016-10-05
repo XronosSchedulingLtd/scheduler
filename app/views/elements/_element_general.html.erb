@@ -1,0 +1,10 @@
+<li>Current: <%= element_general.current ? "Yes" : "No" %></li>
+<% if element_general.owned? %>
+  <li>Administered by:
+  <ul>
+    <% element_general.owners.each do |o| %>
+      <li><%= o.name %></li>
+    <% end %>
+  </ul>
+  </li>
+<% end %>
