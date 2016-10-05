@@ -7,6 +7,11 @@ class Teachinggrouppersona < ActiveRecord::Base
 
   include Persona
 
+  has_and_belongs_to_many :staffs
+  before_destroy { staffs.clear }
+
+  belongs_to :subject
+
   self.per_page = 15
 
   def active

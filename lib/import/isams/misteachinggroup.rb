@@ -20,10 +20,10 @@ end
 class MIS_Teachinggroup
   SELECTOR = "TeachingManager Sets Set"
   REQUIRED_FIELDS = [
-    IsamsField["Id",        :isams_id,   :attribute, :integer],
-    IsamsField["SubjectId", :subject_id, :attribute, :integer],
-    IsamsField["YearId",    :year_id,    :attribute, :integer],
-    IsamsField["Name",      :name,       :data,      :string]
+    IsamsField["Id",        :isams_id,         :attribute, :integer],
+    IsamsField["SubjectId", :isams_subject_id, :attribute, :integer],
+    IsamsField["YearId",    :year_id,          :attribute, :integer],
+    IsamsField["Name",      :name,             :data,      :string]
   ]
 
   include Creator
@@ -32,6 +32,7 @@ class MIS_Teachinggroup
 
   def initialize(entry)
     @pupils = Array.new
+    @teachers = Array.new
     @current = true
     @datasource_id = @@primary_datasource_id
     #
@@ -54,7 +55,10 @@ class MIS_Teachinggroup
   end
 
   def note_subject(subject_hash)
-    @subject = subject_hash[self.subject_id]
+    @subject = subject_hash[self.isams_subject_id]
+    if @subject && @subject.dbrecord
+      @subject_id = @subject.dbrecord.id
+    end
   end
 
   def start_year

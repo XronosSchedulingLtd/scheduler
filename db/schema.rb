@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160915144531) do
+ActiveRecord::Schema.define(version: 20161005090750) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -388,6 +388,31 @@ ActiveRecord::Schema.define(version: 20160915144531) do
   add_index "staffs", ["datasource_id"], name: "index_staffs_on_datasource_id", using: :btree
   add_index "staffs", ["source_id"], name: "index_staffs_on_source_id", using: :btree
 
+  create_table "staffs_subjects", id: false, force: true do |t|
+    t.integer "staff_id"
+    t.integer "subject_id"
+  end
+
+  add_index "staffs_subjects", ["staff_id"], name: "index_staffs_subjects_on_staff_id", using: :btree
+  add_index "staffs_subjects", ["subject_id"], name: "index_staffs_subjects_on_subject_id", using: :btree
+
+  create_table "staffs_teachinggrouppersonae", id: false, force: true do |t|
+    t.integer "staff_id"
+    t.integer "teachinggrouppersona_id"
+  end
+
+  add_index "staffs_teachinggrouppersonae", ["staff_id"], name: "index_staffs_teachinggrouppersonae_on_staff_id", using: :btree
+  add_index "staffs_teachinggrouppersonae", ["teachinggrouppersona_id"], name: "index_staffs_teachinggrouppersonae_on_teachinggrouppersona_id", using: :btree
+
+  create_table "subjects", force: true do |t|
+    t.string   "name"
+    t.boolean  "current",       default: true
+    t.integer  "datasource_id"
+    t.integer  "source_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "taggrouppersonae", force: true do |t|
     t.integer  "source_id"
     t.datetime "created_at"
@@ -400,9 +425,12 @@ ActiveRecord::Schema.define(version: 20160915144531) do
     t.integer  "source_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "subject_id"
+    t.integer  "yeargroup"
   end
 
   add_index "teachinggrouppersonae", ["source_id"], name: "index_teachinggrouppersonae_on_source_id", using: :btree
+  add_index "teachinggrouppersonae", ["subject_id"], name: "index_teachinggrouppersonae_on_subject_id", using: :btree
 
   create_table "tutorgrouppersonae", force: true do |t|
     t.string   "house"

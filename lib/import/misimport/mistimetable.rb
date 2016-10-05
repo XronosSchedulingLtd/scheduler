@@ -56,6 +56,21 @@ class MIS_ScheduleEntry
     end
   end
 
+  #
+  #  Note which teachers teach which groups.  At this point we're merely
+  #  telling our group(s) which teacher(s) teach them.
+  #
+  #  Not all groups are interested, so check whether they have a suitable
+  #  method.
+  #
+  def note_groups_taught
+    self.groups.each do |group|
+      if group.respond_to?(:note_teacher)
+        group.note_teacher(self.staff)
+      end
+    end
+  end
+
   def exists_on?(date)
     if @gaps
       @gaps.detect {|gap| gap.applies_to_lesson?(date, self.period_time)} == nil
@@ -223,6 +238,12 @@ class MIS_Schedule
     end
   end
 
+  def note_groups_taught
+    @entries.each do |entry|
+      entry.note_groups_taught
+    end
+  end
+
 end
 
 class MIS_Timetable
@@ -239,5 +260,9 @@ class MIS_Timetable
 
   def note_subjects_taught
     @schedule.note_subjects_taught
+  end
+
+  def note_groups_taught
+    @schedule.note_groups_taught
   end
 end
