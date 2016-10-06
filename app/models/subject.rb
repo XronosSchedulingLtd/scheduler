@@ -21,4 +21,13 @@ class Subject < ActiveRecord::Base
     self.name
   end
 
+  #
+  #  Deleting a subject with dependent stuff could be disastrous.
+  #  Major loss of information.  Allow deletion only if we have no
+  #  commitments.
+  #
+  def can_destroy?
+    self.element.commitments.count == 0
+  end
+
 end
