@@ -14,17 +14,18 @@ end
 
 class MIS_ScheduleEntry
 
-  attr_reader :dbrecord, :groups, :staff, :rooms, :pupils, :period
+  attr_reader :dbrecord, :groups, :staff, :rooms, :pupils, :period, :subjects
 
   def initialize
     #
     #  We create these (assuming the sub-class remembers to call super())
     #  but it's up to sub-classes to populate them.
     #
-    @groups = Array.new
-    @staff  = Array.new
-    @rooms  = Array.new
-    @pupils = Array.new
+    @groups   = Array.new
+    @staff    = Array.new
+    @rooms    = Array.new
+    @pupils   = Array.new
+    @subjects = Array.new
   end
 
   def note_hiatuses(loader, hiatuses)
@@ -194,12 +195,14 @@ class MIS_ScheduleEntry
       (self.groups.collect {|g| g.element_id} +
        self.staff.collect {|s| s.element_id} +
        self.pupils.collect {|p| p.element_id} +
+       self.subjects.collect {|s| s.element_id} +
        self.rooms.collect {|r| r.element_id}).compact
     db_element_ids =
       @dbrecord.commitments.select {|c|
         c.element.entity_type == "Group" ||
         c.element.entity_type == "Staff" ||
         c.element.entity_type == "Pupil" ||
+        c.element.entity_type == "Subject" ||
         c.element.entity_type == "Location" }.
         collect {|c| c.element_id}
     db_only = db_element_ids - mis_element_ids

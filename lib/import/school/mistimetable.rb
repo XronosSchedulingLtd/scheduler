@@ -109,6 +109,9 @@ class ISAMS_TimetableEntry
       #
       if @groups.size > 0
         @subject = @groups[0].subject
+        if @subject
+          @subjects << @subject
+        end
       end
     else
       splut = self.code.split
@@ -117,11 +120,11 @@ class ISAMS_TimetableEntry
           subject_name = SUBJECT_CODES[splut[1]]
           if subject_name
             @subject = loader.subjects_by_name_hash[subject_name]
-            unless @subject
+            if @subject
+              @subjects << @subject
+            else
               puts "Failed to find subject #{subject_name}."
             end
-  #        else
-  #          puts "Failed to find subject name from #{splut[1]}."
           end
         end
       end
