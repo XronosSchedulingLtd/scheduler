@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2016 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -154,6 +154,29 @@ class Group < ActiveRecord::Base
         end
       else
         super
+      end
+    end
+  end
+
+  def respond_to?(method_sym, include_private = false)
+    if super
+      true
+    else
+      #
+      #  Do we have a persona which can do the necessary for us?
+      #
+      if self.persona
+        self.persona.respond_to?(method_sym, include_private)
+      else
+        #
+        #  Would it be able to handle it once it exists?
+        #
+        if self.persona_class &&
+           self.persona_class.new.respond_to?(method_sym, include_private)
+          true
+        else
+          false
+        end
       end
     end
   end

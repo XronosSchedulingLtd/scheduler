@@ -2,8 +2,8 @@ class MIS_Teachinggroup < MIS_Group
 
   DB_CLASS = Teachinggroup
 
-  add_fields(:FIELDS_TO_CREATE, [:subject_id])
-  add_fields(:FIELDS_TO_UPDATE, [:subject_id])
+  add_fields(:FIELDS_TO_CREATE, [:subject_id, :yeargroup])
+  add_fields(:FIELDS_TO_UPDATE, [:subject_id, :yeargroup])
 
   attr_reader :subject_id
 

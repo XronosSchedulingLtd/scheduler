@@ -54,8 +54,21 @@ class MIS_Teachinggroup
     @year_id && @year_id < 20
   end
 
+  #
+  #  This method is called at initialisation, whilst we're reading
+  #  in our data.  At this point it is too soon to reference the actual
+  #  subject database record.
+  #
   def note_subject(subject_hash)
     @subject = subject_hash[self.isams_subject_id]
+  end
+
+  #
+  #  This one is called later, when we are about to load into the
+  #  database.  By now all the necessary subject records should
+  #  have been created.
+  #
+  def find_subject_id
     if @subject && @subject.dbrecord
       @subject_id = @subject.dbrecord.id
     end

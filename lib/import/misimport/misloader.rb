@@ -469,6 +469,11 @@ class MIS_Loader
 #      puts "Processing #{tg.name}"
 #      puts tg.inspect
       #
+      #  Finding the subject id is something which can be done only
+      #  after all the subject records have been created.
+      #
+      tg.find_subject_id
+      #
       #  There must be a more idiomatic way of doing this.
       #
       loaded,

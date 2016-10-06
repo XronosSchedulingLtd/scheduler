@@ -19,7 +19,7 @@ class Staff < ActiveRecord::Base
   before_destroy { subjects.clear }
 
   has_and_belongs_to_many :teachinggrouppersonae
-  before_destroy { teachinggrouppersona.clear }
+  before_destroy { teachinggrouppersonae.clear }
 
   after_destroy :delete_tutorgroups
 
