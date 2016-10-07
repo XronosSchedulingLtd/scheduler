@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2016 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -216,7 +216,69 @@ class Membership < ActiveRecord::Base
   #  Class to store a set of MembershipWithDuration objects and manipulate
   #  them.
   #
+  #  The naming of Sets and Batches is slightly arbitrary.  A set consists
+  #  of a whole lot of MWDs, but then within the set they are organised
+  #  into Batches, with all the ones in a batch having the same duration.
+  #
   class MWD_Set
+
+    class MWD_Batch < Array
+
+      attr_reader :start_date, :end_date
+
+      def <<(item)
+        if self.empty?
+          @start_date = item.start_date
+          @end_date   = item.end_date
+        end
+        super
+      end
+
+      #
+      #  Is this batch current on the indicated date?
+      #
+      def current?(ondate == Date.today)
+        #
+        #  If:
+        #     We have a start date and it's in the future, or
+        #     We have an end date and it's in the past
+        #  Then:
+        #     False
+        #  Else:
+        #     True
+        #
+        !((@start_date && @start_date > ondate) ||
+          (@end_date && @end_date < ondate))
+      end
+
+      #
+      #  When sorting *batches* of mwds, we're thinking about display
+      #  and end date is more significant.
+      #
+      def <=>(other)
+        if self.empty?
+          1
+        elsif other.empty?
+          -1
+        else
+          if self.end_date == other.end_date
+            #
+            #  Want reverse ordering.
+            #
+            other.start_date <=> self.start_date
+          else
+            if self.end_date == nil
+              -1
+            elsif other.end_date == nil
+              1
+            else
+              other.end_date <=> self.end_date
+            end
+          end
+        end
+      end
+
+    end
 
     attr_reader :grouped_mwds
 
@@ -361,7 +423,7 @@ class Membership < ActiveRecord::Base
       previous_start = 0
       previous_end = 0
       the_lot = Array.new
-      current_batch = Array.new
+      current_batch = MWD_Batch.new
       @mwds.sort.each do |mwd|
         if mwd.start_date == previous_start &&
            mwd.end_date == previous_end
@@ -370,7 +432,7 @@ class Membership < ActiveRecord::Base
           unless current_batch.empty?
             @grouped_mwds << current_batch
           end
-          current_batch = Array.new
+          current_batch = MWD_Batch.new
           previous_start = mwd.start_date
           previous_end   = mwd.end_date
           current_batch << mwd
@@ -423,24 +485,15 @@ class Membership < ActiveRecord::Base
     #  End date is more significant.
     #
     def grouped_mwds_sorted_for_display
-      @grouped_mwds.sort do |a, b|
-        a_member = a[0]
-        b_member = b[0]
-        if a_member.end_date == b_member.end_date
-          #
-          #  Want reverse ordering.
-          #
-          b_member.start_date <=> a_member.start_date
-        else
-          if a_member.end_date == nil
-            -1
-          elsif b_member.end_date == nil
-            1
-          else
-            b_member.end_date <=> a_member.end_date
-          end
-        end
-      end
+      @grouped_mwds.sort
+    end
+
+    def current_grouped_mwds(ondate = Date.today)
+      @grouped_mwds.select { |gmwd| gmwd.current? }
+    end
+
+    def grouped_current_mwds_sorted_for_display(ondate = Date.today)
+      current_grouped_mwds(ondate).sort
     end
 
   end

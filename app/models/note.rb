@@ -1,3 +1,8 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2016 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
 class Note < ActiveRecord::Base
   belongs_to :parent, :polymorphic => true
 #  belongs_to :commitments, -> { where( notes: { parent_type: 'Commitment' } ).includes(:notes) }, foreign_key: 'parent_id'

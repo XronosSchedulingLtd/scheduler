@@ -78,14 +78,36 @@ class ElementsController < ApplicationController
 
   def show
     @element = Element.find(params[:id])
-    @direct_groups =
-      @element.groups(Date.today, false).
-               select {|g| g.owner == nil || g.make_public}.sort
-    @indirect_groups = []
+#    @direct_groups =
+#      @element.groups(Date.today, false).
+#               select {|g| g.owner == nil || g.make_public}.sort
+#    Rails.logger.debug "Calling groups() recursively at #{Time.now.strftime('%H:%M:%S.%L')}"
+#    @indirect_groups = []
 #      @element.groups.select {|g| g.owner == nil || g.make_public}.sort -
 #      @direct_groups
+#    Rails.logger.debug "Calling memberships_by_duration() at #{Time.now.strftime('%H:%M:%S.%L')}"
+    Rails.logger.debug "Timing: creating mwd_set at #{Time.now.strftime('%H:%M:%S.%L')}"
     @mwd_set = @element.memberships_by_duration(start_date: nil,
                                                 end_date: nil)
+    #
+    #  Direct groups are given by memberships which are current,
+    #  and which have a level of 1.  The current-ness can be decided
+    #  whilst the mwds are still grouped, but then the level applies
+    #  to each membership record individually.
+    #
+    Rails.logger.debug "Timing: extracting memberships at #{Time.now.strftime('%H:%M:%S.%L')}"
+    memberships = @mwd_set.current_grouped_mwds.flatten
+    Rails.logger.debug "Timing: creating direct groups at #{Time.now.strftime('%H:%M:%S.%L')}"
+    @direct_groups =
+      memberships.select {|m| m.level == 1}.
+                  collect {|m| m.group}.
+                  select {|g| g.public?}
+    Rails.logger.debug "Timing: creating indirect groups at #{Time.now.strftime('%H:%M:%S.%L')}"
+    @indirect_groups =
+      memberships.select {|m| m.level != 1}.
+                  collect {|m| m.group}.
+                  select {|g| g.public?}
+    Rails.logger.debug "Timing: finished at #{Time.now.strftime('%H:%M:%S.%L')}"
   end
 
   IcalDataSet = Struct.new(:prefix, :data)

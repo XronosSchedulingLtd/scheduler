@@ -112,6 +112,10 @@ class Group < ActiveRecord::Base
     self.make_public ? nil : self.owner_id
   end
 
+  def public?
+    self.make_public || self.owner_id == nil
+  end
+
   #
   #  Returns this group's atomic membership if relevant - that is, if
   #  this group itself contains any other groups.  Returns nil otherwise.
