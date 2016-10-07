@@ -15,6 +15,12 @@ class Staff < ActiveRecord::Base
   #
   has_many :tutorgrouppersonae
 
+  has_and_belongs_to_many :subjects
+  before_destroy { subjects.clear }
+
+  has_and_belongs_to_many :teachinggrouppersonae
+  before_destroy { teachinggrouppersonae.clear }
+
   after_destroy :delete_tutorgroups
 
   self.per_page = 15

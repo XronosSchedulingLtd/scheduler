@@ -14,17 +14,18 @@ end
 
 class MIS_ScheduleEntry
 
-  attr_reader :dbrecord, :groups, :staff, :rooms, :pupils, :period
+  attr_reader :dbrecord, :groups, :staff, :rooms, :pupils, :period, :subjects
 
   def initialize
     #
     #  We create these (assuming the sub-class remembers to call super())
     #  but it's up to sub-classes to populate them.
     #
-    @groups = Array.new
-    @staff  = Array.new
-    @rooms  = Array.new
-    @pupils = Array.new
+    @groups   = Array.new
+    @staff    = Array.new
+    @rooms    = Array.new
+    @pupils   = Array.new
+    @subjects = Array.new
   end
 
   def note_hiatuses(loader, hiatuses)
@@ -52,6 +53,21 @@ class MIS_ScheduleEntry
         group.subject.note_lesson(self.staff, group)
       elsif self.respond_to?(:subject) && self.subject
         self.subject.note_lesson(self.staff, group)
+      end
+    end
+  end
+
+  #
+  #  Note which teachers teach which groups.  At this point we're merely
+  #  telling our group(s) which teacher(s) teach them.
+  #
+  #  Not all groups are interested, so check whether they have a suitable
+  #  method.
+  #
+  def note_groups_taught
+    self.groups.each do |group|
+      if group.respond_to?(:note_teacher)
+        group.note_teacher(self.staff)
       end
     end
   end
@@ -179,12 +195,14 @@ class MIS_ScheduleEntry
       (self.groups.collect {|g| g.element_id} +
        self.staff.collect {|s| s.element_id} +
        self.pupils.collect {|p| p.element_id} +
+       self.subjects.collect {|s| s.element_id} +
        self.rooms.collect {|r| r.element_id}).compact
     db_element_ids =
       @dbrecord.commitments.select {|c|
         c.element.entity_type == "Group" ||
         c.element.entity_type == "Staff" ||
         c.element.entity_type == "Pupil" ||
+        c.element.entity_type == "Subject" ||
         c.element.entity_type == "Location" }.
         collect {|c| c.element_id}
     db_only = db_element_ids - mis_element_ids
@@ -223,6 +241,12 @@ class MIS_Schedule
     end
   end
 
+  def note_groups_taught
+    @entries.each do |entry|
+      entry.note_groups_taught
+    end
+  end
+
 end
 
 class MIS_Timetable
@@ -239,5 +263,9 @@ class MIS_Timetable
 
   def note_subjects_taught
     @schedule.note_subjects_taught
+  end
+
+  def note_groups_taught
+    @schedule.note_groups_taught
   end
 end

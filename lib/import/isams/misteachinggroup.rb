@@ -20,10 +20,10 @@ end
 class MIS_Teachinggroup
   SELECTOR = "TeachingManager Sets Set"
   REQUIRED_FIELDS = [
-    IsamsField["Id",        :isams_id,   :attribute, :integer],
-    IsamsField["SubjectId", :subject_id, :attribute, :integer],
-    IsamsField["YearId",    :year_id,    :attribute, :integer],
-    IsamsField["Name",      :name,       :data,      :string]
+    IsamsField["Id",        :isams_id,         :attribute, :integer],
+    IsamsField["SubjectId", :isams_subject_id, :attribute, :integer],
+    IsamsField["YearId",    :year_id,          :attribute, :integer],
+    IsamsField["Name",      :name,             :data,      :string]
   ]
 
   include Creator
@@ -32,6 +32,7 @@ class MIS_Teachinggroup
 
   def initialize(entry)
     @pupils = Array.new
+    @teachers = Array.new
     @current = true
     @datasource_id = @@primary_datasource_id
     #
@@ -53,8 +54,24 @@ class MIS_Teachinggroup
     @year_id && @year_id < 20
   end
 
+  #
+  #  This method is called at initialisation, whilst we're reading
+  #  in our data.  At this point it is too soon to reference the actual
+  #  subject database record.
+  #
   def note_subject(subject_hash)
-    @subject = subject_hash[self.subject_id]
+    @subject = subject_hash[self.isams_subject_id]
+  end
+
+  #
+  #  This one is called later, when we are about to load into the
+  #  database.  By now all the necessary subject records should
+  #  have been created.
+  #
+  def find_subject_id
+    if @subject && @subject.dbrecord
+      @subject_id = @subject.dbrecord.id
+    end
   end
 
   def start_year

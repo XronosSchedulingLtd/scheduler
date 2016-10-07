@@ -443,6 +443,7 @@ class Event < ActiveRecord::Base
       [[by_type["Staff"],
         by_type["Pupil"],
         by_type["Group"],
+        by_type["Subject"],
         by_type["Location"],
         by_type["Service"],
         by_type["Property"]].compact, approvables]
