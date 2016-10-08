@@ -101,12 +101,12 @@ class ElementsController < ApplicationController
     @direct_groups =
       memberships.select {|m| m.level == 1}.
                   collect {|m| m.group}.
-                  select {|g| g.public?}
+                  select {|g| g.public?}.sort
     Rails.logger.debug "Timing: creating indirect groups at #{Time.now.strftime('%H:%M:%S.%L')}"
     @indirect_groups =
       memberships.select {|m| m.level != 1}.
                   collect {|m| m.group}.
-                  select {|g| g.public?}
+                  select {|g| g.public?}.sort
     Rails.logger.debug "Timing: finished at #{Time.now.strftime('%H:%M:%S.%L')}"
   end
 

@@ -30,6 +30,10 @@ class Membership < ActiveRecord::Base
       "membershipwd"
     end
 
+    def group
+      @membership.group
+    end
+
     def affects(other)
       if self.largest_nesting_depth <= other.largest_nesting_depth
         @largest_nesting_depth = other.largest_nesting_depth + 1
@@ -237,7 +241,7 @@ class Membership < ActiveRecord::Base
       #
       #  Is this batch current on the indicated date?
       #
-      def current?(ondate == Date.today)
+      def current?(ondate = Date.today)
         #
         #  If:
         #     We have a start date and it's in the future, or

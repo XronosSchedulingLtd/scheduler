@@ -2,45 +2,61 @@
 
 <h2>Details of <%= @element.name %></h2>
 
-<div class="row">
-  <div class="small-12 medium-6 large-4 columns">
-    <h3>General information</h3>
-    <h5><%= @element.indefinite_kind_of_entity %></h5>
-    <ul>
-      <%= render partial: "element_general", object: @element %>
-      <%= render partial: @element.entity.general_partial,
-        object: @element.entity %>
-    </ul>
-    Administered by.  Name. Tutor. House. Year.
+<ul class="tabs" data-tab>
+  <li class="tab-title active"><a href="#panel1">Current</a></li>
+  <li class="tab-title"><a href="#panel2">Historical</a></li>
+</ul>
+
+<div class="tabs-content">
+  <div class="content active" id="panel1">
+    <div class="row">
+      <div class="small-12 medium-6 large-4 columns">
+        <div class="panel">
+          <h3>General information</h3>
+          <h5><%= @element.indefinite_kind_of_entity %></h5>
+          <ul>
+            <%= render partial: "element_general", object: @element %>
+            <%= render partial: @element.entity.general_partial,
+                       object: @element.entity %>
+          </ul>
+          Administered by.  Name. Tutor. House. Year.
+        </div>
+      </div>
+      <div class="small-12 medium-6 large-4 columns">
+        <div class="panel">
+          <h3>Member of</h3>
+          <ul>
+            <li>Directly
+              <ul>
+                <%= render partial: "group", collection: @direct_groups %>
+              </ul>
+            </li>
+            <li>Indirectly
+              <ul>
+                <%= render partial: "group", collection: @indirect_groups %>
+              </ul>
+            </li>
+          </ul>
+          Broken down by type of group.  Just current membership.
+        </div>
+      </div>
+      <div class="small-12 medium-6 large-4 columns">
+        <div class="panel">
+          <h3>Members</h3>
+          Appears only for groups.
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="small-12 medium-6 large-4 columns">
-    <h3>Member of</h3>
-    <ul>
-      <li>Directly
-        <ul>
-          <%= render partial: "group", collection: @direct_groups %>
-        </ul>
-      </li>
-      <li>Indirectly</li>
-        <ul>
-          <%= render partial: "group", collection: @indirect_groups %>
-        </ul>
-      </li>
-    Broken down by type of group.  Just current membership.
-  </div>
-  <div class="small-12 medium-6 large-4 columns">
-    <h3>Members</h3>
-    Appears only for groups.
+  <div class="content active" id="panel2">
+    <div class="row">
+      <div class="large-12 columns">
+        <div class="panel">
+          <h3>Membership history</h3>
+          <%= render @mwd_set %>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
-
-<div class="row">
-  <div class="large-12 columns">
-
-    <h3>Membership history</h3>
-
-    <%= render @mwd_set %>
-  </div>
-</div>
-
 
