@@ -1,0 +1,5 @@
+<% if defined? with_link %>
+  <li><%= link_to member.name, element_path(member.element) %></li>
+<% else %>
+  <li><%= member.name %></li>
+<% end %>

@@ -1,0 +1,8 @@
+<li> <%= group_set.type %>
+  <ul>
+    <%= render partial: "group",
+               collection: group_set,
+               locals: {with_link: true} %>
+  </ul>
+</li>
+

@@ -665,7 +665,7 @@ class Group < ActiveRecord::Base
       #
       included_by_group =
         group_includes.collect {|membership|
-          (exclude_groups ? [] : [membership.element]) +
+          (exclude_groups ? [] : [membership.element.entity]) +
           membership.element.entity.members(membership.as_at ?
                                             membership.as_at :
                                             given_date,
@@ -675,7 +675,7 @@ class Group < ActiveRecord::Base
         }.flatten.uniq
       excluded_by_group =
         group_excludes.collect {|membership|
-          (exclude_groups ? [] : [membership.element]) +
+          (exclude_groups ? [] : [membership.element.entity]) +
           membership.element.entity.members(membership.as_at ?
                                             membership.as_at :
                                             given_date,

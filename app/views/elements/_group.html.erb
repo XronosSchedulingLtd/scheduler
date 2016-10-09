@@ -1,1 +1,5 @@
-<li><%= group.name %></li>
+<% if defined? with_link %>
+  <li><%= link_to group.name, element_path(group.element) %></li>
+<% else %>
+  <li><%= group.name %></li>
+<% end %>

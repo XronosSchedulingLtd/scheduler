@@ -8,6 +8,109 @@ require 'csv'
 class ElementsController < ApplicationController
 
   #
+  #  A class to hold a set of groups, each of a similar type.
+  #
+  class GroupSet < Array
+    attr_reader :type
+
+    def initialize(type, contents)
+      super(contents)
+      @type = type
+    end
+
+    def to_partial_path
+      "group_set"
+    end
+
+  end
+
+  #
+  #  A class to sort and hold a collection of groups.  All groups of the
+  #  same type are put in a GroupSet, and then we hold all the GroupSets.
+  #
+  class GroupSetHolder < Array
+
+    KNOWN_GROUP_ORDERING = [
+      "Tutor",
+      "Teaching",
+      "Otherhalf",
+      "Tag",
+      "Vanilla"]
+
+    def initialize(contents)
+      #
+      #  Explicitly don't want to pass our parameter in to the
+      #  Array#initialize.  We will add the contents.
+      #
+      super()
+      unless contents.empty?
+        type_hash = Hash.new
+        contents.each do |group|
+          type = group.type
+          type_hash[type] ||= Array.new
+          type_hash[type] << group
+        end
+        #
+        #  And now add them in order to our array, sorting them as they go.
+        #
+        KNOWN_GROUP_ORDERING.each do |type|
+          if type_hash[type]
+            self << GroupSet.new(type, type_hash[type].sort)
+          end
+        end
+      end
+    end
+
+  end
+
+  #
+  #  A class to hold a set of members, each of a similar type.
+  #
+  class MemberSet < Array
+    attr_reader :type
+
+    def initialize(type, contents)
+      super(contents)
+      @type = type
+    end
+
+    def to_partial_path
+      "member_set"
+    end
+
+  end
+
+  #
+  #  A class to sort and hold a collection of members.  All members of the
+  #  same type are put in a MemberSet, and then we hold all the MemberSets.
+  #
+  class MemberSetHolder < Array
+
+    def initialize(contents)
+      #
+      #  Explicitly don't want to pass our parameter in to the
+      #  Array#initialize.  We will add the contents.
+      #
+      super()
+      unless contents.empty?
+        type_hash = Hash.new
+        contents.each do |member|
+          type = member.class.to_s
+          type_hash[type] ||= Array.new
+          type_hash[type] << member
+        end
+        #
+        #  And now add them in order to our array, sorting them as they go.
+        #
+        type_hash.each do |type, members|
+          self << MemberSet.new(type, members.sort)
+        end
+      end
+    end
+
+  end
+
+  #
   #  It would be nice to be able to use a line like the following to
   #  generate by action, but unfortunately one of my scopes needs
   #  a parameter.  Hence I have to do it manually.
@@ -78,15 +181,6 @@ class ElementsController < ApplicationController
 
   def show
     @element = Element.find(params[:id])
-#    @direct_groups =
-#      @element.groups(Date.today, false).
-#               select {|g| g.owner == nil || g.make_public}.sort
-#    Rails.logger.debug "Calling groups() recursively at #{Time.now.strftime('%H:%M:%S.%L')}"
-#    @indirect_groups = []
-#      @element.groups.select {|g| g.owner == nil || g.make_public}.sort -
-#      @direct_groups
-#    Rails.logger.debug "Calling memberships_by_duration() at #{Time.now.strftime('%H:%M:%S.%L')}"
-    Rails.logger.debug "Timing: creating mwd_set at #{Time.now.strftime('%H:%M:%S.%L')}"
     @mwd_set = @element.memberships_by_duration(start_date: nil,
                                                 end_date: nil)
     #
@@ -95,19 +189,22 @@ class ElementsController < ApplicationController
     #  whilst the mwds are still grouped, but then the level applies
     #  to each membership record individually.
     #
-    Rails.logger.debug "Timing: extracting memberships at #{Time.now.strftime('%H:%M:%S.%L')}"
     memberships = @mwd_set.current_grouped_mwds.flatten
-    Rails.logger.debug "Timing: creating direct groups at #{Time.now.strftime('%H:%M:%S.%L')}"
     @direct_groups =
       memberships.select {|m| m.level == 1}.
                   collect {|m| m.group}.
                   select {|g| g.public?}.sort
-    Rails.logger.debug "Timing: creating indirect groups at #{Time.now.strftime('%H:%M:%S.%L')}"
+    @grouped_direct_groups = GroupSetHolder.new(@direct_groups)
     @indirect_groups =
       memberships.select {|m| m.level != 1}.
                   collect {|m| m.group}.
                   select {|g| g.public?}.sort
-    Rails.logger.debug "Timing: finished at #{Time.now.strftime('%H:%M:%S.%L')}"
+    @grouped_indirect_groups = GroupSetHolder.new(@indirect_groups)
+    if @element.entity.respond_to?(:members)
+      @members = MemberSetHolder.new(@element.entity.members)
+    else
+      @members = []
+    end
   end
 
   IcalDataSet = Struct.new(:prefix, :data)

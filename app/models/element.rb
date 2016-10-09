@@ -355,11 +355,19 @@ class Element < ActiveRecord::Base
   end
 
   def indefinite_kind_of_entity
-    body = self.kind_of_entity
+    body = self.kind_of_entity.downcase
     if /^[AEIOU]/i =~ body
       "An #{body}"
     else
       "A #{body}"
+    end
+  end
+
+  def entity_description
+    if entity.respond_to?(:description_line)
+      entity.description_line
+    else
+      indefinite_kind_of_entity
     end
   end
 

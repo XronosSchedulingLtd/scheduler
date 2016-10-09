@@ -1,10 +1,11 @@
 <p id="notice"><%= notice %></p>
 
 <h2>Details of <%= @element.name %></h2>
+<p><%= @element.entity_description %></p>
 
 <ul class="tabs" data-tab>
   <li class="tab-title active"><a href="#panel1">Current</a></li>
-  <li class="tab-title"><a href="#panel2">Historical</a></li>
+  <li class="tab-title"><a href="#panel2">History</a></li>
 </ul>
 
 <div class="tabs-content">
@@ -12,43 +13,56 @@
     <div class="row">
       <div class="small-12 medium-6 large-4 columns">
         <div class="panel">
-          <h3>General information</h3>
-          <h5><%= @element.indefinite_kind_of_entity %></h5>
+          <h3>Direct membership</h3>
           <ul>
-            <%= render partial: "element_general", object: @element %>
-            <%= render partial: @element.entity.general_partial,
-                       object: @element.entity %>
+            <% if @grouped_direct_groups.empty? %>
+              <li>None</li>
+            <% else %>
+              <%= render @grouped_direct_groups %>
+            <% end %>
           </ul>
-          Administered by.  Name. Tutor. House. Year.
         </div>
       </div>
       <div class="small-12 medium-6 large-4 columns">
         <div class="panel">
-          <h3>Member of</h3>
+          <h3>Indirect membership</h3>
           <ul>
-            <li>Directly
-              <ul>
-                <%= render partial: "group", collection: @direct_groups %>
-              </ul>
-            </li>
-            <li>Indirectly
-              <ul>
-                <%= render partial: "group", collection: @indirect_groups %>
-              </ul>
-            </li>
+            <% if @grouped_indirect_groups.empty? %>
+              <li>None</li>
+            <% else %>
+              <%= render @grouped_indirect_groups %>
+            <% end %>
           </ul>
-          Broken down by type of group.  Just current membership.
         </div>
       </div>
       <div class="small-12 medium-6 large-4 columns">
-        <div class="panel">
-          <h3>Members</h3>
-          Appears only for groups.
-        </div>
+        <% if @element.entity.instance_of?(Group) %>
+          <div class="panel">
+            <h3>Members</h3>
+            <ul>
+              <% if @members.empty? %>
+                <li>None</li>
+              <% else %>
+                <%= render @members %>
+              <% end %>
+            </ul>
+          </div>
+        <% elsif @element.entity.instance_of?(Staff) %>
+          <div class="panel">
+            <h3>Teaching sets</h3>
+            <ul>
+              <% if @members.empty? %>
+                <li>None</li>
+              <% else %>
+                <%= render @members %>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
       </div>
     </div>
   </div>
-  <div class="content active" id="panel2">
+  <div class="content" id="panel2">
     <div class="row">
       <div class="large-12 columns">
         <div class="panel">
