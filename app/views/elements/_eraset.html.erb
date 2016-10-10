@@ -5,7 +5,7 @@
       <% if @grouped_direct_groups.empty? %>
         <li>None</li>
       <% else %>
-        <%= render partial: "group", collection: eraset.sort %>
+        <%= render partial: "group", collection: eraset.uniq.sort %>
       <% end %>
     </ul>
   </div>

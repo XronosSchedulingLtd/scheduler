@@ -55,7 +55,7 @@ class ElementsController < ApplicationController
         #
         KNOWN_GROUP_ORDERING.each do |type|
           if type_hash[type]
-            self << GroupSet.new(type, type_hash[type].sort)
+            self << GroupSet.new(type, type_hash[type].uniq.sort)
           end
         end
       end
