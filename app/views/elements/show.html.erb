@@ -1,7 +1,16 @@
 <p id="notice"><%= notice %></p>
 
 <h2>Details of <%= @element.name %></h2>
-<p><%= @element.entity_description %></p>
+<p>
+  <%= @element.entity_description %><% if @element.owned %>,
+    administered by: <%= @element.owners.collect {|u| u.name }.join(", ") %>
+  <% end %>
+</p>
+<% if @element.entity.respond_to?(:owner) && @element.entity.owner %>
+<p>
+  Owned by: <%= @element.entity.owner.name %>
+</p>
+<% end %>
 
 <ul class="tabs" data-tab>
   <li class="tab-title active"><a href="#panel1">Current</a></li>
@@ -47,14 +56,16 @@
               <% end %>
             </ul>
           </div>
-        <% elsif @element.entity.instance_of?(Staff) %>
+        <% elsif @groupstaught %>
           <div class="panel">
             <h3>Teaching sets</h3>
             <ul>
-              <% if @members.empty? %>
+              <% if @groupstaught.empty? %>
                 <li>None</li>
               <% else %>
-                <%= render @members %>
+                <%= render partial: "group",
+                           collection: @groupstaught,
+                           locals: {with_link: true} %>
               <% end %>
             </ul>
           </div>
@@ -63,6 +74,9 @@
     </div>
   </div>
   <div class="content" id="panel2">
+    <div class="row">
+      <%= render @groups_by_era %>
+    </div>
     <div class="row">
       <div class="large-12 columns">
         <div class="panel">

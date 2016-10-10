@@ -63,6 +63,47 @@ class ElementsController < ApplicationController
 
   end
 
+  class GroupsByEra < Array
+
+    class EraSet < Array
+
+      attr_reader :era
+
+      def initialize(era)
+        super()
+        @era = era
+      end
+
+      def to_partial_path
+        "eraset"
+      end
+
+    end
+
+    #
+    #  We are passed an array of MWD_Batches, each of which contains
+    #  one or more membership records.  All the ones in a batch have
+    #  the same duration.
+    #
+    #  We want to split the groups up by the eras to which they belong.
+    #
+    def initialize(past_grouped_mwds)
+      super()
+      era_hash = Hash.new
+      past_grouped_mwds.each do |batch|
+        batch.each do |membership|
+          era = membership.group.era
+          era_hash[era.id] ||= EraSet.new(era)
+          era_hash[era.id] << membership.group
+        end
+      end
+      era_hash.each do |key, value|
+        self << value
+      end
+    end
+
+  end
+
   #
   #  A class to hold a set of members, each of a similar type.
   #
@@ -200,10 +241,18 @@ class ElementsController < ApplicationController
                   collect {|m| m.group}.
                   select {|g| g.public?}.sort
     @grouped_indirect_groups = GroupSetHolder.new(@indirect_groups)
+    #
+    #  Break up old groups by era.
+    #
+    @groups_by_era = GroupsByEra.new(@mwd_set.past_grouped_mwds)
+
     if @element.entity.respond_to?(:members)
       @members = MemberSetHolder.new(@element.entity.members)
     else
       @members = []
+    end
+    if @element.entity.respond_to?(:groupstaught)
+      @groupstaught = @element.entity.groupstaught.sort
     end
   end
 

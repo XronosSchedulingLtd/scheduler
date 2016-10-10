@@ -25,10 +25,11 @@ class Group < ActiveRecord::Base
   #  explicit ones too.  These should really be defined elsewhere, but
   #  I'm not sure how just yet.
   #
-  belongs_to :tutorgrouppersona, -> { where(groups: {persona_type: 'Tutorgrouppersona'}) }, foreign_key: :persona_id
-  belongs_to :teachinggrouppersona, -> { where(groups: {persona_type: 'Teachinggrouppersona'}) }, foreign_key: :persona_id
-  belongs_to :taggrouppersona, -> { where(groups: {persona_type: 'Taggrouppersona'}) }, foreign_key: :persona_id
-  belongs_to :otherhalfgrouppersona, -> { where(groups: {persona_type: 'Otherhalfgrouppersona'}) }, foreign_key: :persona_id
+  belongs_to :tutorgrouppersona, -> { where(groups: {persona_type: 'Tutorgrouppersona'}).includes(:group) }, foreign_key: :persona_id
+  belongs_to :teachinggrouppersona, -> { where(groups: {persona_type: 'Teachinggrouppersona'}).includes(:group) }, foreign_key: :persona_id
+  belongs_to :taggrouppersona, -> { where(groups: {persona_type: 'Taggrouppersona'}).includes(:group) }, foreign_key: :persona_id
+  belongs_to :otherhalfgrouppersona, -> { where(groups: {persona_type: 'Otherhalfgrouppersona'}).includes(:group) }, foreign_key: :persona_id
+
   has_many :memberships, :dependent => :destroy
 
   validates :starts_on, presence: true

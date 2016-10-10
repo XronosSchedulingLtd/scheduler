@@ -21,6 +21,8 @@ class Staff < ActiveRecord::Base
   has_and_belongs_to_many :teachinggrouppersonae
   before_destroy { teachinggrouppersonae.clear }
 
+  has_many :groupstaught, through: :teachinggrouppersonae, source: :group 
+
   after_destroy :delete_tutorgroups
 
   self.per_page = 15
@@ -33,6 +35,10 @@ class Staff < ActiveRecord::Base
   scope :does_cover, -> { where(does_cover: true) }
   scope :cover_exempt, -> { where(does_cover: false) }
 
+  #
+  #  This could be done as teachinggrouppersonae.collect {|tgp| tgp.group}
+  #  but this should be more efficient.
+  #
 
   def element_name
     #

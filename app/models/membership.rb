@@ -493,7 +493,11 @@ class Membership < ActiveRecord::Base
     end
 
     def current_grouped_mwds(ondate = Date.today)
-      @grouped_mwds.select { |gmwd| gmwd.current? }
+      @grouped_mwds.select { |gmwd| gmwd.current?(ondate) }
+    end
+
+    def past_grouped_mwds(ondate = Date.today)
+      @grouped_mwds.select { |gmwd| !gmwd.current?(ondate) }
     end
 
     def grouped_current_mwds_sorted_for_display(ondate = Date.today)

@@ -98,7 +98,7 @@ class Pupil < ActiveRecord::Base
   #  A 5th year pupil in Philpott's House - tutor: JHW
   #
   def description_line
-    "A #{year_group.ordinalize} year pupil in #{self.house_name}.  Tutor: #{self.tutor_name}."
+    "A #{year_group.ordinalize} year pupil in #{self.house_name} House.  Tutor: #{self.tutor_name}."
   end
 
   def <=>(other)
