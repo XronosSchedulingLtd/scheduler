@@ -71,3 +71,21 @@ Further repositories to move over:
 and that I think should do for now.  Anything else can be recovered from Nimbus's backups.
 
 And now for the big moment - switch off Nimbus.  First make sure I can access its console.  Yes, I can.  Shut it down from there.  Gone.  :-(  It's served me well for a long time.  I'll leave it for a couple of days before telling Andy to discontinue it, just in case of a balls-up.  Better tell guardian not to attempt to back it up too.
+
+And so we return to some coding - owned_locations.  I think what I want to do with these lists is remove many of the buttons.  I should show some basic information, and the if you click on the name, or a show button or something like that, you get full details as if you'd come there from the main screen.
+
+Two routes:
+
+Click on concern -> Click on full details
+Find in list -> Click on full details
+
+both leading to the same screen.  Locations can be the first one with which to do this.  Don't even both showing the active flag, but do show the long name, plus any other aliases.  Fewer buttons.
+
+Columns to show.
+
+* Location
+* Display name
+* Other aliases
+* Current
+
+and then a small button called "Details".

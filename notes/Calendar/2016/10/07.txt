@@ -1,0 +1,27 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-10-07T09:56:29+01:00
+
+====== Friday 07 Oct 2016 ======
+
+Really pleased with what I did yesterday.  Now need to think about merging those two development tracks.
+
+feature/owned-locations
+feature/subjects-as-elements, which follows on from feature/add-subjects
+
+I think I need to check out owned-locations and merge in subjects-as-elements, because I intend to continue the development of owned-locations now.  Keep subjects-as-elements as a branch, in case you should choose to merge that straight into develop at a later date for any reason.  The next things which I intend to do in owned-locations rely on what I've done on subjects, so that branch does need to be merged in.
+
+That seems to have merged pretty cleanly.  Enhanced the listing of subjects to use a slightly neater paginator like all the other items.
+
+Now want to work on displaying sensible detail for each type of item.  For some reason, the element.groups() method, when set to recurse, is //much// slower than the way it was happening before, even though the old way produced far more detail.  Calling memberships_by_duration appears to be a lot faster.  Put some logging code in to check this.
+
+'''
+Calling groups() recursively at 10:08:49.575
+Calling memberships_by_duration() at 10:08:51.216
+Finished calling at 10:08:51.354
+'''
+
+
+That is startlingly faster.  1.641s vs 0.138s.  Admittedly, there might be some cacheing going on, but even so.
+
+I need to enhance the MWD code to provide more general manipulation of the groups thus discovered.

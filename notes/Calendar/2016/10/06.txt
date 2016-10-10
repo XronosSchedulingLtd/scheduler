@@ -1,0 +1,47 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-10-06T10:06:39+01:00
+
+====== Thursday 06 Oct 2016 ======
+
+Really good progress on loading more information yesterday.  Subjects are there and linked in.
+
+One thing which I'd missed occurred to me last night.  Although I created a yeargroup field in the teachinggroup record, I'm not yet populating it.  Do that, then re-merge the code and go back to the previous development branch.
+
+A sudden terrifying thought has occurred to me - should Subjects be elements too?  If they were, then one could look at, for instance, all Maths lessons.  Eeek!  Is this too silly for words?
+
+Making them into elements should be relatively simple.  What would take more work is then including them in the data load - attached to every lesson - and displaying them in the edit forms.  Is this a cool idea, or a nightmare?  Needs a bit of time on the back burner.  Would it slow down any existing functionality?  To genericize the name Subject, one could call it Attribute, but is that any different from a Property?  Should Subjects be Properties?  Or Services?  Definitely not a service, and Properties on the whole don't have the other attributes which Subjects have.   Hmm.
+
+I'm inclined to try it.  I'll do that yeargroup field first, and commit it, then start a new branch and see how Subject-as-Element goes.
+
+Bits:
+
+[*] Make a subject an element (need an active() method, which returns true).
+[*] Add subjects to each timetable entry loaded.
+[*] Add subjects to display/editing of events
+[*] Make sure they work as concerns
+[*] Make sure they work through the days controller
+[*] Make sure detailed display of an element works
+[*] Add menu items to list the subjects
+
+A thought about the repeated storage of data.  If I attach a subject to each lesson in the timetable, then arguably I'm storing the same information twice which breaks one of my guidance rules.  What we'll have is a lesson, pointing to a teaching group, which points to a subject.  But the lesson will also point directly to the subject, which is duplicating the same information.  Actually, it isn't always duplicating it because some of my lessons have tutor groups and not teaching groups.  Currently we have no way of discerning the subject for these lessons, apart from working it out from the lesson title.
+
+The idea of being able to select events directly by subject is still attractive, even if it does potentially duplicate information.  I can foresee it being potentially useful too.  You could have a class called, "1B Sci", which had separate lessons in Biology, Chemistry and Physics.  It's useful to be able to record that.
+
+Just notice something slightly odd when testing after implementing the yeargroup addition for teaching groups.  The teaching groups pick up their yeargroups as expected (only two lines of code changed!) but it takes a second pass for them to pick up their subjects.  Is this because the subjects are being loaded after the teaching groups?
+
+No - the subjects are definitely being loaded first.  Ah - but it may be that the teaching group memory records are looking for the subject records too soon - at initialisation rather than just before they are saved to the database.
+
+Tried to fix that - test again.  Fine.
+
+Now on to doing the subjects-as-elements bit.  Phenomenally small amount of code changes needed (all to app/models/subject.rb) and it Just Works(TM).  Rather pleasing code re-use.
+
+Now, can I add a subject to each timetable event.  Note the different way these are linked - teaching groups are linked directly to subjects (as are staff), but events will be linked to the subject's element.
+
+Arguably one could take this to extremes - rather than linking each member of staff to his or her subjects, one could create a group (anonymous?) linked to the member of staff, and then populate it with the subjects.  That would give you not just what subjects the teacher currently teaches, but an entire history as the membership of the group changes.  OTOH, it would then make it harder to find all the teachers associated with a subject - although not that hard.  You'd need to find all the groups of which the subject was a member, and then link to their associated teacher.  It would probably need a new kind of group to do it with.
+
+Should subjects have groups of teachers, or should teachers have groups of subjects?  Either would work, but one probably doesn't want to have both in place at once - too much scope for getting out of step.
+
+Anyway, leave the association between teachers and subjects alone for now.  We can already get our chronology from the automatically created "Maths teachers" group and friends.
+
+Enough thinking - get back to linking subjects to timetable entries.
