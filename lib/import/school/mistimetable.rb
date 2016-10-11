@@ -72,6 +72,7 @@ class MIS_ScheduleEntry
   #
   def to_a
     [self.entry_type,
+     self.period_id,
      self.week_letter,
      self.day_of_week,
      self.period_name,
@@ -84,58 +85,6 @@ class MIS_ScheduleEntry
 
 end
 
-class ISAMS_TimetableEntry
-
-  SUBJECT_CODES = {
-    "Bi"  => "Biology",
-    "BtB" => "Be the Best",
-    "En"  => "English",
-    "Fr"  => "French",
-    "Gg"  => "Geography",
-    "Hi"  => "History",
-    "La"  => "Latin",
-    "Li"  => "Reading & Research",
-    "Ma"  => "Mathematics",
-    "Mu"  => "Music",
-    "RS"  => "Religious Studies",
-    "Sc"  => "Science"
-  }
-
-  def find_subject(loader)
-    if @set_id == 1
-      #
-      #  Taught by set, and therefore we should be able to get
-      #  an explicit subject record.
-      #
-      if @groups.size > 0
-        @subject = @groups[0].subject
-        if @subject
-          @subjects << @subject
-        end
-      end
-    else
-      splut = self.code.split
-      if splut.size == 2
-        if /^[12]/ =~ splut[0]
-          subject_name = SUBJECT_CODES[splut[1]]
-          if subject_name
-            @subject = loader.subjects_by_name_hash[subject_name]
-            if @subject
-              @subjects << @subject
-            else
-              puts "Failed to find subject #{subject_name}."
-            end
-          end
-        end
-      end
-    end
-  end
-
-  def subject
-    @subject
-  end
-
-end
 
 class MIS_Schedule
 
