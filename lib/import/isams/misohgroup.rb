@@ -61,7 +61,15 @@ class MIS_Otherhalfgroup
       if pupil
         @pupils << pupil
       else
-        puts "Couldn't find pupil with id #{pid}."
+        #
+        #  The iSAMS database/API lacks basic integrity checking, with the
+        #  result that you can get pupils who have left (and thus no longer
+        #  appear in the feed) still appearing as members of groups.
+        #  Allow the messages to be supressed.
+        #
+        #  Give the message only if the user has requested verbosity.
+        #
+        puts "Couldn't find pupil with id #{pid}." if loader.options.verbose
       end
     end
   end

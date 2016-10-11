@@ -20,4 +20,4 @@ Helen Whitworthe is not active, and thus can't have any such thing.  Her datasou
 
 What about her user account?  Just delete that.
 
-Ready I think to another tiny release.
+Ready I think for another tiny release.  v0.4.

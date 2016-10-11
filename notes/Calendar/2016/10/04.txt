@@ -1,0 +1,91 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-10-04T09:08:15+01:00
+
+====== Tuesday 04 Oct 2016 ======
+
+Yesterday was a bit of a distracted day, but I did at least get the set up of Gitolite done.  I'm now ready to migrate the necessary projects.  Changing the origin of an installation seems to be a pretty smooth process, but I'll test it with a new (dummy) release on my staging server first.  Objective for today is to turn Nimbus off.
+
+Firstly I've brought my staging server up to date with the current release - v0.4.  Next I want to set up a repository for Scheduler on the new Gitolite server and push the current software to it.  It seems I have already created the repository, so let's change our origin and push.
+
+The current contents of ''.git/config'' are:
+
+'''
+[core]
+		repositoryformatversion = 0
+		filemode = true
+		bare = false
+		logallrefupdates = true
+[remote "origin"]
+		url = gitosis@git.sinodun.org.uk:scheduler.git
+		fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+		remote = origin
+		merge = refs/heads/master
+[branch "isamsfeed"]
+		remote = origin
+		merge = refs/heads/isamsfeed
+[branch "develop"]
+		remote = origin
+		merge = refs/heads/develop
+'''
+
+
+Note the url for origin.
+
+Command is:
+
+'''
+git remote set-url origin git@repository.xronos.uk:scheduler.git
+git push origin --all
+git push origin --tags
+'''
+
+Here we go.  Seem top have pushed 7643 files to the repository.  Presumably I need also to push my tags.
+
+Now try pulling it down again to a test directory.  What branches will there be there?  Hmm, it seems I have master but not as yet develop.
+
+Ah, it seems I should have used ''git push origin --all'' instead of ''git push origin master''.   Amended above.  That does now seem to have done it.  I have no further use for this test clone so delete it.
+
+Now for a dummy release to test that I can pull it to the staging server without issue.  Version v0.5
+
+Having done the release in the usual fashion, but sent it to the new repository instead of the old one, I can now go to the staging server, change its idea of origin as above, and then pull the new release to the staging server (I hope).
+
+Hmmm, it's pulled down more branches which I perhaps didn't want - must remember to delete them from the server - but it does seem to have got the necessary too.
+
+I have now deleted all the redundant branches.  There are a number of un-merged ones and those I have kept.  ''git pull --prune'' seems to do a lot of what is needed.
+
+OK - I think I'm ready to update the live server.  I hope so anyway.  Check first that its key is set up properly by doing a dummy clone.  Yes, that's fine.  And the installation updated without difficulty - good.
+
+Best tell Niki whilst I'm about it.  Done that.
+
+Now I just need to make sure I have everything else off Nimbus (and where necessary, on to Cumulus) before I turn off Nimbus.  There's bound to be something which I've forgotten, and I'll discover what it is by turning off the machine.
+
+Further repositories to move over:
+
+[*] isams
+[*] isamsdoc
+[*] markbook
+[*] markbook4
+
+and that I think should do for now.  Anything else can be recovered from Nimbus's backups.
+
+And now for the big moment - switch off Nimbus.  First make sure I can access its console.  Yes, I can.  Shut it down from there.  Gone.  :-(  It's served me well for a long time.  I'll leave it for a couple of days before telling Andy to discontinue it, just in case of a balls-up.  Better tell guardian not to attempt to back it up too.
+
+And so we return to some coding - owned_locations.  I think what I want to do with these lists is remove many of the buttons.  I should show some basic information, and the if you click on the name, or a show button or something like that, you get full details as if you'd come there from the main screen.
+
+Two routes:
+
+Click on concern -> Click on full details
+Find in list -> Click on full details
+
+both leading to the same screen.  Locations can be the first one with which to do this.  Don't even both showing the active flag, but do show the long name, plus any other aliases.  Fewer buttons.
+
+Columns to show.
+
+* Location
+* Display name
+* Other aliases
+* Current
+
+and then a small button called "Details".
