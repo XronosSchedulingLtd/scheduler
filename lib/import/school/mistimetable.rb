@@ -72,6 +72,7 @@ class MIS_ScheduleEntry
   #
   def to_a
     [self.entry_type,
+     self.period_id,
      self.week_letter,
      self.day_of_week,
      self.period_name,
