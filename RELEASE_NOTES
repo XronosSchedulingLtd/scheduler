@@ -1,3 +1,21 @@
+v0.6    2016-10-11
+
+* Add an extra field to OTL's timetable export file.
+
+  OTL requested an extra column on the CSV file of timetable events
+  which is auto-generated for him each night.  This contains the
+  period number for each event, enabling the whole lot to be sorted
+  into chronological order.
+
+* Suppress warning message about invalid student IDs.
+
+  The iSAMS database lacks basic integrity checking for students who
+  leave, with the result that they can have left the school but still
+  be listed as members of certain groups.  The warning messages for
+  teaching groups were suppressed in an earlier release.  This one does
+  the same thing for OH groups.
+
+
 v0.5    2016-10-04
 
 * No code changes at all.
