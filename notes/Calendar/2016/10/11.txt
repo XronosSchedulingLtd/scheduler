@@ -1,0 +1,40 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-10-11T09:29:55+01:00
+
+====== Tuesday 11 Oct 2016 ======
+
+Today I am inclined to take a break from the owned-locations stuff (which has grown rather) and step back for a couple of quick fixes, plus an enhancement.
+
+The quick fixes will give me a chance to practice the idea of a hot fix.  They are:
+
+[*] Add one more column to OTL's spreadsheet
+[*] Suppress a spurious warning message
+
+and then I want to do one actual enhancement which is:
+
+[ ] Fix the design error in iSAMS's API, by creating the missing teaching group records.
+
+Just noticed a potential problem in the way I am loading groups.  For the source_id_str I am just putting a number, but there could be more than one group of different types with the same number.  E.g. 3M Ma1a (teaching group) has "4191", tutor group 1M has "1M" and OH group "Guitar - Paul Owen" has "201".  Do I distinguish properly between types of group when doing my reload?
+
+Ah yes - I am doing them separately by class.  When I do teaching groups I am looking specifically for something with class Teachinggroup, and then doing a find_by on that class.  It works like this:
+
+'''
+2.1.10 :001 > Teachinggroup.find_by(source_id_str: "4191")
+  Group Load (0.2ms)  SELECT  `groups`.* FROM `groups`  WHERE `groups`.`source_id_str` = '4191' AND `groups`.`persona_type` = 'Teachinggrouppersona' LIMIT 1
+ => #<Group id: 16015, starts_on: "2016-08-15", ends_on: "2017-08-14", created_at: "2016-08-15 15:08:56", updated_at: "2016-08-15 15:08:56", persona_id: 12601, persona_type: "Teachinggrouppersona", name: "3M Ma1a", era_id: 5, current: true, owner_id: nil, make_public: false, source_id: nil, source_id_str: "4191", datasource_id: 2> 
+2.1.10 :002 >
+'''
+ 
+
+Note that, because I called Teachinggroup.find_by, there is an added requirement in the d/b query that the personatype  is set correctly.  It thus doesn't matter if two groups of different types have the same id string.  I will however need to put a prefix in on my artificially created ones to ensure they don't overlap with the numeric ones.
+
+Actually, since all I have to identify the group is its name - e.g. "1M Ma" - I might as well use that as the source_id_str.  Normally I wouldn't because I want to keep the same group records even if the name changes, but in the current circumstance that won't be possible.  If the name changes, there will be absolutely nothing with which to tell that it is in fact the same group.  iSAMS's design error is creating a phenomenal amount of work.
+
+I am inclined to do two passes through the timetable data - the first to find and create all the extra teaching groups, and then the second (the currently existing one) to create the lessons.  Anyway, do the hot-fix stuff first.
+
+It doesn't actually need to be a hot fix, because the development branch is clean.  No work has been merged into it since the last release.  Perhaps I'll just do it off the development branch.
+
+Need a fresh copy of the live database, and to switch back to the code as on the live system.
+
+Doing the message suppression first.  Seems like a one-line change.  Tested - works.  Now OTL's change.  Also I think a one-liner. 
