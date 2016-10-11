@@ -91,7 +91,76 @@ class MIS_Teachinggroup
     end
     tgs
   end
+end
 
+
+class ISAMS_FakeTeachinggroup < MIS_Group
+
+  DB_CLASS = Teachinggroup
+
+  SUBJECT_CODES = {
+    "Bi"  => "Biology",
+    "BtB" => "Be the Best",
+    "En"  => "English",
+    "Fr"  => "French",
+    "Gg"  => "Geography",
+    "Hi"  => "History",
+    "La"  => "Latin",
+    "Li"  => "Reading & Research",
+    "Ma"  => "Mathematics",
+    "Mu"  => "Music",
+    "RS"  => "Religious Studies",
+    "Sc"  => "Science"
+  }
+
+  attr_reader :datasource_id,
+              :current,
+              :subject,
+              :pupils,
+              :name,
+              :isams_id,
+              :subject_id,
+              :year_id
+
+  def initialize(proposed_name, tutor_group, subject_hash)
+    super()
+    @pupils = tutor_group.pupils
+    @current = true
+    @datasource_id = @@primary_datasource_id
+    @name = proposed_name
+    @isams_id = proposed_name
+    @year_id = tutor_group.year_id
+    @tutor_group = tutor_group
+    @subject = nil
+    splut = proposed_name.split
+    if splut.size == 2
+      if /^[12]/ =~ splut[0]
+        subject_name = SUBJECT_CODES[splut[1]]
+        if subject_name
+          @subject = subject_hash[subject_name]
+          unless @subject
+            puts "Failed to find subject #{subject_name}."
+          end
+        end
+      end
+    end
+  end
+
+  def source_id_str
+    @isams_id
+  end
+
+  def start_year
+    (@era.starts_on.year - @year_id) + 7
+  end
+
+  def yeargroup
+    @year_id - 6
+  end
+
+  def members
+    @pupils
+  end
 end
 
 

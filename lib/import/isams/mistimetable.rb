@@ -125,6 +125,8 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
 
   include Creator
 
+  attr_reader :subject
+
   def initialize(entry)
     super()
   end
@@ -143,16 +145,12 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
     #  It assumes that the data coming from iSAMS will be correct.
     #  Needs reinforcing.
     #
-    if @set_id == 1             # By set
-      group = loader.tegs_by_name_hash[@code]
-      if group
-        @groups << group
-      end
-    elsif @set_id == 0          # By form (tutor group)
-      group = loader.tugs_by_name_hash[@code.split[0]]
-      if group
-        @groups << group
-      end
+    group = loader.tegs_by_name_hash[@code]
+    if group
+      @groups << group
+      @subject = group.subject
+    else
+      @subject = nil
     end
     staff = loader.secondary_staff_hash[@teacher_id]
     if staff
@@ -161,14 +159,6 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
     room = loader.location_hash[@room_id]
     if room
       @rooms << room
-    end
-    #
-    #  There is a bug in the iSAMS API in that there is no way of
-    #  linking up a lesson taught by form (tutor group in our case)
-    #  to its form and subject.  We need to frig to get around it.
-    #
-    if self.respond_to?(:find_subject)
-      self.find_subject(loader)
     end
   end
 
@@ -469,6 +459,39 @@ class ISAMS_DummyGroup
 
   def self.group_for_nc_year(nc_year)
     @group_hash[nc_year] ||= self.new(nc_year)
+  end
+
+end
+
+#
+#  A class to hold the groups which iSAMS fail to provide in their
+#  feed.
+#
+class ISAMS_MissingGroup
+  SELECTOR = "Schedules Schedule"
+  REQUIRED_FIELDS = [
+    IsamsField["Id",        :isams_id,   :attribute, :integer],
+    IsamsField["Code",      :code,       :data,      :string],
+    IsamsField["Teacher",   :teacher_id, :data,      :string],
+    IsamsField["PeriodId",  :period_id,  :data,      :integer],
+    IsamsField["RoomId",    :room_id,    :data,      :integer],
+    IsamsField["SetId",     :set_id,     :data,      :integer]
+  ]
+
+  include Creator
+
+  def initialize(entry)
+  end
+
+  def adjust
+  end
+
+  def wanted
+    self.set_id == 0
+  end
+
+  def self.construct(loader, inner_data)
+    self.slurp(inner_data)
   end
 
 end
@@ -929,11 +952,50 @@ class MIS_Timetable
 #    end
     matching_timetables = timetables.select {|t| t.name == timetable_name}
     if matching_timetables.size == 1
-      @schedule = MIS_Schedule.new(loader, isams_data, matching_timetables[0])
+      @timetable_data = matching_timetables[0]
     else
       raise "#{matching_timetables.size} timetables match \"timetable_name\"."
     end
 #    puts "Got #{@schedule.entry_count} schedule entries."
+  end
+
+  #
+  #  This is a separate step, which has to happen after we've found
+  #  all necessary teaching groups.
+  #
+  def build_schedule(loader, isams_data)
+    @schedule = MIS_Schedule.new(loader, isams_data, @timetable_data)
+  end
+
+  #
+  #  This method exists to overcome a design error in the iSAMS API
+  #
+  #  The designer of the API clearly forgot that there are two kinds
+  #  of groups used in the timetable - groups with their own specific
+  #  membership and groups where the membership is simply that of a form.
+  #
+  #  The implementor tried to do a fix on the fly, but didn't actually
+  #  improve matters.  He merely managed to achieve a situation where
+  #  the documentation doesn't match the implementation, but it still
+  #  doesn't work.  You therefore have entries in the timetable
+  #  provided by iSAMS which refer to teaching groups, but the corresponding
+  #  teaching groups are simply missing from the feed.  It is thus
+  #  impossible to reconstruct the timetable without some additional
+  #  information from another source.
+  #
+  #  To overcome this, Abingdon adopted a convention that the name
+  #  of a teaching group based on a form group would always contain the
+  #  name of the form group as its first word.  Thus "1M Ma" refers to
+  #  the tutor group 1M.  This gives us enough to populate the group.
+  #  We then use the Ma bit and a lookup table to work out the subject.
+  #
+  #  iSAMS got quite abusive when I pointed out the problem and tried
+  #  repeatedly to pretend that it didn't exist.  Very difficult to
+  #  work with amateurs like that.
+  #
+  def list_missing_teaching_groups(loader)
+    mg_records = ISAMS_MissingGroup.construct(loader, @timetable_data.entry)
+    mg_records.collect {|mgr| mgr.code}.uniq
   end
 
   def entry_count

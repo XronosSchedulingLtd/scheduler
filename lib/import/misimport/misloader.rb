@@ -58,6 +58,12 @@ class MIS_Loader
       @subject_hash[subject.source_id] = subject
 #      puts "Got subject called \"#{subject.name}\"."
     end
+    #
+    #  The group code may need to consult the timetable code, so we
+    #  create that object now.  It will get a later opportunity to
+    #  do its own parsing, and refer back to groups.
+    #
+    @timetable = MIS_Timetable.new(self, whatever)
     @tutorgroups = MIS_Tutorgroup.construct(self, whatever)
     puts "Got #{@tutorgroups.count} tutorgroups." if options.verbose
     @teachinggroups = MIS_Teachinggroup.construct(self, whatever)
@@ -73,7 +79,11 @@ class MIS_Loader
       @oh_groups_hash[ohg.isams_id] = ohg
     end
     self.mis_specific_preparation
-    @timetable = MIS_Timetable.new(self, whatever)
+    #
+    #  And now there should be enough to build the actual timetable
+    #  data structures.
+    #
+    @timetable.build_schedule(self, whatever)
     puts "Got #{@timetable.entry_count} timetable entries." if options.verbose
     @timetable.note_hiatuses(self, @hiatuses)
     @timetable.note_subjects_taught

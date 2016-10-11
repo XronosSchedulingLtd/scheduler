@@ -85,56 +85,6 @@ class MIS_ScheduleEntry
 
 end
 
-class ISAMS_TimetableEntry
-
-  SUBJECT_CODES = {
-    "Bi"  => "Biology",
-    "BtB" => "Be the Best",
-    "En"  => "English",
-    "Fr"  => "French",
-    "Gg"  => "Geography",
-    "Hi"  => "History",
-    "La"  => "Latin",
-    "Li"  => "Reading & Research",
-    "Ma"  => "Mathematics",
-    "Mu"  => "Music",
-    "RS"  => "Religious Studies",
-    "Sc"  => "Science"
-  }
-
-  def find_subject(loader)
-    if @set_id == 1
-      #
-      #  Taught by set, and therefore we should be able to get
-      #  an explicit subject record.
-      #
-      if @groups.size > 0
-        @subject = @groups[0].subject
-      end
-    else
-      splut = self.code.split
-      if splut.size == 2
-        if /^[12]/ =~ splut[0]
-          subject_name = SUBJECT_CODES[splut[1]]
-          if subject_name
-            @subject = loader.subjects_by_name_hash[subject_name]
-            unless @subject
-              puts "Failed to find subject #{subject_name}."
-            end
-  #        else
-  #          puts "Failed to find subject name from #{splut[1]}."
-          end
-        end
-      end
-    end
-  end
-
-  def subject
-    @subject
-  end
-
-end
-
 class MIS_Schedule
 
   def save_to_csv
