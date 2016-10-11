@@ -111,6 +111,14 @@ class MIS_Teachinggroup
 end
 
 
+#
+#  We'd really like to create this group by sub-classing MIS_Teachinggroup,
+#  but we've already extended it above, and we don't want that - we want
+#  it how it was before it got its iSAMS-specific extensions.  For now
+#  we just re-implement the required methods, but I suppose they could
+#  be pulled into a module TeachinggroupIsh or something like that, and
+#  then both things could require it.
+#
 class ISAMS_FakeTeachinggroup < MIS_Group
 
   DB_CLASS = Teachinggroup
@@ -142,6 +150,7 @@ class ISAMS_FakeTeachinggroup < MIS_Group
   def initialize(proposed_name, tutor_group, subject_hash)
     super()
     @pupils = tutor_group.pupils
+    @teachers = Array.new
     @current = true
     @datasource_id = @@primary_datasource_id
     @name = proposed_name
@@ -178,6 +187,33 @@ class ISAMS_FakeTeachinggroup < MIS_Group
   def members
     @pupils
   end
+
+  def find_subject_id
+    if @subject && @subject.dbrecord
+      @subject_id = @subject.dbrecord.id
+    end
+  end
+
+  def note_teacher(staff)
+    if staff.instance_of?(Array)
+      staffa = staff
+    else
+      staffa = [staff]
+    end
+    staffa.each do |s|
+      unless @teachers.include?(s)
+        @teachers << s
+      end
+    end
+  end
+
+  def ensure_staff
+    if @dbrecord
+      staff = @teachers.collect {|t| t.dbrecord}.compact.uniq
+      @dbrecord.staffs = staff
+    end
+  end
+
 end
 
 

@@ -149,6 +149,9 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
     if group
       @groups << group
       @subject = group.subject
+      if @subject
+        @subjects << @subject
+      end
     else
       @subject = nil
     end
