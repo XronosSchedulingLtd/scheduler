@@ -37,4 +37,50 @@ It doesn't actually need to be a hot fix, because the development branch is clea
 
 Need a fresh copy of the live database, and to switch back to the code as on the live system.
 
-Doing the message suppression first.  Seems like a one-line change.  Tested - works.  Now OTL's change.  Also I think a one-liner. 
+Doing the message suppression first.  Seems like a one-line change.  Tested - works.  Now OTL's change.  Also I think a one-liner.   Done and released.
+
+Now to think about the fake teaching groups.  There may be more than one timetable in the iSAMS file, so when faking teaching groups I need to make sure that the same one is used.  I suspect that the MIS_Timetable module should be responsible simply for producing an array of unique set names.  The MIS_TeachingGroup module will then do the actual creation work, including deciding which tutor group they go with, and which subject they are.
+
+Are tutor groups processed before teaching groups?  Yes, they are.
+
+Unfortunately, all the timetable work seems to be done in the constructor of the class.  It may be difficult to get it to do some preliminary parsing.  When does it try to find the matching resources?  The method which does the work is called find_resources - when is it invoked?  At the end of the initializer.  Damn!
+
+OK - I could do a separate class which just has the job of finding the set names.  It would need to share the same algorithm for deciding which timetable is to be used.
+
+Or - the MIS_Timetable code seems to work in two phases.  First it finds all the timetables in the file, then it selects one and passes only that one to be built as a Schedule.  It's that latter phase which does the work of finding the right resources.  Can we split the code at that point?
+
+Try it - without adding any extra functionality.  Dump the database before we run it in case of a complete mess.  That worked first go.
+
+My life gets steadily more complicated.  Now we have the problem of deciding which of the list of tutor-group-based sets we actually want.  Many of them relate to the prep school - I don't want to create all those.  How am I currently discarding the prep school stuff.
+
+Real teaching groups are filtered by year number.  All the prep school ones are 20+
+
+How do I discard all the prep school's lessons?  No idea.  Am I perhaps loading them, but without any resources?  I don't see any at a quick scan.  Try a search.  No - they don't seem to be in the d/b.  Where are they being filtered then?
+
+I seem to be relying on the week letters.  Every time I'm asked for a day's lessons I work out what week it is, then what day in that week, and then find the lessons.  I thus look explicitly for the lessons in week A, or the lessons in week B.  Since the prep school lessons are in neither, they don't get loaded.
+
+OK - have instituted an ISAMS_FakeTeachinggroup class, which will do the work.  Unfortunately, my MIS_Group code can cope only with students as members, so I'll have to copy the membership from each tutor group rather than inheriting it.
+
+Seem to have managed to load my populated groups, although I'm not using them yet.  The odd thing though is that one of the existing teaching groups got deleted.  Which one and why?  And was it actually deleted, or merely terminated.  It should merely have finished existence, and so it should have an end_date of yesterday.  Find it.  I seem top have two which ended yesterday - both of them tag groups.  OK - reload the database and run again with a bit more logging.
+
+Ah - I think the spurious one is one which I created in an earlier run with a dummy name.  In any case, it doesn't seem to be there when I run it again.  Test again without --verbose.  Yes, seems fine.  Test again to ensure idempotence, then on to making the lessons use the freshly created teaching groups.  This should actually just involve removing the existing special-case code.
+
+Once that's running, test by comparing some 1st and 2nd year timetables on the live and development systems.
+
+Still need then to merge the finding of subjects.  Currently that is done in some school-specific code which decides whether the teaching group should have it or we get it from the lesson name.  I should be able to get rid of that, and put the subject identification code on my new ISAMS_FakeTeachinggroup class.
+
+Charlote McCutcheon and Robert Jeffreys seem to have been added to the list of 1st year Biology teachers.  Why?  Because she teaches Biology to the 2nd year, and I hard-coded the year number as 7.  Need to fix that.
+
+Just need to move the detection of subjects now.  We should be able to have all groups knowing their subject, and so the timetable slots can simply ask the groups rather than having to work it out for themselves.
+
+Take a look at a couple of 1st and 2nd year schedules to see if differences have crept in.  They seem OK.  The schedule as displayed looks identical, but then you can drill down and see that the sets themselves have changed.
+
+I suppose I should now re-load the database again and make sure there are no changes to my teachers groups when I do a data load.  Yes, teachers seem fine.  The pupil groups change, but that's because they're second generation anyway.  Good stuff.
+
+Just need to sort out the identification of subjects now.
+
+Do my new fake groups end up in the Markbook export files?  Yes, they do - but they're there twice - once with a subject and once without.  Now why is that?  Also, will Markbook cope with a non-numeric group ident?  We seem just to find teaching groups by name and year.  Now, why are they appearing twice?
+
+Each appears to be created only once.  Ah - it's my export code - doing more work than it needs to.  It's trying to cope with the fact that the teaching groups don't exist, and it's creating them again.  Remove the extra code.  Now each of them is there only once.  I suppose I should test these new output files against my Markbook installation.  Seems to have produced very little in the way of change.  4 pupils changed group, but those are probably real changes.
+
+I seem now to have that working.  It could be released as it stands, or I can merge it into my previous development strand, or indeed we can do both.  I would like to test it a bit more, so perhaps merging it into my other work is the best next step.
