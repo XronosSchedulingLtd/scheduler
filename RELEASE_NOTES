@@ -1,3 +1,13 @@
+v0.6.1  2016-10-12
+
+* Hotfix to restore missing file.
+
+  I accidentally deleted a file in the previous release.  It is used
+  solely for fetching data direct from iSAMS's database, so didn't
+  show up as missing until this morning's data fetch.
+
+  Now restored from previous commit.
+
 v0.6    2016-10-11
 
 * Add an extra field to OTL's timetable export file.
