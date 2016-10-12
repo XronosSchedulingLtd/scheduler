@@ -134,6 +134,7 @@ class ISAMS_FakeTeachinggroup < MIS_Group
     "Li"  => "Reading & Research",
     "Ma"  => "Mathematics",
     "Mu"  => "Music",
+    "PE"  => "Physical Education",
     "RS"  => "Religious Studies",
     "Sc"  => "Science"
   }
