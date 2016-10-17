@@ -5,6 +5,14 @@
 #
 class Subject < ActiveRecord::Base
 
+  DISPLAY_PANELS = [
+    DisplayPanel.new(1, "Current", true,  [:direct_groups,
+                                           :indirect_groups,
+                                           :filler]),
+    DisplayPanel.new(2, "History", false, [:historic_groups]),
+    DisplayPanel.new(3, "Nonsense", false, [:banana])
+  ]
+
   include Elemental
 
   has_many :teachinggrouppersonae, :dependent => :nullify

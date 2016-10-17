@@ -7,6 +7,13 @@ class Staff < ActiveRecord::Base
 
   validates :name, presence: true
 
+  DISPLAY_PANELS = [
+    DisplayPanel.new(1, "Current", true,  [:taught_groups,
+                                           :direct_groups,
+                                           :indirect_groups]),
+    DisplayPanel.new(2, "History", false, [:historic_groups])
+  ]
+
   include Elemental
 
   belongs_to :datasource

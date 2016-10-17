@@ -13,6 +13,31 @@ module Elemental
 
     after_save :update_element
 
+    #
+    #  An entity which wants to change the display panels for itself
+    #  can either define DISPLAY_PANELS before including elemental,
+    #  or it can override the display_panels() method below.
+    #
+    #  The symbols used here must match up with the ones expected
+    #  by the methods in helpers/elements_helper.rb
+    #
+    #
+    #  Arguably this stuff has no business being in the model, since it
+    #  relates to display rather than to business logic, but it seems
+    #  terribly natural to ask each elemental item what it would like
+    #  displayed.
+    #
+    #  Note that none of the actual display code is provided here, just
+    #  a list of what's wanted.
+    #
+    unless defined?(DISPLAY_PANELS)
+      DISPLAY_PANELS = [
+        DisplayPanel.new(1, "Current", true,  [:direct_groups,
+                                               :indirect_groups,
+                                               :dummy]),
+        DisplayPanel.new(2, "History", false, [:historic_groups])
+      ]
+    end
   end
 
   module ClassMethods
@@ -50,6 +75,10 @@ module Elemental
         Element.create!(creation_hash)
       end
     end
+  end
+
+  def display_panels
+    self.class::DISPLAY_PANELS
   end
 
   #

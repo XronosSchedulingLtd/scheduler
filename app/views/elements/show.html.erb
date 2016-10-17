@@ -13,78 +13,12 @@
 <% end %>
 
 <ul class="tabs" data-tab>
-  <li class="tab-title active"><a href="#panel1">Current</a></li>
-  <li class="tab-title"><a href="#panel2">History</a></li>
+  <%= render partial: "panel_heading",
+             collection: @element.entity.display_panels %>
 </ul>
 
 <div class="tabs-content">
-  <div class="content active" id="panel1">
-    <div class="row">
-      <div class="small-12 medium-6 large-4 columns">
-        <div class="panel">
-          <h3>Direct membership</h3>
-          <ul>
-            <% if @grouped_direct_groups.empty? %>
-              <li>None</li>
-            <% else %>
-              <%= render @grouped_direct_groups %>
-            <% end %>
-          </ul>
-        </div>
-      </div>
-      <div class="small-12 medium-6 large-4 columns">
-        <div class="panel">
-          <h3>Indirect membership</h3>
-          <ul>
-            <% if @grouped_indirect_groups.empty? %>
-              <li>None</li>
-            <% else %>
-              <%= render @grouped_indirect_groups %>
-            <% end %>
-          </ul>
-        </div>
-      </div>
-      <div class="small-12 medium-6 large-4 columns">
-        <% if @element.entity.instance_of?(Group) %>
-          <div class="panel">
-            <h3>Members</h3>
-            <ul>
-              <% if @members.empty? %>
-                <li>None</li>
-              <% else %>
-                <%= render @members %>
-              <% end %>
-            </ul>
-          </div>
-        <% elsif @groupstaught %>
-          <div class="panel">
-            <h3>Teaching sets</h3>
-            <ul>
-              <% if @groupstaught.empty? %>
-                <li>None</li>
-              <% else %>
-                <%= render partial: "group",
-                           collection: @groupstaught,
-                           locals: {with_link: true} %>
-              <% end %>
-            </ul>
-          </div>
-        <% end %>
-      </div>
-    </div>
-  </div>
-  <div class="content" id="panel2">
-    <div class="row">
-      <%= render @groups_by_era %>
-    </div>
-    <div class="row">
-      <div class="large-12 columns">
-        <div class="panel">
-          <h3>Membership history</h3>
-          <%= render @mwd_set %>
-        </div>
-      </div>
-    </div>
-  </div>
+  <%= render partial: "panel_contents",
+             collection: @element.entity.display_panels %>
 </div>
 
