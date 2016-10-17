@@ -123,6 +123,9 @@ class ISAMS_FakeTeachinggroup < MIS_Group
 
   DB_CLASS = Teachinggroup
 
+  add_fields(:FIELDS_TO_CREATE, [:subject_id, :yeargroup])
+  add_fields(:FIELDS_TO_UPDATE, [:subject_id, :yeargroup])
+
   SUBJECT_CODES = {
     "Bi"  => "Biology",
     "BtB" => "Be the Best",

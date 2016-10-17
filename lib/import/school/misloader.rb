@@ -184,7 +184,9 @@ class SB_Group
 
   def initialize(mis_group)
     self.group_ident   = mis_group.isams_id
-    self.subject_ident = mis_group.subject_id
+    if mis_group.subject
+      self.subject_ident = mis_group.subject.isams_id
+    end
     self.name          = mis_group.name
     self.year_ident    = mis_group.year_id - 6
     self.records = Array.new
