@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161005090750) do
+ActiveRecord::Schema.define(version: 20161019080337) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -108,6 +108,7 @@ ActiveRecord::Schema.define(version: 20161005090750) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "source_id"
+    t.string   "short_name", default: ""
   end
 
   create_table "eventcategories", force: true do |t|
