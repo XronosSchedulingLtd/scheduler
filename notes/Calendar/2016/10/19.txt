@@ -1,0 +1,27 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-10-19T08:53:11+01:00
+
+====== Wednesday 19 Oct 2016 ======
+
+Yesterday I made no progress on the code but I did some serious thinking and have come to some conclusions.  As ever, the work which I've done so far isn't quite right and needs a little bit of a re-work.
+
+I've been looking at the system from the point of view of the underlying data structures, when I should have been looking at it from the point of view of a user.  They have no idea how the data are structured, and don't want to know.
+
+I realised that what my tabs across the top of the display screen really should contain are:
+
+Current       2015/16      2014/15      2013/14
+
+as far back as is relevant.  What is then displayed is then driven not by what era a group belongs to (a purely internal concept) but //when// the group membership existed.
+
+What I need to do in my controller (possibly assisted by library code) is to take the set of grouped membership records (grouped by their durations) and then also take all the eras which we know about, ignore the perpetual era, sort the remaining eras into chronological order, most recent first, and then split the group memberships up between the eras.
+
+The latest, current era, then needs a further sub-division.  Some of the membership records will be valid within the era's duration, but will not be current for today's date.  We can then display them separately.  Perhaps also I should filter out groups which belong to a different era, unless its the perpetual era.
+
+Anyway, it all calls for some well-designed data models.
+
+I think eras will probably need short names too - done.
+
+Now, I need to adjust the data structures where an entity specifies what panels and columns it wants displayed.  Entities can no longer dictate the panels - they will be dictated by eras - but they can still give columns.  I need to tidy up my data structures too, which were starting to come in too many types.
+
+It strikes me that it should be possible to get an MWD_Set to filter itself, producing a fresh reduced MWD_Set.

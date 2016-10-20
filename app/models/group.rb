@@ -47,6 +47,8 @@ class Group < ActiveRecord::Base
   scope :otherhalfgroups, -> { where(persona_type: 'Otherhalfgrouppersona') }
   scope :vanillagroups, -> { where(persona_type: nil) }
 
+  scope :ofera, ->(era) { where(era_id: era.id) }
+
   #
   #  This next line is enough to get me burnt at the stake.
   #  Also, whilst very clever it doesn't actually do the thing which I

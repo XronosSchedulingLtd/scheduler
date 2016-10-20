@@ -43,7 +43,7 @@ class Pupil < ActiveRecord::Base
   end
 
   def tutorgroup_name
-    self.tutorgroup ? self.tutorgroup.name : "Pupil"
+    self.tutorgroup ? self.tutorgroup.name : (self.current ? "Pupil" : "Ex pupil")
   end
 
   def house_name

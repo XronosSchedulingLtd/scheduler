@@ -1,7 +1,10 @@
 module ElementsHelper
   COLUMN_TITLES = {
     direct_groups:   "Direct groups",
-    indirect_groups: "Indirect groups"
+    indirect_groups: "Indirect groups",
+    taught_groups: "Groups taught",
+    subject_teachers: "Teachers",
+    subject_groups: "Teaching groups"
   }
 
   def column_title(key)
@@ -87,11 +90,11 @@ module ElementsHelper
   #
   #  These have less ancillary structure.  Just an array of groups.
   #
-  def render_group_array(ga)
+  def render_group_array(ga, empty_text = "None")
     result = []
     result << "<table class=\"gg_table\">"
     if ga.empty?
-      result << "<tr><td>&bull;&nbsp;</td><td>None</td></tr>"
+      result << "<tr><td>&bull;&nbsp;</td><td>#{empty_text}</td></tr>"
     else
       ga.each do |g|
         result << group_line(g, true)
@@ -106,7 +109,17 @@ module ElementsHelper
       "<tr><td></td><td>#{
         be_linken(m.name, m.element)
       }</td><td>#{
-        m.tutorgroup_name
+        if m.tutorgroup
+          be_linken(m.tutorgroup_name, m.tutorgroup.element)
+        else
+          m.tutorgroup_name
+        end
+      }</td></tr>"
+    elsif m.instance_of?(Staff)
+      "<tr><td></td><td>#{
+        be_linken(m.name, m.element)
+      }</td><td>#{
+        be_linken(m.initials, m.element)
       }</td></tr>"
     else
       "<tr><td></td><td colspan=\"2\">#{ be_linken(m.name, m.element) }</td></tr>"
@@ -140,6 +153,23 @@ module ElementsHelper
     result.join("\n")
   end
 
+  #
+  #  Or if we have simply an array of some kind(s) of members.
+  #
+  def render_member_list(list)
+    result = []
+    result << "<table class=\"gg_table\">"
+    if list.empty?
+      result << "<tr><td>&bull;&nbsp;</td><td>None</td></tr>"
+    else
+      list.each do |member|
+        result << member_line(member)
+      end
+    end
+    result << "</table>"
+    result.join("\n")
+  end
+
   def render_column_contents(column)
     result = []
     unless column.type == :dummy
@@ -151,6 +181,10 @@ module ElementsHelper
       when :indirect_groups
         result << render_grouped_groups(column.contents)
       when :taught_groups
+        result << render_group_array(column.contents, "Not recorded")
+      when :subject_teachers
+        result << render_member_list(column.contents)
+      when :subject_groups
         result << render_group_array(column.contents)
       when :members
         result << render_membership(column.contents)

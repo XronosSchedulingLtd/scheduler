@@ -1,6 +1,9 @@
 <p id="notice"><%= notice %></p>
 
 <h2>Details of <%= @element.name %></h2>
+<% unless @element.current %>
+  <p class="warning">Not current!</p>
+<% end %>
 <p>
   <%= @element.entity_description %><% if @element.owned %>,
     administered by: <%= @element.owners.collect {|u| u.name }.join(", ") %>

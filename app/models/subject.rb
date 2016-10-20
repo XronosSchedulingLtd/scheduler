@@ -5,6 +5,8 @@
 #
 class Subject < ActiveRecord::Base
 
+  DISPLAY_COLUMNS = [:subject_teachers, :subject_groups, :dummy]
+
   include Elemental
 
   has_many :teachinggrouppersonae, :dependent => :nullify
@@ -24,6 +26,10 @@ class Subject < ActiveRecord::Base
 
   def element_name
     self.name
+  end
+
+  def show_historic_panels?
+    false
   end
 
   #

@@ -262,7 +262,7 @@ class ElementsController < ApplicationController
     #
     panel = DisplayPanel.new(0, "Current", true)
     memberships = current_eras_mwd_set.current_grouped_mwds.flatten
-    populate_panel(panel, memberships, @element)
+    populate_panel(panel, memberships, @element, current_era)
     @panels << panel
     if @element.show_historic_panels?
       index = 1
@@ -272,7 +272,7 @@ class ElementsController < ApplicationController
           panel = DisplayPanel.new(index, era.short_name, false)
           index += 1
           memberships = era_set.grouped_mwds.flatten
-          populate_panel(panel, memberships, @element)
+          populate_panel(panel, memberships, @element, era)
           @panels << panel
         end
       end
@@ -509,7 +509,7 @@ class ElementsController < ApplicationController
 
   private
 
-  def populate_panel(panel, memberships, element)
+  def populate_panel(panel, memberships, element, era)
     element.entity.display_columns.each do |col|
       case col
       when :dummy
@@ -525,15 +525,21 @@ class ElementsController < ApplicationController
         indirect_groups =
           memberships.select {|m| m.level != 1}.
                       collect {|m| m.group}.
-                      select {|g| g.public?}.sort
+                      select {|g| g.public?}.sort.uniq
         grouped_indirect_groups = GroupSetHolder.new(indirect_groups)
         panel.add_column(:indirect_groups, grouped_indirect_groups)
       when :taught_groups
         panel.add_column(:taught_groups,
-                         element.entity.groupstaught.current.sort)
+                         element.entity.groupstaught.ofera(era).sort)
       when :members
         panel.add_column(:members,
                          MemberSetHolder.new(element.entity.members))
+      when :subject_teachers
+        panel.add_column(:subject_teachers,
+                         element.entity.staffs.current.sort)
+      when :subject_groups
+        panel.add_column(:subject_groups,
+                         element.entity.teachinggroups.sort)
       else
         Rails.logger.error("Don't know how to handle #{col} for display.")
       end
