@@ -14,9 +14,9 @@ module Elemental
     after_save :update_element
 
     #
-    #  An entity which wants to change the display panels for itself
-    #  can either define DISPLAY_PANELS before including elemental,
-    #  or it can override the display_panels() method below.
+    #  An entity which wants to change the display columns for itself
+    #  can either define DISPLAY_COLUMNS before including elemental,
+    #  or it can override the display_columns() method below.
     #
     #  The symbols used here must match up with the ones expected
     #  by the methods in helpers/elements_helper.rb
@@ -30,13 +30,8 @@ module Elemental
     #  Note that none of the actual display code is provided here, just
     #  a list of what's wanted.
     #
-    unless defined?(DISPLAY_PANELS)
-      DISPLAY_PANELS = [
-        DisplayPanel.new(1, "Current", true,  [:direct_groups,
-                                               :indirect_groups,
-                                               :dummy]),
-        DisplayPanel.new(2, "History", false, [:historic_groups])
-      ]
+    unless defined?(DISPLAY_COLUMNS)
+      DISPLAY_COLUMNS = [:direct_groups, :indirect_groups, :dummy]
     end
   end
 
@@ -77,13 +72,17 @@ module Elemental
     end
   end
 
-  def display_panels
-    self.class::DISPLAY_PANELS
+  def display_columns
+    self.class::DISPLAY_COLUMNS
   end
 
   #
   #  An entity may well want to override these.
   #
+  def show_historic_panels?
+    true
+  end
+
   def display_name
     self.name
   end

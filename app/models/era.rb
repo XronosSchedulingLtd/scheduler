@@ -44,4 +44,12 @@ class Era < ActiveRecord::Base
       self.previous_setting == nil &&
       self.perpetual_setting == nil
   end
+
+  #
+  #  Sort by start dates.
+  #
+  def <=>(other)
+    self.starts_on <=> other.starts_on
+  end
+
 end

@@ -371,6 +371,10 @@ class Element < ActiveRecord::Base
     end
   end
 
+  def show_historic_panels?
+    entity.show_historic_panels?
+  end
+
   def short_name
     entity.short_name
   end

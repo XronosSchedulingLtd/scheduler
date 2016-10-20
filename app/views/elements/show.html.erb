@@ -14,11 +14,11 @@
 
 <ul class="tabs" data-tab>
   <%= render partial: "panel_heading",
-             collection: @element.entity.display_panels %>
+             collection: @panels %>
 </ul>
 
 <div class="tabs-content">
   <%= render partial: "panel_contents",
-             collection: @element.entity.display_panels %>
+             collection: @panels %>
 </div>
 

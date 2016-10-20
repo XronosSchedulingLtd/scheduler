@@ -9,6 +9,19 @@ module ElementsHelper
   end
 
   #
+  #  Called every time we want to display something, perhaps with a
+  #  link.  Some users get links, others don't.  This handles that
+  #  decision and returns appropriate text.
+  #
+  def be_linken(name, element)
+    if can_roam?
+      link_to(name, element_path(element))
+    else
+      name
+    end
+  end
+
+  #
   #  Produces one line of output to suit a particular group.  Always
   #  4 columns with the first one empty.  The contents of the others
   #  varies according to type of group.
@@ -23,10 +36,10 @@ module ElementsHelper
     case g.persona_type
     when "Teachinggrouppersona"
       "<tr><td></td><td>#{
-        g.name
+        be_linken(g.name, g.element)
       }</td><td>#{
         if g.subject
-          g.subject.name
+          be_linken(g.subject.name, g.subject.element)
         else
           ""
         end
@@ -35,7 +48,7 @@ module ElementsHelper
           g.members.count
         else
           if g.staffs.size > 0
-            g.staffs.collect {|s| s.initials}.join("<br/>")
+            g.staffs.collect {|s| be_linken(s.initials, s.element)}.join("<br/>")
           else
             ""
           end
@@ -43,7 +56,7 @@ module ElementsHelper
       }</td></tr>"
     else
       "<tr><td></td><td colspan=\"3\">#{
-        g.name
+        be_linken(g.name, g.element)
       }</td></tr>"
     end
   end
@@ -88,22 +101,61 @@ module ElementsHelper
     result.join("\n")
   end
 
-  def render_column_contents(key)
+  def member_line(m)
+    if m.instance_of?(Pupil)
+      "<tr><td></td><td>#{
+        be_linken(m.name, m.element)
+      }</td><td>#{
+        m.tutorgroup_name
+      }</td></tr>"
+    else
+      "<tr><td></td><td colspan=\"2\">#{ be_linken(m.name, m.element) }</td></tr>"
+    end
+  end
+
+  def render_member_set(ms)
     result = []
-    unless key == :dummy
+    result << "<tr><th>&bull;&nbsp;</th><th colspan=\"2\" align=\"left\">#{ms.type}</th></tr>"
+    ms.each do |m|
+      result << member_line(m)
+    end
+    result.join("\n")
+  end
+
+  #
+  #  What we should be passed here is a MemberSetHolder, which is
+  #  a kind of array, with added information.
+  #
+  def render_membership(msh)
+    result = []
+    result << "<table class=\"gg_table\">"
+    if msh.empty?
+      result << "<tr><td>&bull;&nbsp;</td><td>None</td></tr>"
+    else
+      msh.each do |ms|
+        result << render_member_set(ms)
+      end
+    end
+    result << "</table>"
+    result.join("\n")
+  end
+
+  def render_column_contents(column)
+    result = []
+    unless column.type == :dummy
       result << "<div class=\"panel\">"
-      result << "<h3>#{column_title(key)}</h3>"
-      case key
-      when :able
-        result << "Able"
+      result << "<h3>#{column_title(column.type)}</h3>"
+      case column.type
       when :direct_groups
-        result << render_grouped_groups(@grouped_direct_groups)
+        result << render_grouped_groups(column.contents)
       when :indirect_groups
-        result << render_grouped_groups(@grouped_indirect_groups)
+        result << render_grouped_groups(column.contents)
       when :taught_groups
-        result << render_group_array(@groupstaught)
+        result << render_group_array(column.contents)
+      when :members
+        result << render_membership(column.contents)
       else
-        result << "&bull; Don't know how to handle #{key}."
+        result << "&bull; Don't know how to handle #{column.type}."
       end
       result << "</div>"
     end

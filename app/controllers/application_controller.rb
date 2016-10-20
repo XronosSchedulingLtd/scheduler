@@ -8,7 +8,7 @@ class ApplicationController < ActionController::Base
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
 
-  helper_method :current_user
+  helper_method :current_user, :can_roam?
 
   before_filter :login_required
 
@@ -35,6 +35,10 @@ class ApplicationController < ActionController::Base
   #
   def authorized?(action = action_name, resource = nil)
     logged_in? && current_user.admin
+  end
+
+  def can_roam?
+    current_user && current_user.can_roam
   end
 
   def logged_in?

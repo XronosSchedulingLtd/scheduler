@@ -86,6 +86,8 @@ class Group < ActiveRecord::Base
 
   attr_accessor :persona_class
 
+  DISPLAY_COLUMNS = [:members, :direct_groups, :indirect_groups]
+
   include Elemental
 
   def element_name

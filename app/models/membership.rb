@@ -125,6 +125,58 @@ class Membership < ActiveRecord::Base
     end
 
     #
+    #  Slightly different, in that an era may not even have a start date.
+    # 
+    def overlaps_era?(era)
+      if era.starts_on
+        if era.ends_on
+          #
+          #  Era has both start and end.
+          #
+          if self.end_date
+            #
+            #  As do we.
+            #
+            self.start_date <= era.ends_on &&
+            self.end_date >= era.starts_on
+          else
+            #
+            #  We have no end date.
+            #
+            self.start_date <= era.ends_on
+          end
+        else
+          #
+          #  Era has no end date.
+          #
+          if self.end_date
+            self.end_date >= era.starts_on
+          else
+            #
+            #  And nor do we.
+            #
+            true
+          end
+        end
+      else
+        #
+        #  Era has no start date.
+        #
+        if era.ends_on
+          #
+          #  But it does have an end date.
+          #
+          self.start_date <= era.ends_on
+        else
+          #
+          #  Era lasts forever.
+          #
+          true
+        end
+      end
+    end
+
+    #
     #  Does this mwd override another one?  Precedence is as follows
     #  (highest first):
     #
@@ -305,6 +357,16 @@ class Membership < ActiveRecord::Base
 #      Rails.logger.debug("Finished adding mwd")
     end
 
+    def add_existing_mwd(mwd)
+      #
+      #  This method is intended for use when filtering an existing
+      #  set down to create a new one.  As such, the exclusion processing
+      #  has already been done and so we don't need the @mwds_by_element_id
+      #  hash.
+      #
+      @mwds << mwd
+    end
+
     #
     #  Handle any exclusions which there are in the set.
     #
@@ -463,6 +525,25 @@ class Membership < ActiveRecord::Base
 #      File.open(Rails.root.join("scratch", "after.yml"), "w") do |file|
 #        file.puts YAML::dump(self)
 #      end
+    end
+
+    #
+    #  Take an existing MWD_Set and filter its entries down to those
+    #  which existed during an indicated era.  Returns a new MWD_Set.
+    #  
+    #  Note that an era can be absolutely perpetual (neither start
+    #  nor end date) but a membership must at least have a start
+    #  date.
+    #
+    def filter_to(era)
+      filtered = MWD_Set.new(@client_element)
+      @mwds.each do |mwd|
+        if mwd.overlaps_era?(era)
+          filtered.add_existing_mwd(mwd)
+        end
+      end
+      filtered.group_by_duration
+      filtered
     end
 
     def to_partial_path
