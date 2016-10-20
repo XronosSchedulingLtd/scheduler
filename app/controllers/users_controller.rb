@@ -125,6 +125,7 @@ class UsersController < ApplicationController
                       :can_find_free,
                       :can_add_concerns,
                       :can_su,
+                      :can_roam,
                       :firstday,
                       :preferred_event_category_id,
                       :colour_not_involved,

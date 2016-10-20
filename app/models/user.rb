@@ -530,6 +530,7 @@ class User < ActiveRecord::Base
       self.can_has_groups   = true
       self.can_find_free    = true
       self.can_add_concerns = true
+      self.can_roam         = true
       self.save!
       "#{self.name} with email #{self.email} gets staff permissions."
     elsif self.pupil?
