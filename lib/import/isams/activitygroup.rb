@@ -36,6 +36,23 @@ class ISAMS_ActivityGroup
     @complete
   end
 
+  #
+  #  The "active" field provided by iSAMS seems to be meaningless.  Do
+  #  our own calculation.
+  #
+  def active_on?(date)
+    #
+    #  It's easier to express the negative test.
+    #
+    #  If we have an end date and it's in the past
+    #                     OR
+    #  we have a start date and it's in the future
+    #                    THEN
+    #  we are inactive.
+    #
+    !((end_date && end_date < date) || (start_date && start_date > date))
+  end
+
   def note_pupil_id(pupil_id)
     @pupil_ids << pupil_id
   end

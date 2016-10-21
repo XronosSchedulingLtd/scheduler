@@ -11,7 +11,14 @@ class MIS_Otherhalfgroup
   def initialize(entry)
     @pupils = Array.new
     @name = entry.name
-    @current = entry.active
+    #
+    #  We were using iSAMS's active flag to decide whether or not
+    #  the group was current, but it became apparent after a while
+    #  that this flag is always set to false.  We now do our own
+    #  calculation.
+    #
+    #@current = entry.active
+    @current = entry.active_on?(Date.today)
     @isams_id = entry.ident
     @datasource_id = @@primary_datasource_id
     @starts_on = entry.start_date.to_date
