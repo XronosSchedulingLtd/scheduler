@@ -102,9 +102,12 @@ class Pupil < ActiveRecord::Base
   end
 
   def <=>(other)
-    result = self.surname <=> other.surname
+    result = other.start_year <=> self.start_year
     if result == 0
-      result = self.forename <=> other.forename
+      result = self.surname <=> other.surname
+      if result == 0
+        result = self.forename <=> other.forename
+      end
     end
     result
   end
