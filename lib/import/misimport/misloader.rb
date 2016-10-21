@@ -244,6 +244,7 @@ class MIS_Loader
       else
         if subject.save_to_db
           subjects_loaded_count += 1
+          subject.ensure_staff
         end
       end
     end
