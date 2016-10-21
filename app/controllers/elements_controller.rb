@@ -232,50 +232,58 @@ class ElementsController < ApplicationController
   #
   def show
     @element = Element.find(params[:id])
-    @mwd_set = @element.memberships_by_duration(start_date: nil,
-                                                end_date: nil)
     #
-    #  We want to break things up by era.
+    #  Users who can't roam are allowed to look only at
+    #  things for which they currently have concerns.
     #
-    all_eras = Era.all.to_a
-    #
-    #  Get other eras in reverse chronological order.
-    #
-    current_era = Setting.current_era
-    perpetual_era = Setting.perpetual_era
-    other_eras =
-      (all_eras - [current_era, perpetual_era]).sort.reverse
-    current_eras_mwd_set = @mwd_set.filter_to(current_era)
-    #
-    #  Now we're going to construct one or more panels which display
-    #  information for this element.  All elements get a current panel.
-    #  Most get some history too.
-    #
-    @panels = Array.new
-    #
-    #  Some more detailed processing for the current era's stuff.
-    #
-    #  Direct groups are given by memberships which are current,
-    #  and which have a level of 1.  The current-ness can be decided
-    #  whilst the mwds are still grouped, but then the level applies
-    #  to each membership record individually.
-    #
-    panel = DisplayPanel.new(0, "Current", true)
-    memberships = current_eras_mwd_set.current_grouped_mwds.flatten
-    populate_panel(panel, memberships, @element, current_era)
-    @panels << panel
-    if @element.show_historic_panels?
-      index = 1
-      other_eras.each do |era|
-        era_set = @mwd_set.filter_to(era)
-        unless era_set.empty? || era.starts_on > Date.today
-          panel = DisplayPanel.new(index, era.short_name, false)
-          index += 1
-          memberships = era_set.grouped_mwds.flatten
-          populate_panel(panel, memberships, @element, era)
-          @panels << panel
+    if can_roam? || current_user.concern_with(@element)
+      @mwd_set = @element.memberships_by_duration(start_date: nil,
+                                                  end_date: nil)
+      #
+      #  We want to break things up by era.
+      #
+      all_eras = Era.all.to_a
+      #
+      #  Get other eras in reverse chronological order.
+      #
+      current_era = Setting.current_era
+      perpetual_era = Setting.perpetual_era
+      other_eras =
+        (all_eras - [current_era, perpetual_era]).sort.reverse
+      current_eras_mwd_set = @mwd_set.filter_to(current_era)
+      #
+      #  Now we're going to construct one or more panels which display
+      #  information for this element.  All elements get a current panel.
+      #  Most get some history too.
+      #
+      @panels = Array.new
+      #
+      #  Some more detailed processing for the current era's stuff.
+      #
+      #  Direct groups are given by memberships which are current,
+      #  and which have a level of 1.  The current-ness can be decided
+      #  whilst the mwds are still grouped, but then the level applies
+      #  to each membership record individually.
+      #
+      panel = DisplayPanel.new(0, "Current", true)
+      memberships = current_eras_mwd_set.current_grouped_mwds.flatten
+      populate_panel(panel, memberships, @element, current_era)
+      @panels << panel
+      if @element.show_historic_panels?
+        index = 1
+        other_eras.each do |era|
+          era_set = @mwd_set.filter_to(era)
+          unless era_set.empty? || era.starts_on > Date.today
+            panel = DisplayPanel.new(index, era.short_name, false)
+            index += 1
+            memberships = era_set.grouped_mwds.flatten
+            populate_panel(panel, memberships, @element, era)
+            @panels << panel
+          end
         end
       end
+    else
+      render :forbidden
     end
   end
 
