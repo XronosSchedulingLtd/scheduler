@@ -116,34 +116,46 @@ class ScheduleController < ApplicationController
           #  about whether events are complete or not.
           #
           if current_user && current_user.known?
-            #
-            #  And only those with a special interest get to know
-            #  about rejections.
-            #
-            if current_user.owns?(via_element) ||
-               current_user.admin ||
-               current_user.id == event.owner_id
+            if via_element
               #
-              #  Has the commitment been approved?
+              #  And only those with a special interest get to know
+              #  about rejections.
               #
-              c = Commitment.find_by(element_id: via_element.id,
-                                     event_id: event.id)
-              if c
-                if c.tentative
-                  if c.rejected
-                    @colour = redden(@colour)
-                  else
-                    @colour = washed_out(@colour)
+              if current_user.owns?(via_element) ||
+                 current_user.admin ||
+                 current_user.id == event.owner_id
+                #
+                #  Has the commitment been approved?
+                #
+                c = Commitment.find_by(element_id: via_element.id,
+                                       event_id: event.id)
+                if c
+                  if c.tentative
+                    if c.rejected
+                      @colour = redden(@colour)
+                    else
+                      @colour = washed_out(@colour)
+                    end
                   end
+                else
+                  #
+                  #  Odd - can't find the corresponding commitment.
+                  #  Err on the side of caution and wash it out.
+                  #
+                  @colour = washed_out(@colour)
                 end
               else
-                #
-                #  Odd - can't find the corresponding commitment.
-                #  Err on the side of caution and wash it out.
-                #
                 @colour = washed_out(@colour)
               end
             else
+              #
+              #  We're trying to look at the event *not* via
+              #  a particular element.  This means we own it,
+              #  are listed as the organiser, or that it's a
+              #  breakthrough event of some sort.
+              #
+              #  Given that it's not complete, wash it out.
+              #
               @colour = washed_out(@colour)
             end
           end
