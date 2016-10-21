@@ -20,7 +20,7 @@ Jobs which need doing to convert a live system.
 
 [ ] Backup
 [ ] New source
-[ ] Rake [[db:migrate]]
+[ ] Rake db:migrate
 [ ] Rake assets:precompile
 [ ] Edit short names into eras
 [ ] Run User.set_initial_permissions
