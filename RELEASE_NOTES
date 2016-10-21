@@ -1,3 +1,16 @@
+v0.6.2  2016-10-21
+
+* Hotfix to fix display of unapproved events.
+
+  Code was added in v0.2 of the software to allow requesters to see
+  events in the context of a requested resource even before the
+  request was approved.  Users were getting confused by not being
+  able to see them.
+                   
+  Unfortunately this led to a display problem in the case of one very
+  edge condition, resulting in an event not being displayed.  This
+  release fixes that problem.
+
 v0.6.1  2016-10-12
 
 * Hotfix to restore missing file.
