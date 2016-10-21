@@ -1,7 +1,7 @@
 module ElementsHelper
   COLUMN_TITLES = {
-    direct_groups:   "Direct groups",
-    indirect_groups: "Indirect groups",
+    direct_groups:   "Member of",
+    indirect_groups: "and thus of",
     taught_groups: "Groups taught",
     subject_teachers: "Teachers",
     subject_groups: "Teaching groups"
