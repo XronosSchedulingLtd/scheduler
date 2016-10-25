@@ -34,6 +34,14 @@ class Location < ActiveRecord::Base
     end
   end
 
+  def description_line
+    if locationaliases.size > 0
+      "A location, also known as:<ul>#{locationaliases.collect {|la| la.name}.sort.uniq.collect {|n| "<li>#{n}</li>"}.join }</ul>".html_safe
+    else
+      "A location"
+    end
+  end
+
   def other_alias_names
     locationaliases.where(display: false).collect {|oa| oa.name}
   end

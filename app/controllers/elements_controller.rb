@@ -11,11 +11,15 @@ class ElementsController < ApplicationController
   #  A class to hold a set of groups, each of a similar type.
   #
   class GroupSet < Array
-    attr_reader :type
+    attr_reader :title
 
-    def initialize(type, contents)
+    def initialize(title, contents)
       super(contents)
-      @type = type
+      if self.size == 1
+        @title = title
+      else
+        @title = "#{title}s"
+      end
     end
 
     def to_partial_path
@@ -37,7 +41,15 @@ class ElementsController < ApplicationController
       "Tag",
       "Vanilla"]
 
-    def initialize(contents)
+    NICER_NAMES = {
+      "Tutor"     => "Tutor Group",
+      "Teaching"  => "Teaching Set",
+      "Otherhalf" => "Other Half Group",
+      "Tag"       => "Custom Group",
+      "Vanilla"   => "Plain Group"
+    }
+
+    def initialize(contents, old_contents = [])
       #
       #  Explicitly don't want to pass our parameter in to the
       #  Array#initialize.  We will add the contents.
@@ -55,7 +67,28 @@ class ElementsController < ApplicationController
         #
         KNOWN_GROUP_ORDERING.each do |type|
           if type_hash[type]
-            self << GroupSet.new(type, type_hash[type].uniq.sort)
+            title = NICER_NAMES[type] || type
+            self << GroupSet.new(title, type_hash[type].uniq.sort)
+          end
+        end
+      end
+      #
+      #  And any erstwhile groups?
+      #
+      unless old_contents.empty?
+        type_hash = Hash.new
+        old_contents.each do |group|
+          type = group.type
+          type_hash[type] ||= Array.new
+          type_hash[type] << group
+        end
+        #
+        #  And now add them in order to our array, sorting them as they go.
+        #
+        KNOWN_GROUP_ORDERING.each do |type|
+          if type_hash[type]
+            title = NICER_NAMES[type] || type
+            self << GroupSet.new("Former #{title}", type_hash[type].uniq.sort)
           end
         end
       end
@@ -267,7 +300,8 @@ class ElementsController < ApplicationController
       #
       panel = DisplayPanel.new(0, "Current", true)
       memberships = current_eras_mwd_set.current_grouped_mwds.flatten
-      populate_panel(panel, memberships, @element, current_era)
+      old_memberships = current_eras_mwd_set.past_grouped_mwds.flatten
+      populate_panel(panel, memberships, old_memberships, @element, current_era)
       @panels << panel
       if @element.show_historic_panels?
         index = 1
@@ -277,7 +311,7 @@ class ElementsController < ApplicationController
             panel = DisplayPanel.new(index, era.short_name, false)
             index += 1
             memberships = era_set.grouped_mwds.flatten
-            populate_panel(panel, memberships, @element, era)
+            populate_panel(panel, memberships, [], @element, era)
             @panels << panel
           end
         end
@@ -517,17 +551,21 @@ class ElementsController < ApplicationController
 
   private
 
-  def populate_panel(panel, memberships, element, era)
+  def populate_panel(panel, memberships, old_memberships, element, era)
     element.entity.display_columns.each do |col|
       case col
       when :dummy
         panel.add_column(:dummy, nil)
       when :direct_groups
-        direct_groups =
+        groups =
           memberships.select {|m| m.level == 1}.
                       collect {|m| m.group}.
                       select {|g| g.public?}.sort
-        grouped_direct_groups = GroupSetHolder.new(direct_groups)
+        old_groups =
+          old_memberships.select {|m| m.level == 1}.
+                          collect {|m| m.group}.
+                          select {|g| g.public?}.sort
+        grouped_direct_groups = GroupSetHolder.new(groups, old_groups)
         panel.add_column(:direct_groups, grouped_direct_groups)
       when :indirect_groups
         indirect_groups =
@@ -538,7 +576,9 @@ class ElementsController < ApplicationController
         panel.add_column(:indirect_groups, grouped_indirect_groups)
       when :taught_groups
         panel.add_column(:taught_groups,
-                         element.entity.groupstaught.ofera(era).sort)
+                         GroupSetHolder.new(
+                           element.entity.tutorgroups.ofera(era) +
+                           element.entity.groupstaught.ofera(era).sort))
       when :members
         panel.add_column(:members,
                          MemberSetHolder.new(element.entity.members))

@@ -5,8 +5,8 @@
   <p class="warning">Not current!</p>
 <% end %>
 <p>
-  <%= @element.entity_description %><% if @element.owned %>,
-    administered by: <%= @element.owners.collect {|u| u.name }.join(", ") %>
+  <%= @element.entity_description %><% if @element.owned %>
+    Administered by: <%= @element.owners.collect {|u| u.name }.join(", ") %>
   <% end %>
 </p>
 <% if @element.entity.respond_to?(:owner) && @element.entity.owner %>

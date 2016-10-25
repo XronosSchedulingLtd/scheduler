@@ -2,7 +2,7 @@ module ElementsHelper
   COLUMN_TITLES = {
     direct_groups:   "Member of",
     indirect_groups: "and thus of",
-    taught_groups: "Groups taught",
+    taught_groups: "Groups/Sets",
     subject_teachers: "Teachers",
     subject_groups: "Teaching groups"
   }
@@ -24,10 +24,14 @@ module ElementsHelper
     end
   end
 
+  def be_hover_linken(title, name, element)
+    "<span title=\"#{title}\">#{be_linken(name, element)}</span>"
+  end
+
   #
   #  Produces one line of output to suit a particular group.  Always
   #  4 columns with the first one empty.  The contents of the others
-  #  varies according to type of group.
+  #  vary according to type of group.
   #
   #  Different types of groups combine the columns in different ways.
   #
@@ -51,12 +55,22 @@ module ElementsHelper
           g.members.count
         else
           if g.staffs.size > 0
-            g.staffs.collect {|s| be_linken(s.initials, s.element)}.join("<br/>")
+            g.staffs.collect {|s| be_hover_linken(s.name, s.initials, s.element)}.join("<br/>")
           else
             ""
           end
         end
       }</td></tr>"
+    when "Tutorgrouppersona"
+      "<tr><td></td><td colspan=\"2\">#{
+        be_linken(g.name, g.element)
+      }</td><td>#{
+        if g.staff
+          be_hover_linken(g.staff.name, g.staff.initials, g.staff.element)
+        else
+          ""
+        end
+      }</td><td></td></tr>"
     else
       "<tr><td></td><td colspan=\"3\">#{
         be_linken(g.name, g.element)
@@ -64,23 +78,23 @@ module ElementsHelper
     end
   end
 
-  def render_group_set(gs)
+  def render_group_set(gs, for_teacher)
     result = []
-    result << "<tr><th>&bull;&nbsp;</th><th colspan=\"3\" align=\"left\">#{gs.type}</th></tr>"
+    result << "<tr><th>&bull;&nbsp;</th><th colspan=\"3\" align=\"left\">#{gs.title}</th></tr>"
     gs.each do |g|
-      result << group_line(g, false)
+      result << group_line(g, for_teacher)
     end
     result.join("\n")
   end
 
-  def render_grouped_groups(gg)
+  def render_grouped_groups(gg, for_teacher = false)
     result = []
     result << "<table class=\"gg_table\">"
     if gg.empty?
       result << "<tr><td>&bull;&nbsp;</td><td>None</td></tr>"
     else
       gg.each do |gs|
-        result << render_group_set(gs)
+        result << render_group_set(gs, for_teacher)
       end
     end
     result << "</table>"
@@ -181,7 +195,7 @@ module ElementsHelper
       when :indirect_groups
         result << render_grouped_groups(column.contents)
       when :taught_groups
-        result << render_group_array(column.contents, "Not recorded")
+        result << render_grouped_groups(column.contents, true)
       when :subject_teachers
         result << render_member_list(column.contents)
       when :subject_groups

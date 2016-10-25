@@ -24,6 +24,7 @@ class Staff < ActiveRecord::Base
   before_destroy { teachinggrouppersonae.clear }
 
   has_many :groupstaught, through: :teachinggrouppersonae, source: :group 
+  has_many :tutorgroups, through: :tutorgrouppersonae, source: :group
 
   after_destroy :delete_tutorgroups
 

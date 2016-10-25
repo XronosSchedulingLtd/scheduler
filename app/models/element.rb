@@ -357,9 +357,9 @@ class Element < ActiveRecord::Base
   def indefinite_kind_of_entity
     body = self.kind_of_entity.downcase
     if /^[AEIOU]/i =~ body
-      "An #{body}"
+      "<p>An #{body}</p>".html_safe
     else
-      "A #{body}"
+      "<p>A #{body}</p>".html_safe
     end
   end
 
