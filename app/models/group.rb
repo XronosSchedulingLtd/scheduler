@@ -100,6 +100,27 @@ class Group < ActiveRecord::Base
     "#{self.type} group"
   end
 
+  def description_line
+    case self.type
+    when "Teaching"
+      text = "A teaching set"
+      if self.persona.staffs.size > 0
+        text = text + " - taught by #{self.persona.staffs.collect {|s| s.initials}.join {","}} -"
+      end
+    when "Tutor"
+      text = "A tutor group - tutor #{self.persona.staff.name} -"
+    when "Otherhalf"
+      text = "An Other Half group"
+    when "Tag"
+      text = "A custom group"
+    when "Vanilla"
+      text = "A general group"
+    else
+      text = "A group"
+    end
+    text = text + " with #{self.members.count} members."
+  end
+
   def more_type_info
     " (#{description})"
   end

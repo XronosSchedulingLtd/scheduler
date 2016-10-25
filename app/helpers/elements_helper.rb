@@ -110,8 +110,12 @@ module ElementsHelper
     if ga.empty?
       result << "<tr><td>&bull;&nbsp;</td><td>#{empty_text}</td></tr>"
     else
-      ga.each do |g|
-        result << group_line(g, true)
+      if ga.instance_of?(ElementsController::GroupSet)
+        result << render_group_set(ga, true)
+      else
+        ga.each do |g|
+          result << group_line(g, true)
+        end
       end
     end
     result << "</table>"

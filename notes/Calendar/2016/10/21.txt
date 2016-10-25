@@ -1,0 +1,68 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-10-21T09:16:34+01:00
+
+====== Friday 21 Oct 2016 ======
+
+I think I got things over the hump yesterday.  What remains now is a lot of detail work and polishing.
+
+Start with a list of each of the kinds of thing one can display, and then go through them making notes on what needs doing for each one.
+
+===== General =====
+[*] Make sure users without the can_roam permission bit can't go straight to the pages either.  They can see their own and that's it.
+[ ] Need a slicker and more obvious way to get into viewing these pages at all.
+[ ] It would be good to have a button in the top of the display page called "Schedule" or something like that, which took you back to the calendar display, adding or enabling a concern for that element as it went.
+[ ] Tidy up the CSS styling to work like Markbook.  Links don't change once they've been visited.  Highlight is a simple underline.
+
+===== Pupil =====
+[*] When showing his tutor group, provide a direct link to the tutor's record.
+[*] Hover text on any teacher link to give the actual name of the teacher.
+[*] At the bottom, show groups which the pupil has been a member of during the course of the current era, but is not now.  Works only for current era.
+[*] Headings for grouped groups could do with tidying up.
+
+===== Staff =====
+[*] Should show tutor group if any.
+
+===== Location =====
+[*] Could show all its aliases
+
+===== Group =====
+[ ] In the current panel, a list of those who have been members in the course of the current era, but are not now. This one is non-trivial, and involves implementing the inverse of MembershipsWithDuration.  It would be MembersWithDuration, but can't be done on the current timescale.  It's on my to do list already.
+[*] A count of how many members there are in the group.
+
+==== Tutor group ====
+[*] Who the tutor is
+
+==== Teaching group ====
+[*] Who teaches the group
+
+==== Other half group ====
+
+==== Tag group ====
+
+==== Vanilla group ====
+[*] Who owns the group
+
+===== Subject =====
+[ ] Put the number of teachers, the number of teaching groups and the number of unique pupils at the top of the corresponding columns.
+[ ] When listing the teaching groups for a subject, rather than putting the subject again in each line, it would make more sense to list the staff who teach that group.
+
+===== Service =====
+
+===== Property =====
+
+Just noticed one oddity.  Edward Fry seems to be a member of an Other Half group called "Rowing (by invitation)", but said group is not marked as being current - even though Edward is currently a member.
+
+Group exists, and has a start date of 2016-09-05, and an end date of 2016-12-16, but is marked as not current.  Why?  All the OH groups in the iSAMS database seem to be marked currently as not active.  How long has this been the case?  It seems pretty much forever.  Am I paying any attention to that flag?  Yes, it seems it directly controls the "Current" flag.  Messy.  Has it ever been set to true?  No, it's been false since the year dot.  That doesn't stop people being members, but it means it will never show up in my searches.  Perhaps I should do a calculated "current" flag instead.  Are we between the two indicated dates?  Are there always two dates?
+
+Just noticed a code error of some sort.  If I become OTL and ask to look at just his "My events" events, I get nothing at all displayed (not even the breakthrough events) and there's an error in the logs.  Is this the same on the live system?  Yes, it is - and it seems to be specific to OTL.  I wonder why?  When he has "My events" ticked, he doesn't get the breakthrough events.
+
+Find and fix.  Ah - it's just the week after half term.  Must be one specific event doing the damage.
+
+We are in the scheduler_controller.  I suspect it is something to do with the change I made to allow requesters to see rejections.  I seem to be trying to find the id of a nil object.  Which one?  I strongly suspect it is via_element, because I often pass that in as nil.  Yes, seems like a logic error on my part.  Time for another emergency fix, which will need me to put all this work to one side.  Done it.
+
+Another oddity - currently Mathematics is listed as having no teachers at all.  Going direct to the database that does seem to be the case.  Have I broken something again?  It's not just Maths - no-one has any teachers.  Now why is that?  I'm pretty sure it has worked in the past.  Probably something to do with me mangling the subject ids again.
+
+Ah - it works when I do a second run of the loader.  Sounds like something being out of order again.  Presumably the subject records weren't there in time?  Or vice versa.  Which references which?  It's the subject loading process which ensures the staff are there.
+
+Start again from a clean copy of the live database and see whether I forgot something.  Ah - think I've got it.  When the subject record is first created, the path doesn't go through ensuring the staff are correct.  Fixed that.

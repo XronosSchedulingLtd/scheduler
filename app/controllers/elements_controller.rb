@@ -586,8 +586,10 @@ class ElementsController < ApplicationController
         panel.add_column(:subject_teachers,
                          element.entity.staffs.current.sort)
       when :subject_groups
+        teachinggroups = element.entity.teachinggroups.sort
         panel.add_column(:subject_groups,
-                         element.entity.teachinggroups.sort)
+                         GroupSet.new("#{teachinggroups.count} teaching set",
+                                      teachinggroups))
       else
         Rails.logger.error("Don't know how to handle #{col} for display.")
       end
