@@ -17,7 +17,12 @@ module ElementsHelper
   #  decision and returns appropriate text.
   #
   def be_linken(name, element)
-    if can_roam?
+    #
+    #  It's just possible that we will get passed null as the element
+    #  because some things are linked in without being active.  E.g.
+    #  OTL uses non-existent staff for some Private Study periods.
+    #
+    if can_roam? && element
       link_to(name, element_path(element))
     else
       name
