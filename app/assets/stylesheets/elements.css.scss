@@ -4,6 +4,18 @@
 
 .gg_table {
   width: 100%;
+  a {
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+      background-color: #F0F0F0;
+      color: black;
+    }
+    &:visited {
+      color: black;
+    }
+  }
+
 }
 
 .warning {
