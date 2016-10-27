@@ -81,6 +81,36 @@
   border-radius: 2px;
 }
 
+.commitmentset {
+  width: 100%;
+  a {
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+      background-color: #FFFFFF;
+      color: black;
+    }
+    &:visited {
+      color: black;
+    }
+  }
+  .constraining-commitment {
+    a:hover {
+      background-color: #98fb50;
+    }
+  }
+  .tentative-commitment {
+    a:hover {
+      background-color: #ffa500;
+    }
+  }
+  .rejected-commitment {
+    a:hover {
+      background-color: #ff7070;
+    }
+  }
+}
+
 .note_link {
   float: right;
 }

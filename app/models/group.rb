@@ -105,7 +105,7 @@ class Group < ActiveRecord::Base
     when "Teaching"
       text = "A teaching set"
       if self.persona.staffs.size > 0
-        text = text + " - taught by #{self.persona.staffs.collect {|s| s.initials}.join {","}} -"
+        text = text + " - taught by #{self.persona.staffs.collect {|s| s.initials}.join(",")} -"
       end
     when "Tutor"
       text = "A tutor group - tutor #{self.persona.staff.name} -"

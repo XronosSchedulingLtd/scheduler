@@ -23,9 +23,9 @@ module ElementsHelper
     #  OTL uses non-existent staff for some Private Study periods.
     #
     if can_roam? && element
-      link_to(name, element_path(element))
+      link_to(h(name), element_path(element))
     else
-      name
+      h(name)
     end
   end
 
