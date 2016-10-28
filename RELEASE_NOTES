@@ -1,3 +1,8 @@
+v0.7.1  2016-10-28
+
+* Purely cosmetic change.  Puts resources for an event in the event
+  display screen back into columns.
+
 v0.7    2016-10-28
 
 * It is now possible to view all locations which have an administrator.
