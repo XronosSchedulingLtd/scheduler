@@ -1,3 +1,72 @@
+v0.7    2016-10-28
+
+* It is now possible to view all locations which have an administrator.
+  Use Menu => Models => Locations => Owned to get a list, each of which
+  can then be viewed in detail.
+
+* Subjects are now loaded into the Scheduler database as objects which
+  can be displayed.  All lessons, teachers and teaching groups are linked
+  to their corresponding subjects.  It is therefore possible to display
+  all the lessons for a particular subject in the calendar view, or to
+  generate a report for any chosen subject.
+
+* Teaching groups are now linked not only to their subjects, but also
+  to all their teachers, meaning you can see who teaches each group
+  without having to scan the group's schedule.
+
+* Added general display facilities for all elements, allowing detailed
+  information to be obtained on any student, staff member, room etc.
+  This facility is available only to members of staff - not to pupils.
+  The display pages link together, so you can look at a teaching set, then
+  at any of its students, then at any of his OH groups, etc.  Access to
+  this linking is controlled by a flag (can_roam) on the user account.
+  This flag is currently set to true only for users identified as staff.
+
+* The above general display can be accessed either by clicking on an
+  element being monitored in the left hand column and choosing "Full details",
+  or by clicking on any event, and then on an element being used by that
+  event.  Un-privileged users (e.g. students) can view only their own
+  personal details.
+
+* A long-standing bug in the iSAMS API means that it is not possible fully
+  to reconstruct the timetable from the information therein.  Lessons
+  taught by form group (tutor groups in Abingdon's case) cannot be linked up
+  to the corresponding group without some extra information from outside.
+  The way this has been handled in the past was simply to link the lesson to
+  the tutor group, but this has led to steadily more problems.
+
+  Lacking a fix from iSAMS (and they have indicated very forcefully that they
+  have no intention of fixing it) a better workaround has now been implemented.
+  The missing information is now re-constructed and all the missing teaching
+  groups (with names like "1M Ma") are generated internally as part of the
+  data import process.  They can then be treated as full teaching groups,
+  with all the necessary ancillary information.
+
+* The "active" flag in the iSAMS d/b for OH groups seems not to be used.
+  All groups have it set to false all the time.  The loader has been enhanced
+  to ignore it and instead to a date-based calculation to decide the active
+  groups.
+
+* The iSAMS database seems to lack basic integrity checking, in that pupils
+  who have left the school can still be listed as members of groups.
+  The loader was already correcting this as part of the loading process,
+  but because of the sheer quantity, it now doesn't complain about them
+  unless the --verbose option is given.
+
+  At a late point in testing, one extra result of this was noticed.  Where
+  a pupil has left the school and iSAMS has removed him from the pupil
+  lists before removing him from his sets, the loader now copes fine but
+  there remains a logic error in the loader - because the student became
+  an ex-student *before* leaving his sets it then doesn't remove him from
+  his sets on subsequent runs.  The reason for this is fully understood
+  and it will be corrected in the next release.  It was too late to add
+  it to this one.  The problem is a long-standing one and just hasn't been
+  noticed up until now, because it wasn't so easy to check the exact
+  membership of groups.
+
+* Eras have acquired a short name, for ease of display in tabs.
+
+
 v0.6.2  2016-10-21
 
 * Hotfix to fix display of unapproved events.

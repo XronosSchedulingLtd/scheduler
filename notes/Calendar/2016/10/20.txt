@@ -18,12 +18,19 @@ On then to trying to get a sensible set of display information for each type of 
 
 Jobs which need doing to convert a live system.
 
-[ ] Backup
+[ ] Stop web server
+[ ] export RAILS_ENV=production
+[ ] Backup (or fresh copy of live d/b)
 [ ] New source
+[ ] Drop extra tables if re-running
 [ ] Rake db:migrate
 [ ] Rake assets:precompile
-[ ] Edit short names into eras
 [ ] Run User.set_initial_permissions
+[ ] Re-start web server
+[ ] Edit short names into eras, and set end dates to 14/8
+[ ] Copy Current/* to PreFetched/*
+[ ] Run import process
+[ ] Remove PreFetched/*
 
 Looking at the moment at Sam Agg in the 3rd year.  I want to get a decent set of display information for him.  Why, for instance, does he have some apparent set membership in 2013/14.  He should have started in 2014.  Once I get the stuff displaying I should be able to see why.  Now there, and there seems to be some degree of overlap between the groups from different years.  I probably loaded the coming year's teaching sets before the previous academic year was technically over - i.e. in the middle of August somewhere. I could just leave it like that, or tweak some durations a bit.
 
