@@ -1,4 +1,16 @@
-class MIS_Subject
+class MIS_Subject < MIS_Record
+
+  DB_CLASS = Subject
+  DB_KEY_FIELD = [:source_id, :datasource_id]
+  FIELDS_TO_CREATE = [
+    :name
+  ]
+
+  FIELDS_TO_UPDATE = [
+    :name,
+    :current
+  ]
+
   attr_reader :name, :teachers, :year_teachers, :groups, :year_groups
 
   @@subjects = Array.new
@@ -59,6 +71,19 @@ class MIS_Subject
 #       puts "Adding group #{group.name} to #{yeargroup.ordinalize} year #{self.name} groups."
         year_group_record << group
       end
+    end
+  end
+
+  #
+  #  Ensure that the staff attached to the dbrecord match our idea of
+  #  what we should have.  ActiveRecord does much of the work for us.
+  #  It will create and/or delete linking records in an optimised way to
+  #  match the list which we pass in.
+  #
+  def ensure_staff
+    if @dbrecord
+      staff = @teachers.collect {|t| t.dbrecord}.compact.uniq
+      @dbrecord.staffs = staff
     end
   end
 

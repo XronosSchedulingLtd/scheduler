@@ -1,0 +1,4 @@
+<% if general.owner %>
+  <li>Owner: <%= general.owner.name %></li>
+<% end %>
+<%= render partial: "groups/#{general.type.downcase}", object: general %>

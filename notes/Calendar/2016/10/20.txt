@@ -1,0 +1,45 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-10-20T08:10:15+01:00
+
+====== Thursday 20 Oct 2016 ======
+
+Yesterday was not as productive as I would have liked.  The time which I spent was good, but I did rather let myself get distracted.  Today I would like to achieve significantly more steady plodding.
+
+As a warm-up, I'll add a can_roam flag to the user record.  I need to make sure that students can't use the display links to see more information than they should.  Give it a default of false, then set it to true for staff members.
+
+Fresh copy of the live data too.
+
+Where are initial permissions set as a user is created?  Ah - in find_matching_resources.  That in turn calls set_initial_permissions, and I've fixed that to let staff roam.
+
+Now, can I restore the links which I had before?  Done.
+
+On then to trying to get a sensible set of display information for each type of element.  Start with pupils.
+
+Jobs which need doing to convert a live system.
+
+[ ] Backup
+[ ] New source
+[ ] Rake db:migrate
+[ ] Rake assets:precompile
+[ ] Edit short names into eras
+[ ] Run User.set_initial_permissions
+
+Looking at the moment at Sam Agg in the 3rd year.  I want to get a decent set of display information for him.  Why, for instance, does he have some apparent set membership in 2013/14.  He should have started in 2014.  Once I get the stuff displaying I should be able to see why.  Now there, and there seems to be some degree of overlap between the groups from different years.  I probably loaded the coming year's teaching sets before the previous academic year was technically over - i.e. in the middle of August somewhere. I could just leave it like that, or tweak some durations a bit.
+
+Earlier I put some configuration information into my entities (defaulted in elemental.rb) to let them control which panels and which columns would be displayed.  I suspect I now need to change that.  They can and should dictate their columns, but not their panels, except perhaps to turn off history.
+
+Now - each subject should display a list of its teachers.  Straightforward?  Seems to have been.
+
+Now - the list of groups taught by a member of staff should be filtered to only those attached to the corresponding era.  Currently you see all the current ones in each era.
+
+Just as staff show a list of their teaching groups, teaching groups should show a list of their staff.
+
+Now - we could do to filter the groups which are shown for each member of staff to just the corresponding era.  Done that.
+
+Staff should have their tutor group (if any) listed before their teaching groups.
+
+* Tutor group
+* Current teaching groups
+* Previous teaching groups this year
+

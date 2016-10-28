@@ -88,7 +88,7 @@ class MIS_Tutorgroup
       tgs_hash[tg.isams_id] = tg
       staff = loader.staff_hash[tg.tutor_id]
       if staff
-        tg.note_staff(staff)
+        tg.note_tutor(staff)
       end
     end
     #

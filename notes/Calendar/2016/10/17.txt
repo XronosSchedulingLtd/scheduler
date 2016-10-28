@@ -1,0 +1,68 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-10-17T09:38:38+01:00
+
+====== Monday 17 Oct 2016 ======
+
+Today I would like to push along my changes to how elements are displayed, fleshing out each screen with the details which I have up on my whiteboard.  Things to do:
+
+[ ] Pupil
+[ ] Staff
+[ ] Location
+[ ] Subject
+[ ] Service
+[ ] Property
+[ ] Group
+[ ] Check ordinary staff can use it, but not pupils
+[ ] Check groups can still be edited
+[ ] How should admin edit things?
+
+I'd quite like to put out a release this week with the new features in.
+
+I need a generalised mechanism whereby a given type of entity can dictate what columns are displayed for it.  Ideally one would ask the entity itself, but arguably that puts a presentation function into the model.  One could do it by way of helpers, but then that is violating the object-oriented nature of the design.  Tricky one.
+
+I could have the model provide just a list, then put all the implementation outside the model.
+
+Or, since we are always dealing with an element, put it in an element helper.
+
+I still incline to putting the basic list in the model.  It's the natural place for it.  I know it breaks the fundamental structure of MVC, but it just seems so natural to ask the model "What columns would you like displayed?" - and indeed, "What pages and in what order?".  Other code in helpers etc. can then take care of how exactly it is done.
+
+I need to allow the model to specify pages too.
+
+'''
+Page: Current
+  Memberships
+  Sets
+Page: Historic
+  Old memberships
+'''
+
+
+etc.  How best to return that?  The elemental concern can do a default one.  We also need to be able to get the relevant information at different times - once for the heading, then again for the contents.
+
+Current logic on panels is:
+
+Panel 1 - everyone gets:
+* Direct membership
+* Indirect membership
+Groups get:
+* Members
+Staff get
+* Teaching sets
+
+Panel 2 - everyone gets:
+* Membership history - not done properly yet.
+
+
+Just noticed that the constructed lower school teaching groups have no subjects attached.  Now why would that be?  (Curse iSAMS for their inability to design a working API.)
+
+Hah!  That's interesting.  I noticed before that I had two entries for each of my constructed files sent to Markbook.  I now realise that I have succeeded in getting rid of the one which //did// have the subject identified.  Slightly the wrong way around.
+
+Having had a quick look, my constructed fake teaching groups aren't getting there year group either.  Why?  Ah - I haven't added those fields to the ones to be created in the database.  ISAMS_FakeGroup does not derive from MIS_TeachingGroup, so needs to set them for itself.  I therefore have two different issues.
+
+1) Get those two fields set correctly in the d/b (possible explanation to hand).
+2) Work out why the Markbook file is not getting the subject.
+
+Fixed the first one - I think.
+
+Ah - all the groups in the export file which I'm preparing for Markbook have lost their subject ids.  This presumably is because I'm now finding them too late.  I did move the point in the code which did this work.  No, it's not that at all.  I had to rename the field because now I needed subject_id as a database key field.  If I were picking that up I would be giving the wrong value anyway.  Think I've fixed it.  They do all now seem to have a correct subject ID in the export file.

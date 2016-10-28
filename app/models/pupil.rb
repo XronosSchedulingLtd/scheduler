@@ -19,28 +19,39 @@ class Pupil < ActiveRecord::Base
     true
   end
 
-  def tutorgroup_name
-    if Setting.current_era
-      #
-      #  We go for his tutor group as at today, unless we are outside the
-      #  current academic year, in which case we go for one extremity or
-      #  other of the year.
-      #
-      as_at = Date.today
-      if as_at < Setting.current_era.starts_on
-        as_at = Setting.current_era.starts_on
-      elsif as_at > Setting.current_era.ends_on
-        as_at = Setting.current_era.ends_on
+  #
+  #  Method to find and cache this student's tutor group.
+  #
+  def tutorgroup
+    unless @tutorgroup
+      if Setting.current_era
+        #
+        #  We go for his tutor group as at today, unless we are outside the
+        #  current academic year, in which case we go for one extremity or
+        #  other of the year.
+        #
+        as_at = Date.today
+        if as_at < Setting.current_era.starts_on
+          as_at = Setting.current_era.starts_on
+        elsif as_at > Setting.current_era.ends_on
+          as_at = Setting.current_era.ends_on
+        end
+        @tutorgroup = self.tutorgroups(as_at)[0]
       end
-      tutorgroup = self.tutorgroups(as_at)[0]
-      if tutorgroup
-        tutorgroup.name
-      else
-        "Pupil"
-      end
-    else
-      "Pupil"
     end
+    @tutorgroup
+  end
+
+  def tutorgroup_name
+    self.tutorgroup ? self.tutorgroup.name : (self.current ? "Pupil" : "Ex pupil")
+  end
+
+  def house_name
+    self.tutorgroup ? self.tutorgroup.house : "Unknown"
+  end
+
+  def tutor_name
+    self.tutorgroup ? self.tutorgroup.staff.name : "Unknown"
   end
 
   def element_name
@@ -79,10 +90,24 @@ class Pupil < ActiveRecord::Base
     end
   end
 
+  #
+  #  Provide a one-line description of this pupil for display purposes.
+  #
+  #  Objective is:
+  #
+  #  A 5th year pupil in Philpott's House - tutor: JHW
+  #
+  def description_line
+    "A #{year_group.ordinalize} year pupil in #{self.house_name} House.  Tutor: #{self.tutor_name}."
+  end
+
   def <=>(other)
-    result = self.surname <=> other.surname
+    result = other.start_year <=> self.start_year
     if result == 0
-      result = self.forename <=> other.forename
+      result = self.surname <=> other.surname
+      if result == 0
+        result = self.forename <=> other.forename
+      end
     end
     result
   end

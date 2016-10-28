@@ -1,0 +1,7 @@
+<tr>
+  <td><%= location.name %></td>
+  <td><%= location.display_name %></td>
+  <td><%= location.other_alias_names.join("<br/>").html_safe %></td>
+  <td><%= location.current ? "Yes" : "No" %></td>
+  <td><%= location.element ? link_to('Details', location.element) : "" %></td>
+</tr>

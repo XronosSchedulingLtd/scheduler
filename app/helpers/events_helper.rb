@@ -1,9 +1,17 @@
 module EventsHelper
 
+  def be_linken(text, element)
+    if can_roam? && element
+      link_to(h(text), element)
+    else
+      h(text)
+    end
+  end
+
   def highlighted_name(commitment)
-    text = h(commitment.element.name)
+    text = be_linken(commitment.element.name, commitment.element)
     if commitment.covering
-      text = text + " (covering #{h(commitment.covering.element.short_name)})"
+      text = "#{text} (covering <span title='#{h(commitment.covering.element.name)}'>#{be_linken(commitment.covering.element.short_name, commitment.covering.element)}</span>)"
     end
     if commitment.rejected
       text = "<span class='rejected-commitment' title='#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : ""}'>#{text}</span>"

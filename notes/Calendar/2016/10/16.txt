@@ -1,0 +1,34 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-10-16T10:28:12+01:00
+
+====== Sunday 16 Oct 2016 ======
+
+Experimenting with using GnuCash to do the Xronos accounts.  It appears to be possible to create your own custom invoices, albeit with a little bit of messing around.  The best way would appear to be to take an existing one and tweak it, giving it a different name.
+
+Existing ones will be found in ''/usr/share/gnucash/guile-modules/gnucash/report'' and the one which seems closest to what I would like is called taxinvoice.  The attractive thing is that, despite its name, it is the only one which //doesn't// put a tax field in if there is no tax.  All the others put "tax 0" in one form or another, whilst this one misses out the tax entirely if there is none relevant to the bill.
+
+I need to test that it does this correctly, even with a tax table configured.  I would like to be able to have a tax table which exists, but then not use it until I need to.  It would also be good to rename the tax column as VAT.
+
+Playing in my sandbox at present.
+
+Yes, it does seem to work.  There's a slightly non-intuitive check-box in the item line to say whether or not to include tax.  I've now managed to create two dummy invoices, one with VAT and one without, and they both print nicely.
+
+Good.  Now see about tweaking the template.  It would seem logical to call my copy "Xronos invoice".
+
+Copied as:
+
+'''
+xronosinvoice.css
+xronosinvoice.eguile.scm
+xronosinvoice.scm
+'''
+
+
+Now, I had some instructions on the web yesterday.  https://wiki.gnucash.org/wiki/Custom_Reports
+
+One seems to start with the last of those three files.  You need to give it its own unique module name.
+
+I've done everything mentioned in the instructions and restarted GnuCash but it doesn't appear in my list of available invoices.  Now why would that be?  Ah - it has loaded it, but it doesn't display it in the context of choosing an invoice.  Instead it shows up under Reports => Business, where indeed the other invoices show up too.
+
+Ah - you can use it, but in a rather convoluted way.  You need to start the report, then click on options within it, then find the invoice that you want to report on.  Then indeed it does produce the invoice in my modified form.  Surely it must be possible to make it work more smoothly than this though - like one of the default reports.

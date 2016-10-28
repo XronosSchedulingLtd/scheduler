@@ -1,0 +1,36 @@
+<h1>Listing subjects</h1>
+<p id="notice"><%= notice %></p>
+
+<div class="digg_pagination">
+  <%= will_paginate @subjects %>
+</div>
+
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Staff</th>
+      <th>Sets</th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @subjects.each do |subject| %>
+      <tr>
+        <td><%= subject.name %></td>
+        <td><%= subject.staffs.count %></td>
+        <td><%= subject.teachinggrouppersonae.count %></td>
+        <td><%= link_to 'Details', element_path(subject.element) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="digg_pagination">
+  <%= will_paginate @subjects %>
+</div>
+
+<br>
+
+<%= link_to 'New Subject', new_subject_path, :class => "button tiny radius" %>

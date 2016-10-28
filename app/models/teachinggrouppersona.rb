@@ -1,11 +1,16 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2016 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
 class Teachinggrouppersona < ActiveRecord::Base
 
   include Persona
+
+  has_and_belongs_to_many :staffs
+  before_destroy { staffs.clear }
+
+  belongs_to :subject
 
   self.per_page = 15
 

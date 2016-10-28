@@ -39,6 +39,8 @@ Rails.application.routes.draw do
 
   resources :services
 
+  resources :subjects
+
   resources :users
 
   resources :commitments do

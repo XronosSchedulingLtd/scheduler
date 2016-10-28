@@ -1,0 +1,5 @@
+<div class="content<%= panel_contents.active? ? " active" : "" %>" id="<%= panel_contents.panel_name %>">
+  <div class="row">
+    <%= render partial: "column", collection: panel_contents.columns %>
+  </div>
+</div>

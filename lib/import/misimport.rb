@@ -127,6 +127,15 @@ begin
         finished(options, "pupils")
         loader.do_staff
         finished(options, "staff")
+        #
+        #  Arguably, subjects exist before staff, but the way we
+        #  accumulate information in memory is to attach a list of
+        #  staff to the subject record, and so it makes sense to
+        #  load the subjects after the staff, setting up the d/b
+        #  records connecting the two.
+        #
+        loader.do_subjects
+        finished(options, "subjects")
         loader.do_locations
         finished(options, "locations")
         loader.do_tutorgroups
