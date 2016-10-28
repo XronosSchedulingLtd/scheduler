@@ -52,7 +52,7 @@ class ErasController < ApplicationController
   def update
     respond_to do |format|
       if @era.update(era_params)
-        format.html { redirect_to @era, notice: 'Era was successfully updated.' }
+        format.html { redirect_to eras_path, notice: 'Era was successfully updated.' }
         format.json { render :show, status: :ok, location: @era }
       else
         format.html { render :edit }
@@ -83,6 +83,6 @@ class ErasController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def era_params
-      params.require(:era).permit(:name, :starts_on, :ends_on, :source_id)
+      params.require(:era).permit(:name, :short_name, :starts_on, :ends_on, :source_id)
     end
 end

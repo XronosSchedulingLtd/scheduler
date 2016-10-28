@@ -58,6 +58,12 @@ class MIS_Loader
       @subject_hash[subject.source_id] = subject
 #      puts "Got subject called \"#{subject.name}\"."
     end
+    #
+    #  The group code may need to consult the timetable code, so we
+    #  create that object now.  It will get a later opportunity to
+    #  do its own parsing, and refer back to groups.
+    #
+    @timetable = MIS_Timetable.new(self, whatever)
     @tutorgroups = MIS_Tutorgroup.construct(self, whatever)
     puts "Got #{@tutorgroups.count} tutorgroups." if options.verbose
     @teachinggroups = MIS_Teachinggroup.construct(self, whatever)
@@ -73,10 +79,15 @@ class MIS_Loader
       @oh_groups_hash[ohg.isams_id] = ohg
     end
     self.mis_specific_preparation
-    @timetable = MIS_Timetable.new(self, whatever)
+    #
+    #  And now there should be enough to build the actual timetable
+    #  data structures.
+    #
+    @timetable.build_schedule(self, whatever)
     puts "Got #{@timetable.entry_count} timetable entries." if options.verbose
     @timetable.note_hiatuses(self, @hiatuses)
     @timetable.note_subjects_taught
+    @timetable.note_groups_taught
     @customgroups = MIS_Customgroup.construct(self, whatever)
     puts "Got #{@customgroups.size} custom groups." if options.verbose
     @customgroup_hash = Hash.new
@@ -205,6 +216,65 @@ class MIS_Loader
     end
     if @verbose || staff_deleted_count > 0
       puts "#{staff_deleted_count} staff record(s) deleted."
+    end
+  end
+
+  def do_subjects
+    subjects_changed_count   = 0
+    subjects_unchanged_count = 0
+    subjects_loaded_count    = 0
+    original_subject_count = Subject.current.count
+    @subjects.each do |subject|
+      dbrecord = subject.dbrecord
+      if dbrecord
+        unless dbrecord.current
+          puts "Subject #{dbrecord.name} does not seem to be current."
+        end
+        if subject.check_and_update
+          subjects_changed_count += 1
+        else
+          subjects_unchanged_count += 1
+        end
+        #
+        #  The MIS_Record implementation of check_and_update deals
+        #  only with fields within the record which have a specific
+        #  value.  Need also to set up links to relevant staff.
+        #
+        subject.ensure_staff
+      else
+        if subject.save_to_db
+          subjects_loaded_count += 1
+          subject.ensure_staff
+        end
+      end
+    end
+    #
+    #  Need to check for subjects which have been deleted.
+    #
+    subjects_deactivated_count = 0
+    Subject.current.each do |dbsubject|
+      subject = @subject_hash[dbsubject.source_id]
+      unless subject && dbsubject.datasource_id == subject.datasource_id
+        dbsubject.current = false
+        dbsubject.save!
+        subjects_deactivated_count += 1
+      end
+    end
+    final_subject_count = Subject.current.count
+    if @verbose || subjects_changed_count > 0
+      puts "#{subjects_changed_count} subject record(s) amended."
+    end
+    if @verbose || subjects_loaded_count > 0
+      puts "#{subjects_loaded_count} subject record(s) created."
+    end
+    if @verbose || subjects_deactivated_count > 0
+      puts "#{subjects_deactivated_count} subject record(s) marked as not current."
+    end
+    if @verbose
+      puts "#{subjects_unchanged_count} subject record(s) untouched."
+    end
+    if @verbose || original_subject_count != final_subject_count
+      puts "Started with #{original_subject_count} current subjects and finished with #{final_subject_count}."
     end
   end
 
@@ -410,6 +480,11 @@ class MIS_Loader
 #      puts "Processing #{tg.name}"
 #      puts tg.inspect
       #
+      #  Finding the subject id is something which can be done only
+      #  after all the subject records have been created.
+      #
+      tg.find_subject_id
+      #
       #  There must be a more idiomatic way of doing this.
       #
       loaded,
@@ -426,6 +501,11 @@ class MIS_Loader
       tgmember_loaded_count    += member_loaded
       tgmember_removed_count   += member_removed
       tgmember_unchanged_count += member_unchanged
+      #
+      #  Staff aren't members of the group, and so aren't handled by
+      #  the generic group code.
+      #
+      tg.ensure_staff
     end
     #
     #  It's possible that a teaching group has ceased to exist entirely,

@@ -1,11 +1,13 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2016 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
 class Staff < ActiveRecord::Base
 
   validates :name, presence: true
+
+  DISPLAY_COLUMNS = [:taught_groups, :direct_groups, :indirect_groups]
 
   include Elemental
 
@@ -14,6 +16,15 @@ class Staff < ActiveRecord::Base
   #  Has only one per year, but in terms of data structues, has many.
   #
   has_many :tutorgrouppersonae
+
+  has_and_belongs_to_many :subjects
+  before_destroy { subjects.clear }
+
+  has_and_belongs_to_many :teachinggrouppersonae
+  before_destroy { teachinggrouppersonae.clear }
+
+  has_many :groupstaught, through: :teachinggrouppersonae, source: :group 
+  has_many :tutorgroups, through: :tutorgrouppersonae, source: :group
 
   after_destroy :delete_tutorgroups
 
@@ -27,6 +38,10 @@ class Staff < ActiveRecord::Base
   scope :does_cover, -> { where(does_cover: true) }
   scope :cover_exempt, -> { where(does_cover: false) }
 
+  #
+  #  This could be done as teachinggrouppersonae.collect {|tgp| tgp.group}
+  #  but this should be more efficient.
+  #
 
   def element_name
     #
@@ -79,10 +94,8 @@ class Staff < ActiveRecord::Base
   end
 
   def <=>(other)
-    puts "Comparing #{self.surname} and #{other.surname}"
     result = self.surname <=> other.surname
     if result == 0
-      puts "Comparing #{self.forename} and #{other.forename}"
       result = self.forename <=> other.forename
     end
     puts "result = #{result}"

@@ -13,6 +13,26 @@ module Elemental
 
     after_save :update_element
 
+    #
+    #  An entity which wants to change the display columns for itself
+    #  can either define DISPLAY_COLUMNS before including elemental,
+    #  or it can override the display_columns() method below.
+    #
+    #  The symbols used here must match up with the ones expected
+    #  by the methods in helpers/elements_helper.rb
+    #
+    #
+    #  Arguably this stuff has no business being in the model, since it
+    #  relates to display rather than to business logic, but it seems
+    #  terribly natural to ask each elemental item what it would like
+    #  displayed.
+    #
+    #  Note that none of the actual display code is provided here, just
+    #  a list of what's wanted.
+    #
+    unless defined?(DISPLAY_COLUMNS)
+      DISPLAY_COLUMNS = [:direct_groups, :indirect_groups, :dummy]
+    end
   end
 
   module ClassMethods
@@ -52,15 +72,27 @@ module Elemental
     end
   end
 
+  def display_columns
+    self.class::DISPLAY_COLUMNS
+  end
+
   #
   #  An entity may well want to override these.
   #
+  def show_historic_panels?
+    true
+  end
+
   def display_name
     self.name
   end
 
   def short_name
     self.name
+  end
+
+  def more_type_info
+    ""
   end
 
   def tabulate_name(columns)
@@ -72,6 +104,15 @@ module Elemental
   end
 
   def adjust_element_creation_hash(creation_hash)
+  end
+
+  #
+  #  Provide the name of the partial to use to render general information
+  #  about this entity.  Usually this will be in the directory of the
+  #  entity - e.g. "locations/general", but this one isn't.
+  #
+  def general_partial
+    "empty"
   end
 
   #

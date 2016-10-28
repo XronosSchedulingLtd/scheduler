@@ -174,17 +174,6 @@ class SB_AcademicRecord
   end
 end
 
-class DummyMisGroup
-  attr_reader :isams_id, :subject_id, :name, :year_id, :pupils
-
-  def initialize(isams_id, subject_id, name, year_id, pupils)
-    @isams_id   = isams_id
-    @subject_id = subject_id
-    @name       = name
-    @year_id    = year_id
-    @pupils     = pupils
-  end
-end
 
 class SB_Group
   attr_accessor :group_ident,
@@ -195,7 +184,9 @@ class SB_Group
 
   def initialize(mis_group)
     self.group_ident   = mis_group.isams_id
-    self.subject_ident = mis_group.subject_id
+    if mis_group.subject
+      self.subject_ident = mis_group.subject.isams_id
+    end
     self.name          = mis_group.name
     self.year_ident    = mis_group.year_id - 6
     self.records = Array.new
@@ -208,30 +199,6 @@ class SB_Group
     groups = Array.new
     mis_groups.each do |misgroup|
       groups << SB_Group.new(misgroup)
-    end
-    #
-    #  We also need to fake some, because of errors in the design of
-    #  the iSAMS API.  It completely fails to include information about
-    #  lessons which are taught by form (or tutor group).  We therefore
-    #  need to reconstruct this information, which is quite a bit of work.
-    #
-    #  Start by assembling a list of all the missing groups by name.
-    #
-    groups_by_tug = Hash.new
-    mis_timetable.schedule.entries.each do |entry|
-      if entry.set_id == 0 && entry.groups.size > 0 && entry.subject
-        #
-        #  A lesson taught by tutor group.
-        #
-        groups_by_tug[entry.code] ||= entry
-      end
-    end
-    groups_by_tug.each do |key, entry|
-      groups << SB_Group.new(DummyMisGroup.new(key,
-                                               entry.subject.isams_id,
-                                               key,
-                                               entry.yeargroup + 6,
-                                               entry.groups[0].pupils))
     end
     File.open(Rails.root.join(IMPORT_DIR, "ForMarkbook", "groups.yml"), "w") do |file|
       file.puts YAML::dump(groups)

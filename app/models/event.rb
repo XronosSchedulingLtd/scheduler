@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2016 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -443,6 +443,7 @@ class Event < ActiveRecord::Base
       [[by_type["Staff"],
         by_type["Pupil"],
         by_type["Group"],
+        by_type["Subject"],
         by_type["Location"],
         by_type["Service"],
         by_type["Property"]].compact, approvables]

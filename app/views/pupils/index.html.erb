@@ -1,7 +1,10 @@
 <h1>Listing pupils</h1>
 <p id="notice"><%= notice %></p>
 
-<%= will_paginate @pupils %>
+<div class="digg_pagination">
+  <%= will_paginate @pupils %>
+</div>
+
 <table class="zftable">
   <thead>
     <tr>
@@ -33,7 +36,10 @@
     <% end %>
   </tbody>
 </table>
-<%= will_paginate @pupils %>
+
+<div class="digg_pagination">
+  <%= will_paginate @pupils %>
+</div>
 
 <br>
 

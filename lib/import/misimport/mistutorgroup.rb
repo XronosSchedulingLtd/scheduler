@@ -14,7 +14,7 @@ class MIS_Tutorgroup < MIS_Group
     @pupils
   end
 
-  def note_staff(staff)
+  def note_tutor(staff)
     @staff = staff
   end
 

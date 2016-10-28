@@ -84,7 +84,9 @@
                     prompt: "Adjust view",
                     annotation: "Can this user add and remove resources from his calendar view?"},
                    {field: :can_su,
-                    annotation: "Can this user become another user?"}
+                    annotation: "Can this user become another user?"},
+                   {field: :can_roam,
+                    annotation: "Can this user follow links from one displayed element to another?"}
                  ]) %>
   <%= flag_group(f, 12, 6, "Information",
                  [

@@ -13,40 +13,57 @@
 
   <div class="row collapse">
     <div class="small-3 columns">
-      <%= f.label :name,
-                  class: "right inline",
-                  title: "Name for the Era",
-                  data: {tooltip: true} %><br>
+      <%= f.label :name, class: "right inline" %>
     </div>
-    <div class="small-9 columns">
+    <div class="small-6 columns">
       <%= f.text_field :name %>
     </div>
+    <div class="small-3 columns">
+    </div>
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
-      <%= f.label :starts_on, class: "right inline" %><br>
+      <%= f.label :short_name, class: "right inline" %>
     </div>
-    <div class="small-9 columns">
+    <div class="small-6 columns">
+      <%= f.text_field :short_name %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :starts_on, class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
       <%= f.text_field :starts_on, :class => :datepicker %>
     </div>
+    <div class="small-3 columns">
+    </div>
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
-      <%= f.label :ends_on, class: "right inline" %><br>
+      <%= f.label :ends_on, class: "right inline" %>
     </div>
-    <div class="small-9 columns">
+    <div class="small-6 columns">
       <%= f.text_field :ends_on, :class => :datepicker %>
     </div>
+    <div class="small-3 columns">
+    </div>
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
-      <%= f.label :source_id, class: "right inline" %><br>
+      <%= f.label :source_id, class: "right inline" %>
     </div>
-    <div class="small-9 columns">
+    <div class="small-6 columns">
       <%= f.number_field :source_id %>
+    </div>
+    <div class="small-3 columns">
     </div>
   </div>
   <div class="row collapse">
-    <div class="small-9 small-offset-3 columns"><%= f.submit %></div>
+    <div class="small-9 small-offset-3 columns">
+      <%= f.submit "Update", :class => "button tiny radius" %>
+    </div>
   </div>
 <% end %>

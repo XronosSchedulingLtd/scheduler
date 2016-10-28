@@ -1,7 +1,9 @@
 <h1>Listing locationaliases</h1>
 <p id="notice"><%= notice %></p>
 
-<%= will_paginate @locationaliases %>
+<div class="digg_pagination">
+  <%= will_paginate @locationaliases %>
+</div>
 <table class="zftable">
   <thead>
     <tr>
@@ -29,7 +31,9 @@
     <% end %>
   </tbody>
 </table>
-<%= will_paginate @locationaliases %>
+<div class="digg_pagination">
+  <%= will_paginate @locationaliases %>
+</div>
 
 <br>
 

@@ -1,40 +1,27 @@
 <p id="notice"><%= notice %></p>
 
-<h1>Showing element</h1>
-
+<h2>Details of <%= @element.name %></h2>
+<% unless @element.current %>
+  <p class="warning">Not current!</p>
+<% end %>
 <p>
-  <strong>Name:</strong>
-  <%= @element.name %>
+  <%= @element.entity_description %><% if @element.owned %>
+    Administered by: <%= @element.owners.collect {|u| u.name }.join(", ") %>
+  <% end %>
 </p>
-
+<% if @element.entity.respond_to?(:owner) && @element.entity.owner %>
 <p>
-  <strong>Type:</strong>
-  <%= @element.entity_type %>
+  Owned by: <%= @element.entity.owner.name %>
 </p>
+<% end %>
 
-<p>
-  <strong>Current:</strong>
-  <%= @element.current %>
-</p>
+<ul class="tabs" data-tab>
+  <%= render partial: "panel_heading",
+             collection: @panels %>
+</ul>
 
-<h2>Memberships</h2>
-
-<%= render @mwd_set %>
-
-<p>Detailed information about the element</p>
-<div class="row">
-  <div class="small-12 medium-6 large-4 columns">
-    <h3>General information</h3>
-    Administered by.  Name. Tutor. House. Year.
-  </div>
-  <div class="small-12 medium-6 large-4 columns">
-    <h3>Member of</h3>
-    Broken down by type of group.  Just current membership.
-  </div>
-  <div class="small-12 medium-6 large-4 columns">
-    <h3>Members</h3>
-    Appears only for groups.
-  </div>
+<div class="tabs-content">
+  <%= render partial: "panel_contents",
+             collection: @panels %>
 </div>
-
 

@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2016 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -15,6 +15,8 @@ class Location < ActiveRecord::Base
 
   scope :active, -> { where(active: true) }
   scope :current, -> { where(current: true) }
+
+  scope :owned, -> { joins(:element).where("elements.owned = ?", true) }
 
   def element_name
     #
@@ -32,8 +34,32 @@ class Location < ActiveRecord::Base
     end
   end
 
+  def description_line
+    if locationaliases.size > 0
+      "A location, also known as:<ul>#{locationaliases.collect {|la| la.name}.sort.uniq.collect {|n| "<li>#{n}</li>"}.join }</ul>".html_safe
+    else
+      "A location"
+    end
+  end
+
+  def other_alias_names
+    locationaliases.where(display: false).collect {|oa| oa.name}
+  end
+
   def display_name
     self.element_name
+  end
+
+  #
+  #  Where to find a partial to display general information about this
+  #  elemental item.
+  #
+  def general_partial
+    "locations/general"
+  end
+
+  def owned?
+    self.element && self.element.owned?
   end
 
   def friendly_name

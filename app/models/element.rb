@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2015 John Winters
+# Copyright (C) 2009-2016 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -346,6 +346,35 @@ class Element < ActiveRecord::Base
                                   include_nonexistent: include_nonexistent)
   end
 
+  #
+  #  Provide a short description of the kind of entity which we
+  #  represent, allowing the entity itself potentially to add more.
+  #
+  def kind_of_entity
+    "#{self.entity_type}#{self.entity.more_type_info}"
+  end
+
+  def indefinite_kind_of_entity
+    body = self.kind_of_entity.downcase
+    if /^[AEIOU]/i =~ body
+      "<p>An #{body}</p>".html_safe
+    else
+      "<p>A #{body}</p>".html_safe
+    end
+  end
+
+  def entity_description
+    if entity.respond_to?(:description_line)
+      entity.description_line
+    else
+      indefinite_kind_of_entity
+    end
+  end
+
+  def show_historic_panels?
+    entity.show_historic_panels?
+  end
+
   def short_name
     entity.short_name
   end
@@ -360,6 +389,10 @@ class Element < ActiveRecord::Base
 
   def csv_name
     entity.csv_name
+  end
+
+  def owned?
+    self.owned
   end
 
   #

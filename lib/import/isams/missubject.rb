@@ -7,7 +7,12 @@ class MIS_Subject
 
   include Creator
 
+  attr_reader :current, :datasource_id
+
   def initialize(entry)
+    @current = true
+    @datasource_id = @@primary_datasource_id
+    super()
   end
 
   def source_id

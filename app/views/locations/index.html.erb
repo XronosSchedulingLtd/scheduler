@@ -1,34 +1,30 @@
 <h1>Listing locations</h1>
 <p id="notice"><%= notice %></p>
 
-<%= will_paginate @locations %>
+<div class="digg_pagination">
+  <%= will_paginate @locations %>
+</div>
+
 <table class="zftable">
   <thead>
     <tr>
-      <th>Name</th>
-      <th>Active</th>
+      <th>Location</th>
+      <th>Display name</th>
+      <th>Other aliases</th>
       <th>Current</th>
-      <th>Aliases</th>
-      <th colspan="3"></th>
+      <th></th>
     </tr>
   </thead>
 
   <tbody>
-    <% @locations.each do |location| %>
-      <tr>
-        <td><%= location.name %></td>
-        <td><%= location.active %></td>
-        <td><%= location.current %></td>
-        <td><%= location.locationaliases.size %></td>
-        <td><%= link_to 'Show', location %></td>
-        <td><%= link_to 'Edit', edit_location_path(location) %></td>
-        <td><%= link_to 'Destroy', location, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
-    <% end %>
+    <%= render @locations %>
   </tbody>
 </table>
-<%= will_paginate @locations %>
+
+<div class="digg_pagination">
+  <%= will_paginate @locations %>
+</div>
 
 <br>
 
-<%= link_to 'New Location', new_location_path %>
+<%= link_to 'New Location', new_location_path, :class => "button tiny radius" %>

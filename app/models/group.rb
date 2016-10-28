@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2016 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -25,10 +25,11 @@ class Group < ActiveRecord::Base
   #  explicit ones too.  These should really be defined elsewhere, but
   #  I'm not sure how just yet.
   #
-  belongs_to :tutorgrouppersona, -> { where(groups: {persona_type: 'Tutorgrouppersona'}) }, foreign_key: :persona_id
-  belongs_to :teachinggrouppersona, -> { where(groups: {persona_type: 'Teachinggrouppersona'}) }, foreign_key: :persona_id
-  belongs_to :taggrouppersona, -> { where(groups: {persona_type: 'Taggrouppersona'}) }, foreign_key: :persona_id
-  belongs_to :otherhalfgrouppersona, -> { where(groups: {persona_type: 'Otherhalfgrouppersona'}) }, foreign_key: :persona_id
+  belongs_to :tutorgrouppersona, -> { where(groups: {persona_type: 'Tutorgrouppersona'}).includes(:group) }, foreign_key: :persona_id
+  belongs_to :teachinggrouppersona, -> { where(groups: {persona_type: 'Teachinggrouppersona'}).includes(:group) }, foreign_key: :persona_id
+  belongs_to :taggrouppersona, -> { where(groups: {persona_type: 'Taggrouppersona'}).includes(:group) }, foreign_key: :persona_id
+  belongs_to :otherhalfgrouppersona, -> { where(groups: {persona_type: 'Otherhalfgrouppersona'}).includes(:group) }, foreign_key: :persona_id
+
   has_many :memberships, :dependent => :destroy
 
   validates :starts_on, presence: true
@@ -45,6 +46,8 @@ class Group < ActiveRecord::Base
   scope :taggroups, -> { where(persona_type: 'Taggrouppersona') }
   scope :otherhalfgroups, -> { where(persona_type: 'Otherhalfgrouppersona') }
   scope :vanillagroups, -> { where(persona_type: nil) }
+
+  scope :ofera, ->(era) { where(era_id: era.id) }
 
   #
   #  This next line is enough to get me burnt at the stake.
@@ -85,6 +88,8 @@ class Group < ActiveRecord::Base
 
   attr_accessor :persona_class
 
+  DISPLAY_COLUMNS = [:members, :direct_groups, :indirect_groups]
+
   include Elemental
 
   def element_name
@@ -93,6 +98,31 @@ class Group < ActiveRecord::Base
 
   def description
     "#{self.type} group"
+  end
+
+  def description_line
+    case self.type
+    when "Teaching"
+      text = "A teaching set"
+      if self.persona.staffs.size > 0
+        text = text + " - taught by #{self.persona.staffs.collect {|s| s.initials}.join(",")} -"
+      end
+    when "Tutor"
+      text = "A tutor group - tutor #{self.persona.staff.name} -"
+    when "Otherhalf"
+      text = "An Other Half group"
+    when "Tag"
+      text = "A custom group"
+    when "Vanilla"
+      text = "A general group"
+    else
+      text = "A group"
+    end
+    text = text + " with #{self.members.count} members."
+  end
+
+  def more_type_info
+    " (#{description})"
   end
 
   def active
@@ -106,6 +136,10 @@ class Group < ActiveRecord::Base
     #  in public searches.
     #
     self.make_public ? nil : self.owner_id
+  end
+
+  def public?
+    self.make_public || self.owner_id == nil
   end
 
   #
@@ -131,6 +165,14 @@ class Group < ActiveRecord::Base
     end
   end
 
+  #
+  #  Where to find a partial to display general information about this
+  #  elemental item.
+  #
+  def general_partial
+    "groups/general"
+  end
+
   def method_missing(method_sym, *arguments, &block)
     #
     #  How we behave depends on whether or not we already have
@@ -154,6 +196,29 @@ class Group < ActiveRecord::Base
         end
       else
         super
+      end
+    end
+  end
+
+  def respond_to?(method_sym, include_private = false)
+    if super
+      true
+    else
+      #
+      #  Do we have a persona which can do the necessary for us?
+      #
+      if self.persona
+        self.persona.respond_to?(method_sym, include_private)
+      else
+        #
+        #  Would it be able to handle it once it exists?
+        #
+        if self.persona_class &&
+           self.persona_class.new.respond_to?(method_sym, include_private)
+          true
+        else
+          false
+        end
       end
     end
   end
@@ -626,7 +691,7 @@ class Group < ActiveRecord::Base
       #
       included_by_group =
         group_includes.collect {|membership|
-          (exclude_groups ? [] : [membership.element]) +
+          (exclude_groups ? [] : [membership.element.entity]) +
           membership.element.entity.members(membership.as_at ?
                                             membership.as_at :
                                             given_date,
@@ -636,7 +701,7 @@ class Group < ActiveRecord::Base
         }.flatten.uniq
       excluded_by_group =
         group_excludes.collect {|membership|
-          (exclude_groups ? [] : [membership.element]) +
+          (exclude_groups ? [] : [membership.element.entity]) +
           membership.element.entity.members(membership.as_at ?
                                             membership.as_at :
                                             given_date,
