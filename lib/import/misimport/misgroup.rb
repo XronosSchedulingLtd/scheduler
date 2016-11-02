@@ -135,45 +135,59 @@ class MIS_Group < MIS_Record
       db_member_ids =
         @dbrecord.members(start_date).
                   select {|m| m.datasource_id == @@primary_datasource_id}.
-                  collect {|m| m.source_id}
-      mis_member_ids =
-        self.members.collect {|m| m.source_id}
-      missing_from_db = mis_member_ids - db_member_ids
-      missing_from_db.each do |pupil_id|
-        pupil = loader.pupil_hash[pupil_id]
-        if pupil && pupil.dbrecord
-          begin
-            if @dbrecord.add_member(pupil.dbrecord, start_date)
-              #
-              #  Adding a pupil to a tutor group effectively changes the
-              #  pupil's element name.  Save the pupil record so the
-              #  element name gets updated.
-              #
-              if self.class.const_get(:DB_CLASS) == Tutorgroup
-                pupil.force_save
+                  collect {|m| m.element.id}
+      mis_member_ids = Array.new
+      #
+      #  First make sure all our proposed members are indeed members.
+      #
+      self.members.each do |member|
+        if member.dbrecord
+          mis_member_ids << member.dbrecord.element.id
+          unless db_member_ids.include?(member.dbrecord.element.id)
+            begin
+              if @dbrecord.add_member(member.dbrecord, start_date)
+                #
+                #  Adding a pupil to a tutor group effectively changes the
+                #  pupil's element name.  Save the pupil record so the
+                #  element name gets updated.
+                #
+                if self.class.const_get(:DB_CLASS) == Tutorgroup
+                  member.force_save
+                end
+                member_loaded_count += 1
+              else
+                puts "Failed to add #{member.name} to group #{self.name}"
               end
-              member_loaded_count += 1
-            else
-              puts "Failed to add #{pupil.name} to group #{self.name}"
+            rescue ActiveRecord::RecordInvalid => e
+              puts "Failed to add #{member.name} to group #{self.name}"
+              puts e
             end
-          rescue ActiveRecord::RecordInvalid => e
-            puts "Failed to add #{pupil.name} to group #{self.name}"
-            puts e
           end
+        else
+          puts "#{member.name} for #{self.name} has no d/b record!"
         end
       end
+      #
+      #  And now is there anyone who should be removed?
+      #
       extra_in_db = db_member_ids - mis_member_ids
-      extra_in_db.each do |pupil_id|
-        pupil = loader.pupil_hash[pupil_id]
-        if pupil && pupil.dbrecord
-          @dbrecord.remove_member(pupil.dbrecord, start_date)
+      extra_in_db.each do |element_id|
+        #
+        #  Use find_by to avoid raising errors.
+        #
+        element = Element.find_by(id: element_id)
+        if element
+          puts "Removing #{element.name} from #{self.name}."
+          @dbrecord.remove_member(element, start_date)
           #
           #  Likewise, removing a pupil can change his element name.
           #
           if self.class.const_get(:DB_CLASS) == Tutorgroup
-            pupil.force_save
+            element.entity.save!
           end
           member_removed_count += 1
+        else
+          puts "Most odd - can't find element #{element_id} to remove from #{self.name}."
         end
       end
       member_unchanged_count += (db_member_ids.size - extra_in_db.size)
