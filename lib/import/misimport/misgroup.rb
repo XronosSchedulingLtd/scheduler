@@ -173,7 +173,6 @@ class MIS_Group < MIS_Record
       extra_in_db = db_member_ids - mis_member_ids
       db_members.each do |member|
         if extra_in_db.include?(member.element.id)
-          puts "Removing #{member.element_name} from #{self.name}."
           @dbrecord.remove_member(member, start_date)
           #
           #  Likewise, removing a pupil can change his element name.
