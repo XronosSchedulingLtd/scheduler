@@ -1,3 +1,15 @@
+v0.8    2016-11-03
+
+* As noted in the release notes for v0.7, the improved visibility of
+  group membership in that release led to the detection of a long standing
+  problem.  Where pupils are removed from the school in iSAMS, but not
+  from their corresponding groups, then later removals failed to
+  propagate into Scheduler.
+
+  The algorithm for removing pupils from groups in Scheduler has now
+  been corrected, and it will remove them even if they no longer
+  appear in iSAMS's list of current pupils.
+
 v0.7.1  2016-10-28
 
 * Purely cosmetic change.  Puts resources for an event in the event
