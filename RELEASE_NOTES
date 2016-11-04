@@ -1,3 +1,29 @@
+v0.9    2016-11-04
+
+* Just one extra feature.  Administrators can now edit users' concerns
+  through the GUI, rather than having to fall back to the command line.
+  This is generally used to give (or take away) extra permissions
+  for the user relating to an item - e.g. to give a user control
+  of events using a specified resource.
+
+  To use this, go to Menu => Users and choose Show for your required
+  user.  This will give a list of his or her current concerns, and then
+  you can click "Edit" next to the one which you want to change.
+
+  Note that the names of a couple of flag fields in the underlying
+  database are slightly misleading.  In the database, these are called
+  "owns" and "controls".  They work as follows:
+
+  "owns" means the user approves requests for a resource.  Any resource
+  with one or more such user will need to go through the approvals
+  process when requested.  In the GUI, this is labelled as "Control"
+  because that's what the user is really doing.
+
+  "controls" is an extra permission bit, intended for maintenance of
+  events.  If a user has this bit set on a concern, then he or she can
+  edit any event which uses that resource.  This appears in the GUI as
+  "Edit any".
+
 v0.8    2016-11-03
 
 * As noted in the release notes for v0.7, the improved visibility of
