@@ -1,4 +1,10 @@
-<h2><%= @concern.element.name %></h2>
+<h2><%=
+if @reduced
+  "#{@concern.user.name}'s concern with "
+else
+  ""
+end
+%><%= @concern.element.name %></h2>
 <p>
   Unique ID: <%= @concern.element_id %><br/>
   Type: <%= @concern.element.description %>
@@ -54,7 +60,7 @@
 <% end %>
 
 <hr/>
-
+<% unless @reduced %>
 <h3>Report</h3>
 <p>You can get a listing of all events involving this resource.</p>
 
@@ -152,4 +158,5 @@
     <% end %>
     <hr/>
   </div>
+<% end %>
 <% end %>

@@ -48,7 +48,7 @@ class Concern < ActiveRecord::Base
   end
 
   #
-  #  Ownerships are sorted so that identities come first, then ownerships,
+  #  Concerns are sorted so that identities come first, then ownerships,
   #  then the rest.
   #
   def <=>(other)
@@ -61,7 +61,7 @@ class Concern < ActiveRecord::Base
             -1
           end
         else
-          if other.ownership
+          if other.owns
             1
           else
             self.element <=> other.element

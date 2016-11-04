@@ -16,6 +16,7 @@ owns		boolean		Whether user owns element
 controls		boolean		Whether the user controls the element
 colour		string		Colour in which to display events
 visible		boolean		Flag indicating whether events visible
+auto_add		boolean		Flag indicating whether to add this item automatically to new events.
 skip_permissions	boolean		Although this user can't approve events for this resource, he or she can add events
 							without seeking approval.  E.g. AMB adding stuff to Calendar.
 seek_permission	boolean		Kind of the other way around.  Although this user has the owns flag set, and thus

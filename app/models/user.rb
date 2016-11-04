@@ -201,7 +201,7 @@ class User < ActiveRecord::Base
        item.owner_id == self.id &&
        item.user_editable?)
     elsif item.instance_of?(Concern)
-      item.user_id == self.id
+      (item.user_id == self.id) || self.admin
     elsif item.instance_of?(Note)
       (item.owner_id == self.id ||
        (item.parent_type == "Commitment" && self.owns?(item.parent.element))) &&

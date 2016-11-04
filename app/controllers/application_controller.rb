@@ -8,7 +8,7 @@ class ApplicationController < ActionController::Base
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
 
-  helper_method :current_user, :can_roam?
+  helper_method :current_user, :can_roam?, :admin?
 
   before_filter :login_required
 
@@ -43,6 +43,10 @@ class ApplicationController < ActionController::Base
 
   def logged_in?
     !!current_user
+  end
+
+  def admin?
+    logged_in? && current_user.admin
   end
 
   def current_user

@@ -25,7 +25,8 @@ module ApplicationHelper
     if content[:disabled]
       result << "    #{f.check_box(content[:field], disabled: true)}"
     else
-      result << "    #{f.check_box(content[:field])}"
+      result << "    #{f.check_box(content[:field],
+                                   title: content[:annotation])}"
     end
     if content[:prompt]
       result << "    #{f.label(content[:field],
