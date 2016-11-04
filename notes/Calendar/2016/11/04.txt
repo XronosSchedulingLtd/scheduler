@@ -1,0 +1,19 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-11-04T09:44:03+00:00
+
+====== Friday 04 Nov 2016 ======
+
+I had a new idea today, in the light of conversations about getting all the team and trip lists into Scheduler.
+
+To make it really useful to staff, they don't really want to have to go through the events checking them for themselves - that's what computers are for.  The job is potentially quite compute intensive so you can't do it in real time as the week's events are displayed.
+
+However, I could add a batch job which runs overnight and processes, say, the next fortnight's lessons.  For each lesson it will check for clashes for all the pupils, and if there are any then attach a note listing the clashes.  (If clashes have gone away, it will remove the note.)  Even better would be if we could add a visual indication that an event has such a note attached.
+
+I'm really rather taken with this idea.  I think I'll finish off testing yesterday's work and then get on with it.  What does yesterday's stuff need still?
+
+[*] Display less when the admin is editing.  Put ?reduced on the URL.
+[*] Similarly, don't display the user name for normal users - only when admin editing.
+[*] Generally test all paths through it.
+
+OK - seems fine for now.  Shall I release it?  Go for it.
