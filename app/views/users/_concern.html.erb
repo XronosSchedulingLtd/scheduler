@@ -1,0 +1,8 @@
+<tr>
+  <td><%= concern.element.name %></td>
+  <td style="width: 50px; color: white; background-color: <%= concern.colour %>"><%= concern.colour %></td>
+  <td><%= concern.equality %></td>
+  <td><%= concern.owns %></td>
+  <td><%= concern.controls %></td>
+  <td><%= link_to "Edit", edit_concern_path(concern, {reduced: true}) %></td>
+</tr>

@@ -103,6 +103,7 @@ class ConcernsController < ApplicationController
 
   def edit
     if current_user.can_edit?(@concern)
+      session[:return_to] = request.referer
       if @concern.itemreport
         @item_report = @concern.itemreport
       else
@@ -111,30 +112,72 @@ class ConcernsController < ApplicationController
       end
       @element = @concern.element
       #
+      #  A reduced form of this page is used when an administrator
+      #  is editing a concern on behalf of a user - generally in order
+      #  to give said user more (or fewer) permissions in relation
+      #  to the corresponding element.
+      #
+      #  Note that the name is slightly odd, in that although the page
+      #  as a whole is greatly reduced, the number of flags within
+      #  the actual concern which can be edited is increased.
+      #
+      @reduced = params.has_key?(:reduced) && current_user.admin
+      #
       #  There's quite a bit of thinking about what flags to show, so
       #  do it here rather than in the view.
       #
       @options_flags = [
         {field: :visible,
          annotation: "Should this resource's events be visible currently?"}]
-      if current_user.editor
+      if current_user.editor || current_user.admin
         @options_flags <<
           {field: :auto_add,
            annotation: "When creating a new event, should this resource be added automatically?"}
       end
-      if @concern.equality
+      #
+      #  If we are doing the "reduced" version, then this field appears
+      #  later.
+      #
+      if @concern.equality && !@reduced
         @options_flags <<
           {field: :owns,
            prompt: "Approve events",
            annotation: "Do you want to approve events as you are added to them?"}
       end
-      if @concern.owns || @concern.skip_permissions
+      if @concern.owns || @concern.skip_permissions || @reduced
         @options_flags <<
           {field: :seek_permission,
            annotation: "Although you can add this resource without permission, would you like to go through the permissions process anyway?"}
       end
+      #
+      #  And now some more which only an administrator can change.
+      #  This incidentally is where an admin gets access to the "owns" flag.
+      #  Note the slightly confusing names of the underlying flags.
+      #  The "controls" flag, gives the owner additional control - the
+      #  means to edit any event involving the resource.
+      #
+      #  Note that the @reduced flag is set only if the user is an admin,
+      #  so these flags won't ever be displayed to non-admins, even if
+      #  they put ?reduced on their URL.
+      #
+      if @reduced
+        @options_flags <<
+          {field: :equality,
+           annotation: "Is this user the same thing as the corresponding element? Generally used to link users to staff or pupil records."}
+        @options_flags <<
+          {field: :owns,
+           prompt: "Controls",
+           annotation: "Does this user control this element and approve requests for its use?"}
+        @options_flags <<
+          {field: :controls,
+           prompt: "Edit any",
+           annotation: "Should this user be able to edit any event which uses this resource?"}
+        @options_flags <<
+          {field: :skip_permissions,
+           annotation: "Should this user be able to skip the permissions process when adding this resource to an event?"}
+      end
     else
-      redirect_to :back
+      redirect_to :root
     end
   end
 
@@ -142,7 +185,7 @@ class ConcernsController < ApplicationController
     if current_user.can_edit?(@concern)
       respond_to do |format|
         if @concern.update(concern_params)
-          format.html { redirect_to :root }
+          format.html { redirect_to session[:return_to] || :root }
         else
           format.html { render :edit }
         end
@@ -207,6 +250,27 @@ class ConcernsController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def concern_params
-    params.require(:concern).permit(:element_id, :name, :visible, :colour, :auto_add, :owns, :seek_permission)
+    if current_user.admin
+      params.require(:concern).
+             permit(:element_id,
+                    :name,
+                    :visible,
+                    :colour,
+                    :auto_add,
+                    :owns,
+                    :seek_permission,
+                    :equality,
+                    :controls,
+                    :skip_permissions)
+    else
+      params.require(:concern).
+             permit(:element_id,
+                    :name,
+                    :visible,
+                    :colour,
+                    :auto_add,
+                    :owns,
+                    :seek_permission)
+    end
   end
 end

@@ -54,17 +54,15 @@
 </table>
 
 <table class="zftable">
-  <tr><th>Concerns</th><th></th><th>Equality</th><th>Owns</th><th>Controls</th><th>Auto add</th></tr>
-  <% @user.concerns.sort.each do |concern| %>
-    <tr>
-      <td><%= concern.element.name %></td>
-      <td style="width: 50px; color: white; background-color: <%= concern.colour %>"><%= concern.colour %></td>
-      <td><%= concern.equality %></td>
-      <td><%= concern.owns %></td>
-      <td><%= concern.controls %></td>
-      <td><%= concern.auto_add %></td>
-    </tr>
-  <% end %>
+  <tr>
+    <th>Concerns</th>
+    <th></th>
+    <th>Equality</th>
+    <th>Controller</th>
+    <th>Edit all</th>
+    <th></th>
+  </tr>
+  <%= render partial: "concern", collection: @user.concerns.sort %>
 </table>
 
 <% if !@minimal %>

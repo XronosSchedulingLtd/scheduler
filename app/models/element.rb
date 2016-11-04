@@ -33,11 +33,12 @@ class Element < ActiveRecord::Base
 
   SORT_ORDER_HASH = {
     "Property" => 1,
-    "Staff"    => 2,
-    "Pupil"    => 3,
-    "Location" => 4,
-    "Group"    => 5,
-    "Service"  => 6
+    "Subject"  => 2,
+    "Staff"    => 3,
+    "Pupil"    => 4,
+    "Location" => 5,
+    "Group"    => 6,
+    "Service"  => 7
   }.tap {|h| h.default = 0}
 
   #
