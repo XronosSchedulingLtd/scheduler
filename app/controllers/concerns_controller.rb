@@ -159,7 +159,7 @@ class ConcernsController < ApplicationController
            annotation: "Should this user be able to skip the permissions process when adding this resource to an event?"}
       end
     else
-      redirect_to :back
+      redirect_to :root
     end
   end
 
