@@ -104,7 +104,6 @@ class ConcernsController < ApplicationController
   def edit
     if current_user.can_edit?(@concern)
       session[:return_to] = request.referer
-      Rails.logger.debug("Set session[:return_to] to #{session[:return_to]}.")
       if @concern.itemreport
         @item_report = @concern.itemreport
       else
@@ -168,7 +167,6 @@ class ConcernsController < ApplicationController
     if current_user.can_edit?(@concern)
       respond_to do |format|
         if @concern.update(concern_params)
-          Rails.logger.debug("session[:return_to] contains #{session[:return_to]}.")
           format.html { redirect_to session[:return_to] || :root }
         else
           format.html { render :edit }
