@@ -145,8 +145,8 @@ class Element < ActiveRecord::Base
       #  Dates.  Might not get an end date.
       #
       start_time = starting.start_time
-      if end_date
-        end_time = end_date.end_time
+      if ending
+        end_time = ending.end_time
       else
         end_time = nil
       end

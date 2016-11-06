@@ -17,6 +17,17 @@ require_relative '../../config/environment'
 
 require_relative 'options'
 
+class String
+  def wrap(width = 78)
+    self.gsub(/(.{1,#{width}})(\s+|\Z)/, "\\1\n")
+  end
+
+  def indent(spaces = 2)
+    padding = " " * spaces
+    padding + self.gsub("\n", "\n#{padding}").rstrip
+  end
+end
+
 class ClashChecker
   def initialize(options)
     @options    = options
@@ -49,13 +60,39 @@ class ClashChecker
     date = (Date.today.at_beginning_of_week - 1.day) + weeks.weeks
   end
 
+  def generate_text(resources, clashing_events)
+    result = Array.new
+    clashing_events.each do |ce|
+      result << "#{ce.body} #{ce.starts_at.interval_str(ce.ends_at)}"
+      ce_resources =
+        ce.all_atomic_resources.select { |r|
+          r.class == Staff ||
+          r.class == Pupil ||
+          r.class == Location
+        }
+      clashing_resources = resources & ce_resources
+      #
+      #  We have a mixture of types of resources, which we can't actually
+      #  sort, so sort their elements instead.
+      #
+      result << clashing_resources.
+                collect {|cr| cr.element}.
+                sort.
+                collect {|ce| ce.entity.name}.
+                join(", ").
+                wrap(78).
+                indent(2)
+    end
+    result.join("\n")
+  end
+
   #
   #  Carry out the indicated checks.
   #
   def perform
     @start_date.upto(@end_date) do |date|
       events = Event.events_on(date, date, @event_categories)
-      puts "#{events.count} events on #{date}." if @options.verbose
+      puts "#{events.count} events on #{date}."
       events.each do |event|
         resources =
           event.all_atomic_resources.select { |r|
@@ -73,10 +110,63 @@ class ClashChecker
               and_by_group: true).preload(:event).collect {|c| c.event}
         end
         clashing_events.uniq!
-        puts "Event #{event.body} has #{clashing_events.count} clashes."
-        clashing_events.each do |ce|
-          puts ce.body
+        clashing_events = clashing_events - [event]
+        notes = event.notes.clashes
+        if clashing_events.size > 0
+          note_text = generate_text(resources, clashing_events)
+          puts "Clashes for #{event.body}."
+          puts note_text.indent(2)
+          if notes.size == 1
+            #
+            #  Just need to make sure the text is the same.
+            #
+            note = notes[0]
+            if note.contents != note_text
+              note.contents = note_text
+              note.save
+            end
+          else
+            if notes.size > 1
+              #
+              #  Something odd going on here.  Should not occur.
+              #
+              puts "Destroying multiple notes for #{event.body}."
+              notes.each do |note|
+                note.destroy
+              end
+            end
+            #
+            #  Create and save a new note.
+            #
+            note = Note.new
+            note.title = "Arranged absences"
+            note.contents = note_text
+            note.parent = event
+            note.owner  = nil
+            note.visible_staff = true
+            note.note_type = :clashes
+            if note.save
+              puts "Added note to #{event.body} on #{date}."
+            else
+              puts "Failed to save note on #{event.body}."
+            end
+          end
+        else
+          #
+          #  No clashes.  Just need to make sure there is no note attached
+          #  to the event.
+          #
+          notes.each do |note|
+            puts "Deleting note from #{event.body}."
+            note.destroy
+          end
         end
+#        if clashing_events.size > 0
+#          puts "Event #{event.body} has #{clashing_events.count} clashes."
+#          clashing_events.each do |ce|
+#            puts ce.body
+#          end
+#        end
       end
     end
   end
