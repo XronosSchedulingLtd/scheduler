@@ -139,7 +139,7 @@ class ClashChecker
             #  Create and save a new note.
             #
             note = Note.new
-            note.title = "Arranged absences"
+            note.title = "Predicted absences"
             note.contents = note_text
             note.parent = event
             note.owner  = nil
