@@ -121,6 +121,9 @@ class UsersController < ApplicationController
                       :public_groups,
                       :email_notification,
                       :immediate_notification,
+                      :clash_weekly,
+                      :clash_daily,
+                      :class_immediate,
                       :can_has_groups,
                       :can_find_free,
                       :can_add_concerns,
@@ -135,6 +138,9 @@ class UsersController < ApplicationController
                permit(:firstday,
                       :email_notification,
                       :immediate_notification,
+                      :clash_weekly,
+                      :clash_daily,
+                      :class_immediate,
                       :preferred_event_category_id,
                       :colour_not_involved,
                       :default_event_text)
@@ -143,7 +149,10 @@ class UsersController < ApplicationController
                permit(:firstday,
                       :colour_not_involved,
                       :email_notification,
-                      :immediate_notification)
+                      :immediate_notification,
+                      :clash_weekly,
+                      :clash_daily,
+                      :class_immediate)
       end
     end
 end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161020071135) do
+ActiveRecord::Schema.define(version: 20161107105443) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -468,6 +468,9 @@ ActiveRecord::Schema.define(version: 20161020071135) do
     t.boolean  "can_su",                      default: false
     t.boolean  "immediate_notification",      default: false
     t.boolean  "can_roam",                    default: false
+    t.boolean  "clash_weekly",                default: false
+    t.boolean  "clash_daily",                 default: false
+    t.boolean  "clash_immediate",             default: false
   end
 
 end

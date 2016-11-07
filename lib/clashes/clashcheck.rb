@@ -29,6 +29,7 @@ class String
 end
 
 class ClashChecker
+
   def initialize(options)
     @options    = options
     @start_date = options.start_date
@@ -46,7 +47,11 @@ class ClashChecker
     #
     #  Need to make the next bit an option too.
     #
-    @event_categories = [Eventcategory.find_by(name: "Lesson")]
+    @event_categories = [
+      Eventcategory.find_by(name: "Lesson"),
+      Eventcategory.find_by(name: "Other Half")
+    ]
+    @user_email_bodies = Hash.new
     if block_given?
       yield self
     end
@@ -87,6 +92,29 @@ class ClashChecker
   end
 
   #
+  #  A method to accumulate e-mails for users who have asked for immediate
+  #  notifications.  Note that we don't actually send them at this point,
+  #  just accumulate them.
+  #
+  #  We pass in the list of resources for the event, because the caller
+  #  already has it and there's no point in hitting the d/b again if
+  #  we don't have to.
+  #
+  def notify_users(event, resources, note_text)
+    #
+    #  We notify only staff.
+    #
+    resources.select {|r| r.class == Staff}.each do |staff|
+      user = staff.corresponding_user
+      if user && user.clash_immediate
+        @user_email_bodies[user.id] ||= Array.new
+        @user_email_bodies[user.id] << "Projected absences for #{event.body} on #{event.starts_at.strftime("%d/%m/%Y")}."
+        @user_email_bodies[user.id] << note_text.indent(2)
+      end
+    end
+  end
+
+  #
   #  Carry out the indicated checks.
   #
   def perform
@@ -124,6 +152,7 @@ class ClashChecker
             if note.contents != note_text
               note.contents = note_text
               note.save
+              notify_users(event, resources, note_text)
             end
           else
             if notes.size > 1
@@ -147,6 +176,7 @@ class ClashChecker
             note.note_type = :clashes
             if note.save
               puts "Added note to #{event.body} on #{date}."
+              notify_users(event, resources, note_text)
             else
               puts "Failed to save note on #{event.body}."
             end
@@ -171,6 +201,16 @@ class ClashChecker
     end
   end
 
+  #
+  #  Do the actual sending of the queued up e-mails.
+  #
+  def send_emails
+    @user_email_bodies.each do |key, texts|
+      user = User.find(key)
+      UserMailer.clash_notification_email(user.email, texts.join("\n")).deliver
+    end
+  end
+
 end
 
 def finished(options, stage)
@@ -186,6 +226,8 @@ begin
       finished(options, "initialisation")
       checker.perform
       finished(options, "processing")
+      checker.send_emails
+      finished(options, "sending e-mails")
     end
   end
 rescue RuntimeError => e
