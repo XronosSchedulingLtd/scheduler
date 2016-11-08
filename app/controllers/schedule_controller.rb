@@ -175,6 +175,12 @@ class ScheduleController < ApplicationController
       #
       #@edit_dialogue = current_user ? current_user.can_edit?(event) : false
       @edit_dialogue = false
+      #
+      #  We are slightly coy about displaying clash information.  Only
+      #  those who would be able to see the details (i.e. staff) get
+      #  to see the little icon.
+      #
+      @has_clashes = event.has_clashes && current_user && current_user.staff?
     end
 
     def as_json(options = {})
@@ -187,7 +193,8 @@ class ScheduleController < ApplicationController
         :recurring     => false,
         :editable      => @editable,
         :edit_dialogue => @edit_dialogue,
-        :color         => @colour
+        :color         => @colour,
+        :has_clashes   => @has_clashes
       }
     end
 

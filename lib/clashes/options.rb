@@ -7,6 +7,8 @@ class Options
               :do_timings,
               :start_date,
               :end_date,
+              :summary,
+              :weekly,
               :weeks
 
   def initialize
@@ -14,6 +16,8 @@ class Options
     @just_initialise = false
     @do_timings      = false
     @quiet           = false
+    @summary         = false
+    @weekly          = false
     @start_date      = Date.today
     @weeks           = 2
     @end_date        = nil
@@ -51,6 +55,19 @@ class Options
       opts.on("-w", "--weeks [NUMBER]", Integer,
               "How many weeks to process (default: 2)") do |number|
         @weeks = number
+      end
+
+      opts.on("--summary",
+              "Instead of doing the actual clash",
+              "checking, generate summary e-mails",
+              "for those who have requested them.") do |summary|
+        @summary = summary
+      end
+
+      opts.on("--weekly",
+              "Do a weekly summary, rather than a",
+              "daily one.") do |weekly|
+        @weekly = weekly
       end
 
     end.parse!

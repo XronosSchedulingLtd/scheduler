@@ -30,6 +30,8 @@ end
 
 class ClashChecker
 
+  CLASSES_TO_CHECK = [Pupil]
+
   def initialize(options)
     @options    = options
     @start_date = options.start_date
@@ -71,9 +73,7 @@ class ClashChecker
       result << "#{ce.body} #{ce.starts_at.interval_str(ce.ends_at)}"
       ce_resources =
         ce.all_atomic_resources.select { |r|
-          r.class == Staff ||
-          r.class == Pupil ||
-          r.class == Location
+          CLASSES_TO_CHECK.include?(r.class)
         }
       clashing_resources = resources & ce_resources
       #
@@ -124,9 +124,7 @@ class ClashChecker
       events.each do |event|
         resources =
           event.all_atomic_resources.select { |r|
-            r.class == Staff ||
-              r.class == Pupil ||
-              r.class == Location
+            CLASSES_TO_CHECK.include?(r.class)
           }
         clashing_events = Array.new
         resources.each do |resource|
@@ -154,6 +152,10 @@ class ClashChecker
               note.save
               notify_users(event, resources, note_text)
             end
+            unless event.has_clashes
+              event.has_clashes = true
+              event.save
+            end
           else
             if notes.size > 1
               #
@@ -180,6 +182,10 @@ class ClashChecker
             else
               puts "Failed to save note on #{event.body}."
             end
+            unless event.has_clashes
+              event.has_clashes = true
+              event.save
+            end
           end
         else
           #
@@ -189,6 +195,10 @@ class ClashChecker
           notes.each do |note|
             puts "Deleting note from #{event.body}."
             note.destroy
+          end
+          if event.has_clashes
+            event.has_clashes = false
+            event.save
           end
         end
 #        if clashing_events.size > 0
@@ -211,6 +221,40 @@ class ClashChecker
     end
   end
 
+  #
+  #  Scan existing flagged events and send e-mail notifications to those
+  #  who have requested them.
+  #
+  def summary_emails
+    events = Event.beginning(@start_date).has_clashes
+    events.each do |event|
+      staff = event.all_atomic_resources.select { |r| r.class == Staff }
+      #
+      #  Force to array to avoid querying the d/b several times.
+      #
+      notes = event.notes.clashes.to_a
+      if notes.size >= 1
+        if notes.size > 1
+          puts "Event #{event.body} on #{event.starts_at.strftime("%d/%m/%Y")} has more than one clash note."
+        end
+        notes.each do |note|
+          staff.each do |staff|
+            user = staff.corresponding_user
+            if user &&
+               (user.clash_daily || (user.clash_weekly && @options.weekly))
+              @user_email_bodies[user.id] ||= Array.new
+              @user_email_bodies[user.id] << "Projected absences for #{event.body} on #{event.starts_at.strftime("%d/%m/%Y")}."
+              @user_email_bodies[user.id] << note.contents.indent(2)
+            end
+          end
+        end
+      else
+        puts "Event #{event.body} on #{event.starts_at.strftime("%d/%m/%Y")} is flagged as clashing but has no note."
+      end
+    end
+    send_emails
+  end
+
 end
 
 def finished(options, stage)
@@ -224,10 +268,15 @@ begin
   ClashChecker.new(options) do |checker|
     unless options.just_initialise
       finished(options, "initialisation")
-      checker.perform
-      finished(options, "processing")
-      checker.send_emails
-      finished(options, "sending e-mails")
+      if options.summary
+        checker.summary_emails
+        finished(options, "summary e-mails")
+      else
+        checker.perform
+        finished(options, "processing")
+        checker.send_emails
+        finished(options, "sending e-mails")
+      end
     end
   end
 rescue RuntimeError => e
