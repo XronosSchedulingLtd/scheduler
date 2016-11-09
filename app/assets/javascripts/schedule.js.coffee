@@ -77,7 +77,7 @@ $(document).ready ->
       scrollTime: "08:00"
       viewRender: (view, element) ->
         $('#datepicker').datepicker('setDate', view.start.toDate())
-      eventAfterRender: (event, element) ->
+      eventRender: (event, element) ->
         window.flagClashes(event, element)
       eventSources: [{
         url: '/schedule/events'
@@ -167,7 +167,7 @@ $(document).ready ->
       scrollTime: "08:00"
       viewRender: (view, element) ->
         $('#datepicker').datepicker('setDate', view.start.toDate())
-      eventAfterRender: (event, element) ->
+      eventRender: (event, element) ->
         window.flagClashes(event, element)
       eventSources: [{
         url: '/schedule/events'
@@ -288,6 +288,7 @@ window.activateColourPicker = (field_id, sample_id) ->
 
 window.flagClashes = (event, element) ->
   if event.has_clashes
-    element.find(".fc-event-time").prepend("<img src=\"images/arrowe.svg\" />")
+    #    element.find(".fc-event-time").prepend("<img src=\"images/arrowe.svg\" />")
+    element.find(".fc-event-inner").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
   return true
 
