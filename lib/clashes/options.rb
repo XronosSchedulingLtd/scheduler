@@ -19,7 +19,7 @@ class Options
     @summary         = false
     @weekly          = false
     @start_date      = Date.today
-    @weeks           = 2
+    @weeks           = 1
     @end_date        = nil
     OptionParser.new do |opts|
       opts.banner = "Usage: clashcheck.rb [options]"

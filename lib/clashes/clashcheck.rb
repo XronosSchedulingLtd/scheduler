@@ -43,7 +43,7 @@ class ClashChecker
       #  or parts of weeks, so if invoked on Wed 10th with weeks set
       #  to 2, then we will calculate an end date of Sat 20th.
       #
-      @end_date = date_of_saturday(options.weeks)
+      @end_date = date_of_saturday(options)
       puts "End date is #{@end_date}" if @options.verbose
     end
     #
@@ -59,12 +59,13 @@ class ClashChecker
     end
   end
 
-  def date_of_saturday(weeks)
+  def date_of_saturday(options)
     #
     #  First we want the date of the Sunday of the current week.
     #
     Date.beginning_of_week = :sunday
-    date = (Date.today.at_beginning_of_week - 1.day) + weeks.weeks
+    date = (options.start_date.at_beginning_of_week - 1.day) +
+           options.weeks.weeks
   end
 
   def generate_text(resources, clashing_events)
@@ -96,15 +97,16 @@ class ClashChecker
   #  notifications.  Note that we don't actually send them at this point,
   #  just accumulate them.
   #
-  #  We pass in the list of resources for the event, because the caller
-  #  already has it and there's no point in hitting the d/b again if
-  #  we don't have to.
-  #
-  def notify_users(event, resources, note_text)
+  def notify_users(event, note_text)
     #
-    #  We notify only staff.
+    #  We notify only staff who are directly involved - i.e. taking
+    #  the lesson.  Any included via a group will not be notified.
     #
-    resources.select {|r| r.class == Staff}.each do |staff|
+    #  To change that, make the line read:
+    #
+    #  event.staff(true).each do |staff|
+    #
+    event.staff.each do |staff|
       user = staff.corresponding_user
       if user && user.clash_immediate
         @user_email_bodies[user.id] ||= Array.new
@@ -120,7 +122,7 @@ class ClashChecker
   def perform
     @start_date.upto(@end_date) do |date|
       events = Event.events_on(date, date, @event_categories)
-      puts "#{events.count} events on #{date}."
+      puts "#{events.count} events on #{date}." if @options.verbose
       events.each do |event|
         resources =
           event.all_atomic_resources.select { |r|
@@ -140,8 +142,8 @@ class ClashChecker
         notes = event.notes.clashes
         if clashing_events.size > 0
           note_text = generate_text(resources, clashing_events)
-          puts "Clashes for #{event.body}."
-          puts note_text.indent(2)
+          puts "Clashes for #{event.body}." if @options.verbose
+          puts note_text.indent(2) if @options.verbose
           if notes.size == 1
             #
             #  Just need to make sure the text is the same.
@@ -150,7 +152,7 @@ class ClashChecker
             if note.contents != note_text
               note.contents = note_text
               note.save
-              notify_users(event, resources, note_text)
+              notify_users(event, note_text)
             end
             unless event.has_clashes
               event.has_clashes = true
@@ -177,8 +179,8 @@ class ClashChecker
             note.visible_staff = true
             note.note_type = :clashes
             if note.save
-              puts "Added note to #{event.body} on #{date}."
-              notify_users(event, resources, note_text)
+              puts "Added note to #{event.body} on #{date}." if @options.verbose
+              notify_users(event, note_text)
             else
               puts "Failed to save note on #{event.body}."
             end
@@ -193,7 +195,7 @@ class ClashChecker
           #  to the event.
           #
           notes.each do |note|
-            puts "Deleting note from #{event.body}."
+            puts "Deleting note from #{event.body}." if @options.verbose
             note.destroy
           end
           if event.has_clashes
