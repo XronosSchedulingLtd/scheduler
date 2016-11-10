@@ -64,8 +64,19 @@ class CommitmentsController < ApplicationController
   # POST /commitments.json
   def create
     @commitment = Commitment.new(commitment_params)
-    @commitment.tentative =
-      current_user.needs_permission_for?(@commitment.element)
+    #
+    #  It's possible that the user hasn't specified an element, in
+    #  which case the later code will fail at saving the commitment
+    #  and we'll go round again.  However, we need to do one check
+    #  before attempting the save, but we mustn't attempt it if we
+    #  haven't got an element.
+    #
+    if @commitment.element
+      @commitment.tentative =
+        current_user.needs_permission_for?(@commitment.element)
+    else
+      @commitment.tentative = false
+    end
     #
     #  Not currently checking the result of this, because regardless
     #  of whether it succeeds or fails, we just display the list of

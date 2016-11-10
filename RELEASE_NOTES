@@ -1,3 +1,17 @@
+v0.9.1  2016-11-10
+
+* A hotfix for a problem which wasn't causing any issues from the users'
+  point of view, but which led to errors in the log file.
+
+  When a user is adding resources to event, he or she can potentially
+  send back an empty field, or an invalid name, for the selected resource.
+  This was leading to an error in the back end, because it did its checks
+  in the wrong order.  Nothing appeared out of place to the user, but
+  it made for a messy error log.
+
+  Now checks for non-existent elements before attempting permission
+  checks.
+
 v0.9    2016-11-04
 
 * Just one extra feature.  Administrators can now edit users' concerns
