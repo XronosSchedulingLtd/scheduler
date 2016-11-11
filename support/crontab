@@ -1,0 +1,37 @@
+#
+#  Sample crontab.
+#
+#  You will need to edit the path for each of these commands to suit
+#  your installation.  You will probably want to tweak the times too.
+#
+# m h  dom mon dow   command
+#
+#  iSAMS import at 02:30 every day.
+#
+30 2 * * * /home/john/Work/Coding/scheduler/utils/importisdata
+#
+#  Checking for clashes is a long job.  There's no point in running it
+#  on Saturday morning because there is none of the week left.
+#
+#  If you decide to process 2 weeks then the Saturday run would make
+#  sense.
+#
+#  Run starts at 03:00
+#
+0 3 * * 0-5 /home/john/Work/Coding/scheduler/utils/checkclashes
+#
+#  Weekly notifications are done on Sunday morning.  Note that this
+#  will also notify anyone who has requested daily notification.
+#  Run at 05:30
+#
+30 5 * * 0 /home/john/Work/Coding/scheduler/utils/weeklyclashsummary
+#
+#  And then daily notifications on Mon-Fri morning.
+#
+30 5 * * 1-5 /home/john/Work/Coding/scheduler/utils/dailyclashsummary
+#
+#  And finally, notify about pending resource requests.
+#  Run at 05:45
+#
+45 5 * * * /home/john/Work/Coding/scheduler/utils/daily_report
+

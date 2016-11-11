@@ -1,0 +1,11 @@
+#!/bin/bash
+cd /root/dumps
+mv mysql.dmp.gz mysql.dmp.prev.gz
+/usr/bin/mysqldump --all-databases --events >mysql.dmp
+gzip -9 mysql.dmp
+
+mv scheduler_production.dmp.gz scheduler_production.dmp.prev.gz
+/usr/bin/mysqldump scheduler_production >scheduler_production.dmp
+gzip -9 scheduler_production.dmp
+
+

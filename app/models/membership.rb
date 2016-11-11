@@ -554,10 +554,24 @@ class Membership < ActiveRecord::Base
     #  Turn this whole set into a snippet of SQL to be added to a
     #  larger query.
     #
-    def to_sql
+    #  Optionally takes two time parameters which override the
+    #  times (actually, dates) in the grouped_mwds.
+    #
+    def to_sql(starting = nil, ending = nil)
       @grouped_mwds.collect { |group|
-        "(events.ends_at > '#{group[0].start_time_utc}'#{
-          group[0].end_date ? " AND events.starts_at < '#{group[0].end_time_utc}'" : ""
+        if starting && ending
+          start_text = starting.to_s(:db)
+          end_text = ending.to_s(:db)
+        else
+          start_text = group[0].start_time_utc
+          if group[0].end_date
+            end_text = group[0].end_time_utc
+          else
+            end_text = nil
+          end
+        end
+        "(events.ends_at > '#{start_text}'#{
+          end_text ? " AND events.starts_at < '#{end_text}'" : ""
         } AND commitments.element_id IN (#{group.collect {|mwb| mwb.membership.group.element.id}.join(",") }))"
       }.join(" OR ")
     end

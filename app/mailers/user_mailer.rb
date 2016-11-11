@@ -68,4 +68,9 @@ class UserMailer < ActionMailer::Base
     mail(to: email, subject: "Pending event approvals")
   end
 
+  def clash_notification_email(email, body_text)
+    @body_text = body_text
+    mail(to: email, subject: "Predicted absences")
+  end
+
 end

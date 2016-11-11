@@ -133,13 +133,30 @@ class Element < ActiveRecord::Base
   #  Used indirectly by the above methods.  Generate a small snippet
   #  of SQL to select commitments for this element.
   #
-  def sql_snippet(start_date, end_date)
-    if end_date
-      prefix = "(events.starts_at < '#{end_date.end_time.to_s(:db)}' AND "
+  def sql_snippet(starting, ending)
+    if starting.kind_of?(Time)
+      #
+      #  Must supply both as times.
+      #
+      start_time = starting
+      end_time = ending
+    else
+      #
+      #  Dates.  Might not get an end date.
+      #
+      start_time = starting.start_time
+      if ending
+        end_time = ending.end_time
+      else
+        end_time = nil
+      end
+    end
+    if end_time
+      prefix = "(events.starts_at < '#{end_time.to_s(:db)}' AND "
     else
       prefix = "("
     end
-    prefix + "events.ends_at > '#{start_date.start_time.to_s(:db)}' AND commitments.element_id = #{self.id})"
+    prefix + "events.ends_at > '#{start_time.to_s(:db)}' AND commitments.element_id = #{self.id})"
   end
 
   #
@@ -157,6 +174,7 @@ class Element < ActiveRecord::Base
   #  because recursion may specify a different date to think about.
   #
   def groups(given_date = nil, recurse = true)
+    puts "Entering groups at #{Time.now.strftime("%H:%M:%S.%3N")}."
     given_date ||= Date.today
     if recurse
       #
@@ -301,8 +319,8 @@ class Element < ActiveRecord::Base
                                              end_date: enddate)
       Commitment.commitments_for_element_and_mwds(
         element:             self,
-        start_date:          startdate,
-        end_date:            enddate,
+        starting:            startdate,
+        ending:              enddate,
         mwd_set:             mwd_set,
         eventcategory:       eventcategory,
         eventsource:         eventsource,
@@ -322,14 +340,57 @@ class Element < ActiveRecord::Base
     end
   end
 
+  def commitments_during(start_time:,
+                         end_time:,
+                         eventcategory:       nil,
+                         eventsource:         nil,
+                         owned_by:            nil,
+                         include_nonexistent: false,
+                         and_by_group:        true)
+    if and_by_group
+      #
+      #  The MWD stuff needs dates.
+      #
+      startdate = start_time.to_date
+      enddate = end_time.to_date
+      #
+      #  Now the actual retrieval is done in two stages.
+      #
+      mwd_set = self.memberships_by_duration(start_date: startdate,
+                                             end_date: enddate)
+      Commitment.commitments_for_element_and_mwds(
+        element:             self,
+        starting:            start_time,
+        ending:              end_time,
+        mwd_set:             mwd_set,
+        eventcategory:       eventcategory,
+        eventsource:         eventsource,
+        owned_by:            owned_by,
+        include_nonexistent: include_nonexistent)
+    else
+      #
+      #  The old code is quite capable of coping with this.
+      #
+      Commitment.commitments_during(
+        start_time:          start_time,
+        end_time:            end_time,
+        eventcategory:       eventcategory,
+        eventsource:         eventsource,
+        resource:            self,
+        owned_by:            owned_by,
+        include_nonexistent: include_nonexistent)
+    end
+  end
 
-  def commitments_during(start_time:          nil,
+
+  def old_commitments_during(start_time:          nil,
                          end_time:            nil,
                          eventcategory:       nil,
                          eventsource:         nil,
                          owned_by:            nil,
                          include_nonexistent: false,
                          and_by_group:        true)
+    puts "Entering commitments_during at #{Time.now.strftime("%H:%M:%S.%3N")}."
     if and_by_group
       if start_time != nil
         start_date = start_time.to_date
@@ -338,13 +399,16 @@ class Element < ActiveRecord::Base
     else
       my_groups = []
     end
-    Commitment.commitments_during(start_time:          start_time,
+    puts "Got groups at #{Time.now.strftime("%H:%M:%S.%3N")}."
+    result = Commitment.commitments_during(start_time:          start_time,
                                   end_time:            end_time,
                                   eventcategory:       eventcategory,
                                   eventsource:         eventsource,
                                   resource:            [self] + my_groups,
                                   owned_by:            owned_by,
                                   include_nonexistent: include_nonexistent)
+    puts "Fetched commitments at #{Time.now.strftime("%H:%M:%S.%3N")}."
+    result
   end
 
   #

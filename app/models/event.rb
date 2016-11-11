@@ -138,6 +138,7 @@ class Event < ActiveRecord::Base
   scope :excluding_category, lambda {|ec| where("eventcategory_id != ?", ec.id) }
   scope :complete, lambda { where(complete: true) }
   scope :incomplete, lambda { where.not(complete: true) }
+  scope :has_clashes, lambda { where(has_clashes: true) }
 
   before_destroy :being_destroyed
 

@@ -164,9 +164,18 @@ class Commitment < ActiveRecord::Base
   #  date".  Client code should be calling the higher level code and
   #  not this method directly.
   #
+  #  A new subtlety has been introduced.  If starting and ending are
+  #  passed as dates, then we're after whole days worth of commitments
+  #  and the durations from the MWDs will do.  If however they are passed
+  #  as times (test is "kind_of?(Time)") then we are dealing with a
+  #  smaller interval and that is passed through to the SQL construction
+  #  code to tighten the query.
+  #
+  #  Don't pass one as a date and the other as a time.
+  #
   def self.commitments_for_element_and_mwds(element:,
-                                            start_date:,
-                                            end_date:,
+                                            starting:,
+                                            ending:,
                                             mwd_set:,
                                             eventcategory:       nil,
                                             eventsource:         nil,
@@ -291,9 +300,14 @@ class Commitment < ActiveRecord::Base
       unless include_nonexistent
         query_string_parts << "not events.non_existent"
       end
-      text_snippet = element.sql_snippet(start_date, end_date)
+      text_snippet = element.sql_snippet(starting, ending)
       unless mwd_set.empty?
-        text_snippet = text_snippet + " OR " + mwd_set.to_sql
+        if starting.kind_of?(Time)
+          text_snippet =
+            text_snippet + " OR " + mwd_set.to_sql(starting, ending)
+        else
+          text_snippet = text_snippet + " OR " + mwd_set.to_sql
+        end
       end
       #
       #  It's possible my query_hash is empty, but AR doesn't seem to
