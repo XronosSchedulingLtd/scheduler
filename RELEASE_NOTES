@@ -1,3 +1,28 @@
+v0.10.1 2016-11-11
+
+* The sole change here is to this release notes file.
+
+  The double-booking code can also notify staff by e-mail of clashes
+  which have been identified.  By default it doesn't, but staff can
+  choose to receive notifications in three ways.  There are new flags
+  on the user record, and they edit them by clicking on their name
+  on the top right of the screen in the usual way.  Admin users can
+  also edit them on behalf of other users.
+
+  a) Immediate notification.
+
+     The user gets a notification at the end of the clash-checking run
+     of anything which has changed and affects his or her lessons.
+
+  b) Daily notification.
+
+     The user gets a daily e-mail of upcoming clashes.
+
+  c) Weekly notification.
+
+     The user gets a weekly summary e-mail of upcoming clashes.
+
+
 v0.10   2016-11-11
 
 * Add a favicon.ico file with something in it, plus similar files for
