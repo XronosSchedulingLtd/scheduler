@@ -1,0 +1,12 @@
+/home/john/Work/Coding/scheduler/log/production.log {
+	daily
+	su john john
+	missingok
+	rotate 10
+	compress
+	delaycompress
+	notifempty
+	postrotate
+		touch /home/john/Work/Coding/scheduler/tmp/restart.txt
+	endscript
+}
