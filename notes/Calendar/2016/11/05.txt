@@ -1,0 +1,41 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-11-05T09:32:44+00:00
+
+====== Saturday 05 Nov 2016 ======
+
+My first cut at an algorithm to identify clashing commitments was incredibly slow - 58 seconds to process just one lesson.
+
+I need to analyse two things:
+
+[*] How the code to fetch events for the calendar display works.
+[*] How the methods which my current code uses work.
+[*] Do some time analysis of the current approach.  Which are the really expensive bits?
+
+I suspect I need to enhance Commitment#commitments_during to work like Commitment#commitments_on, but a serious re-understanding is needed of what I did before.  It's very clever and very fast, but I've forgotten the fine detail.
+
+Events for the schedule display first.
+
+The controller is the SchedulerController, and the method is SchedulerController#events.  There are various bits of fancy processing for edge cases, but the standard simple view of one element is done by a call on Element#display_events.  It does all the work of deciding on the events, and then the controller decides on any fancy display requirements.
+
+Element#display_events is really just a wrapper which does some extra work of deciding which events the user can see.  We used to request only confirmed events unless the user was an admin or the element owner.  We now show unconfirmed events to the requester too, so we have to fetch unconfirmed ones from the database, then filter them out if the user isn't entitled to see them.  This method handles that extra processing, but the hard work of actually getting them from the database is done by Element#commitments_on.  A more general method (which the scheduler controller used to use) is Element#events_on which does much the same job but without the extra filtering.  It also calls Element#commitments_on.
+
+Element#commitments_on does some of the hard work.  If one wants only direct commitments then it's easy (calls Commitment::commitments_on), but if one wants ones by group too - as one usually does - then that's where the clever code starts.
+
+First it calls Element#memberships_by_duration, which calls Element#recurse_mbd, which calls Membership#recurse_mbd, which calls Element#recurse_mbd etc.  When this recursive calling stack finally returns, Element#memberships_by_duration does some final tidying up and returns a Membership::MWD_Set which lists all the relevant memberships.
+
+As Element#commitments_on now has the list of relevant memberships it passes it to Commitment::commitments_for_element_and_mwds to get the actual list of relevant commitments.  Note that each of these will link to a required event, but not necessarily to the original element.  They may well link to a group of which the element is a member.  Element#commitments_on generates the actual database query (one big one!) and relies on Element#sql_snippet to generate just a little bit of it.
+
+Ah - here's where we hit a tiny problem.  Each group of mwds in the MWD_Set has its own duration, and that's what's used to select events.  We build an MWD_Set between a couple of specified dates.  Say we start by wanting events for 1st to 5th January.  The memberships themselves may well be longer - even perpetual.  The MWD_Set construction code trims back the actual duration of the memberships to fit the requested duration.
+
+Actual duration: forever
+Effective duration : 1st Jan - 5th Jan (inclusive)
+
+Actual duration: 3rd Jan onwards
+Effective duration: 3rd Jan - 5th Jan
+
+The trouble with this from the point of view of my new requirements, is that I don't want all the events in the membership duration.  Membership duration can only be specified to a granularity of a day, but I want to be able to get events just for a specific time interval.  So, say I want 09:55 - 10:45 on the 3rd of January, I want to be able to gather up membership records (an MWD_Set) for the 3rd of January, but then pick out events only for 09:55 to 10:45.  In effect, I want to be able to override the duration given in the MWD_Set and make it shorter.
+
+What I am currently passing in to the bits that do the work is a couple of dates.  If I instead pass in a TimeWithZone, then I would like them to behave slightly differently.  //But exactly the same if I continue to pass in a date!//
+
+Is this a big job or not?

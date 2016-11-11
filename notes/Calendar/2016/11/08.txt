@@ -1,0 +1,38 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-11-08T10:23:40+00:00
+
+====== Tuesday 08 Nov 2016 ======
+
+Today I want to try and get some kind of visual indication appearing on lessons which have projected absentees.  Just an extra letter will do to start with.
+
+The trivial way to achieve it is to add to the text of the lesson, but I think I can do better than that if I can improve my FullCalendar-fu.
+
+I am inclined to check clashes only for pupils - I think people will find it less surprising, and it will reduce the number of entries.  I can make it a configurable item later.
+
+I could do with a few test users who get e-mail notifications at different times.
+
+Immediate
+
+Jeremy Taylor
+Peter Willis
+
+Weekly
+
+Ian Fishpool
+Jenny Fishpool
+
+Daily
+
+Samantha Coull
+Martin Poon
+
+All those seem to work correctly.  Hurrah!  Didn't get any immediate notifications, but I've seen that run before.  I didn't set the flags until after the run had started, and the utility may well not have reloaded the user records.
+
+Now running an update, and after that I'll test the mailing runs.  Whilst it runs, I can think about flagging the affected events.
+
+Putting extra fields into the JSON event structure seems to be fine according to the FullCalendar documentation.  It will just ignore any which it doesn't understand.  I am therefore passing through a "has_clashes" field with either true or false.  I just need to handle that in an eventRender callback.
+
+Just discovered that Chrome will save a copy of a page to disk as it is, not as it was when first loaded.  I therefore propose to create a really sparse page of (2) events, one conflicted and one not, save that, fix the formatting, and try thus to understand the data structures used by FC.
+
+I can add the icon to the beginning or the end of fc-event-time or fc-event-title, but some events seem to have a combined field which contains the start time and the title.  Those events don't currently get the icon.  Need to find out what it is called.

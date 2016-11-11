@@ -16,4 +16,35 @@ I'm really rather taken with this idea.  I think I'll finish off testing yesterd
 [*] Similarly, don't display the user name for normal users - only when admin editing.
 [*] Generally test all paths through it.
 
-OK - seems fine for now.  Shall I release it?  Go for it.
+OK - seems fine for now.  Shall I release it?  Go for it.  I won't put it live in the middle of the day, but it's packaged up and ready to go.
+
+Right - what is my algorithm for clash checking.
+
+First decide on a range of dates to cover.  Start date defaults to today.  End date defaults to when?  I'm inclined to work in whole weeks so perhaps the end of the following week.  Then allow a --weeks option, which will change how many weeks from the default of 2.  Equally, allow an explicit end-date to be given.
+
+'''
+--start-date
+--weeks
+--end-date
+'''
+
+
+Then, for each day which is in our range, select all events in the nominated category/ies.  Default to a category of "Lesson", but allow others to be specified
+
+''--category''
+
+If the user specifies one category it replaces "Lesson", and then additional ones accumulate.
+
+For each event, build a list of all its atomic resources (not just pupils for now - command line option to restrict entity types?) and then find all the overlapping events (use commitments_during) for each entity.  Reduce this to a list of events which have any degree of clash, and then work through them producing a list of which entities clash.  A final report might look like this:
+
+'''
+Apparent clashes:
+  3rd year Geography trip
+	Able Baker
+	Charlie Parker
+  3rd year litter picking
+	Jim Beam
+'''
+
+
+and this can then be packed into a note attached to the event.  If an existing note is there then the text gets compared and if necessary replaced.  If there is no note then one is created.  If no clashes are found, then the code should check that there is not a residual note there and remove it if there is.  Notes seem to have a note_type field which is currently always 0.  I need to allocate a number to put here.

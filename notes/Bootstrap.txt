@@ -176,12 +176,12 @@ Installing to the Abingdon VPS I hit a problem with the machine wanting to downl
 
 To get nginx (the web server) to start automatically you need an init script.  You'll find one in the source tree at:
 
-''Work/Coding/scheduler/scratch/nginx''
+''Work/Coding/scheduler/support/nginx''
 
 Copy that to ''/etc/init.d'' and set it going with:
 
 '''
-$ sudo cp Work/Coding/scheduler/scratch/nginx /etc/init.d
+$ sudo cp Work/Coding/scheduler/support/nginx /etc/init.d
 $ sudo chmod a+x /etc/init.d/nginx
 $ sudo /etc/init.d/nginx start
 $ sudo update-rc.d nginx defaults
@@ -227,11 +227,11 @@ To maintain smooth running of the application, a few maintenance tasks are neede
 
 ==== Database backups ====
 
-It's essential that the database is backed up regularly (and indeed, the whole machine).  A suitable script for backing up the database will be found in the scratch directory of the application.  It is called dodump and should be run nightly by root.
+It's essential that the database is backed up regularly (and indeed, the whole machine).  A suitable script for backing up the database will be found in the support directory of the application.  It is called dodump and should be run nightly by root.
 
 ==== Log rotation ====
 
-Likewise, the logs need to be rotated regularly.  Again a suitable configuration file is provided in scratch.  It is called logrotate.scheduler.  Copy it to [[/etc/logrotate.d/scheduler]] and tweak to suit your installation directory.
+Likewise, the logs need to be rotated regularly.  Again a suitable configuration file is provided in support.  It is called logrotate.scheduler.  Copy it to [[/etc/logrotate.d/scheduler]] and tweak to suit your installation directory.
 
 
 ===== !!!!Stop here!!!! =====
