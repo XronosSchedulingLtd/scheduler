@@ -1,3 +1,48 @@
+v0.10   2016-11-11
+
+* Add a favicon.ico file with something in it, plus similar files for
+  Apple devices which want an icon for their desktops.
+
+* Checking and flagging double-booking of students.
+
+  This is a major new feature which was always intended to be one of the
+  main points of Scheduler.  Provided you store all your schedule information
+  in one central place (Scheduler) you can then automatically flag up
+  apparent double-bookings.  This in turn means that staff can potentially
+  be told automatically when individual students are going to be missing
+  from their lessons.
+
+  The processing is fairly compute intensive (1-2 hours to process 1
+  week of data) so needs to be run overnight.  Cron jobs are included to
+  do the work.
+
+  Where such clashes are identified, the affected lessons are flagged with
+  a red marker in the main Scheduler display.  Clicking on the lesson
+  will then display full details of who is likely to be missing and why.
+  This information is visible to staff only - pupils will see neither
+  the red marker nor the explanatory note.
+
+  Scheduler can work only on the information which it has.  Music lessons
+  for instance are not entered into Scheduler and so will not be handled
+  by the clash checker.  As soon as they are entered, they will be checked
+  in the same way.
+
+  There are also currently some false positives caused by inaccurate
+  data having been entered - e.g. on Thu 17th Nov, an all-day event has
+  been entered entitled, "Product Design in Action, Warwick University".
+  Unfortunately, it has been entered as involving the whole of the sixth
+  form which it probably doesn't.  As for any trip, a custom group
+  should be created in iSAMS, and then attached to the event.  Once this
+  becomes the normal way of working the clash information will become
+  fully accurate.  The existing analysis of this event is still useful,
+  because it will at least flag the existence of the event to teaching
+  staff.
+
+  The flags should also serve to polish and correct the Other Half
+  activity lists.  Quite a few pupils seem to be booked for two
+  simultaneous OH activities.
+
+
 v0.9.1  2016-11-10
 
 * A hotfix for a problem which wasn't causing any issues from the users'
@@ -11,6 +56,7 @@ v0.9.1  2016-11-10
 
   Now checks for non-existent elements before attempting permission
   checks.
+
 
 v0.9    2016-11-04
 
@@ -38,6 +84,7 @@ v0.9    2016-11-04
   edit any event which uses that resource.  This appears in the GUI as
   "Edit any".
 
+
 v0.8    2016-11-03
 
 * As noted in the release notes for v0.7, the improved visibility of
@@ -50,10 +97,12 @@ v0.8    2016-11-03
   been corrected, and it will remove them even if they no longer
   appear in iSAMS's list of current pupils.
 
+
 v0.7.1  2016-10-28
 
 * Purely cosmetic change.  Puts resources for an event in the event
   display screen back into columns.
+
 
 v0.7    2016-10-28
 
@@ -137,6 +186,7 @@ v0.6.2  2016-10-21
   edge condition, resulting in an event not being displayed.  This
   release fixes that problem.
 
+
 v0.6.1  2016-10-12
 
 * Hotfix to restore missing file.
@@ -146,6 +196,7 @@ v0.6.1  2016-10-12
   show up as missing until this morning's data fetch.
 
   Now restored from previous commit.
+
 
 v0.6    2016-10-11
 
