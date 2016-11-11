@@ -12,6 +12,9 @@ class Note < ActiveRecord::Base
   validates :parent, presence: true
 
   scope :visible_guest, -> { where(visible_guest: true) }
+
+  enum note_type: [ :ordinary, :clashes ]
+
   #
   #  Visibility values
   #

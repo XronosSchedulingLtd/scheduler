@@ -858,6 +858,7 @@ class Group < ActiveRecord::Base
   #  set up a circular heirarchy.
   #
   def parents_for(element, given_date, seen = [])
+    puts "Entering parents_for at #{Time.now.strftime("%H:%M:%S.%3N")}."
     result = self.element.memberships.inclusions.collect {|membership|
       if seen.include?(membership.group_id)
         []
@@ -866,9 +867,11 @@ class Group < ActiveRecord::Base
         membership.group.parents_for(element, given_date, seen)
       end
     }.flatten
+    puts "Calling self.member? at #{Time.now.strftime("%H:%M:%S.%3N")}."
     if self.member?(element, given_date)
       result = result + [self]
     end
+    puts "Leaving parents_for at #{Time.now.strftime("%H:%M:%S.%3N")}."
     result.uniq
   end
 

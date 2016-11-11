@@ -101,7 +101,7 @@
 <% end %>
 <div class="row">
 <% if current_user.admin || current_user.element_owner %>
-  <%= flag_group(f, 12, 6, "Notifications",
+  <%= flag_group(f, 12, 6, "Resource request notifications",
                  [
                    {field: :email_notification,
                     prompt: "Daily",
@@ -109,6 +109,20 @@
                    {field: :immediate_notification,
                     prompt: "Immediate",
                     annotation: "Should the system send immediate e-mail notifications of resource requests?"}
+                 ]) %>
+<% end %>
+<% if current_user.admin || current_user.staff? %>
+  <%= flag_group(f, 12, 6, "Clash notifications",
+                 [
+                   {field: :clash_weekly,
+                    prompt: "Weekly",
+                    annotation: "Should the system send a weekly summary of instances where students are expected to miss your lessons?"},
+                   {field: :clash_daily,
+                    prompt: "Daily",
+                    annotation: "Should the system send a daily summary of instances where students are expected to miss your lessons?"},
+                   {field: :clash_immediate,
+                    prompt: "Immediate",
+                    annotation: "Should the system send notifications of pupils missing your lessons as soon as they are identified?"}
                  ]) %>
 <% end %>
   <div class="small-12 medium-6 columns">
