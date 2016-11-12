@@ -1,3 +1,10 @@
+v0.10.2 2016-11-12
+
+* At Niki's request, changed the default for staff to have permission
+  to create public groups.  Ran a command line task
+  ("User.set_initial_permissions") to give all existing staff this
+  permission bit.
+
 v0.10.1 2016-11-11
 
 * The sole change here is to this release notes file.
