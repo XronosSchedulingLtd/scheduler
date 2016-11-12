@@ -528,6 +528,7 @@ class User < ActiveRecord::Base
     if self.staff?
       self.editor           = true
       self.can_has_groups   = true
+      self.public_groups    = true
       self.can_find_free    = true
       self.can_add_concerns = true
       self.can_roam         = true
