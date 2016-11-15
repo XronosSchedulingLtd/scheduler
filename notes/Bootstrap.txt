@@ -38,8 +38,8 @@ Note that you install RVM as your designated user - not as root.
 Once the installation is complete, log out and in again to pick up your modified environment.  Now you can install Ruby.  The application currently uses version 2.1.1, which is slightly out of date but not much.  It would probably work fine with the latest one, but for now we want a fully predictable environment.
 
 '''
-$ rvm install ruby-2.1.1
-$ rvm use 2.1.1
+$ rvm install ruby-2.1.10
+$ rvm use 2.1.10
 $ rvm gemset create scheduler
 $ rvm gemset use scheduler
 $ gem install rails --version 4.1
@@ -88,6 +88,10 @@ Note that this step is relying on the compiler tools which were installed as par
 
 $ ''apt-get install build_essential''
 
+As an alternative, later versions of Debian seem to include node so you can just do:
+
+''$ sudo apt-get install nodejs''
+
 That's all the infrastructure in place, and we're ready to start think about getting the application itself.
 
 First you need an ssh key to identify yourself.  As your normal user, type:
@@ -104,7 +108,7 @@ Host git.sinodun.org.uk
 
 Once JHW has set you up, move to the directory where you want to install the Scheduler software (I use ~/Work/Coding) and type:
 
-''$ git clone gitosis@git.sinodun.org.uk:scheduler.git''
+''$ git clone git@repository.xronos.uk:scheduler.git''
 
 then change directory into the newly created ''scheduler'' directory and type:
 

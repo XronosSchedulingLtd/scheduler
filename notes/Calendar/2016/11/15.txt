@@ -1,0 +1,17 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-11-15T09:04:07+00:00
+
+====== Tuesday 15 Nov 2016 ======
+
+Tolerably successful yesterday achieving a 4-fold speed increase on the checker.  Today I need to package that up with a few other tweaks and push them out.  Job list:
+
+[*] Deal with several small e-mails
+[*] Have the checker touch a flag file when it finishes.
+[*] Package up release
+[*] Test
+[ ] Deploy
+[*] Make sure all cron jobs are on live system
+[ ] Make list of potential things to do next.
+
+Packaged up release.  Taken a fresh copy of the live database, and now about to do a clash checking run.  See how long it takes.  It took 35m53s to do two weeks (less one Monday - yesterday).
