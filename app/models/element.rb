@@ -346,7 +346,8 @@ class Element < ActiveRecord::Base
                          eventsource:         nil,
                          owned_by:            nil,
                          include_nonexistent: false,
-                         and_by_group:        true)
+                         and_by_group:        true,
+                         cache:               nil)
     if and_by_group
       #
       #  The MWD stuff needs dates.
@@ -356,8 +357,17 @@ class Element < ActiveRecord::Base
       #
       #  Now the actual retrieval is done in two stages.
       #
-      mwd_set = self.memberships_by_duration(start_date: startdate,
-                                             end_date: enddate)
+      if cache
+        mwd_set = cache.find(self, startdate, enddate)
+        unless mwd_set
+          mwd_set = self.memberships_by_duration(start_date: startdate,
+                                                 end_date: enddate)
+          cache.store(mwd_set, self, startdate, enddate)
+        end
+      else
+        mwd_set = self.memberships_by_duration(start_date: startdate,
+                                               end_date: enddate)
+      end
       Commitment.commitments_for_element_and_mwds(
         element:             self,
         starting:            start_time,

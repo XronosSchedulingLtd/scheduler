@@ -41,7 +41,11 @@ class Note < ActiveRecord::Base
             #  condition in ActiveRecord.  I've tried all sorts of ways
             #  of expressing it, but been forced to fall back to SQL.
             #
-            joins("INNER JOIN `commitments` ON `notes`.`parent_id` = `commitments`.`id`" ).
+            #  Note that we need a LEFT JOIN rather than an INNER JOIN
+            #  here, because we want the notes to be returned even when
+            #  there is no matching commitments record.
+            #
+            joins("LEFT JOIN `commitments` ON `notes`.`parent_id` = `commitments`.`id`" ).
             where("(`notes`.`parent_type` = 'Commitment' AND `commitments`.`element_id` IN (?)) OR `notes`.`visible_staff` = ? OR `notes`.`owner_id` = ?",
                   owned_element_ids,
                   true,

@@ -38,12 +38,27 @@ class ClashChecker
     if options.end_date
       @end_date = options.end_date
     else
+      if options.ahead > 0
+        #
+        #  Being asked to work ahead by N weeks.  We will thus
+        #  begin our processing on a Sunday, calculated forward.
+        #
+        #  If we are asked on a Friday to work forward by one
+        #  week, then the processing will start on the Sunday in
+        #  two days time.
+        #
+        #  Interestingly, the date when we want to start for --ahead N
+        #  is one day after the date when we would end for --weeks N
+        #
+        @start_date = date_of_saturday(@start_date, options.ahead) + 1.day
+        puts "Start date is #{@start_date}" if @options.verbose
+      end
       #
       #  Calculate based on number of weeks wanted.  We count weeks
       #  or parts of weeks, so if invoked on Wed 10th with weeks set
       #  to 2, then we will calculate an end date of Sat 20th.
       #
-      @end_date = date_of_saturday(options)
+      @end_date = date_of_saturday(@start_date, options.weeks)
       puts "End date is #{@end_date}" if @options.verbose
     end
     #
@@ -59,19 +74,18 @@ class ClashChecker
     end
   end
 
-  def date_of_saturday(options)
+  def date_of_saturday(start_date, weeks)
     #
     #  First we want the date of the Sunday of the current week.
     #
     Date.beginning_of_week = :sunday
-    date = (options.start_date.at_beginning_of_week - 1.day) +
-           options.weeks.weeks
+    date = (start_date.at_beginning_of_week - 1.day) + weeks.weeks
   end
 
   def generate_text(resources, clashing_events)
     result = Array.new
     clashing_events.each do |ce|
-      result << "#{ce.body} #{ce.starts_at.interval_str(ce.ends_at)}"
+      result << "#{ce.body} (#{ce.duration_or_all_day_string})"
       ce_resources =
         ce.all_atomic_resources.select { |r|
           CLASSES_TO_CHECK.include?(r.class)
@@ -121,6 +135,11 @@ class ClashChecker
   #
   def perform
     @start_date.upto(@end_date) do |date|
+      #
+      #  Given the way we are working, we throw away our cache and start
+      #  a fresh one for each day.
+      #
+      mwds_cache = Membership::MWD_SetCache.new
       events = Event.events_on(date, date, @event_categories)
       puts "#{events.count} events on #{date}." if @options.verbose
       events.each do |event|
@@ -135,7 +154,8 @@ class ClashChecker
             resource.element.commitments_during(
               start_time:   event.starts_at,
               end_time:     event.ends_at,
-              and_by_group: true).preload(:event).collect {|c| c.event}
+              and_by_group: true,
+              cache:        mwds_cache).preload(:event).collect {|c| c.event}
         end
         clashing_events.uniq!
         clashing_events = clashing_events - [event]
@@ -150,6 +170,7 @@ class ClashChecker
             #
             note = notes[0]
             if note.contents != note_text
+              puts "Amending note on #{event.body}" if @options.verbose
               note.contents = note_text
               note.save
               notify_users(event, note_text)

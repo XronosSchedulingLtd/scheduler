@@ -1,3 +1,27 @@
+v0.10.3 2016-11-15
+
+* By the use of a cache, the clash checking processing has been speeded
+  up by a factor of approximately 4.  This means it now easily fits
+  in the available time slot.
+
+* The overnight run now defaults to processing 2 weeks - the current
+  week and the following one.
+
+* All day events now show as "all day" in the clash check reports, rather
+  than as "00:00 - 00:00" as they did before.
+
+* There is an extra option on the clash check utility "--ahead N" which
+  allows it to be run N weeks ahead.  By default and without this option
+  it starts with the current week.
+
+* A small fix has been applied to the code which selects notes for display.
+  Normally this is done simply on the basis of whether a user is staff,
+  pupil or other, but some users (those who approve commitments) can get
+  to see extra.  A slight error in the d/b query code (an INNER JOIN which
+  should have been a LEFT JOIN) meant that in exceptional circumstances
+  such users failed to be shown the odd note which they should have seen.
+
+
 v0.10.2 2016-11-12
 
 * At Niki's request, changed the default for staff to have permission
