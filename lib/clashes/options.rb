@@ -9,7 +9,8 @@ class Options
               :end_date,
               :summary,
               :weekly,
-              :weeks
+              :weeks,
+              :ahead
 
   def initialize
     @verbose         = false
@@ -20,6 +21,7 @@ class Options
     @weekly          = false
     @start_date      = Date.today
     @weeks           = 1
+    @ahead           = 0
     @end_date        = nil
     OptionParser.new do |opts|
       opts.banner = "Usage: clashcheck.rb [options]"
@@ -53,8 +55,13 @@ class Options
       end
 
       opts.on("-w", "--weeks [NUMBER]", Integer,
-              "How many weeks to process (default: 2)") do |number|
+              "How many weeks to process (default: 1)") do |number|
         @weeks = number
+      end
+
+      opts.on("-a", "--ahead [NUMBER]", Integer,
+              "How many weeks ahead to work (default: 0)") do |number|
+        @ahead = number
       end
 
       opts.on("--summary",

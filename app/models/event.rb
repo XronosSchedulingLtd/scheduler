@@ -801,6 +801,19 @@ class Event < ActiveRecord::Base
   end
 
   #
+  #  Produce either the event's duration, or the string "all day"
+  #  for an all day event.  If the event's end time is the same as
+  #  the start time, then print it just once.
+  #
+  def duration_or_all_day_string
+    if self.all_day
+      "all day"
+    else
+      self.starts_at.interval_str(self.ends_at)
+    end
+  end
+
+  #
   #  Some of the body texts are being entered with trailing spaces, or
   #  with or without full stops, and even in some cases ending in " . "
   #  Clean it up.
