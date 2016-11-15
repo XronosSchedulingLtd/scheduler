@@ -602,6 +602,35 @@ class Membership < ActiveRecord::Base
   end
 
   #
+  #  If you're doing a lot of processing, it might be worth caching
+  #  the calculated MWD_Sets.  They are saved by element, start date
+  #  and end date.
+  #
+  class MWD_SetCache
+    def initialize
+      @cache = Hash.new
+    end
+
+    def hash_key(element, start_date, end_date)
+      "#{element.id}/#{start_date.strftime("%F")}/#{end_date.strftime("%F")}"
+    end
+
+    def store(mwd_set, element, start_date, end_date)
+      @cache[hash_key(element, start_date, end_date)] = mwd_set
+    end
+
+    def find(element, start_date, end_date)
+      @cache[hash_key(element, start_date, end_date)]
+    end
+
+    def flush
+      @cache = Hash.new
+    end
+
+  end
+
+
+  #
   #  Start of the Membership class proper
   #
 
