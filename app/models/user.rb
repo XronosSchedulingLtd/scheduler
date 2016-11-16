@@ -214,6 +214,23 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Currently, sub-editing applies only to events.
+  #  You can sub-edit if you are the organizer of the event.
+  #
+  def can_subedit?(item)
+    if item.instance_of?(Event)
+      self.can_edit?(item) || self.organiser_of?(item)
+    else
+      false
+    end
+  end
+
+  def organiser_of?(event)
+    staff = self.corresponding_staff
+    staff && staff.element && (staff.element.id == event.organiser_id)
+  end
+
+  #
   #  Can this user delete the indicated item?
   #  We can only delete our own, and sometimes not even then.
   #

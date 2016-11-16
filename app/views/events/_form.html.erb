@@ -18,17 +18,30 @@
   <div class="row">
     <div class="small-9 columns">
       <label>Description</label>
-      <%= f.text_field :body,
-                       :id => "first_field",
-                       :placeholder => "Please describe what is happening" %>
+      <% if current_user.can_edit?(@event) %>
+        <%= f.text_field :body,
+                         :id => "first_field",
+                         :placeholder => "Please describe what is happening" %>
+      <% else %>
+        <%= f.text_field :body, :disabled => true %>
+      <% end %>
     </div>
     <div class="small-3 columns">
       <label>Event category</label>
-      <%= f.collection_select(:eventcategory_id,
-                              @event.suitable_categories(current_user).sort,
-                              :id,
-                              :name,
-                              { :prompt => true }) %>
+      <% if current_user.can_edit?(@event) %>
+        <%= f.collection_select(:eventcategory_id,
+                                @event.suitable_categories(current_user).sort,
+                                :id,
+                                :name,
+                                { :prompt => true }) %>
+      <% else %>
+        <%= f.collection_select(:eventcategory_id,
+                                @event.suitable_categories(current_user).sort,
+                                :id,
+                                :name,
+                                { :prompt => true },
+                                { :disabled => "disabled" }) %>
+      <% end %>
       <%= f.hidden_field :eventsource_id %>
     </div>
   </div>
@@ -53,22 +66,31 @@
                          :disabled => true %>
       <% end %>
     </div>
-    <%= flag_group(f, 4, 4, "Flags", [
-                   {field: :all_day_field,
-                    prompt: "All day",
-                    annotation: "The event lasts all day.  Time fields will be ignored."}]) %>
+    <% if current_user.can_retime?(@event) %>
+      <%= flag_group(f, 4, 4, "Flags", [
+                     {field: :all_day_field,
+                      prompt: "All day",
+                      annotation: "The event lasts all day.  Time fields will be ignored."}]) %>
+    <% else %>
+      <div class="small-6 columns">
+      </div>
+    <% end %>
 
   </div>
   <div class="row">
     <div class="small-3 columns">
       <label>Organiser</label>
+      <% if current_user.can_edit?(@event) %>
       <%= f.autocomplete_field :organiser_name,
                                autocomplete_staff_element_name_elements_path,
                                :id_element => '#event_organiser_id',
                                :append_to => '#eventModal',
                                :placeholder => "Name of organiser (optional)",
                                "data-auto-focus" => true %>
-      <%= f.text_field :organiser_id, :type => :hidden %>
+        <%= f.text_field :organiser_id, :type => :hidden %>
+      <% else %>
+        <%= f.text_field :organiser_name, :disabled => true %>
+      <% end %>
     </div>
     <div class="small-5 columns">
       <label>Reference</label>
