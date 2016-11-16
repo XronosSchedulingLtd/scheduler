@@ -63,8 +63,8 @@ module Elemental
         creation_hash = { :name => self.element_name,
                           :current => self.current,
                           :entity => self }
-        if self.respond_to?(:owner_id)
-          creation_hash[:owner_id] = self.owner_id
+        if self.respond_to?(:entitys_owner_id)
+          creation_hash[:owner_id] = self.entitys_owner_id
         end
         self.adjust_element_creation_hash(creation_hash)
         Element.create!(creation_hash)
