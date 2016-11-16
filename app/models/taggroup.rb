@@ -36,4 +36,21 @@ class Taggroup
     Group.where(persona_type: "Taggrouppersona")
   end
 
+  #
+  #  A maintenance method to find some tag groups which have been incorrectly
+  #  loaded.
+  #
+  def self.fix_not_public
+    names = Array.new
+    groups = Group.where(persona_type: "Taggrouppersona", make_public: true).joins(:element).where("elements.owner_id IS NOT NULL")
+    groups.each do |g|
+      names << g.name
+      g.save
+    end
+    puts "Fixed #{names.size} groups."
+    names.each do |n|
+      puts n
+    end
+    nil
+  end
 end
