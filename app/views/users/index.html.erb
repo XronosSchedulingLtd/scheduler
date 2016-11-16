@@ -1,6 +1,8 @@
 <h1>Listing users</h1>
 <p id="notice"><%= notice %></p>
 
+<%= render 'user_finding_form' %>
+
 <div class="digg_pagination">
   <%= will_paginate @users %>
 </div>
