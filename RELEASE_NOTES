@@ -1,3 +1,12 @@
+v0.10.4 2016-11-16
+
+* Fix a bug in the group loading code, whereby a public group was not
+  correctly flagged as being available to all users.
+
+* Add a maintenance method to fix the 8 groups currently in the system
+  which have this problem.
+
+
 v0.10.3 2016-11-15
 
 * By the use of a cache, the clash checking processing has been speeded
@@ -28,6 +37,7 @@ v0.10.2 2016-11-12
   to create public groups.  Ran a command line task
   ("User.set_initial_permissions") to give all existing staff this
   permission bit.
+
 
 v0.10.1 2016-11-11
 
