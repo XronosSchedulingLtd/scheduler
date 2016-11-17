@@ -1,0 +1,36 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-11-17T09:04:33+00:00
+
+====== Thursday 17 Nov 2016 ======
+
+Hit something slightly odd in the data import.  Both this morning and on Tuesday morning, there were some changes - apparently the same changes - to the repeating events.  This suggests that someone is editing them manually, and then will be surprised to find they revert.  If it were happening every day I'd suspect a bug in my code, but for it to happen two days apart suggests manual intervention.
+
+Plan:
+
+[*] Investigate repeating events
+[*] Small change to sub-editing
+[*] Evening cron job
+[ ] Package up for release
+[ ] Documentation
+
+Well, I can reproduce the repeating event change on my system.  Now to find out what it is.
+
+Events are indeed in the library (now why did I suspect that) and are today and tomorrow.  Two today, one tomorrow.  Let's take a look at the system before the run.  Yes, someone has been editing things.  Flag to Niki and ignore.
+
+Now on to my change to sub-editing.  Just realised that it doesn't quite do it.  My plan was to stop people from deleting commitments which had gone through the approvals process.  That I have implemented, but then you have the case where something has been put in the calendar by Karen and never been approved.  The user can still delete it.  I can't just make it that they can't delete commitments to owned elements because then they could put one in and immediately be unable to remove it.  How about this:
+
+A sub-editor can delete commitments provided:
+The commitment is not in a state of approved and
+The commitment is not one to an owned element, which nonetheless has no approval status - i.e. it skipped the approvals process.
+
+Or to put it another way, a sub-editor cannot delete.
+
+Approved commitments.
+Commitments to managed elements which have none of the flags set.
+
+All seems to work.
+
+Tried out my evening cron job.  Using --ahead 2 --weeks 4 it took 57m51s.  It will take longer on the live system.
+
+On to packaging my release.

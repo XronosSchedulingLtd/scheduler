@@ -9,7 +9,7 @@ Well, I thought I had my plan for today sorted.  I was going to put my user sear
 Niki has hit me first thing though with what looks like an amusing little bug, so I'll investigate that first.  Plan.
 
 [*] Investigate Niki's bug and fix.
-[ ] Implement sub-editing
+[*] Implement sub-editing
 [ ] Produce some documentation
 
 The first thing I will need to do is switch back to the live version of the code, and get a copy of the live database.
@@ -113,4 +113,14 @@ CCF Recruits Michaelmas 2016 (Activity
 Not those two RMF ones, and not Rebecca's one.  How?  Ah - I know.  These 5 are the ones which were loaded before today.  The remaining 3 were loaded in the small hours of this morning, and so by re-loading the database I've prevented them being loaded badly in the first place.  Excellent.  Let's package that up as a hot fix.  Done v0.10.4
 
 Now, back to my original program.
+
+Now, for the sub-editing I have a couple of choices about how to work it.  I already have a User#can_edit? method and it makes sense to add a User#can_subedit? to match, but there are two ways I could have it.
+
+Anyone who passes the can_edit? test, could automatically pass the can_subedit? test, and so each field would need only one test on it.  The group who can_edit? would be a sub-set of the group who can_subedit?
+
+Or, we could have them as two disparate groups - editors and sub-editors - and have two checks on some fields.
+
+I think I prefer the former, nested groups approach.  Anyone who can_edit? will always pass the can_subedit? test and so we can have just the one test at each point in the controller.
+
+Implemented, and on the staging server.  Next we look at documentation, and I'd like to generate some automatically using the same mechanism as the Linux kernel.  I want to put it straight onto my web site, which is currently empty.
 
