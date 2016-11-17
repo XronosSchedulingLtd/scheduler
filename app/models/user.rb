@@ -193,6 +193,7 @@ class User < ActiveRecord::Base
   def can_edit?(item)
     if item.instance_of?(Event)
       self.admin ||
+      item.id == nil ||
       (self.create_events? && item.owner_id == self.id) ||
       (self.create_events? && item.involves_any?(self.controlled_elements, true))
     elsif item.instance_of?(Group)
