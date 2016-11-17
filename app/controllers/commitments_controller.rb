@@ -110,7 +110,9 @@ class CommitmentsController < ApplicationController
   # DELETE /commitments/1.js
   def destroy
     @event = @commitment.event
-    @commitment.destroy
+    if current_user.can_delete?(@commitment)
+      @commitment.destroy
+    end
     respond_to do |format|
       format.js
     end
