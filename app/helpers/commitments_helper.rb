@@ -78,7 +78,7 @@ module CommitmentsHelper
         #
         #  And any buttons?
         #
-        if editing
+        if editing && user.can_delete?(commitment)
           body = "#{body} #{delete_link(commitment)}"
         end
         result << "<li>#{body}</li>"

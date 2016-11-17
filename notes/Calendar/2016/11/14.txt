@@ -1,0 +1,41 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-11-14T08:58:19+00:00
+
+====== Monday 14 Nov 2016 ======
+
+Well, all the new code went live over the weekend and seems, after one little typo in the crontab, to be working well.  A couple off small tweaks have become apparent as being desirable, and then I need to decide what bigger thing I'm going to work on next.  There are lots of big things which I could do, and it's hard to decide between them.  Make a list.
+
+For now though, things to tweak:
+
+[*] All day events should say "All day" and not "00:00 - 00:00".
+[*] Add an extra option "--ahead 1" which lets you work a week ahead.
+[*] Add in the fix for invisible notes, currently on Midnight.
+[*] Test said option on my development computer
+[*] See whether you can tweak the algorithm to effect any performance improvements.
+[ ] Deploy
+[ ] Set up an evening job on the live system which does the following week.
+
+Now, how to tweak the algorithm for performance.  Need a test, which is probably best done by processing just one day.  It will still take about 12-13 mins, so a lengthy process.
+
+Let's go for this Friday - 18/11.  How long does that take to process to begin with?
+
+Is there any scope for caching each pupil's MWD for a given day?  Each pupil will (generally) have only one lesson at any given time, but he will have multiple lessons in the same day and his group membership will remain the same for the whole day.
+
+There is very little code in the actual utility.  Most of the work is done in Element#commitments_during.  If I were to cache the mwd_set by attaching it to an element record, would the same in-memory element record still be in use when I got on to the next event, or would it be loaded from the d/b again?  This is down to how ActiveRecord works, but it might be worth trying.
+
+Went for a different approach - I implemented my own cache which the client code creates and maintains.  My first one day run seems to be taking a long time.  Invoked with:
+
+''time ./clashcheck.rb --start 2016-11-14''
+
+Aargh.  Wrong date.  I meant to do 2016-11-18.  No wonder it's taking a long time.  Start again.  Disable the cache again first though.  Also, remember to delete the log file after each run to stop it getting stupidly big.
+
+First run - no cache - took 15m54s.  Now try turning the cache on.  Of course the acid test then is to make sure it still produces the same results.
+
+And, they're off!  Enabled some log text so we'll see if anything changes.  3m55s.  Wow!  If that's still working, then it's brilliant.  Better test it be re-loading next week and doing the whole of it again.
+
+OK - set up my dummy event on Thu of next week again, and will watch Samuel Gething.  Log file at least seems to be much smaller.  Previous runs have yielded about 3.5G  This time it's 587M and it took 19m40s.  A significant improvement.  Do Sam's clashes look the same?  Yes, they do.  Excellent.  Run it a second time to check it's idempotent, then a third with that preload taken out.
+
+2nd run.  19m17s.  No changes.
+3rd run, without preload.  19m25s.  Not significant.
+

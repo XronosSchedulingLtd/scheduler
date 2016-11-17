@@ -1,3 +1,24 @@
+v0.11   2016-11-17
+
+* Added the means for event organisers to be enabled as sub-editors.
+
+  Because Abingdon's live database contains a lot of events - particularly
+  calendar events and sports fixtures - which have been entered by one
+  individual rather than by their organisers, a means is needed to allow
+  the organisers to attach team lists to the events.  Such lists are
+  easily generated in iSAMS and then migrate over to Scheduler automatically.
+
+  This release adds the facility whereby the individual listed as an
+  organiser can do minor editing of the event, even though he or she
+  does not own it and would not otherwise have permission.  Changing
+  the title or time is not permitted, but adding and removing resources
+  (except those subject to the approvals process) is.
+
+* An extra batch job has been added to look further ahead when checking
+  for lesson absentees.  It is intended to be run in the evening and by
+  default looks ahead by 2 weeks, and then processes 4.  This means it
+  will always slot in just after the main job which process 2 weeks.
+
 v0.10.4 2016-11-16
 
 * Fix a bug in the group loading code, whereby a public group was not

@@ -116,7 +116,7 @@ class EventsController < ApplicationController
     #  Admin can edit anything.  Other editors can only edit their
     #  own events.
     #
-    if current_user.can_edit?(@event)
+    if current_user.can_subedit?(@event)
       respond_to do |format|
         format.html do
           if request.xml_http_request?
@@ -133,6 +133,11 @@ class EventsController < ApplicationController
         end
       end
     else
+      #
+      #  This is broken and doesn't work.  Happily, you can only
+      #  get here if you force an invalid request from the client.
+      #  Needs work to reject the unauthorised request cleanly.
+      #
       @minimal = true
       render :show, :layout => false
     end
@@ -196,9 +201,30 @@ class EventsController < ApplicationController
   # PATCH/PUT /events/1
   # PATCH/PUT /events/1.json
   def update
-    respond_to do |format|
-      if @event.update(event_params)
-        send_notifications_for(@event)
+    if current_user.can_subedit?(@event)
+      respond_to do |format|
+        if @event.update(event_params)
+          send_notifications_for(@event)
+          @success = true
+          @notes = @event.all_notes_for(current_user)
+          @files = Array.new
+          @visible_commitments, @approvable_commitments =
+            @event.commitments_for(current_user)
+          format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
+          format.json { render :show, status: :ok, location: @event }
+          format.js { @minimal = true; render :update }
+        else
+          @success = false
+          format.html { render :edit }
+          format.json { render json: @event.errors, status: :unprocessable_entity }
+          format.js
+        end
+      end
+    else
+      #
+      #  Just don't do anything.
+      #
+      respond_to do |format|
         @success = true
         @notes = @event.all_notes_for(current_user)
         @files = Array.new
@@ -207,11 +233,6 @@ class EventsController < ApplicationController
         format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
         format.json { render :show, status: :ok, location: @event }
         format.js { @minimal = true; render :update }
-      else
-        @success = false
-        format.html { render :edit }
-        format.json { render json: @event.errors, status: :unprocessable_entity }
-        format.js
       end
     end
   end
