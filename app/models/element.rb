@@ -466,10 +466,6 @@ class Element < ActiveRecord::Base
     entity.csv_name
   end
 
-  def owned?
-    self.owned
-  end
-
   #
   #  We sort elements first by their type (order specified at head of
   #  file) and then by their own native sorting method.

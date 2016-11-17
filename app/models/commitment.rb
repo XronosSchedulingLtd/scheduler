@@ -108,6 +108,14 @@ class Commitment < ActiveRecord::Base
   end
 
   #
+  #  Does this commitment seem to be completely outside the approvals
+  #  process?  None of the flags set.
+  #
+  def approvals_free?
+    !self.tentative && !self.rejected && !self.constraining
+  end
+
+  #
   #  Clone an existing commitment and save to d/b.
   #  Note that you *must* provide at least one modifier or the save
   #  will fail.  Commitments must be unique.

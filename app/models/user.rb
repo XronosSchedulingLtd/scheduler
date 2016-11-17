@@ -248,6 +248,29 @@ class User < ActiveRecord::Base
       #  delete the commitment instead.
       #
       item.owner_id == self.id && item.parent_type == "Event"
+    elsif item.instance_of?(Commitment)
+      #
+      #  With edit permission you can always delete a commitment,
+      #  but there are two cases which a sub-editor cannot delete.
+      #
+      #  1. An approved commitment (constraining == true)
+      #  2. A commitment to a managed element which seems to have
+      #     skipped the approvals process entirely.  None of
+      #     tentative, rejected or constraining is set.
+      #
+      event = item.event
+      element = item.element
+      if event && element
+        self.can_edit?(event) ||
+          (self.can_subedit?(event) &&
+           !item.constraining &&
+           !(element.owned? && item.approvals_free?))
+      else
+        #
+        #  Doesn't seem to be a real commitment yet.
+        #
+        false
+      end
     else
       false
     end
