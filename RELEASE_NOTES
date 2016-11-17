@@ -1,3 +1,10 @@
+v0.11.1 2016-11-17
+
+* A slight error in the previous release meant that ordinary users could
+  no longer create events.  Once they'd created them, they could edit them,
+  but they couldn't put in the minimal information needed to create them.
+
+
 v0.11   2016-11-17
 
 * Added the means for event organisers to be enabled as sub-editors.
@@ -18,6 +25,7 @@ v0.11   2016-11-17
   for lesson absentees.  It is intended to be run in the evening and by
   default looks ahead by 2 weeks, and then processes 4.  This means it
   will always slot in just after the main job which process 2 weeks.
+
 
 v0.10.4 2016-11-16
 
