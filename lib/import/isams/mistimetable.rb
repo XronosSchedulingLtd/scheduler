@@ -59,8 +59,23 @@ class ISAMS_Day
   attr_reader :week, :periods, :lessons
 
   def initialize(entry)
-    @periods = ISAMS_Period.construct(self, entry)
-    @lessons = Array.new
+    #
+    #  2016-11-18
+    #
+    #  In a rather gormless change to the API design, iSAMS have added
+    #  an extra node with the name <Day> *inside* each <Day> node.
+    #
+    #  Since selecting XML fields works on the basis of finding them by
+    #  name, this then results in the inner nodes being in danger of
+    #  being interpreted as days too.
+    #
+    #  Fortunately, the inner <Day> node has no Id, so we'll discard
+    #  them on that basis.
+    #
+    unless self.isams_id == nil
+      @periods = ISAMS_Period.construct(self, entry)
+      @lessons = Array.new
+    end
   end
 
   def note_lesson(lesson)
@@ -69,6 +84,10 @@ class ISAMS_Day
 
   def note_week(week)
     @week = week
+  end
+
+  def wanted
+    self.isams_id != nil
   end
 
   def self.construct(week, week_data)
