@@ -1,3 +1,35 @@
+v0.11.2 2016-11-18
+
+* A little wrinkle arose in the iSAMS data import this morning.  A new
+  node has been added to the Day node under the Week specifications.
+  Nodes are nested as follows:
+
+    <Structure>
+      <Week>
+        <Days>
+          <Day>
+            <Periods>
+              <Period>
+
+
+  but the new node has been added in parallel to Periods and with the
+  name <Day>, giving:
+
+        <Days>
+          <Day>
+            <Day>
+            <Periods>
+
+  which isn't invalid XML, but is more than a little odd.  The loader
+  was looking inside <Days> for <Day> and finding it more than once.
+
+  The XML import code has been tightened up to ignore the inner <Day>
+  node (which has a completely different meaning from its parent).
+
+* In the course of diagnosing the above problem, a left-over debug
+  message was found in app/models/element.rb and removed.
+
+
 v0.11.1 2016-11-17
 
 * A slight error in the previous release meant that ordinary users could
