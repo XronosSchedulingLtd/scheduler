@@ -193,6 +193,7 @@ class User < ActiveRecord::Base
   def can_edit?(item)
     if item.instance_of?(Event)
       self.admin ||
+      self.edit_all_events? ||
       item.id == nil ||
       (self.create_events? && item.owner_id == self.id) ||
       (self.create_events? && item.involves_any?(self.controlled_elements, true))
@@ -220,7 +221,9 @@ class User < ActiveRecord::Base
   #
   def can_subedit?(item)
     if item.instance_of?(Event)
-      self.can_edit?(item) || self.organiser_of?(item)
+      self.can_edit?(item) ||
+        self.subedit_all_events? ||
+        self.organiser_of?(item)
     else
       false
     end
@@ -281,12 +284,10 @@ class User < ActiveRecord::Base
   #  And specifically for events, can the user re-time the event?
   #  Sometimes users can edit, but not re-time.
   #
-  #  Returns two values - edit and retime.
-  #
   def can_retime?(event)
     if event.id == nil
       can_retime = true
-    elsif self.admin ||
+    elsif self.admin || self.edit_all_events? ||
        (self.element_owner &&
         self.create_events? &&
         event.involves_any?(self.controlled_elements, true))

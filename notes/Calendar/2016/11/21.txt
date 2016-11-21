@@ -1,0 +1,13 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-11-21T09:11:04+00:00
+
+====== Monday 21 Nov 2016 ======
+
+Interesting problem this morning - Niki reports that various people seem to have lost their feeds into Google Calendar.  Just tried it myself with RMF's schedule and it came through fine.
+
+When was RMF's calendar last requested?  Never from the new server.  That is probably it.
+
+We return to our originally scheduled entertainment.
+
+I want to add some global edit and subedit flags to the user records.  These then will work like admin for allowing users to edit events.
