@@ -1,3 +1,14 @@
+v0.12   2016-11-21
+
+* Added edit_all_events and subedit_all_events to user records.
+
+  Two new flags on the user record which can be set and cleared by
+  administrators.  The former allows a user to edit any event in the
+  system as if he or she was the owner.  The latter works similarly
+  except it confers only sub-editing capability - as if the user
+  was the organiser.
+
+
 v0.11.2 2016-11-18
 
 * A little wrinkle arose in the iSAMS data import this morning.  A new
