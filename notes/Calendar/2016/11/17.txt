@@ -11,7 +11,7 @@ Plan:
 [*] Investigate repeating events
 [*] Small change to sub-editing
 [*] Evening cron job
-[ ] Package up for release
+[*] Package up for release
 [ ] Documentation
 
 Well, I can reproduce the repeating event change on my system.  Now to find out what it is.
@@ -34,3 +34,17 @@ All seems to work.
 Tried out my evening cron job.  Using --ahead 2 --weeks 4 it took 57m51s.  It will take longer on the live system.
 
 On to packaging my release.
+
+Now - documentation.  I propose to use Sphinx and thus build some content for https://xronos.uk/  I can pinch stuff from these notes, and from the material which I wrote for Abingdon, although obviously I can't use any of their screen shots.
+
+Do I produce the documentation directly on the Xronos server, or do it on my workstation and shove it over.  The latter seems more logical.  It should certainly be stored in a git repository.  I think I'm going to start on my workstation and create a new parallel directory under ~/Work/Coding[[.]]   Refresh my memory about how to use Sphinx.  I seem to have a Debian package called python3-sphinx installed.  There are various other related packages available.  You can choose a theme to affect the whole appearance of your web site.
+
+I am inclined to start without picking a theme first.  I believe my content should be portable as and when I want to change it.  Note that a large part of Sphinx is intended to pull documentation straight from your Python source code.  I don't have any Python source code so I can't use that bit.  ISTR seeing something to enable it to read Ruby source code too, but that's not really what I'm after at present - I want to write user documentation rather than programmer documentation.  I may well want to do the latter later though.
+
+The version in Debian Jessie is 1.2.3.  The current version is 1.4.8.  I can get 1.4.6 from Jessie-backports if the need arises.  Again, I'll go with the default for now.
+
+It seems I need to create a directory in which to work, and then invoke sphinx-quickstart.  Try it - I can always delete the directory if I don't like it.
+
+Got something.  As ever, the documentation for Sphinx assumes you're already familiar with it before you start.  It lacks the explanation of concepts needed for a swift take-off.  Just read for a while.
+
+Made a start.  I'm going to need to create a dummy database too, so I can get some screen shots which don't involve any Abingdon data.
