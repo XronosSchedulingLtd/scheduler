@@ -130,6 +130,12 @@
                     prompt: "Immediate",
                     annotation: "Should the system send notifications of pupils missing your lessons as soon as they are identified?"}
                  ]) %>
+  <%= flag_group(f, 12, 6, "Options",
+                 [
+                 {field: :unnecessary_buttons,
+                  annotation: "Would you like unnecessary buttons to be included in your forms?"}
+
+  ]) %>
 <% end %>
   <div class="small-12 medium-6 columns">
     <div class="actions">

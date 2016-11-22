@@ -112,7 +112,7 @@
 </div>
 <br/>
   <div class="row">
-<% if @event.id %>
+    <% if @event.id %>
   <%= form_for(@commitment, remote: true) do |f| %>
     <div class="small-10 columns">
     <%= f.autocomplete_field :element_name,
