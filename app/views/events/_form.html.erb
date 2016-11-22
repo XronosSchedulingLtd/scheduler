@@ -112,9 +112,9 @@
 </div>
 <br/>
   <div class="row">
-    <div class="small-12 columns">
 <% if @event.id %>
   <%= form_for(@commitment, remote: true) do |f| %>
+    <div class="small-10 columns">
     <%= f.autocomplete_field :element_name,
                              autocomplete_element_name_elements_path,
                              'data-auto-focus' => true,
@@ -123,7 +123,12 @@
                              :placeholder => "Type the name of a resource to add" %>
     <%= f.text_field :element_id, :type => :hidden %>
     <%= f.text_field :event_id, :type => :hidden %>
+    </div>
+    <div class="small-2 columns">
+      <%= f.submit "Add resource", class: "button tiny radius" %>
+    </div>
   <% end %>
+    <div class="small-12 columns">
   <div id="event_resources">
     <%= render partial: "resource", object: @event, locals: {editing: true} %>
   </div>
