@@ -5,6 +5,10 @@
 
 <%= render 'form' %>
 
+<% if current_user.admin? %>
+  <hr/>
+<% end %>
+
 <% if !@minimal && !@minute %>
 <%= link_to 'Show', @user %> |
 <%= link_to 'Back', users_path %>

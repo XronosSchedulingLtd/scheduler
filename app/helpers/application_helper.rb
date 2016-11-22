@@ -21,20 +21,35 @@ module ApplicationHelper
   end
 
   def single_flag(f, content)
+    if content[:annotation]
+      #
+      #  Explicit annotation given.
+      #
+      annotation = content[:annotation]
+    else
+      #
+      #  Can the model supply anything?
+      #
+      if f.object.respond_to?(:field_title_text)
+        annotation = f.object.field_title_text(content[:field])
+      else
+        annotation = ""
+      end
+    end
     result = Array.new
     if content[:disabled]
       result << "    #{f.check_box(content[:field], disabled: true)}"
     else
       result << "    #{f.check_box(content[:field],
-                                   title: content[:annotation])}"
+                                   title: annotation)}"
     end
     if content[:prompt]
       result << "    #{f.label(content[:field],
                                content[:prompt],
-                               title: content[:annotation])}"
+                               title: annotation)}"
     else
       result << "    #{f.label(content[:field],
-                               title: content[:annotation])}"
+                               title: annotation)}"
     end
     result.join("\n").html_safe
   end

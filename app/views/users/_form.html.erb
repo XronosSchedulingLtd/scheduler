@@ -58,41 +58,23 @@
 <% end %>
   </div>
 
+<div class="row">
 <% if current_user.admin %>
 
-<div class="row">
   <%= flag_group(f, 12, 6, "Permissions",
                  [
                    {field: :admin,
-                    annotation: "Is this user a system administrator?",
                     disabled: current_user == @user },
-                   {field: :editor,
-                    prompt: "Events",
-                    annotation: "Can this user create his or her own events?"},
-                   {field: :edit_all_events,
-                    prompt: "Edit all",
-                    annotation: "Can this user edit all events in the system?"},
-                   {field: :subedit_all_events,
-                    prompt: "Subedit all",
-                    annotation: "Can this user sub-edit all events in the system?"},
-                   {field: :privileged,
-                    annotation: "Can this user put events into the privileged event categories?"},
-                   {field: :can_has_groups,
-                    prompt: "Groups",
-                    annotation: "Can this user create and edit groups?"},
-                   {field: :public_groups,
-                    prompt: "Public",
-                    annotation: "Can this user create publicly visible groups?"},
-                   {field: :can_find_free,
-                    prompt: "Find free",
-                    annotation: "Can this user do searches for free resources?"},
-                   {field: :can_add_concerns,
-                    prompt: "Adjust view",
-                    annotation: "Can this user add and remove resources from his calendar view?"},
-                   {field: :can_su,
-                    annotation: "Can this user become another user?"},
-                   {field: :can_roam,
-                    annotation: "Can this user follow links from one displayed element to another?"}
+                   {field: :editor, prompt: "Events"},
+                   {field: :edit_all_events, prompt: "Edit all"},
+                   {field: :subedit_all_events, prompt: "Subedit all"},
+                   {field: :privileged},
+                   {field: :can_has_groups, prompt: "Groups"},
+                   {field: :public_groups, prompt: "Public"},
+                   {field: :can_find_free, prompt: "Find free"},
+                   {field: :can_add_concerns, prompt: "Adjust view"},
+                   {field: :can_su},
+                   {field: :can_roam}
                  ]) %>
   <%= flag_group(f, 12, 6, "Information",
                  [
@@ -102,10 +84,11 @@
                    {field: :secretary,
                     annotation: "Does this user enter events on behalf of other people? Causes the Owner field in new events to be left blank."}
                  ]) %>
-</div>
 
+<% else %>
+  <div class="small-12 medium-6 columns">
+  </div>
 <% end %>
-<div class="row">
 <% if current_user.admin || current_user.element_owner %>
   <%= flag_group(f, 12, 6, "Resource request notifications",
                  [

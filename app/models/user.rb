@@ -30,6 +30,23 @@ class User < ActiveRecord::Base
                     "#556B2F",      # DarkOliveGreen
                     "#FF6347"]      # Tomato
 
+  FIELD_TITLE_TEXTS = {
+    admin:  "Does this user have full control of the system?",
+    editor: "Can this user create and edit events within the system?",
+    arranges_cover: "Is this user responsible for arranging cover?",
+    secretary: "Does this user enter events on behalf of other people?  Causes the Organizer field on new events to be left blank, rather than being pre-filled with the user's name.",
+    edit_all_events: "Can this user edit all events within the system?",
+    subedit_all_events: "Can this user sub-edit all events within the system?",
+    privileged: "Can this user enter events into the privileged event categories?",
+    can_has_groups: "Can this user create and edit groups within the system?",
+    public_groups: "Can this user create publicly visible groups?",
+    can_find_free: "Can this user do searches for free resources?",
+    can_add_concerns: "Can this user dynamically choose which schedules to look at?",
+    can_roam: "Can this user follow links from one displayed element to another?",
+    can_su: "Can this user become another user?"
+  }
+  FIELD_TITLE_TEXTS.default = ""
+
   has_many :concerns,   :dependent => :destroy
 
   has_many :events, foreign_key: :owner_id, dependent: :nullify
@@ -158,6 +175,15 @@ class User < ActiveRecord::Base
     else
       "Gray"
     end
+  end
+
+  def field_title_text(field)
+    #
+    #  Note that the keys are exactly the names of the columns within
+    #  the d/b record.
+    #
+
+    FIELD_TITLE_TEXTS[field]
   end
 
   def list_days
