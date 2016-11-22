@@ -1,4 +1,4 @@
-<%= form_for(@user, html: {method: :get, onsubmit: "return window.linkToUser();" } ) do |f| %>
+<%= form_for(@user, html: {method: :get, class: "userfind" } ) do |f| %>
   <%= f.autocomplete_field :name,
                            autocomplete_user_name_users_path,
                            :id_element => '#user_id',
