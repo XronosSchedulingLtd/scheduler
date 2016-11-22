@@ -174,7 +174,7 @@ class Element < ActiveRecord::Base
   #  because recursion may specify a different date to think about.
   #
   def groups(given_date = nil, recurse = true)
-    puts "Entering groups at #{Time.now.strftime("%H:%M:%S.%3N")}."
+#    puts "Entering groups at #{Time.now.strftime("%H:%M:%S.%3N")}."
     given_date ||= Date.today
     if recurse
       #
@@ -464,10 +464,6 @@ class Element < ActiveRecord::Base
 
   def csv_name
     entity.csv_name
-  end
-
-  def owned?
-    self.owned
   end
 
   #

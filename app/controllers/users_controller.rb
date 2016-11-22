@@ -118,6 +118,8 @@ class UsersController < ApplicationController
                       :email,
                       :admin,
                       :editor,
+                      :edit_all_events,
+                      :subedit_all_events,
                       :arranges_cover,
                       :secretary,
                       :privileged,

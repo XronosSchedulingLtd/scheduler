@@ -58,9 +58,10 @@
       </div>
     <% end %>
 
-    <% if current_user && current_user.can_edit?(@event) %>
+    <% if current_user && current_user.can_subedit?(@event) %>
       <div class="row">
         <div class="small-12 columns">
+          <% if current_user.can_edit?(@event) %>
           <div class="delete_link">
             <%=
               link_to "Delete event entirely",
@@ -72,6 +73,7 @@
               }
             %>
           </div>
+          <% end %>
           <div class="edit_link">
             <%= link_to "Edit", edit_event_path(@event), remote: @minimal %>
           </div>

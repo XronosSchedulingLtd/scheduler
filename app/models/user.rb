@@ -193,6 +193,8 @@ class User < ActiveRecord::Base
   def can_edit?(item)
     if item.instance_of?(Event)
       self.admin ||
+      self.edit_all_events? ||
+      item.id == nil ||
       (self.create_events? && item.owner_id == self.id) ||
       (self.create_events? && item.involves_any?(self.controlled_elements, true))
     elsif item.instance_of?(Group)
@@ -214,6 +216,25 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Currently, sub-editing applies only to events.
+  #  You can sub-edit if you are the organizer of the event.
+  #
+  def can_subedit?(item)
+    if item.instance_of?(Event)
+      self.can_edit?(item) ||
+        self.subedit_all_events? ||
+        self.organiser_of?(item)
+    else
+      false
+    end
+  end
+
+  def organiser_of?(event)
+    staff = self.corresponding_staff
+    staff && staff.element && (staff.element.id == event.organiser_id)
+  end
+
+  #
   #  Can this user delete the indicated item?
   #  We can only delete our own, and sometimes not even then.
   #
@@ -231,6 +252,29 @@ class User < ActiveRecord::Base
       #  delete the commitment instead.
       #
       item.owner_id == self.id && item.parent_type == "Event"
+    elsif item.instance_of?(Commitment)
+      #
+      #  With edit permission you can always delete a commitment,
+      #  but there are two cases which a sub-editor cannot delete.
+      #
+      #  1. An approved commitment (constraining == true)
+      #  2. A commitment to a managed element which seems to have
+      #     skipped the approvals process entirely.  None of
+      #     tentative, rejected or constraining is set.
+      #
+      event = item.event
+      element = item.element
+      if event && element
+        self.can_edit?(event) ||
+          (self.can_subedit?(event) &&
+           !item.constraining &&
+           !(element.owned? && item.approvals_free?))
+      else
+        #
+        #  Doesn't seem to be a real commitment yet.
+        #
+        false
+      end
     else
       false
     end
@@ -240,12 +284,10 @@ class User < ActiveRecord::Base
   #  And specifically for events, can the user re-time the event?
   #  Sometimes users can edit, but not re-time.
   #
-  #  Returns two values - edit and retime.
-  #
   def can_retime?(event)
     if event.id == nil
       can_retime = true
-    elsif self.admin ||
+    elsif self.admin || self.edit_all_events? ||
        (self.element_owner &&
         self.create_events? &&
         event.involves_any?(self.controlled_elements, true))

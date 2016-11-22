@@ -1,3 +1,84 @@
+v0.12   2016-11-21
+
+* Added edit_all_events and subedit_all_events to user records.
+
+  Two new flags on the user record which can be set and cleared by
+  administrators.  The former allows a user to edit any event in the
+  system as if he or she was the owner.  The latter works similarly
+  except it confers only sub-editing capability - as if the user
+  was the organiser.
+
+
+v0.11.2 2016-11-18
+
+* A little wrinkle arose in the iSAMS data import this morning.  A new
+  node has been added to the Day node under the Week specifications.
+  Nodes are nested as follows:
+
+    <Structure>
+      <Week>
+        <Days>
+          <Day>
+            <Periods>
+              <Period>
+
+
+  but the new node has been added in parallel to Periods and with the
+  name <Day>, giving:
+
+        <Days>
+          <Day>
+            <Day>
+            <Periods>
+
+  which isn't invalid XML, but is more than a little odd.  The loader
+  was looking inside <Days> for <Day> and finding it more than once.
+
+  The XML import code has been tightened up to ignore the inner <Day>
+  node (which has a completely different meaning from its parent).
+
+* In the course of diagnosing the above problem, a left-over debug
+  message was found in app/models/element.rb and removed.
+
+
+v0.11.1 2016-11-17
+
+* A slight error in the previous release meant that ordinary users could
+  no longer create events.  Once they'd created them, they could edit them,
+  but they couldn't put in the minimal information needed to create them.
+
+
+v0.11   2016-11-17
+
+* Added the means for event organisers to be enabled as sub-editors.
+
+  Because Abingdon's live database contains a lot of events - particularly
+  calendar events and sports fixtures - which have been entered by one
+  individual rather than by their organisers, a means is needed to allow
+  the organisers to attach team lists to the events.  Such lists are
+  easily generated in iSAMS and then migrate over to Scheduler automatically.
+
+  This release adds the facility whereby the individual listed as an
+  organiser can do minor editing of the event, even though he or she
+  does not own it and would not otherwise have permission.  Changing
+  the title or time is not permitted, but adding and removing resources
+  (except those subject to the approvals process) is.
+
+* An extra batch job has been added to look further ahead when checking
+  for lesson absentees.  It is intended to be run in the evening and by
+  default looks ahead by 2 weeks, and then processes 4.  This means it
+  will always slot in just after the main job which process 2 weeks.
+
+
+v0.10.4 2016-11-16
+
+* Fix a bug in the group loading code, whereby a public group was not
+  correctly flagged as being available to all users.
+
+* Add a maintenance method to fix the 8 groups currently in the system
+  which have this problem.
+
+
 v0.10.3 2016-11-15
 
 * By the use of a cache, the clash checking processing has been speeded
@@ -28,6 +109,7 @@ v0.10.2 2016-11-12
   to create public groups.  Ran a command line task
   ("User.set_initial_permissions") to give all existing staff this
   permission bit.
+
 
 v0.10.1 2016-11-11
 

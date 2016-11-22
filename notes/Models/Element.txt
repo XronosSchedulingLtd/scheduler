@@ -1,0 +1,29 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-11-16T11:05:32+00:00
+
+====== Element ======
+Created Wednesday 16 November 2016
+
+The element record is the key item which links together all the different entities which we handle within the system.  Each entity has a linked element record, which is what can be committed to an event, or belong to a group.
+
+Entities currently are:
+* Staff
+* Pupils
+* Groups
+* Locations
+* Services
+* Properties
+* Subjects
+
+Every time one of the above record types is created, a corresponding Element record is created to go with it.  (Actually, it is possible for one of these to exist without a corresponding Element.  If the field called "active" in an entity is set to false, then there will be no corresponding Element record.  It means the entity isn't really in the system.  It is sometimes useful to be able to have such records there, where there is gash information in the feeding MIS - e.g. non-existent locations.  We can keep track of the fact that we know about them, without them playing any part in the functioning of Scheduler.)
+
+===== Fields =====
+
+name		Provided by the entity
+entity_id		\ Link the element to its entity
+entity_type	/
+current		Is the element current?  Should it appear in searches?
+owner_id		The id of the user who created an element - typically a group.
+owned		Flag indicating whether use of the element is subject to approval by one or more users.
+preferred_colour	Makes the element appear in the same colour to all users.
