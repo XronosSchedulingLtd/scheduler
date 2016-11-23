@@ -1,8 +1,22 @@
 <%= form_for(@user, html: {method: :get, class: "userfind" } ) do |f| %>
-  <%= f.autocomplete_field :name,
-                           autocomplete_user_name_users_path,
-                           :id_element => '#user_id',
-                           :placeholder => "Find user",
-                           "data-auto-focus" => true %>
-  <%= f.text_field :id, :type => :hidden %>
+  <div class="row collapse">
+    <div class="small-11 columns">
+      <%=
+        f.autocomplete_field(
+          :name,
+          autocomplete_user_name_users_path,
+          :id_element => '#user_id',
+          :placeholder => "Find user",
+          "data-auto-focus" => true)
+      %>
+      <%=
+        f.text_field :id, :type => :hidden
+      %>
+    </div>
+    <div class="small-1 columns">
+      <%=
+        f.submit "Find", class: "button postfix"
+      %>
+    </div>
+  </div>
 <% end %>

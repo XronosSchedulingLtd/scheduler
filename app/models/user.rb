@@ -80,6 +80,8 @@ class User < ActiveRecord::Base
   before_destroy :being_destroyed
   after_save :find_matching_resources
 
+  self.per_page = 15
+
   def known?
     @known ||= (self.own_element != nil)
   end
