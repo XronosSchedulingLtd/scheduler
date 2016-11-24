@@ -96,6 +96,17 @@ class User < ActiveRecord::Base
                 self.own_element.entity.class == Pupil)
   end
 
+  #
+  #  Returns some text describing the type of user.
+  #
+  def type_text
+    if self.own_element == nil
+      "Guest"
+    else
+      self.own_element.entity_type
+    end
+  end
+
   def own_element
     unless @own_element
       my_own_concern = self.concerns.me[0]
