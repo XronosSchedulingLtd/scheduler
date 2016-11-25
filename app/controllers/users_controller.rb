@@ -110,14 +110,12 @@ class UsersController < ApplicationController
   def update
     original_firstday = @user.firstday
     original_colour = @user.colour_not_involved
-    original_buttons = @user.unnecessary_buttons
     respond_to do |format|
       if @user.update(user_params)
         @success = true
         @changed_display_options =
           (@user.firstday != original_firstday) ||
-          (@user.colour_not_involved != original_colour) ||
-          (@user.unnecessary_buttons != original_buttons)
+          (@user.colour_not_involved != original_colour)
         format.html { redirect_to users_path({user_id: @user.id}), notice: 'User was successfully updated.' }
         format.json { render :show, status: :ok, location: @user }
         format.js
@@ -181,8 +179,7 @@ class UsersController < ApplicationController
                       :firstday,
                       :preferred_event_category_id,
                       :colour_not_involved,
-                      :default_event_text,
-                      :unnecessary_buttons)
+                      :default_event_text)
       elsif current_user.editor
         params.require(:user).
                permit(:firstday,
@@ -193,8 +190,7 @@ class UsersController < ApplicationController
                       :clash_immediate,
                       :preferred_event_category_id,
                       :colour_not_involved,
-                      :default_event_text,
-                      :unnecessary_buttons)
+                      :default_event_text)
       else
         params.require(:user).
                permit(:firstday,
@@ -203,8 +199,7 @@ class UsersController < ApplicationController
                       :immediate_notification,
                       :clash_weekly,
                       :clash_daily,
-                      :clash_immediate,
-                      :unnecessary_buttons)
+                      :clash_immediate)
       end
     end
 end
