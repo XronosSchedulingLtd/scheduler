@@ -295,4 +295,5 @@ window.flagClashes = (event, element) ->
 
 window.activateAutoSubmit = ->
   $('.auto_submit_item').on( "autocompleteclose", (event, ui) ->
-    $('.hidden_submit').click())
+    if $('#concern_element_id').val().length > 0
+      $('.hidden_submit').click())
