@@ -10,24 +10,9 @@
 
 <%= render 'form' %>
 
-<% if !@minimal && !@minute %>
+<% if !@minimal %>
 <% if current_user.admin? %>
   <hr/>
-  <div class="row collapse">
-    <div class="small-8 columns">
-      <%=
-        link_to "Back to list",
-          users_path({user_id: @user.id}),
-          class: "button tiny" %>
-    </div>
-    <div class="small-4 columns">
-      <% if current_user.can_su %>
-        <div align="right">
-           <%= link_to 'su', become_path(@user), :method => :put, class: "tiny button radius" %>
-        </div>
-      <% end %>
-    </div>
-  </div>
   <div class="row collapse">
     <div class="small-12 columns">
       <table class="zftable">
