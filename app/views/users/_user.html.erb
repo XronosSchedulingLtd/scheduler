@@ -9,6 +9,11 @@
                                :placeholder => "Add watch item",
                                "data-auto-focus" => true %>
       <%= f.text_field :element_id, :type => :hidden %>
+      <% if current_user.unnecessary_buttons? %>
+        <div align="right">
+          <%= f.submit "Add", class: "tiny button radius" %>
+        </div>
+      <% end %>
     <% end %>
   <td>
 </tr>
