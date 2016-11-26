@@ -19,7 +19,7 @@ class UsersController < ApplicationController
     term = params[:term].split(" ").join("%")
     users =
       User.where('name LIKE ?', "%#{term}%").order(:name).all
-    render :json => users.map { |user| {:id => user.id, :label => user.name, :value => user.name} }
+    render :json => users.map { |user| {:id => user.id, :label => user.name_with_email, :value => user.name} }
   end
 
 

@@ -126,6 +126,10 @@ class User < ActiveRecord::Base
     end
   end
 
+  def name_with_email
+    "#{self.name} (#{self.email})"
+  end
+
   #
   #  Could be made more efficient with an explicit d/b hit, but probably
   #  not worth it as each user is likely to own only a small number
