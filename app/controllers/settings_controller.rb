@@ -70,6 +70,13 @@ class SettingsController < ApplicationController
     # Never trust parameters from the scary internet, only allow the white list through.
     def setting_params
       params.require(:setting).
-             permit(:current_era_id, :next_era_id, :previous_era_id, :perpetual_era_id, :enforce_permissions, :current_mis, :previous_mis)
+             permit(:current_era_id,
+                    :next_era_id,
+                    :previous_era_id,
+                    :perpetual_era_id,
+                    :enforce_permissions,
+                    :current_mis,
+                    :previous_mis,
+                    :auth_type)
     end
 end

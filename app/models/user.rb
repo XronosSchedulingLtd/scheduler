@@ -363,7 +363,11 @@ class User < ActiveRecord::Base
   def find_matching_resources
     if self.email && !self.known?
       got_something = false
-      staff = Staff.active.find_by_email(self.email)
+      if Setting.auth_type == "google_demo_auth"
+        staff = Staff.first
+      else
+        staff = Staff.active.find_by_email(self.email)
+      end
       if staff
         got_something = true
         concern = self.concern_with(staff.element)
