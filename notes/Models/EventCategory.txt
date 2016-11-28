@@ -23,7 +23,7 @@ Each event category has a number of flags to control its behaviour.
 
 Flags identified so far are:
 
-* schoolwide		Appears on all user's schedules
+* schoolwide		Appears on all users' schedules
 * publish		Can be downloaded via ical.  If a user doesn't specify categories, all these are sent.
 * public			Superseded by the "Calendar" property - can go.
 * for_users		Likewise, superseded.  Replace with schoolwide.
