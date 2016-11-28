@@ -222,6 +222,8 @@ There are two ways to get Nginx (the web server) working with Passenger - compil
 
 ==== Compiling it yourself ====
 
+This is the way in which it was done originally, and these instructions are retained in case they turn out to be useful.  However, you are strongly recommended to use the Debian packages mentioned in the next section unless you have a good reason not to.
+
 You can do the following in your home directory, but you need to make sure you are using the same gem environment as is used in the application, so start with:
 
 ''$ rvm use 2.1.10@scheduler''
@@ -269,9 +271,17 @@ Following the instructions there seems to work very cleanly.
 
 ===== Configuring Nginx =====
 
-Now Nginx - or more specifically, Passenger - needs to be told about our application.  The location of the relevant configuration files varies depending on whether you did a self build (''/opt/nginx/conf'') or used the pre-built package (''/etc/nginx'').
+Now Nginx - or more specifically, Passenger - needs to be told about our application.  The location of the relevant configuration files varies depending on whether you did a self build (''/opt/nginx/conf'') or used the pre-built package (''/etc/nginx'').  This section assumes you're doing the latter.
 
-  Edit the file ''/opt/nginx/conf/nginx.conf'' and add the following lines to the end:
+Instructions can be found at:
+
+https://www.phusionpassenger.com/library/deploy/nginx/deploy/ruby/
+
+The command "''passenger-config about ruby-command''" executed in our [[~/Work/Coding/scheduler]] directory tells us we want the following configuration line:
+
+''passenger_ruby /home/<username>/.rvm/gems/ruby-2.1.10@scheduler/wrappers/ruby''
+
+Now we need to create a new file in ''/etc/nginx/sites-available''.  I called mine schedulerdemo.
 
 '''
 server {
@@ -279,8 +289,13 @@ server {
 	server_name <fully qualified domain name of your server>;
 	root /home/<username>/Work/Coding/scheduler/public;
 	passenger_enabled on;
+	passenger_ruby /home/<username>/.rvm/gems/ruby-2.1.10@scheduler/wrappers/ruby;
 }
 '''
+
+Then make a symbolic link in ''/etc/nginx/sites-enabled'' pointing to the file which you just created, and restart Nginx with ''sudo service nginx restart''.
+
+Your application should now be available at your selected URL.
 
 Note the need to fill in two items here - the fully qualified domain name of your server, and the name of the directory where the application is installed.
 
@@ -294,13 +309,19 @@ In the production environment, these items are assumed to be static, and you wan
 
 This will produce quite a bit of output, and then you'll find that the public directory is there and populated.
 
-The production copy uses its own separate database which needs populating too.  Edit your ''loaddb'' script created earlier to load to scheduler_production instead of scheduler_development and run it again.
+The production copy uses its own separate database which needs populating too.
+
+'''
+$ RAILS_ENV=production rake db:schema:load
+$ RAILS_ENV=production rake db:seed
+'''
+
 
 If you now re-start nginx with:
 
-''$ sudo /etc/init.d/nginx restart''
+''$ sudo service nginx restart''
 
-You should be able to access the application.  You won't however be able to log in, because that means setting up some more Google credentials, and should probably be done by the school.
+You should be able to access the application.
 
 ===== Maintenance tasks =====
 
