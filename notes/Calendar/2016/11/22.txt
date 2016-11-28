@@ -1,0 +1,29 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-11-22T09:08:30+00:00
+
+====== Tuesday 22 Nov 2016 ======
+
+New plan for method of working - coding in the morning (or at least, before lunch) and then documentation in the afternoon.  Assumes I will have enough energy to do anything in the afternoon, but let's try it.
+
+For some coding today, I still have that user search functionality to finish off.  I think it's quite close, but there's something wrong with my JavaScript.  Need to do some revision.
+
+My call on e.preventDefault is raising an error.  Clearly I'm doing it wrong - but how should I be doing it?  Ah - I'm calling my function with no parameter, so it doesn't know what e is.
+
+Done it a completely different way and now it seems to work.
+
+Need to add to user show page:
+
+[ ] Link to user listing, picking right page.
+[ ] Improved button to edit.
+[ ] Possibly better details?
+[ ] Unify edit and show for users
+[ ] Allow su from edit form
+
+It would seem logical to make the user show page as similar to the user edit page as possible.  Does it actually need two separate pages?  Take a break and think about it.  Ah - we do have the concerns on the show page currently, and not on the edit page.  They could be there though.
+
+The more I think about it, the more I think there's now point in a User => Show page.  Ordinary users can't show other users; only admins have access.  Just have a user edit page.  Admins can then see and edit concerns too.
+
+Also, the field texts could sensibly move into the model, which might in turn get them from the database in future.  The model is the thing with the fields, so it should know what they mean too.
+
+I can use f.object to find the object with which a form builder is associated.

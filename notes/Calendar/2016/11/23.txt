@@ -1,0 +1,49 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-11-23T09:00:57+00:00
+
+====== Wednesday 23 Nov 2016 ======
+
+Yesterday I got a bit distracted from the user search, and started looking at catering for users who don't know their basic computer interaction skills - the sort who move between fields of a form by clicking with the mouse.
+
+Some of them struggle with the very simple forms which have no submit button - the idea is that you press return to finish data entry, but the younger generation have no concept of this.  I have added a button to the event editing screen, which is fine, but there remains the problem of the field at the top left of the main screen.  This isn't obviously a form, so they are slightly more justified in their confusion.  I have added a separate button but it looks terrible.
+
+Two things to try.
+
+[*] Put a button right at the end of the field - almost part of it.  Foundation seems to have some support for this.
+[*] Make completion of the field automatically submit the form.
+
+I'll try both of those today, before going back to the user editing.
+
+Button on the right didn't seem to work.  May be that my copy of Foundation is too old, although it did seem to understand the class.  Also could be that my space is just too narrow.  Let's try an auto-submit.
+
+Turns out it is incredibly difficult to detect when the field is updated.  The problem is, it's a hidden field and the usual JQuery change() function doesn't work for hidden fields.  There are lots of proposed workarounds on the 'net, but they all leave lots of questions unanswered.
+
+Which way around are "#selector" and ".selector" in CSS - it's incredibly unclear?
+
+".selector" is for a class
+"#selector" is for an id
+
+It's incredibly difficult to get the form to auto-submit - every way you turn there's another obstacle.
+How about simulating a click on a hidden submit button?  Golly - it actually seems to work.  No it doesn't - it works as long as the button is visible, but as soon as I hide the button it stops working.  Ah - when you add hidden, it changes the type of the button from "submit" to "hidden" so it is no longer a submit button.
+
+Problems with auto-submit:
+
+* Because the element id field is hidden, the JQuery change() event is not triggered
+* If you do a Jquery submit() it isn't the same as clicking on a Submit button, or pressing enter and doesn't include crucial information.
+
+In the end, I'm monitoring for the autocomplete pop-down menu to close, and then simulating a click on a hidden submit button.  Arguably, that should have exactly the same results as calling submit(), but it doesn't.
+
+OK - got a version which works and put it on the staging server for Niki to look at.  It needs a bit of polishing yet - don't submit the form if the element ID field doesn't have a value - but in essence it works.
+
+Back to my other branch - searching for users.  What do I still need to do?
+
+[*] Unify show and edit for users
+[*] Put concerns on the edit page
+[*] Put su on the edit page
+[*] Make the link back to the list go to the right page
+[ ] Check the full navigation sequence
+[*] A search for "sim jam" should find Simon James.
+[*] Updating a user should take you back to the user list.
+[*] Indicate on the user editing page whether the user is staff, student or neither.  And on the list.
+
