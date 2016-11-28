@@ -383,7 +383,7 @@ class ScheduleController < ApplicationController
       if calendar_element
         @schedule_events =
           calendar_element.events_on(start_date, end_date).collect {|e|
-            ScheduleEvent.new(e, nil)
+            ScheduleEvent.new(e, nil, nil, calendar_element.preferred_colour)
           }
       else
         @schedule_events = []
