@@ -1,41 +1,51 @@
 <h1>Listing users</h1>
 <p id="notice"><%= notice %></p>
 
-<div class="digg_pagination">
-  <%= will_paginate @users %>
+<div class="row collapse">
+  <div class="small-12 medium-8 columns">
+    <%= render 'user_finding_form' %>
+  </div>
+  <div class="small-12 medium-4 columns">
+  </div>
 </div>
 
-<table class="zftable">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>E-mail</th>
-      <th colspan="4"></th>
-    </tr>
-  </thead>
+<div class="row collapse">
+  <div class="small-12 columns">
+    <div class="digg_pagination">
+      <%= will_paginate @users %>
+    </div>
 
-  <tbody>
-    <% @users.each do |user| %>
-      <tr>
-        <td><%= user.name %></td>
-        <td><%= user.email %></td>
-        <td><%= link_to 'Show', user %></td>
-        <td><%= link_to 'Edit', edit_user_path(user) %></td>
-        <td><%= link_to 'Destroy', user, method: :delete, data: { confirm: "Are you sure you want to delete user '#{user.name}'?" } %></td>
-        <td>
-<% if current_user.can_su %>
-        <%= link_to 'su', become_path(user), :method => :put %>
-<% end %>
-        </td>
-      </tr>
+    <table class="zftable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>E-mail</th>
+          <th>Type</th>
+          <th colspan="3"></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @users.each do |user| %>
+          <tr>
+            <td><%= user.name %></td>
+            <td><%= user.email %></td>
+            <td><%= user.type_text %></td>
+            <td><%= link_to 'Edit', edit_user_path(user) %></td>
+            <td><%= link_to 'Destroy', user, method: :delete, data: { confirm: "Are you sure you want to delete user '#{user.name}'?" } %></td>
+            <td>
+    <% if current_user.can_su %>
+            <%= link_to 'su', become_path(user), :method => :put %>
     <% end %>
-  </tbody>
-</table>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
 
-<div class="digg_pagination">
-  <%= will_paginate @users %>
+    <div class="digg_pagination">
+      <%= will_paginate @users %>
+    </div>
+  </div>
 </div>
 
-<br>
-
-<%= link_to 'New Staff', new_staff_path %>
