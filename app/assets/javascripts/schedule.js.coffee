@@ -51,6 +51,7 @@ $(document).ready ->
       $('#fullcalendar').data("dorefresh", "0")
       $('#fullcalendar').fullCalendar('refetchEvents')
     )
+  window.activateAutoSubmit()
   if ($('.withedit').length)
     $('#fullcalendar').fullCalendar
       currentTimezone: 'Europe/London'
@@ -292,3 +293,7 @@ window.flagClashes = (event, element) ->
     element.find(".fc-event-inner").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
   return true
 
+window.activateAutoSubmit = ->
+  $('.auto_submit_item').on( "autocompleteclose", (event, ui) ->
+    if $('#concern_element_id').val().length > 0
+      $('.hidden_submit').click())

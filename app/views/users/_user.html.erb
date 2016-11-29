@@ -7,8 +7,10 @@
                                autocomplete_element_name_elements_path,
                                :id_element => '#concern_element_id',
                                :placeholder => "Add watch item",
-                               "data-auto-focus" => true %>
-      <%= f.text_field :element_id, :type => :hidden %>
+                               "data-auto-focus" => true,
+                               class: :auto_submit_item %>
+      <%= f.text_field :element_id, type: :hidden %>
+      <%= f.submit "Go", class: "hidden_submit", style: "display: none;" %>
     <% end %>
   <td>
 </tr>

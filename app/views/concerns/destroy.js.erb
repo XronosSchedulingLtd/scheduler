@@ -1,4 +1,5 @@
 $('#current_user').html("<%=j render current_user %>")
-window.removeEventSource(<%= @concern_id %>)
-window.activateCheckboxes()
+window.removeEventSource(<%= @concern_id %>);
+window.activateCheckboxes();
 window.activateDragging();
+window.activateAutoSubmit();

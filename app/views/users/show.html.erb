@@ -3,68 +3,124 @@
 <% end %>
 <p id="notice"><%= notice %></p>
 
-<table class="zftable">
-  <tr>
-    <td><strong>Name:</strong></td>
-    <td><%= @user.name %></td>
-  </tr>
+<div class="row collapse">
+  <div class="small-12 columns">
+    <h2><%= @user.name %></h2>
+    <h5><%= @user.email %></h5>
+  </div>
+  <div class="small-12 medium-6 columns">
+    <table class="zftable">
+      <tr>
+        <th colspan="2">Permissions</th>
+      </tr>
+      <tr title="<%= @user.field_title_text(:admin) %>">
+        <td>Administrator:</td>
+        <td><%= @user.admin.yesno %></td>
+      </tr>
 
-  <tr>
-    <td><strong>E-mail:</strong></td>
-    <td><%= @user.email %></td>
-  </tr>
+      <tr title="<%= @user.field_title_text(:editor) %>">
+        <td>Event editing:</td>
+        <td><%= @user.editor.yesno %></td>
+      </tr>
 
-  <tr>
-    <td><strong>Provider:</strong></td>
-    <td><%= @user.provider %></td>
-  </tr>
+      <tr title="<%= @user.field_title_text(:edit_all_events) %>">
+        <td>Edit all events:</td>
+        <td><%= @user.edit_all_events.yesno %></td>
+      </tr>
 
-  <tr>
-    <td><strong>Uid:</strong></td>
-    <td><%= @user.uid %></td>
-  </tr>
+      <tr title="<%= @user.field_title_text(:subedit_all_events) %>">
+        <td>Sub-edit all events:</td>
+        <td><%= @user.subedit_all_events.yesno %></td>
+      </tr>
 
-  <tr>
-    <td><strong>Administrator:</strong></td>
-    <td><%= @user.admin %></td>
-  </tr>
+      <tr title="<%= @user.field_title_text(:privileged) %>">
+        <td>Privileged event categories:</td>
+        <td><%= @user.privileged.yesno %></td>
+      </tr>
 
-  <tr>
-    <td><strong>Editor:</strong></td>
-    <td><%= @user.editor %></td>
-  </tr>
+      <tr title="<%= @user.field_title_text(:arranges_cover) %>">
+        <td>Arranges cover:</td>
+        <td><%= @user.arranges_cover.yesno %></td>
+      </tr>
 
-  <tr>
-    <td><strong>Arranges cover:</strong></td>
-    <td><%= @user.arranges_cover %></td>
-  </tr>
+      <tr title="<%= @user.field_title_text(:secretary) %>">
+        <td>Secretary:</td>
+        <td><%= @user.secretary.yesno %></td>
+      </tr>
 
-  <tr>
-    <td><strong>Preferred event category:</strong></td>
-    <td><%= @user.preferred_event_category ?
-            @user.preferred_event_category.name :
-            "" %></td>
-  </tr>
+      <tr title="<%= @user.field_title_text(:can_has_groups) %>">
+        <td>Groups:</td>
+        <td><%= @user.can_has_groups.yesno %></td>
+      </tr>
 
-  <tr>
-    <td><strong>Secretary:</strong></td>
-    <td><%= @user.secretary %></td>
-  </tr>
+      <tr title="<%= @user.field_title_text(:public_groups) %>">
+        <td>Public groups:</td>
+        <td><%= @user.public_groups.yesno %></td>
+      </tr>
 
-</table>
+      <tr title="<%= @user.field_title_text(:can_find_free) %>">
+        <td>Find free:</td>
+        <td><%= @user.can_find_free.yesno %></td>
+      </tr>
 
-<table class="zftable">
-  <tr>
-    <th>Concerns</th>
-    <th></th>
-    <th>Equality</th>
-    <th>Controller</th>
-    <th>Edit all</th>
-    <th></th>
-  </tr>
-  <%= render partial: "concern", collection: @user.concerns.sort %>
-</table>
+      <tr title="<%= @user.field_title_text(:can_add_concerns) %>">
+        <td>Add concerns:</td>
+        <td><%= @user.can_add_concerns.yesno %></td>
+      </tr>
 
+      <tr title="<%= @user.field_title_text(:can_roam) %>">
+        <td>Roam:</td>
+        <td><%= @user.can_roam.yesno %></td>
+      </tr>
+
+      <tr title="<%= @user.field_title_text(:can_su) %>">
+        <td>Su:</td>
+        <td><%= @user.can_su.yesno %></td>
+      </tr>
+
+    </table>
+  </div>
+  <div class="small-12 medium-6 columns">
+    <table class="zftable">
+      <tr>
+        <th colspan="2">User settings</th>
+      </tr>
+      <tr>
+        <td>Provider:</td>
+        <td><%= @user.provider %></td>
+      </tr>
+
+      <tr>
+        <td>Uid:</td>
+        <td><%= @user.uid %></td>
+      </tr>
+
+      <tr>
+        <td>Preferred event category:</td>
+        <td><%= @user.preferred_event_category ?
+                @user.preferred_event_category.name :
+                "" %></td>
+      </tr>
+
+    </table>
+  </div>
+
+  <div class="small-12 columns">
+    <table class="zftable">
+      <tr>
+        <th>Concerns</th>
+        <th></th>
+        <th>Equality</th>
+        <th>Controller</th>
+        <th>Edit all</th>
+        <th></th>
+      </tr>
+      <%= render partial: "concern", collection: @user.concerns.sort %>
+    </table>
+  </div>
+
+  </div>
 <% if !@minimal %>
-<%= link_to 'Edit', edit_user_path(@user) %>
+<%= link_to 'Edit', edit_user_path(@user), class: "button tiny radius" %>
 <% end %>
+</div>
