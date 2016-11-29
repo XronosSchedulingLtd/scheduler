@@ -41,7 +41,9 @@ Rails.application.routes.draw do
 
   resources :subjects
 
-  resources :users
+  resources :users do
+    get :autocomplete_user_name, :on => :collection
+  end
 
   resources :commitments do
     member do

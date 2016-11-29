@@ -6,10 +6,54 @@
 class UsersController < ApplicationController
   before_action :set_user, only: [:show, :edit, :update, :destroy]
 
+  #
+  #  And here's me thinking that at last I can use just:
+  #
+  #    autocomplete :user, :name, :full => true
+  #
+  #  but alas it still doesn't quite cut it.  I want "sim jam" to
+  #  find "Simon James", and the standard generator doesn't seem
+  #  to have an option to manage that.
+  #
+  def autocomplete_user_name
+    term = params[:term].split(" ").join("%")
+    users =
+      User.where('name LIKE ?', "%#{term}%").order(:name).all
+    render :json => users.map { |user| {:id => user.id, :label => user.name_with_email, :value => user.name} }
+  end
+
+
   # GET /users
   # GET /users.json
   def index
-    @users = User.order(:name).page(params[:page]).order('id')
+    @user = User.new
+    selector = User.order(:name)
+    #
+    #  If an explicit page has been requested then go to it.
+    #  Otherwise check for other criteria.
+    #
+    page_param = params[:page]
+    if page_param.blank?
+      #
+      #  Default to page 1.
+      #
+      page_param = "1"
+      user_id = params[:user_id]
+      unless user_id.blank?
+        #
+        #  Seem to want to jump to a particular user.
+        #  Use find_by to avoid raising an error.
+        #
+        target_user = User.find_by(id: user_id)
+        if target_user
+          index = selector.find_index {|u| u.id == target_user.id}
+          if index
+            page_param = ((index / User.per_page) + 1).to_s
+          end
+        end
+      end
+    end
+    @users = selector.page(page_param)
   end
 
   # GET /users/1
@@ -69,9 +113,10 @@ class UsersController < ApplicationController
     respond_to do |format|
       if @user.update(user_params)
         @success = true
-        @changed_firstday = (@user.firstday != original_firstday)
-        @changed_colour = (@user.colour_not_involved != original_colour)
-        format.html { redirect_to @user, notice: 'User was successfully updated.' }
+        @changed_display_options =
+          (@user.firstday != original_firstday) ||
+          (@user.colour_not_involved != original_colour)
+        format.html { redirect_to users_path({user_id: @user.id}), notice: 'User was successfully updated.' }
         format.json { render :show, status: :ok, location: @user }
         format.js
       else

@@ -1,11 +1,34 @@
 <% if @minimal %>
 <a class="close-reveal-modal">&#215;</a>
 <% end %>
-<h1>Editing user</h1>
+<h1>Editing user<%=
+  if current_user.admin?
+    " - #{@user.type_text}"
+  else
+    ""
+  end %></h1>
 
 <%= render 'form' %>
 
-<% if !@minimal && !@minute %>
-<%= link_to 'Show', @user %> |
-<%= link_to 'Back', users_path %>
+<% if !@minimal %>
+<% if current_user.admin? %>
+  <div class="row collapse">
+    <div class="small-12 columns">
+      <hr/>
+      <table class="zftable">
+        <tr>
+          <th>Concerns</th>
+          <th></th>
+          <th>Equality</th>
+          <th>Controller</th>
+          <th>Edit all</th>
+          <th></th>
+        </tr>
+        <%= render partial: "concern", collection: @user.concerns.sort %>
+      </table>
+    </div>
+  </div>
+
+<% end %>
+
 <% end %>

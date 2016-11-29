@@ -1,3 +1,22 @@
+v0.13   2016-11-29
+
+* Removed "New user" button from user list screen, since it didn't actually
+  work and it's not how users are created.
+
+* The dialogue box on the top of the left hand column in the main scheduler
+  screen now auto-submits when the user selects a value.  It's not obvious
+  to the casual user that this is implemented as a form (with just the
+  one visible field) so some were baffled as to how to submit it.
+
+* In the event editing screen, the field to add resources to the event
+  now has an "Add" button to the right of it, for those who prefer to have
+  something on which to click.
+
+* A significant re-work of the facilities for looking up user records,
+  including the addition of a "Search" box in order to jump straight
+  to a particular user.
+
+
 v0.12   2016-11-21
 
 * Added edit_all_events and subedit_all_events to user records.
