@@ -263,7 +263,6 @@ class MIS_Cover
             cover_commitment.errors.full_messages.each do |msg|
               puts msg
             end
-            puts "staff_ab_line_ident = #{@staff_ab_line_ident}"
             puts "staff_covering:"
             puts "  name #{@staff_covering.name}"
 #            puts "  does_cover #{@staff_covering.does_cover}"
@@ -277,10 +276,17 @@ class MIS_Cover
           end
         else
           puts "Failed to find original commitment."
-          puts "staff_ab_line_ident = #{@staff_ab_line_ident}"
+          puts "Covering: #{@staff_covering.name}"
+          puts "Covered: #{@staff_covered.name}"
+          puts "Starts at: #{@starts_at}"
+          puts "Ends at: #{@ends_at}"
         end
       else
         puts "Failed to find corresponding lesson."
+        puts "Covering: #{@staff_covering.name}"
+        puts "Covered: #{@staff_covered.name}"
+        puts "Starts at: #{@starts_at}"
+        puts "Ends at: #{@ends_at}"
       end
     elsif candidates.size == 1
       cover_commitment = candidates[0]
