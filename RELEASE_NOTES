@@ -1,3 +1,17 @@
+v0.13.1 2016-11-30
+
+* Add an extra check on cover of inactive staff.
+
+  iSAMS doesn't really understand the concept of invigilation, so it's
+  been done by setting up dummy lessons with dummy members of staff and
+  then arranging cover for them.  The dummy members of staff weren't
+  active, which caused the cover importer to trip over the relevant
+  records.
+
+  Said members of staff now are flagged as active, but this release
+  fixes the importer so it won't have the same problem in future.
+
+
 v0.13   2016-11-29
 
 * Removed "New user" button from user list screen, since it didn't actually

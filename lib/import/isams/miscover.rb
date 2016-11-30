@@ -41,7 +41,11 @@ class MIS_Cover
   def complete?(quiet)
     unless quiet
       if @schedule_entry
-        unless @staff_covered
+        if @staff_covered
+          unless @staff_covered.active
+            puts "#{@staff_covered.name} seems to be covered but not active."
+          end
+        else
           puts "Schedule entry #{@schedule_id} seems to have no staff to cover."
         end
         if @staff_covering
@@ -58,7 +62,8 @@ class MIS_Cover
     @schedule_entry != nil &&
       @staff_covering != nil &&
       @staff_covering.active &&
-      @staff_covered != nil
+      @staff_covered != nil &&
+      @staff_covered.active
   end
 
   def self.construct(loader, isams_data)
