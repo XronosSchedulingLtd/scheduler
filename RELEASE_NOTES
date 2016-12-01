@@ -1,3 +1,15 @@
+v0.13.2 2016-12-01
+
+* Correction to previous release.
+
+  The previous release was checking the value of the active for each
+  member of staff as calculated by the loader.  It should have been using
+  the value stored in the database.  It is possible for the former to
+  be false and the latter to be true (but not the other way around) as
+  indeed does happen when a member of staff doesn't really exist but
+  needs to be covered.  This is used for setting up Invigilation.
+
+
 v0.13.1 2016-11-30
 
 * Add an extra check on cover of inactive staff.
