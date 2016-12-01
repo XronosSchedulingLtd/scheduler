@@ -41,15 +41,22 @@ class MIS_Cover
   def complete?(quiet)
     unless quiet
       if @schedule_entry
-        if @staff_covered
-          unless @staff_covered.active
+        if @staff_covered && @staff_covered.dbrecord
+          #
+          #  We need to check the dbrecord's idea of the staff member's
+          #  active status and not ours, because we may disagree and
+          #  the d/b is definitive.  It is possible that we think the
+          #  staff member is not active, but the dbrecord has been set
+          #  manually to active.
+          #
+          unless @staff_covered.dbrecord.active
             puts "#{@staff_covered.name} seems to be covered but not active."
           end
         else
           puts "Schedule entry #{@schedule_id} seems to have no staff to cover."
         end
-        if @staff_covering
-          unless @staff_covering.active
+        if @staff_covering && @staff_covering.dbrecord
+          unless @staff_covering.dbrecord.active
             puts "Staff member #{@cover_teacher_school_id} not active to do cover."
           end
         else
@@ -61,9 +68,11 @@ class MIS_Cover
     end
     @schedule_entry != nil &&
       @staff_covering != nil &&
-      @staff_covering.active &&
+      @staff_covering.dbrecord &&
+      @staff_covering.dbrecord.active &&
       @staff_covered != nil &&
-      @staff_covered.active
+      @staff_covered.dbrecord &&
+      @staff_covered.dbrecord.active
   end
 
   def self.construct(loader, isams_data)
