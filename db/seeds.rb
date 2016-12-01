@@ -86,25 +86,6 @@ Setting.create({
   auth_type: 1
 })
 
-#
-#  A basic set of event category properties, from which we will do
-#  some modifications.  It's the modifications which are interesting.
-#
-class ECH < Hash
-  def initialize(values)
-    super()
-    self[:schoolwide]  = false
-    self[:publish]     = true
-    self[:unimportant] = false
-    self[:can_merge]   = false
-    self[:can_borrow]  = false
-    self[:compactable] = true
-    self[:deprecated]  = false
-    self[:privileged]  = false
-    self[:visible]     = true
-    self.merge!(values)
-  end
-end
 
 #
 #  First, some which are intrinsic to the functioning of the system.
@@ -116,18 +97,9 @@ weeklettercategory = Eventcategory.create!([
   ECH.new({name: "Invigilation", privileged: true})
 ])
 
-class SeedProperty
-  def initialize(name)
-    @dbrecord = Property.create!({name: name})
-    @dbrecord.reload
-  end
 
-  def element_id
-    @dbrecord.element.id
-  end
-end
-
-calendarproperty = SeedProperty.new("Calendar")
+calendarproperty = SeedProperty.new("Calendar").
+                                set_preferred_colour("#1f94bc")
 gapproperty = SeedProperty.new("Gap")
 suspensionproperty = SeedProperty.new("Suspension")
 
@@ -170,250 +142,14 @@ thisfile = eventsources[0]
 
 datasource = Datasource.create!({ name: "Seedfile" })
 
+#============================================================================
 #
 #  Everything from here on down is demonstration data.  You probably don't
 #  want to load it in a new live system.
 #
+#============================================================================
 
-class SeedStaff
-  attr_reader :dbrecord
-
-  def initialize(title, forename, surname, initials)
-    @dbrecord = Staff.create!({
-      name:     "#{forename} #{surname}",
-      initials: initials,
-      surname:  surname,
-      title:    title,
-      forename: forename,
-      email:    "#{forename.downcase}.#{surname.downcase}@xronos.org",
-      active:   true,
-      current:  true
-    })
-    #
-    #  Should have acquired an element, so re-load
-    #
-    @dbrecord.reload
-  end
-
-  def element_id
-    @dbrecord.element.id
-  end
-
-end
-
-sjp = SeedStaff.new("Mr", "Simon", "Philpotts", "SJP")
-ced = SeedStaff.new("Mrs", "Claire", "Dunwoody", "CED")
-psl = SeedStaff.new("Ms", "Phillipa", "Long", "PSL")
-dlj = SeedStaff.new("Mr", "David", "Jones", "DLJ")
-
-
-calendarelement = Element.find_by(name: "Calendar")
-#calendarelement.preferred_colour = "#3cb371"
-#calendarelement.preferred_colour = "#00476b"
-calendarelement.preferred_colour = "#1f94bc"
-calendarelement.save
-
-class SeedEvent
-  attr_reader :event
-
-  def initialize(eventcategory, eventsource, body, starts_at, ends_at, more = {})
-    params = {
-      body:             body,
-      eventcategory_id: eventcategory.id,
-      eventsource_id:   eventsource.id,
-      starts_at:        starts_at,
-      ends_at:          ends_at
-    }
-    params.merge!(more)
-    @event = Event.create!(params)
-  end
-
-  #
-  #  Add an attendee to an event.  Must respond to element_id()
-  #
-  def <<(thing)
-    @event.commitments.create!({ element_id: thing.element_id })
-  end
-
-  #
-  #  Add a collection of things to an event.
-  #
-  def involving(*params)
-    params.each do |p|
-      @event.commitments.create!({ element_id: p.element_id })
-    end
-  end
-
-  def add_note(title, contents, more = {})
-    params = {
-      title:    title,
-      contents: contents,
-      visible_guest: false,
-      visible_staff: true,
-      visible_pupil: false
-    }
-    params.merge!(more)
-    @event.notes.create!(params)
-  end
-end
-
-
-calendarevents = [
-  SeedEvent.new(eventcategories[1],
-                thisfile,
-                "3rd XV away - St Asaph's",
-                Time.zone.parse("#{wednesday.to_s} 14:00"),
-                Time.zone.parse("#{wednesday.to_s} 17:00"),
-                {organiser_id: ced.element_id}),
-  SeedEvent.new(eventcategories[1],
-                thisfile,
-                "2nd XV home - St Asaph's",
-                Time.zone.parse("#{wednesday.to_s} 14:00"),
-                Time.zone.parse("#{wednesday.to_s} 17:00"),
-                {organiser_id: ced.element_id}),
-  SeedEvent.new(eventcategories[2],
-                thisfile,
-                "Geography field trip",
-                Time.zone.parse("#{thursday.to_s} 09:00"),
-                Time.zone.parse("#{thursday.to_s} 17:00"),
-                {organiser_id: ced.element_id}),
-  SeedEvent.new(privilegedeventcategories[2],
-                thisfile,
-                "Year 9 parents' evening",
-                Time.zone.parse("#{tuesday.to_s} 17:30"),
-                Time.zone.parse("#{tuesday.to_s} 21:00"),
-                {organiser_id: ced.element_id}),
-  SeedEvent.new(eventcategories[1],
-                thisfile,
-                "Rowing at Eton Dorney",
-                Time.zone.parse("#{saturday.to_s} 10:30"),
-                Time.zone.parse("#{saturday.to_s} 15:00"),
-                {organiser_id: ced.element_id}),
-  SeedEvent.new(privilegedeventcategories[5],
-                thisfile,
-                "Founder's Assembly",
-                Time.zone.parse("#{monday.to_s} 11:15"),
-                Time.zone.parse("#{monday.to_s} 12:10"))
-]
-
-calendarevents.each do |ce|
-  ce << calendarproperty
-end
-
-calendarevents.last << suspensionproperty
-
-startofterm = privilegedeventcategories[0].events.create!( {
-    body:             "Founder's Day",
-    eventsource_id:   thisfile.id,
-    owner_id:         nil,
-    starts_at:        Time.zone.parse("#{monday.to_s}"),
-    ends_at:          Time.zone.parse("#{tuesday.to_s}"),
-    all_day:          true
-})
-
-startofterm.commitments.create!({element_id: calendarelement.id })
-
-calendarevents[4] << sjp
-
-calendarevents[4].add_note(
-  "",
-  "Please could parents not attempt to take rowers away\nbefore the end of the last event.\n\nRefreshments will be provided in the school marquee.",
-  {visible_guest: true}
-)
-
-#Note.create!(
-#  {
-#    title: "",
-#    contents: "Please could parents not attempt to take rowers away\nbefore the end of the last event.\n\nRefreshments will be provided in the school marquee.",
-#    parent_id: calendarevents[4].event.id,
-#    parent_type: "Event",
-#    visible_guest: true,
-#    visible_staff: true
-#  }
-#)
-
-#
-#  Now some simple timetable stuff.
-#
-class SeedPeriod
-  attr_reader :start_time, :end_time
-
-  def initialize(start_time, end_time)
-    @start_time = start_time
-    @end_time = end_time
-  end
-end
-
-periods = [
-  SeedPeriod.new("09:00", "09:25"),         # 0 - Assembly
-  SeedPeriod.new("09:25", "10:15"),         # 1
-  SeedPeriod.new("10:15", "11:05"),         # 2
-  SeedPeriod.new("11:25", "12:15"),         # 3
-  SeedPeriod.new("12:15", "13:05"),         # 4
-  SeedPeriod.new("14:00", "14:50"),         # 5
-  SeedPeriod.new("14:50", "15:40"),         # 6
-  SeedPeriod.new("15:40", "16:30")          # 7
-]
-
-class SeedLocation
-
-  attr_reader :dbrecord, :aliasrec
-
-  def initialize(name, aliasname = nil, display = true, friendly = true)
-    @dbrecord =
-      Location.create!({
-        name:    name,
-        active:  true,
-        current: true})
-    @dbrecord.reload
-    if aliasname
-      @aliasrec =
-        Locationalias.create!({
-          name:          aliasname,
-          location_id:   @dbrecord.id,
-          display:       display,
-          friendly:      friendly})
-    else
-      @aliasrec = nil
-    end
-  end
-
-  def element_id
-    @dbrecord.element.id
-  end
-
-end
-
-SeedLocation.new("Main Hall")
-SeedLocation.new("Genghis Khan Suite", "GKS")
-l101 = SeedLocation.new("L101")
-l102 = SeedLocation.new("L102")
-SeedLocation.new("L103")
-SeedLocation.new("L104")
-SeedLocation.new("L105")
-SeedLocation.new("L106")
-SeedLocation.new("L107")
-l108 = SeedLocation.new("L108")
-SeedLocation.new("L109")
-SeedLocation.new("L110")
-SeedLocation.new("L111")
-
-class SeedSubject
-  attr_reader :dbrecord
-
-  def initialize(name)
-    @dbrecord = Subject.create!({name: name, current: true})
-    @dbrecord.reload
-
-  end
-
-  def element_id
-    @dbrecord.element.id
-  end
-
-end
-
-SeedSubject.new("Drama")
+subjectdrama = SeedSubject.new("Drama")
 SeedSubject.new("English")
 subjectfrench = SeedSubject.new("French")
 subjectfm     = SeedSubject.new("Further Maths")
@@ -427,230 +163,137 @@ SeedSubject.new("Physical Education")
 SeedSubject.new("Spanish")
 SeedSubject.new("Sport")
 
-class SeedGroup
+sjp = SeedStaff.new("Mr", "Simon", "Philpotts", "SJP").teaches(subjectmaths).
+                                                       teaches(subjectfm)
+ced = SeedStaff.new("Mrs", "Claire", "Dunwoody", "CED").teaches(subjectfrench)
+psl = SeedStaff.new("Ms", "Phillipa", "Long", "PSL").teaches(subjectgeography)
+dlj = SeedStaff.new("Mr", "David", "Jones", "DLJ").teaches(subjectdrama)
 
-  attr_reader :dbrecord, :subject, :name
+allstaff = SeedGroup.new("All Staff", current_era).
+                     members(sjp, ced, psl, dlj)
 
-  def initialize(name, era, subject, type = "Teaching")
-    @name      = name
-    @subject   = subject
-    @starts_on = era.starts_on
-    @dbrecord  = Teachinggroup.create!({
-      name:       name,
-      starts_on:  era.starts_on,
-      era_id:     era.id,
-      subject_id: subject.dbrecord.id,
-      current:    true
-    })
-    @dbrecord.reload
-  end
+allpupils = SeedGroup.new("All Pupils", current_era)
 
-  def element_id
-    @dbrecord.element.id
-  end
+groupgeog = SeedTeachingGroup.new("Geography pupils", current_era, subjectgeography)
 
-  def <<(new_member)
-    @dbrecord.add_member(new_member.dbrecord, @starts_on)
-  end
+mainhall = SeedLocation.new("Main Hall")
+gks = SeedLocation.new("Genghis Khan Suite", "GKS")
+l101 = SeedLocation.new("L101")
+l102 = SeedLocation.new("L102")
+SeedLocation.new("L103")
+SeedLocation.new("L104")
+SeedLocation.new("L105")
+SeedLocation.new("L106")
+SeedLocation.new("L107")
+l108 = SeedLocation.new("L108")
+SeedLocation.new("L109")
+SeedLocation.new("L110")
+SeedLocation.new("L111")
 
-end
+calendarevents = [
+  SeedEvent.new(eventcategories[1],
+                thisfile,
+                "3rd XV away - St Asaph's",
+                Time.zone.parse("#{wednesday.to_s} 14:00"),
+                Time.zone.parse("#{wednesday.to_s} 17:00"),
+                {organiser_id: ced.element_id}).
+            involving(calendarproperty),
+  SeedEvent.new(eventcategories[1],
+                thisfile,
+                "2nd XV home - St Asaph's",
+                Time.zone.parse("#{wednesday.to_s} 14:00"),
+                Time.zone.parse("#{wednesday.to_s} 17:00"),
+                {organiser_id: ced.element_id}).
+            involving(calendarproperty),
+  SeedEvent.new(eventcategories[2],
+                thisfile,
+                "Geography field trip",
+                Time.zone.parse("#{thursday.to_s} 09:00"),
+                Time.zone.parse("#{thursday.to_s} 17:00"),
+                {organiser_id: ced.element_id}).
+            involving(calendarproperty, groupgeog),
+  SeedEvent.new(privilegedeventcategories[2],
+                thisfile,
+                "Year 9 parents' evening",
+                Time.zone.parse("#{tuesday.to_s} 17:30"),
+                Time.zone.parse("#{tuesday.to_s} 21:00"),
+                {organiser_id: ced.element_id}).
+            involving(calendarproperty),
+  SeedEvent.new(eventcategories[1],
+                thisfile,
+                "Rowing at Eton Dorney",
+                Time.zone.parse("#{saturday.to_s} 10:30"),
+                Time.zone.parse("#{saturday.to_s} 15:00"),
+                {organiser_id: ced.element_id}).
+            involving(calendarproperty, sjp).
+            add_note(
+              "",
+              "Please could parents not attempt to take rowers away\nbefore the end of the last event.\n\nRefreshments will be provided in the school marquee.",
+              {visible_guest: true}
+            ),
+  SeedEvent.new(privilegedeventcategories[5],
+                thisfile,
+                "Founder's Assembly",
+                Time.zone.parse("#{monday.to_s} 11:15"),
+                Time.zone.parse("#{monday.to_s} 12:10")).
+            involving(calendarproperty,
+                      suspensionproperty,
+                      allstaff,
+                      allpupils,
+                      mainhall)
+]
 
-allstaff = SeedGroup.new("All Staff", current_era, subjectmaths)
-allstaff << sjp
-allstaff << ced
-allstaff << psl
-allstaff << dlj
-
-calendarevents.last.involving(allstaff)
-
-
-group3mat1  = SeedGroup.new("9 Mat1", current_era, subjectmaths)
-group4mat3  = SeedGroup.new("10 Mat3", current_era, subjectmaths)
-group5mat4  = SeedGroup.new("11 Mat4", current_era, subjectmaths)
-group6mat3p = SeedGroup.new("12 Mat3P", current_era, subjectmaths)
-group7mat1a = SeedGroup.new("13 Mat1A", current_era, subjectmaths)
-group7fma2p = SeedGroup.new("13 FMa2P", current_era, subjectfm)
-group3fre2  = SeedGroup.new("9 Fre2",  current_era, subjectfrench)
-
-groupgeog   = SeedGroup.new("Geography pupils", current_era, subjectgeography)
-calendarevents[2] << groupgeog
-
-class SeedPupil
-
-  FORENAMES = ["Peter",
-               "John",
-               "Charles",
-               "Albert",
-               "Freddie",
-               "James",
-               "Matthew",
-               "Michael",
-               "Claire",
-               "Christine",
-               "Mila",
-               "Stephen",
-               "Mark",
-               "Luke",
-               "Robert",
-               "Richard",
-               "Lucy",
-               "Eva",
-               "Millie",
-               "William",
-               "Mimi",
-               "Olivia",
-               "Wayne",
-               "Sharon",
-               "Kumar",
-               "Oscar",
-               "Jack",
-               "Sean"]
-  SURNAMES = ["Smith",
-              "Jones",
-              "Stone",
-              "Robinson",
-              "Jennings",
-              "Darbishire",
-              "Kerrigan",
-              "Fountain",
-              "Simmons",
-              "Storey",
-              "Warburton",
-              "O'Hickey",
-              "West",
-              "Descartes",
-              "Loddon",
-              "Green",
-              "Brown",
-              "Temple",
-              "Binns",
-              "Fotheringay-Smith",
-              "Cotton",
-              "O'Doherty",
-              "Poon",
-              "Coull",
-              "Morgan",
-              "Evans",
-              "Flanagan",
-              "Dinsey",
-              "Spence",
-              "Davies",
-              "Lowndes",
-              "Nelson",
-              "Cameron",
-              "Enderton",
-              "Wodehouse",
-              "Drake",
-              "Gerrard",
-              "Collins",
-              "Greenwood",
-              "Hurley",
-              "Hickson",
-              "Thompson",
-              "Grant",
-              "Laurie",
-              "Lansden",
-              "Lee"
-  ]
-
-  attr_reader :dbrecord
-
-  def initialize(era, yeargroup)
-    forename = FORENAMES.sample
-    surname = SURNAMES.sample
-    start_year = era.starts_on.year - yeargroup + 1
-    @dbrecord = Pupil.create!({
-      name:     "#{forename} #{surname}",
-      surname:  surname,
-      forename: forename,
-      known_as: forename,
-      email:    "#{forename.downcase}.#{surname.downcase}@pupils.xronos.uk",
-      start_year: start_year,
-      current:    true
-    })
-    @dbrecord.reload
-  end
-
-  def element_id
-    @dbrecord.element.id
-  end
-
+[monday, tuesday, wednesday, thursday, friday].each do |day|
+  SeedEvent.new(privilegedeventcategories[5],
+                thisfile,
+                "Assembly",
+                Time.zone.parse("#{day.to_s} 09:00"),
+                Time.zone.parse("#{day.to_s} 09:20")).
+            involving(allstaff, allpupils, mainhall)
 end
 
 
-class SeedLesson < SeedEvent
 
-  @@lessoncategory = Eventcategory.find_by(name: "Lesson")
-  unless @@lessoncategory
-    raise "Can't find the lesson event category."
-  end
-
-  #
-  #  All parameters should themselves be Seed<Something> objects.
-  #  We get the subject for the lesson from the group.
-  #
-  def initialize(eventsource, staff, group, location, day, period, more = {})
-    #
-    #  First let's create the event itself.
-    #
-    starts_at = Time.zone.parse("#{day.to_s} #{period.start_time}")
-    ends_at   = Time.zone.parse("#{day.to_s} #{period.end_time}")
-    super(@@lessoncategory, eventsource, group.name, starts_at, ends_at, more)
-    #
-    #  Needs:
-    #
-    #    Member of staff
-    #    Group
-    #    Location
-    #    Subject
-    #
-    self << staff
-    self << group
-    self << location
-    self << group.subject
-    @event.reload
-  end
-
-  def covered_by(staff)
-    commitment = @event.commitments.first
-    @event.commitments.create!({ element_id: staff.element_id,
-                                 covering_id: commitment.id })
-    self
-  end
-
-end
+SeedEvent.new(privilegedeventcategories[0],
+              thisfile,
+              "Founder's Day",
+              Time.zone.parse("#{monday.to_s}"),
+              Time.zone.parse("#{tuesday.to_s}"),
+              {all_day: true}).
+          involving(calendarproperty)
 
 
-class SeedMeeting < SeedEvent
+#
+#  Now some simple timetable stuff.
+#
 
-  @@meetingcategory = Eventcategory.find_by(name: "Meeting")
-  unless @@meetingcategory
-    raise "Can't find the meeting event category."
-  end
+periods = [
+  SeedPeriod.new("09:00", "09:25"),         # 0 - Assembly
+  SeedPeriod.new("09:25", "10:15"),         # 1
+  SeedPeriod.new("10:15", "11:05"),         # 2
+  SeedPeriod.new("11:25", "12:15"),         # 3
+  SeedPeriod.new("12:15", "13:05"),         # 4
+  SeedPeriod.new("14:00", "14:50"),         # 5
+  SeedPeriod.new("14:50", "15:40"),         # 6
+  SeedPeriod.new("15:40", "16:30")          # 7
+]
 
-  #
-  #  All parameters should themselves be Seed<Something> objects.
-  #  We get the subject for the lesson from the group.
-  #
-  def initialize(eventsource, title, staff, location, day, period)
-    #
-    #  First let's create the event itself.
-    #
-    starts_at = Time.zone.parse("#{day.to_s} #{period.start_time}")
-    ends_at   = Time.zone.parse("#{day.to_s} #{period.end_time}")
-    super(@@meetingcategory, eventsource, title, starts_at, ends_at)
-    if staff.respond_to?(:each)
-      staff.each do |s|
-        self << s
-      end
-    else
-      self << staff
-    end
-    self << location
-    @event.reload
-  end
 
-end
+
+
+
+
+
+
+group3mat1  = SeedTeachingGroup.new("9 Mat1", current_era, subjectmaths)
+group4mat3  = SeedTeachingGroup.new("10 Mat3", current_era, subjectmaths)
+group5mat4  = SeedTeachingGroup.new("11 Mat4", current_era, subjectmaths)
+group6mat3p = SeedTeachingGroup.new("12 Mat3P", current_era, subjectmaths)
+group7mat1a = SeedTeachingGroup.new("13 Mat1A", current_era, subjectmaths)
+group7fma2p = SeedTeachingGroup.new("13 FMa2P", current_era, subjectfm)
+group3fre2  = SeedTeachingGroup.new("9 Fre2",  current_era, subjectfrench)
+
+
 
 SeedLesson.new(thisfile, sjp, group3mat1,  l101, monday, periods[1])
 SeedLesson.new(thisfile, sjp, group4mat3,  l101, monday, periods[3], {non_existent: true})
@@ -687,18 +330,39 @@ SeedMeeting.new(thisfile,
 SeedLesson.new(thisfile, sjp, group6mat3p, l101, friday, periods[1])
 SeedLesson.new(thisfile, sjp, group5mat4,  l101, friday, periods[7])
 
+tutorgroups = [
+  SeedTutorGroup.new(11, current_era, sjp, "Up"),
+  SeedTutorGroup.new(11, current_era, ced, "Down"),
+  SeedTutorGroup.new(11, current_era, psl, "Left"),
+  SeedTutorGroup.new(11, current_era, dlj, "Right")
+]
+
 fifthyear = Array.new
 4.times do
   pupil = SeedPupil.new(current_era, 11) 
   groupgeog << pupil
   group5mat4 << pupil
   fifthyear << pupil
+  allpupils << pupil
+  tutorgroups.sample << pupil
 end
 20.times do
   pupil = SeedPupil.new(current_era, 11) 
   group5mat4 << pupil
   fifthyear << pupil
+  allpupils << pupil
+  tutorgroups.sample << pupil
 end
 20.times do
-  fifthyear << SeedPupil.new(current_era, 11)
+  pupil = SeedPupil.new(current_era, 11)
+  fifthyear << pupil
+  groupgeog << pupil
+  allpupils << pupil
+  tutorgroups.sample << pupil
+end
+20.times do
+  pupil = SeedPupil.new(current_era, 11)
+  fifthyear << pupil
+  allpupils << pupil
+  tutorgroups.sample << pupil
 end
