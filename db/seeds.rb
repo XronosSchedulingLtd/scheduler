@@ -6,6 +6,8 @@
 #   cities = City.create!([{ name: 'Chicago' }, { name: 'Copenhagen' }])
 #   Mayor.create!(name: 'Emanuel', city: cities.first)
 
+require_relative "seedclasses"
+
 #
 #  Always set everything to the current week.
 #
@@ -126,6 +128,8 @@ class SeedProperty
 end
 
 calendarproperty = SeedProperty.new("Calendar")
+gapproperty = SeedProperty.new("Gap")
+suspensionproperty = SeedProperty.new("Suspension")
 
 #
 #  And the rest fall under a heading of likely to be useful.
@@ -212,7 +216,7 @@ calendarelement.save
 class SeedEvent
   attr_reader :event
 
-  def initialize(eventcategory, eventsource, body, starts_at, ends_at, more = nil)
+  def initialize(eventcategory, eventsource, body, starts_at, ends_at, more = {})
     params = {
       body:             body,
       eventcategory_id: eventcategory.id,
@@ -220,9 +224,7 @@ class SeedEvent
       starts_at:        starts_at,
       ends_at:          ends_at
     }
-    if more
-      params.merge!(more)
-    end
+    params.merge!(more)
     @event = Event.create!(params)
   end
 
@@ -233,7 +235,28 @@ class SeedEvent
     @event.commitments.create!({ element_id: thing.element_id })
   end
 
+  #
+  #  Add a collection of things to an event.
+  #
+  def involving(*params)
+    params.each do |p|
+      @event.commitments.create!({ element_id: p.element_id })
+    end
+  end
+
+  def add_note(title, contents, more = {})
+    params = {
+      title:    title,
+      contents: contents,
+      visible_guest: false,
+      visible_staff: true,
+      visible_pupil: false
+    }
+    params.merge!(more)
+    @event.notes.create!(params)
+  end
 end
+
 
 calendarevents = [
   SeedEvent.new(eventcategories[1],
@@ -265,15 +288,22 @@ calendarevents = [
                 "Rowing at Eton Dorney",
                 Time.zone.parse("#{saturday.to_s} 10:30"),
                 Time.zone.parse("#{saturday.to_s} 15:00"),
-                {organiser_id: sjp.element_id})
+                {organiser_id: ced.element_id}),
+  SeedEvent.new(privilegedeventcategories[5],
+                thisfile,
+                "Founder's Assembly",
+                Time.zone.parse("#{monday.to_s} 11:15"),
+                Time.zone.parse("#{monday.to_s} 12:10"))
 ]
 
 calendarevents.each do |ce|
   ce << calendarproperty
 end
 
+calendarevents.last << suspensionproperty
+
 startofterm = privilegedeventcategories[0].events.create!( {
-    body:             "Start of term",
+    body:             "Founder's Day",
     eventsource_id:   thisfile.id,
     owner_id:         nil,
     starts_at:        Time.zone.parse("#{monday.to_s}"),
@@ -283,18 +313,24 @@ startofterm = privilegedeventcategories[0].events.create!( {
 
 startofterm.commitments.create!({element_id: calendarelement.id })
 
-calendarevents[4] << ced
+calendarevents[4] << sjp
 
-Note.create!(
-  {
-    title: "",
-    contents: "Please could parents not attempt to take rowers away\nbefore the end of the last event.\n\nRefreshments will be provided in the school marquee.",
-    parent_id: calendarevents[4].event.id,
-    parent_type: "Event",
-    visible_guest: true,
-    visible_staff: true
-  }
+calendarevents[4].add_note(
+  "",
+  "Please could parents not attempt to take rowers away\nbefore the end of the last event.\n\nRefreshments will be provided in the school marquee.",
+  {visible_guest: true}
 )
+
+#Note.create!(
+#  {
+#    title: "",
+#    contents: "Please could parents not attempt to take rowers away\nbefore the end of the last event.\n\nRefreshments will be provided in the school marquee.",
+#    parent_id: calendarevents[4].event.id,
+#    parent_type: "Event",
+#    visible_guest: true,
+#    visible_staff: true
+#  }
+#)
 
 #
 #  Now some simple timetable stuff.
@@ -418,6 +454,15 @@ class SeedGroup
   end
 
 end
+
+allstaff = SeedGroup.new("All Staff", current_era, subjectmaths)
+allstaff << sjp
+allstaff << ced
+allstaff << psl
+allstaff << dlj
+
+calendarevents.last.involving(allstaff)
+
 
 group3mat1  = SeedGroup.new("9 Mat1", current_era, subjectmaths)
 group4mat3  = SeedGroup.new("10 Mat3", current_era, subjectmaths)
@@ -544,13 +589,13 @@ class SeedLesson < SeedEvent
   #  All parameters should themselves be Seed<Something> objects.
   #  We get the subject for the lesson from the group.
   #
-  def initialize(eventsource, staff, group, location, day, period)
+  def initialize(eventsource, staff, group, location, day, period, more = {})
     #
     #  First let's create the event itself.
     #
     starts_at = Time.zone.parse("#{day.to_s} #{period.start_time}")
     ends_at   = Time.zone.parse("#{day.to_s} #{period.end_time}")
-    super(@@lessoncategory, eventsource, group.name, starts_at, ends_at)
+    super(@@lessoncategory, eventsource, group.name, starts_at, ends_at, more)
     #
     #  Needs:
     #
@@ -570,6 +615,7 @@ class SeedLesson < SeedEvent
     commitment = @event.commitments.first
     @event.commitments.create!({ element_id: staff.element_id,
                                  covering_id: commitment.id })
+    self
   end
 
 end
@@ -607,7 +653,7 @@ class SeedMeeting < SeedEvent
 end
 
 SeedLesson.new(thisfile, sjp, group3mat1,  l101, monday, periods[1])
-SeedLesson.new(thisfile, sjp, group4mat3,  l101, monday, periods[3])
+SeedLesson.new(thisfile, sjp, group4mat3,  l101, monday, periods[3], {non_existent: true})
 SeedLesson.new(thisfile, sjp, group7mat1a, l101, monday, periods[5])
 SeedLesson.new(thisfile, sjp, group6mat3p, l101, monday, periods[6])
 SeedLesson.new(thisfile, sjp, group5mat4,  l101, monday, periods[7])
@@ -617,7 +663,9 @@ SeedLesson.new(thisfile, sjp, group7mat1a, l101, tuesday, periods[2])
 SeedLesson.new(thisfile, sjp, group5mat4,  l101, tuesday, periods[3])
 SeedLesson.new(thisfile, sjp, group7fma2p, l101, tuesday, periods[4])
 SeedLesson.new(thisfile, sjp, group3mat1,  l101, tuesday, periods[6])
-SeedLesson.new(thisfile, ced, group3fre2,  l108, tuesday, periods[7]).covered_by(sjp)
+SeedLesson.new(thisfile, ced, group3fre2,  l108, tuesday, periods[7]).
+           covered_by(sjp).
+           add_note("", "Simon - sorry you've been hit with this cover.\nThere are some worksheets on the desk at the front of the room.\nPlease collect in their books at the end of the lesson.\n\nThanks - Claire")
 
 SeedLesson.new(thisfile, sjp, group4mat3,  l101, wednesday, periods[1])
 SeedLesson.new(thisfile, sjp, group3mat1,  l101, wednesday, periods[2])
