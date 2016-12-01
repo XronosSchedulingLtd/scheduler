@@ -114,7 +114,18 @@ weeklettercategory = Eventcategory.create!([
   ECH.new({name: "Invigilation", privileged: true})
 ])
 
-Property.create!({name: "Calendar"})
+class SeedProperty
+  def initialize(name)
+    @dbrecord = Property.create!({name: name})
+    @dbrecord.reload
+  end
+
+  def element_id
+    @dbrecord.element.id
+  end
+end
+
+calendarproperty = SeedProperty.new("Calendar")
 
 #
 #  And the rest fall under a heading of likely to be useful.
@@ -198,63 +209,67 @@ calendarelement = Element.find_by(name: "Calendar")
 calendarelement.preferred_colour = "#1f94bc"
 calendarelement.save
 
-calendarevents = Event.create!(
-  [
-    {
-      body:             "3rd XV away - St Asaph's",
-      eventcategory_id: eventcategories[1].id,
-      eventsource_id:   thisfile.id,
-      owner_id:         nil,
-      starts_at:        Time.zone.parse("#{wednesday.to_s} 14:00"),
-      ends_at:          Time.zone.parse("#{wednesday.to_s} 17:00"),
-      organiser_id:     ced.element_id
-    },
-    {
-      body:             "2nd XV home - St Asaph's",
-      eventcategory_id: eventcategories[1].id,
-      eventsource_id:   thisfile.id,
-      owner_id:         nil,
-      starts_at:        Time.zone.parse("#{wednesday.to_s} 14:00"),
-      ends_at:          Time.zone.parse("#{wednesday.to_s} 17:00"),
-      organiser_id:     ced.element_id
-    },
-    {
-      body:             "Geography field trip",
-      eventcategory_id: eventcategories[2].id,
-      eventsource_id:   thisfile.id,
-      owner_id:         nil,
-      starts_at:        Time.zone.parse("#{thursday.to_s} 09:00"),
-      ends_at:          Time.zone.parse("#{thursday.to_s} 17:00"),
-      organiser_id:     ced.element_id
-    },
-    {
-      body:             "Year 9 parents' evening",
-      eventcategory_id: privilegedeventcategories[2].id,
-      eventsource_id:   thisfile.id,
-      owner_id:         nil,
-      starts_at:        Time.zone.parse("#{tuesday.to_s} 17:30"),
-      ends_at:          Time.zone.parse("#{tuesday.to_s} 21:00"),
-      organiser_id:     ced.element_id
-    },
-    {
-      body:             "Rowing at Eton Dorney",
-      eventcategory_id: eventcategories[1].id,
-      eventsource_id:   thisfile.id,
-      owner_id:         nil,
-      starts_at:        Time.zone.parse("#{saturday.to_s} 10:00"),
-      ends_at:          Time.zone.parse("#{saturday.to_s} 15:00"),
-      organiser_id:     sjp.element_id
+class SeedEvent
+  attr_reader :event
+
+  def initialize(eventcategory, eventsource, body, starts_at, ends_at, more = nil)
+    params = {
+      body:             body,
+      eventcategory_id: eventcategory.id,
+      eventsource_id:   eventsource.id,
+      starts_at:        starts_at,
+      ends_at:          ends_at
     }
-  ]
-)
+    if more
+      params.merge!(more)
+    end
+    @event = Event.create!(params)
+  end
+
+  #
+  #  Add an attendee to an event.  Must respond to element_id()
+  #
+  def <<(thing)
+    @event.commitments.create!({ element_id: thing.element_id })
+  end
+
+end
+
+calendarevents = [
+  SeedEvent.new(eventcategories[1],
+                thisfile,
+                "3rd XV away - St Asaph's",
+                Time.zone.parse("#{wednesday.to_s} 14:00"),
+                Time.zone.parse("#{wednesday.to_s} 17:00"),
+                {organiser_id: ced.element_id}),
+  SeedEvent.new(eventcategories[1],
+                thisfile,
+                "2nd XV home - St Asaph's",
+                Time.zone.parse("#{wednesday.to_s} 14:00"),
+                Time.zone.parse("#{wednesday.to_s} 17:00"),
+                {organiser_id: ced.element_id}),
+  SeedEvent.new(eventcategories[2],
+                thisfile,
+                "Geography field trip",
+                Time.zone.parse("#{thursday.to_s} 09:00"),
+                Time.zone.parse("#{thursday.to_s} 17:00"),
+                {organiser_id: ced.element_id}),
+  SeedEvent.new(privilegedeventcategories[2],
+                thisfile,
+                "Year 9 parents' evening",
+                Time.zone.parse("#{tuesday.to_s} 17:30"),
+                Time.zone.parse("#{tuesday.to_s} 21:00"),
+                {organiser_id: ced.element_id}),
+  SeedEvent.new(eventcategories[1],
+                thisfile,
+                "Rowing at Eton Dorney",
+                Time.zone.parse("#{saturday.to_s} 10:30"),
+                Time.zone.parse("#{saturday.to_s} 15:00"),
+                {organiser_id: sjp.element_id})
+]
 
 calendarevents.each do |ce|
-  Commitment.create!(
-    {
-      event_id:   ce.id,
-      element_id: calendarelement.id
-    }
-  )
+  ce << calendarproperty
 end
 
 startofterm = privilegedeventcategories[0].events.create!( {
@@ -268,18 +283,13 @@ startofterm = privilegedeventcategories[0].events.create!( {
 
 startofterm.commitments.create!({element_id: calendarelement.id })
 
-Commitment.create!(
-  {
-    event_id: calendarevents[4].id,
-    element_id: ced.element_id
-  }
-)
+calendarevents[4] << ced
 
 Note.create!(
   {
     title: "",
     contents: "Please could parents not attempt to take rowers away\nbefore the end of the last event.\n\nRefreshments will be provided in the school marquee.",
-    parent_id: calendarevents[4].id,
+    parent_id: calendarevents[4].event.id,
     parent_type: "Event",
     visible_guest: true,
     visible_staff: true
@@ -372,7 +382,7 @@ SeedSubject.new("English")
 subjectfrench = SeedSubject.new("French")
 subjectfm     = SeedSubject.new("Further Maths")
 subjectmaths  = SeedSubject.new("Mathematics")
-SeedSubject.new("Geography")
+subjectgeography = SeedSubject.new("Geography")
 SeedSubject.new("German")
 SeedSubject.new("History")
 SeedSubject.new("Italian")
@@ -386,9 +396,10 @@ class SeedGroup
   attr_reader :dbrecord, :subject, :name
 
   def initialize(name, era, subject, type = "Teaching")
-    @name    = name
-    @subject = subject
-    @dbrecord = Teachinggroup.create!({
+    @name      = name
+    @subject   = subject
+    @starts_on = era.starts_on
+    @dbrecord  = Teachinggroup.create!({
       name:       name,
       starts_on:  era.starts_on,
       era_id:     era.id,
@@ -402,6 +413,10 @@ class SeedGroup
     @dbrecord.element.id
   end
 
+  def <<(new_member)
+    @dbrecord.add_member(new_member.dbrecord, @starts_on)
+  end
+
 end
 
 group3mat1  = SeedGroup.new("9 Mat1", current_era, subjectmaths)
@@ -412,6 +427,8 @@ group7mat1a = SeedGroup.new("13 Mat1A", current_era, subjectmaths)
 group7fma2p = SeedGroup.new("13 FMa2P", current_era, subjectfm)
 group3fre2  = SeedGroup.new("9 Fre2",  current_era, subjectfrench)
 
+groupgeog   = SeedGroup.new("Geography pupils", current_era, subjectgeography)
+calendarevents[2] << groupgeog
 
 class SeedPupil
 
@@ -482,7 +499,13 @@ class SeedPupil
               "Gerrard",
               "Collins",
               "Greenwood",
-              "Hurley"
+              "Hurley",
+              "Hickson",
+              "Thompson",
+              "Grant",
+              "Laurie",
+              "Lansden",
+              "Lee"
   ]
 
   attr_reader :dbrecord
@@ -497,7 +520,8 @@ class SeedPupil
       forename: forename,
       known_as: forename,
       email:    "#{forename.downcase}.#{surname.downcase}@pupils.xronos.uk",
-      start_year: start_year
+      start_year: start_year,
+      current:    true
     })
     @dbrecord.reload
   end
@@ -508,31 +532,6 @@ class SeedPupil
 
 end
 
-class SeedEvent
-  attr_reader :event
-
-  def initialize(eventcategory, eventsource, body, starts_at, ends_at, more = nil)
-    params = {
-      body:             body,
-      eventcategory_id: eventcategory.id,
-      eventsource_id:   eventsource.id,
-      starts_at:        starts_at,
-      ends_at:          ends_at
-    }
-    if more
-      params.merge!(more)
-    end
-    @event = Event.create!(params)
-  end
-
-  #
-  #  Add an attendee to an event.  Must respond to element_id()
-  #
-  def <<(thing)
-    @event.commitments.create!({ element_id: thing.element_id })
-  end
-
-end
 
 class SeedLesson < SeedEvent
 
@@ -641,6 +640,17 @@ SeedLesson.new(thisfile, sjp, group6mat3p, l101, friday, periods[1])
 SeedLesson.new(thisfile, sjp, group5mat4,  l101, friday, periods[7])
 
 fifthyear = Array.new
-40.times do
+4.times do
+  pupil = SeedPupil.new(current_era, 11) 
+  groupgeog << pupil
+  group5mat4 << pupil
+  fifthyear << pupil
+end
+20.times do
+  pupil = SeedPupil.new(current_era, 11) 
+  group5mat4 << pupil
+  fifthyear << pupil
+end
+20.times do
   fifthyear << SeedPupil.new(current_era, 11)
 end
