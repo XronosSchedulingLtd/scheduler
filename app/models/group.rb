@@ -125,6 +125,19 @@ class Group < ActiveRecord::Base
     " (#{description})"
   end
 
+  def show_historic_panels?
+    false
+  end
+
+  def extra_panels?
+    true
+  end
+
+  def extra_panels(index)
+    panel = DisplayPanel.new(index, "Memberships", false)
+    [panel]
+  end
+
   def active
     true
   end

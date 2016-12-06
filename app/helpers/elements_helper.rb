@@ -1,14 +1,15 @@
 module ElementsHelper
   COLUMN_TITLES = {
-    direct_groups:   "Member of",
-    indirect_groups: "and thus of",
-    taught_groups: "Groups/Sets",
     subject_teachers: "Teachers",
     subject_groups: "Teaching groups"
   }
 
-  def column_title(key)
-    COLUMN_TITLES[key] || key.to_s.capitalize
+  def column_title(column)
+    if column.type == :general
+      column.title
+    else
+      COLUMN_TITLES[column.type] || column.type.to_s.capitalize
+    end
   end
 
   #
@@ -30,7 +31,11 @@ module ElementsHelper
   end
 
   def be_hover_linken(title, name, element)
-    "<span title=\"#{title}\">#{be_linken(name, element)}</span>"
+    if title
+      "<span title=\"#{title}\">#{be_linken(name, element)}</span>"
+    else
+      be_linken(name, element)
+    end
   end
 
   #
@@ -89,20 +94,6 @@ module ElementsHelper
     gs.each do |g|
       result << group_line(g, for_teacher)
     end
-    result.join("\n")
-  end
-
-  def render_grouped_groups(gg, for_teacher = false)
-    result = []
-    result << "<table class=\"gg_table\">"
-    if gg.empty?
-      result << "<tr><td>&bull;&nbsp;</td><td>None</td></tr>"
-    else
-      gg.each do |gs|
-        result << render_group_set(gs, for_teacher)
-      end
-    end
-    result << "</table>"
     result.join("\n")
   end
 
@@ -193,18 +184,58 @@ module ElementsHelper
     result.join("\n")
   end
 
+  #
+  #  I'd really like to get the object itself to do this, but the
+  #  way Rails structures dependencies it isn't really possible.
+  #
+  def render_general_column_entry(entry)
+    result = []
+    result <<
+      "<tr><th>&bull;&nbsp;</th><th colspan=\"3\" align=\"left\">#{
+        entry.subtitle
+      }</th></tr>"
+    entry.rows.each do |row|
+      result << "<tr><td></td>"
+        row.each_item do |col, width, element, hover_text, alignment|
+          result <<
+            "<td#{
+              width == 1 ? "" : " colspan=\"#{width}\""}#{
+              alignment ? " align=\"#{alignment}\"" : ""}>#{
+              be_hover_linken(hover_text, col, element)}</td>"
+        end
+      result << "</tr>"
+    end
+    result.join("\n")
+  end
+
+  def render_general_column(column)
+    result = []
+    if column.preamble
+      result << column.preamble
+    end
+    result << "<table class=\"gg_table\">"
+    if column.empty?
+      result << "<tr><td>&bull;&nbsp;</td><td>None</td></tr>"
+    else
+      column.entries.each do |entry|
+        result << render_general_column_entry(entry)
+      end
+    end
+    result << "</table>"
+    if column.postamble
+      result << column.postamble
+    end
+    result.join("\n")
+  end
+
   def render_column_contents(column)
     result = []
     unless column.type == :dummy
       result << "<div class=\"panel\">"
-      result << "<h3>#{column_title(column.type)}</h3>"
+      result << "<h3>#{column_title(column)}</h3>"
       case column.type
-      when :direct_groups
-        result << render_grouped_groups(column.contents)
-      when :indirect_groups
-        result << render_grouped_groups(column.contents)
-      when :taught_groups
-        result << render_grouped_groups(column.contents, true)
+      when :general
+        result << render_general_column(column)
       when :subject_teachers
         result << render_member_list(column.contents)
       when :subject_groups

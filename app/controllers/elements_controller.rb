@@ -26,6 +26,45 @@ class ElementsController < ApplicationController
       "group_set"
     end
 
+    #
+    #  Convert this GroupSet into a GeneralDisplayColumnEntry.
+    #
+    def to_gdce(as)
+      gdce = DisplayPanel::GDCEntry.new(self.title)
+      self.each do |group|
+        case group.persona_type
+        when "Teachinggrouppersona"
+          gdcr = DisplayPanel::GDCRow.new(1, 1, 1)
+          gdcr.set_contents(0, group.name, group.element)
+          if group.subject
+            gdcr.set_contents(1, group.subject.name, group.subject.element)
+          end
+          if as == :teacher
+            gdcr.set_contents(2, group.members.count, nil, nil, "right")
+          elsif group.staff
+            gdcr.set_contents(2,
+                              group.staff.initials,
+                              group.staff.element,
+                              group.staff.name)
+          end
+        when "Tutorgrouppersona"
+          gdcr = DisplayPanel::GDCRow.new(2, 1)
+          gdcr.set_contents(0, group.name, group.element)
+          if group.staff
+            gdcr.set_contents(1,
+                              group.staff.initials,
+                              group.staff.element,
+                              group.staff.name)
+          end
+        else
+          gdcr = DisplayPanel::GDCRow.new(3)
+          gdcr.set_contents(0, group.name, group.element)
+        end
+        gdce << gdcr
+      end
+      gdce
+    end
+
   end
 
   #
@@ -94,6 +133,17 @@ class ElementsController < ApplicationController
       end
     end
 
+    #
+    #  Convert this set into a general column.
+    #
+    def to_column(title, as = :general_member)
+      gdc = DisplayPanel::GeneralDisplayColumn.new(title)
+      self.each do |gs|
+        gdc << gs.to_gdce(as)
+      end
+      gdc
+    end
+
   end
 
   #
@@ -145,7 +195,7 @@ class ElementsController < ApplicationController
 
   #
   #  It would be nice to be able to use a line like the following to
-  #  generate by action, but unfortunately one of my scopes needs
+  #  generate my action, but unfortunately one of my scopes needs
   #  a parameter.  Hence I have to do it manually.
   #
   #autocomplete :element, :name, :scopes => [:current, :mine_or_system], :full => true
@@ -315,6 +365,9 @@ class ElementsController < ApplicationController
             @panels << panel
           end
         end
+      end
+      if @element.extra_panels?
+        @panels += @element.extra_panels(index)
       end
     else
       render :forbidden
@@ -566,19 +619,22 @@ class ElementsController < ApplicationController
                           collect {|m| m.group}.
                           select {|g| g.public?}.sort
         grouped_direct_groups = GroupSetHolder.new(groups, old_groups)
-        panel.add_column(:direct_groups, grouped_direct_groups)
+        panel.add_general_column(
+          grouped_direct_groups.to_column("Member of"))
       when :indirect_groups
         indirect_groups =
           memberships.select {|m| m.level != 1}.
                       collect {|m| m.group}.
                       select {|g| g.public?}.sort.uniq
         grouped_indirect_groups = GroupSetHolder.new(indirect_groups)
-        panel.add_column(:indirect_groups, grouped_indirect_groups)
+        panel.add_general_column(
+          grouped_indirect_groups.to_column("and thus of"))
       when :taught_groups
-        panel.add_column(:taught_groups,
-                         GroupSetHolder.new(
-                           element.entity.tutorgroups.ofera(era) +
-                           element.entity.groupstaught.ofera(era).sort))
+        panel.add_general_column(
+          GroupSetHolder.new(
+            element.entity.tutorgroups.ofera(era) +
+            element.entity.groupstaught.ofera(era).sort).
+              to_column("Groups/Sets", :teacher))
       when :members
         panel.add_column(:members,
                          MemberSetHolder.new(element.entity.members))
