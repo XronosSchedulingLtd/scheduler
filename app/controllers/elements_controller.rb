@@ -41,11 +41,10 @@ class ElementsController < ApplicationController
           end
           if as == :teacher
             gdcr.set_contents(2, group.members.count, nil, nil, "right")
-          elsif group.staff
-            gdcr.set_contents(2,
-                              group.staff.initials,
-                              group.staff.element,
-                              group.staff.name)
+          else
+            group.staffs.each do |s|
+              gdcr.set_contents(2, s.initials, s.element, s.name)
+            end
           end
         when "Tutorgrouppersona"
           gdcr = DisplayPanel::GDCRow.new(2, 1)
@@ -161,6 +160,14 @@ class ElementsController < ApplicationController
       "member_set"
     end
 
+    def to_gdce
+      gdce = DisplayPanel::GDCEntry.new(self.type)
+      self.each do |m|
+        gdce << DisplayPanel::GDCRow.for_member(m)
+      end
+      gdce
+    end
+
   end
 
   #
@@ -191,6 +198,16 @@ class ElementsController < ApplicationController
       end
     end
 
+    #
+    #  Convert this set into a general column.
+    #
+    def to_column
+      gdc = DisplayPanel::GeneralDisplayColumn.new("Members")
+      self.each do |ms|
+        gdc << ms.to_gdce
+      end
+      gdc
+    end
   end
 
   #
@@ -636,16 +653,22 @@ class ElementsController < ApplicationController
             element.entity.groupstaught.ofera(era).sort).
               to_column("Groups/Sets", :teacher))
       when :members
-        panel.add_column(:members,
-                         MemberSetHolder.new(element.entity.members))
+        panel.add_general_column(
+          MemberSetHolder.new(element.entity.members).to_column)
       when :subject_teachers
-        panel.add_column(:subject_teachers,
-                         element.entity.staffs.current.sort)
+        gdc = DisplayPanel::GeneralDisplayColumn.new("Teachers")
+        gdce = DisplayPanel::GDCEntry.new(nil)
+        element.entity.staffs.current.sort.each do |s|
+          gdce << DisplayPanel::GDCRow.for_member(s)
+        end
+        gdc << gdce
+        panel.add_general_column(gdc)
       when :subject_groups
+        gdc = DisplayPanel::GeneralDisplayColumn.new("Teaching groups")
         teachinggroups = element.entity.teachinggroups.sort
-        panel.add_column(:subject_groups,
-                         GroupSet.new("#{teachinggroups.count} teaching set",
-                                      teachinggroups))
+        gdc << GroupSet.new("#{teachinggroups.count} teaching set",
+                            teachinggroups).to_gdce(:teacher)
+        panel.add_general_column(gdc)
       else
         Rails.logger.error("Don't know how to handle #{col} for display.")
       end

@@ -13,6 +13,38 @@ class DisplayPanel
   end
 
   #
+  #  Normally, each cell of the table which we create contains
+  #  one item, but it is just possible for there to be more
+  #  than one.  In that case it is up to the display code how they are
+  #  displayed, but typically they will all go in the same table
+  #  cell with <br/> separating them.
+  #
+  class GDCItem
+    attr_reader :body, :element, :hover_text
+
+    def initialize(body, element = nil, hover_text = nil)
+      @body = body
+      @element = element
+      @hover_text = hover_text
+    end
+  end
+
+  #
+  #  A cell is an array of items, possibly empty.
+  #
+  class GDCCell < Array
+
+    attr_reader :width, :alignment
+
+    def initialize(width, alignment = nil)
+      super()
+      @width = width
+      @alignment = alignment
+    end
+
+  end
+
+  #
   #  One row in a GDC Entry
   #
   class GDCRow
@@ -30,15 +62,15 @@ class DisplayPanel
         raise "Total columns in GDCRow must be 3."
       end
       @num_columns = params.count
+      @cells = Array.new(@num_columns, nil)
       @widths = params.collect {|p| p}
-      @columns = Array.new(@num_columns, "")
-      @elements = Array.new(@num_columns, nil)
-      @hover_texts = Array.new(@num_columns, nil)
-      @alignments = Array.new(@num_columns, nil)
+      @blank_cell = GDCCell.new(1)
     end
 
     #
     #  Columns are indexed from 0.
+    #  Note that only the first invocation for a cell will affect
+    #  the cell's alignment.
     #
     def set_contents(
       column,
@@ -46,19 +78,51 @@ class DisplayPanel
       element = nil,
       hover_text = nil,
       alignment = nil)
+
       if column < 0 || column >= @num_columns
         raise "Out of range column index #{column}"
       end
-      @columns[column] = text
-      @elements[column] = element
-      @hover_texts[column] = hover_text
-      @alignments[column] = alignment
+      unless @cells[column]
+        @cells[column] = GDCCell.new(@widths[column], alignment)
+      end
+      @cells[column] << GDCItem.new(text, element, hover_text)
     end
 
-    def each_item
-      @columns.each_with_index do |col, i|
-        yield col, @widths[i], @elements[i], @hover_texts[i], @alignments[i]
+    def each_cell
+      @cells.each do |cell|
+        if cell
+          yield cell
+        else
+          #
+          #  Nothing has been set, so supply enough to display a blank.
+          #
+          yield @blank_cell
+        end
       end
+    end
+
+    #
+    #  Several bits of code want to create GDCRows of the same
+    #  general format, so move the code here.
+    #
+    def self.for_member(m)
+      if m.instance_of?(Pupil)
+        gdcr = self.new(2, 1)
+        gdcr.set_contents(0, m.name, m.element)
+        if m.tutorgroup
+          gdcr.set_contents(1, m.tutorgroup_name, m.tutorgroup.element)
+        else
+          gdcr.set_contents(1, m.tutorgroup_name)
+        end
+      elsif m.instance_of?(Staff)
+        gdcr = self.new(2, 1)
+        gdcr.set_contents(0, m.name, m.element)
+        gdcr.set_contents(1, m.initials, m.element)
+      else
+        gdcr = self.new(3)
+        gdcr.set_contents(0, m.name, m.element)
+      end
+      gdcr
     end
 
   end
