@@ -1,3 +1,4 @@
+require 'yaml'
 
 #
 #  A basic set of event category properties, from which we will do
@@ -236,176 +237,33 @@ end
 
 class SeedPupil
 
-  FORENAMES = ["Peter",
-               "John",
-               "Charles",
-               "Albert",
-               "Freddie",
-               "James",
-               "Matthew",
-               "Michael",
-               "Claire",
-               "Christine",
-               "Mila",
-               "Stephen",
-               "Mark",
-               "Luke",
-               "Robert",
-               "Richard",
-               "Lucy",
-               "Eva",
-               "Millie",
-               "William",
-               "Mimi",
-               "Olivia",
-               "Wayne",
-               "Sharon",
-               "Kumar",
-               "Oscar",
-               "Jack",
-               "Sean",
-               "Jessica",
-               "Libby",
-               "George",
-               "John",
-               "Murray",
-               "David",
-               "Alison",
-               "Trevor",
-               "Julie",
-               "Jackie",
-               "Jacqui",
-               "Roger",
-               "Jason",
-               "Mary",
-               "Wendy",
-               "Thomas",
-               "Cameron",
-               "Harry",
-               "Ann",
-               "Hilda",
-               "Catlin",
-               "Katherine"
-  ]
-  SURNAMES = ["Smith",
-              "Jones",
-              "Stone",
-              "Robinson",
-              "Jennings",
-              "Darbishire",
-              "Kerrigan",
-              "Fountain",
-              "Simmons",
-              "Storey",
-              "Warburton",
-              "O'Hickey",
-              "West",
-              "Descartes",
-              "Loddon",
-              "Green",
-              "Brown",
-              "Temple",
-              "Binns",
-              "Fotheringay-Smith",
-              "Cotton",
-              "O'Doherty",
-              "Poon",
-              "Coull",
-              "Morgan",
-              "Evans",
-              "Flanagan",
-              "Dinsey",
-              "Spence",
-              "Davies",
-              "Lowndes",
-              "Nelson",
-              "Cameron",
-              "Enderton",
-              "Wodehouse",
-              "Drake",
-              "Gerrard",
-              "Collins",
-              "Greenwood",
-              "Hurley",
-              "Hickson",
-              "Thompson",
-              "Grant",
-              "Laurie",
-              "Lansden",
-              "Lee",
-              "Winters",
-              "Marshall",
-              "Cotton",
-              "May",
-              "Clarkson",
-              "Hammon",
-              "Doran",
-              "Binns",
-              "Blotwell",
-              "Castle",
-              "Warburton",
-              "Morley",
-              "Rice",
-              "Johnson",
-              "Stevenson",
-              "Stephenson",
-              "Ravindran",
-              "Mussolini",
-              "Birch",
-              "Boston",
-              "Briggs",
-              "Cumberbatch",
-              "Cragg",
-              "Cross",
-              "Devlin",
-              "Devoy",
-              "Elliott",
-              "Flanagan",
-              "Fraser",
-              "Frost",
-              "Gallagher",
-              "Garner",
-              "Gates",
-              "Gibson",
-              "Hammond",
-              "Hoyle",
-              "Lawson",
-              "Slater",
-              "Slyne",
-              "Stamp",
-              "Studholme",
-              "Thornber",
-              "Tootle",
-              "Walmsley",
-              "Wilcox",
-              "Wilkinson",
-              "Wilkins",
-              "Carter",
-              "Pemberton-Oakes",
-              "Kington",
-              "Kingston",
-              "Williams",
-              "Georgeson",
-              "Pearson",
-              "Roget",
-              "Barton",
-              "Fairclough",
-              "Henthorn",
-              "Hardy",
-              "Nelson",
-              "Penrose",
-              "Dawswell",
-              "Lusk",
-              "Hamilton",
-              "Underwood"
-  ]
-
   attr_reader :dbrecord
+
+  @surnames =
+    YAML.load(File.open(File.join(File.dirname(__FILE__), "surnames.yml")))
+  @forenames =
+    YAML.load(File.open(File.join(File.dirname(__FILE__), "forenames.yml")))
+
+  def self.surnames
+    @surnames
+  end
+
+  def self.forenames
+    @forenames
+  end
+
+  def surnames
+    self.class.surnames
+  end
+
+  def forenames
+    self.class.forenames
+  end
 
   def unique_names
     loop do
-      forename = FORENAMES.sample
-      surname = SURNAMES.sample
+      forename = forenames.sample
+      surname = surnames.sample
       existing = Pupil.find_by(name: "#{forename} #{surname}")
       return forename, surname unless existing
     end
