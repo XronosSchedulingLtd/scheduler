@@ -9,33 +9,6 @@
 require_relative "seedclasses"
 
 #
-#  Always set everything to the current week.
-#
-Date.beginning_of_week = :sunday
-sunday = Date.today.at_beginning_of_week
-monday    = sunday + 1.day
-tuesday   = sunday + 2.days
-wednesday = sunday + 3.days
-thursday  = sunday + 4.days
-friday    = sunday + 5.days
-saturday  = sunday + 6.days
-
-#
-#  What academic year are we notionally in?
-#
-today = Date.today
-current_year = today.year
-era_start_date = Date.parse("#{current_year}-08-15")
-if era_start_date > today
-  era_start_date = era_start_date - 1.year
-end
-era_end_date = era_start_date + 1.year - 1.day
-#puts era_start_date
-#puts era_end_date
-era_short_name = "#{era_start_date.strftime("%Y")}/#{era_end_date.strftime("%y")}"
-era_name = "Academic Year #{era_short_name}"
-
-#
 #  If there are any left over from previous runs, then my arrays don't
 #  contain the necessary IDs.  Start with a clean slate.
 #
@@ -48,8 +21,6 @@ Property.destroy_all
 Eventsource.destroy_all
 Datasource.destroy_all
 Eventcategory.destroy_all
-#Setting.destroy_all  You can't delete them.
-Era.destroy_all
 
 #
 #  It's not quite a clean slate, because the IDs carry on incrementing
@@ -57,90 +28,21 @@ Era.destroy_all
 #
 
 #
-#  Need a current era, which we'll assume to be the current academic year.
-#  For reasons of overlap, these default to running from 15th August in
-#  one year, to 14th August of the next.
+#  The act of creating a seeder will ensure the necessary basic
+#  settings records and eras exist within the system.
 #
-
-current_era = Era.create!({
-  name:       era_name,
-  starts_on:  era_start_date,
-  ends_on:    era_end_date,
-  short_name: era_short_name
-})
-
-perpetual_era = Era.create!({
-  name:       "Perpetual",
-  starts_on:  era_start_date,
-  ends_on:    nil,
-  short_name: "Perpetual"
-})
-
-#
-#  This one may well fail, but we don't care.
-#
-Setting.create({
-  current_era_id: current_era.id,
-  perpetual_era_id: perpetual_era.id,
-  enforce_permissions: true,
-  auth_type: 1
-})
-
+seeder = Seeder.new
 
 #
 #  First, some which are intrinsic to the functioning of the system.
 #
-weeklettercategory = Eventcategory.create!([
-  ECH.new({name: "Lesson"}),
-  ECH.new({name: "Week letter", schoolwide: true, privileged: true }),
-  ECH.new({name: "Duty", privileged: true}),
-  ECH.new({name: "Invigilation", privileged: true})
-])
-
-
-calendarproperty = SeedProperty.new("Calendar").
-                                set_preferred_colour("#1f94bc")
-gapproperty = SeedProperty.new("Gap")
-suspensionproperty = SeedProperty.new("Suspension")
+seeder.create_essentials
 
 #
 #  And the rest fall under a heading of likely to be useful.
 #
+seeder.create_usefuls
 
-#
-#  Privileged event categories can be used by nominated users only.
-#
-privilegedeventcategories = Eventcategory.create!([
-  ECH.new({name: "Date - crucial", schoolwide: true, privileged: true }),
-  ECH.new({name: "Hidden", publish: false, visible: false, privileged: true}),
-  ECH.new({name: "Parents' evening", privileged: true}),
-  ECH.new({name: "Reporting deadline", privileged: true}),
-  ECH.new({name: "Tutor period", privileged: true}),
-  ECH.new({name: "Assembly", privileged: true})
-])
-
-
-eventcategories = Eventcategory.create!([
-  ECH.new({name: "Sports fixture"}),
-  ECH.new({name: "Trip"}),
-  ECH.new({name: "INSET / Training"}),
-  ECH.new({name: "Interview / Audition"}),
-  ECH.new({name: "Practice / Rehearsal"}),
-  ECH.new({name: "Performance"}),
-  ECH.new({name: "Religious service"}),
-  ECH.new({name: "Date - other", unimportant: true}),
-  ECH.new({name: "Event set-up"}),
-  ECH.new({name: "Meeting"})
-])
-
-eventsources = Eventsource.create!([
-    { name: "Seedfile" },
-    { name: "Manual" }
-])
-
-thisfile = eventsources[0]
-
-datasource = Datasource.create!({ name: "Seedfile" })
 
 #============================================================================
 #
@@ -149,221 +51,213 @@ datasource = Datasource.create!({ name: "Seedfile" })
 #
 #============================================================================
 
-subjectdrama = SeedSubject.new("Drama")
-SeedSubject.new("English")
-subjectfrench = SeedSubject.new("French")
-subjectfm     = SeedSubject.new("Further Maths")
-subjectmaths  = SeedSubject.new("Mathematics")
-subjectgeography = SeedSubject.new("Geography")
-SeedSubject.new("German")
-SeedSubject.new("History")
-SeedSubject.new("Italian")
-SeedSubject.new("Latin")
-SeedSubject.new("Physical Education")
-SeedSubject.new("Spanish")
-SeedSubject.new("Sport")
+seeder.new_subject(:drama,     "Drama")
+seeder.new_subject(:english,   "English")
+seeder.new_subject(:french,    "French")
+seeder.new_subject(:fm,        "Further Maths")
+seeder.new_subject(:maths,     "Mathematics")
+seeder.new_subject(:geography, "Geography")
+seeder.new_subject(:german,    "German")
+seeder.new_subject(:history,   "History")
+seeder.new_subject(:italian,   "Italian")
+seeder.new_subject(:latin,     "Latin")
+seeder.new_subject(:pe,        "Physical Education")
+seeder.new_subject(:spanish,   "Spanish")
+seeder.new_subject(:sport,     "Sport")
 
-sjp = SeedStaff.new("Mr", "Simon", "Philpotts", "SJP").teaches(subjectmaths).
-                                                       teaches(subjectfm)
-ced = SeedStaff.new("Mrs", "Claire", "Dunwoody", "CED").teaches(subjectfrench)
-psl = SeedStaff.new("Ms", "Phillipa", "Long", "PSL").teaches(subjectgeography)
-dlj = SeedStaff.new("Mr", "David", "Jones", "DLJ").teaches(subjectdrama)
+sjp = seeder.new_staff("Mr", "Simon", "Philpotts", "SJP", [:maths, :fm])
+ced = seeder.new_staff("Mrs", "Claire", "Dunwoody", "CED", [:french])
+psl = seeder.new_staff("Ms", "Phillipa", "Long", "PSL", [:geography])
+dlj = seeder.new_staff("Mr", "David", "Jones", "DLJ", [:drama])
 
-allstaff = SeedGroup.new("All staff", current_era).
-                     members(sjp, ced, psl, dlj)
-year9teachers = SeedGroup.new("Year 9 teachers", current_era).
-                     members(sjp, ced, psl, dlj)
+allstaff = seeder.new_group(:allstaff,
+                            "All staff",
+                            :current_era,
+                            [:sjp, :ced, :psl, :dlj])
+year9teachers = seeder.new_group(:year9teachers,
+                                 "Year 9 teachers",
+                                 :current_era,
+                                 [:sjp, :ced, :psl])
 
-allpupils = SeedGroup.new("All pupils", current_era)
+allpupils = seeder.new_group(:allpupils, "All pupils", :current_era)
 
-groupgeog = SeedTeachingGroup.new("Geography pupils", current_era, subjectgeography)
+groupgeog = seeder.new_teaching_group(:groupgeog,
+                                      "Geography pupils",
+                                      :geography)
 
-mainhall = SeedLocation.new("Main Hall")
-gks = SeedLocation.new("Genghis Khan Suite", "GKS")
-l101 = SeedLocation.new("L101")
-l102 = SeedLocation.new("L102")
-SeedLocation.new("L103")
-SeedLocation.new("L104")
-SeedLocation.new("L105")
-SeedLocation.new("L106")
-SeedLocation.new("L107")
-l108 = SeedLocation.new("L108")
-SeedLocation.new("L109")
-SeedLocation.new("L110")
-SeedLocation.new("L111")
+seeder.new_location(:mainhall, "Main Hall")
+seeder.new_location(:gks, "Genghis Khan Suite", "GKS")
+seeder.new_location(:l101, "L101")
+seeder.new_location(:l102, "L102")
+seeder.new_location(:l103, "L103")
+seeder.new_location(:l104, "L104")
+seeder.new_location(:l105, "L105")
+seeder.new_location(:l106, "L106")
+seeder.new_location(:l107, "L107")
+seeder.new_location(:l108, "L108")
+seeder.new_location(:l109, "L109")
+seeder.new_location(:l110, "L110")
+seeder.new_location(:l111, "L111")
+
+calendarproperty = seeder.properties[:calendarproperty]
+suspensionproperty = seeder.properties[:suspensionproperty]
 
 calendarevents = [
-  SeedEvent.new(eventcategories[1],
-                thisfile,
-                "3rd XV away - St Asaph's",
-                Time.zone.parse("#{wednesday.to_s} 14:00"),
-                Time.zone.parse("#{wednesday.to_s} 17:00"),
-                {organiser_id: ced.element_id}).
-            involving(calendarproperty),
-  SeedEvent.new(eventcategories[1],
-                thisfile,
-                "2nd XV home - St Asaph's",
-                Time.zone.parse("#{wednesday.to_s} 14:00"),
-                Time.zone.parse("#{wednesday.to_s} 17:00"),
-                {organiser_id: ced.element_id}).
-            involving(calendarproperty),
-  SeedEvent.new(eventcategories[2],
-                thisfile,
-                "Geography field trip",
-                Time.zone.parse("#{thursday.to_s} 09:00"),
-                Time.zone.parse("#{thursday.to_s} 17:00"),
-                {organiser_id: ced.element_id}).
-            involving(calendarproperty, groupgeog),
-  SeedEvent.new(privilegedeventcategories[2],
-                thisfile,
-                "Year 9 parents' evening",
-                Time.zone.parse("#{tuesday.to_s} 17:30"),
-                Time.zone.parse("#{tuesday.to_s} 21:00"),
-                {organiser_id: ced.element_id}).
+  seeder.new_event(:sportsfixture,
+                   "3rd XV away - St Asaph's",
+                   :wednesday,
+                   ["14:00", "17:00"],
+                   :ced).
+         involving(calendarproperty),
+  seeder.new_event(:sportsfixture,
+                   "2nd XV home - St Asaph's",
+                   :wednesday,
+                   ["14:00", "17:00"],
+                   :ced).
+         involving(calendarproperty),
+  seeder.new_event(:trip,
+                   "Geography field trip",
+                   :thursday,
+                   ["09:00", "17:00"],
+                   :ced,
+                   {involving: [calendarproperty, groupgeog]}),
+  seeder.new_event(:parentsevening,
+                   "Year 9 parents' evening",
+                   :tuesday,
+                   ["17:30", "21:00"],
+                   :ced).
             involving(calendarproperty, year9teachers),
-  SeedEvent.new(eventcategories[1],
-                thisfile,
-                "Rowing at Eton Dorney",
-                Time.zone.parse("#{saturday.to_s} 10:30"),
-                Time.zone.parse("#{saturday.to_s} 15:00"),
-                {organiser_id: ced.element_id}).
-            involving(calendarproperty, sjp).
-            add_note(
-              "",
-              "Please could parents not attempt to take rowers away\nbefore the end of the last event.\n\nRefreshments will be provided in the school marquee.",
-              {visible_guest: true}
-            ),
-  SeedEvent.new(privilegedeventcategories[5],
-                thisfile,
-                "Founder's Assembly",
-                Time.zone.parse("#{monday.to_s} 11:15"),
-                Time.zone.parse("#{monday.to_s} 12:10")).
-            involving(calendarproperty,
-                      suspensionproperty,
-                      allstaff,
-                      allpupils,
-                      mainhall)
+  seeder.new_event(:sportsfixture,
+                   "Rowing at Eton Dorney",
+                   :saturday,
+                   ["10:30", "15:00"],
+                   :ced).
+         involving(calendarproperty, sjp).
+         add_note(
+           "",
+           "Please could parents not attempt to take rowers away\nbefore the end of the last event.\n\nRefreshments will be provided in the school marquee.",
+           {visible_guest: true}
+         ),
+  seeder.new_event(:assembly,
+                  "Founder's Assembly",
+                  :monday,
+                  ["11:15", "12:10"]).
+         involving(calendarproperty,
+                   suspensionproperty,
+                   allstaff,
+                   allpupils,
+                   seeder.locations[:mainhall])
 ]
 
-[monday, tuesday, wednesday, thursday, friday].each do |day|
-  SeedEvent.new(privilegedeventcategories[5],
-                thisfile,
-                "Assembly",
-                Time.zone.parse("#{day.to_s} 09:00"),
-                Time.zone.parse("#{day.to_s} 09:20")).
-            involving(allstaff, allpupils, mainhall)
+[:monday, :tuesday, :wednesday, :thursday, :friday].each do |day|
+  seeder.new_event(:assembly,
+                   "Assembly",
+                   day,
+                   ["09:00", "09:20"]).
+         involving(allstaff, allpupils, seeder.locations[:mainhall])
 end
 
 
-
-SeedEvent.new(privilegedeventcategories[0],
-              thisfile,
-              "Founder's Day",
-              Time.zone.parse("#{monday.to_s}"),
-              Time.zone.parse("#{tuesday.to_s}"),
-              {all_day: true}).
-          involving(calendarproperty)
+seeder.new_event(:datecrucial,
+                 "Founder's Day",
+                 :monday,
+                 :all_day,
+                 nil,
+                 {involving: calendarproperty})
 
 
 #
 #  Now some simple timetable stuff.
 #
 
-periods = [
-  SeedPeriod.new("09:00", "09:25"),         # 0 - Assembly
-  SeedPeriod.new("09:25", "10:15"),         # 1
-  SeedPeriod.new("10:15", "11:05"),         # 2
-  SeedPeriod.new("11:25", "12:15"),         # 3
-  SeedPeriod.new("12:15", "13:05"),         # 4
-  SeedPeriod.new("14:00", "14:50"),         # 5
-  SeedPeriod.new("14:50", "15:40"),         # 6
-  SeedPeriod.new("15:40", "16:30")          # 7
-]
+seeder.configure_periods(
+  [
+    ["09:00", "09:25"],         # 0 - Assembly
+    ["09:25", "10:15"],         # 1
+    ["10:15", "11:05"],         # 2
+    ["11:25", "12:15"],         # 3
+    ["12:15", "13:05"],         # 4
+    ["14:00", "14:50"],         # 5
+    ["14:50", "15:40"],         # 6
+    ["15:40", "16:30"]          # 7
+  ]
+)
+
+#
+#  Pretty much a full timetable for SJP
+#
+seeder.new_teaching_group(:g9mat1,   "9 Mat1",   :maths)
+seeder.new_teaching_group(:g10mat3,  "10 Mat3",  :maths)
+g11mat4 = seeder.new_teaching_group(:g11mat4,  "11 Mat4",  :maths)
+seeder.new_teaching_group(:g12mat3p, "12 Mat3P", :maths)
+seeder.new_teaching_group(:g13mat1a, "13 Mat1A", :maths)
+seeder.new_teaching_group(:g13fma2p, "13 FMa2P", :fm)
+seeder.new_teaching_group(:g9fre2,   "9 Fre2",   :french)
 
 
+seeder.new_lesson(:sjp, :g9mat1,   :l101, :monday, 1)
+seeder.new_lesson(:sjp, :g10mat3,  :l101, :monday, 3, {non_existent: true})
+seeder.new_lesson(:sjp, :g13mat1a, :l101, :monday, 5)
+seeder.new_lesson(:sjp, :g12mat3p, :l101, :monday, 6)
+seeder.new_lesson(:sjp, :g11mat4,  :l101, :monday, 7)
+
+seeder.new_lesson(:sjp, :g13mat1a, :l101, :tuesday, 2)
+seeder.new_lesson(:sjp, :g11mat4,  :l101, :tuesday, 3)
+seeder.new_lesson(:sjp, :g13fma2p, :l101, :tuesday, 4)
+seeder.new_lesson(:sjp, :g9mat1,   :l101, :tuesday, 6)
+seeder.new_lesson(:ced, :g9fre2,   :l108, :tuesday, 7).
+       covered_by(sjp).
+       add_note("", "Simon - sorry you've been hit with this cover.\nThere are some worksheets on the desk at the front of the room.\nPlease collect in their books at the end of the lesson.\n\nThanks - Claire")
+
+seeder.new_lesson(:sjp, :g10mat3,  :l101, :wednesday, 1)
+seeder.new_lesson(:sjp, :g9mat1,   :l101, :wednesday, 2)
+seeder.new_lesson(:sjp, :g13mat1a, :l101, :wednesday, 4)
+seeder.new_lesson(:sjp, :g12mat3p, :l101, :wednesday, 6)
+
+seeder.new_lesson(:sjp, :g11mat4,  :l101, :thursday,  2)
+seeder.new_lesson(:sjp, :g13fma2p, :l101, :thursday,  3)
+seeder.new_lesson(:sjp, :g10mat3,  :l101, :thursday,  5)
+seeder.new_lesson(:sjp, :g13mat1a, :l101, :thursday,  7)
+
+seeder.new_meeting("Maths dept meeting",
+                   [:sjp, :psl, :dlj], :l102, :thursday, 4)
 
 
-
-
-
-
-group3mat1  = SeedTeachingGroup.new("9 Mat1", current_era, subjectmaths)
-group4mat3  = SeedTeachingGroup.new("10 Mat3", current_era, subjectmaths)
-group5mat4  = SeedTeachingGroup.new("11 Mat4", current_era, subjectmaths)
-group6mat3p = SeedTeachingGroup.new("12 Mat3P", current_era, subjectmaths)
-group7mat1a = SeedTeachingGroup.new("13 Mat1A", current_era, subjectmaths)
-group7fma2p = SeedTeachingGroup.new("13 FMa2P", current_era, subjectfm)
-group3fre2  = SeedTeachingGroup.new("9 Fre2",  current_era, subjectfrench)
-
-
-
-SeedLesson.new(thisfile, sjp, group3mat1,  l101, monday, periods[1])
-SeedLesson.new(thisfile, sjp, group4mat3,  l101, monday, periods[3], {non_existent: true})
-SeedLesson.new(thisfile, sjp, group7mat1a, l101, monday, periods[5])
-SeedLesson.new(thisfile, sjp, group6mat3p, l101, monday, periods[6])
-SeedLesson.new(thisfile, sjp, group5mat4,  l101, monday, periods[7])
-
-
-SeedLesson.new(thisfile, sjp, group7mat1a, l101, tuesday, periods[2])
-SeedLesson.new(thisfile, sjp, group5mat4,  l101, tuesday, periods[3])
-SeedLesson.new(thisfile, sjp, group7fma2p, l101, tuesday, periods[4])
-SeedLesson.new(thisfile, sjp, group3mat1,  l101, tuesday, periods[6])
-SeedLesson.new(thisfile, ced, group3fre2,  l108, tuesday, periods[7]).
-           covered_by(sjp).
-           add_note("", "Simon - sorry you've been hit with this cover.\nThere are some worksheets on the desk at the front of the room.\nPlease collect in their books at the end of the lesson.\n\nThanks - Claire")
-
-SeedLesson.new(thisfile, sjp, group4mat3,  l101, wednesday, periods[1])
-SeedLesson.new(thisfile, sjp, group3mat1,  l101, wednesday, periods[2])
-SeedLesson.new(thisfile, sjp, group7mat1a, l101, wednesday, periods[4])
-SeedLesson.new(thisfile, sjp, group6mat3p, l101, wednesday, periods[6])
-
-SeedLesson.new(thisfile, sjp, group5mat4,  l101, thursday,  periods[2])
-SeedLesson.new(thisfile, sjp, group7fma2p, l101, thursday,  periods[3])
-SeedLesson.new(thisfile, sjp, group4mat3,  l101, thursday,  periods[5])
-SeedLesson.new(thisfile, sjp, group7mat1a, l101, thursday,  periods[7])
-
-SeedMeeting.new(thisfile,
-                "Maths dept meeting",
-                [sjp, psl, dlj],
-                l102,
-                thursday,
-                periods[4])
-
-SeedLesson.new(thisfile, sjp, group6mat3p, l101, friday, periods[1])
-SeedLesson.new(thisfile, sjp, group5mat4,  l101, friday, periods[7])
+seeder.new_lesson(:sjp, :g12mat3p, :l101, :friday, 1)
+seeder.new_lesson(:sjp, :g11mat4,  :l101, :friday, 7)
 
 tutorgroups = [
-  SeedTutorGroup.new(11, current_era, sjp, "Up"),
-  SeedTutorGroup.new(11, current_era, ced, "Down"),
-  SeedTutorGroup.new(11, current_era, psl, "Left"),
-  SeedTutorGroup.new(11, current_era, dlj, "Right")
+  Seeder::SeedTutorGroup.new(11, seeder.eras[:current_era], sjp, "Up"),
+  Seeder::SeedTutorGroup.new(11, seeder.eras[:current_era], ced, "Down"),
+  Seeder::SeedTutorGroup.new(11, seeder.eras[:current_era], psl, "Left"),
+  Seeder::SeedTutorGroup.new(11, seeder.eras[:current_era], dlj, "Right")
 ]
 
 fifthyear = Array.new
 4.times do
-  pupil = SeedPupil.new(current_era, 11) 
+  pupil = Seeder::SeedPupil.new(seeder.eras[:current_era], 11) 
   groupgeog << pupil
-  group5mat4 << pupil
+  g11mat4 << pupil
   fifthyear << pupil
   allpupils << pupil
   tutorgroups.sample << pupil
 end
 20.times do
-  pupil = SeedPupil.new(current_era, 11) 
-  group5mat4 << pupil
+  pupil = Seeder::SeedPupil.new(seeder.eras[:current_era], 11) 
+  g11mat4 << pupil
   fifthyear << pupil
   allpupils << pupil
   tutorgroups.sample << pupil
 end
 20.times do
-  pupil = SeedPupil.new(current_era, 11)
+  pupil = Seeder::SeedPupil.new(seeder.eras[:current_era], 11)
   fifthyear << pupil
   groupgeog << pupil
   allpupils << pupil
   tutorgroups.sample << pupil
 end
 20.times do
-  pupil = SeedPupil.new(current_era, 11)
+  pupil = Seeder::SeedPupil.new(seeder.eras[:current_era], 11)
   fifthyear << pupil
   allpupils << pupil
   tutorgroups.sample << pupil
