@@ -263,7 +263,30 @@ class SeedPupil
                "Kumar",
                "Oscar",
                "Jack",
-               "Sean"]
+               "Sean",
+               "Jessica",
+               "Libby",
+               "George",
+               "John",
+               "Murray",
+               "David",
+               "Alison",
+               "Trevor",
+               "Julie",
+               "Jackie",
+               "Jacqui",
+               "Roger",
+               "Jason",
+               "Mary",
+               "Wendy",
+               "Thomas",
+               "Cameron",
+               "Harry",
+               "Ann",
+               "Hilda",
+               "Catlin",
+               "Katherine"
+  ]
   SURNAMES = ["Smith",
               "Jones",
               "Stone",
@@ -309,14 +332,87 @@ class SeedPupil
               "Grant",
               "Laurie",
               "Lansden",
-              "Lee"
+              "Lee",
+              "Winters",
+              "Marshall",
+              "Cotton",
+              "May",
+              "Clarkson",
+              "Hammon",
+              "Doran",
+              "Binns",
+              "Blotwell",
+              "Castle",
+              "Warburton",
+              "Morley",
+              "Rice",
+              "Johnson",
+              "Stevenson",
+              "Stephenson",
+              "Ravindran",
+              "Mussolini",
+              "Birch",
+              "Boston",
+              "Briggs",
+              "Cumberbatch",
+              "Cragg",
+              "Cross",
+              "Devlin",
+              "Devoy",
+              "Elliott",
+              "Flanagan",
+              "Fraser",
+              "Frost",
+              "Gallagher",
+              "Garner",
+              "Gates",
+              "Gibson",
+              "Hammond",
+              "Hoyle",
+              "Lawson",
+              "Slater",
+              "Slyne",
+              "Stamp",
+              "Studholme",
+              "Thornber",
+              "Tootle",
+              "Walmsley",
+              "Wilcox",
+              "Wilkinson",
+              "Wilkins",
+              "Carter",
+              "Pemberton-Oakes",
+              "Kington",
+              "Kingston",
+              "Williams",
+              "Georgeson",
+              "Pearson",
+              "Roget",
+              "Barton",
+              "Fairclough",
+              "Henthorn",
+              "Hardy",
+              "Nelson",
+              "Penrose",
+              "Dawswell",
+              "Lusk",
+              "Hamilton",
+              "Underwood"
   ]
 
   attr_reader :dbrecord
 
+  def unique_names
+    loop do
+      forename = FORENAMES.sample
+      surname = SURNAMES.sample
+      existing = Pupil.find_by(name: "#{forename} #{surname}")
+      return forename, surname unless existing
+    end
+  end
+
   def initialize(era, yeargroup)
-    forename = FORENAMES.sample
-    surname = SURNAMES.sample
+    forename, surname = unique_names
     start_year = era.starts_on.year - yeargroup + 1
     @dbrecord = Pupil.create!({
       name:     "#{forename} #{surname}",

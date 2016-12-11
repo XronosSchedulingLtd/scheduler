@@ -169,10 +169,12 @@ ced = SeedStaff.new("Mrs", "Claire", "Dunwoody", "CED").teaches(subjectfrench)
 psl = SeedStaff.new("Ms", "Phillipa", "Long", "PSL").teaches(subjectgeography)
 dlj = SeedStaff.new("Mr", "David", "Jones", "DLJ").teaches(subjectdrama)
 
-allstaff = SeedGroup.new("All Staff", current_era).
+allstaff = SeedGroup.new("All staff", current_era).
+                     members(sjp, ced, psl, dlj)
+year9teachers = SeedGroup.new("Year 9 teachers", current_era).
                      members(sjp, ced, psl, dlj)
 
-allpupils = SeedGroup.new("All Pupils", current_era)
+allpupils = SeedGroup.new("All pupils", current_era)
 
 groupgeog = SeedTeachingGroup.new("Geography pupils", current_era, subjectgeography)
 
@@ -218,7 +220,7 @@ calendarevents = [
                 Time.zone.parse("#{tuesday.to_s} 17:30"),
                 Time.zone.parse("#{tuesday.to_s} 21:00"),
                 {organiser_id: ced.element_id}).
-            involving(calendarproperty),
+            involving(calendarproperty, year9teachers),
   SeedEvent.new(eventcategories[1],
                 thisfile,
                 "Rowing at Eton Dorney",
