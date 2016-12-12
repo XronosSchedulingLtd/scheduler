@@ -225,6 +225,11 @@ class Seeder
       @subject   = subject
       super(name, era, "Teaching", {subject_id: subject.dbrecord.id})
     end
+
+    def taught_by(staff)
+      @dbrecord.staffs << staff.dbrecord
+      self
+    end
   end
 
   class SeedTutorGroup < SeedGroup
@@ -234,6 +239,15 @@ class Seeder
       super(name, era, "Tutor", {house: house,
                                  staff_id: staff.dbrecord.id,
                                  start_year: start_year})
+    end
+
+    def <<(new_member)
+      super
+      #
+      #  Adding a pupil to a tutor group effectively changes his or her
+      #  element name.  Force a save to ensure it is updated.
+      #
+      new_member.force_save
     end
   end
 
@@ -271,8 +285,10 @@ class Seeder
       end
     end
 
-    def initialize(era, yeargroup)
-      forename, surname = unique_names
+    def initialize(era, yeargroup, forename = nil, surname = nil)
+      unless forename && surname
+        forename, surname = unique_names
+      end
       start_year = era.starts_on.year - yeargroup + 1
       @dbrecord = Pupil.create!({
         name:     "#{forename} #{surname}",
@@ -290,6 +306,9 @@ class Seeder
       @dbrecord.element.id
     end
 
+    def force_save
+      @dbrecord.save
+    end
   end
 
 
@@ -564,7 +583,7 @@ class Seeder
     @groups[key] = SeedGroup.new(name, @eras[era]).members(*members)
   end
 
-  def new_teaching_group(groupid, name, subject)
+  def teaching_group(groupid, name, subject)
     #
     #  Subject can be passed either as an actual SeedSubject, or as
     #  the id of one.
@@ -590,7 +609,7 @@ class Seeder
   #
   #  Anything else will result in undefined behaviour.
   #
-  def new_event(
+  def event(
     eventcategory,      # Either an actual event category, or an id.
     title,
     day,
@@ -644,7 +663,7 @@ class Seeder
     event
   end
 
-  def new_subject(id, name)
+  def subject(id, name)
     @subjects[id] = SeedSubject.new(name)
   end
 
@@ -683,11 +702,11 @@ class Seeder
     end
   end
 
-  def new_location(id, name, aliasname = nil, display = true, friendly = true)
+  def location(id, name, aliasname = nil, display = true, friendly = true)
     @locations[id] = SeedLocation.new(name, aliasname, display, friendly)
   end
 
-  def new_lesson(staffid, groupid, roomid, dayid, period, more = {})
+  def lesson(staffid, groupid, roomid, dayid, period, more = {})
     SeedLesson.new(@eventsources[:thisfile],
                    @staff[staffid],
                    @groups[groupid],
@@ -698,12 +717,55 @@ class Seeder
   end
 
 
-  def new_meeting(title, staffids, roomid, dayid, period)
+  def meeting(title, staffids, roomid, dayid, period)
     SeedMeeting.new(@eventsources[:thisfile],
                     title,
                     staffids.collect {|sid| @staff[sid]},
                     @locations[roomid],
                     @weekdates[dayid],
                     @periods[period])
+  end
+
+  def pupil(yeargroup, forename = nil, surname = nil)
+    SeedPupil.new(@eras[:current_era], yeargroup, forename, surname)
+  end
+
+  def add_to(g, pupil)
+    if g.kind_of?(SeedGroup)
+      g << pupil
+    else
+      #
+      #  Assume it must be a key.
+      #
+      group = @groups[g]
+      if group
+        group << pupil
+      else
+        raise "Couldn't find group from key #{g}"
+      end
+    end
+  end
+
+  #
+  #  A helper method to populate one or more groups.
+  #
+  def populate(group, yeargroup, howmany)
+    howmany.times do
+      newpupil = self.pupil(yeargroup)
+      if group.respond_to?(:each)
+        group.each do |g|
+          if g.respond_to?(:each)
+            #
+            #  Still an array!
+            #
+            add_to(g.sample, newpupil)
+          else
+            add_to(g, newpupil)
+          end
+        end
+      else
+        add_to(group, newpupil)
+      end
+    end
   end
 end
