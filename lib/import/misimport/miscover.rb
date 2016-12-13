@@ -96,9 +96,19 @@ class MIS_Cover
       #  Need to be careful here, because we also check clashes for
       #  Invigilations, and there there is nothing being covered.
       #
-      unless (cover_commitment.covering != nil) &&
-             (cover_commitment.element == cover_commitment.covering.element)
+      #  Also don't bother checking if the covering element is one
+      #  which can cover many things at once.
+      #
+      unless ((cover_commitment.covering != nil) &&
+              (cover_commitment.element ==
+               cover_commitment.covering.element)) ||
+              cover_commitment.element.multicover?
         event_ids_seen = []
+        #
+        #  Note that, because we haven't explicitly asked for them, we
+        #  won't pick up commitments to events which are flagged as
+        #  non-existent.
+        #
         all_commitments =
           cover_commitment.element.commitments_during(
             start_time: cover_commitment.event.starts_at,
