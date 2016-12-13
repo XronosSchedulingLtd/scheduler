@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161121101002) do
+ActiveRecord::Schema.define(version: 20161213101748) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -386,6 +386,7 @@ ActiveRecord::Schema.define(version: 20161121101002) do
     t.boolean  "teaches"
     t.boolean  "does_cover"
     t.integer  "datasource_id"
+    t.boolean  "multicover",    default: false
   end
 
   add_index "staffs", ["datasource_id"], name: "index_staffs_on_datasource_id", using: :btree
