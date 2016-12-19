@@ -1,0 +1,26 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-12-13T09:04:52+00:00
+
+====== Tuesday 13 Dec 2016 ======
+
+The Abingdon system has reached the point where it is issuing an awful lot of warnings about cover clashes, many (but not all) of which are spurious.  Today I propose to have a go at them and see how many I can get rid of.  There are various reasons for them.
+
+* The most populous one is Ian using a fictitious member of staff called NOCOVER to cover invigilation slots where none is needed.  I propose to add a flag which allows him to do multiple slots without a warnig.
+* Ian uses people to do invigilation when they really should be registering their tutor group.  This has been a logistical problem for a long time, which he ignores because he doesn't know how to solve it.  He just expects people to busk their double-booking.  It could be suppressed using the overloads file.
+* Likewise, he uses people for cover when they have a duty slot.  Both Ian and Mark expect their entry to take priority.  Another logistical problem - not a software one.
+* Ian double books people intentionally for sport.  The warnings from this can be suppressed by suitable use of the overloads file, or by using the multi-cover flag from item 1 above.
+* The mocks seem to be going on into the second week of term, but lessons for the 5th year have not been suspended then.
+
+
+Let's look at the multicover flag first.  This logically belongs on the staff member, but probably needs propagating into the element.  It might be wanted later for cover of other entity types.  Let's just add it to the staff record (I don't need to be able to select elements by their multicover-ness) but then query it through the element.
+
+Well, my multicover flag seems to have got me down from 113 clashes to 48 - it's a start.  Ah - I put a suspension in too.  How about setting multi-cover for the sports guy whom Ian deliberately overloads.  PRB - Peter Bignell.
+
+Also seem to have 3 cover entries which don't match up with lessons - they might be worth following up too.
+
+Now down to 42.
+
+I don't believe that any of the current permitted_overloads entries is doing anything.  Delete them and see if the count changes.  Hah!  The count went up to 43.  Which one is that then?  4S PS* I think.  Put that back, add my new ones, and test again.  Hmm.  That only got us down to 41.  Why?  My new selectors don't seem to have matched.  Ah - I was matching the name of the person being covered, when I should have used the name of the event.  Unfortunately, Ian has not been totally consistent in his event naming - the best I can do is look for "-Invig".
+
+Now down to 13 - that's more like it.  Review again.  They all look genuine now.

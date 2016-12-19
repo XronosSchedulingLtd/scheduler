@@ -11,41 +11,87 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :name %><br>
-    <%= f.text_field :name %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :name, class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :name %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :initials %><br>
-    <%= f.text_field :initials %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :initials, class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :initials %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :surname %><br>
-    <%= f.text_field :surname %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :surname, class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :surname %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :title, class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :title %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :forename %><br>
-    <%= f.text_field :forename %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :forename, class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :forename %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :email %><br>
-    <%= f.text_field :email %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :email, class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :email %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :source_id %><br>
-    <%= f.number_field :source_id %>
-  </div>
-  <div class="field">
-    <%= f.label :active %><br>
-    <%= f.check_box :active %>
-  </div>
-  <div class="field">
-    <%= f.label :current %><br>
-    <%= f.check_box :current %>
+  <div class="row">
+    <%= flag_group(f,
+                   12,
+                   6,
+                   "Settings",
+                   [
+                     {
+                       field: :active,
+                       disabled: @staff.active,
+                       annotation: "Is this staff member, or has this staff member ever been active in the system?  Do not change from true to false."
+                     },
+                     {
+                       field: :current,
+                       annotation: "Is this staff member current?"
+                     },
+                     {
+                       field: :multicover,
+                       prompt: "Multi cover",
+                       annotation: "Can this staff member do more than one cover at a time?"
+                     }
+                   ]) %>
   </div>
   <div class="actions">
     <%= f.submit %>
