@@ -61,13 +61,18 @@ class ClashChecker
       @end_date = date_of_saturday(@start_date, options.weeks)
       puts "End date is #{@end_date}" if @options.verbose
     end
-    #
-    #  Need to make the next bit an option too.
-    #
-    @event_categories = [
-      Eventcategory.find_by(name: "Lesson"),
-      Eventcategory.find_by(name: "Other Half")
-    ]
+    @event_categories = Eventcategory.where(clashcheck: true)
+    if @event_categories.size > 0
+      if @options.verbose
+        puts "Checking event categories:"
+        @event_categories.each do |ec|
+          puts "  #{ec.name}"
+        end
+      end
+    else
+      puts "No event categories are flagged for clash checking."
+      exit
+    end
     @user_email_bodies = Hash.new
     if block_given?
       yield self
@@ -140,96 +145,125 @@ class ClashChecker
       #  a fresh one for each day.
       #
       mwds_cache = Membership::MWD_SetCache.new
-      events = Event.events_on(date, date, @event_categories)
+      events =
+        Event.events_on(
+          date,                 # Start date
+          date,                 # End date
+          @event_categories,    # Event categories
+          nil,                  # Event source
+          nil,                  # Resource
+          nil,                  # Owned by
+          true)                 # Include non-existent
       puts "#{events.count} events on #{date}." if @options.verbose
       events.each do |event|
-        resources =
-          event.all_atomic_resources.select { |r|
-            CLASSES_TO_CHECK.include?(r.class)
-          }
-        clashing_events = Array.new
-        resources.each do |resource|
-#          puts "Starting on #{resource.name} at #{Time.now.strftime("%H:%M:%S")}."
-          clashing_events +=
-            resource.element.commitments_during(
-              start_time:   event.starts_at,
-              end_time:     event.ends_at,
-              and_by_group: true,
-              cache:        mwds_cache).preload(:event).collect {|c| c.event}
-        end
-        clashing_events.uniq!
-        clashing_events = clashing_events - [event]
         notes = event.notes.clashes
-        if clashing_events.size > 0
-          note_text = generate_text(resources, clashing_events)
-          puts "Clashes for #{event.body}." if @options.verbose
-          puts note_text.indent(2) if @options.verbose
-          if notes.size == 1
-            #
-            #  Just need to make sure the text is the same.
-            #
-            note = notes[0]
-            if note.contents != note_text
-              puts "Amending note on #{event.body}" if @options.verbose
-              note.contents = note_text
-              note.save
-              notify_users(event, note_text)
-            end
-            unless event.has_clashes
-              event.has_clashes = true
-              event.save
-            end
-          else
-            if notes.size > 1
-              #
-              #  Something odd going on here.  Should not occur.
-              #
-              puts "Destroying multiple notes for #{event.body}."
-              notes.each do |note|
-                note.destroy
-              end
-            end
-            #
-            #  Create and save a new note.
-            #
-            note = Note.new
-            note.title = "Predicted absences"
-            note.contents = note_text
-            note.parent = event
-            note.owner  = nil
-            note.visible_staff = true
-            note.note_type = :clashes
-            if note.save
-              puts "Added note to #{event.body} on #{date}." if @options.verbose
-              notify_users(event, note_text)
-            else
-              puts "Failed to save note on #{event.body}."
-            end
-            unless event.has_clashes
-              event.has_clashes = true
-              event.save
-            end
-          end
-        else
+        if event.non_existent
           #
-          #  No clashes.  Just need to make sure there is no note attached
-          #  to the event.
+          #  We never set the flag or attach a note to a suspended lesson,
+          #  but it's possible that first we did that and then the lesson
+          #  got suspended.  Check for that situation and correct it if
+          #  found.
           #
           notes.each do |note|
-            puts "Deleting note from #{event.body}." if @options.verbose
+            puts "Deleting note from non-existent #{event.body}." if @options.verbose
             note.destroy
           end
           if event.has_clashes
             event.has_clashes = false
             event.save
           end
+        else
+          resources =
+            event.all_atomic_resources.select { |r|
+              CLASSES_TO_CHECK.include?(r.class)
+            }
+          clashing_events = Array.new
+          resources.each do |resource|
+  #          puts "Starting on #{resource.name} at #{Time.now.strftime("%H:%M:%S")}."
+            #
+            #  Note that this next call won't pick up non-existent events
+            #  because we haven't explicitly asked for them.
+            #
+            clashing_events +=
+              resource.element.commitments_during(
+                start_time:   event.starts_at,
+                end_time:     event.ends_at,
+                and_by_group: true,
+                cache:        mwds_cache).preload(:event).collect {|c| c.event}
+          end
+          clashing_events.uniq!
+          clashing_events = clashing_events - [event]
+          if clashing_events.size > 0
+            note_text = generate_text(resources, clashing_events)
+            puts "Clashes for #{event.body}." if @options.verbose
+            puts note_text.indent(2) if @options.verbose
+            if notes.size == 1
+              #
+              #  Just need to make sure the text is the same.
+              #
+              note = notes[0]
+              if note.contents != note_text
+                puts "Amending note on #{event.body}" if @options.verbose
+                note.contents = note_text
+                note.save
+                notify_users(event, note_text)
+              end
+              unless event.has_clashes
+                event.has_clashes = true
+                event.save
+              end
+            else
+              if notes.size > 1
+                #
+                #  Something odd going on here.  Should not occur.
+                #
+                puts "Destroying multiple notes for #{event.body}."
+                notes.each do |note|
+                  note.destroy
+                end
+              end
+              #
+              #  Create and save a new note.
+              #
+              note = Note.new
+              note.title = "Predicted absences"
+              note.contents = note_text
+              note.parent = event
+              note.owner  = nil
+              note.visible_staff = true
+              note.note_type = :clashes
+              if note.save
+                puts "Added note to #{event.body} on #{date}." if @options.verbose
+                notify_users(event, note_text)
+              else
+                puts "Failed to save note on #{event.body}."
+              end
+              unless event.has_clashes
+                event.has_clashes = true
+                event.save
+              end
+            end
+          else
+            #
+            #  No clashes.  Just need to make sure there is no note attached
+            #  to the event.
+            #
+            notes.each do |note|
+              puts "Deleting note from #{event.body}." if @options.verbose
+              note.destroy
+            end
+            if event.has_clashes
+              event.has_clashes = false
+              event.save
+            end
+          end
+  #        if clashing_events.size > 0
+  #          puts "Event #{event.body} has #{clashing_events.count} clashes."
+  #          clashing_events.each do |ce|
+  #            puts ce.body
+  #          end
+  #        end
         end
-#        if clashing_events.size > 0
-#          puts "Event #{event.body} has #{clashing_events.count} clashes."
-#          clashing_events.each do |ce|
-#            puts ce.body
-#          end
-#        end
       end
     end
   end
