@@ -1,3 +1,26 @@
+v0.14.1 2016-12-13
+
+* Gnashum, frashum, Dick Dasterdly.  One little unwanted <br> snuck through.
+
+
+v0.14   2016-12-13
+
+* Add a multicover flag to staff records.
+
+  Under certain circumstances, one wants to be able to assign the same
+  person (possibly not a real person) to do more than one cover at the
+  time, or do to a cover when apparently involved in something else.
+
+  This release adds a multicover flag to the staff record.  Anyone
+  with this flag set will not generate warnings if over-committed for
+  cover.
+
+* Updated permitted_overloads.rb
+
+  The permitted_overloads.rb file in the system was heavily out of
+  date and thus ineffectual.  This new one does more useful work.
+
+
 v0.13.2 2016-12-01
 
 * Correction to previous release.

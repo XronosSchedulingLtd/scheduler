@@ -467,6 +467,18 @@ class Element < ActiveRecord::Base
   end
 
   #
+  #  Can this element's entity do more than one cover at a time without
+  #  generating a warning?
+  #
+  def multicover?
+    if entity.respond_to?(:multicover)
+      entity.multicover
+    else
+      false
+    end
+  end
+
+  #
   #  We sort elements first by their type (order specified at head of
   #  file) and then by their own native sorting method.
   #
