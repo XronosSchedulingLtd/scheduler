@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161213101748) do
+ActiveRecord::Schema.define(version: 20161218180058) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -127,6 +127,7 @@ ActiveRecord::Schema.define(version: 20161213101748) do
     t.boolean  "deprecated",    default: false
     t.boolean  "privileged",    default: false
     t.boolean  "visible",       default: true
+    t.boolean  "clashcheck",    default: false
   end
 
   create_table "events", force: true do |t|
