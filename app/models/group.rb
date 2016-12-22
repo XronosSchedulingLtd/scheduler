@@ -956,6 +956,17 @@ class Group < ActiveRecord::Base
         #  Being asked to delete ourselves before we've even started.
         #
         self.destroy!
+      elsif self.current
+        #
+        #  We have established that we are outside our dates of
+        #  existence (the active_on() call above) and yet we
+        #  are flagged as current.  This happens when a group
+        #  was created with an ends_on date, and we've just rolled
+        #  past it.  A batch job runs nightly to adjust these things,
+        #  but we can fix it here too.
+        #
+        self.current = false
+        self.save!
       end
     end
   end
@@ -1115,6 +1126,33 @@ class Group < ActiveRecord::Base
       trimmed += group.trim_memberships
     end
     puts "#{trimmed} memberships trimmed."
+    nil
+  end
+
+  #
+  #  Groups can move into and out of being current.  They can be created
+  #  with an end date, and thus cease to be current, or they can be created
+  #  in advance and only become current when we reach their start date.
+  #
+  #  This method should be run once a day (by means of a rake task) to update
+  #  the "current" flag as appropriate.
+  #
+  def self.adjust_currency_flags(ondate = Date.today)
+    Group.all.each do |group|
+      if group.active_on(ondate)
+        unless group.current
+          Rails.logger.info("Setting group #{group.name} to current.")
+          group.current = true
+          group.save
+        end
+      else
+        if group.current
+          Rails.logger.info("Setting group #{group.name} to no longer current.")
+          group.current = false
+          group.save
+        end
+      end
+    end
     nil
   end
 
