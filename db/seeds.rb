@@ -67,8 +67,10 @@ seeder.subject(:sport,     "Sport")
 
 sjp = seeder.new_staff("Mr",  "Simon",    "Philpotts", "SJP", [:maths, :fm])
 ced = seeder.new_staff("Mrs", "Claire",   "Dunwoody",  "CED", [:french])
-psl = seeder.new_staff("Ms",  "Phillipa", "Long",      "PSL", [:geography])
-dlj = seeder.new_staff("Mr",  "David",    "Jones",     "DLJ", [:drama])
+psl = seeder.new_staff("Ms",  "Phillipa", "Long",      "PSL", [:maths, 
+                                                               :geography])
+dlj = seeder.new_staff("Mr",  "David",    "Jones",     "DLJ", [:drama,
+                                                               :maths])
 
 prw = seeder.new_staff("Mr",  "Peter",     "Wodehouse", "PRW", [:history])
 dpr = seeder.new_staff("Mrs", "Denise",    "Rowstock",  "DPR", [:german])
@@ -212,6 +214,7 @@ seeder.configure_periods(
 #
 seeder.teaching_group(:g9mat1,   "9 Mat1",   :maths).taught_by(sjp)
 seeder.teaching_group(:g10mat3,  "10 Mat3",  :maths).taught_by(sjp)
+seeder.teaching_group(:g11mat3,  "11 Mat3",  :maths).taught_by(dlj)
 seeder.teaching_group(:g11mat4,  "11 Mat4",  :maths).taught_by(sjp)
 seeder.teaching_group(:g12mat3p, "12 Mat3P", :maths).taught_by(sjp)
 seeder.teaching_group(:g13mat1a, "13 Mat1A", :maths).taught_by(sjp)
@@ -228,9 +231,11 @@ seeder.lesson(:sjp, :g9mat1,   :l101, :monday, 1)
 seeder.lesson(:sjp, :g10mat3,  :l101, :monday, 3, {non_existent: true})
 seeder.lesson(:sjp, :g13mat1a, :l101, :monday, 5)
 seeder.lesson(:sjp, :g12mat3p, :l101, :monday, 6)
+seeder.lesson(:dlj, :g11mat3,  :l102, :monday, 7)
 seeder.lesson(:sjp, :g11mat4,  :l101, :monday, 7)
 
 seeder.lesson(:sjp, :g13mat1a, :l101, :tuesday, 2)
+seeder.lesson(:dlj, :g11mat3,  :l102, :tuesday, 3)
 seeder.lesson(:sjp, :g11mat4,  :l101, :tuesday, 3)
 seeder.lesson(:sjp, :g13fma2p, :l101, :tuesday, 4)
 seeder.lesson(:sjp, :g9mat1,   :l101, :tuesday, 6)
@@ -240,6 +245,7 @@ seeder.lesson(:sjp, :g9mat1,   :l101, :wednesday, 2)
 seeder.lesson(:sjp, :g13mat1a, :l101, :wednesday, 4)
 seeder.lesson(:sjp, :g12mat3p, :l101, :wednesday, 6)
 
+seeder.lesson(:dlj, :g11mat3,  :l102, :thursday,  2)
 seeder.lesson(:sjp, :g11mat4,  :l101, :thursday,  2)
 seeder.lesson(:sjp, :g13fma2p, :l101, :thursday,  3)
 seeder.lesson(:sjp, :g10mat3,  :l101, :thursday,  5)
@@ -250,6 +256,7 @@ seeder.meeting("Maths dept meeting",
 
 
 seeder.lesson(:sjp, :g12mat3p, :l101, :friday, 1)
+seeder.lesson(:dlj, :g11mat3,  :l102, :friday, 7)
 seeder.lesson(:sjp, :g11mat4,  :l101, :friday, 7)
 
 #
@@ -395,18 +402,24 @@ seeder.add_to(:pepupils,  seeder.groups[:g11pe2])
 seeder.add_to(:sptpupils, seeder.groups[:g11sport])
 
 tg11.sample << sp
-seeder.add_to(:allpupils, sp)
-seeder.add_to(:year11, sp)
-seeder.add_to(:g11mat4,   sp)
-seeder.add_to(:g11fre1a,  sp)
-seeder.add_to(:g11dra1,   sp)
-seeder.add_to(:g11eng3,   sp)
-seeder.add_to(:g11geo4,   sp)
-seeder.add_to(:g11ger2,   sp)
-seeder.add_to(:g11his4,   sp)
-seeder.add_to(:g11ita1,   sp)
-seeder.add_to(:g11pe2,    sp)
-seeder.add_to(:g11sport,  sp)
+seeder.add_to(:allpupils,    sp)
+seeder.add_to(:year11,       sp)
+seeder.add_special(:g11mat3,
+                   sp,
+                   seeder.era_start_date,
+                   seeder.weekdates[:tuesday])
+seeder.add_special(:g11mat4,
+                   sp,
+                   seeder.weekdates[:wednesday])
+seeder.add_to(:g11fre1a,     sp)
+seeder.add_to(:g11dra1,      sp)
+seeder.add_to(:g11eng3,      sp)
+seeder.add_to(:g11geo4,      sp)
+seeder.add_to(:g11ger2,      sp)
+seeder.add_to(:g11his4,      sp)
+seeder.add_to(:g11ita1,      sp)
+seeder.add_to(:g11pe2,       sp)
+seeder.add_to(:g11sport,     sp)
 
 seeder.lesson(:dlj, :g11dra1,   :l102, :monday, 1)
 seeder.lesson(:afg, :g11eng3,   :l103, :monday, 2)

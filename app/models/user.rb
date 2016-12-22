@@ -621,6 +621,10 @@ class User < ActiveRecord::Base
       self.can_find_free    = true
       self.can_add_concerns = true
       self.can_roam         = true
+      if Setting.auth_type == "google_demo_auth" &&
+         self.email == "jhwinters@gmail.com"
+        self.admin = true
+      end
       self.save!
       "#{self.name} with email #{self.email} gets staff permissions."
     elsif self.pupil?

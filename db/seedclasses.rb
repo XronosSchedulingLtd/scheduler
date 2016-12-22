@@ -209,6 +209,23 @@ class Seeder
     end
 
     #
+    #  Allow a member to be added to the group with specific start
+    #  and end dates.
+    #
+    def add_special(new_member, start_date, end_date = nil)
+      @dbrecord.add_member(new_member.dbrecord, start_date)
+      if end_date
+        #
+        #  The method provided by the Group model expects to be called
+        #  with a date when the member is no longer to be in the group.
+        #  We have the last date on which we do want him to be a member
+        #  so add 1 to it.
+        #
+        @dbrecord.remove_member(new_member.dbrecord, end_date + 1.day)
+      end
+    end
+
+    #
     #  Add a whole lot of members in one go.
     #
     def members(*params)
@@ -412,6 +429,7 @@ class Seeder
   #
 
   attr_reader :eras,
+              :era_start_date,
               :eventcategories,
               :eventsources,
               :groups,
@@ -740,6 +758,22 @@ class Seeder
       group = @groups[g]
       if group
         group << pupil
+      else
+        raise "Couldn't find group from key #{g}"
+      end
+    end
+  end
+
+  def add_special(g, pupil, start_date, end_date = nil)
+    if g.kind_of?(SeedGroup)
+      g.add_special(pupil, start_date, end_date)
+    else
+      #
+      #  Assume it must be a key.
+      #
+      group = @groups[g]
+      if group
+        group.add_special(pupil, start_date, end_date)
       else
         raise "Couldn't find group from key #{g}"
       end

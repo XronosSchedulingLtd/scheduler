@@ -10,6 +10,11 @@
 #
 class Teachinggroup
 
+  def self.create!(params)
+    myparams = {persona_class: Teachinggrouppersona}
+    Group.create!(myparams.merge(params))
+  end
+
   def self.new
     g = Group.new
     g.persona_class = Teachinggrouppersona
