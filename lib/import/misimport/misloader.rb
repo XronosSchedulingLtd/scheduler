@@ -593,7 +593,7 @@ class MIS_Loader
     extra_ids = db_g_ids - sb_g_ids
     extra_ids.each do |eid|
       dbg = Otherhalfgroup.find(eid)
-      puts "Other half group #{dbg.name} exists in the d/b but not in the files." if @verbose
+      puts "Other half group #{dbg.name} (#{dbg.id}) exists in the d/b but not in the files." if @verbose
       dbg.ceases_existence(@start_date)
       deleted_count += 1
     end
