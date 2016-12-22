@@ -125,6 +125,55 @@ class Group < ActiveRecord::Base
     " (#{description})"
   end
 
+  def show_historic_panels?
+    false
+  end
+
+  def extra_panels?
+    true
+  end
+
+
+  def column_of(mwds, title)
+    column = DisplayPanel::GeneralDisplayColumn.new(title)
+    mwds.sort.each do |gmwd|
+      entry =
+        DisplayPanel::GDCEntry.new(
+          "From #{gmwd.start_date.to_formatted_s(:dmy)}#{
+            if gmwd.end_date
+              " to #{gmwd.end_date.to_formatted_s(:dmy)}"
+            else
+              ""
+            end }")
+      gmwd.collect {|mwd| mwd.membership.element}.sort.each do |element|
+        entry << DisplayPanel::GDCRow.for_member(element.entity)
+      end
+      column << entry
+    end
+    column
+  end
+
+
+  def extra_panels(index)
+    panel = DisplayPanel.new(index, "Memberships", false)
+    mwds = Membership::MWD_Set.new(nil)   # Mustn't call exclusion processing
+    self.memberships.each do |m|
+      mwds.add_mwd(m, m.starts_on, m.ends_on, 1)
+    end
+    mwds.group_by_duration
+    #
+    panel.add_general_column(
+      column_of(mwds.current_grouped_mwds,
+                "Current"))
+    panel.add_general_column(
+      column_of(mwds.past_grouped_mwds,
+                "Past"))
+    panel.add_general_column(
+      column_of(mwds.future_grouped_mwds,
+                "Future"))
+    [panel]
+  end
+
   def active
     true
   end
