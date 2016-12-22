@@ -15,4 +15,9 @@ namespace :daily do
 #    UserNotificationSet.dump
     UserNotificationSet.send_emails
   end
+
+  desc "Adjust group currency flags."
+  task :adjust_currency_flags => :environment do
+    Group.adjust_currency_flags
+  end
 end

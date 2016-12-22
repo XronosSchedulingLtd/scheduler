@@ -125,6 +125,55 @@ class Group < ActiveRecord::Base
     " (#{description})"
   end
 
+  def show_historic_panels?
+    false
+  end
+
+  def extra_panels?
+    true
+  end
+
+
+  def column_of(mwds, title)
+    column = DisplayPanel::GeneralDisplayColumn.new(title)
+    mwds.sort.each do |gmwd|
+      entry =
+        DisplayPanel::GDCEntry.new(
+          "From #{gmwd.start_date.to_formatted_s(:dmy)}#{
+            if gmwd.end_date
+              " to #{gmwd.end_date.to_formatted_s(:dmy)}"
+            else
+              ""
+            end }")
+      gmwd.collect {|mwd| mwd.membership.element}.sort.each do |element|
+        entry << DisplayPanel::GDCRow.for_member(element.entity)
+      end
+      column << entry
+    end
+    column
+  end
+
+
+  def extra_panels(index)
+    panel = DisplayPanel.new(index, "Memberships", false)
+    mwds = Membership::MWD_Set.new(nil)   # Mustn't call exclusion processing
+    self.memberships.each do |m|
+      mwds.add_mwd(m, m.starts_on, m.ends_on, 1)
+    end
+    mwds.group_by_duration
+    #
+    panel.add_general_column(
+      column_of(mwds.current_grouped_mwds,
+                "Current"))
+    panel.add_general_column(
+      column_of(mwds.past_grouped_mwds,
+                "Past"))
+    panel.add_general_column(
+      column_of(mwds.future_grouped_mwds,
+                "Future"))
+    [panel]
+  end
+
   def active
     true
   end
@@ -956,6 +1005,17 @@ class Group < ActiveRecord::Base
         #  Being asked to delete ourselves before we've even started.
         #
         self.destroy!
+      elsif self.current
+        #
+        #  We have established that we are outside our dates of
+        #  existence (the active_on() call above) and yet we
+        #  are flagged as current.  This happens when a group
+        #  was created with an ends_on date, and we've just rolled
+        #  past it.  A batch job runs nightly to adjust these things,
+        #  but we can fix it here too.
+        #
+        self.current = false
+        self.save!
       end
     end
   end
@@ -1115,6 +1175,33 @@ class Group < ActiveRecord::Base
       trimmed += group.trim_memberships
     end
     puts "#{trimmed} memberships trimmed."
+    nil
+  end
+
+  #
+  #  Groups can move into and out of being current.  They can be created
+  #  with an end date, and thus cease to be current, or they can be created
+  #  in advance and only become current when we reach their start date.
+  #
+  #  This method should be run once a day (by means of a rake task) to update
+  #  the "current" flag as appropriate.
+  #
+  def self.adjust_currency_flags(ondate = Date.today)
+    Group.all.each do |group|
+      if group.active_on(ondate)
+        unless group.current
+          Rails.logger.info("Setting group #{group.name} to current.")
+          group.current = true
+          group.save
+        end
+      else
+        if group.current
+          Rails.logger.info("Setting group #{group.name} to no longer current.")
+          group.current = false
+          group.save
+        end
+      end
+    end
     nil
   end
 

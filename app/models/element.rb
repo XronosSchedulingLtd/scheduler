@@ -450,6 +450,17 @@ class Element < ActiveRecord::Base
     entity.show_historic_panels?
   end
 
+  #
+  #  This one tests whether the next one should be called.
+  #
+  def extra_panels?
+    entity.extra_panels?
+  end
+
+  def extra_panels(index)
+    entity.extra_panels(index)
+  end
+
   def short_name
     entity.short_name
   end

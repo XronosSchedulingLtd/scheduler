@@ -1,0 +1,38 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-12-06T09:28:40+00:00
+
+====== Tuesday 06 Dec 2016 ======
+
+Not a lot happened yesterday - for some odd reason I was just too knackered.  I may be fighting off James's cold.  However I will try and do at least a little today.
+
+[ ] Generalised column in element display
+[ ] Add display of memberships
+
+I decided a while back that I was doing columns slightly wrong - there is far too much fiddly code in the view.  Instead I should have one generalised column and each type should use that.  I believe it should be possible to implement it in parallel to the existing ones, and then convert them as a second step.  I'll potter at that today.
+
+What do I have currently?
+
+''lib/display_panel.rb'' has the data structures, but each column simply has two attributes a type and its contents.  What the contents are depends on the type.
+
+''app/helpers/elements_helper.rb'' has code to help in their display, but it's quite convoluted.  The required table columns are hard-coded into each type.
+
+''app/controllers/elements_controller.rb'' contains ''populate_panel()'', which puts each panel together.
+
+Do all the sections of a column form one table, or is there a table per sub-section?  It's a single table per column.  I thus need some means of specifying the number, although currently it's always 4 - one at the left for bullet markers, then three more.
+
+I believe I may have implemented the code - now try to convert the "Member of" column for staff, as seen for Martin Poon.  That's the :direct_groups column in old money.
+
+It makes sense for the existing GroupSetHolder to know how to construct its own column.
+
+Just realised another complication - each item in the display can be a link, but always to the display of an element.  Need to allow for that in my data structures too.
+
+Another problem - you really can't do the display stuff from inside a lib file - it lacks access to too many things.  Specifically:
+
+* Helper methods link can_roam?
+* The h() method, although that can be overcome by requiring 'erb' and then including ERB::Util
+* The various _path methods
+
+I think I'm going to have to break my object-orientation and put the actual display code in the helper, rather than in the object itself.  A pity, but...
+
+And yet another little quirk.  When a group is taught by more than one teacher, I need several initials in a column, all separated by <br/>, and all with their own separate links.  Sometimes this generalisation is just more trouble than it's worth.
