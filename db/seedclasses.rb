@@ -522,7 +522,8 @@ class Seeder
     #  Event categories
     #
     @eventcategories[:lesson] =
-      Eventcategory.create!(ECH.new({name: "Lesson"}))
+      Eventcategory.create!(ECH.new({name: "Lesson",
+                                     clashcheck: true}))
     @eventcategories[:weekletter] =
       Eventcategory.create!(ECH.new({name: "Week letter",
                                      schoolwide: true,
