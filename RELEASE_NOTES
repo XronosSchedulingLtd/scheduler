@@ -1,3 +1,71 @@
+v0.15   2016-12-22
+
+* Show membership records for groups.
+
+  The membership of groups has got quite interesting, in that iSAMS makes
+  an attempt to handle the duration of memberships for activity groups
+  (but not other groups).  Unfortunately, it throws away historical
+  information so a certain amount of caution is needed in the data import.
+
+  To enable a clearer view of what exactly is going on, element display
+  for groups now shows not just the current and historical members, but
+  also all the individual membership records (on a separate tab) so one
+  can see the detail of what is going on.  Some OH groups now have
+  *future* members - members who will be in the group when the new term
+  starts.
+
+  This has involved a complete re-work and simplification of all the
+  panels in the element display screens.
+
+* Clash checking has been enhanced in two ways.
+
+  1) The events to be checked are now driven by a flag on the
+     eventcategory record, where previously they were hard-coded to
+     be Lesson and Other Half events.
+
+  2) Suspended (non-existent) events are not clash-checked, but it
+     was possible for an event to be clash-checked - and acquire
+     a note and flag - and then later to be suspended.  The code will
+     now spot such an event and remove the note/flag and the next clash
+     checking run.
+
+* It has become apparent that the iSAMS database can become inconsistent
+  in the area of cover records.  Currently it contains nearly 300 cover
+  records with no corresponding lessons.  The importer now reports
+  merely a count of such records rather than logging each one individually.
+  (If you want them logged individually, remove the --quiet switch from
+  the invocation of the utility.)
+
+* An error has been fixed in the area of Other Half groups which were
+  loaded from iSAMS with an end date already in place.  On the appropriate
+  date (the day after the indicated end date) the groups should have been
+  marked as no longer current in Scheduler.  This was not happening and
+  the loader has been corrected so now it does.
+
+
+v0.14.1 2016-12-13
+
+* Gnashum, frashum, Dick Dasterdly.  One little unwanted <br> snuck through.
+
+
+v0.14   2016-12-13
+
+* Add a multicover flag to staff records.
+
+  Under certain circumstances, one wants to be able to assign the same
+  person (possibly not a real person) to do more than one cover at the
+  time, or do to a cover when apparently involved in something else.
+
+  This release adds a multicover flag to the staff record.  Anyone
+  with this flag set will not generate warnings if over-committed for
+  cover.
+
+* Updated permitted_overloads.rb
+
+  The permitted_overloads.rb file in the system was heavily out of
+  date and thus ineffectual.  This new one does more useful work.
+
+
 v0.13.2 2016-12-01
 
 * Correction to previous release.

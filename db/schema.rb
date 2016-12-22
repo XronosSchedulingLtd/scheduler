@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161128110711) do
+ActiveRecord::Schema.define(version: 20161222124120) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -127,6 +127,7 @@ ActiveRecord::Schema.define(version: 20161128110711) do
     t.boolean  "deprecated",    default: false
     t.boolean  "privileged",    default: false
     t.boolean  "visible",       default: true
+    t.boolean  "clashcheck",    default: false
   end
 
   create_table "events", force: true do |t|
@@ -387,6 +388,7 @@ ActiveRecord::Schema.define(version: 20161128110711) do
     t.boolean  "teaches"
     t.boolean  "does_cover"
     t.integer  "datasource_id"
+    t.boolean  "multicover",    default: false
   end
 
   add_index "staffs", ["datasource_id"], name: "index_staffs_on_datasource_id", using: :btree

@@ -1,0 +1,33 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2016-12-02T10:51:02+00:00
+
+====== Friday 02 Dec 2016 ======
+
+Hit an interesting issue today.
+
+For activity groups (which Abingdon uses for its Other Half), iSAMS partly implements some of the functionality of Scheduler's groups which can vary over time.  Each group has a start date and an end date, and so does each membership.
+
+Unfortunately, it doesn't map quite as easily as one might hope.  The problem is that - on iSAMS's advice - the groups get set up for a term at a time, and then //moved// to the fresh term.  Thus, to take a group which seems to have started the process, the group "Architecture Lego Club" had dates as follows:
+
+starts_on: 2016-09-06
+ends_on:   2016-12-16
+
+i.e. this term.  In last night's update it was changed to:
+
+starts_on: 2017-01-09
+ends_on: 2017-04-01
+
+or in effect, next term.  The historical information about when it really started has been lost.
+
+This would be fine if the new group for next term were presented as a distinct group - I can easily have consecutive groups with the same name - but it's being presented as being the //same group//, with the same id.  If I blindly update the dates, I will lose the historical information.  It does however make sense to update the end date.
+
+I previously had the situation that the start date would not be updated, then I added that functionality in because we had some groups set up with the wrong date and then adjusted.  I am inclined to proceed as follows:
+
+A start date can be moved, provided the group has not yet started.  Thus, if I set up a group which is due to start on the 8th of January next, and then change it to the 6th or the 9th, then fine - the change can go through.
+
+If however the group is already current - its start date falls before the current date (usually today's date, but can be specified separately) then we don't update it, even if iSAMS says we should.  It will also be necessary to adjust my calculation of whether or not the group is current - it should be based on what I'm putting in the d/b, not what came from iSAMS.
+
+Let's see if we can implement that.
+
+OH groups belong to an era, so they should all be disposed of in the end-of-year processing and a fresh set started - even if iSAMS rolls them over.  Need to check that too, when we come to do the end of year.

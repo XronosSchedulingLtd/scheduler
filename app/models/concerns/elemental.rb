@@ -83,6 +83,14 @@ module Elemental
     true
   end
 
+  #
+  #  If an entity overrides this to true, then it needs to provide
+  #  an extra_panels method to generate the panels as well.
+  #
+  def extra_panels?
+    false
+  end
+
   def display_name
     self.name
   end

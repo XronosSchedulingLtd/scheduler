@@ -450,6 +450,17 @@ class Element < ActiveRecord::Base
     entity.show_historic_panels?
   end
 
+  #
+  #  This one tests whether the next one should be called.
+  #
+  def extra_panels?
+    entity.extra_panels?
+  end
+
+  def extra_panels(index)
+    entity.extra_panels(index)
+  end
+
   def short_name
     entity.short_name
   end
@@ -464,6 +475,18 @@ class Element < ActiveRecord::Base
 
   def csv_name
     entity.csv_name
+  end
+
+  #
+  #  Can this element's entity do more than one cover at a time without
+  #  generating a warning?
+  #
+  def multicover?
+    if entity.respond_to?(:multicover)
+      entity.multicover
+    else
+      false
+    end
   end
 
   #

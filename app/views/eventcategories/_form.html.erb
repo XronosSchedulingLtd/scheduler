@@ -138,6 +138,19 @@
     </div>
   </div>
   <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :clashcheck, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :clashcheck %>
+    </div>
+    <div class="small-8 columns annotation">
+      Events in this category are to be checked for clashes and annotated.
+      All events are included in the check, but only these will be
+      annotated.
+    </div>
+  </div>
+  <div class="row collapse">
     <div class="small-9 small-offset-3 columns">
       <%= f.submit %>
     </div>

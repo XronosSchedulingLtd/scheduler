@@ -308,6 +308,18 @@ class Membership < ActiveRecord::Base
       end
 
       #
+      #  Our set is done and over with iff it has an end date, and the
+      #  date is in the past.
+      #
+      def past?(ondate = Date.today)
+        @end_date != nil && @end_date < ondate
+      end
+
+      def future?(ondate = Date.today)
+        @start_date != nil && @start_date > ondate
+      end
+
+      #
       #  When sorting *batches* of mwds, we're thinking about display
       #  and end date is more significant.
       #
@@ -592,7 +604,11 @@ class Membership < ActiveRecord::Base
     end
 
     def past_grouped_mwds(ondate = Date.today)
-      @grouped_mwds.select { |gmwd| !gmwd.current?(ondate) }
+      @grouped_mwds.select { |gmwd| gmwd.past?(ondate) }
+    end
+
+    def future_grouped_mwds(ondate = Date.today)
+      @grouped_mwds.select { |gmwd| gmwd.future?(ondate) }
     end
 
     def grouped_current_mwds_sorted_for_display(ondate = Date.today)

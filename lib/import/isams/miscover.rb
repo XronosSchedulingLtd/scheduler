@@ -34,7 +34,17 @@ class MIS_Cover
       @starts_at          = @schedule_entry.period_time.starts_at
       @ends_at            = @schedule_entry.period_time.ends_at
     else
-      puts "Unable to find covered lesson with ID #{@schedule_id}."
+      #
+      #  It transpires that iSAMS is pretty bad at keeping its database
+      #  self-consistent.  It starts off OK, but gradually the errors
+      #  build.  After a timetable change, there can be hundreds of
+      #  orphaned cover records (cover record but no corresponding lesson).
+      #  Don't log them individually if the --quiet option is specified.
+      #
+      #  The slurping code has already dropped all those in the past, so
+      #  the number will gradually decrease.
+      #
+      puts "Unable to find covered lesson with ID #{@schedule_id}." unless loader.options.quiet
     end
   end
 
