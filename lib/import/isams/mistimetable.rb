@@ -212,11 +212,15 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
   #  Return 0 if we don't know, or have a mixture.
   #
   def yeargroup
-    if @groups.size > 0
-      #
-      #  Really we should ask them all.
-      #
-      @groups[0].yeargroup
+    yeargroups = Array.new
+    @groups.each do |group|
+      yeargroups << group.yeargroup
+    end
+    #
+    #  Hoping for exactly one.
+    #
+    if yeargroups.uniq.size == 1
+      yeargroups[0]
     else
       0
     end
@@ -768,7 +772,11 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
   #  Return 0 if we don't know, or have a mixture.
   #
   def yeargroup
-    @nc_year - 6
+    if @nc_years.uniq.size == 1
+      @nc_year - 6
+    else
+      0
+    end
   end
 
   def self.construct(loader, inner_data)
