@@ -1,0 +1,11 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-01-04T14:24:22+00:00
+
+====== Wednesday 04 Jan 2017 ======
+
+Noticed one little wrinkle in the live system, in that suspension of lessons for the fifth year is causing an assembly for 4th and 5th year to be suspended.  This should not happen, and I think it's because a slightly naive bit of implementation in the import code.  It checks only the first group attached to an event instead of all of them.
+
+I hope it's a straightforward fix.
+
+Copied the live database and applied the latest updates.
