@@ -1232,7 +1232,7 @@ class MIS_Loader
     res = RecurringEventStore.new
     Dir[Rails.root.join(IMPORT_DIR, "recurring", "*.yml")].each do |filename|
       begin
-        puts "Checking #{filename}" unless @options.quiet
+        puts "Checking #{filename}"
         file_had_issues = false
         res.note_events(RecurringEvent.readfile(filename).select {|e|
           if e.find_resources

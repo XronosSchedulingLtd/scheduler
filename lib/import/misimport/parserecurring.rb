@@ -254,7 +254,7 @@ class RecurringEvent
           if data.instance_of?(Array)
             process(data, cs)
           else
-            raise "Data for key #{key} should be an array."
+            raise "The data following hash key: \"#{key}\" should be an array."
           end
         end
       end
