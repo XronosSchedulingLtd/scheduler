@@ -1,3 +1,12 @@
+v0.15.2 2017-01-09
+
+* Improve diagnostics when parsing recurring event files.
+
+  One of the diagnostic messages produced when an error was found in
+  a recurring events file was difficult to understand when taken in
+  isolation.  This release improves the wording to make it clearer.
+
+
 v0.15.1 2017-01-05
 
 * Fix suspension status of assembly shared between year groups.
