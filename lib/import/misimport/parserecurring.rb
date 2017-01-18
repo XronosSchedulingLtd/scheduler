@@ -16,8 +16,22 @@ class RecurringEvent
     "start_date",
     "end_date",
     "week",
-    "greyed"
+    "greyed",
+    "occurrence"
   ]
+
+  KNOWN_OCCURRENCES = [
+    :first,
+    :second,
+    :third,
+    :fourth,
+    :fifth,     # It can happen
+    :last,
+    :penultimate,
+    :antepenultimate,
+    :all
+  ]
+
 
   class CriteriaSet
     #
@@ -30,7 +44,8 @@ class RecurringEvent
                   :start_date,
                   :end_date,
                   :week,
-                  :greyed
+                  :greyed,
+                  :occurrence
     #
     #  These can be specified more than once.
     #
@@ -43,12 +58,13 @@ class RecurringEvent
                   :resource_ids
 
     def initialize
-      @staff      = Array.new
-      @groups     = Array.new
-      @locations  = Array.new
-      @properties = Array.new
-      @week       = "AB"
-      @greyed     = false
+      @staff       = Array.new
+      @groups      = Array.new
+      @locations   = Array.new
+      @properties  = Array.new
+      @week        = "AB"
+      @greyed      = false
+      @occurrence  = :all
     end
 
     def deep_clone
@@ -71,6 +87,15 @@ class RecurringEvent
       @locations << location
     end
 
+    def occurrence=(occurrence)
+      symbol = occurrence.downcase.to_sym
+      if KNOWN_OCCURRENCES.include?(symbol)
+        @occurrence = symbol
+      else
+        raise "Don't know how to handle an occurrence specified as \"#{occurrence}\"."
+      end
+    end
+
     def starts=(starttime)
       @starts = starttime
       if @ends == nil
@@ -79,10 +104,10 @@ class RecurringEvent
     end
 
     def complete?
-      if @category.empty? ||
-         @title.empty? ||
-         @starts.empty? ||
-         @day.empty? ||
+      if @category.blank? ||
+         @title.blank? ||
+         @starts.blank? ||
+         @day.blank? ||
          (@staff.size == 0 &&
           @groups.size == 0 &&
           @locations.size == 0 &&
@@ -100,16 +125,60 @@ class RecurringEvent
       #    and
       #    it has no end date, or its end date >= the date
       #
-      (@start_date == nil || @start_date <= date) &&
-      (@end_date == nil   || @end_date >= date)
+      #  There is then a further check to see whether it is the right
+      #  occurrence.
+      #
+      if (@start_date == nil || @start_date <= date) &&
+         (@end_date == nil   || @end_date >= date)
+        monlen = date.days_in_month
+        delta = monlen - date.day
+        case @occurrence
+        when :first
+          date.day <= 7
+
+        when :second
+          date.day > 7 && date.day <= 14
+
+        when :third
+          date.day > 14 && date.day <= 21
+
+        when :fourth
+          date.day > 21 && date.day <= 28
+
+        when :fifth     # It can happen
+          date.day > 28
+
+        when :last
+          delta < 7
+
+        when :penultimate
+          delta >= 7 && delta < 14
+
+        when :antepenultimate
+          delta >= 14 && delta < 21
+
+        when :all
+          true
+
+        else
+          #
+          #  If we can't make any sense of it then default to allowing
+          #  it.
+          #
+          true
+
+        end
+      else
+        false
+      end
     end
 
     def known_details
       bits = [
-        @title.empty? ? nil : "Title: #{@title}",
-        @category.empty? ? nil : "Category: #{@category}",
-        @starts.empty? ? nil : "Starts: #{@starts}",
-        @day.empty? ? nil : "Day: #{@day}"
+        @title.blank? ? nil : "Title: #{@title}",
+        @category.blank? ? nil : "Category: #{@category}",
+        @starts.blank? ? nil : "Starts: #{@starts}",
+        @day.blank? ? nil : "Day: #{@day}"
       ].compact
       "Event: #{bits.join(" / ")}"
     end
@@ -117,16 +186,16 @@ class RecurringEvent
     def deficiencies
       result = Array.new
       result << known_details
-      if @category.empty?
+      if @category.blank?
         result << "  No category specified"
       end
-      if @title.empty?
+      if @title.blank?
         result << "  No title specified"
       end
-      if @starts.empty?
+      if @starts.blank?
         result << "  No start time specified"
       end
-      if @day.empty?
+      if @day.blank?
         result << "  No day specified"
       end
       if @staff.size == 0 &&
@@ -330,10 +399,19 @@ class RecurringEventStore
     end
   end
 
+  #
+  #  Note that week may be passed as "nil", meaning there is no week
+  #  letter currently in effect.  We turn that into a space internally,
+  #  and serve events explicitly specified as happening when there is
+  #  no week in effect - i.e. outside term.
+  #
   def events_on(date, week)
     events = []
     weekday = date.strftime("%A")
 #    puts "#{date} is a #{weekday}"
+    unless week
+      week = " "
+    end
     weekset = @weeks[week]
     if weekset
       events = weekset[weekday]

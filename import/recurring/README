@@ -1,0 +1,124 @@
+  
+   Recurring events
+  
+    Any file in this directory with the extension .yml will be assumed
+    to contain repeating events and will be parsed as such.  If it
+    isn't valid it will be reported and ignored, but the other files will
+    still be processed.
+  
+   The events are specified using YAML syntax with the ability to nest things
+   so that common information does not need to be repeated.  Attributes
+   can be specified in any order, but you need to give a minimal set in
+   order to create a recurring event.
+  
+   At its simplest, you could just have:
+   (Note the use of quotes around strings which might otherwise be
+   misinterpreted.)
+  
+   category: Duty
+   title:    "Coach park"
+   starts:   "08:20"
+   day:      Monday
+  
+   And then at least one of:
+  
+   staff:    JHW
+   group:    "3rd year"
+   location: "Amey Theatre"
+   property: "Duty"
+  
+   If you don't specify any resources at all then there's no reason for
+   the event to exist.
+  
+   And then you can also specify further attributes if required.
+  
+   start_date: 2016-09-06                Defaults to the loading date
+   end_date:   2016-12-12                Defaults to the end of the current era
+   ends:       "08:40"                   Defaults to the start time
+   week:       A                         Defaults to both weeks (see footnote).
+   greyed:     true                      Will be displayed greyed out.
+   occurrence: first/
+               second/
+               third/
+               fourth/
+               fifth/
+               last/
+               penultimate/
+               antepenultimate/
+               all                       Restrict the event to happening on
+                                         that/those days within a month.
+                                         First Wednesday, last Tuesday etc.
+  
+   All the above will give you just one recurring event.  You can specify
+   more than one by putting them in a YAML array, like this.
+  
+   - category:   Duty
+     start_date: 2016-09-06
+     end_date:   2016-12-12
+     title:      "Coach park"
+     starts:     "08:20"
+     ends:       "08:40"
+     day:        Monday
+     staff:      JHW
+   - category:   Duty
+     start_date: 2016-09-06
+     end_date:   2016-12-12
+     title:      "Coach park"
+     starts:     "08:20"
+     ends:       "08:40"
+     day:        Tuesday
+     staff:      JPGB
+  
+   Note the - at the start of a line to indicate an entry in an array, and
+   then all the items in the same entry have the same indentation.
+   Structurally, this would be parsed as:
+  
+   [
+     {
+       category: Duty
+       start_date: 2016-09-06
+       ...
+     },
+     {
+       category: Duty
+       ...
+     }
+   ]
+  
+   But... there is clearly a lot of repeated information there.  It would be
+   nice to cut that out, and you can do just that by nesting structures.
+  
+   category:   Duty
+   start_date: 2016-09-06
+   end_date:   2016-12-12
+   title:      "Coach park"
+   starts:     "08:20"
+   ends:       "08:40"
+   days:
+   - day:        Monday
+     staff:      JHW
+   - day:        Tuesday
+     staff:      JPGB
+  
+  
+   What we have here now is a hash (key/value pairs) but then one entry
+   in the hash (with the key "days") has as its value an array.  The
+   array consists of further hashes which are each interpreted in the context
+   of the outer hash.  You can go on doing this indefinitely, and it doesn't
+   matter in which order you specify the attributes, as long as by the time
+   you get to your inner-most hash, you've specified enough.
+  
+   The name of the key which you use to identify your inner array doesn't
+   matter as long as it isn't one of the keys identified earlier.  Instead
+   of "days" there we could equally have used "banana".  It makes sense to
+   keep it reasonably meaningful though.
+  
+ 
+Footnote:
+
+  The week: specification above is actually a string, with 3 meaningful
+  characters.  "A", "B", and " ".  The default value for the string is "AB",
+  meaning that the event will occur in both weeks A and B, but not outside
+  term (when it is neither week A nor week B).  A space means the event should
+  occur in weeks with no letter - i.e. the holidays.  Thus to make an event
+  occur all the time regardless of term you specify week: "AB ".
