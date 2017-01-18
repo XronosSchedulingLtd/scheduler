@@ -1,3 +1,12 @@
+v0.15.3 2017-01-18
+
+* Allow recurring events to be specified on the first Wednesday, second
+  Thursday, last Friday etc. of a month.  Also allow events to be specified
+  outside term time.
+
+  For full info, see import/recurring/README
+
+
 v0.15.2 2017-01-09
 
 * Improve diagnostics when parsing recurring event files.
