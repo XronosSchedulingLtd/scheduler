@@ -1123,8 +1123,7 @@ class MIS_Loader
     @start_date.upto(@era.ends_on) do |date|
       puts "Processing #{date}" if @verbose
       week_letter = get_week_letter(date)
-      if week_letter &&
-        events = res.events_on(date, week_letter)
+      if events = res.events_on(date, week_letter)
         existing_events = Event.events_on(date,
                                           date,
                                           nil,
