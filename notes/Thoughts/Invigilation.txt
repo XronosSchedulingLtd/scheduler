@@ -26,6 +26,7 @@ In the course of today's discussions I realised that these two are actually rela
 * It should be possible to print a summary of them all for the benefit of luddites.
 * The system should assist in the choice of invigilators (who is free and most appropriate) and should warn about apparent clashes.
 * The system should send out e-mails warning people that they are down for invigilation, but in batches controlled by the invigilation organiser.  It should also be possible for end users to choose to receive additional e-mails - e.g. daily or weekly.
+* The system should be capable of producing a basic report on an exam cycle - start and end dates, plus number of slots and number of invigilations done.
 
 
 ==== Workflow ====
