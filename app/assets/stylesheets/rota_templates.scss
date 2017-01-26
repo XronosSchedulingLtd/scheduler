@@ -1,0 +1,21 @@
+// Place all the styles related to the RotaTemplates controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+table#rt-table {
+  width: 100%;
+  table-layout: fixed;
+  border: 1px solid black;
+  th, td {
+    border: 1px solid black;
+  }
+  th.rt-deleteslot {
+    width: 3%;
+  }
+  th.rt-timeslot {
+    width: 55%;
+  }
+  th.rt-daybox {
+    width: 6%;
+  }
+}

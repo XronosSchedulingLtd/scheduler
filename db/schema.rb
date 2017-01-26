@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161218180058) do
+ActiveRecord::Schema.define(version: 20170125102701) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -354,6 +354,23 @@ ActiveRecord::Schema.define(version: 20161218180058) do
   add_index "pupils", ["datasource_id"], name: "index_pupils_on_datasource_id", using: :btree
   add_index "pupils", ["source_id"], name: "index_pupils_on_source_id", using: :btree
 
+  create_table "rota_slots", force: true do |t|
+    t.integer  "rota_template_id"
+    t.time     "starts_at"
+    t.time     "ends_at"
+    t.text     "days"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "rota_slots", ["rota_template_id"], name: "index_rota_slots_on_rota_template_id", using: :btree
+
+  create_table "rota_templates", force: true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "services", force: true do |t|
     t.string   "name"
     t.datetime "created_at"
@@ -370,6 +387,7 @@ ActiveRecord::Schema.define(version: 20161218180058) do
     t.boolean  "enforce_permissions", default: false
     t.string   "current_mis"
     t.string   "previous_mis"
+    t.integer  "auth_type",           default: 0
   end
 
   create_table "staffs", force: true do |t|
@@ -477,6 +495,7 @@ ActiveRecord::Schema.define(version: 20161218180058) do
     t.boolean  "clash_immediate",             default: false
     t.boolean  "edit_all_events",             default: false
     t.boolean  "subedit_all_events",          default: false
+    t.boolean  "exams",                       default: false
   end
 
 end

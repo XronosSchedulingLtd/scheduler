@@ -57,6 +57,7 @@ gem 'chronic_duration'
 gem 'dalli'
 gem 'spectrum-rails'
 gem 'nokogiri'
+gem 'tod'
 group :production do
   gem 'tiny_tds'
 end

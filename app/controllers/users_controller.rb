@@ -160,6 +160,7 @@ class UsersController < ApplicationController
                       :email,
                       :admin,
                       :editor,
+                      :exams,
                       :edit_all_events,
                       :subedit_all_events,
                       :arranges_cover,

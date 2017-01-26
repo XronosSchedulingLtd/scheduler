@@ -1,0 +1,9 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Name:</strong>
+  <%= @rota_template.name %>
+</p>
+
+<%= link_to 'Edit', edit_rota_template_path(@rota_template) %> |
+<%= link_to 'Back', rota_templates_path %>

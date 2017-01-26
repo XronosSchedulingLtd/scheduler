@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  resources :rota_slots
+
+  resources :rota_templates
+
   resources :settings
 
   get '/auth/:provider/callback' => 'sessions#create'

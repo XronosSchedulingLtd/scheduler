@@ -1,0 +1,46 @@
+<h2>Rota template: <%= @rota_template.name %></h2>
+
+<div id='rotatemplate' data-rtid='<%= @rota_template.id %>'>
+  <table id='rt-table'>
+    <tr id='rt-header-row'>
+      <th class='rt-deleteslot'></th>
+      <th class='rt-timeslot'>Time slot</th>
+      <th class='rt-daybox'>Sun</th>
+      <th class='rt-daybox'>Mon</th>
+      <th class='rt-daybox'>Tue</th>
+      <th class='rt-daybox'>Wed</th>
+      <th class='rt-daybox'>Thu</th>
+      <th class='rt-daybox'>Fri</th>
+      <th class='rt-daybox'>Sat</th>
+    </tr>
+    <tr id='rt-newslot-row'>
+      <td></td>
+      <td>
+        <input id='new-starts-at' placeholder='Starts at'>
+        <input id='new-ends-at' placeholder='Ends at'>
+      </td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  </table>
+</div>
+<%= link_to 'Back', rota_templates_path %>
+
+<script type="text/template" id="rt-slotrow">
+<tr>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+</tr>
+</script>

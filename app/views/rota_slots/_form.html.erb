@@ -1,0 +1,33 @@
+<%= form_for(@rota_slot) do |f| %>
+  <% if @rota_slot.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@rota_slot.errors.count, "error") %> prohibited this rota_slot from being saved:</h2>
+
+      <ul>
+      <% @rota_slot.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :rota_template_id %><br>
+    <%= f.number_field :rota_template_id %>
+  </div>
+  <div class="field">
+    <%= f.label :starts_at %><br>
+    <%= f.time_select :starts_at %>
+  </div>
+  <div class="field">
+    <%= f.label :ends_at %><br>
+    <%= f.time_select :ends_at %>
+  </div>
+  <div class="field">
+    <%= f.label :days %><br>
+    <%= f.text_area :days %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>
