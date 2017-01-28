@@ -29,7 +29,7 @@ class RotaSlotsController < ApplicationController
     respond_to do |format|
       if @rota_slot.save
         format.html { redirect_to @rota_slot, notice: 'Rota slot was successfully created.' }
-        format.json { render :show, status: :created, location: @rota_slot }
+        format.json { render :show, status: :created }
       else
         format.html { render :new }
         format.json { render json: @rota_slot.errors, status: :unprocessable_entity }
@@ -69,6 +69,9 @@ class RotaSlotsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def rota_slot_params
-      params.require(:rota_slot).permit(:rota_template_id, :starts_at, :ends_at, :days)
+      params.require(:rota_slot).permit(:rota_template_id,
+                                        :starts_at,
+                                        :ends_at,
+                                        :days => [])
     end
 end

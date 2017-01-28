@@ -1,7 +1,8 @@
 Rails.application.routes.draw do
-  resources :rota_slots
 
-  resources :rota_templates
+  resources :rota_templates do
+    resources :rota_slots
+  end
 
   resources :settings
 
