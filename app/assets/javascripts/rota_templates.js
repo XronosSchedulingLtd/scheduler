@@ -66,7 +66,7 @@ rotatemplates = function() {
       'click .add' : 'addSlot'
     },
     render: function() {
-//      alert("Asked to render " + this.collection.length + " slots");
+      console.log("Asked to render " + this.collection.length + " slots");
       $list = this.$el.empty();
       $list.append(this.headertemplate);
       this.collection.each(function(model) {
@@ -76,6 +76,7 @@ rotatemplates = function() {
       $list.append(this.newslottemplate(this.pendingSlot.toJSON()));
       this.saInput = this.$('#new-starts-at')
       this.eaInput = this.$('#new-ends-at')
+      this.saInput.focus();
       return this;
     },
     addSlot: function() {
@@ -87,10 +88,32 @@ rotatemplates = function() {
       //  The server tries to make sense of the time fields and may
       //  reject the request if it can't.
       //
+      days = [];
+      pendingSlotDays = this.pendingSlot.get('days');
+      this.$el.find('#rt-newslot-row').find('.toggle').each(function(index, element)  {
+        days[index] = element.checked;
+        //
+        //  If we succeed in creating the new element then our whole
+        //  collection will be re-displayed, and it's friendly to our
+        //  end user if we keep his set of flags.
+        //
+        //  Can assign to the attribute directly, because don't need
+        //  any events triggering.
+        //
+        pendingSlotDays[index] = element.checked;
+      });
       newSlot = this.collection.create({
-        days: [false, true, true, false, true, true, false],
+        days: days,
         starts_at: this.saInput.val(),
         ends_at: this.eaInput.val()
+      }, {
+        wait: true,
+        success: function() {
+          console.log("Created successfully.");
+        },
+        error: function() {
+          console.log("Failed to create.");
+        }
       });
     }
   });
