@@ -28,12 +28,28 @@ table#rt-table {
 }
 
 div#rt-header {
-  input {
+  input, button.update, button.cancel {
     display: none;
   }
 
-  input.editing {
+  span#title, button.edit {
     display: inline;
   }
+
+}
+
+div#rt-header.editing {
+  input, button.update, button.cancel {
+    display: inline;
+  }
+
+  input {
+    font-size: 18pt;
+  }
+
+  span#title, button.edit {
+    display: none;
+  }
+
 }
 

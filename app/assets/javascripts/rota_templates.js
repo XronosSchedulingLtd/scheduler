@@ -40,19 +40,19 @@ var rotatemplates = function() {
     editTitle: function() {
       console.log("Editing");
       this.input.val(this.model.get("name"));
-      this.input.addClass('editing');
+      this.$el.addClass('editing');
       this.input.focus();
     },
     mightUpdate: function (e) {
       if (e.which === 13) {
-        this.input.removeClass('editing');
+        this.$el.removeClass('editing');
         this.model.set("name", this.input.val());
         this.model.save();
       }
     },
     abortEdit: function (e) {
       console.log("Lost focus");
-      this.input.removeClass('editing');
+      this.$el.removeClass('editing');
     }
   });
 
