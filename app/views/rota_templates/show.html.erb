@@ -1,7 +1,7 @@
-<h2>Rota template: <%= @rota_template.name %></h2>
 
 <div id='rotatemplate' data-rtid='<%= @rota_template.id %>'>
-  <table id='rt-table' class='zftable'>
+  <div id='rt-header'></div>
+  <table id='rt-table' class='zftable rt-table'>
   </table>
 </div>
 <%= link_to 'Back', rota_templates_path %>
@@ -21,11 +21,11 @@
 </script>
 
 <script type="text/template" id="rt-slot-row">
-  <td><button class='destroy tiny radius'>Remove</button></td>
+  <td class='destroy-box'><button class='destroy tiny radius'>Remove</button></td>
   <td><%%= starts_at + " - " + ends_at %></td>
   <% 0.upto(6) do |i| %>
     <td class='tickbox'>
-      <input class='toggle' type='checkbox' <%=
+      <input class='toggle' data-dayno='<%= i %>' type='checkbox' <%=
       "<%=  days[#{i}] ? 'checked' : '' #{'%'}#{'>'}".html_safe
       %> />
     </td>
@@ -38,9 +38,20 @@
       <button class='add tiny radius'>Add</button>
     </td>
     <td>
-      <input id='new-starts-at' placeholder='Starts at'>
-      -
-      <input id='new-ends-at' placeholder='Ends at'>
+      <form>
+        <div class="row">
+          <div class="large-6 columns" id="starts_at">
+            <label>Start time
+              <input id='new-starts-at' placeholder='Starts at'>
+            </label>
+          </div>
+          <div class="large-6 columns" id="ends_at">
+            <label>End time
+              <input id='new-ends-at' placeholder='Ends at'>
+            </label>
+          </div>
+        </div>
+      </form>
     </td>
     <% 0.upto(6) do |i| %>
       <td class='tickbox'>
@@ -50,4 +61,14 @@
       </td>
     <% end %>
   </tr>
+</script>
+
+<script type="text/template" id="rt-error-msg">
+  <small class="error"><%%= error_msg %></small>
+</script>
+
+<script type="text/template" id="rt-header-template">
+<h3>Rota template: <span id='title'><%%= name %></span>
+                   <input id='title-box'></input>
+                   <button class='edit tiny radius'>Edit name</button></h3>
 </script>

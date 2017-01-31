@@ -1,13 +1,67 @@
+"use strict";
+
+//
+//  Do nothing at all unless we are on the right page.
+//
+if ($('#rotatemplate').length) {
 
 //
 //  Wrap everything in a function to avoid namespace pollution
 //  Note that we invoke the function immediately.
 //
-rotatemplates = function() {
+var rotatemplates = function() {
 
-  that = {};
+  var that = {};
+
+  var RotaTemplate = Backbone.Model.extend({
+    urlRoot: '/rota_templates'
+  });
+
+  var RotaTemplateView = Backbone.View.extend({
+    el: "#rt-header",
+    model: RotaTemplate,
+    template: _.template($('#rt-header-template').html()),
+    initialize: function(rtid) {
+      _.bindAll(this, 'editTitle', 'mightUpdate', 'abortEdit');
+      this.model = new RotaTemplate({id: rtid});
+      this.listenTo(this.model, 'sync', this.render);
+      this.model.fetch();
+    },
+    render: function() {
+      this.$el.html(this.template(this.model.toJSON()));
+      this.$el.find('#title').on('dblclick', null, null, this.editTitle);
+      this.$el.find('.edit').on('click', null, null, this.editTitle);
+      this.title = this.$('#title');
+      this.input = this.$('#title-box');
+      this.input.on('keypress', null, null, this.mightUpdate);
+      this.input.on('blur', null, null, this.abortEdit);
+      return this;
+    },
+    editTitle: function() {
+      console.log("Editing");
+      this.input.val(this.model.get("name"));
+      this.input.addClass('editing');
+      this.input.focus();
+    },
+    mightUpdate: function (e) {
+      if (e.which === 13) {
+        this.input.removeClass('editing');
+        this.model.set("name", this.input.val());
+        this.model.save();
+      }
+    },
+    abortEdit: function (e) {
+      console.log("Lost focus");
+      this.input.removeClass('editing');
+    }
+  });
 
   var RotaSlot = Backbone.Model.extend({
+    toggleDay: function(dayno) {
+      var daynos = this.get('days');
+      daynos[dayno] = !daynos[dayno];
+      this.save();
+    }
   });
 
   var RotaSlotView = Backbone.View.extend({
@@ -20,7 +74,8 @@ rotatemplates = function() {
       this.model.on('destroy', this.remove, this);
     },
     events: {
-      'click .destroy' : 'destroy'
+      'click .destroy' : 'destroy',
+      'click .toggle' : 'toggleDay'
     },
     render: function() {
       this.$el.html(this.template(this.model.toJSON()));
@@ -28,6 +83,15 @@ rotatemplates = function() {
     },
     destroy: function() {
       this.model.destroy();
+    },
+    toggleDay: function(e) {
+      console.log("Day toggled." + $(e.target).data('dayno'));
+      //
+      //  Has the toggle actually changed its value when we get
+      //  this event?  Doesn't really matter - we can toggle our
+      //  internal idea and then the row gets re-displayed anyway.
+      //
+      this.model.toggleDay($(e.target).data('dayno'));
     }
   });
 
@@ -48,7 +112,9 @@ rotatemplates = function() {
     el: '#rt-table',
     headertemplate: _.template($('#rt-header-row').html()),
     newslottemplate: _.template($('#rt-newslot-row').html()),
+    errortemplate: _.template($('#rt-error-msg').html()),
     initialize: function (rtid) {
+      _.bindAll(this, 'mightSubmit');
       this.collection = new RotaSlots(null, {rtid: rtid});
       this.listenTo(this.collection, 'sync', this.render);
       this.collection.fetch();
@@ -67,7 +133,7 @@ rotatemplates = function() {
     },
     render: function() {
       console.log("Asked to render " + this.collection.length + " slots");
-      $list = this.$el.empty();
+      var $list = this.$el.empty();
       $list.append(this.headertemplate);
       this.collection.each(function(model) {
         var slotView = new RotaSlotView({model: model});
@@ -76,10 +142,20 @@ rotatemplates = function() {
       $list.append(this.newslottemplate(this.pendingSlot.toJSON()));
       this.saInput = this.$('#new-starts-at')
       this.eaInput = this.$('#new-ends-at')
+      this.eaInput.on('keypress', null, null, this.mightSubmit);
       this.saInput.focus();
       return this;
     },
+    mightSubmit: function (e) {
+      if (e.which === 13 && this.saInput.val() && this.eaInput.val()) {
+        this.addSlot();
+      }
+    },
     addSlot: function() {
+      //
+      //  First get rid of any left over error messages.
+      //
+      this.$(".error").remove();
       //alert("Asked to add. " + this.saInput.val());
       //
       //  Need to get values from the two input fields, plus build an
@@ -88,8 +164,8 @@ rotatemplates = function() {
       //  The server tries to make sense of the time fields and may
       //  reject the request if it can't.
       //
-      days = [];
-      pendingSlotDays = this.pendingSlot.get('days');
+      var days = [];
+      var pendingSlotDays = this.pendingSlot.get('days');
       this.$el.find('#rt-newslot-row').find('.toggle').each(function(index, element)  {
         days[index] = element.checked;
         //
@@ -102,7 +178,7 @@ rotatemplates = function() {
         //
         pendingSlotDays[index] = element.checked;
       });
-      newSlot = this.collection.create({
+      var newSlot = this.collection.create({
         days: days,
         starts_at: this.saInput.val(),
         ends_at: this.eaInput.val()
@@ -111,27 +187,49 @@ rotatemplates = function() {
         success: function() {
           console.log("Created successfully.");
         },
-        error: function() {
+        error: function(model, xhr, options) {
+          var errors;
+
           console.log("Failed to create.");
+          errors = $.parseJSON(xhr.responseText);
+          for (var property in errors) {
+            if (errors.hasOwnProperty(property)) {
+              console.log(property + ": " + errors[property]);
+            }
+          }
         }
-      });
+      }).on('error', this.creationError, this);
+    },
+    creationError: function(model, response, options) {
+      var view, errors;
+
+      console.log("Collection view noting error.");
+      view = this;
+      errors = $.parseJSON(response.responseText);
+      for (var property in errors) {
+        if (errors.hasOwnProperty(property)) {
+          view.$el.find("#" + property).append(view.errortemplate({error_msg: errors[property]}));
+        }
+      }
     }
   });
 
+  function getTemplate(rtid) {
+    var templateView = new RotaTemplateView(rtid);
+  };
+
   function getSlots(rtid) {
-    slotsView = new SlotsView(rtid);
+    var slotsView = new SlotsView(rtid);
   };
 
   that.init = function() {
     //
-    //  If a div with our id exists, then we do stuff.
-    //  If that div doesn't exist then we're on a different page.
+    //  We have already checked that our master parent division
+    //  exists, otherwise we wouldn't be running at all.
     //
-    ourdiv = $('#rotatemplate');
-    if (ourdiv.length !== 0) {
-      rtid = ourdiv.data("rtid");
-      getSlots(rtid);
-    }
+    var rtid = $('#rotatemplate').data("rtid");
+    getTemplate(rtid);
+    getSlots(rtid);
   }
 
   return that;
@@ -143,3 +241,4 @@ rotatemplates = function() {
 //
 $(rotatemplates.init);
 
+}

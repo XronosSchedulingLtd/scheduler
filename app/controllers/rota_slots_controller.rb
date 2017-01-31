@@ -43,7 +43,7 @@ class RotaSlotsController < ApplicationController
     respond_to do |format|
       if @rota_slot.update(rota_slot_params)
         format.html { redirect_to @rota_slot, notice: 'Rota slot was successfully updated.' }
-        format.json { render :show, status: :ok, location: @rota_slot }
+        format.json { render :show, status: :ok }
       else
         format.html { render :edit }
         format.json { render json: @rota_slot.errors, status: :unprocessable_entity }
