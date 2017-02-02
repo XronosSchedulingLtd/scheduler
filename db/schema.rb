@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170125102701) do
+ActiveRecord::Schema.define(version: 20170202134032) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -167,6 +167,13 @@ ActiveRecord::Schema.define(version: 20170125102701) do
 
   create_table "eventsources", force: true do |t|
     t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "exam_cycles", force: true do |t|
+    t.string   "name"
+    t.integer  "default_rota_template_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

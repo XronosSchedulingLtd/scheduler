@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  resources :exam_cycles
+
   resources :rota_templates do
     resources :rota_slots
     member do

@@ -1,0 +1,14 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Name:</strong>
+  <%= @exam_cycle.name %>
+</p>
+
+<p>
+  <strong>Default rota template:</strong>
+  <%= @exam_cycle.default_rota_template_id %>
+</p>
+
+<%= link_to 'Edit', edit_exam_cycle_path(@exam_cycle) %> |
+<%= link_to 'Back', exam_cycles_path %>

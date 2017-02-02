@@ -1,6 +1,10 @@
 class RotaTemplate < ActiveRecord::Base
   has_many :rota_slots, :dependent => :destroy
 
+  has_many :exam_cycles,
+           :dependent => :nullify,
+           :foreign_key => :default_rota_template_id
+
   #
   #  Make a copy of ourself, duplicating all the necessary rota slots.
   #

@@ -1,0 +1,25 @@
+<%= form_for(@exam_cycle) do |f| %>
+  <% if @exam_cycle.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@exam_cycle.errors.count, "error") %> prohibited this exam_cycle from being saved:</h2>
+
+      <ul>
+      <% @exam_cycle.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </div>
+  <div class="field">
+    <%= f.label :default_rota_template_id %><br>
+    <%= f.number_field :default_rota_template_id %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

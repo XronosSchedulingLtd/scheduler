@@ -1,0 +1,36 @@
+<h1>Listing exam cycles</h1>
+
+<div class="digg_pagination">
+  <%= will_paginate @exam_cycles %>
+</div>
+
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Default rota template</th>
+      <th>Rooms used</th>
+      <th colspan="2"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @exam_cycles.each do |exam_cycle| %>
+      <tr>
+        <td><%= exam_cycle.name %></td>
+        <td><%= exam_cycle.try(:default_rota_template).try(:name) %></td>
+        <td>Don't know</td>
+        <td><%= link_to 'Edit', edit_exam_cycle_path(exam_cycle) %></td>
+        <td><%= link_to 'Destroy', exam_cycle, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="digg_pagination">
+  <%= will_paginate @exam_cycles %>
+</div>
+
+<br>
+
+<%= link_to 'New Exam cycle', new_exam_cycle_path, class: "button small radius" %>
