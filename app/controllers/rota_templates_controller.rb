@@ -1,10 +1,14 @@
 class RotaTemplatesController < ApplicationController
-  before_action :set_rota_template, only: [:show, :edit, :update, :destroy]
+  before_action :set_rota_template, only: [:show,
+                                           :edit,
+                                           :update,
+                                           :destroy,
+                                           :do_clone]
 
   # GET /rota_templates
   # GET /rota_templates.json
   def index
-    @rota_templates = RotaTemplate.all
+    @rota_templates = RotaTemplate.page(params[:page]).order('name')
   end
 
   # GET /rota_templates/1
@@ -59,6 +63,12 @@ class RotaTemplatesController < ApplicationController
       format.html { redirect_to rota_templates_url }
       format.json { head :no_content }
     end
+  end
+
+  # POST /rota_templates/1/do_clone
+  def do_clone
+    @new_template = @rota_template.do_clone
+    redirect_to rota_templates_path
   end
 
   private

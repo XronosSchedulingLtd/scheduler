@@ -2,6 +2,9 @@ Rails.application.routes.draw do
 
   resources :rota_templates do
     resources :rota_slots
+    member do
+      post :do_clone
+    end
   end
 
   resources :settings

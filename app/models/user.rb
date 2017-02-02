@@ -156,7 +156,8 @@ class User < ActiveRecord::Base
     self.editor ||
     self.can_has_groups ||
     self.can_find_free ||
-    self.element_owner
+    self.element_owner ||
+    self.exams
   end
 
   #

@@ -20,38 +20,42 @@ var rotatemplates = function() {
   var RotaTemplateView = Backbone.View.extend({
     el: "#rt-header",
     model: RotaTemplate,
-    template: _.template($('#rt-header-template').html()),
     initialize: function(rtid) {
       _.bindAll(this, 'editTitle', 'mightUpdate', 'abortEdit');
       this.model = new RotaTemplate({id: rtid});
       this.listenTo(this.model, 'sync', this.render);
       this.model.fetch();
     },
+    events: {
+      'dblclick #title'     : 'editTitle',
+      'click .edit'         : 'editTitle',
+      'keypress #title-box' : 'mightUpdate',
+      'click .update'       : 'update',
+      'click .cancel'       : 'abortEdit'
+    },
     render: function() {
-      this.$el.html(this.template(this.model.toJSON()));
-      this.$el.find('#title').on('dblclick', null, null, this.editTitle);
-      this.$el.find('.edit').on('click', null, null, this.editTitle);
-      this.title = this.$('#title');
-      this.input = this.$('#title-box');
-      this.input.on('keypress', null, null, this.mightUpdate);
-      this.input.on('blur', null, null, this.abortEdit);
+      var current_name = this.model.get('name');
+      this.$('#title').html(current_name);
       return this;
     },
     editTitle: function() {
       console.log("Editing");
-      this.input.val(this.model.get("name"));
+      var titleBox = this.$('#title-box')
+      titleBox.val(this.model.get('name'));
       this.$el.addClass('editing');
-      this.input.focus();
+      titleBox.focus();
     },
-    mightUpdate: function (e) {
+    update: function() {
+      this.$el.removeClass('editing');
+      this.model.set("name", this.$('#title-box').val());
+      this.model.save();
+    },
+    mightUpdate: function(e) {
       if (e.which === 13) {
-        this.$el.removeClass('editing');
-        this.model.set("name", this.input.val());
-        this.model.save();
+        this.update();
       }
     },
     abortEdit: function (e) {
-      console.log("Lost focus");
       this.$el.removeClass('editing');
     }
   });
@@ -85,7 +89,7 @@ var rotatemplates = function() {
       this.model.destroy();
     },
     toggleDay: function(e) {
-      console.log("Day toggled." + $(e.target).data('dayno'));
+//      console.log("Day toggled." + $(e.target).data('dayno'));
       //
       //  Has the toggle actually changed its value when we get
       //  this event?  Doesn't really matter - we can toggle our
@@ -110,11 +114,13 @@ var rotatemplates = function() {
 
   var SlotsView = Backbone.View.extend({
     el: '#rt-table',
-    headertemplate: _.template($('#rt-header-row').html()),
-    newslottemplate: _.template($('#rt-newslot-row').html()),
     errortemplate: _.template($('#rt-error-msg').html()),
     initialize: function (rtid) {
-      _.bindAll(this, 'mightSubmit');
+      _.bindAll(this, 'creationOK');
+      this.$tbody = this.$('tbody');
+      this.$tfoot = this.$('tfoot');
+      this.saInput = this.$('#new-starts-at')
+      this.eaInput = this.$('#new-ends-at')
       this.collection = new RotaSlots(null, {rtid: rtid});
       this.listenTo(this.collection, 'sync', this.render);
       this.collection.fetch();
@@ -129,20 +135,24 @@ var rotatemplates = function() {
       });
     },
     events: {
-      'click .add' : 'addSlot'
+      'click .add'              : 'addSlot',
+      'keypress #new-starts-at' : 'mightSubmit',
+      'keypress #new-ends-at'   : 'mightSubmit'
     },
     render: function() {
       console.log("Asked to render " + this.collection.length + " slots");
-      var $list = this.$el.empty();
-      $list.append(this.headertemplate);
+      var $list = this.$tbody.empty();
       this.collection.each(function(model) {
         var slotView = new RotaSlotView({model: model});
         $list.append(slotView.render().$el);
       }, this);
-      $list.append(this.newslottemplate(this.pendingSlot.toJSON()));
-      this.saInput = this.$('#new-starts-at')
-      this.eaInput = this.$('#new-ends-at')
-      this.eaInput.on('keypress', null, null, this.mightSubmit);
+      //
+      //  Need to set initial values of input checkboxes.
+      //
+      var pendingSlotDays = this.pendingSlot.get('days');
+      this.$tfoot.find('.toggle').each(function(index, element) {
+        $(element).prop('checked', pendingSlotDays[index]);
+      });
       this.saInput.focus();
       return this;
     },
@@ -184,9 +194,7 @@ var rotatemplates = function() {
         ends_at: this.eaInput.val()
       }, {
         wait: true,
-        success: function() {
-          console.log("Created successfully.");
-        },
+        success: this.creationOK,
         error: function(model, xhr, options) {
           var errors;
 
@@ -199,6 +207,11 @@ var rotatemplates = function() {
           }
         }
       }).on('error', this.creationError, this);
+    },
+    creationOK: function() {
+      console.log("Created successfully.");
+      this.saInput.val('');
+      this.eaInput.val('');
     },
     creationError: function(model, response, options) {
       var view, errors;

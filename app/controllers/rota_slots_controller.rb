@@ -1,10 +1,11 @@
 class RotaSlotsController < ApplicationController
+  before_action :find_rota_template
   before_action :set_rota_slot, only: [:show, :edit, :update, :destroy]
 
-  # GET /rota_slots
-  # GET /rota_slots.json
+  # GET /rota_template/1/rota_slots
+  # GET /rota_template/1/rota_slots.json
   def index
-    @rota_slots = RotaSlot.all
+    @rota_slots = @rota_template.rota_slots
   end
 
   # GET /rota_slots/1
@@ -21,10 +22,10 @@ class RotaSlotsController < ApplicationController
   def edit
   end
 
-  # POST /rota_slots
-  # POST /rota_slots.json
+  # POST /rota_templates/1/rota_slots
+  # POST /rota_templates/1/rota_slots.json
   def create
-    @rota_slot = RotaSlot.new(rota_slot_params)
+    @rota_slot = @rota_template.rota_slots.new(rota_slot_params)
 
     respond_to do |format|
       if @rota_slot.save
@@ -67,10 +68,13 @@ class RotaSlotsController < ApplicationController
       @rota_slot = RotaSlot.find(params[:id])
     end
 
+    def find_rota_template
+      @rota_template = RotaTemplate.find(params[:rota_template_id])
+    end
+                                         
     # Never trust parameters from the scary internet, only allow the white list through.
     def rota_slot_params
-      params.require(:rota_slot).permit(:rota_template_id,
-                                        :starts_at,
+      params.require(:rota_slot).permit(:starts_at,
                                         :ends_at,
                                         :days => [])
     end

@@ -40,6 +40,7 @@ class RotaSlot < ActiveRecord::Base
 
   belongs_to :rota_template
 
+  validates :rota_template, :presence => true
   validates_with RotaSlotValidator
 
   attr_reader :org_starts_at, :org_ends_at

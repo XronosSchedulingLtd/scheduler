@@ -25,6 +25,10 @@ table#rt-table {
   td.tickbox, td.delete-box {
     text-align: center;
   }
+  button.destroy {
+    margin-top:    1px;
+    margin-bottom: 1px;
+  }
 }
 
 div#rt-header {

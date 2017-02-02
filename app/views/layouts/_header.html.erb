@@ -52,6 +52,14 @@
 <%     if current_user.element_owner %>
             <li><%= link_to "Approvals", commitments_path %></li>
 <%     end %>
+<%     if current_user.exams? %>
+            <li class="has-dropdown">
+              <a href="#">Exams</a>
+              <ul class="dropdown">
+                <li><%= link_to "Rotas", rota_templates_path %></li>
+              </ul>
+            </li>
+<%     end %>
 <%     if current_user.admin %>
             <li class="has-dropdown">
               <a href="#">Models</a>
