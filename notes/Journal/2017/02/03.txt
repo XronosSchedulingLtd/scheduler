@@ -1,0 +1,62 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-03T10:48:54+00:00
+
+====== Friday 03 Feb 2017 ======
+
+Just about got the editing of exam cycles working - at least as far as the basic information goes.  Next we will add the creation of room records.  I suspect I'm about to get into Backbone again.  It still unfortunately won't give full cancel processing.  Or I could use a separate dialogue for adjusting the room info.  One to edit basic information, and then a second one to do the room stuff - effectively the "Show" screen.
+
+Need to set permission checking so that exam users other than administrators can access all these screens.  Done that.
+
+Next we need to create the individual room records within each exam cycle.  What do they need?  Read my notes again.  Are these records relevant to rotas in general?  Are they relevant to resource requests in general?  I need to implement them now to suit the immediate requirement, but keep an eye on how they might be expanded in the future.
+
+I don't think they relate to resource requests in general (which will usually be for one slot rather than hundreds) but I think they should be generalised to allow the attachment of any resource to the individual event records.  Here we see them as relating to a room, but one might also want for instance, to attach an "Exam" property, or something else to each one.  If one hard codes it as being a room then you limit your options for later.  If you say that each one can have any number of elements attached to it, but at this stage we expect just a room to be added, then we have much more scope for expansion in the future.
+
+Thinking about CFC's requirement for music timetables, he might want to attach a peripatetic teacher's record and a room to each of these records.  What then do we call these records?  They aren't room records.  I might call them that in the UI for now, but the underlying record needs a different name.
+
+We're potentially creating two new linking records for elements:
+
+* A HABTM record connecting them to these "room record"s.
+* A HABTM request record, which will link them to events.
+
+My request record is new, and will potentially replace tentative commitments in the fullness of time.  The request record will contain more information (like how many of whatever are needed) and will be fulfilled later by commitment records.  The commitment records will need to be linked to the request record so the request record knows when it has been fulfilled.
+
+Currently:
+
+{{./diagram.png?type=diagram}}
+
+With the new request record we would have:
+
+{{./diagram001.png?type=diagram}}
+
+Not all commitments (indeed, only a very small minority) would be linked to requests, but where they are so linked then they are fulfilling the request.  The request record would hold a count of how many of the elements are needed.
+
+Commonly the request record and commitment record would not be linked to the same element.  The request would be linked to a group, whilst the commitment would be linked to a member of the group.  Thus, a simple request would be, "Can I have the Amey Theatre?" and there the eventual linkage would be as above.  A request however might be, "Can I have a mini-bus?" or "Can I have 5 staff to invigilate?" in which case the diagram would look more like this:
+
+{{./diagram002.png?type=diagram}}
+
+Note that "Group Element" is not a model in its own right - it's simply an element which happens to be a group.  The request points to the group element, with an indication of how many are needed, and the fulfilment code then picks a suitable member for each commitment.
+
+N.B.  The request record can specify a quantity of 0.  We need this because our auto-generation code for exams will generate a whole pile of events, each indicating that it needs 0 invigilators.  We then need a user-friendly interface whereby someone (it should be the exams officer, but may well be the person arranging the invigilation) goes along and enters the correct calculated number for each slot.  What he wants is pre-defined (cover staff) but the quantity is different for every single slot.  Needs to be a slick entry process.  Perhaps offer a list, rather than doing it via the calendar.
+
+All useful analysis, but what I need at the moment is simply to link a room record (still the wrong name) to a list of resources which will be required later.  In fact, we need more than that.  We need to know:
+
+* What will be attached to every event created (probably just a room, but perhaps a property as well).
+* What will be //requested// for every event - by default this will be 0 staff.
+
+From the point of view of the immediate users, they will really just want to specify a room and a couple of dates, but the underlying data structures should allow for more.  Perhaps even we let them specify the room, but add an "Exams" attribute as well.
+
+Further thought - although we allow a default of 0 staff for each event, it might make sense to let the user specify a different default.  It could arise that the user knows in advance that almost every event will need a quantity of 1, and so you set the default to 1 and alter the exceptions, rather than having a default of 0 and having to edit them all to 1.  Not so sure this will arise with exams, but it easily could for music lessons.
+
+Perhaps call this new record a ProtoRequest?  Is that too silly?  It's not the name I'd use to end users, but it might make sense for the d/b record.  Could have both a ProtoRequest (which generates Requests) and ProtoCommitment (which generates Commitments) or I could have single type of ProtoThing which does both.  Do I then have a ProtoEvent which records details of the event?
+
+Each ExamCycle would have 0 or more ProtoEvents, (although they wouldn't be called that from the end users point of view).  These have no date or time, but they can be used in conjunction with the RotaTemplate to generate a whole mass of events.
+
+Pondering further on the Proto things, it occurred to me that they don't actually need to be separate models at all.  The ProtoCommitments in particular could be implemented as an array in the ProtoEvent, which is serialized when it is written to the database.  Fewer d/b tables, but I can't help feeling a less nice solution.  You lose all the advantages of Rails letting you link things together automatically.  If they're proper models then I can write:
+
+'''
+protoevent.protocommitments[0].element
+'''
+
+but if I merely have an array of element IDs I need to do all the linking code myself.
+

@@ -4,7 +4,7 @@ class ExamCyclesController < ApplicationController
   # GET /exam_cycles
   # GET /exam_cycles.json
   def index
-    @exam_cycles = ExamCycle.page(params[:page]).order('name')
+    @exam_cycles = ExamCycle.page(params[:page]).order('starts_on').reverse_order
   end
 
   # GET /exam_cycles/1
@@ -28,7 +28,7 @@ class ExamCyclesController < ApplicationController
 
     respond_to do |format|
       if @exam_cycle.save
-        format.html { redirect_to @exam_cycle, notice: 'Exam cycle was successfully created.' }
+        format.html { redirect_to exam_cycles_url, notice: 'Exam cycle was created successfully.' }
         format.json { render :show, status: :created, location: @exam_cycle }
       else
         format.html { render :new }
@@ -42,7 +42,7 @@ class ExamCyclesController < ApplicationController
   def update
     respond_to do |format|
       if @exam_cycle.update(exam_cycle_params)
-        format.html { redirect_to @exam_cycle, notice: 'Exam cycle was successfully updated.' }
+        format.html { redirect_to exam_cycles_url, notice: 'Exam cycle was updated successfully.' }
         format.json { render :show, status: :ok, location: @exam_cycle }
       else
         format.html { render :edit }
@@ -62,6 +62,10 @@ class ExamCyclesController < ApplicationController
   end
 
   private
+    def authorized?(action = action_name, resource = nil)
+      logged_in? && (current_user.admin || current_user.exams?)
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_exam_cycle
       @exam_cycle = ExamCycle.find(params[:id])
@@ -69,6 +73,9 @@ class ExamCyclesController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def exam_cycle_params
-      params.require(:exam_cycle).permit(:name, :default_rota_template_id)
+      params.require(:exam_cycle).permit(:name,
+                                         :default_rota_template_id,
+                                         :starts_on_text,
+                                         :ends_on_text)
     end
 end

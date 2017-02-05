@@ -12,8 +12,8 @@ Things to get working today.
 [*] Rename templates
 [*] Streamline the generation of my page, reducing use of underscore templates.
 [*] Provide a menu option to authorised users.
-[ ] Clone templates
-[ ] Tidy up listing of templates - make it look like other ones.
+[*] Clone templates
+[*] Tidy up listing of templates - make it look like other ones.
 
 I can currently rename a template using the edit form, but it would seem logical to be able to do it all on the one page, which can then take over as being the edit form.
 

@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  resources :proto_events
+
   resources :exam_cycles
 
   resources :rota_templates do

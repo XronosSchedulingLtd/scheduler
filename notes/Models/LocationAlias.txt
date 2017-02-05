@@ -13,7 +13,7 @@ Note that all locations will have at least one location alias, containing (proba
 
 I have been tempted to put an EventSource connection in LocationAlias too, but am refraining for now, as the only place from which I'll automatically load locations is SB.
 
-Fields
+==== Fields ====
 
 id			integer	Rails's id for the LocationAlias
 name		string	Name of this alias

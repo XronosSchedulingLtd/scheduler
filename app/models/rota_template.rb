@@ -5,6 +5,8 @@ class RotaTemplate < ActiveRecord::Base
            :dependent => :nullify,
            :foreign_key => :default_rota_template_id
 
+  validates :name, :presence => true
+
   #
   #  Make a copy of ourself, duplicating all the necessary rota slots.
   #
@@ -18,4 +20,7 @@ class RotaTemplate < ActiveRecord::Base
     new_template
   end
 
+  def <=>(other)
+    self.name <=> other.name
+  end
 end

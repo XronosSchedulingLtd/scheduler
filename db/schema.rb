@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170202134032) do
+ActiveRecord::Schema.define(version: 20170205121418) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -174,6 +174,8 @@ ActiveRecord::Schema.define(version: 20170202134032) do
   create_table "exam_cycles", force: true do |t|
     t.string   "name"
     t.integer  "default_rota_template_id"
+    t.date     "starts_on"
+    t.date     "ends_on"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -342,6 +344,45 @@ ActiveRecord::Schema.define(version: 20170202134032) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "proto_commitments", force: true do |t|
+    t.integer  "proto_event_id"
+    t.integer  "element_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "proto_commitments", ["element_id"], name: "index_proto_commitments_on_element_id", using: :btree
+  add_index "proto_commitments", ["proto_event_id"], name: "index_proto_commitments_on_proto_event_id", using: :btree
+
+  create_table "proto_events", force: true do |t|
+    t.text     "body"
+    t.date     "starts_on"
+    t.date     "ends_on"
+    t.integer  "eventcategory_id"
+    t.integer  "eventsource_id"
+    t.integer  "rota_template_id"
+    t.integer  "generator_id"
+    t.string   "generator_type"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "proto_events", ["eventcategory_id"], name: "index_proto_events_on_eventcategory_id", using: :btree
+  add_index "proto_events", ["eventsource_id"], name: "index_proto_events_on_eventsource_id", using: :btree
+  add_index "proto_events", ["generator_id", "generator_type"], name: "index_proto_events_on_generator_id_and_generator_type", using: :btree
+  add_index "proto_events", ["rota_template_id"], name: "index_proto_events_on_rota_template_id", using: :btree
+
+  create_table "proto_requests", force: true do |t|
+    t.integer  "proto_event_id"
+    t.integer  "element_id"
+    t.integer  "quantity"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "proto_requests", ["element_id"], name: "index_proto_requests_on_element_id", using: :btree
+  add_index "proto_requests", ["proto_event_id"], name: "index_proto_requests_on_proto_event_id", using: :btree
 
   create_table "pupils", force: true do |t|
     t.string   "name"

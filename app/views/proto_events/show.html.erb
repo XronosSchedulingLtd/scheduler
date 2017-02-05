@@ -1,0 +1,29 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Body:</strong>
+  <%= @proto_event.body %>
+</p>
+
+<p>
+  <strong>Starts on:</strong>
+  <%= @proto_event.starts_on %>
+</p>
+
+<p>
+  <strong>Ends on:</strong>
+  <%= @proto_event.ends_on %>
+</p>
+
+<p>
+  <strong>Event category:</strong>
+  <%= @proto_event.event_category_id %>
+</p>
+
+<p>
+  <strong>Event source:</strong>
+  <%= @proto_event.event_source_id %>
+</p>
+
+<%= link_to 'Edit', edit_proto_event_path(@proto_event) %> |
+<%= link_to 'Back', proto_events_path %>

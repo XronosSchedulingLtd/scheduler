@@ -1,0 +1,8 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-04T16:39:19+00:00
+
+====== ProtoRequest ======
+Created Saturday 04 February 2017
+
+An imitation of a real Request record.  Each [[ProtoRequest]] attached to a [[ProtoEvent]] will cause a real [[Request]] to be generated when the [[ProtoEvent]] is used to generate a real Event.
