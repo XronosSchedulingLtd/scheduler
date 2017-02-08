@@ -1,0 +1,31 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-08T09:39:25+00:00
+
+====== Wednesday 08 Feb 2017 ======
+
+Now, to get the pop-down list of templates working, I need to construct the select box.  Normally this is done for me automatically by the rails code, but here I think I may need to do it myself.
+
+Or could I use the Rails code to populate a template?  Given I have variables in it, probably not.
+
+What does a pop-down look like in the HTML source?
+
+'''
+<select id="event_eventcategory_id" name="event[eventcategory_id]"><option value="">Please select</option>
+<option value="18">Date - other</option>
+<option value="19">Event set-up</option>
+<option value="13">INSET / Training</option>
+<option value="14">Interview / Audition</option>
+<option value="1">Lesson</option>
+<option value="20">Meeting</option>
+<option value="16">Performance</option>
+<option value="15">Practice / Rehearsal</option>
+<option value="17">Religious service</option>
+<option value="11">Sports fixture</option>
+<option value="12">Trip</option></select>
+'''
+
+
+So I need to generate something similar in my template.
+
+Need to stop worrying about "pretty".  I'm spending too much time on pretty.  Get the basic functionality working and then worry about pretty when I switch to using Bootstrap.

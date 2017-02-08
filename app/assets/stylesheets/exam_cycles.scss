@@ -11,3 +11,64 @@
   bottom: 0px;
   right: 0px;
 }
+
+table#ec-table {
+  button {
+    margin-top:    1px;
+    margin-bottom: 1px;
+  }
+
+  tr.creating {
+    button.add, input, select {
+      display: inline;
+    }
+
+    button.edit,
+    button.generate,
+    button.regenerate,
+    button.update,
+    button.deleteevents,
+    button.delete,
+    button.cancel,
+    span.displaying {
+      display: none;
+    }
+  }
+
+  tr.created {
+    button.edit,
+    button.generate,
+    button.delete {
+      display: inline;
+    }
+
+    button.add,
+    button.regenerate,
+    button.update,
+    button.deleteevents,
+    button.cancel,
+    input,
+    select{
+      display: none;
+    }
+  }
+
+  tr.editing {
+    button.update,
+    button.cancel,
+    input,
+    select{
+      display: inline;
+    }
+
+    button.add,
+    button.edit,
+    button.generate,
+    button.delete,
+    button.regenerate,
+    button.deleteevents,
+    span.displaying{
+      display: none;
+    }
+  }
+}

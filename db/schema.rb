@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170205121418) do
+ActiveRecord::Schema.define(version: 20170207102512) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -153,6 +153,7 @@ ActiveRecord::Schema.define(version: 20170205121418) do
     t.boolean  "complete",         default: true
     t.boolean  "constrained",      default: false
     t.boolean  "has_clashes",      default: false
+    t.integer  "proto_event_id"
   end
 
   add_index "events", ["complete"], name: "index_events_on_complete", using: :btree
@@ -161,6 +162,7 @@ ActiveRecord::Schema.define(version: 20170205121418) do
   add_index "events", ["has_clashes"], name: "index_events_on_has_clashes", using: :btree
   add_index "events", ["organiser_id"], name: "index_events_on_organiser_id", using: :btree
   add_index "events", ["owner_id"], name: "index_events_on_owner_id", using: :btree
+  add_index "events", ["proto_event_id"], name: "index_events_on_proto_event_id", using: :btree
   add_index "events", ["source_hash"], name: "index_events_on_source_hash", using: :btree
   add_index "events", ["source_id"], name: "index_events_on_source_id", using: :btree
   add_index "events", ["starts_at"], name: "index_events_on_starts_at", using: :btree

@@ -98,6 +98,8 @@ class Event < ActiveRecord::Base
 
   belongs_to :organiser, :class_name => :Element
 
+  belongs_to :proto_event
+
   validates :body, presence: true
   validates :eventcategory, presence: true
   validates :eventsource, presence: true

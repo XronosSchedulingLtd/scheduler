@@ -163,9 +163,10 @@ var rotatemplates = function() {
     },
     addSlot: function() {
       //
-      //  First get rid of any left over error messages.
+      //  First get rid of any left over error messages and attributes.
       //
-      this.$(".error").remove();
+      this.$("small.error").remove();
+      this.$("div.error").removeClass("error");
       //alert("Asked to add. " + this.saInput.val());
       //
       //  Need to get values from the two input fields, plus build an
@@ -221,7 +222,9 @@ var rotatemplates = function() {
       errors = $.parseJSON(response.responseText);
       for (var property in errors) {
         if (errors.hasOwnProperty(property)) {
-          view.$el.find("#" + property).append(view.errortemplate({error_msg: errors[property]}));
+          var div = view.$el.find("#" + property)
+          div.append(view.errortemplate({error_msg: errors[property]}));
+          div.addClass("error");
         }
       }
     }

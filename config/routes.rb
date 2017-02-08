@@ -1,8 +1,9 @@
 Rails.application.routes.draw do
 
-  resources :proto_events
 
-  resources :exam_cycles
+  resources :exam_cycles do
+    resources :proto_events
+  end
 
   resources :rota_templates do
     resources :rota_slots
@@ -112,6 +113,7 @@ Rails.application.routes.draw do
     get :autocomplete_staff_element_name, :on => :collection
     get :autocomplete_group_element_name, :on => :collection
     get :autocomplete_property_element_name, :on => :collection
+    get :autocomplete_location_element_name, :on => :collection
     get :ical, :on => :member
 
   end

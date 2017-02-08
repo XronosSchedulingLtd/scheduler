@@ -5,6 +5,9 @@ class RotaTemplate < ActiveRecord::Base
            :dependent => :nullify,
            :foreign_key => :default_rota_template_id
 
+  has_many :proto_events,
+           :dependent => :nullify
+
   validates :name, :presence => true
 
   #

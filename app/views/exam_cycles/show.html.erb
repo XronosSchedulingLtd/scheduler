@@ -1,14 +1,69 @@
-<p id="notice"><%= notice %></p>
+<div id='examcycle' data-ecid='<%= @exam_cycle.id %>'>
+  <div id='ec-header'>
+    <h3>
+      Exam cycle: <%= @exam_cycle.name %>
+    </h3>
+  </div>
+  <h4>Rooms</h4>
+  <table id='ec-table' class='zftable ec-table'>
+    <thead>
+      <tr id='ec-header-row'>
+        <th class='ec-deleteslot'></th>
+        <th class='ec-timeslot'>Room</th>
+        <th class='ec-daybox'>Template</th>
+        <th class='ec-daybox'>Starts</th>
+        <th class='ec-daybox'>Ends</th>
+        <th class='ec-daybox'>Events</th>
+        <th class='ec-action'></th>
+        <th class='ec-action'></th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+    <tfoot>
+      <tr>
+      </tr>
+    </tfoot>
+  </table>
+</div>
 
-<p>
-  <strong>Name:</strong>
-  <%= @exam_cycle.name %>
-</p>
+<script type="text/template" id="ec-protoevent-row">
+  <td>
+     <button class='add tiny radius'>Add</button>
+     <button class='edit tiny radius'>Edit</button>
+   </td>
+   <td>
+     <span class="displaying"><%%= room %></span>
+     <input class="inputname" placeholder="Select room" value="<%%= room %>" data-autocomplete="/elements/autocomplete_location_element_name" type="text" />
+   </td>
+   <td>
+     <span class="displaying"><%%= rota_template_name %></span>
+     <%= template_selector_text %>
+   </td>
+   <td>
+     <span class="displaying"><%%= starts_on_text %></span>
+     <input class="inputso datepicker" placeholder="Starts on" value="<%%= starts_on_text %>" type="text" />
+   </td>
+   <td>
+     <span class="displaying"><%%= ends_on_text %></span>
+     <input class="inputeo datepicker" placeholder="Ends on" value="<%%= ends_on_text %>" type="text" />
+   </td>
+   <td>
+     <span class="displaying"><%%= event_count %></span>
+   </td>
+   <td>
+     <button class='generate tiny radius'>Generate</button>
+     <button class='regenerate tiny radius'>Re-generate</button>
+     <button class='update tiny radius'>Update</button>
+   </td>
+   <td>
+     <button class='deleteevents tiny radius'>Delete events</button>
+     <button class='delete tiny radius'>Delete</button>
+     <button class='cancel tiny radius'>Cancel</button>
+   </td>
+</script>
 
-<p>
-  <strong>Default rota template:</strong>
-  <%= @exam_cycle.default_rota_template_id %>
-</p>
+<script type="text/template" id="ec-error-msg">
+  <small class="error"><%%= error_msg %></small>
+</script>
 
-<%= link_to 'Edit', edit_exam_cycle_path(@exam_cycle) %> |
-<%= link_to 'Back', exam_cycles_path %>
