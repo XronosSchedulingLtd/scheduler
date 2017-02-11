@@ -1,0 +1,11 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-09T13:24:20+00:00
+
+====== Thursday 09 Feb 2017 ======
+
+My big hold up at the moment is that I can't seem to get the auto-complete fields to fill in the corresponding ID field.  I could work around it by using the text of the auto-complete field and sending that up to the host.  Provided it was un-tampered with it would then be possible to find the relevant record and attach it.
+
+It is a frig though, and not totally satisfactory.  This also gives me an opportunity to learn more about de-bugging JavaScript.  I should be able to work out why it's not happening - it's probably something in the way I've set up my field data.
+
+Well, there's something interesting.  It appears that the autocomplete function initializes itself only when you first select the field for input.  How, I'm not sure.  A good cause for some serious code reading I think.

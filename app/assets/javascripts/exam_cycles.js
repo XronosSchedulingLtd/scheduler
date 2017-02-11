@@ -16,6 +16,7 @@ var examcycles = function() {
   var ProtoEvent = Backbone.Model.extend({
     defaults: {
       status: "created",
+      id: "",
       room: "",
       rota_template_name: "",
       starts_on_text: "",
@@ -52,6 +53,7 @@ var examcycles = function() {
       this.setState(this.model.get("status"));
       this.$el.html(this.template(this.model.toJSON()));
       this.$el.find('.datepicker').datepicker({ dateFormat: "dd/mm/yy"});
+      this.$el.find('.data-autocomplete').railsAutocomplete();
       return this;
     },
     destroy: function() {
@@ -66,6 +68,9 @@ var examcycles = function() {
       //  validation in both our local model, and on the server,
       //  to pick up issues.
       //
+      var location_id = this.$('.template_id').val();
+      console.log("location_id seems to be " + location_id);
+      console.log("Room seems to be " + this.$('.inputname').val());
     },
     startEdit: function() {
       this.setState("editing");

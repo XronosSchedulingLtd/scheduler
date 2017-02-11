@@ -34,7 +34,14 @@
    </td>
    <td>
      <span class="displaying"><%%= room %></span>
-     <input class="inputname" placeholder="Select room" value="<%%= room %>" data-autocomplete="/elements/autocomplete_location_element_name" type="text" />
+     <input class="inputname"
+            placeholder="Select room"
+            value="<%%= room %>"
+            data-autocomplete="/elements/autocomplete_location_element_name"
+            data-auto-focus="true"
+            data-id-element="template_id_n<%%= id %>"
+            type="text" />
+     <input id="template_id_n<%%= id %>" type="hidden" class="template_id" />
    </td>
    <td>
      <span class="displaying"><%%= rota_template_name %></span>

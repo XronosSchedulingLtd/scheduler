@@ -29,3 +29,14 @@ What does a pop-down look like in the HTML source?
 So I need to generate something similar in my template.
 
 Need to stop worrying about "pretty".  I'm spending too much time on pretty.  Get the basic functionality working and then worry about pretty when I switch to using Bootstrap.
+
+Now have all the fields working dynamically.  I need a field within my predictive text one to accept the resulting item ID.  What should that be called?  It seems that the input field should have a data item called "data-id-element", and that should be set to be a selector for a parallel hidden field, with that id.
+
+E.g. data-id-element="#element_id"
+<input id="element_id" type="hidden">
+
+I will need to number these in my page because there's more than one of them.  It would seem logical to use the ID of the pseudoevent, or an empty string.
+
+Having difficulty getting the rails-jquery-autocomplete code to file in my ID field.  Frankly, I'm amazed it works at all, given that I'm creating the fields dynamically.  I think perhaps I should stop it from attaching itself automatically, and then attach it explicitly myself.  There is a slight problem in that it uses the presence of the data-autocomplete class both as a trigger, and to contain some useful data.  Perhaps re-initialising it won't do any harm?  Try it.
+
+Still pops down.  Still doesn't fill in my ID field.  More work needed.  Time to go and teach.

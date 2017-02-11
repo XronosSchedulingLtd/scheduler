@@ -16,7 +16,7 @@
 //= require backbone-min
 //= require foundation
 //= require jquery.ui.all
-//= require autocomplete-rails
+//= require aru
 //= require moment
 //= require fullcalendar
 //= require jquery-ui-timepicker-addon
