@@ -1,0 +1,22 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-14T09:09:23+00:00
+
+====== Tuesday 14 Feb 2017 ======
+
+OK - there has been rather a delay for household commitments and a trip to Preston, but objectives for today.
+
+[*] Creation of room templates working.
+[*] Likewise, editing.
+[*] And deletion
+[ ] And get the defaults to be used.
+[ ] New room entry should pick up dates from parent template.
+[*] Validation and error messages.
+[ ] After creation, the room name in the Add line should be blanked, and the template field should revert to the default.  The dates should stay as whatever the user chose, to facilitate the entry of multiple rooms.
+[*] When editing a row, the current values should be copied into the fields at the start of the edit.
+[*] And any existing error messages should be removed.
+[*] Likewise they should be removed each time an update is attempted.
+[*] Need a "Done" button bottom right.
+[ ] Package up and put on staging server for demo purposes.
+
+Then I shall switch to setting up the Dean Close system - and all of this may be disturbed by the arrival of logs.

@@ -19,7 +19,8 @@ table#ec-table {
   }
 
   tr.creating {
-    button.add, input, select {
+    div.forinput,
+    button.add {
       display: inline;
     }
 
@@ -28,7 +29,7 @@ table#ec-table {
     button.regenerate,
     button.update,
     button.deleteevents,
-    button.delete,
+    button.destroy,
     button.cancel,
     span.displaying {
       display: none;
@@ -38,7 +39,7 @@ table#ec-table {
   tr.created {
     button.edit,
     button.generate,
-    button.delete {
+    button.destroy {
       display: inline;
     }
 
@@ -47,8 +48,7 @@ table#ec-table {
     button.update,
     button.deleteevents,
     button.cancel,
-    input,
-    select{
+    div.forinput {
       display: none;
     }
   }
@@ -56,15 +56,14 @@ table#ec-table {
   tr.editing {
     button.update,
     button.cancel,
-    input,
-    select{
+    div.forinput {
       display: inline;
     }
 
     button.add,
     button.edit,
     button.generate,
-    button.delete,
+    button.destroy,
     button.regenerate,
     button.deleteevents,
     span.displaying{

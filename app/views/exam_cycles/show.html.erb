@@ -26,6 +26,9 @@
     </tfoot>
   </table>
 </div>
+<div align="right">
+  <%= link_to 'Done', exam_cycles_path, class: 'button tiny radius' %>
+</div>
 
 <script type="text/template" id="ec-protoevent-row">
   <td>
@@ -34,26 +37,42 @@
    </td>
    <td>
      <span class="displaying"><%%= room %></span>
-     <input class="inputname"
-            placeholder="Select room"
-            value="<%%= room %>"
-            data-autocomplete="/elements/autocomplete_location_element_name"
-            data-auto-focus="true"
-            data-id-element="#template_id_n<%%= id %>"
-            type="text" />
-     <input id="template_id_n<%%= id %>" type="hidden" class="template_id" />
+     <div class="location forinput">
+       <label>Room
+         <input class="inputname"
+                placeholder="Select room"
+                value="<%%= room %>"
+                data-autocomplete="/elements/autocomplete_location_element_name"
+                data-auto-focus="true"
+                data-id-element="#location_id_n<%%= id %>"
+                type="text" />
+       </label>
+     </div>
+     <input id="location_id_n<%%= id %>" type="hidden" class="location_id" />
    </td>
    <td>
      <span class="displaying"><%%= rota_template_name %></span>
-     <%= template_selector_text %>
+     <div class="rota_template forinput">
+       <label>Period template
+         <%= template_selector_text %>
+         </label>
+     </div>
    </td>
    <td>
      <span class="displaying"><%%= starts_on_text %></span>
-     <input class="inputso datepicker" placeholder="Starts on" value="<%%= starts_on_text %>" type="text" />
+     <div class="starts_on forinput">
+       <label>Starts on
+         <input class="starts_on datepicker" placeholder="Starts on" value="<%%= starts_on_text %>" type="text" />
+       </label>
+     </div>
    </td>
    <td>
      <span class="displaying"><%%= ends_on_text %></span>
-     <input class="inputeo datepicker" placeholder="Ends on" value="<%%= ends_on_text %>" type="text" />
+     <div class="ends_on forinput">
+       <label>Ends on
+         <input class="ends_on datepicker" placeholder="Ends on" value="<%%= ends_on_text %>" type="text" />
+       </label>
+     </div>
    </td>
    <td>
      <span class="displaying"><%%= event_count %></span>
@@ -65,7 +84,7 @@
    </td>
    <td>
      <button class='deleteevents tiny radius'>Delete events</button>
-     <button class='delete tiny radius'>Delete</button>
+     <button class='destroy tiny radius'>Delete</button>
      <button class='cancel tiny radius'>Cancel</button>
    </td>
 </script>

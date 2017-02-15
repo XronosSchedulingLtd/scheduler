@@ -437,7 +437,6 @@ ActiveRecord::Schema.define(version: 20170207102512) do
     t.boolean  "enforce_permissions", default: false
     t.string   "current_mis"
     t.string   "previous_mis"
-    t.integer  "auth_type",           default: 0
   end
 
   create_table "staffs", force: true do |t|

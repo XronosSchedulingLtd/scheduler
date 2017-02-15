@@ -1,10 +1,13 @@
 class ProtoEventsController < ApplicationController
+  wrap_parameters :proto_event,
+                  include: [:starts_on_text, :ends_on_text, :rota_template_id]
+  before_action :find_exam_cycle
   before_action :set_proto_event, only: [:show, :edit, :update, :destroy]
 
   # GET /proto_events
   # GET /proto_events.json
   def index
-    @proto_events = ProtoEvent.all
+    @proto_events = @exam_cycle.proto_events
   end
 
   # GET /proto_events/1
@@ -24,14 +27,31 @@ class ProtoEventsController < ApplicationController
   # POST /proto_events
   # POST /proto_events.json
   def create
-    @proto_event = ProtoEvent.new(proto_event_params)
-
-    respond_to do |format|
-      if @proto_event.save
-        format.html { redirect_to @proto_event, notice: 'Proto event was successfully created.' }
-        format.json { render :show, status: :created, location: @proto_event }
-      else
-        format.html { render :new }
+    @proto_event = @exam_cycle.proto_events.new(proto_event_params)
+    #
+    #  The new proto_event also needs linking to a room, but this
+    #  can't be done until after it has been saved.
+    #
+    #  We also want to add a ProtoRequest, indicating that staff
+    #  are required - defaulting to 0.  In the future, this will
+    #  need to be made configurable, but as all we're dealing with now
+    #  is exam invigilation it can be hard-coded.  We're building
+    #  a general purpose structure, but currently using it for
+    #  only one purpose.
+    #
+    if @proto_event.save_with_location(params[:location_id])
+      group = Element.find_by(name: "Teaching staff")
+      if group
+        @proto_event.proto_requests.create({
+          element: group,
+          quantity: 0
+        })
+      end
+      respond_to do |format|
+        format.json { render :show, status: :created }
+      end
+    else
+      respond_to do |format|
         format.json { render json: @proto_event.errors, status: :unprocessable_entity }
       end
     end
@@ -41,9 +61,10 @@ class ProtoEventsController < ApplicationController
   # PATCH/PUT /proto_events/1.json
   def update
     respond_to do |format|
-      if @proto_event.update(proto_event_params)
+      if @proto_event.update_with_location(proto_event_params,
+                                           params[:location_id])
         format.html { redirect_to @proto_event, notice: 'Proto event was successfully updated.' }
-        format.json { render :show, status: :ok, location: @proto_event }
+        format.json { render :show, status: :ok }
       else
         format.html { render :edit }
         format.json { render json: @proto_event.errors, status: :unprocessable_entity }
@@ -67,8 +88,14 @@ class ProtoEventsController < ApplicationController
       @proto_event = ProtoEvent.find(params[:id])
     end
 
+    def find_exam_cycle
+      @exam_cycle = ExamCycle.find(params[:exam_cycle_id])
+    end
+                                         
     # Never trust parameters from the scary internet, only allow the white list through.
     def proto_event_params
-      params.require(:proto_event).permit(:body, :starts_on, :ends_on, :event_category_id, :event_source_id)
+      params.require(:proto_event).permit(:rota_template_id,
+                                          :starts_on_text,
+                                          :ends_on_text)
     end
 end

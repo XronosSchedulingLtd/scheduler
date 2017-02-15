@@ -16,7 +16,6 @@ var examcycles = function() {
   var ProtoEvent = Backbone.Model.extend({
     defaults: {
       status: "created",
-      id: "",
       room: "",
       rota_template_name: "",
       starts_on_text: "",
@@ -30,14 +29,19 @@ var examcycles = function() {
     tagName: 'tr',
     className: 'ec-protoevent',
     template: _.template($('#ec-protoevent-row').html()),
-    initialize: function() {
+    errortemplate: _.template($('#ec-error-msg').html()),
+    initialize: function(options) {
+      _.bindAll(this, 'updateError', 'updateOK');
       this.model.on('change', this.render, this);
       this.model.on('destroy', this.remove, this);
+      this.owner = options.owner;
     },
     events: {
-      'click .add'    : 'addProtoEvent',
-      'click .edit'   : 'startEdit',
-      'click .cancel' : 'cancelEdit',
+      'click .add'     : 'addProtoEvent',
+      'click .edit'    : 'startEdit',
+      'click .cancel'  : 'cancelEdit',
+      'click .update'  : 'update',
+      'click .destroy' : 'destroy'
     },
     setState: function(state) {
       this.$el.removeClass("creating");
@@ -59,7 +63,23 @@ var examcycles = function() {
     destroy: function() {
       this.model.destroy();
     },
+    fieldContents: function() {
+      return {
+        location_id:      this.$('.location_id').val(),
+        rota_template_id: this.$('.inputrtname').val(),
+        starts_on_text:   this.$('input.starts_on').val(),
+        ends_on_text:     this.$('input.ends_on').val()
+      }
+    },
+    clearErrorMessages: function () {
+      this.$("small.error").remove();
+      this.$("div.error").removeClass("error");
+    },
     addProtoEvent: function() {
+      //
+      //  First get rid of any left over error messages and attributes.
+      //
+      this.clearErrorMessages();
       //
       //  The user wants to create a new proto event.  We need all
       //  4 fields to have been filled in with useful values.
@@ -68,14 +88,64 @@ var examcycles = function() {
       //  validation in both our local model, and on the server,
       //  to pick up issues.
       //
-      var location_id = this.$('.template_id').val();
-      console.log("location_id seems to be " + location_id);
-      console.log("Room seems to be " + this.$('.inputname').val());
+      this.owner.createNewProtoEvent(this.fieldContents(),
+                                     this.creationOK,
+                                     this.creationError,
+                                     this);
+    },
+    creationOK: function() {
+      console.log("Created successfully.");
+    },
+    creationError: function(model, response, options) {
+      var view, errors;
+
+      console.log("ProtoEvent view noting error.");
+      view = this;
+      errors = $.parseJSON(response.responseText);
+      for (var property in errors) {
+        if (errors.hasOwnProperty(property)) {
+          console.log(property + ": " + errors[property]);
+          var div = view.$el.find("div." + property);
+          div.append(view.errortemplate({error_msg: errors[property]}));
+          div.addClass("error");
+        }
+      }
     },
     startEdit: function() {
+      this.$('.location_id').val(this.model.get('location_id'));
+      this.$('.inputname').val(this.model.get('room'));
+      this.$('.inputrtname').val(this.model.get('rota_template_id'));
+      this.clearErrorMessages();
       this.setState("editing");
     },
     cancelEdit: function() {
+      this.setState("created");
+    },
+    update: function() {
+      this.clearErrorMessages();
+      this.model.save(
+          this.fieldContents(),
+          {
+            error: this.updateError,
+            wait: true
+          })
+    },
+    updateError: function(model, response) {
+      var view, errors;
+
+      console.log("ProtoEvent view noting update error.");
+      view = this;
+      errors = $.parseJSON(response.responseText);
+      for (var property in errors) {
+        if (errors.hasOwnProperty(property)) {
+          console.log(property + ": " + errors[property]);
+          var div = view.$el.find("div." + property);
+          div.append(view.errortemplate({error_msg: errors[property]}));
+          div.addClass("error");
+        }
+      }
+    },
+    updateOK: function(model, response) {
       this.setState("created");
     }
   });
@@ -95,9 +165,8 @@ var examcycles = function() {
 
   var ProtoEventsView = Backbone.View.extend({
     el: '#ec-table tbody',
-    errortemplate: _.template($('#ec-error-msg').html()),
     initialize: function (ecid) {
-      _.bindAll(this, 'creationOK');
+      _.bindAll(this, 'addOne');
       this.collection = new ProtoEvents(null, {ecid: ecid});
       this.listenTo(this.collection, 'sync', this.render);
       this.collection.fetch();
@@ -111,21 +180,13 @@ var examcycles = function() {
       }, this);
       return this;
     },
-    creationOK: function() {
-      console.log("Created successfully.");
+    addOne: function(params, success, failure, object) {
+      var newProtoEvent = this.collection.create(
+        params,
+        {
+          wait: true
+        }).on('sync', success, object).on('error', failure, object);
     },
-    creationError: function(model, response, options) {
-      var view, errors;
-
-      console.log("ProtoEvents view noting error.");
-      view = this;
-      errors = $.parseJSON(response.responseText);
-      for (var property in errors) {
-        if (errors.hasOwnProperty(property)) {
-          view.$el.find("#" + property).append(view.errortemplate({error_msg: errors[property]}));
-        }
-      }
-    }
   });
 
   var ExamCycle = Backbone.Model.extend({
@@ -145,11 +206,13 @@ var examcycles = function() {
       //  input fields in the bottom row.
       //
       this.newPE = new ProtoEvent({
-        status: "creating"
+        status: "creating",
+        id: ""
       });
       this.newPEView = new ProtoEventView({
         model: this.newPE,
-        el: this.$forentry
+        el: this.$forentry,
+        owner: this
       });
     },
     render: function() {
@@ -158,8 +221,14 @@ var examcycles = function() {
       //  Nothing actually to render of the cycle itself, but
       //  we do need to set up the input fields in the footer.
       //
+      this.newPE.set("starts_on_text", this.model.get("starts_on_text"));
+      this.newPE.set("ends_on_text", this.model.get("ends_on_text"));
       this.newPEView.render();
       return this;
+    },
+    createNewProtoEvent: function(params, success, failure, object) {
+      console.log("Asked to create a new ProtoEvent.");
+      that.protoEventsView.addOne(params, success, failure, object);
     }
   });
 
@@ -168,7 +237,7 @@ var examcycles = function() {
   };
 
   function getProtoEvents(ecid) {
-    var protoEventsView = new ProtoEventsView(ecid);
+    that.protoEventsView = new ProtoEventsView(ecid);
   };
 
   that.init = function() {
