@@ -1,3 +1,8 @@
+v0.15.4 2017-02-15
+
+* Remove spurious column in user panel at LHS.
+
+
 v0.15.3 2017-01-18
 
 * Allow recurring events to be specified on the first Wednesday, second
