@@ -87,14 +87,16 @@ Since the application is a Rails application, it needs a JavaScript interpreter 
 $ zcat node-v0.12.7.tar.gz | tar xf -
 $ cd node-v0.12.7
 $ ./configure
-$ make
+$ make -j <how many cores you have>
 $ make install
 '''
 
 
+You don't need to specify multiple cores to make, but it's a long build and if you have them then you might as well use them.
+
 Note that this step is relying on the compiler tools which were installed as part of the installation of Ruby earlier.  If you do these two in the opposite order, you will need to install the tools first.  Command:
 
-$ ''apt-get install build_essential''
+$ ''apt-get install build-essential''
 
 As an alternative, later versions of Debian seem to include node so you can just do:
 

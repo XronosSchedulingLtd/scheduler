@@ -1,0 +1,48 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-01-23T13:38:51+00:00
+
+====== Invigilation ======
+Created Monday 23 January 2017
+
+Had a very constructive meeting with Niki Dinsey and Ben Whitworth to talk about their needs for an invigilation component.  iSAMS currently doesn't do this very well, and they need something in time for the exam season which begins in May of this year.
+
+==== Crucial dates ====
+Availability for planning - end March, 2017
+Exams happening - start of May, 2017 (4th year exams)
+
+==== Concepts ====
+I have for a long time wanted to add a couple of bits of functionality to Scheduler:
+
+* Rotas
+* Grouped resource allocation (e.g. mini-buses or mobile phones)
+
+In the course of today's discussions I realised that these two are actually related, and the invigilation requirement potentially involves both of them.  If I'm going to implement the invigilation stuff, I will do it on the fastest path which gets that running (i.e. not implementing other ancillary related functionality) but I will need to keep an eye on coming back and expanding things later.
+
+==== Target ====
+* To have a collection of events in Scheduler which document the requirements for invigilation and who is scheduled to do it.  This should be fully integrated with the rest of Scheduler's event information - if a member of staff is down to do an invigilation then it should appear on his or her schedule and the event should include information about where he or she is due to do it.  Events should be per slot rather than per invigilator - if several people are in the same place at the same time then it's one event with multiple people.
+* It should be possible to attach notes to invigilation events giving more information about, for instance, clash candidates.
+* It should be possible to view all the invigilation events in one go, or by location.
+* It should be possible to print a summary of them all for the benefit of luddites.
+* The system should assist in the choice of invigilators (who is free and most appropriate) and should warn about apparent clashes.
+* The system should send out e-mails warning people that they are down for invigilation, but in batches controlled by the invigilation organiser.  It should also be possible for end users to choose to receive additional e-mails - e.g. daily or weekly.
+* The system should be capable of producing a basic report on an exam cycle - start and end dates, plus number of slots and number of invigilations done.
+
+
+==== Workflow ====
+
+We came up with the following stages in the setting up of invigilation.
+
+1. Create a named template which defines when the invigilation slots will be in a week.  It should be possible to create more than one template, but typically the same one will be used for all public exams.
+2. Define an exam cycle or session with a name.  We talked about it having a start and end date, but I'm not sure now that it wants them.  It does have a default template.
+3. Within the exam cycle, one has one or more room records.  These do have dates and specify the dates on which said room will be used in that cycle.  We only work in whole days, but the same room can be used more than once in a cycle.  These are the records which drive the creation of the invigilation events.  The events aren't created immediately the record is created, but can be done in one go on clicking a button.  (And even for the whole cycle by clicking a button on the cycle record.)  It should also be possible to amend the room records subsequently and re-create, leaving alone any unaffected invigilation events (don't want to lose the information already entered) but deleting ones which are now outside the date range, and creating others.
+
+==== Quick notes ====
+
+It might make sense to create a new linking record - a requirement or request - rather than further overloading the commitment record.  One creates a requirement/request linking an event to something (typically a group) and indicating how many are needed.  This has no effect on normal event display processing.  Then actual commitments are created to fulfill that request - possibly several of them.  This could replace the existing, slightly cludgy, concept of tentative commitments, although it needn't straight off.
+
+We came up with the idea of an exam cycle, which references a template, and then has one or more room records associated with it.  Each room record then has start and end dates, as does the cycle.  The trouble with that is it merely restricts us - the only common thing then is the template reference and the name, and the cycles actual dates don't do anything.  It means we can't use different templates for different rooms within the cycle - which may or may not be an issue, but it's a purely artificial restriction.
+
+Why not make the highest level item relating to actual events be the record which holds the usage dates for a room?  Why do several usages need to be linked together?  The Sports Hall is easy - it's just blocked out completely for 5-6 weeks.  The CMR on the other hand might be in use for a week, then not, then in use again.  Do we gain anything by linking those two usages together?  Yes, we do - we gain the ability to display them and consider them as a group.
+
+I am inclined not to make any of these records owned by any particular user.  Events belong to users, but an exam cycle doesn't really belong to anyone.  Certain users will have the privilege to create and edit them, but one created by one such user should be editable by another.  One might possibly have a lesser privilege bit which allows viewing them but not editing them, but the idea of each user having his or her own private collection doesn't seem right.

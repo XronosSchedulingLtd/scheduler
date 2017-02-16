@@ -19,7 +19,18 @@
 /staging/*
 
 # And any in the import directory
+#
+# I need an exception for the embedded README file.
+#
+# I don't want any files in the import directory.
+# Except I do want the recurring directory therein.
+# But I don't want any files within it.
+# Except the README file.
+#
 /import/*
+!/import/recurring
+/import/recurring/*
+!/import/recurring/README
 
 /scratch/*
 
