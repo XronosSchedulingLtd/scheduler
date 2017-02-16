@@ -102,6 +102,8 @@ As an alternative, later versions of Debian seem to include node so you can just
 
 ''$ sudo apt-get install nodejs''
 
+On further investigation, using the Debian packages does not seem to be quite such a good idea.  Firstly, it's a very old version, and secondly it seems to install the executable as "nodejs" instead of as "node".  The Debian version of npm understands this, but then if you install packages with npm, they in their turn expect to find node, rather than nodejs - e.g. if you install coffee-script with Debian's nodejs and npm then it doesn't work.  Probably best to keep installing from source.  Use the latest LTS (currently 6.9.4).
+
 That's all the infrastructure in place, and we're ready to start think about getting the application itself.
 
 ==== The application ====
