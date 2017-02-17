@@ -17,6 +17,7 @@ var examcycles = function() {
     defaults: {
       status: "created",
       room: "",
+      location_id: "",
       rota_template_name: "",
       starts_on_text: "",
       ends_on_text: "",
@@ -37,11 +38,12 @@ var examcycles = function() {
       this.owner = options.owner;
     },
     events: {
-      'click .add'     : 'addProtoEvent',
-      'click .edit'    : 'startEdit',
-      'click .cancel'  : 'cancelEdit',
-      'click .update'  : 'update',
-      'click .destroy' : 'destroy'
+      'click .add'               : 'addProtoEvent',
+      'click .edit'              : 'startEdit',
+      'click .cancel'            : 'cancelEdit',
+      'click .update'            : 'update',
+      'click .destroy'           : 'destroy',
+      'keypress input.inputname' : 'mightSubmit'
     },
     setState: function(state) {
       this.$el.removeClass("creating");
@@ -56,12 +58,28 @@ var examcycles = function() {
 //      console.log("Currently contains: " + this.$el.html());
       this.setState(this.model.get("status"));
       this.$el.html(this.template(this.model.toJSON()));
+      //
+      //  The pop-down list needs to have its value set explicitly.
+      //
+      this.$el.find('div.rota_template select').val(this.model.get("rota_template_id"));
       this.$el.find('.datepicker').datepicker({ dateFormat: "dd/mm/yy"});
       this.$el.find('.data-autocomplete').railsAutocomplete();
       return this;
     },
     destroy: function() {
       this.model.destroy();
+    },
+    syncModel: function() {
+      //
+      //  Read fields from the view back into the model.
+      //
+      this.model.set({
+        "room":             this.$('input.inputname').val(),
+        "location_id":      this.$('input.location_id').val(),
+        "rota_template_id": this.$('select.inputrtname').val(),
+        "starts_on_text":   this.$('input.starts_on').val(),
+        "ends_on_text":     this.$('input.ends_on').val()
+      });
     },
     fieldContents: function() {
       return {
@@ -71,9 +89,14 @@ var examcycles = function() {
         ends_on_text:     this.$('input.ends_on').val()
       }
     },
-    clearErrorMessages: function () {
+    clearErrorMessages: function() {
       this.$("small.error").remove();
       this.$("div.error").removeClass("error");
+    },
+    mightSubmit: function(e) {
+      if (e.which === 13 && this.$('input.inputname').val()) {
+        this.addProtoEvent();
+      }
     },
     addProtoEvent: function() {
       //
@@ -88,6 +111,7 @@ var examcycles = function() {
       //  validation in both our local model, and on the server,
       //  to pick up issues.
       //
+      this.syncModel();
       this.owner.createNewProtoEvent(this.fieldContents(),
                                      this.creationOK,
                                      this.creationError,
@@ -95,6 +119,8 @@ var examcycles = function() {
     },
     creationOK: function() {
       console.log("Created successfully.");
+      this.model.set("room", "");
+      this.$('input.inputname').focus();
     },
     creationError: function(model, response, options) {
       var view, errors;
@@ -221,9 +247,11 @@ var examcycles = function() {
       //  Nothing actually to render of the cycle itself, but
       //  we do need to set up the input fields in the footer.
       //
-      this.newPE.set("starts_on_text", this.model.get("starts_on_text"));
-      this.newPE.set("ends_on_text", this.model.get("ends_on_text"));
-      this.newPEView.render();
+      this.newPE.set({
+        "rota_template_id": this.model.get("default_rota_template_id"),
+        "starts_on_text":   this.model.get("starts_on_text"),
+        "ends_on_text":     this.model.get("ends_on_text")
+      });
       return this;
     },
     createNewProtoEvent: function(params, success, failure, object) {

@@ -31,6 +31,14 @@ class ExamCycle < ActiveRecord::Base
     end
   end
 
+  def default_rota_template_name
+    if default_rota_template
+      default_rota_template.name
+    else
+      ""
+    end
+  end
+
   def <=>(other)
     self.starts_on <=> other.starts_on
   end
