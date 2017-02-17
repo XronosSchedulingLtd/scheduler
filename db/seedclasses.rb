@@ -43,15 +43,18 @@ class Seeder
   class SeedStaff
     attr_reader :dbrecord, :initials
 
-    def initialize(title, forename, surname, initials)
+    def initialize(title, forename, surname, initials, email = nil)
       @initials = initials
+      unless email
+        email = "#{forename.downcase}.#{surname.downcase}@xronos.org"
+      end
       @dbrecord = Staff.create!({
         name:     "#{forename} #{surname}",
         initials: initials,
         surname:  surname,
         title:    title,
         forename: forename,
-        email:    "#{forename.downcase}.#{surname.downcase}@xronos.org",
+        email:    email,
         active:   true,
         current:  true
       })
@@ -440,7 +443,7 @@ class Seeder
               :subjects,
               :weekdates
 
-  def initialize
+  def initialize(auth_type = 1)
     #
     #  Always set everything to the current week.
     #
@@ -501,7 +504,7 @@ class Seeder
         current_era_id: @eras[:current_era].id,
         perpetual_era_id: @eras[:perpetual_era].id,
         enforce_permissions: true,
-        auth_type: 1
+        auth_type: auth_type
       })
     end
     #
@@ -691,10 +694,11 @@ class Seeder
     forename,
     surname,
     initials,
-    subject_ids)
+    subject_ids,
+    email = nil)
 
     key = initials.downcase.to_sym
-    rec = SeedStaff.new(title, forename, surname, initials)
+    rec = SeedStaff.new(title, forename, surname, initials, email)
     subject_ids.each do |sid|
       subject = @subjects[sid]
       unless subject
