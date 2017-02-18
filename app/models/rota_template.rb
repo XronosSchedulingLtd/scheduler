@@ -26,4 +26,13 @@ class RotaTemplate < ActiveRecord::Base
   def <=>(other)
     self.name <=> other.name
   end
+
+  #
+  #  Provide all of our slots which apply on the relevant date.
+  #
+  def slots_for(date)
+    self.rota_slots.select{|rs| rs.applies_on?(date)}.each do |rs|
+      yield rs
+    end
+  end
 end

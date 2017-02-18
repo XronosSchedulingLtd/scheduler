@@ -74,6 +74,19 @@ class RotaSlot < ActiveRecord::Base
     assign_tod_value(:ends_at, value)
   end
 
+  def applies_on?(date)
+    self.days[date.wday]
+  end
+
+  #
+  #  Construct a starts_at and ends_at for this slot on the indicated
+  #  date.  Need to test that tod copes with timezones and DST correctly.
+  #  Seems to.
+  #
+  def timings_for(date)
+    return [self[:starts_at].on(date), self[:ends_at].on(date)]
+  end
+
   private
 
   def assign_tod_value(field, value)

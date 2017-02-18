@@ -2,7 +2,11 @@ Rails.application.routes.draw do
 
 
   resources :exam_cycles do
-    resources :proto_events
+    resources :proto_events do
+      member do
+        post :generate
+      end
+    end
   end
 
   resources :rota_templates do

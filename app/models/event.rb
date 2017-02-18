@@ -127,6 +127,12 @@ class Event < ActiveRecord::Base
   #
   scope :beginning, lambda {|date| where("ends_at >= ?", date) }
   scope :until, lambda {|date| where("starts_at < ?", date) }
+  #
+  #  And these are for specifying events which are over before a given
+  #  date, or start after a given date.
+  #
+  scope :before, lambda {|date| where("ends_at < ?", date) }
+  scope :after, lambda {|date| where("starts_at > ?", date + 1.day) }
   scope :eventcategory_id, lambda {|id| where("eventcategory_id = ?", id) }
   scope :eventsource_id, lambda {|id| where("eventsource_id = ?", id) }
   scope :on, lambda {|date| where("starts_at >= ? and ends_at < ?",

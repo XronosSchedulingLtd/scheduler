@@ -48,6 +48,7 @@ class ProtoEvent < ActiveRecord::Base
   belongs_to :rota_template
   belongs_to :generator, :polymorphic => true
 
+  validates :body, :presence => true
   validates :rota_template, :presence => true
   validates_with ProtoEventValidator
 
@@ -187,4 +188,154 @@ class ProtoEvent < ActiveRecord::Base
     return false
   end
 
+  #
+  #  Ensure a single event, as dictated by self, a date and a rota slot.
+  #
+  def ensure_event(date, rota_slot, existing)
+    starts_at, ends_at = rota_slot.timings_for(date)
+    if existing
+      Rails.logger.debug("Event already exists")
+      event = existing
+    else
+      if event = self.events.create({
+        body:          self.body,
+        eventcategory: self.eventcategory,
+        eventsource:   self.eventsource,
+        starts_at:     starts_at,
+        ends_at:       ends_at,
+        source_id:     rota_slot.id})
+        Rails.logger.debug("Created event")
+      else
+        Rails.logger.debug("Failed to create")
+      end
+    end
+    #
+    #  And now make sure it has the right commitments and requests.
+    #  Note that it may well have required other commitments over
+    #  and above those which we provided - we're not interested
+    #  in them, and leave them alone.
+    #
+    #  Currently we don't delete commitments which we have created
+    #  but which have now lost the corresponding proto_commitment.
+    #
+    self.proto_commitments.each do |pc|
+      pc.ensure_commitment(event)
+    end
+  end
+
+  #
+  #  Quite a powerful method.  Uses our rota template as a guide
+  #  and creates/deletes events attached to this proto_event as
+  #  appropriate.
+  #
+  #  We work out what events we want, then add or delete as needed.
+  #  We never delete an existing event if it still meets our new
+  #  requirements.
+  #
+  #  We check that we are linked to a rota template because although
+  #  the model contains a validation requiring one, it's possible it
+  #  has subsequently been deleted and thus we can't continue.
+  #
+  def ensure_required_events
+    if self.rota_template
+      self.starts_on.upto(self.ends_on) do |date|
+        puts date.to_s(:dmy)
+        existing_events = self.events.events_on(date)
+        puts "#{existing_events.count} existing events."
+        self.rota_template.slots_for(date) do |slot|
+          existing = existing_events.detect {|e| e.source_id == slot.id}
+          ensure_event(date, slot, existing)
+          if existing
+            existing_events = existing_events - [existing]
+          end
+        end
+        #
+        #  Any events left in the existing_events array must be no
+        #  longer required.
+        #
+        existing_events.each do |e|
+          e.destroy
+        end
+      end
+      #
+      #  It's possible that our start or end date has changed and there
+      #  are events in the d/b either before our new start date or
+      #  after our new end date.  Those need to go too.
+      #
+      too_earlies = self.events.before(self.starts_on)
+      too_earlies.each do |e|
+        e.destroy
+      end
+      too_lates = self.events.after(self.ends_on)
+      too_lates.each do |e|
+        e.destroy
+      end
+    else
+      #
+      #  Raise an error, or just log it?
+      #
+    end
+  end
+
+  #
+  #  Take all events on or after the given date from the donor.  Before
+  #  we do that, we need to set up our own ProtoCommitments and ProtoRequests
+  #  to match the donor's.
+  #
+  def take_events(donor, date)
+    #
+    #  Key is the donor's ProtoCommitment ID.
+    #  Data is our corresponding ProtoCommitment.
+    #
+    pc_hash = Hash.new
+    donor.proto_commitments.each do |pc|
+      pc_hash[pc.id] = self.proto_commitments.new({
+        proto_event: self,
+        element:     pc.element
+      })
+    end
+    #
+    #  And now take the events.
+    #
+    donor.events.beginning(date).each do |e|
+      e.proto_event = self
+      e.save
+      e.commitments.each do |c|
+        if c.proto_commitment_id &&
+           (our_pc = pc_hash[c.proto_commitment_id])
+          c.proto_commitment = our_pc
+          c.save
+        end
+      end
+    end
+  end
+
+  #
+  #  Split a ProtoEvent and all its attached events into this one and
+  #  another one starting on the indicated date.  All sub-structures need
+  #  to be handled too.
+  #
+  #  date must lie strictly between our two existing dates.
+  #
+  def split(date)
+    if (date > self.starts_on) && (date < self.ends_on)
+      other = self.dup
+      other.starts_on = date
+      if other.save
+        self.ends_on = date - 1.day
+        self.save
+        #
+        #  Now need to duplicate all ProtoCommitments and ProtoRequests
+        #  and move over any existing events.  All Commitments and Requests
+        #  attached to those events need to be moved to our new
+        #  corresponding ProtoCommitments and ProtoRequests.
+        #
+        other.take_events(self, date)
+      else
+        Rails.logger.error("Failed to save other ProtoEvent.")
+      end
+    else
+      raise "Date #{date.to_s(:dmy)} is not between #{self.starts_on_text} and #{self.ends_on_text}."
+    end
+  end
 end

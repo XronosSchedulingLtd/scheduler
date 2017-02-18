@@ -2,7 +2,7 @@ class ProtoEventsController < ApplicationController
   wrap_parameters :proto_event,
                   include: [:starts_on_text, :ends_on_text, :rota_template_id]
   before_action :find_exam_cycle
-  before_action :set_proto_event, only: [:show, :edit, :update, :destroy]
+  before_action :set_proto_event, only: [:show, :edit, :update, :destroy, :generate]
 
   # GET /proto_events
   # GET /proto_events.json
@@ -28,6 +28,21 @@ class ProtoEventsController < ApplicationController
   # POST /proto_events.json
   def create
     @proto_event = @exam_cycle.proto_events.new(proto_event_params)
+    @proto_event.body = "Invigilation"
+    #
+    #  For now this is hard-coded as we only support proto events in
+    #  the context of exam invigilations.  Later on it will need to
+    #  be context-sensitive.
+    #
+    @proto_event.eventcategory = Eventcategory.cached_category("Invigilation")
+    #
+    #  Originally I set the source here to be ProtoEvent, but then realised
+    #  that we already know that - the event will be linked to a ProtoEvent.
+    #  When it comes to identifying each individual actual event, we
+    #  need to refer back to its RotaSlot.  The source_id will be the
+    #  RotaSlot's ID, and so this field should match.
+    #
+    @proto_event.eventsource = Eventsource.find_by(name: "RotaSlot")
     #
     #  The new proto_event also needs linking to a room, but this
     #  can't be done until after it has been saved.
@@ -69,6 +84,14 @@ class ProtoEventsController < ApplicationController
         format.html { render :edit }
         format.json { render json: @proto_event.errors, status: :unprocessable_entity }
       end
+    end
+  end
+
+  # PUT /exam_cycles/1/proto_events/1/generate.json
+  def generate
+    @proto_event.ensure_required_events
+    respond_to do |format|
+      format.json { render :show, status: :ok }
     end
   end
 

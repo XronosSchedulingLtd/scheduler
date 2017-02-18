@@ -22,6 +22,25 @@ var examcycles = function() {
       starts_on_text: "",
       ends_on_text: "",
       event_count: 0
+    },
+    initialize: function(options) {
+      _.bindAll(this, 'generationResponse');
+    },
+    generate: function() {
+      console.log("Model asked to generate.");
+      //
+      //  Sends a generate request for this model to the host.
+      //
+      $.post(this.url() + '/generate',
+             {},
+             this.generationResponse,
+             "json");
+    },
+    generationResponse: function (data, textStatus, jqXHR) {
+      console.log("In response function.");
+      if (textStatus === "success") {
+        this.set(data);
+      }
     }
   });
 
@@ -43,6 +62,7 @@ var examcycles = function() {
       'click .cancel'            : 'cancelEdit',
       'click .update'            : 'update',
       'click .destroy'           : 'destroy',
+      'click .generate'          : 'generate',
       'keypress input.inputname' : 'mightSubmit'
     },
     setState: function(state) {
@@ -94,7 +114,9 @@ var examcycles = function() {
       this.$("div.error").removeClass("error");
     },
     mightSubmit: function(e) {
-      if (e.which === 13 && this.$('input.inputname').val()) {
+      if (e.which === 13 &&
+          this.$('input.inputname').val() &&
+          this.model.get('status') === 'creating') {
         this.addProtoEvent();
       }
     },
@@ -173,6 +195,10 @@ var examcycles = function() {
     },
     updateOK: function(model, response) {
       this.setState("created");
+    },
+    generate: function() {
+      console.log("View asked to generate.");
+      this.model.generate();
     }
   });
 
