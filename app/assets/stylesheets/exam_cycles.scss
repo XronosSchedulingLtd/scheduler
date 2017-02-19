@@ -26,12 +26,12 @@ table#ec-table {
 
     button.edit,
     button.generate,
-    button.regenerate,
     button.update,
     button.deleteevents,
     button.destroy,
     button.cancel,
-    span.displaying {
+    span.displaying,
+    span.generating{
       display: none;
     }
   }
@@ -44,7 +44,24 @@ table#ec-table {
     }
 
     button.add,
-    button.regenerate,
+    button.update,
+    button.deleteevents,
+    button.cancel,
+    div.forinput,
+    span.generating {
+      display: none;
+    }
+  }
+
+  tr.generating {
+    button.edit,
+    button.destroy,
+    span.generating {
+      display: inline;
+    }
+
+    button.add,
+    button.generate,
     button.update,
     button.deleteevents,
     button.cancel,
@@ -64,9 +81,9 @@ table#ec-table {
     button.edit,
     button.generate,
     button.destroy,
-    button.regenerate,
     button.deleteevents,
-    span.displaying{
+    span.displaying,
+    span.generating {
       display: none;
     }
   }

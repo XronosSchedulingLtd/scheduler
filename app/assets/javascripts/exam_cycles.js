@@ -26,11 +26,12 @@ var examcycles = function() {
     initialize: function(options) {
       _.bindAll(this, 'generationResponse');
     },
-    generate: function() {
+    generate: function(callback) {
       console.log("Model asked to generate.");
       //
       //  Sends a generate request for this model to the host.
       //
+      this.generationDoneCallback = callback;
       $.post(this.url() + '/generate',
              {},
              this.generationResponse,
@@ -41,6 +42,7 @@ var examcycles = function() {
       if (textStatus === "success") {
         this.set(data);
       }
+      this.generationDoneCallback();
     }
   });
 
@@ -51,7 +53,7 @@ var examcycles = function() {
     template: _.template($('#ec-protoevent-row').html()),
     errortemplate: _.template($('#ec-error-msg').html()),
     initialize: function(options) {
-      _.bindAll(this, 'updateError', 'updateOK');
+      _.bindAll(this, 'updateError', 'updateOK', 'generationDone');
       this.model.on('change', this.render, this);
       this.model.on('destroy', this.remove, this);
       this.owner = options.owner;
@@ -70,6 +72,7 @@ var examcycles = function() {
       this.$el.removeClass("created");
       this.$el.removeClass("editing");
       this.$el.removeClass("generated");
+      this.$el.removeClass("generating");
       this.$el.addClass(state);
     },
     render: function() {
@@ -84,6 +87,11 @@ var examcycles = function() {
       this.$el.find('div.rota_template select').val(this.model.get("rota_template_id"));
       this.$el.find('.datepicker').datepicker({ dateFormat: "dd/mm/yy"});
       this.$el.find('.data-autocomplete').railsAutocomplete();
+      if (this.model.get("event_count") === 0) {
+        this.$('button.generate').html("Generate");
+      } else {
+        this.$('button.generate').html("Regenerate");
+      }
       return this;
     },
     destroy: function() {
@@ -198,7 +206,11 @@ var examcycles = function() {
     },
     generate: function() {
       console.log("View asked to generate.");
-      this.model.generate();
+      this.setState("generating");
+      this.model.generate(this.generationDone);
+    },
+    generationDone: function() {
+      this.setState("created");
     }
   });
 
