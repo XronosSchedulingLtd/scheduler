@@ -37,17 +37,49 @@ var examcycles = function() {
              this.generationResponse,
              "json");
     },
-    generationResponse: function (data, textStatus, jqXHR) {
+    generationResponse: function(data, textStatus, jqXHR) {
       console.log("In response function.");
       if (textStatus === "success") {
         this.set(data);
       }
       this.generationDoneCallback();
+    },
+    canSplit: function() {
+      return moment(this.get("ends_on")) > moment(this.get("starts_on"));
+    },
+    splitDates: function() {
+      //
+      //  Try to find suitable middling dates to split this interval.
+      //  Special care is needed when the interval is very short - 2 days.
+      //
+      var startDate = moment(this.get("starts_on"));
+      console.log("Start date: " + startDate.format("DD/MM/YYYY"));
+      var endDate   = moment(this.get("ends_on"));
+      var diff = endDate.diff(startDate, "days");
+      var results = {}
+      if (diff === 1) {
+        results.beforeDate = startDate;
+        results.afterDate = endDate;
+        results.maxAfter = endDate;
+        results.minAfter = endDate;
+      } else {
+        var middle = moment(startDate);
+        middle.add(diff / 2, "days");
+        var dayBefore = moment(middle);
+        dayBefore.subtract(1, "days");
+        var maxAfter = moment(endDate);
+        var minAfter = moment(startDate);
+        minAfter.add(1, "days");
+        results.beforeDate = dayBefore;
+        results.afterDate = middle;
+        results.maxAfter = maxAfter;
+        results.minAfter = minAfter;
+      }
+      return results;
     }
   });
 
   var SplitView = Backbone.View.extend({
-    model: ProtoEvent,
     //
     //  We'll need to create our own element within the pop-up element
     //  because when we remove() ourselves our element will go too.
@@ -55,13 +87,53 @@ var examcycles = function() {
     tagName: 'div',
     template: _.template($('#ec-split-dialog').html()),
     initialize: function() {
+      _.bindAll(this, 'modalClosed', 'dateSelected');
+      this.splitModal = $('#splitModal');
     },
     render: function() {
+      this.splitModal.html(this.template(this.model.toJSON()));
+      this.splitModal.foundation('reveal', 'open', {
+      });
+      $(document).on('closed', '[data-reveal]', this.modalClosed);
+      var datePicker = this.splitModal.find('.datepicker');
+      this.dates = this.model.splitDates();
+      datePicker.val(this.dates.afterDate.format("DD/MM/YYYY"));
+      this.splitModal.find("#daybefore").html(this.dates.beforeDate.format("DD/MM/YYYY"));
+      console.log("mindate: " + this.dates.minAfter.format("DD/MM/YYYY"));
+      console.log("maxdate: " + this.dates.maxAfter.format("DD/MM/YYYY"));
+      datePicker.datepicker({
+        dateFormat: "dd/mm/yy",
+        minDate: this.dates.minAfter.format("DD/MM/YYYY"),
+        maxDate: this.dates.maxAfter.format("DD/MM/YYYY"),
+        onSelect: this.dateSelected
+      });
+    },
+    dateSelected: function(dateText, inst) {
+      console.log(dateText + " selected.");
+      var newDate = moment(dateText, "DD/MM/YYYY");
+      if (newDate.isValid() &&
+          newDate >= this.dates.minAfter &&
+          newDate <= this.dates.maxAfter) {
+        console.log("Acceptable.");
+        this.dates.afterDate = newDate;
+        this.dates.beforeDate = moment(newDate);
+        this.dates.beforeDate.subtract(1, "days");
+        this.splitModal.find("#daybefore").html(this.dates.beforeDate.format("DD/MM/YYYY"));
+
+      } else {
+        console.log("Unacceptable.");
+        var datePicker = this.splitModal.find('.datepicker');
+        datePicker.val(this.dates.afterDate.format("DD/MM/YYYY"));
+      }
+    },
+    modalClosed: function() {
+      console.log("Modal closed.");
+      $(document).off('closed', '[data-reveal]', this.modalClosed);
+      this.remove();
     }
   });
 
   var ProtoEventView = Backbone.View.extend({
-    model: ProtoEvent,
     tagName: 'tr',
     className: 'ec-protoevent',
     template: _.template($('#ec-protoevent-row').html()),
@@ -228,25 +300,11 @@ var examcycles = function() {
       this.setState("created");
     },
     showSplitDialog: function() {
-      var splitModal = $('#splitModal');
-      splitModal.html(this.splittemplate(this.model.toJSON()));
-      splitModal.foundation('reveal', 'open', {
-      });
-      var datePicker = splitModal.find('.datepicker');
-      //
-      //  Try to find a date half way between the start and the end.
-      //
-      console.log("Starts on " + this.model.get("starts_on"));
-      var startDate = moment(this.model.get("starts_on"));
-      var endDate   = moment(this.model.get("ends_on"));
-      var diff = endDate.diff(startDate, "days");
-      var middle = startDate;
-      middle.add(diff / 2, "days");
-      var dayBefore = moment(middle);
-      dayBefore.subtract(1, "days");
-      datePicker.val(middle.format("DD/MM/YYYY"));
-      splitModal.find("#daybefore").html(dayBefore.format("DD/MM/YYYY"));
-      datePicker.datepicker({ dateFormat: "dd/mm/yy"});
+      if (this.model.canSplit()) {
+        (new SplitView({model: this.model})).render();
+      } else {
+        alert("Can't split a one-day room allocation.");
+      }
     }
   });
 

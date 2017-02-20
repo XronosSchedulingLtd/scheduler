@@ -317,8 +317,12 @@ class ProtoEvent < ActiveRecord::Base
   #
   #  date must lie strictly between our two existing dates.
   #
+  #  Ah - no.  It must be strictly after the start date, but it can
+  #  be the same as the end date.  That way we'd chop just one day
+  #  off the end of our interval.
+  #
   def split(date)
-    if (date > self.starts_on) && (date < self.ends_on)
+    if (date > self.starts_on) && (date <= self.ends_on)
       other = self.dup
       other.starts_on = date
       if other.save
