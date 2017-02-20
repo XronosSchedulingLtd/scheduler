@@ -46,12 +46,27 @@ var examcycles = function() {
     }
   });
 
+  var SplitView = Backbone.View.extend({
+    model: ProtoEvent,
+    //
+    //  We'll need to create our own element within the pop-up element
+    //  because when we remove() ourselves our element will go too.
+    //
+    tagName: 'div',
+    template: _.template($('#ec-split-dialog').html()),
+    initialize: function() {
+    },
+    render: function() {
+    }
+  });
+
   var ProtoEventView = Backbone.View.extend({
     model: ProtoEvent,
     tagName: 'tr',
     className: 'ec-protoevent',
     template: _.template($('#ec-protoevent-row').html()),
     errortemplate: _.template($('#ec-error-msg').html()),
+    splittemplate: _.template($('#ec-split-dialog').html()),
     initialize: function(options) {
       _.bindAll(this, 'updateError', 'updateOK', 'generationDone');
       this.model.on('change', this.render, this);
@@ -65,6 +80,7 @@ var examcycles = function() {
       'click .update'            : 'update',
       'click .destroy'           : 'destroy',
       'click .generate'          : 'generate',
+      'click .split'             : 'showSplitDialog',
       'keypress input.inputname' : 'mightSubmit'
     },
     setState: function(state) {
@@ -86,7 +102,6 @@ var examcycles = function() {
       //
       this.$el.find('div.rota_template select').val(this.model.get("rota_template_id"));
       this.$el.find('.datepicker').datepicker({ dateFormat: "dd/mm/yy"});
-      this.$el.find('.data-autocomplete').railsAutocomplete();
       if (this.model.get("event_count") === 0) {
         this.$('button.generate').html("Generate");
       } else {
@@ -211,6 +226,27 @@ var examcycles = function() {
     },
     generationDone: function() {
       this.setState("created");
+    },
+    showSplitDialog: function() {
+      var splitModal = $('#splitModal');
+      splitModal.html(this.splittemplate(this.model.toJSON()));
+      splitModal.foundation('reveal', 'open', {
+      });
+      var datePicker = splitModal.find('.datepicker');
+      //
+      //  Try to find a date half way between the start and the end.
+      //
+      console.log("Starts on " + this.model.get("starts_on"));
+      var startDate = moment(this.model.get("starts_on"));
+      var endDate   = moment(this.model.get("ends_on"));
+      var diff = endDate.diff(startDate, "days");
+      var middle = startDate;
+      middle.add(diff / 2, "days");
+      var dayBefore = moment(middle);
+      dayBefore.subtract(1, "days");
+      datePicker.val(middle.format("DD/MM/YYYY"));
+      splitModal.find("#daybefore").html(dayBefore.format("DD/MM/YYYY"));
+      datePicker.datepicker({ dateFormat: "dd/mm/yy"});
     }
   });
 

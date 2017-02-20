@@ -281,24 +281,24 @@ class Event < ActiveRecord::Base
 
   def starts_at_for_fc
     if all_day
-      starts_at.to_date.rfc822
+      starts_at.to_date.iso8601
     else
-      starts_at.rfc822
+      starts_at.iso8601
     end
   end
 
   def ends_at_for_fc
     if all_day
       if ends_at
-        ends_at.to_date.rfc822
+        ends_at.to_date.iso8601
       else
-        starts_at.to_date.rfc822
+        starts_at.to_date.iso8601
       end
     else
       if ends_at == nil || starts_at == ends_at
         nil
       else
-        ends_at.rfc822
+        ends_at.iso8601
       end
     end
   end

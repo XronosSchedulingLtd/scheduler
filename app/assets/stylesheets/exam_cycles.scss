@@ -18,6 +18,10 @@ table#ec-table {
     margin-bottom: 1px;
   }
 
+  td {
+    height: 55px;
+  }
+
   tr.creating {
     div.forinput,
     button.add {
@@ -30,6 +34,7 @@ table#ec-table {
     button.deleteevents,
     button.destroy,
     button.cancel,
+    button.split,
     span.displaying,
     span.generating{
       display: none;
@@ -39,6 +44,7 @@ table#ec-table {
   tr.created {
     button.edit,
     button.generate,
+    button.split,
     button.destroy {
       display: inline;
     }
@@ -54,8 +60,6 @@ table#ec-table {
   }
 
   tr.generating {
-    button.edit,
-    button.destroy,
     span.generating {
       display: inline;
     }
@@ -65,6 +69,9 @@ table#ec-table {
     button.update,
     button.deleteevents,
     button.cancel,
+    button.edit,
+    button.split,
+    button.destroy,
     div.forinput {
       display: none;
     }
@@ -80,6 +87,7 @@ table#ec-table {
     button.add,
     button.edit,
     button.generate,
+    button.split,
     button.destroy,
     button.deleteevents,
     span.displaying,
