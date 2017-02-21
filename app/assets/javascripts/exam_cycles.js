@@ -94,8 +94,14 @@ var examcycles = function() {
       'click .split'  : 'doSplit',
       'click .cancel' : 'doCancel'
     },
+    setState: function(state) {
+      this.myTable.removeClass("ready");
+      this.myTable.removeClass("splitting");
+      this.myTable.addClass(state);
+    },
     render: function() {
       this.$el.html(this.template(this.model.toJSON()));
+      this.myTable = this.$el.find(".splittable");
       var datePicker = this.$el.find('.datepicker');
       this.dates = this.model.splitDates();
       datePicker.val(this.dates.afterDate.format("DD/MM/YYYY"));
@@ -111,6 +117,7 @@ var examcycles = function() {
       this.splitModal.html(this.el);
       this.splitModal.foundation('reveal', 'open', { });
       $(document).on('closed', '[data-reveal]', this.modalClosed);
+      this.setState("ready");
     },
     dateSelected: function(dateText, inst) {
       console.log(dateText + " selected.");
@@ -134,6 +141,7 @@ var examcycles = function() {
       return "/proto_events/" + this.model.get("id") + "/split";
     },
     doSplit: function() {
+      this.setState("splitting");
       $.post(this.url(),
              {afterdate: this.dates.afterDate.format("YYYY-MM-DD")},
              null,

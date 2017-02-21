@@ -96,3 +96,21 @@ table#ec-table {
     }
   }
 }
+
+table.splittable.ready {
+  span.splitting {
+    display: none;
+  }
+  button.split {
+    display: inline;
+  }
+}
+
+table.splittable.splitting {
+  span.splitting {
+    display: inline;
+  }
+  button.split {
+    display: none;
+  }
+}
