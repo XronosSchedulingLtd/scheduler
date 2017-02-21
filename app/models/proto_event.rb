@@ -322,6 +322,7 @@ class ProtoEvent < ActiveRecord::Base
   #  off the end of our interval.
   #
   def split(date)
+    result = nil
     if (date > self.starts_on) && (date <= self.ends_on)
       other = self.dup
       other.starts_on = date
@@ -335,11 +336,13 @@ class ProtoEvent < ActiveRecord::Base
         #  corresponding ProtoCommitments and ProtoRequests.
         #
         other.take_events(self, date)
+        result = other
       else
         Rails.logger.error("Failed to save other ProtoEvent.")
       end
     else
-      raise "Date #{date.to_s(:dmy)} is not between #{self.starts_on_text} and #{self.ends_on_text}."
+      Rails.logger.error "Date #{date.to_s(:dmy)} is not between #{self.starts_on_text} and #{self.ends_on_text}."
     end
+    result
   end
 end

@@ -1,8 +1,8 @@
 class ProtoEventsController < ApplicationController
   wrap_parameters :proto_event,
                   include: [:starts_on_text, :ends_on_text, :rota_template_id]
-  before_action :find_exam_cycle
-  before_action :set_proto_event, only: [:show, :edit, :update, :destroy, :generate]
+  before_action :find_exam_cycle, except: [:split]
+  before_action :set_proto_event, only: [:show, :edit, :update, :destroy, :generate, :split]
 
   # GET /proto_events
   # GET /proto_events.json
@@ -92,6 +92,31 @@ class ProtoEventsController < ApplicationController
     @proto_event.ensure_required_events
     respond_to do |format|
       format.json { render :show, status: :ok }
+    end
+  end
+
+  # POST
+  def split
+    proposed_date = Date.safe_parse(params[:afterdate])
+    if proposed_date
+      new_pe = @proto_event.split(proposed_date)
+      if new_pe
+        #
+        #  We will send back details of the new proto_event.
+        #
+        @proto_event = new_pe
+        respond_to do |format|
+          format.json { render :show, status: :ok }
+        end
+      else
+        respond_to do |format|
+          format.json { render :show, status: :error }
+        end
+      end
+    else
+      respond_to do |format|
+        format.json { render :show, status: :error }
+      end
     end
   end
 

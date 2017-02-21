@@ -87,18 +87,19 @@ var examcycles = function() {
     tagName: 'div',
     template: _.template($('#ec-split-dialog').html()),
     initialize: function() {
-      _.bindAll(this, 'modalClosed', 'dateSelected');
+      _.bindAll(this, 'modalClosed', 'dateSelected', 'splitOK', 'splitFail');
       this.splitModal = $('#splitModal');
     },
+    events: {
+      'click .split'  : 'doSplit',
+      'click .cancel' : 'doCancel'
+    },
     render: function() {
-      this.splitModal.html(this.template(this.model.toJSON()));
-      this.splitModal.foundation('reveal', 'open', {
-      });
-      $(document).on('closed', '[data-reveal]', this.modalClosed);
-      var datePicker = this.splitModal.find('.datepicker');
+      this.$el.html(this.template(this.model.toJSON()));
+      var datePicker = this.$el.find('.datepicker');
       this.dates = this.model.splitDates();
       datePicker.val(this.dates.afterDate.format("DD/MM/YYYY"));
-      this.splitModal.find("#daybefore").html(this.dates.beforeDate.format("DD/MM/YYYY"));
+      this.$el.find("#daybefore").html(this.dates.beforeDate.format("DD/MM/YYYY"));
       console.log("mindate: " + this.dates.minAfter.format("DD/MM/YYYY"));
       console.log("maxdate: " + this.dates.maxAfter.format("DD/MM/YYYY"));
       datePicker.datepicker({
@@ -107,6 +108,9 @@ var examcycles = function() {
         maxDate: this.dates.maxAfter.format("DD/MM/YYYY"),
         onSelect: this.dateSelected
       });
+      this.splitModal.html(this.el);
+      this.splitModal.foundation('reveal', 'open', { });
+      $(document).on('closed', '[data-reveal]', this.modalClosed);
     },
     dateSelected: function(dateText, inst) {
       console.log(dateText + " selected.");
@@ -125,6 +129,41 @@ var examcycles = function() {
         var datePicker = this.splitModal.find('.datepicker');
         datePicker.val(this.dates.afterDate.format("DD/MM/YYYY"));
       }
+    },
+    url: function() {
+      return "/proto_events/" + this.model.get("id") + "/split";
+    },
+    doSplit: function() {
+      $.post(this.url(),
+             {afterdate: this.dates.afterDate.format("YYYY-MM-DD")},
+             null,
+             "json").done(this.splitOK).fail(this.splitFail);
+    },
+    splitOK: function(data, textStatus, jqXHR) {
+      console.log("Success response");
+      //
+      //  We update our existing model with its new end date (which
+      //  we already know, and then add the new model (details of
+      //  which we have just received) to the collection.  Finally
+      //  we close the dialogue.
+      //
+      var newPE = new ProtoEvent(data);
+      that.protoEventsView.collection.add(newPE);
+      this.splitModal.foundation('reveal', 'close');
+      //
+      //  The simplest way to get the remainder of our existing
+      //  model up to date is to re-fetch it.
+      //
+      this.model.fetch();
+    },
+    splitFail: function(jqXHR, textStatus, errorThrown) {
+      console.log("Failure response");
+      alert("Split failed.");
+      this.splitModal.foundation('reveal', 'close');
+    },
+    doCancel: function() {
+      console.log("Asked to cancel.");
+      this.splitModal.foundation('reveal', 'close');
     },
     modalClosed: function() {
       console.log("Modal closed.");
@@ -327,6 +366,7 @@ var examcycles = function() {
       _.bindAll(this, 'addOne');
       this.collection = new ProtoEvents(null, {ecid: ecid});
       this.listenTo(this.collection, 'sync', this.render);
+      this.listenTo(this.collection, 'add', this.render);
       this.collection.fetch();
     },
     render: function() {

@@ -9,6 +9,12 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :proto_events, only: [:split] do
+    member do
+      post :split
+    end
+  end
+
   resources :rota_templates do
     resources :rota_slots
     member do
