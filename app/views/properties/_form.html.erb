@@ -15,6 +15,10 @@
     <%= f.label :name %><br>
     <%= f.text_field :name, :class => "focus_please" %>
   </div>
+  <div class="field">
+    <%= f.label :public %><br>
+    <%= f.check_box :make_public %>
+  </div>
   <div class="actions">
     <%= f.submit @property.id ? "Update" : "Create", :class => "button small radius" %>
   </div>

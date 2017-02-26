@@ -1,20 +1,23 @@
 <div class="container">
   <div class="row collapse">
-  <% if known_user? %>
+  <% if @show_lhs %>
     <div class="large-2 small-3 columns">
       <div id="current_user">
-        <%= render current_user %>
+        <%= render @user %>
       </div>
     </div>
     <div class="large-10 small-9 columns">
   <% else %>
+    <div class="hidden-lhs" id="current_user">
+      <%= render @user %>
+    </div>
     <div class="large-12 columns">
   <% end %>
       <div id="fullcalendar"<%
-        if current_user && current_user.create_events?
+        if @with_edit
           %> class="withedit"<%
         end
-          %> data-firstday="<%= current_user ? current_user.safe_firstday : "0" %>" data-defaultdate="<%= @default_date %>" data-dorefresh="0"></div>
+          %> data-firstday="<%= @first_day %>" data-defaultdate="<%= @default_date %>" data-dorefresh="0"></div>
     </div>
   </div>
   <div id="eventModal" class="reveal-modal" data-reveal>

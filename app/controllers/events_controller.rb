@@ -306,14 +306,14 @@ class EventsController < ApplicationController
     #  Others only on calendar events.
     #
     search_text = event_params[:body]
-    calendar_property = Property.find_by(name: "Calendar")
+    public_properties = Property.public_ones.to_a
     invisible_categories = Eventcategory.invisible.to_a
-    if search_text.blank? || calendar_property == nil
+    if search_text.blank? || public_properties.size == 0
       redirect_to :back
     else
       selector = Event.beginning(Setting.current_era.starts_on)
       unless current_user && current_user.staff?
-        selector = selector.involving(calendar_property.element).complete
+        selector = selector.involving_one_of(public_properties.collect {|pp| pp.element }).complete
       end
       selector = invisible_categories.inject(selector) { |memo, ic|
         memo.excluding_category(ic)

@@ -4,10 +4,28 @@
 # for more information.
 
 #
+#  Slightly tricky.  We define this dummy class in two places,
+#  but the second time just opens it, fails to modify it,
+#  then closes it again.
+#
+#  The reason for this is that if a Rails instance starts up and
+#  the very first thing it tries to do is a Vanillagroup.create!
+#  then without this second definition it doesn't think it's
+#  seen it before.
+#
+class Vanillagrouppersona
+end
+
+#
 #  Note that this isn't a real Rails model - it doesn't inherit from
 #  ActiveRecord at all.
 #
 class Vanillagroup
+
+  def self.create!(params)
+    myparams = {persona_class: Vanillagrouppersona}
+    Group.create!(myparams.merge(params))
+  end
 
   def self.new(params_hash = nil)
     g = Group.new

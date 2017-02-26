@@ -20,6 +20,8 @@ class Setting < ActiveRecord::Base
   @@current_mis = nil
   @@checked_previous_mis = false
   @@previous_mis = nil
+  @@auth_type = nil
+  @@checked_auth_type = false
 
   belongs_to :current_era, class_name: :Era
   belongs_to :next_era, class_name: :Era
@@ -31,6 +33,8 @@ class Setting < ActiveRecord::Base
   validates :current_era, :presence => true
   validates :perpetual_era, :presence => true
   validate :no_more_than_one
+
+  enum auth_type: [:google_auth, :google_demo_auth]
 
   # We never want this record to be deleted.
   def destroy
@@ -135,6 +139,17 @@ class Setting < ActiveRecord::Base
       @@checked_previous_mis = true
     end
     @@previous_mis
+  end
+
+  def self.auth_type
+    unless @@checked_auth_type
+      setting = Setting.first
+      if setting
+        @@auth_type = setting.auth_type
+      end
+      @@checked_auth_type = true
+    end
+    @@auth_type
   end
 
   #

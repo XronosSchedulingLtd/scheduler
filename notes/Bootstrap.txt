@@ -7,7 +7,9 @@ Created Sunday 20 April 2014
 
 This page originally documented how to get started with creating the project (see Creation section below), but now I'm updating it to say how to set up a brand new machine as a development or deployment system.  Some of the information from the Creation section is repeated here.  We will initially set up the machine to be able to run Scheduler in a development environment, then go on to setting it up for production use.
 
-==== Development mode ====
+===== Development mode =====
+
+==== System ====
 
 We start by assuming you have installed Debian Jessie (currently 8.1) on a clean machine.  You will need a user account under which you will be running the application, plus access to root to install packages.  Then perform the following steps in order.
 
@@ -25,6 +27,8 @@ In the last one, choose vim as the default editor for the system (or something e
 
 Log out and then back in as your chosen user in order to pick up the new privileges.
 
+==== Ruby and Rails ====
+
 Next we need to get the Ruby Version Manager installed.  This will provide the means to install whatever versions of Ruby we want.  Visit https://rvm.io/ for details of how to install it.  Currently this comes down to two commands.
 
 '''
@@ -35,7 +39,7 @@ $ \curl -sSL https://get.rvm.io | bash -s stable
 
 Note that you install RVM as your designated user - not as root.
 
-Once the installation is complete, log out and in again to pick up your modified environment.  Now you can install Ruby.  The application currently uses version 2.1.1, which is slightly out of date but not much.  It would probably work fine with the latest one, but for now we want a fully predictable environment.
+Once the installation is complete, log out and in again to pick up your modified environment.  Now you can install Ruby.  The application currently uses version 2.1.10, which is slightly out of date but not much.  It would probably work fine with the latest one, but for now we want a fully predictable environment.
 
 '''
 $ rvm install ruby-2.1.10
@@ -47,6 +51,8 @@ $ gem install rails --version 4.1
 
 
 The first command will take a little time because it will download the source and then compile the required version.  You may well need to enter your password to allow it to install some more system packages.  Once these are complete you have your basic environment and we can think about installing the application.
+
+==== MySql ====
 
 Currently the application uses mysql as its database server, so install mysql.
 
@@ -73,6 +79,8 @@ exit
 
 Note that the password used here is the default one for the application.  You will probably want to change it to something of your choosing, and change it in the application's configuration too.
 
+==== Node.js ====
+
 Since the application is a Rails application, it needs a JavaScript interpreter on the host.  We use node.js for that.  As your selected user, create a new directory to build node, and download the source from https://nodejs.org/download/.  Unpack and build it with:
 
 '''
@@ -94,19 +102,17 @@ As an alternative, later versions of Debian seem to include node so you can just
 
 ''$ sudo apt-get install nodejs''
 
+On further investigation, using the Debian packages does not seem to be quite such a good idea.  Firstly, it's a very old version, and secondly it seems to install the executable as "nodejs" instead of as "node".  The Debian version of npm understands this, but then if you install packages with npm, they in their turn expect to find node, rather than nodejs - e.g. if you install coffee-script with Debian's nodejs and npm then it doesn't work.  Probably best to keep installing from source.  Use the latest LTS (currently 6.9.4).
+
 That's all the infrastructure in place, and we're ready to start think about getting the application itself.
+
+==== The application ====
 
 First you need an ssh key to identify yourself.  As your normal user, type:
 
 ''$ ssh-keygen''
 
-You may well want to protect the key with a pass-phrase when prompted to do so.  Once you have generated the key, you need to give a copy of ''.ssh/id_rsa.pub'' to JHW to gain access to the repository.  You also need to edit ''/etc/ssh/ssh_config'' as root to add the following two lines at the end.
-
-'''
-Host git.sinodun.org.uk
-  Port 1011
-'''
-
+You may well want to protect the key with a pass-phrase when prompted to do so.  Once you have generated the key, you need to give a copy of ''.ssh/id_rsa.pub'' to JHW to gain access to the repository.
 
 Once JHW has set you up, move to the directory where you want to install the Scheduler software (I use ~/Work/Coding) and type:
 
@@ -118,7 +124,11 @@ then change directory into the newly created ''scheduler'' directory and type:
 
 to pull in all the necessary ancillary packages.
 
-Next you need a copy of the data from the live system.  You can get this by copying ''scheduler_production.dmp.gz'' from 172.16.1.4 in directory ''/Volumes/StaffHomes DBs & Web/Calendar''.
+You now have the software installed and ready to run - next you need a database.  Either you're cloning an existing system, or you're starting from scratch.
+
+==== Cloning an existing system ====
+
+You can get this by copying ''scheduler_production.dmp.gz'' from the backups of your existing system.
 
 I create a directory:
 
@@ -131,14 +141,66 @@ and place the file there.  I then create a script called ''loaddb'' containing:
 zcat scheduler_production.dmp.gz | mysql -u root -p scheduler_development
 '''
 
-Execute this script and you should have populated your database.  You will need to provide your MySQL admin password to effect the load.  The application is now ready to run (at least in development mode), but you need to put some credentials in place to make logging on through Google work.  Edit your .profile in your home directory and add these lines to the end of it.
+Execute this script and you should have populated your database.  You will need to provide your MySQL admin password to effect the load.
+
+==== Starting from scratch ====
+
+There is a slight bootstrap problem in that you need something in your database before you can log on, but you can't edit anything in the database until you have logged on.  Happily, Rails provides facilities for doing your initial database setup.
+
+The command:
+
+''$ rake db:schema:load''
+
+will set you up an initial empty database.  Note that, by default, this will use the scheduler_development database set up earlier.  To initialise a production one instead you need to type:
+
+''$ RAILS_ENV=production rake db:schema:load''
+
+At this point you have a working but empty system.  You can run up the application in development mode by typing:
+
+''$ rails s''
+
+at a command prompt, and then point a web browser at http://localhost:3000/ to see a blank calendar.  Give yourself a pat on the back.
+
+==== Environment ====
+
+The application is now ready to run (at least in development mode), but you need to put some credentials in place to make logging on through Google work.  To do this you will need a Google account, and then to sign up to use their developers' facilities.  Go the the API manager and choose the Credentials option, then click on "Create credentials" and choose OAuth client ID.  The Application type is "Web application".  Name it how you like.  For the Authorised Javascript origins put:
+
+'''
+http://<your url>
+https://your url
+'''
+
+
+and for the Authorised redirect URIs
+
+'''
+http://<your url>/auth/google_oauth2/callback
+https://<your url>/auth/google_oauth2/callback
+'''
+
+
+If you want the login to work in development mode, you will also need.
+
+'''
+http://<your url>:3000
+'''
+
+and
+
+'''
+http://<your url>:3000/auth/google_oauth2/callback
+'''
+
+You can put "localhost" for the URL for general development work.
+
+When you save the set of credentials, you will be given your client ID and client secret which you should put in your users .profile as follows:
 
 '''
 #
 #  Environment stuff.
 #
-GOOGLE_CLIENT_ID="502029956478-2g9nba4nv12i6o8vsbm9idsqpfoo61bk.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="6r61bAS_nRJ_rmgm6OuAR-7R"
+GOOGLE_CLIENT_ID="<your google client id>"
+GOOGLE_CLIENT_SECRET="<your google client secret>"
 export GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
 '''
 
@@ -150,18 +212,25 @@ $ cd ~/Work/Coding/scheduler
 $ rails s
 '''
 
+The information which you've put into Google can take a few minutes to propagate through their servers.  Give it 10 minutes or so and it should work.
 
 Then use a web browser to access http://localhost:3000/ and you should see the familiar application.  The basic installation is now complete and you have it running in development mode.
 
-==== Production mode ====
+===== Production mode =====
 
 The application is running, but currently it's attached to a terminal and providing a lot of debug information.  For production use, we want it to run in the background - probably with multiple copies, we want caching of static data, and we don't want all the detailed logging.  For this we run it behind a dedicated web server (nginx) and we use some clever software (Passenger) to glue the two together.
 
 Note that any given server should be used either for development or for production - not both.  Make sure you shut down the development copy (Ctrl-C in the terminal) before trying to run a production server.
 
+There are two ways to get Nginx (the web server) working with Passenger - compile it yourself, or use ready made packages from Phusion (the authors of Passenger).
+
+==== Compiling it yourself ====
+
+This is the way in which it was done originally, and these instructions are retained in case they turn out to be useful.  However, you are strongly recommended to use the Debian packages mentioned in the next section unless you have a good reason not to.
+
 You can do the following in your home directory, but you need to make sure you are using the same gem environment as is used in the application, so start with:
 
-''$ rvm use 2.1.1@scheduler''
+''$ rvm use 2.1.10@scheduler''
 
 then install passenger with:
 
@@ -196,7 +265,27 @@ $ sudo update-rc.d nginx defaults
 
 The final line sets things up so that nginx will restart when the system is booted.
 
-Now nginx needs to be told about our application.  Edit the file ''/opt/nginx/conf/nginx.conf'' and add the following lines to the end:
+==== Ready made package ====
+
+Phusion have now made packages available for Debian 8, containing Nginx with Passenger enabled.  For details, see
+
+https://www.phusionpassenger.com/library/install/nginx/install/oss/jessie/
+
+Following the instructions there seems to work very cleanly.
+
+===== Configuring Nginx =====
+
+Now Nginx - or more specifically, Passenger - needs to be told about our application.  The location of the relevant configuration files varies depending on whether you did a self build (''/opt/nginx/conf'') or used the pre-built package (''/etc/nginx'').  This section assumes you're doing the latter.
+
+Instructions can be found at:
+
+https://www.phusionpassenger.com/library/deploy/nginx/deploy/ruby/
+
+The command "''passenger-config about ruby-command''" executed in our [[~/Work/Coding/scheduler]] directory tells us we want the following configuration line:
+
+''passenger_ruby /home/<username>/.rvm/gems/ruby-2.1.10@scheduler/wrappers/ruby''
+
+Now we need to create a new file in ''/etc/nginx/sites-available''.  I called mine schedulerdemo.
 
 '''
 server {
@@ -204,8 +293,13 @@ server {
 	server_name <fully qualified domain name of your server>;
 	root /home/<username>/Work/Coding/scheduler/public;
 	passenger_enabled on;
+	passenger_ruby /home/<username>/.rvm/gems/ruby-2.1.10@scheduler/wrappers/ruby;
 }
 '''
+
+Then make a symbolic link in ''/etc/nginx/sites-enabled'' pointing to the file which you just created, and restart Nginx with ''sudo service nginx restart''.
+
+Your application should now be available at your selected URL.
 
 Note the need to fill in two items here - the fully qualified domain name of your server, and the name of the directory where the application is installed.
 
@@ -219,13 +313,19 @@ In the production environment, these items are assumed to be static, and you wan
 
 This will produce quite a bit of output, and then you'll find that the public directory is there and populated.
 
-The production copy uses its own separate database which needs populating too.  Edit your ''loaddb'' script created earlier to load to scheduler_production instead of scheduler_development and run it again.
+The production copy uses its own separate database which needs populating too.
+
+'''
+$ RAILS_ENV=production rake db:schema:load
+$ RAILS_ENV=production rake db:seed
+'''
+
 
 If you now re-start nginx with:
 
-''$ sudo /etc/init.d/nginx restart''
+''$ sudo service nginx restart''
 
-You should be able to access the application.  You won't however be able to log in, because that means setting up some more Google credentials, and should probably be done by the school.
+You should be able to access the application.
 
 ===== Maintenance tasks =====
 

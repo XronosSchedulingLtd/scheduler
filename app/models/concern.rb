@@ -39,12 +39,16 @@ class Concern < ActiveRecord::Base
   #  to be typed in the dialogue for creating a concern record,
   #  expressing interest in an element.
   #
-  def name
-    @name 
-  end
+  attr_accessor :name
 
-  def name=(n)
-    @name = n
+  #
+  #  Likewise, this isn't in the database either.  It is used for
+  #  displaying faked concerns to non-logged-in users.
+  #
+  attr_accessor :fake_id
+
+  def id_or_fake
+    @fake_id ? @fake_id : self.id
   end
 
   #
