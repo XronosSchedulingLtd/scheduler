@@ -140,7 +140,7 @@ $(document).ready ->
                  start_time.format("YYYY-MM-DD HH:mm")
           })
     $('.dynamic-element').each (index) ->
-      window.addEventSource($(this).attr('concern_id'))
+      window.addEventSource($(this).data('cid'))
     window.activateDragging()
   else
     $('#fullcalendar').fullCalendar
@@ -178,7 +178,7 @@ $(document).ready ->
                                     'open',
                                     '/events/' + event.id)
     $('.dynamic-element').each (index) ->
-      window.addEventSource($(this).attr('concern_id'))
+      window.addEventSource($(this).data('cid'))
     window.activateDragging()
 
 window.addEventSource = (cid) ->
@@ -190,7 +190,7 @@ window.removeEventSource = (cid) ->
                                   '/schedule/events?cid=' + cid)
 
 window.checkboxFlipped = (thebox) ->
-  concern_id = $(thebox).attr("concern_id")
+  concern_id = $(thebox).data('cid')
   jQuery.ajax
     url: "/concerns/" + concern_id + "/flipped?state=" + if thebox.checked then "on" else "off"
     type: "PUT"
@@ -252,7 +252,9 @@ window.concernClicked = (event) ->
   if $(this).hasClass('noclick')
     $(this).removeClass('noclick')
   else
-    location.href = $(this).data('link-target')
+    target = $(this).data('link-target')
+    if target
+      location.href = target
 
 window.primeCloser = ->
   $('.closer').click ->

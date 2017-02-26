@@ -1,0 +1,26 @@
+#!/bin/bash
+. /etc/profile
+#
+#  Are we on development or live?
+#
+. ~/etc/whichsystem
+#
+#  And make sure we're using the right ruby.
+#
+. ~/.rvm/environments/scheduler
+#
+#  Make sure SCHEDULER_DIR is set
+#
+if [ "a$SCHEDULER_DIR" == "a" ]; then
+  echo "SCHEDULER_DIR environment variable needs to be set."
+  exit 1
+fi
+if [ -d $SCHEDULER_DIR ]; then
+  cd $SCHEDULER_DIR
+  rake db:schema:load >/dev/null
+  rake db:seed
+  ./lib/clashes/clashcheck.rb --weeks 1 --start `./lib/clashes/sundate.rb`
+else
+  echo "$SCHEDULER_DIR does not seem to be a directory."
+  exit 2
+fi

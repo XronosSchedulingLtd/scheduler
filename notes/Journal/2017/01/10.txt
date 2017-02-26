@@ -1,0 +1,17 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-01-10T09:11:31+00:00
+
+====== Tuesday 10 Jan 2017 ======
+
+Working in school (CHS) and trying to pull together components to get my app working through Bootstrap etc.
+
+The first interesting thing which I hit is that there are two overall layouts within the application - we have application.html.erb which I think is used by most of the application, but then schedule.html.erb which I think is used on the main schedule screen.  The header and footer are shared between them, but there's stuff in them which I don't think really belongs there.
+
+There isn't actually that much difference between the two.  Just that schedule.html.erb yields the whole screen to the view, whilst application.html.erb constrains it to the centre 10 columns out of the 12.  I may well be able to get rid of this.
+
+I'll leave the breakdown as it is for now, since both of them use the header and footer pretty cleanly.  I just need to adjust the header so that it uses Bootstrap conventions instead of Foundation.
+
+I need to think very carefully about how I'm going to build my main screen.  It differs from all the others in the application, and it's the one which most qualifies as a single-page application.  Any use of w2ui in it means that I need to generate pretty much the whole thing dynamically, but then I do anyway.
+
+Note that it appears with two different layouts.  Before you log on there is no left hand column, and then afterwards there is.  I really like the way w2ui lets me have a fixed width left hand column, but then I believe that can be done with just a spot of CSS anyway.

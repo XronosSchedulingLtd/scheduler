@@ -82,7 +82,6 @@ class Group < ActiveRecord::Base
       as_at: as_at)
   }
 
-  after_initialize :set_flags
   before_create    :create_persona
   after_save       :update_persona
 
@@ -272,9 +271,10 @@ class Group < ActiveRecord::Base
     end
   end
 
-  def set_flags
+  def initialize(*args)
     @persona_needs_saving = false
     @persona_hash = {}
+    super
   end
   
   def create_persona

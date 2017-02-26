@@ -100,7 +100,7 @@ http: entry at some point, or replace it with:
     server {
         listen 80;
         server_name <your FQDN>;
-        return 301 https://<your FQDN>;
+        return 301 https://$host$request_uri;
     }
 
 which will cause all requests for your installation over http: to be

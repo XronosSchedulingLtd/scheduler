@@ -6,8 +6,23 @@ class SessionsController < ApplicationController
   def create
     auth = request.env["omniauth.auth"]
 #    raise auth.inspect
-    user = User.find_by_provider_and_uid(auth["provider"], auth["uid"]) ||
-           User.create_from_omniauth(auth)
+    user = User.find_by(provider: auth["provider"],
+                        uid:      auth["uid"])
+    if user
+      #
+      #  We have a user record but it doesn't seem to be connected
+      #  to a staff or pupil record.  Do a dummy save, so that
+      #  if one has sprung into existence we will get connected
+      #  to it.
+      #
+      unless user.known?
+        user.save
+      end
+    else
+      user = User.create_from_omniauth(auth)
+    end
+#    user = User.find_by_provider_and_uid(auth["provider"], auth["uid"]) ||
+#           User.create_from_omniauth(auth)
     reset_session
     session[:user_id] = user.id
     Rails.logger.info("User #{user.email} signed in.")

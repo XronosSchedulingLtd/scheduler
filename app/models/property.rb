@@ -5,6 +5,7 @@
 
 class Property < ActiveRecord::Base
 
+  scope :public_ones, -> { where(make_public: true) }
   validates :name, presence: true
   validates :name, uniqueness: true
 

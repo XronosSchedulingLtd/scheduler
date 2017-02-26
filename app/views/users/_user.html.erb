@@ -1,7 +1,7 @@
 <table class="zftable">
-<% if current_user.can_add_concerns %>
+<% if @selector_box %>
 <tr>
-  <td colspan="3">
+  <td colspan="<%= @third_column ? "3" : "2" %>">
     <%= form_for(@concern, remote: true) do |f| %>
       <%= f.autocomplete_field :name,
                                autocomplete_element_name_elements_path,
@@ -10,24 +10,23 @@
                                "data-auto-focus" => true,
                                class: :auto_submit_item %>
       <%= f.text_field :element_id, type: :hidden %>
-      <%= f.submit "Go", class: "hidden_submit", style: "display: none;" %>
+      <%= f.submit "Go", class: "hidden_submit" %>
     <% end %>
   </td>
 </tr>
 <% end %>
-<% if current_user.editor %>
+<% if @my_events %>
 <tr>
-  <td style="background-color:<%= current_user.colour_not_involved %>;color:white;font-size:90%;padding-top:0px;padding-bottom:0px;" class="rounded-corners">
+  <td style="background-color:<%= current_user.colour_not_involved %>" class="concern-cell rounded-corners">
     My events
   </td>
-  <td style="padding-top:0px;padding-bottom:0px;">
-    <input type="checkbox" class="active-checkbox" concern_id="owned" <%= user.show_owned ? "checked" : "" %> />
+  <td class="concern-cell">
+    <input type="checkbox" class="active-checkbox" data-cid="owned" <%= user.show_owned ? "checked" : "" %> />
   </td>
-  <td style="padding-top:0px;padding-bottom:0px;"></td>
+  <% if @third_column %>
+    <td class="concern-cell"></td>
+  <% end %>
 </tr>
 <% end %>
-<%= render user.concerns.me %>
-<% if user.concerns.not_me.size > 0 %>
-  <%= render user.concerns.not_me.sort %>
-<% end %>
+<%= render @concerns %>
 </table>

@@ -1,4 +1,6 @@
 class ConcernsController < ApplicationController
+  include DisplaySettings
+
   before_action :set_concern, only: [:edit, :update]
 
   # POST /concerns
@@ -62,16 +64,15 @@ class ConcernsController < ApplicationController
           #  so save that first.
           #
           @concern_id = @concern.id
-          @concern = Concern.new
-          format.js
         else
           #
           #  Failure to save indicates it wasn't a valid thing to add.
           #
-          @concern = Concern.new
           @element_id = nil
-          format.js
         end
+        setvars_for_lhs(current_user)
+        @concern = Concern.new
+        format.js
       end
     end
   end
@@ -99,6 +100,11 @@ class ConcernsController < ApplicationController
       @concern_id = params[:id]
     end
     @concern = Concern.new
+    #
+    #  We're now going to re-render the user's column, so need to
+    #  set up some parameters.
+    #
+    setvars_for_lhs(current_user)
   end
 
   def edit
@@ -203,26 +209,43 @@ class ConcernsController < ApplicationController
     #  then we just refresh his display.  This can happen if a user is
     #  logged in on two different terminals.
     #
+    id_param = params[:id]
     new_state = params[:state] == "on" ? true : false
     @status = :ok
-    if params[:id] == "owned"
-      if current_user.show_owned != new_state
-        current_user.show_owned = new_state
-        current_user.save
-      end
-    else
-      @concern = Concern.find_by(id: params[:id])
-      if @concern && @concern.user_id == current_user.id
-        if @concern.visible != new_state
-          @concern.visible = new_state
-          @concern.save
+    if current_user && current_user.known?
+      #
+      #  May be being asked to turn the user's own events on and off.
+      #  This isn't a real Concern.
+      #
+      if id_param == "owned"
+        if current_user.show_owned != new_state
+          current_user.show_owned = new_state
+          current_user.save
         end
       else
+        @concern = Concern.find_by(id: id_param)
+        if @concern && @concern.user_id == current_user.id
+          if @concern.visible != new_state
+            @concern.visible = new_state
+            @concern.save
+          end
+        else
+          #
+          #  By setting this to failed, we will cause the front end to
+          #  refresh its view entirely.
+          #
+          @status = :failed
+        end
+      end
+    else
+      if id_param =~ /^E\d+$/
         #
-        #  By setting this to failed, we will cause the front end to
-        #  refresh its view entirely.
+        #  And this one is a deliberate fake ID.  Done using values stored
+        #  in the session.  N.B.  If the relevant value is not already there
+        #  then it counts as true.
         #
-        @status = :failed
+        Rails.logger.debug("Setting flag for #{id_param} to #{new_state}.")
+        session[id_param] = new_state
       end
     end
     respond_to do |format|
@@ -231,15 +254,18 @@ class ConcernsController < ApplicationController
   end
 
   #
-  #  Re-supply the sidebar of concerns for the current user.
+  #  Re-supply the sidebar of concerns for the current user if any.
   #
   def sidebar
+    setvars_for_lhs(current_user)
     @concern = Concern.new
     render :layout => false
   end
 
   def authorized?(action = action_name, resource = nil)
-    logged_in? && current_user.known?
+    (logged_in? && current_user.known?) ||
+      action == 'sidebar' ||
+      action == 'flipped'
   end
 
   private

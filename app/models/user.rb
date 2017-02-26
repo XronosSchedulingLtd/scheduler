@@ -406,7 +406,11 @@ class User < ActiveRecord::Base
   def find_matching_resources
     if self.email && !self.known?
       got_something = false
-      staff = Staff.active.find_by_email(self.email)
+      if Setting.auth_type == "google_demo_auth"
+        staff = Staff.first
+      else
+        staff = Staff.active.find_by_email(self.email)
+      end
       if staff
         got_something = true
         concern = self.concern_with(staff.element)
@@ -447,17 +451,19 @@ class User < ActiveRecord::Base
         end
       end
       if got_something
-        calendar_element = Element.find_by(name: "Calendar")
-        if calendar_element
-          unless self.concern_with(calendar_element)
-            Concern.create! do |concern|
-              concern.user_id    = self.id
-              concern.element_id = calendar_element.id
-              concern.equality   = false
-              concern.owns       = false
-              concern.visible    = true
-              concern.colour     = calendar_element.preferred_colour || "green"
-            end
+        #
+        #  By default, each user gets the public calendars displayed.
+        #  Students can't remove them (although they can suppress them).
+        #
+        Property.public_ones.each do |p|
+          unless self.concern_with(p.element)
+            self.concerns.create!({
+              element:  p.element,
+              equality: false,
+              owns:     false,
+              visible:  true,
+              colour:   p.element.preferred_colour || "green"
+            })
           end
         end
         set_initial_permissions
@@ -617,6 +623,10 @@ class User < ActiveRecord::Base
       self.can_find_free    = true
       self.can_add_concerns = true
       self.can_roam         = true
+      if Setting.auth_type == "google_demo_auth" &&
+         self.email == "jhwinters@gmail.com"
+        self.admin = true
+      end
       self.save!
       "#{self.name} with email #{self.email} gets staff permissions."
     elsif self.pupil?

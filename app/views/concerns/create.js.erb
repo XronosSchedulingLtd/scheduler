@@ -1,4 +1,4 @@
-$('#current_user').html("<%=j render current_user %>")
+$('#current_user').html("<%=j render @user %>")
 <% if @reload_concerns %>
   $('#fullcalendar').fullCalendar('refetchEvents');
 <% else %>
