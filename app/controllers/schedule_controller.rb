@@ -4,6 +4,8 @@
 # for more information.
 
 class ScheduleController < ApplicationController
+  include DisplaySettings
+
   layout 'schedule'
 
   #
@@ -235,6 +237,23 @@ class ScheduleController < ApplicationController
       redirect_to :root
     else
       #
+      #  We should decide here what exactly gets shown in the way
+      #  of columns, user information and concerns - *not* in the view.
+      #
+      if (current_user && current_user.known?) ||
+         Property.public_ones.count > 1
+        @show_lhs     = true
+      else
+        #
+        #  Note that the key word here is "show".  The div containing
+        #  a possible pseudo-concern will still be there (and so the
+        #  corresponding events will still be fetched), but it will be
+        #  hidden.
+        #
+        @show_lhs     = false
+      end
+      setvars_for_lhs(current_user)
+      #
       #  Make space for creating a new concern.
       #
       @concern = Concern.new
@@ -251,8 +270,8 @@ class ScheduleController < ApplicationController
 #    raise params.inspect
     start_date = Time.zone.parse(params[:start])
     end_date   = Time.zone.parse(params[:end]) - 1.day
-    concern_id = params[:cid].to_i
     if current_user && current_user.known?
+      concern_id = params[:cid].to_i
       if concern_id == 0
         #
         #  For this particular request, we make a note of the start
@@ -375,19 +394,65 @@ class ScheduleController < ApplicationController
       end
     else
       #
-      #  People who aren't logged on, or who we don't recognise, just
-      #  get to see the public calendar.
+      #  We expect to be passed a *fake* concern ID - starts with E
+      #  followed by a number.  It must lead us to the element of a
+      #  public property.
       #
-      session[:last_start_date] = start_date
-      calendar_element = Element.find_by(name: "Calendar")
-      if calendar_element
+      #  We also might be passed no ID at all, in which case we
+      #  return just the breakthrough events.
+      #
+      @schedule_events = []
+      fake_id = params[:cid]
+      if fake_id =~ /^E\d+$/
+        element_id = fake_id[1..-1].to_i
+        element = Element.find_by(id: element_id)
+        if element &&
+          element.entity_type == "Property" &&
+          element.entity.make_public
+          #
+          #  This looks like a really weird test, but I want to treat
+          #  the absence of the relevant key as being equivalent to true.
+          #  Absence will return nil.  Only an actual value of false
+          #  should suppress the events.
+          #
+          if session[fake_id] != false
+            #
+            #  Now, in picking the events to show I want to filter out
+            #  any where the category means they would break through
+            #  anyway.  Basically these are key dates and week letters.
+            #
+            @schedule_events +=
+              element.events_on(start_date,
+                                end_date,
+                                Eventcategory.not_schoolwide.visible.to_a).collect {|e|
+                ScheduleEvent.new(e, nil, nil, element.preferred_colour)
+              }
+          end
+        end
+      elsif fake_id.blank?
+        session[:last_start_date] = start_date
         @schedule_events =
-          calendar_element.events_on(start_date, end_date).collect {|e|
-            ScheduleEvent.new(e, nil, nil, calendar_element.preferred_colour)
-          }
-      else
-        @schedule_events = []
+         Event.events_on(
+           start_date,
+           end_date,
+           Eventcategory.schoolwide.visible.to_a).collect {|e|
+             ScheduleEvent.new(e, nil, nil)}
       end
+      #
+      #
+      #  People who aren't logged on, or who we don't recognise, just
+      #  get to see the public calendars.
+      #
+#      session[:last_start_date] = start_date
+#      @schedule_events = []
+#      public_properties = Property.where(make_public: true)
+#      public_properties.each do |pp|
+#        calendar_element = pp.element
+#        @schedule_events +=
+#          calendar_element.events_on(start_date, end_date).collect {|e|
+#            ScheduleEvent.new(e, nil, nil, calendar_element.preferred_colour)
+#          }
+#      end
     end
     begin
       respond_to do |format|

@@ -10,6 +10,7 @@
     <tr>
       <th>Name</th>
       <th>Owners</th>
+      <th>Public</th>
       <th colspan="2"></th>
     </tr>
   </thead>
@@ -19,6 +20,7 @@
       <tr>
         <td><%= property.name %></td>
         <td><%= property.owners_initials %></td>
+        <td><%= property.make_public? ? "Yes" : "No" %></td>
         <td><%= link_to 'Edit', edit_property_path(property) %></td>
         <td>
           <% if property.can_destroy? %>

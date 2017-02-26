@@ -1,4 +1,4 @@
-$('#current_user').html("<%=j render current_user %>")
+$('#current_user').html("<%=j render @user %>")
 window.removeEventSource(<%= @concern_id %>);
 window.activateCheckboxes();
 window.activateDragging();

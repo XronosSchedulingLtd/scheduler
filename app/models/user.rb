@@ -451,17 +451,19 @@ class User < ActiveRecord::Base
         end
       end
       if got_something
-        calendar_element = Element.find_by(name: "Calendar")
-        if calendar_element
-          unless self.concern_with(calendar_element)
-            Concern.create! do |concern|
-              concern.user_id    = self.id
-              concern.element_id = calendar_element.id
-              concern.equality   = false
-              concern.owns       = false
-              concern.visible    = true
-              concern.colour     = calendar_element.preferred_colour || "green"
-            end
+        #
+        #  By default, each user gets the public calendars displayed.
+        #  Students can't remove them (although they can suppress them).
+        #
+        Property.public_ones.each do |p|
+          unless self.concern_with(p.element)
+            self.concerns.create!({
+              element:  p.element,
+              equality: false,
+              owns:     false,
+              visible:  true,
+              colour:   p.element.preferred_colour || "green"
+            })
           end
         end
         set_initial_permissions

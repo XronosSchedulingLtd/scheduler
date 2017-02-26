@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161222124120) do
+ActiveRecord::Schema.define(version: 20170110110658) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -334,6 +334,7 @@ ActiveRecord::Schema.define(version: 20161222124120) do
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "make_public", default: false
   end
 
   create_table "pupils", force: true do |t|

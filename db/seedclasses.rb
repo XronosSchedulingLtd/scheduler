@@ -23,8 +23,11 @@ end
 class Seeder
 
   class SeedProperty
-    def initialize(name)
-      @dbrecord = Property.create!({name: name})
+    def initialize(name, make_public = false)
+      @dbrecord = Property.create!({
+        name:        name,
+        make_public: make_public
+      })
       @dbrecord.reload
     end
 
@@ -540,7 +543,7 @@ class Seeder
     #  Properties
     #
     @properties[:calendarproperty] =
-      SeedProperty.new("Calendar").set_preferred_colour("#1f94bc")
+      SeedProperty.new("Calendar", true).set_preferred_colour("#1f94bc")
     @properties[:gapproperty] =
       SeedProperty.new("Gap")
     @properties[:suspensionproperty] =
