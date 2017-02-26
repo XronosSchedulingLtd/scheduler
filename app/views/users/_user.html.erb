@@ -1,7 +1,7 @@
 <table class="zftable">
 <% if @selector_box %>
 <tr>
-  <td colspan="<%= @third_column ? "3" : "2" %>>
+  <td colspan="<%= @third_column ? "3" : "2" %>">
     <%= form_for(@concern, remote: true) do |f| %>
       <%= f.autocomplete_field :name,
                                autocomplete_element_name_elements_path,
