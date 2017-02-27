@@ -57,10 +57,11 @@ class DaysController < ApplicationController
       #
     end
     #
-    #  If nothing valid was specified, then default to the calendar.
+    #  If nothing valid was specified, then default to the first public
+    #  property.  (Used to default to element called Calendar).
     #
     unless element
-      element = Element.find_by(name: "Calendar")
+      element = Property.where(make_public: true).first.element
     end
     #
     #  Check for options appended to the URL.

@@ -16,7 +16,22 @@ div.ui-datepicker, .ui-datepicker td, .ui-datepicker th{
 }
 
 li.name {
-a:hover {
-  background-color: #313D58;
+  a:hover {
+    background-color: #313D58;
+  }
 }
+
+table.zftable td.concern-cell {
+  color: white;
+  font-size: 90%;
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+div.hidden-lhs {
+  display: none;
+}
+
+input.hidden_submit {
+  display: none;
 }

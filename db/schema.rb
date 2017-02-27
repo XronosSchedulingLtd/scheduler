@@ -347,6 +347,7 @@ ActiveRecord::Schema.define(version: 20170221144212) do
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "make_public", default: false
   end
 
   create_table "proto_commitments", force: true do |t|
@@ -452,6 +453,7 @@ ActiveRecord::Schema.define(version: 20170221144212) do
     t.boolean  "enforce_permissions", default: false
     t.string   "current_mis"
     t.string   "previous_mis"
+    t.integer  "auth_type",           default: 0
   end
 
   create_table "staffs", force: true do |t|

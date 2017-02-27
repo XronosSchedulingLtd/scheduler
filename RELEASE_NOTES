@@ -1,3 +1,66 @@
+v0.16.1 2017-02-27
+
+There are no code changes in this release, just a change to this
+release notes file and the version number.  One item got missed
+from yesterday's release notes file.
+
+* Re-check user records at login to see if they match a known person.
+
+  Up until this release, when the system encountered a new user logging
+  on it checked to see if the user's e-mail address matched that of a
+  staff member or a pupil.  If it did then the two were linked and the
+  user was treated as a proper user.  Otherwise it was treated much the
+  same as if it wasn't logged on at all.
+
+  A problem arose from this, in that it could happen that a user logged
+  on before the corresponding staff or pupil record had been created.
+  The user record would be created without a link, and would be treated
+  ever after as a guest.  It was necessary to delete the user record
+  and let it be created again in order to establish the link.
+
+  As of this release, guest users are checked every time they log in to
+  see whether a matching staff or pupil record has sprung into existence.
+  If it has, then the two are linked, and the user changes status from
+  being a guest to being a proper user.
+
+
+v0.16   2017-02-26
+
+* Adds support for creating a new installation from scratch.  After
+  initialising an empty database, seed data will provide the minimal
+  records needed to get going.
+
+* Allow multiple public calendars.
+  Previous versions assume that just the calendar called "Calendar" is to
+  be public.  This worked fine at Abingdon School, but Dean Close School
+  want three public calendars - main school, prep school and pre-prep
+  school.  The system now allows an arbitrary number of public
+  calendars, and which ones are public is controlled by a flag on the
+  relevant property.
+
+  If an installation has 0 or 1 public calendars then the display shown
+  to non-logged-on users will be exactly the same as before.  If there
+  are 2 or more public calendars then even users who aren't logged on
+  will get a column down the left hand side where they can pick which ones
+  they want to see.  They still can't add or remove anything from this
+  list, but they can switch them off and on.
+
+* The login method to be used is now configurable.
+  There is a new item under the Settings menu allowing different kinds
+  of login to be used.  The default remains "Google login" which was
+  the only one before.  The only new one which has been implemented
+  is "Demo mode", which allows anyone with a Google account to log in.
+  This is used on the demonstration system.
+
+* It is now possible to choose a preferred colour for the public
+  calendar(s), instead of it/them always being green.
+
+
+v0.15.4 2017-02-15
+
+* Remove spurious column in user panel at LHS.
+
+
 v0.15.3 2017-01-18
 
 * Allow recurring events to be specified on the first Wednesday, second

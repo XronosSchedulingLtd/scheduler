@@ -11,51 +11,116 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :current_era %><br>
-    <%= f.collection_select(:current_era_id,
-                            Era.all.sort,
-                            :id,
-                            :name,
-                            { :prompt => true }) %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :current_era, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.collection_select(:current_era_id,
+                              Era.all.sort,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :next_era %><br>
-    <%= f.collection_select(:next_era_id,
-                            Era.all.sort,
-                            :id,
-                            :name,
-                            { :prompt => true }) %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :next_era, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.collection_select(:next_era_id,
+                              Era.all.sort,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :previous_era %><br>
-    <%= f.collection_select(:previous_era_id,
-                            Era.all.sort,
-                            :id,
-                            :name,
-                            { :prompt => true }) %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :previous_era, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.collection_select(:previous_era_id,
+                              Era.all.sort,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :perpetual_era %><br>
-    <%= f.collection_select(:perpetual_era_id,
-                            Era.all.sort,
-                            :id,
-                            :name,
-                            { :prompt => true }) %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :perpetual_era, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.collection_select(:perpetual_era_id,
+                              Era.all.sort,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :enforce_permissions %><br>
-    <%= f.check_box :enforce_permissions %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :enforce_permissions, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.check_box :enforce_permissions %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :current_mis %><br>
-    <%= f.text_field :current_mis %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :current_mis, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :current_mis %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :previous_mis %><br>
-    <%= f.text_field :previous_mis %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :previous_mis, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :previous_mis %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="actions">
-    <%= f.submit %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :auth_type, "Authentication type", class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%=
+        f.collection_select(
+          :auth_type,
+          Setting.auth_types.map {|at| [at.first, at.first.humanize]},
+          :first,
+          :second)
+        %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      &nbsp;
+    </div>
+    <div class="small-6 columns">
+      <%= f.submit "Update", class: "button tiny radius" %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
 <% end %>

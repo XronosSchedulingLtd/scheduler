@@ -1,18 +1,27 @@
 <tr>
-  <td style="background-color:<%= concern.colour %>;color:white;font-size:90%;padding-top:0px;padding-bottom:0px;" class="dynamic-element rounded-corners concern-link" concern_id="<%= concern.id %>" data-cid="<%= concern.id %>" data-eid="<%= concern.element_id %>" data-link-target="<%= edit_concern_path(concern) %>" title="<%= concern.element_id %>">
+<td style="background-color:<%= concern.colour %>;"
+    class="concern-cell dynamic-element rounded-corners concern-link"
+    data-cid="<%= concern.id_or_fake %>"
+    data-eid="<%= concern.element_id %>"
+    <% if concern.id %>
+    data-link-target="<%= edit_concern_path(concern) %>"
+    title="<%= concern.element_id %>"
+    <% end %>>
     <%= concern.element.name %>
   </td>
 
-  <td style="padding-top:0px;padding-bottom:0px;">
+  <td class="concern-cell">
     <input type="checkbox"
            class="active-checkbox"
-           concern_id=<%= concern.id %>
+           data-cid="<%= concern.id_or_fake %>"
            <%= concern.visible ? "checked" : "" %> />
   </td>
-  <td style="padding-top:0px;padding-bottom:0px;">
-    <% if current_user.can_delete?(concern) %>
-      <%= link_to '&#215;'.html_safe, concern, remote: true, method: :delete %>
-    <% end %>
-  </td>
+  <% if @third_column %>
+    <td class="concern-cell">
+      <% if current_user.can_delete?(concern) %>
+        <%= link_to '&#215;'.html_safe, concern, remote: true, method: :delete %>
+      <% end %>
+    </td>
+  <% end %>
 </tr>
 
