@@ -7,6 +7,7 @@ class Element < ActiveRecord::Base
   belongs_to :entity, :polymorphic => true
   has_many :memberships, :dependent => :destroy
   has_many :commitments, :dependent => :destroy
+  has_many :requests, :dependent => :destroy
   has_many :proto_commitments, :dependent => :destroy
   has_many :proto_requests, :dependent => :destroy
   has_many :concerns,    :dependent => :destroy

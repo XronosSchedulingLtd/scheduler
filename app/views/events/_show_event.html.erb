@@ -100,6 +100,11 @@
     <div id="event-notes">
       <%= render partial: "notes", object: @notes %>
     </div>
+    <% if current_user && current_user.exams %>
+      <div id="invigilation-requests">
+        <%= render partial: "invigilation_requests" %>
+      </div>
+    <% end %>
 <% if false %>
     <div id="attached_files">
       <%= render partial: "attachments/attached_files", object: @files %>

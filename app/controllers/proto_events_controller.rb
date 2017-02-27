@@ -59,7 +59,13 @@ class ProtoEventsController < ApplicationController
       if group
         @proto_event.proto_requests.create({
           element: group,
-          quantity: 0
+          quantity: 5
+        })
+      end
+      property = Property.find_by(name: "Invigilation")
+      if property
+        @proto_event.proto_commitments.create({
+          element: property.element
         })
       end
       respond_to do |format|

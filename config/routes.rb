@@ -81,6 +81,7 @@ Rails.application.routes.draw do
 
   resources :events do
     resources :notes, shallow: true
+    resources :requests
     member do
       get :shownotes
       get :canceledit

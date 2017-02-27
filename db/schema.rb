@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170218102051) do
+ActiveRecord::Schema.define(version: 20170221144212) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -405,6 +405,19 @@ ActiveRecord::Schema.define(version: 20170218102051) do
 
   add_index "pupils", ["datasource_id"], name: "index_pupils_on_datasource_id", using: :btree
   add_index "pupils", ["source_id"], name: "index_pupils_on_source_id", using: :btree
+
+  create_table "requests", force: true do |t|
+    t.integer  "event_id"
+    t.integer  "element_id"
+    t.integer  "proto_request_id"
+    t.integer  "quantity",         default: 1
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "requests", ["element_id"], name: "index_requests_on_element_id", using: :btree
+  add_index "requests", ["event_id"], name: "index_requests_on_event_id", using: :btree
+  add_index "requests", ["proto_request_id"], name: "index_requests_on_proto_request_id", using: :btree
 
   create_table "rota_slots", force: true do |t|
     t.integer  "rota_template_id"

@@ -1,0 +1,9 @@
+<div class="row">
+  <div class="small-12 columns">
+    <h5>Requests</h5>
+    <% @event.requests.each do |r| %>
+      <p>Request for <%= r.quantity %> <%= r.element.name %> for invigilation</p>
+    <% end %>
+  </div>
+</div>
+
