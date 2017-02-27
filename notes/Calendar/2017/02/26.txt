@@ -13,8 +13,8 @@ What to do to finish off the current work for Dean Close.
 [*] Review changes in demo-system branch to ensure Abingdon compatibility
 [*] Ensure all latest changes in develop branch are in this work.
 [*] Check that a data import at Abingdon still works with this new code.
-[ ] Package up as a release.
-[ ] Push to DC (and convert)
+[*] Package up as a release.
+[*] Push to DC (and convert)
 [ ] Push to Abingdon (and convert)
 
 
