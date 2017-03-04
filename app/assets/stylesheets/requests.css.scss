@@ -1,0 +1,13 @@
+div.request-div input.spinner {
+  width: 25px;
+}
+
+div.fulfillments ol {
+  list-style-type: decimal;
+}
+
+div.candidates ul {
+  height: 200px;
+  overflow: hidden;
+  overflow-y: scroll;
+}

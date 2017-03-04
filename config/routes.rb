@@ -1,5 +1,11 @@
 Rails.application.routes.draw do
 
+  resources :requests do
+    resources :commitments
+    member do
+      get :candidates
+    end
+  end
 
   resources :exam_cycles do
     resources :proto_events do

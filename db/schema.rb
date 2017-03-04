@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170221144212) do
+ActiveRecord::Schema.define(version: 20170301101439) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -39,6 +39,7 @@ ActiveRecord::Schema.define(version: 20170221144212) do
     t.string  "reason",              default: ""
     t.integer "by_whom_id"
     t.integer "proto_commitment_id"
+    t.integer "request_id"
   end
 
   add_index "commitments", ["constraining"], name: "index_commitments_on_constraining", using: :btree
@@ -46,6 +47,7 @@ ActiveRecord::Schema.define(version: 20170221144212) do
   add_index "commitments", ["element_id"], name: "index_commitments_on_element_id", using: :btree
   add_index "commitments", ["event_id"], name: "index_commitments_on_event_id", using: :btree
   add_index "commitments", ["proto_commitment_id"], name: "index_commitments_on_proto_commitment_id", using: :btree
+  add_index "commitments", ["request_id"], name: "index_commitments_on_request_id", using: :btree
   add_index "commitments", ["tentative"], name: "index_commitments_on_tentative", using: :btree
 
   create_table "concerns", force: true do |t|

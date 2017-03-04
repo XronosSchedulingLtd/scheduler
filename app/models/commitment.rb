@@ -8,6 +8,7 @@ class Commitment < ActiveRecord::Base
   belongs_to :event
   belongs_to :element
   belongs_to :proto_commitment
+  belongs_to :request
   belongs_to :by_whom, class_name: "User"
   has_many :notes, as: :parent, :dependent => :destroy
 

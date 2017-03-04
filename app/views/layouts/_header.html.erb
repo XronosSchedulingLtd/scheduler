@@ -26,7 +26,9 @@
       </ul>
 <% end %>
       <ul class="right">
+<% if @show_search %>
         <%= render :partial => "/events/search" %>
+<% end %>
         <li class="divider"></li>
 
 <% if current_user %>

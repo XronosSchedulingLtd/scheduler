@@ -197,16 +197,20 @@ class ProtoEvent < ActiveRecord::Base
       Rails.logger.debug("Event already exists")
       event = existing
     else
-      if event = self.events.create({
+      event = self.events.create({
         body:          self.body,
         eventcategory: self.eventcategory,
         eventsource:   self.eventsource,
         starts_at:     starts_at,
         ends_at:       ends_at,
         source_id:     rota_slot.id})
-        Rails.logger.debug("Created event")
+      if event.valid?
+        Rails.logger.debug("Created event with id #{event.id}")
       else
         Rails.logger.debug("Failed to create")
+        event.errors.each do |e|
+          Rails.logger.debug(e)
+        end
       end
     end
     #
@@ -242,9 +246,9 @@ class ProtoEvent < ActiveRecord::Base
   def ensure_required_events
     if self.rota_template
       self.starts_on.upto(self.ends_on) do |date|
-        puts date.to_s(:dmy)
+        Rails.logger.debug(date.to_s(:dmy))
         existing_events = self.events.events_on(date)
-        puts "#{existing_events.count} existing events."
+        Rails.logger.debug("#{existing_events.count} existing events.")
         self.rota_template.slots_for(date) do |slot|
           existing = existing_events.detect {|e| e.source_id == slot.id}
           ensure_event(date, slot, existing)

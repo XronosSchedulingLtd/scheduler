@@ -100,7 +100,7 @@
     <div id="event-notes">
       <%= render partial: "notes", object: @notes %>
     </div>
-    <% if current_user && current_user.exams %>
+    <% if current_user && current_user.exams && @have_requests %>
       <div id="invigilation-requests">
         <%= render partial: "invigilation_requests" %>
       </div>
