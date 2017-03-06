@@ -13,6 +13,22 @@ if ($('#fullcalendar').length) {
     });
 
     var CandidateView = Backbone.View.extend({
+      tagName: "li",
+      events: {
+        "dblclick" : "doubleClicked",
+        "select"   : "preventSelect"
+      },
+      render: function() {
+        this.$el.html(this.model.get("name"));
+        return this;
+      },
+      doubleClicked: function(e) {
+        alert(this.model.get("name"));
+      },
+      preventSelect: function(e) {
+        e.preventDefault();
+        return false;
+      }
     });
 
     var CandidateCollection = Backbone.Collection.extend({
@@ -26,6 +42,53 @@ if ($('#fullcalendar').length) {
     });
 
     var CandidateCollectionView = Backbone.View.extend({
+      initialize: function(options) {
+        this.collection = new CandidateCollection(null, {rqid: options.rqid});
+        this.listenTo(this.collection, 'sync', this.render);
+        this.collection.fetch();
+      },
+      render: function() {
+        this.$el.empty();
+        this.collection.each(function(model) {
+          var candidateView = new CandidateView({model: model});
+          this.$el.append(candidateView.render().$el);
+        }, this);
+      }
+    });
+
+    //
+    //  This next view is responsible just for the quantity spinner
+    //  line.  It doesn't need to listen for changes to the model
+    //  because the parent view will do that and ask this one to
+    //  render itself.  It exists solely because we want to break
+    //  up the display into separate parts, and something needs to
+    //  own this part.
+    //
+    var QuantityView = Backbone.View.extend({
+      template: _.template($('#request-quantity-template').html()),
+      initialize: function() {
+        _.bindAll(this, "spinnerChanged");
+        this.listenTo(this.model, 'sync', this.render);
+      },
+      render: function() {
+        this.$el.html(this.template(this.model.toJSON()));
+        var quantity = this.model.get("quantity");
+        this.$(".spinner").
+             spinner({
+               min: 0,
+               max: this.model.get("max_quantity"),
+               stop: this.spinnerChanged
+             }).
+             spinner("value", quantity);
+      },
+      spinnerChanged: function() {
+        var current_value = this.model.get("quantity");
+        var value = this.$(".spinner").spinner("value");
+        if (value !== null && value !== current_value) {
+          this.model.set("quantity", value);
+          this.model.save();
+        }
+      }
     });
 
     var Request = Backbone.Model.extend({
@@ -40,48 +103,34 @@ if ($('#fullcalendar').length) {
     var RequestView = Backbone.View.extend({
       template: _.template($('#request-set-template').html()),
       initialize: function() {
-        _.bindAll(this, "spinnerChanged");
+        var rqid = this.$el.data("request-id");
         this.model = new Request({
-          id: this.$el.data("request-id")
+          id: rqid
         });
         this.listenTo(this.model, 'sync', this.render);
+        //
+        //  Part of our display we want rendering only once, then
+        //  separate views take responsiblity for parts of it.
+        //
+        this.$el.html(this.template(this.model.toJSON()));
+        this.quantityView = new QuantityView({
+          el: this.$(".quantity"),
+          model: this.model
+        });
+        this.fulfillmentsol = this.$("div.fulfillments ol");
         this.model.fetch();
+        this.candidateCollectionView = new CandidateCollectionView({
+          el: this.$("div.candidates ul"),
+          rqid: rqid
+        });
       },
       render: function() {
         var quantity = this.model.get("quantity");
-        this.$el.html(this.template(this.model.toJSON()));
-        this.$(".spinner").
-             spinner({
-               min: 0,
-               max: this.model.get("max_quantity"),
-               stop: this.spinnerChanged
-             }).
-             spinner("value", quantity);
-        var fulfillments = this.$(".fulfillments");
-        fulfillments.append("<ol>");
-        var ol = fulfillments.find("ol");
+        this.fulfillmentsol.empty();
         for (var i = 0; i < quantity; i++) {
-          ol.append("<li>blank...</li>");
+          this.fulfillmentsol.append("<li>blank...</li>");
         }
-        var candidates = this.$(".candidates");
-        candidates.append("<ul>");
-        var ul = candidates.find("ul");
-        var list = this.model.get("candidates");
-        if (list) {
-          list.forEach(function(entry) {
-            ul.append("<li>" + entry + "</li>");
-          })
-        }
-
       },
-      spinnerChanged: function() {
-        var current_value = this.model.get("quantity");
-        var value = this.$(".spinner").spinner("value");
-        if (value !== null && value !== current_value) {
-          this.model.set("quantity", value);
-          this.model.save();
-        }
-      }
     });
 
     that.modalOpened = function() {

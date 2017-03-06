@@ -35,7 +35,7 @@ class Request < ActiveRecord::Base
     })
     ff.do_find
     if ff.done_search
-      ff.free_elements.collect {|fe| fe.name}
+      ff.free_elements.collect {|fe| {id: fe.id, name: fe.name}}
     else
       ["Able", "Baker", "Charlie"]
     end

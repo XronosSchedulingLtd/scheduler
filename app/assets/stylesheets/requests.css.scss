@@ -7,7 +7,28 @@ div.fulfillments ol {
 }
 
 div.candidates ul {
-  height: 200px;
+  list-style-type: disc;
+}
+
+div.candidates ul {
+  height: 230px;
   overflow: hidden;
   overflow-y: scroll;
+}
+
+div.rqbox {
+  border: 1px solid #AAA;
+  height: 250px;
+}
+
+div.rqbox h1 {
+    text-align: center;
+    margin-top: -10px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 15px;
+}
+
+div.rqbox h1 span {
+    background-color: white;
 }

@@ -55,7 +55,7 @@ class ProtoEventsController < ApplicationController
     #  only one purpose.
     #
     if @proto_event.save_with_location(params[:location_id])
-      group = Element.find_by(name: "Teaching staff")
+      group = Element.find_by(name: "Invigilators")
       if group
         @proto_event.proto_requests.create({
           element: group,

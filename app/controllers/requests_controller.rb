@@ -15,6 +15,7 @@ class RequestsController < ApplicationController
   end
 
   def candidates
+    @candidates = @request.candidates
     respond_to do |format|
       format.json
     end

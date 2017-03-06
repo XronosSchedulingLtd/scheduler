@@ -1,1 +1,3 @@
-json.extract! @request, :id, :candidates
+json.array!(@candidates) do |candidate|
+  json.extract! candidate, :id, :name
+end
