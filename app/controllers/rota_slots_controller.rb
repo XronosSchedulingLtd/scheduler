@@ -63,6 +63,10 @@ class RotaSlotsController < ApplicationController
   end
 
   private
+    def authorized?(action = action_name, resource = nil)
+      logged_in? && (current_user.admin || current_user.exams?)
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_rota_slot
       @rota_slot = RotaSlot.find(params[:id])
