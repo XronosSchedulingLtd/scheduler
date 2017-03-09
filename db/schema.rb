@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170301101439) do
+ActiveRecord::Schema.define(version: 20170308085923) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -184,6 +184,8 @@ ActiveRecord::Schema.define(version: 20170301101439) do
     t.date     "ends_on"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "default_group_element_id"
+    t.integer  "default_quantity",         default: 5
   end
 
   create_table "freefinders", force: true do |t|

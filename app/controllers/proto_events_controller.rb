@@ -55,11 +55,10 @@ class ProtoEventsController < ApplicationController
     #  only one purpose.
     #
     if @proto_event.save_with_location(params[:location_id])
-      group = Element.find_by(name: "Invigilators")
-      if group
+      if @exam_cycle.default_group_element
         @proto_event.proto_requests.create({
-          element: group,
-          quantity: 5
+          element: @exam_cycle.default_group_element,
+          quantity: @exam_cycle.default_quantity
         })
       end
       property = Property.find_by(name: "Invigilation")

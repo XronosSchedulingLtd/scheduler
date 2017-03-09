@@ -36,7 +36,22 @@
       <%= f.text_field :ends_on_text,
                        :class => :datepicker %>
     </div>
-    <div class="small-3 offset-9 columns">
+    <div class="small-6 columns">
+      <label>Group listing potential invigilators</label>
+      <%= f.autocomplete_field :default_group_element_name,
+                               autocomplete_group_element_name_elements_path,
+                               :id_element => '#exam_cycle_default_group_element_id',
+                               :placeholder => "Invigilator group",
+                               "data-auto-focus" => true %>
+        <%= f.text_field :default_group_element_id, :type => :hidden %>
+    </div>
+    <div class="small-3 columns">
+      <label>Default quantity</label>
+      <%= f.number_field :default_quantity,
+                         :max => 8,
+                         :min => 1 %>
+    </div>
+    <div class="small-3 columns">
         These dates are purely for information and to let the records be sorted.
         They do not constrain when events may be entered.
     </div>

@@ -10,6 +10,7 @@ class Element < ActiveRecord::Base
   has_many :requests, :dependent => :destroy
   has_many :proto_commitments, :dependent => :destroy
   has_many :proto_requests, :dependent => :destroy
+  has_many :exam_cycles, :dependent => :nullify
   has_many :concerns,    :dependent => :destroy
   has_many :freefinders, :dependent => :destroy
   has_many :organised_events,

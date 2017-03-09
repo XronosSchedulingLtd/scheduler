@@ -75,6 +75,9 @@ class ExamCyclesController < ApplicationController
     def exam_cycle_params
       params.require(:exam_cycle).permit(:name,
                                          :default_rota_template_id,
+                                         :default_group_element_id,
+                                         :default_group_element_name,
+                                         :default_quantity,
                                          :starts_on_text,
                                          :ends_on_text)
     end

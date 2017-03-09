@@ -19,4 +19,4 @@ requests
 '''
 
 
-We also need to create an event category called "Invigilation" and an event source called RotaSlot.  Without these, event generation fails rather mysteriously.
+We also need to create a property called "Invigilation" and an event source called RotaSlot.  Without these, event generation fails rather mysteriously.  We also for now need a group called "Invigilators", but that will become configurable shortly.

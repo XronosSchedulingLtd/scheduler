@@ -3,9 +3,12 @@ class ExamCycle < ActiveRecord::Base
   include Generator
 
   belongs_to :default_rota_template, :class_name => "RotaTemplate"
+  belongs_to :default_group_element, :class_name => "Element"
 
   validates :name, :presence => true
   validates :starts_on, :presence => true
+  validates :default_rota_template, :presence => true
+  validates :default_group_element, :presence => true
 
   def starts_on_text
     starts_on ? starts_on.strftime("%d/%m/%Y") : ""
@@ -37,6 +40,18 @@ class ExamCycle < ActiveRecord::Base
     else
       ""
     end
+  end
+
+  def default_group_element_name
+    if default_group_element
+      default_group_element.name
+    else
+      ""
+    end
+  end
+
+  def default_group_element_name=(value)
+    # We don't want it.
   end
 
   def <=>(other)

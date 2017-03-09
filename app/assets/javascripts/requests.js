@@ -14,12 +14,18 @@ if ($('#fullcalendar').length) {
 
     var CandidateView = Backbone.View.extend({
       tagName: "li",
+      template: _.template($('#candidate-line').html()),
       events: {
         "dblclick" : "doubleClicked",
         "select"   : "preventSelect"
       },
       render: function() {
-        this.$el.html(this.model.get("name"));
+        if (this.model.get("has_suspended")) {
+          this.$el.addClass("suspended").
+                   html(this.template(this.model.toJSON()));
+        } else {
+          this.$el.html(this.template(this.model.toJSON()));
+        }
         return this;
       },
       doubleClicked: function(e) {
@@ -35,6 +41,39 @@ if ($('#fullcalendar').length) {
       model: Candidate,
       initialize: function(models, options) {
         this.rqid = options.rqid;
+      },
+      comparator: function(able, baker) {
+        var result = 0;
+        var able_suspended = able.get("has_suspended");
+        var baker_suspended = baker.get("has_suspended");
+        if (able_suspended === baker_suspended) {
+          var able_today = able.get("today_count");
+          var baker_today = baker.get("today_count");
+          if (able_today === baker_today) {
+            var able_tw = able.get("this_week_count");
+            var baker_tw = baker.get("this_week_count");
+            if (able_tw !== baker_tw) {
+              if (able_tw < baker_tw) {
+                result = -1;
+              } else {
+                result = 1;
+              }
+            }
+          } else {
+            if (able_today < baker_today) {
+              result = -1;
+            } else {
+              result = 1;
+            }
+          }
+        } else {
+          if (able_suspended) {
+            result = -1;
+          } else {
+            result = 1;
+          }
+        }
+        return result;
       },
       url: function() {
         return '/requests/' + this.rqid + '/candidates'
@@ -126,9 +165,14 @@ if ($('#fullcalendar').length) {
       },
       render: function() {
         var quantity = this.model.get("quantity");
+        var nominees = this.model.get("nominees");
         this.fulfillmentsol.empty();
         for (var i = 0; i < quantity; i++) {
-          this.fulfillmentsol.append("<li>blank...</li>");
+          if (nominees[i]) {
+            this.fulfillmentsol.append("<li>" + nominees[i].name + "</li>");
+          } else {
+            this.fulfillmentsol.append("<li>blank...</li>");
+          }
         }
       },
     });
