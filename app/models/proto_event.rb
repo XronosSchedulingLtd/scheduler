@@ -135,6 +135,7 @@ class ProtoEvent < ActiveRecord::Base
         #
         #  Go for it.
         #
+        self.body = "#{location_element.entity.name} Invigilation"
         if self.save
           self.proto_commitments.create({element: location_element})
           return true

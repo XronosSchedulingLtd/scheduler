@@ -60,7 +60,7 @@
              type="hidden" />
     </div>
     <div class="small-2 columns">
-      <a href="#" class="button postfix">Add</a>
+      <a href="#" class="button postfix" id="addbutton">Add</a>
     </div>
   </div>
 </div>
@@ -75,3 +75,8 @@
 <script type="text/template" id="candidate-line">
 <%%= name %> (<%%= today_count %>, <%%= this_week_count %>)
 </script>
+
+<script type="text/template" id="nominee-line">
+<%%= name %> <a href="#" class="deleter">&#215;</a>
+</script>
+

@@ -38,6 +38,12 @@ class Request < ActiveRecord::Base
   validates :element, :presence => true
   validates :event,   :presence => true
 
+  #
+  #  Call-backs.
+  #
+  after_save    :update_event_after_save
+  after_destroy :update_event_after_destroy
+
   def element_name
     self.element.name
   end
@@ -133,8 +139,61 @@ class Request < ActiveRecord::Base
   #  Returns the new commitment record, which may be flagged with errors.
   #
   def fulfill(element)
-    self.commitments.create({
+    do_save = false
+    current_colour = self.colour
+    new_commitment = self.commitments.create({
       event:   self.event,
       element: element})
+    if new_commitment.valid?
+      num_commitments = self.commitments.count
+      if num_commitments > self.quantity
+        self.quantity = num_commitments
+        do_save = true
+      end
+      if self.colour != current_colour
+        do_save = true
+      end
+      if do_save
+        self.save
+      end
+    end
+    new_commitment
+  end
+
+  def unfulfill(element_id)
+    current_colour = self.colour
+    current_commitment =
+      self.commitments.detect {|c| c.element_id == element_id}
+    if current_commitment
+      current_commitment.destroy
+      self.reload
+      if self.colour != current_colour
+        self.save
+      end
+    end
+  end
+
+  def colour
+    if self.commitments.count >= self.quantity
+      "g"
+    elsif self.commitments.count > 0
+      "y"
+    else
+      "r"
+    end
+  end
+
+  private
+
+  def update_event_after_save
+    if self.event
+      self.event.update_from_request(self.colour)
+    end
+  end
+
+  def update_event_after_destroy
+    if self.event
+      self.event.update_from_request("g")
+    end
   end
 end

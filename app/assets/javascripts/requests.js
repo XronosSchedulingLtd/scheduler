@@ -26,10 +26,16 @@ if ($('#fullcalendar').length) {
         } else {
           this.$el.html(this.template(this.model.toJSON()));
         }
+        this.$el.disableSelection();
         return this;
       },
       doubleClicked: function(e) {
-        alert(this.model.get("name"));
+        //
+        //  The user wants to add this element to those fulfilling the
+        //  request.  Get the main controller (View) to do the work.
+        //
+        //alert(this.model.get("element_id"));
+        that.requestView.fulfillWith(this.model.get("element_id"));
       },
       preventSelect: function(e) {
         e.preventDefault();
@@ -95,6 +101,55 @@ if ($('#fullcalendar').length) {
       }
     });
 
+    var Nominee = Backbone.Model.extend({
+    });
+
+    var NomineeView = Backbone.View.extend({
+      tagName: "li",
+      template: _.template($('#nominee-line').html()),
+      events: {
+        "select"         : "preventSelect",
+        "click .deleter" : "removeNominee"
+      },
+      render: function() {
+        this.$el.html(this.template(this.model.toJSON()));
+        this.$el.disableSelection();
+        return this;
+      },
+      preventSelect: function(e) {
+        e.preventDefault();
+        return false;
+      },
+      removeNominee: function(event) {
+        event.preventDefault();
+        var element_id = this.model.get("element_id");
+        that.requestView.unfulfillWith(element_id);
+      }
+    });
+
+    var NomineeCollection = Backbone.Collection.extend({
+      model: Nominee
+    });
+
+    var NomineeCollectionView = Backbone.View.extend({
+      initialize: function() {
+        this.collection = new NomineeCollection();
+      },
+      render: function(slots) {
+        this.$el.empty();
+        this.collection.each(function(model) {
+          var nomineeView = new NomineeView({model: model});
+          this.$el.append(nomineeView.render().$el);
+        }, this);
+        if (this.collection.length < slots) {
+          var extra = slots - this.collection.length;
+          for (var i = 0; i < extra; i++) {
+            this.$el.append("<li>blank...</li>");
+          }
+        }
+      }
+    });
+
     //
     //  This next view is responsible just for the quantity spinner
     //  line.  It doesn't need to listen for changes to the model
@@ -108,13 +163,15 @@ if ($('#fullcalendar').length) {
       initialize: function() {
         _.bindAll(this, "spinnerChanged");
         this.listenTo(this.model, 'sync', this.render);
+        this.listenTo(this.model, 'change', this.render);
       },
       render: function() {
         this.$el.html(this.template(this.model.toJSON()));
         var quantity = this.model.get("quantity");
+        var currently = this.model.get("nominees").length;
         this.$(".spinner").
              spinner({
-               min: 0,
+               min: currently,
                max: this.model.get("max_quantity"),
                stop: this.spinnerChanged
              }).
@@ -126,6 +183,7 @@ if ($('#fullcalendar').length) {
         if (value !== null && value !== current_value) {
           this.model.set("quantity", value);
           this.model.save();
+          $('#fullcalendar').data("dorefresh", "1")
         }
       }
     });
@@ -136,17 +194,47 @@ if ($('#fullcalendar').length) {
         element_name: "** not given **",
         max_quantity: 7,
         candidates: ["...populating..."]
+      },
+      fulfillWith: function(element_id) {
+        $.ajax({
+          url: this.url() + '/fulfill?eid=' + element_id,
+          type: 'PUT',
+          context: this,
+          contentType: 'application/json',
+        }).done(this.fulfillSucceeded).
+           fail(this.fulfillFailed);
+      },
+      unfulfillWith: function(element_id) {
+        $.ajax({
+          url: this.url() + '/unfulfill?eid=' + element_id,
+          type: 'PUT',
+          context: this,
+          contentType: 'application/json',
+        }).done(this.fulfillSucceeded).
+           fail(this.fulfillFailed);
+      },
+      fulfillSucceeded: function(data, textStatus, jqXHR) {
+        this.set(data);
+        $('#fullcalendar').data("dorefresh", "1")
+      },
+      fulfillFailed: function(jqXHR, textStatus, errorThrown) {
+        alert("Failed");
       }
     });
 
     var RequestView = Backbone.View.extend({
       template: _.template($('#request-set-template').html()),
+      events: {
+        'click #addbutton'          : 'addRequested',
+        'keypress input.inputextra' : 'mightSubmit'
+      },
       initialize: function() {
+        _.bindAll(this, "fulfillWith", "unfulfillWith");
         var rqid = this.$el.data("request-id");
         this.model = new Request({
           id: rqid
         });
-        this.listenTo(this.model, 'sync', this.render);
+        this.listenTo(this.model, 'change', this.render);
         //
         //  Part of our display we want rendering only once, then
         //  separate views take responsiblity for parts of it.
@@ -155,6 +243,9 @@ if ($('#fullcalendar').length) {
         this.quantityView = new QuantityView({
           el: this.$(".quantity"),
           model: this.model
+        });
+        this.nomineeCollectionView = new NomineeCollectionView({
+          el: this.$("div.fulfillments ol")
         });
         this.fulfillmentsol = this.$("div.fulfillments ol");
         this.model.fetch();
@@ -166,13 +257,29 @@ if ($('#fullcalendar').length) {
       render: function() {
         var quantity = this.model.get("quantity");
         var nominees = this.model.get("nominees");
-        this.fulfillmentsol.empty();
-        for (var i = 0; i < quantity; i++) {
-          if (nominees[i]) {
-            this.fulfillmentsol.append("<li>" + nominees[i].name + "</li>");
-          } else {
-            this.fulfillmentsol.append("<li>blank...</li>");
-          }
+        var models = _.map(nominees, function(nominee) {
+          return new Nominee(nominee);
+        });
+        this.nomineeCollectionView.collection.set(models);
+        this.nomineeCollectionView.render(quantity);
+        this.$('#extra_resource_id').val("");
+        this.$('.inputextra').val("");
+      },
+      fulfillWith: function(element_id) {
+        this.model.fulfillWith(element_id);
+      },
+      unfulfillWith: function(element_id) {
+        this.model.unfulfillWith(element_id);
+      },
+      addRequested: function() {
+        var element_id = this.$('#extra_resource_id').val();
+        if (element_id) {
+          this.model.fulfillWith(element_id);
+        }
+      },
+      mightSubmit: function(e) {
+        if (e.which === 13 && this.$('#extra_resource_id').val()) {
+          this.addRequested();
         }
       },
     });
@@ -186,7 +293,7 @@ if ($('#fullcalendar').length) {
       //  worry about that later.
       //
       $('.request-div').each(function(index, el) {
-        var requestView = new RequestView({
+        that.requestView = new RequestView({
           el: el
         });
       });

@@ -1,5 +1,5 @@
 class RequestsController < ApplicationController
-  before_action :set_request, only: [:show, :update, :candidates]
+  before_action :set_request
 
   def show
     respond_to do |format|
@@ -18,6 +18,32 @@ class RequestsController < ApplicationController
     @candidates = @request.candidates
     respond_to do |format|
       format.json
+    end
+  end
+
+  def fulfill
+    eid = params[:eid]
+    if eid
+      element = Element.find_by(id: eid)
+      if element
+        new_commitment = @request.fulfill(element)
+        if new_commitment.valid?
+          @request.reload
+        end
+      end
+    end
+    respond_to do |format|
+      format.json { render :show }
+    end
+  end
+
+  def unfulfill
+    eid = params[:eid]
+    if eid
+      @request.unfulfill(eid.to_i)
+    end
+    respond_to do |format|
+      format.json { render :show }
     end
   end
 

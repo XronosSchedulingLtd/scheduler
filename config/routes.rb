@@ -4,6 +4,8 @@ Rails.application.routes.draw do
     resources :commitments
     member do
       get :candidates
+      put :fulfill
+      put :unfulfill
     end
   end
 

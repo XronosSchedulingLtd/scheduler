@@ -205,6 +205,23 @@ class Event < ActiveRecord::Base
       end
     end
   end
+
+  #
+  #  Colour parameter can be "r", "y" or "g".  We're looking for
+  #  the worst of these from all our requests.
+  #
+  #  "r" trumps "y" trumps "g" trumps blank.
+  #
+  def update_from_request(colour)
+    #
+    #  Not full functionality yet.
+    #
+    if self.flagcolour != colour
+      self.flagcolour = colour
+      self.save!
+    end
+  end
+
   #
   #  For pagination.
   #

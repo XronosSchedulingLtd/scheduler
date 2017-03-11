@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170308085923) do
+ActiveRecord::Schema.define(version: 20170310142611) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -158,6 +158,7 @@ ActiveRecord::Schema.define(version: 20170308085923) do
     t.boolean  "constrained",      default: false
     t.boolean  "has_clashes",      default: false
     t.integer  "proto_event_id"
+    t.string   "flagcolour"
   end
 
   add_index "events", ["complete"], name: "index_events_on_complete", using: :btree
