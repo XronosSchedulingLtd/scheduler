@@ -7,12 +7,12 @@ class Request < ActiveRecord::Base
                 :today_count,
                 :this_week_count
 
-    def initialize(element_id, name)
+    def initialize(element_id, name, today_count = 0, this_week_count = 0)
       @element_id      = element_id
       @name            = name
       @has_suspended   = false
-      @today_count     = 0
-      @this_week_count = 0
+      @today_count     = today_count
+      @this_week_count = this_week_count
     end
 
     def suspended
@@ -37,6 +37,12 @@ class Request < ActiveRecord::Base
 
   validates :element, :presence => true
   validates :event,   :presence => true
+
+  #
+  #  Normally this won't be defined and so calls to this method will
+  #  return nil.
+  #
+  attr_reader :updated_nominee
 
   #
   #  Call-backs.
@@ -69,7 +75,12 @@ class Request < ActiveRecord::Base
       start_time: self.event.starts_at,
       end_time:   self.event.ends_at
     })
-    ff.do_find
+    #
+    #  We pass in our own event as an exception, because we don't want
+    #  it to count as making people busy.  We will handle those involved
+    #  in this event separately later.
+    #
+    ff.do_find(self.event)
     if ff.done_search
       candidate_hash = Hash.new
       ff.free_elements.each do |fe|
@@ -165,11 +176,35 @@ class Request < ActiveRecord::Base
     current_commitment =
       self.commitments.detect {|c| c.element_id == element_id}
     if current_commitment
+      element = current_commitment.element
       current_commitment.destroy
       self.reload
       if self.colour != current_colour
         self.save
       end
+      #
+      #  And now re-calculate this element's loading.
+      #
+      this_day = self.event.starts_at.to_date
+      invigilation_commitments_today = 
+        Commitment.commitments_on(
+          startdate:     this_day,
+          eventcategory: "Invigilation",
+          resource:      element).count
+      sunday = this_day - this_day.wday
+      saturday = sunday + 6.days
+      invigilation_commitments_this_week = 
+        Commitment.commitments_on(
+          startdate:     sunday,
+          enddate:       saturday,
+          eventcategory: "Invigilation",
+          resource:      element).count
+      @updated_nominee =
+        Candidate.new(
+          element.id,
+          element.name, 
+          invigilation_commitments_today,
+          invigilation_commitments_this_week)
     end
   end
 

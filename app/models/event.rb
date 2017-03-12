@@ -463,13 +463,23 @@ class Event < ActiveRecord::Base
     all_commitments =
       self.commitments.preload(:element).to_a   # to_a to force the d/b hit.
     all_commitments.each do |c|
-      if user && user.can_approve?(c) &&
-         (c.tentative || c.rejected || c.constraining)
-        approvables << c
-      else
-        by_type[c.element.entity_type] ||=
-          CommitmentSet.new(c.element.entity_type)
-        by_type[c.element.entity_type] << c
+      #
+      #  If a commitment is as the result of a request, and the current
+      #  user is an administrator of requests, don't show the commitment
+      #  in the general grouping.
+      #
+      #  Currently works only for exam invigilations.  Will need refining
+      #  when requests start being used for other purposes too.
+      #
+      unless user && user.exams? && c.request_id
+        if user && user.can_approve?(c) &&
+           (c.tentative || c.rejected || c.constraining)
+          approvables << c
+        else
+          by_type[c.element.entity_type] ||=
+            CommitmentSet.new(c.element.entity_type)
+          by_type[c.element.entity_type] << c
+        end
       end
     end
     if user

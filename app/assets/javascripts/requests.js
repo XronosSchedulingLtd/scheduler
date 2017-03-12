@@ -16,8 +16,9 @@ if ($('#fullcalendar').length) {
       tagName: "li",
       template: _.template($('#candidate-line').html()),
       events: {
-        "dblclick" : "doubleClicked",
-        "select"   : "preventSelect"
+        "dblclick"     : "addCandidate",
+        "click .adder" : "addCandidate",
+        "select"       : "preventSelect"
       },
       render: function() {
         if (this.model.get("has_suspended")) {
@@ -29,12 +30,12 @@ if ($('#fullcalendar').length) {
         this.$el.disableSelection();
         return this;
       },
-      doubleClicked: function(e) {
+      addCandidate: function(event) {
         //
         //  The user wants to add this element to those fulfilling the
         //  request.  Get the main controller (View) to do the work.
         //
-        //alert(this.model.get("element_id"));
+        event.preventDefault();
         that.requestView.fulfillWith(this.model.get("element_id"));
       },
       preventSelect: function(e) {
@@ -58,7 +59,14 @@ if ($('#fullcalendar').length) {
           if (able_today === baker_today) {
             var able_tw = able.get("this_week_count");
             var baker_tw = baker.get("this_week_count");
-            if (able_tw !== baker_tw) {
+            if (able_tw === baker_tw) {
+              //
+              //  Fall back on alphabetical.
+              //
+              var able_name = able.get("name");
+              var baker_name = baker.get("name");
+              result = able_name.localeCompare(baker_name);
+            } else {
               if (able_tw < baker_tw) {
                 result = -1;
               } else {
@@ -95,9 +103,26 @@ if ($('#fullcalendar').length) {
       render: function() {
         this.$el.empty();
         this.collection.each(function(model) {
-          var candidateView = new CandidateView({model: model});
-          this.$el.append(candidateView.render().$el);
+          //
+          //  We only get to see them if they are *not* currently
+          //  in use as nominees.
+          //
+          if (!that.requestView.used(model.get("element_id"))) {
+            var candidateView = new CandidateView({model: model});
+            this.$el.append(candidateView.render().$el);
+          }
         }, this);
+      },
+      updateLoading: function(new_data) {
+        var relevant_entry =
+          this.collection.findWhere({element_id: new_data.element_id});
+        if (relevant_entry) {
+          relevant_entry.set({
+            today_count: new_data.today_count,
+            this_week_count: new_data.this_week_count
+          });
+          this.collection.sort();
+        }
       }
     });
 
@@ -147,6 +172,15 @@ if ($('#fullcalendar').length) {
             this.$el.append("<li>blank...</li>");
           }
         }
+      },
+      used: function(element_id) {
+        var found = false;
+        this.collection.each(function(model) {
+          if (model.get("element_id") === element_id) {
+            found = true;
+          }
+        }, this);
+        return found;
       }
     });
 
@@ -262,6 +296,20 @@ if ($('#fullcalendar').length) {
         });
         this.nomineeCollectionView.collection.set(models);
         this.nomineeCollectionView.render(quantity);
+        //
+        //  Need to re-render our candidate list because the change
+        //  to our nominee list may well affect it.
+        //
+        //  Before we do that, we need to check to see whether the
+        //  latest response contained an update to the loading of
+        //  one of our candidates.
+        //
+        var updated_nominee = this.model.get("updated_nominee");
+        if (updated_nominee) {
+          this.candidateCollectionView.updateLoading(updated_nominee);
+
+        }
+        this.candidateCollectionView.render();
         this.$('#extra_resource_id').val("");
         this.$('.inputextra').val("");
       },
@@ -282,6 +330,9 @@ if ($('#fullcalendar').length) {
           this.addRequested();
         }
       },
+      used: function(element_id) {
+        return this.nomineeCollectionView.used(element_id);
+      }
     });
 
     that.modalOpened = function() {
