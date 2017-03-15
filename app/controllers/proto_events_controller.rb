@@ -128,7 +128,9 @@ class ProtoEventsController < ApplicationController
   # DELETE /proto_events/1
   # DELETE /proto_events/1.json
   def destroy
-    @proto_event.destroy
+    if @proto_event.can_destroy?
+      @proto_event.destroy
+    end
     respond_to do |format|
       format.html { redirect_to proto_events_url }
       format.json { head :no_content }

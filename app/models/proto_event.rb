@@ -118,6 +118,13 @@ class ProtoEvent < ActiveRecord::Base
   end
 
   #
+  #  Don't allow ourselves to be destroyed if we have active events.
+  #
+  def can_destroy?
+    self.events.count == 0
+  end
+
+  #
   #  Like a normal save, but will also add a location as a proto_commitment.
   #
   def save_with_location(location_id)

@@ -229,7 +229,11 @@ var examcycles = function() {
       return this;
     },
     destroy: function() {
-      this.model.destroy();
+      if (this.model.get("event_count") === 0) {
+        this.model.destroy();
+      } else {
+        alert("Won't delete a room entry with active events.\nIf you really want to delete it, change the template to one with no entries, re-generate the events and then hit Delete again.");
+      }
     },
     syncModel: function() {
       //
