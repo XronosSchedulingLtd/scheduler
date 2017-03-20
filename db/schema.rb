@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170312105730) do
+ActiveRecord::Schema.define(version: 20170319113345) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -459,6 +459,8 @@ ActiveRecord::Schema.define(version: 20170312105730) do
     t.string   "current_mis"
     t.string   "previous_mis"
     t.integer  "auth_type",           default: 0
+    t.string   "dns_domain_name",     default: ""
+    t.string   "from_email_address",  default: ""
   end
 
   create_table "staffs", force: true do |t|
@@ -567,6 +569,9 @@ ActiveRecord::Schema.define(version: 20170312105730) do
     t.boolean  "edit_all_events",             default: false
     t.boolean  "subedit_all_events",          default: false
     t.boolean  "exams",                       default: false
+    t.boolean  "invig_weekly",                default: true
+    t.boolean  "invig_daily",                 default: true
+    t.date     "last_invig_run_date"
   end
 
 end

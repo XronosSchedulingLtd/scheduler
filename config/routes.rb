@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  resources :notifiers
+
   resources :requests do
     resources :commitments
     member do

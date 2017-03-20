@@ -1,0 +1,46 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-03-15T09:24:39+00:00
+
+====== Wednesday 15 Mar 2017 ======
+
+I did a review of progress yesterday and things seem to be looking good.  I have done all the main functionality - although it may need tweaks - and have two items left to do:
+
+[ ] E-mail notifications
+[ ] Statistics
+
+plus I'm also intending to add:
+
+[ ] Post-checking of invigilation slots in case anyone events (like OH) get added late.
+[*] Don't allow a whole room's worth of slots to be deleted so easily.
+
+
+Now - the e-mail bit.  I have various existing jobs which do e-mail notifications, and potentially two requirements in this new development.  Can I rationalise and combine a bit?
+
+We have the existing lib/clashes/clashcheck.rb which does the checking of pupils for multiple commitments, and we have the cover loading program which checks them all as they're loaded.
+
+This is slightly more like the first one, since it needs to run as a background job.
+
+Does the system currently notify people when they have been given a cover?  No - that comes from iSAMS and is under Ian's control.  I could extend the clash notifications and offer the same for cover.  Currently people can choose to get immediate notifications of pupil clashes, or a daily or weekly summary.  Where is the code which generates the weekly summary?  That seems closest to what I need here.  It's in the same utility which does the clash checking in the first place.
+
+The pupil clash checking code builds e-mails relating to //all// future clashes (from a given date) and then packages them up for users depending on their options.  If the user has requested daily, then he or she gets them, whilst if the request is for weekly then they are added only if the utility has been run with a "weekly" flag.  When does it run on the live system?
+
+* Weekly run on a Sunday morning
+* Daily run on Mon-Fri morning
+
+The concept of an immediate notification doesn't really make sense for invigilations.  For pupil clash checking it isn't quite immediate.  What happens is the code which adds the notes keeps track of any which it has added in the course of a run, then at the end of the run e-mails anyone affected who has requested "immediate" notification.  It thus isn't quite immediate - it's batched - but it has a kind of immediacy to the end user.
+
+I could add flags for Weekly and Daily invigilation notifications, perhaps defaulting to on.  They could include cover too.  Should the daily one send information just for that day, or for all upcoming invigilations/covers?  Probably just for that day.
+
+Draft proposal.
+
+User can choose to receive (defaulting to ON)
+
+* Weekly notification of invigilation that week (Sun AM)
+* Daily notification of invigilation that day (Mon-Fri AM)
+
+and then Ian can choose to trigger a general e-mail (from which one can't opt out) when he has entered a batch of invigilations.  That probably wants to be "all invigilations entered since YYYY-MM-DD HH:MM:SS with the value defaulting to the last time the same user (in this case Ian) ran the job.  It's basically the same code to do the scanning, but it would need to check the times each commitment was created, and ignore any flags set by the user.  Thus, even if a user turned both flags off they would still get at least one notification of their invigilation commitment.
+
+Could generate a statistics e-mail (sent to all exam officers) at the same time, listing how many each person has done/will do in a week.
+
+The same job which runs to generate the daily notifications could do clash checking and e-mail any issues to all those flagged as exam administrators.

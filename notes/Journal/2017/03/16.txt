@@ -1,0 +1,9 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-03-16T11:45:17+00:00
+
+====== Thursday 16 Mar 2017 ======
+
+Thought on the e-mail generating code for Invigilations.
+
+It should be implemented as a piece of encapsulated code which can be invoked either from a small utility (rake task) or from within the application itself.  That way I can decide later how exactly to do it.  Could do with a couple of extra flags on user records to indicate whether they want to receive notifications, but the default will be on, and if a member of staff has no user record, it will still default to on.

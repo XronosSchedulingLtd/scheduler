@@ -265,6 +265,10 @@ class Event < ActiveRecord::Base
     self.starts_at = value
   end
 
+  def start_date_text
+    self.starts_at.strftime("%a #{self.starts_at.day.ordinalize} %b")
+  end
+
   def jump_date_text
     self.starts_at.to_date.strftime("%Y-%m-%d")
   end
@@ -515,6 +519,18 @@ class Event < ActiveRecord::Base
       self.all_atomic_resources.select {|r| r.instance_of?(Location)}
     else
       self.resources.select {|r| r.instance_of?(Location)}
+    end
+  end
+
+  #
+  #  Get just one location name, or an empty string if there isn't one.
+  #
+  def location_name
+    all_locations = self.locations
+    if all_locations.size > 0
+      all_locations[0].friendly_name
+    else
+      ""
     end
   end
 

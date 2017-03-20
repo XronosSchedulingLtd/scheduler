@@ -172,6 +172,8 @@ class UsersController < ApplicationController
                       :clash_weekly,
                       :clash_daily,
                       :clash_immediate,
+                      :invig_weekly,
+                      :invig_daily,
                       :can_has_groups,
                       :can_find_free,
                       :can_add_concerns,
@@ -189,6 +191,8 @@ class UsersController < ApplicationController
                       :clash_weekly,
                       :clash_daily,
                       :clash_immediate,
+                      :invig_weekly,
+                      :invig_daily,
                       :preferred_event_category_id,
                       :colour_not_involved,
                       :default_event_text)
@@ -200,7 +204,9 @@ class UsersController < ApplicationController
                       :immediate_notification,
                       :clash_weekly,
                       :clash_daily,
-                      :clash_immediate)
+                      :clash_immediate,
+                      :invig_weekly,
+                      :invig_daily)
       end
     end
 end

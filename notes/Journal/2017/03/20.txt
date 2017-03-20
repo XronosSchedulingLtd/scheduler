@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-03-20T08:52:56+00:00
+
+====== Monday 20 Mar 2017 ======
+
+Things to add today:
+
+[ ] Filter by when the commitment was last updated
+[ ] Daily and weekly batch jobs

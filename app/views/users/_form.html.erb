@@ -114,6 +114,15 @@
                     prompt: "Immediate",
                     annotation: "Should the system send notifications of pupils missing your lessons as soon as they are identified?"}
                  ]) %>
+  <%= flag_group(f, 12, 6, "Invigilation notifications",
+                 [
+                   {field: :invig_weekly,
+                    prompt: "Weekly",
+                    annotation: "Should the system send a weekly summary of your invigilation slots?"},
+                   {field: :invig_daily,
+                    prompt: "Daily",
+                    annotation: "Should the system send a daily summary of your invigilation slots?"}
+                 ]) %>
   <% end %>
 </div>
 <div class="row collapse">
