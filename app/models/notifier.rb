@@ -49,7 +49,7 @@ class Notifier < FakeActiveRecord
     def notify?(which_flag)
       (which_flag == :regardless) ||
       ((which_flag == :weekly) && @staff.invig_weekly_notifications?) ||
-      ((which_flag == :daily) && @staff.invig_daily_notificiations?)
+      ((which_flag == :daily) && @staff.invig_daily_notifications?)
     end
 
   end
@@ -107,11 +107,24 @@ class Notifier < FakeActiveRecord
         resource:  property
       ).preload(:element)
       Rails.logger.debug("Got #{commitments.count} commitments.")
-      commitments.each do |commitment|
-        puts "#{commitment.event.starts_at_text}"
-        commitment.event.staff.each do |staff|
-          staff_entry = (@staff_entry_hash[staff.id] ||= StaffEntry.new(staff))
-          staff_entry.note_instance(commitment.event)
+      commitments.collect {|c| c.event }.sort.each do |event|
+        #
+        #  Need to iterate through the actual commitments to the event
+        #  because we are potentially interested in when it was
+        #  last modified.
+        #
+        #  I was late adding the updated_at field to the commitments
+        #  record, so allow for the possibility that it is nil, in
+        #  which case it is definitely in the past.
+        #
+        event.commitments.preload(:element).each do |c|
+          if ((self.modified_since == nil) ||
+              (c.updated_at && c.updated_at >= self.modified_since)) &&
+             c.element.entity_type == "Staff"
+            staff = c.element.entity
+            staff_entry = (@staff_entry_hash[staff.id] ||= StaffEntry.new(staff))
+            staff_entry.note_instance(event)
+          end
         end
       end
       @staff_entry_hash.values.sort.each do |record|

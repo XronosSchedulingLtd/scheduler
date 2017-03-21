@@ -6,5 +6,10 @@ Creation-Date: 2017-03-20T08:52:56+00:00
 
 Things to add today:
 
-[ ] Filter by when the commitment was last updated
-[ ] Daily and weekly batch jobs
+[*] Filter by when the commitment was last updated
+[*] Daily and weekly batch jobs
+[*] Make sure my staging server does not send actual e-mails.
+
+Just discovered that the existing commitments in my database have no updated_at or created_at field!  Ow!  I fear I need that field if I'm going to keep track of which ones have been notified and which haven't.
+
+I've added the fields, but all the existing records have nil values.  This may be OK, but I'll need to be aware of it.  I could potentially add a job to fill them all in.

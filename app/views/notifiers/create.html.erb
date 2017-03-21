@@ -1,6 +1,10 @@
 
-<p>Notifications as follows:</p>
+<h3>Notifications as follows:</h3>
 
+<% if @staff_entries.size > 0 %>
 <ul>
   <%= render @staff_entries %>
 </ul>
+<% else %>
+  No relevant entries found.
+<% end %>

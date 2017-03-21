@@ -34,4 +34,11 @@
 #  Run at 05:45
 #
 45 5 * * * /home/john/Work/Coding/scheduler/utils/daily_report
-
+#
+#  Tell people about pending invigilations for the week on Sun
+#
+0 6 * * 0 /home/john/Work/Coding/scheduler/utils/weeklyinvig
+#
+#  And just the day's worth on each day of the week.
+#
+0 6 * * 1-5 /home/john/Work/Coding/scheduler/utils/dailyinvig
