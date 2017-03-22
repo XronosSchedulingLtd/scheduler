@@ -1,3 +1,17 @@
+v0.17   2017-03-22
+
+* This release implements a major new feature - exam invigilation.
+
+  For details on how to use it, see the on-line documentation at:
+
+    https://xronos.uk/exams.html
+
+  When installing this version, it is necessary to migrate the
+  database (rake db:migrate) re-compile the assets (rake assets:precompile)
+  restart the application, and then edit the system settings to add
+  the system's domain name and source e-mail address.
+
+
 v0.16.1 2017-02-27
 
 There are no code changes in this release, just a change to this
