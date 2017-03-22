@@ -1,0 +1,52 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-03-21T10:21:32+00:00
+
+====== Tuesday 21 Mar 2017 ======
+
+Things to do to finish off this release - with invigilation
+
+[*] Note to Niki telling him of plans
+[*] Register latest changes
+[*] Deploy to staging server so they can play
+[*] Get copy of current Abingdon live system on Midnight
+[*] Review all d/b changes to see if there are any which would prevent reverting to an earlier version
+[ ] Merge into development branch
+[ ] Upgrade midnight to new code, making a list of all the steps needed to deploy it
+[ ] Deploy to demo system
+[ ] Add more seed data to create exam day on first day of next week
+[ ] Document with screen shots
+[ ] Publish documentation
+[ ] Package as release
+[ ] Push to Abingdon
+
+Quite a lot there really.
+
+What changes in the database?
+
+Add the following tables:
+
+* rota_templates
+* rota_slots
+* exam_cycles
+* proto_events
+* proto_commitments
+* proto_requests
+* requests
+
+Add colums as follows:
+
+* users - exams flag
+* users - invig_weekly, invig_daily, last_invig_run_date
+* events - proto_event_id, to link to proto_event
+* commitments - proto_commitment_id, to link to proto_commitment
+* commitments - request_id, to link to request
+* commitments - added timestamps
+* events - flagcolour, to specify coloured flags
+* settings - dns_domain_name and from_email_address
+
+And changed
+
+* notes, visible_staff, default to true.
+
+None of that seems to create any reverse-compatibility issues.  If I were to run this modified database with the old code, then almost everything would be ignored.  The exception would be the addition of timestamps to the commitment records - they would now start being timestamped.  Rails does that automatically if the relevant fields exist.
