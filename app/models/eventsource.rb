@@ -9,6 +9,7 @@ class Eventsource < ActiveRecord::Base
    validates :name, uniqueness: true
 
    has_many :events, dependent: :destroy
+   has_many :proto_events, dependent: :destroy
 
    def <=>(other)
      self.name <=> other.name

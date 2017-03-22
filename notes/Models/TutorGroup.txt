@@ -8,7 +8,7 @@ Created Thursday 29 May 2014
 Tutorgroups list all the pupils in a particular tutor's care.
 
 
-Fields
+==== Fields ====
 
 name		string	Textual name of the tutor group (e.g. 3JHW)
 house		string	Name of house

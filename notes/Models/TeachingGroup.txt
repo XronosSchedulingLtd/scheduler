@@ -9,7 +9,7 @@ Although I intend this to function merely for teaching groups, it's difficult to
 
 I'm currently making no attempt to link them to subjects, although it should be straightforward later.  For now they're just lists of pupils.
 
-Fields
+==== Fields ====
 
 name		string	Textual name of the group
 era_id		integer	Id of the Era the group exists in

@@ -7,7 +7,7 @@ Created Wednesday 28 May 2014
 
 A record for each pupil in the school.
 
-Fields:
+==== Fields: ====
 
 id			integer	Rails's id for the individual
 name		string	Display name of the pupil

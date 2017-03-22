@@ -1,0 +1,20 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-03-03T09:34:18+00:00
+
+====== Friday 03 Mar 2017 ======
+
+An algorithm to find and sort available staff for Invigilation.  Not quite as bullet proof as the existing free finder, but possibly faster.
+
+* Find all events (suspended or not) which overlap the indicated time - pre-load their commitments.
+* Find all the staff who might be up for use - pre-load their elements.
+* Separate the events into suspended and not.
+* Iterate through the un-suspended events, subtracting any elements which they use.
+* We now have a list of free staff.
+* Iterate through the suspended lessons (not any other suspended events) to find the staff who have been freed up.
+
+What this will fail to pick up are the staff who are busy by being a member of a group.  We're not doing a proper iterative descent through groups.  Will deal with all lessons though, and staff are seldom allocated to events by group (but not never).
+
+Does the existing free-finder indicate someone as being free if their lesson has been covered?  I believe not, although there does exist a scope for selecting un-covered commitments, I don't seem to be using it.  Has it ever been used?  And tested?
+
+What algorithm does it use?

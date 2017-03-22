@@ -1,4 +1,37 @@
 Rails.application.routes.draw do
+
+  resources :notifiers
+
+  resources :requests do
+    resources :commitments
+    member do
+      get :candidates
+      put :fulfill
+      put :unfulfill
+    end
+  end
+
+  resources :exam_cycles do
+    resources :proto_events do
+      member do
+        post :generate
+      end
+    end
+  end
+
+  resources :proto_events, only: [:split] do
+    member do
+      post :split
+    end
+  end
+
+  resources :rota_templates do
+    resources :rota_slots
+    member do
+      post :do_clone
+    end
+  end
+
   resources :settings
 
   get '/auth/:provider/callback' => 'sessions#create'
@@ -58,6 +91,7 @@ Rails.application.routes.draw do
 
   resources :events do
     resources :notes, shallow: true
+    resources :requests
     member do
       get :shownotes
       get :canceledit
@@ -100,6 +134,7 @@ Rails.application.routes.draw do
     get :autocomplete_staff_element_name, :on => :collection
     get :autocomplete_group_element_name, :on => :collection
     get :autocomplete_property_element_name, :on => :collection
+    get :autocomplete_location_element_name, :on => :collection
     get :ical, :on => :member
 
   end

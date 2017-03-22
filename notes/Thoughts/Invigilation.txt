@@ -35,7 +35,26 @@ We came up with the following stages in the setting up of invigilation.
 
 1. Create a named template which defines when the invigilation slots will be in a week.  It should be possible to create more than one template, but typically the same one will be used for all public exams.
 2. Define an exam cycle or session with a name.  We talked about it having a start and end date, but I'm not sure now that it wants them.  It does have a default template.
-3. Within the exam cycle, one has one or more room records.  These do have dates and specify the dates on which said room will be used in that cycle.  We only work in whole days, but the same room can be used more than once in a cycle.  These are the records which drive the creation of the invigilation events.  The events aren't created immediately the record is created, but can be done in one go on clicking a button.  (And even for the whole cycle by clicking a button on the cycle record.)  It should also be possible to amend the room records subsequently and re-create, leaving alone any unaffected invigilation events (don't want to lose the information already entered) but deleting ones which are now outside the date range, and creating others.
+3. Within the exam cycle, one has one or more room records.  These do have dates and specify the dates on which said room will be used in that cycle.  They also reference a template, which drives the creation of actual events.  We work only in whole days, but the same room can be used more than once in a cycle.  These are the records which drive the creation of the invigilation events.  The events aren't created immediately the record is created, but can be done in one go on clicking a button.  (And even for the whole cycle by clicking a button on the cycle record.)  It should also be possible to amend the room records subsequently and re-create, leaving alone any unaffected invigilation events (don't want to lose the information already entered) but deleting ones which are now outside the date range, and creating others.
+4. Once the actual events exist, the next stage is to go through them defining how many people are needed for each event.  There seems to be no way to speed this - it requires individual knowledge of which exams are on and thus how many candidates are in each room and when.  What one is setting up at this point is a resource request for each invigilation slot - "This event needs 5 invigilators".  This information is provided by RZC, but currently only on paper.  She passes it to ICF who makes use of it.
+5. It should now be possible to get a view on the calendar of events in need of invigilators, and work one's way through them allocating the individuals.  A clear visual distinction is needed between events which have been fully staffed and those which are short handed.  Clicking on an event will provide the allocator of invigilation duties (ICF) with a dialogue offering assisted completion.  N slots with pull-down selection, with the individuals offered being prioritised by suitability (see below).  The user (ICF) should be able to increase or decrease the number of slots at this point, effectively overwriting the information entered in step 4.  It would thus be possible - although far from ideal - to skip step 4 entirely.
+6. The allocator of invigilation duties should be able to trigger e-mails to staff about them - on completion of a batch, or at specified times - e.g. the night before they are due, or at the beginning of the week.  He needs to be able to specify what is e-mailed - freshly entered stuff, a particular day, or a particular week.
+7. Notes can be attached to the invigilation events using Scheduler's existing note facility.  It will be necessary to educate staff about their existence.
+8. Staff should also be able to set up their own e-mail notifications - e.g. asking the system to e-mail them just their allocations at their selected intervals.
+9. It should be possible to print out all the invigilation slots for a nominated period to put on the notice board.  The existing print facility already includes the ability to include notes, although it may be necessary to tweak the appearance.
+
+
+==== Suitability of individuals ====
+
+When ICF is allocating cover, he should be presented with a list of available people, ordered by suitability and with some indication of their existing loading.  In order they are:
+
+* Those who have suspended lessons at the indicated time, and are thus free.
+* Those who are simply free
+* Those who are free because they have been covered (and so probably aren't suitable).
+
+with a clear separation between these groups (dotted separator in the pull-down?).
+
+Against each individual, one could put a couple of counts in brackets -  covers already on the same day, and in the same week.
 
 ==== Quick notes ====
 
@@ -46,3 +65,34 @@ We came up with the idea of an exam cycle, which references a template, and then
 Why not make the highest level item relating to actual events be the record which holds the usage dates for a room?  Why do several usages need to be linked together?  The Sports Hall is easy - it's just blocked out completely for 5-6 weeks.  The CMR on the other hand might be in use for a week, then not, then in use again.  Do we gain anything by linking those two usages together?  Yes, we do - we gain the ability to display them and consider them as a group.
 
 I am inclined not to make any of these records owned by any particular user.  Events belong to users, but an exam cycle doesn't really belong to anyone.  Certain users will have the privilege to create and edit them, but one created by one such user should be editable by another.  One might possibly have a lesser privilege bit which allows viewing them but not editing them, but the idea of each user having his or her own private collection doesn't seem right.
+
+I'm not sure that FC is a good choice for setting up the template.  FC expects to be dealing with an actual date, and actual times including DST information.  We have no actual date, and we need to be very careful when copying records between dates inside and outside of DST because the results then can be surprising.  We really want just to validate that we have a valid time, but then store it as, say, 10:00 - 10:55 - pretty much as strings.  Those strings are then interpreted in the context of the relevant date when we later create the actual events.  We need a way to validate times, and then store them as strings.
+
+A model for a template slot - day, start, finish, template_id.  Then a model for the template which owns it.  Give a field for each day where times can be entered, then as they're saved they appear in order in a column above.  Each one has a cross against it so it can be crossed out, and then we also want the means to clone one day into another.  Could usefully use Backbone to handle the server interaction, removing the need for too much server logic.  Can validate in the front end, and then save.  It's not a security issue if someone overrides the front end, so the back end doesn't need to re-validate - although it could.  Really could do with 7 columns, because it's possible someone might want to schedule things at the weekend later.
+
+Don't call it an ExamTemplate - it's a RotaTemplate and a RotaSlot.   There's a gem called "tod" which might be worth investigating.
+
+Forget about "pretty" for now.  It doesn't matter how pretty the forms are or aren't as long as they work and are straightforward to use.  They're not visible to general users.  Pretty can come later.
+
+RotaTemplates will be used to create events within the database.  Once this has been done, the rota template (and indeed the whole exam cycle) could be removed without affecting those events, although it would make it difficult to maintain them.  Should we offer an option when deleting an exam cycle to get rid of all the corresponding events too?  One shouldn't delete historical ones - they are a useful record, if only of the statistics - but one might want to delete an upcoming set all in one go.
+
+Perhaps make it a two stage process.  Within the exam cycle, offer an option to delete all future events.  When the user tries to delete an exam cycle, give a warning if it would leave future events un-owned, but still allow the deletion if the user insists.
+
+Actually, there are more levels than that.  Each exam cycle has one or more room specifications, and those are the things which actually generate the events.  It's deleting the room specification which might want us to delete the corresponding events.  Perhaps just say that you can't delete an exam cycle which still has room specifications.  Then on the room specifications, have the option to delete future events.
+
+Once you have set up a room specification, which is linked to a rota template, then you can create all the events in one go.  If you change the dates of the room specification, or change the contents of its rota template, or indeed change which rota template it references, then you can re-generate the events.  This will cause some events to be deleted, new ones to be created but will leave alone any which are required by both old and new templates.  It will thus be possible to add an extra invigilation slot and re-generate without losing any allocations already in place.
+
+We will need to use source_ids to identify which events were generated by which room specifications.
+
+Having played with exam cycles a bit, I think it's worth putting a date on, simply in order to let them be displayed in date order with the oldest at the bottom of the list.  Then one won't be tempted to keep deleting them.
+
+Although my data structures will allow extensive flexibility, I think I'm going to hard code certain aspects of how I set up my [[:Models:ProtoEvent|ProtoEvent]] data structures for now.  Specifically:
+
+event_category	Invigilation
+property			Invigilation
+room			Specified by user
+request			0 staff
+
+When I start worrying about general resource requests and rotas - //then// I'll start using the flexibility in-built to the design.
+
+I think my invigilation events should have a property, "Invigilation".  Currently Ian's ones have a subject attached to them which is also called "Invigilation" but I feel this is an error.  It's a case of working within the limitations of iSAMS.  Invigilation is not a subject and it shouldn't really exist in the system at all.  Once this implementation is finished, we could potentially delete that subject entirely.  Might be worth writing a small maintenance method which finds all events attached to the subject and changes them to have the property instead.  (Deleting the subject without doing this would cause all the corresponding commitments to go too, and would leave said events without any flag at all.)

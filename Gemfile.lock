@@ -157,6 +157,7 @@ GEM
     tilt (1.4.1)
     tiny_tds (0.7.0)
       mini_portile (= 0.6.2)
+    tod (2.1.0)
     treetop (1.4.15)
       polyglot
       polyglot (>= 0.3.1)
@@ -199,9 +200,10 @@ DEPENDENCIES
   spectrum-rails
   spring
   tiny_tds
+  tod
   turbolinks
   uglifier (>= 1.3.0)
   will_paginate (~> 3.0)
 
 BUNDLED WITH
-   1.10.6
+   1.13.7

@@ -36,6 +36,14 @@
         <td><%= setting.auth_type %></td>
       </tr>
       <tr>
+        <td>DNS domain name</td>
+        <td><%= setting.dns_domain_name %></td>
+      </tr>
+      <tr>
+        <td>E-mails originate from</td>
+        <td><%= setting.from_email_address %></td>
+      </tr>
+      <tr>
         <td><%= link_to 'Edit', edit_setting_path(setting) %></td>
         <td></td>
       </tr>

@@ -1,0 +1,20 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-05T11:11:25+00:00
+
+====== ExamCycle ======
+Created Sunday 05 February 2017
+
+An [[ExamCycle]] record is used to create invigilation slots for a series of exams.
+
+==== Fields ====
+
+name					string		Descriptive name
+default_rota_template_id	integer		The rota template to use by default when adding new a [[ProtoEvent]] 
+starts_on				date		Start date for cycle
+ends_on					date		End date for cycle
+
+
+==== Links ====
+
+belongs_to	default_rota_template

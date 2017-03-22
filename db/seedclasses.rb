@@ -446,7 +446,7 @@ class Seeder
               :subjects,
               :weekdates
 
-  def initialize(auth_type = 1)
+  def initialize(auth_type = 1, dns_domain_name = "example.org")
     #
     #  Always set everything to the current week.
     #
@@ -504,10 +504,12 @@ class Seeder
     @settings = Setting.first
     unless @settings
       @settings = Setting.create({
-        current_era_id: @eras[:current_era].id,
-        perpetual_era_id: @eras[:perpetual_era].id,
+        current_era_id:      @eras[:current_era].id,
+        perpetual_era_id:    @eras[:perpetual_era].id,
         enforce_permissions: true,
-        auth_type: auth_type
+        auth_type:           auth_type,
+        dns_domain_name:     dns_domain_name,
+        from_email_address:  "scheduler@#{dns_domain_name}"
       })
     end
     #

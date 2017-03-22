@@ -12,6 +12,8 @@
 //
 //= require jquery
 //= require jquery_ujs
+//= require underscore
+//= require backbone-min
 //= require foundation
 //= require jquery.ui.all
 //= require autocomplete-rails

@@ -1,0 +1,43 @@
+<h1>Listing exam cycles</h1>
+
+<div class="digg_pagination">
+  <%= will_paginate @exam_cycles %>
+</div>
+
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <td>Starts</th>
+      <th>Default rota template</th>
+      <th colspan="2"></th>
+      <th colspan="2">Rooms used</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @exam_cycles.each do |exam_cycle| %>
+      <tr>
+        <td><%= exam_cycle.name %></td>
+        <td><%= exam_cycle.vague_start_date %></td>
+        <td><%= exam_cycle.try(:default_rota_template).try(:name) %></td>
+        <td title="Edit the whole exam cycle."><%= link_to 'Edit', edit_exam_cycle_path(exam_cycle) %></td>
+        <td><%= if exam_cycle.proto_events.count == 0
+                  link_to 'Destroy', exam_cycle, method: :delete, data: { confirm: 'Are you sure you want to delete this whole exam cycle?  This will not affect events already created in the cycle, but may make it hard to maintain and update them.' }
+                else
+                  ""
+                end %></td>
+        <td><%= exam_cycle.proto_events.count %></td>
+        <td title="Edit the room usage records."><%= link_to "Edit", exam_cycle %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div class="digg_pagination">
+  <%= will_paginate @exam_cycles %>
+</div>
+
+<br>
+
+<%= link_to 'New Exam cycle', new_exam_cycle_path, class: "button small radius" %>

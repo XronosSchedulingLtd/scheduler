@@ -1,0 +1,35 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-17T09:52:26+00:00
+
+====== Friday 17 Feb 2017 ======
+
+Spent yesterday doing a software installation for Dean Close School.  That is now in and running so I'm hoping for some feedback from them soon.
+
+Targets for today:
+
+[*] Fix niggles from three days ago in my exam invigilation stuff
+[*] Update staging server with latest Abingdon data
+[ ] Push this software to it
+[ ] Give Niki, Ben and Ian exam privileges
+[ ] Tell them about it.  Ask to meet with Ian.
+
+I can't help wondering whether there will be security issues (tokens) when I run it in live mode.  Well, this is my chance to find out.
+
+Just hit an interesting little quirk of Backbone - although perfectly sensible when you think about it.
+
+I was trying to set the room value back to being empty, but nothing was happening.  This was simply because I'd failed to update my model from my view when I started the creation process.  I read the values from the fields, and used them to try to create a //new// model, but I didn't update the one which I'd already got.  The values in it thus remained as they always were (blank in this case), and when I set it back to blank it didn't think it was an update and so didn't trigger a render.  One to watch out for.
+
+For consistency, when I read out the fields from my view I should apply the new values to my existing model.
+
+So - what needs to be done to install this new software?
+
+[*] export RAILS_ENV=production
+[*] git checkout feature/invigilations
+[*] gem install bundler?
+[*] bundle install
+[*] rake db:migrate
+[*] rake assets:precompile
+[*] touch tmp/restart.txt
+
+And - it's not working.  I suspected it might not - probably to do with validation tokens.  How to fix?  Ah no - it seems it's because I forgot to re-compile the assets.  Now done that and things seem better.

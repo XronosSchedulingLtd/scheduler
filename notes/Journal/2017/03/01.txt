@@ -1,0 +1,7 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-03-01T08:47:40+00:00
+
+====== Wednesday 01 Mar 2017 ======
+
+I realised last night that it was foolish to try to tidy up the existing scheduler.js.coffee code now.  I'm just learning how to write well-structured code in JavaScript.  To do the same for CoffeeScript (which does some of the work for you) at the same time is asking too much.  I will put the requests handling code in a separate .js file.  I will also need to create a requests controller to handle the client->server requests.  I do hope "requests" isn't a keyword anywhere.:q:

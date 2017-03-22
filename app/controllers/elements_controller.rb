@@ -279,6 +279,18 @@ class ElementsController < ApplicationController
     render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
   end
 
+  def autocomplete_location_element_name
+    term = params[:term].split(" ").join("%")
+    elements =
+      Element.current.
+              location.
+              where('name LIKE ?', "%#{term}%").
+              order("LENGTH(elements.name)").
+              order(:name).
+              all
+    render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+  end
+
   #
   #  This method does a lot of work in showing various kinds of information
   #  for various types of element.  Each element has a corresponding entity

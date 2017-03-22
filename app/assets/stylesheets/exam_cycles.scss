@@ -1,0 +1,116 @@
+// Place all the styles related to the ExamCycles controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+#exam-cycle-editing {
+  position: relative;
+}
+
+#dialogue-buttons {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+}
+
+table#ec-table {
+  button {
+    margin-top:    1px;
+    margin-bottom: 1px;
+  }
+
+  td {
+    height: 55px;
+  }
+
+  tr.creating {
+    div.forinput,
+    button.add {
+      display: inline;
+    }
+
+    button.edit,
+    button.generate,
+    button.update,
+    button.deleteevents,
+    button.destroy,
+    button.cancel,
+    button.split,
+    span.displaying,
+    span.generating{
+      display: none;
+    }
+  }
+
+  tr.created {
+    button.edit,
+    button.generate,
+    button.split,
+    button.destroy {
+      display: inline;
+    }
+
+    button.add,
+    button.update,
+    button.deleteevents,
+    button.cancel,
+    div.forinput,
+    span.generating {
+      display: none;
+    }
+  }
+
+  tr.generating {
+    span.generating {
+      display: inline;
+    }
+
+    button.add,
+    button.generate,
+    button.update,
+    button.deleteevents,
+    button.cancel,
+    button.edit,
+    button.split,
+    button.destroy,
+    div.forinput {
+      display: none;
+    }
+  }
+
+  tr.editing {
+    button.update,
+    button.cancel,
+    div.forinput {
+      display: inline;
+    }
+
+    button.add,
+    button.edit,
+    button.generate,
+    button.split,
+    button.destroy,
+    button.deleteevents,
+    span.displaying,
+    span.generating {
+      display: none;
+    }
+  }
+}
+
+table.splittable.ready {
+  span.splitting {
+    display: none;
+  }
+  button.split {
+    display: inline;
+  }
+}
+
+table.splittable.splitting {
+  span.splitting {
+    display: inline;
+  }
+  button.split {
+    display: none;
+  }
+}

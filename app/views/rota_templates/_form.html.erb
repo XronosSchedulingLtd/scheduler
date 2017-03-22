@@ -1,0 +1,21 @@
+<%= form_for(@rota_template) do |f| %>
+  <% if @rota_template.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@rota_template.errors.count, "error") %> prohibited this rota_template from being saved:</h2>
+
+      <ul>
+      <% @rota_template.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

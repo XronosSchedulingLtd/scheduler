@@ -1,0 +1,9 @@
+<div class="row">
+  <div class="small-12 columns">
+    <% @event.requests.each do |r| %>
+      <div class="request-div" data-request-id="<%= r.id %>">
+      </div>
+    <% end %>
+  </div>
+</div>
+

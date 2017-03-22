@@ -1,0 +1,22 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-27T11:20:25+00:00
+
+====== Monday 27 Feb 2017 ======
+
+Things to note when upgrading to the Invigilation-enabled code.
+
+There are now 7 database tables to be deleted if you've done it before.
+
+'''
+proto_events
+proto_commitments
+proto_requests
+rota_slots
+rota_templates
+exam_cycles
+requests
+'''
+
+
+We also need to create a property called "Invigilation" and an event source called RotaSlot.  Without these, event generation fails rather mysteriously.  We also for now need a group called "Invigilators", but that will become configurable shortly.

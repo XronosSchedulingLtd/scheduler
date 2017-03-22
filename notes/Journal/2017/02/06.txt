@@ -1,0 +1,16 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-06T10:46:21+00:00
+
+====== Monday 06 Feb 2017 ======
+
+OK - today I try to get the editing of exam cycles - and specifically of [[:Models:ProtoEvent|ProtoEvent]] records within those cycles - up and running.  I'm going to use a template and Backbone within the page, and then requests to create and edit the actual records will be done with reference to the parent [[:Models:ExamCycle|ExamCycle]] record.
+
+What states can a proto event row be in?
+
+Creating		Down at the bottom.  Never changes from this state.
+Created		Has been created, but not yet done any generation.
+Generated	Has been generated and has events.
+Editing		In the middle of editing it.
+
+Possibly more to come.
