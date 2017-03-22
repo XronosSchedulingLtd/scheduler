@@ -26,7 +26,9 @@
       </ul>
 <% end %>
       <ul class="right">
+<% if @show_search %>
         <%= render :partial => "/events/search" %>
+<% end %>
         <li class="divider"></li>
 
 <% if current_user %>
@@ -51,6 +53,16 @@
 <%     end %>
 <%     if current_user.element_owner %>
             <li><%= link_to "Approvals", commitments_path %></li>
+<%     end %>
+<%     if current_user.exams? %>
+            <li class="has-dropdown">
+              <a href="#">Exams</a>
+              <ul class="dropdown">
+                <li><%= link_to "Templates", rota_templates_path %></li>
+                <li><%= link_to "Cycles", exam_cycles_path %></li>
+                <li><%= link_to "Notify", new_notifier_path %></li>
+              </ul>
+            </li>
 <%     end %>
 <%     if current_user.admin %>
             <li class="has-dropdown">

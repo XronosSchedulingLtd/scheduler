@@ -1,0 +1,15 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-03-08T08:51:50+00:00
+
+====== Wednesday 08 Mar 2017 ======
+
+Good meeting with Niki, Ben and Ian yesterday, after which I have a reasonable list of things to get on with.  Aiming to do a preliminary release in two and a half weeks - my end of term, but not theirs.  Basic editing should be there, but we won't have all the reports yet.
+
+An early thing to do is to add the means to specify the group who will do invigilation.  I had it hard coded as "Teaching staff", but realised that that wasn't quite right - some teaching staff don't do invigilation, and some invigilators aren't teaching staff.  I then hard-coded it as a group called "Invigilators", relying on the user to create that.  However, it really should be something which the exams office can specify.  I'm thinking in terms of attaching it to the exam cycle - is that right?  It could potentially go on the room record, but I'm inclined to think that it's reasonably consistent through a cycle.
+
+It does actually go on the proto_event (which the user sees as a room record) now, but it's hard coded.  For now I will set it on the exam_cycle, whence it will be copied to the proto_event as a default.  If there's demand, I might let it be edited on the proto_event later.
+
+So - exam_cycle needs a new field to store the element_id of the contributing group.  Just the one?  Yes, I think so.
+
+If I'm going to put that there, it would make sense to allow a default quantity too.  For external exams, Ian has indicated a quantity of 5, but for internal ones (done in classrooms) the default quantity will generally be 1.  Rather than having to edit them all down individually, it should be possible to specify it for the cycle.

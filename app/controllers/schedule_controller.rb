@@ -183,6 +183,14 @@ class ScheduleController < ApplicationController
       #  to see the little icon.
       #
       @has_clashes = event.has_clashes && current_user && current_user.staff?
+      #
+      #  Likewise for coloured flags.
+      #
+      if current_user && current_user.exams? && event.flagcolour
+        @flag_colour = event.flagcolour
+      else
+        @flag_colour = ""
+      end
     end
 
     def as_json(options = {})
@@ -196,7 +204,8 @@ class ScheduleController < ApplicationController
         :editable      => @editable,
         :edit_dialogue => @edit_dialogue,
         :color         => @colour,
-        :has_clashes   => @has_clashes
+        :has_clashes   => @has_clashes,
+        :fc            => @flag_colour
       }
     end
 
@@ -260,6 +269,7 @@ class ScheduleController < ApplicationController
       start_at = session[:last_start_date] || Time.zone.now
       @default_date = start_at.strftime("%Y-%m-%d")
       @show_jump = true
+      @show_search = true
       respond_to do |format|
         format.html
       end

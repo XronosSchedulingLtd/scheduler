@@ -7,7 +7,7 @@ Created Wednesday 28 May 2014
 
 What SB calls a Room, but it covers more than rooms.
 
-Fields
+==== Fields ====
 
 id			integer	Rails's id for the location
 name		string	Short name for the location

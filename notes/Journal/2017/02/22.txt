@@ -1,0 +1,9 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-22T09:41:36+00:00
+
+====== Wednesday 22 Feb 2017 ======
+
+It seems obvious to provide a Spinner widget (Jquery-UI) for selecting how many teachers are needed in a given slot.  You can make it bigger or smaller, and that immediately changes the number of slots below to fill in.  The number would be constrained not to go below the number of slots currently filled in.  If you have 5 people down to invigilate and now need only 3, then you would first delete two and then reduce the requirement number.
+
+As well as doing it through the calendar-based view, one probably wants to be able to call up some sort of queue of un-fulfilled requests as well.  Thus Ian can look to see what he hasn't done yet.  I think one needs to enter the initial quantities via the calendar though.

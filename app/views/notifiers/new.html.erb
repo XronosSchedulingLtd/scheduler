@@ -1,0 +1,56 @@
+<h1>Notifying invigilation slots</h1>
+
+<%= form_for(@notifier) do |f| %>
+  <% if @notifier.errors.any? %>
+    <div id="error_explanation">
+      <ul>
+        <% @notifier.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "Start date", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= f.text_field :start_date_text, :class => :datepicker %>
+    </div>
+    <div class="small-5 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "End date", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= f.text_field :end_date_text, :class => :datepicker %>
+    </div>
+    <div class="small-5 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "Allocations created since", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= f.text_field :modified_since_text, :class => :datepicker %>
+    </div>
+    <div class="small-5 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "Extra text to include", class: "right inline" %>
+    </div>
+    <div class="small-9 columns">
+      <%= f.text_area :extra_text, rows: 10, placeholder: "E.g. Sorry for the last minute notice." %>
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-2 small-offset-3 columns">
+      <%= f.submit "Go", :class => "button small radius" %>
+    </div>
+  </div>
+<% end %>

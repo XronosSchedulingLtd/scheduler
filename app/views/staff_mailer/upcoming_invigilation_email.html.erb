@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <h2>Upcoming invigilation slots - <%=
+      now = Time.zone.now
+      now.strftime("%a #{now.day.ordinalize} %b, %Y %H:%M") %>
+    </h2>
+    <p>
+      Please could you invigilate as follows:
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Location</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%= render partial: "invig_slot", collection: @slots %>
+      </tbody>
+    </table>
+    <% if @extra_text %>
+      <p><%= @extra_text %></p>
+    <% end %>
+  </body>
+</html>

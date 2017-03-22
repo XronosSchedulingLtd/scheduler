@@ -1,0 +1,22 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-01-31T09:11:19+00:00
+
+====== Tuesday 31 Jan 2017 ======
+
+Made some quite good progress fiddling with Backbone and Rota Templates.  I think I have the basics of how to use them, and now I need to start setting myself proper targets.
+
+Things to get working today.
+
+[*] Update template slot day flags, saved back to server.
+[*] Rename templates
+[*] Streamline the generation of my page, reducing use of underscore templates.
+[*] Provide a menu option to authorised users.
+[*] Clone templates
+[*] Tidy up listing of templates - make it look like other ones.
+
+I can currently rename a template using the edit form, but it would seem logical to be able to do it all on the one page, which can then take over as being the edit form.
+
+Just hit an interesting diagnostic which it took me a little while to figure out.  I'm getting an error message on the console when my JavaScript code runs if I'm not on the right page.  I thought I had put a conditional in so it didn't do anything on the wrong page, but it seems that one at least of my bits of code does end up running.  Why just the one?
+
+It's the definition of RotaSlotView, which seems to happen even when I'm not on the right page.  Why?  Yes, I can see why it runs - but why don't all the others?  They do all run - it's either stopping on the first error, or the error messages are overwriting each other.  Need to stop the code running at all.

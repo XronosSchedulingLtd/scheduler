@@ -1,0 +1,59 @@
+// Place all the styles related to the RotaTemplates controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+table#rt-table {
+  width: 100%;
+  table-layout: fixed;
+  margin-bottom: 1px;
+  tr, td {
+    padding: 1px 10px;
+  }
+//  border: 1px solid black;
+//  th, td {
+//    border: 1px solid black;
+//  }
+  th.rt-deleteslot {
+    width: 12%;
+  }
+  th.rt-timeslot {
+    width: 46%;
+  }
+  th.rt-daybox {
+    width: 6%;
+  }
+  td.tickbox, td.delete-box {
+    text-align: center;
+  }
+  button.destroy, button.add {
+    margin-top:    1px;
+    margin-bottom: 1px;
+  }
+}
+
+div#rt-header {
+  input, button.update, button.cancel {
+    display: none;
+  }
+
+  span#title, button.edit {
+    display: inline;
+  }
+
+}
+
+div#rt-header.editing {
+  input, button.update, button.cancel {
+    display: inline;
+  }
+
+  input {
+    font-size: 18pt;
+  }
+
+  span#title, button.edit {
+    display: none;
+  }
+
+}
+

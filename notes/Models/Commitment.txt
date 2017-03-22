@@ -1,0 +1,22 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-04T16:47:29+00:00
+
+====== Commitment ======
+Created Saturday 04 February 2017
+
+[[Commitment]] records link elements to events.  Currently they carry some extra fields which shouldn't really be there; these fields relate to the approvals process which in time will be taken over by [[Request]] records.
+
+==== Fields ====
+
+event_id		integer	Id of the [[Event]] to which this [[Commitment]] refers.
+element_id	integer	Id of the [[Element]] to which this [[Commitment]] refers.
+covering_id	integer	If this Commitment provides cover for another Commitment, then the Id of the
+					  Commitment being covered is stored here.
+names_event	boolean	Set if this commitment names the event.  In other words, the name of the event
+						  is derived from the name of this commitment's element.
+
+
+The name of the covering_id field might seem slightly odd.  It records the Id of the Commitment which we are covering.  It's phrased that way round so then we can write, "if commitment.covering" and the one it points to calls the connection "covered", and we can write "if commitment.covered".
+
+==== Links ====

@@ -1,0 +1,31 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-04T16:31:56+00:00
+
+====== ProtoEvent ======
+Created Saturday 04 February 2017
+
+A [[ProtoEvent]] contains information which may later be used to create an event.  It exists as a database record in its own right so it can be linked to other things and record multiple facets of an event.
+
+==== Fields ====
+
+id				integer		Rails's auto-generated id for the record.
+body			text			Text describing the event.
+starts_on		date		Potentially used in constraining the date range for creating actual events.
+ends_on			date		Potentially used in constraining the date range for creating actual events.
+event_category_id	integer		Id of the event category to use.
+event_source_id	integer		Id of the event source to use.
+rota_template_id	integer		Id of the rota template to use when creating events
+generator_id		integer		Id of the record which "owns" this [[ProtoEvent]]
+generator_type	string		Type of record our generator is.
+
+
+==== Links ====
+
+belongs_to	[[EventCategory]] 
+belongs_to	[[EventSource]] 
+has_many	[[ProtoCommitment]]
+has_many	[[ProtoRequest]]
+belongs_to	[[RotaTemplate]] 
+belongs_to	generator, which currently will be an [[ExamCycle]] 
+

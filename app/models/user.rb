@@ -43,7 +43,8 @@ class User < ActiveRecord::Base
     can_find_free: "Can this user do searches for free resources?",
     can_add_concerns: "Can this user dynamically choose which schedules to look at?",
     can_roam: "Can this user follow links from one displayed element to another?",
-    can_su: "Can this user become another user?"
+    can_su: "Can this user become another user?",
+    exams: "Does this user administer exams or invigilation?"
   }
   FIELD_TITLE_TEXTS.default = ""
 
@@ -155,7 +156,8 @@ class User < ActiveRecord::Base
     self.editor ||
     self.can_has_groups ||
     self.can_find_free ||
-    self.element_owner
+    self.element_owner ||
+    self.exams
   end
 
   #

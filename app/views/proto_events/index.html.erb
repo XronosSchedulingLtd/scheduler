@@ -1,0 +1,33 @@
+<h1>Listing proto_events</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Body</th>
+      <th>Starts on</th>
+      <th>Ends on</th>
+      <th>Event category</th>
+      <th>Event source</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @proto_events.each do |proto_event| %>
+      <tr>
+        <td><%= proto_event.body %></td>
+        <td><%= proto_event.starts_on %></td>
+        <td><%= proto_event.ends_on %></td>
+        <td><%= proto_event.event_category_id %></td>
+        <td><%= proto_event.event_source_id %></td>
+        <td><%= link_to 'Show', proto_event %></td>
+        <td><%= link_to 'Edit', edit_proto_event_path(proto_event) %></td>
+        <td><%= link_to 'Destroy', proto_event, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Proto event', new_proto_event_path %>

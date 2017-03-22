@@ -1,13 +1,3 @@
-# Place all the behaviors and hooks related to the matching controller here.
-# All this logic will automatically be available in application.js.
-# You can use CoffeeScript in this file: http://coffeescript.org/
-#`
-#$(document).ready(function() {
-#    // page is now ready, initialize the calendar...
-#    $('#fullcalendar').fullCalendar({
-#    })
-#});
-#`
 $(document).ready ->
   $('#datepicker').datepicker
     showOtherMonths: true
@@ -291,8 +281,13 @@ window.activateColourPicker = (field_id, sample_id) ->
 
 window.flagClashes = (event, element) ->
   if event.has_clashes
-    #    element.find(".fc-event-time").prepend("<img src=\"images/arrowe.svg\" />")
     element.find(".fc-event-inner").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
+  else if event.fc == "r"
+    element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/rf.png\" />")
+  else if event.fc == "y"
+    element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/yf.png\" />")
+  else if event.fc == "g"
+    element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/gf.png\" />")
   return true
 
 window.activateAutoSubmit = ->

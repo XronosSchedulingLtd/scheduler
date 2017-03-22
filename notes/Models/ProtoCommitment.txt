@@ -1,0 +1,18 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-04T16:38:09+00:00
+
+====== ProtoCommitment ======
+Created Saturday 04 February 2017
+
+An imitation of real commitment records, used to attach elements to [[ProtoEvent]] .  Each [[ProtoCommitment]] of the [[ProtoEvent]] will result in a real Commitment when the [[ProtoEvent]] is used to generate a real event.
+
+==== Fields ====
+
+proto_event_id	integer	The id of our parent [[ProtoEvent]] 
+element_id		integer	The [[Element]] we propose to commit
+
+==== Links ====
+
+belongs_to	[[ProtoEvent]] 
+belongs_to	[[Element]]

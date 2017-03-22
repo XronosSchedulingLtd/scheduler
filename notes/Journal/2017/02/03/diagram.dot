@@ -1,0 +1,7 @@
+digraph models {
+  rankdir=TB;
+  node [shape=box, style="filled,rounded", fillcolor=lightskyblue2];
+  {rank=same; Element; Commitment; Event;}
+  Commitment -> Element;
+  Event -> Commitment [dir="back"];
+}

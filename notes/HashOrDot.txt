@@ -1,0 +1,13 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-01-25T10:19:05+00:00
+
+====== HashOrDot ======
+Created Wednesday 25 January 2017
+
+Something I have immense difficulty remembering.
+
+For CSS selectors:
+
+# specifies an id
+. specifies a class

@@ -77,6 +77,8 @@ class SettingsController < ApplicationController
                     :enforce_permissions,
                     :current_mis,
                     :previous_mis,
-                    :auth_type)
+                    :auth_type,
+                    :dns_domain_name,
+                    :from_email_address)
     end
 end
