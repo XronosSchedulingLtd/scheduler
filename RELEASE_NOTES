@@ -1,3 +1,22 @@
+v0.17.1 2017-04-06
+
+* Add the means to check for events clashing with invigilation slots.
+
+  These can arise either because the exams administrator has over
+  ridden the list of free staff being offered, or because other
+  events have been added since the invigilation slots were populated.
+
+  The report can be displayed on screen, or e-mailed users flagged as
+  being exam adminstrators.  The latter can be done automatically as
+  part of the overnight processing.
+
+* Exam processing has been renamed as Invigilation processing, since
+  that's what it actually deals with.  As a result, the documentation
+  is now at:
+
+    https://xronos.uk/invigilation.html
+
+
 v0.17   2017-03-22
 
 * This release implements a major new feature - exam invigilation.

@@ -76,6 +76,7 @@ class User < ActiveRecord::Base
   scope :arranges_cover, lambda { where("arranges_cover = true") }
   scope :element_owner, lambda { where(:element_owner => true) }
   scope :editors, lambda { where(editor: true) }
+  scope :exams, lambda { where(exams: true) }
   scope :administrators, lambda { where(admin: true) }
 
   before_destroy :being_destroyed

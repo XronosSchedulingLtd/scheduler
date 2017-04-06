@@ -1,0 +1,33 @@
+The Batch methods needed are:
+
+Estates Manager Datasets
+  All Buildings & Rooms
+
+HR Manager Datasets
+  Current Staff
+
+Pupil Manager Datasets
+  Current Students
+  Custom Group Categories
+  Custom Group Membership
+  Custom Groups
+
+School Manager Datasets
+  Academic Houses
+  Pastoral Tutors
+  School Divisions
+  School Forms
+  Year Groups
+
+Teaching Manager Datasets
+  Departments & Subjects
+  Teaching Sets
+  Teaching Set Lists
+  Teaching Forms
+
+Timetable Manager Datasets
+  Published Timetable Schedule
+  Prep Timetable
+  Timetable Week Allocations
+  Weeks, Days & Periods
+

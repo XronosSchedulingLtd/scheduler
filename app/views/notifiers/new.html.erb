@@ -1,4 +1,4 @@
-<h1>Notifying invigilation slots</h1>
+<h1>Invigilation e-mails</h1>
 
 <%= form_for(@notifier) do |f| %>
   <% if @notifier.errors.any? %>
@@ -14,28 +14,40 @@
     <div class="small-3 columns">
       <%= f.label "Start date", class: "right inline" %>
     </div>
-    <div class="small-4 columns">
+    <div class="small-2 columns">
       <%= f.text_field :start_date_text, :class => :datepicker %>
     </div>
-    <div class="small-5 columns">
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
+    <div class="small-2 columns">
       <%= f.label "End date", class: "right inline" %>
     </div>
-    <div class="small-4 columns">
+    <div class="small-2 columns">
       <%= f.text_field :end_date_text, :class => :datepicker %>
     </div>
-    <div class="small-5 columns">
+    <div class="small-3 columns">
     </div>
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
       <%= f.label "Allocations created since", class: "right inline" %>
     </div>
-    <div class="small-4 columns">
+    <div class="small-2 columns">
       <%= f.text_field :modified_since_text, :class => :datepicker %>
+    </div>
+    <div class="small-7 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "E-mail invigilators", class: "right inline" %>
+    </div>
+    <div class="small-1 column">
+      <%= f.check_box :send_notifications %>
+    </div>
+    <div class="small-2 columns">
+      <%= f.label "E-mail clashes", class: "right inline" %>
+    </div>
+    <div class="small-1 column">
+      <%= f.check_box :check_clashes %>
     </div>
     <div class="small-5 columns">
     </div>
