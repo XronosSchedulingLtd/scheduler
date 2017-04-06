@@ -1,0 +1,17 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-04-05T09:22:26+01:00
+
+====== Wednesday 05 Apr 2017 ======
+
+Thinking about doing some clash checking for Abingdon's invigilation stuff.  There is a danger that SAE will add in OH activities after ICF has put in the invigilation.
+
+It seems fairly obvious to run it as a daily job which looks at all the invigilation commitments and checks for clashes.  I already have clash check code elsewhere so some re-use should be feasible.
+
+In fact, I have two areas which might be relevant - there's the code which offers people for invigilation in the first place, and there's the code which identifies double-booked students.  Both slightly different, but certainly related.
+
+Does it make sense to add this clash-checking into the code which does the invigilation notifications?  It already iterates through all the invigilation slots in a specified period.
+
+Got the basics of the clash checker working and producing an e-mail, but now wondering about how best to invoke it.
+
+Ian seems already to have over-ridden the choices offered by my program quite a lot, producing a number of clashes.  I'm tempted to think that the best option at this point might be just to offer him another menu option which lists the clashes on screen.  We could have a daily/weekly job which sent him an e-mail too.

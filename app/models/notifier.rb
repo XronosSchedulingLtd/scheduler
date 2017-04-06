@@ -78,11 +78,17 @@ class Notifier < FakeActiveRecord
 
   end
 
-  column :start_date,     :date
-  column :end_date,       :date
-  column :modified_since, :date
-  column :extra_text,     :text
-  column :check_clashes,  :boolean
+  column :start_date,         :date
+  column :end_date,           :date
+  column :modified_since,     :date
+  column :extra_text,         :text
+  column :check_clashes,      :boolean, false
+  #
+  #  This next one exists in the model purely to allow there to be
+  #  a field in the form.  It's still up to the client code to check
+  #  this flag and trigger e-mails if it wants them.
+  #
+  column :send_notifications, :boolean, true
 
   validates :start_date, :presence => true
   validates_with NotifierValidator
@@ -124,7 +130,7 @@ class Notifier < FakeActiveRecord
     self.modified_since = Date.safe_parse(new_value)
   end
 
-  def execute(which_flag = :regardless, check_clashes = false)
+  def execute
     if self.valid?
       property = Property.find_by(name: "Invigilation")
       @staff_entry_hash = Hash.new
@@ -159,7 +165,7 @@ class Notifier < FakeActiveRecord
             #
             #  Should we check this one for clashes?
             #
-            if check_clashes
+            if self.check_clashes
               clashing_commitments =
                 c.element.commitments_during(
                   start_time:   event.starts_at,
@@ -174,6 +180,15 @@ class Notifier < FakeActiveRecord
           end
         end
       end
+      @executed = true
+      true
+    else
+      false
+    end
+  end
+
+  def do_send(which_flag)
+    if @executed
       @staff_entry_hash.values.sort.each do |record|
         if record.notify?(which_flag)
           StaffMailer.upcoming_invigilation_email(record.staff,
@@ -181,16 +196,20 @@ class Notifier < FakeActiveRecord
                                                   self.extra_text).deliver
         end
       end
+    else
+      raise "Must execute the notifier first."
+    end
+  end
+
+  def notify_clashes
+    if @executed
       if @clashes.size > 0
-        unless which_flag == :none
-          User.exams.each do |u|
-            UserMailer.invigilation_clash_email(u, @clashes).deliver
-          end
+        User.exams.each do |u|
+          UserMailer.invigilation_clash_email(u, @clashes).deliver
         end
       end
-      true
     else
-      false
+      raise "Must execute the notifier first."
     end
   end
 

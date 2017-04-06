@@ -15,7 +15,6 @@ class UserMailer < ActionMailer::Base
 
   def invigilation_clash_email(user, clashes)
     @clashes = clashes.sort
-    puts "Sending to #{user.email}"
     mail(to: user.email,
          from: Setting.from_email_address,
          subject: "Possible invigilation clashes")

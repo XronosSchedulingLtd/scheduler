@@ -27,7 +27,14 @@ class NotifiersController < ApplicationController
     respond_to do |format|
       if @notifier.save
         @notifier.execute
+        if @notifier.send_notifications
+          @notifier.do_send(:regardless)
+        end
+        if @notifier.check_clashes
+          @notifier.notify_clashes
+        end
         @staff_entries = @notifier.staff_entries.sort
+        @sent = @notifier.send_notifications
         current_user.last_invig_run_date = Date.today
         current_user.save
         format.html
@@ -45,9 +52,11 @@ class NotifiersController < ApplicationController
   #
   def index
     @notifier = Notifier.new({
-      start_date: Date.today
+      start_date:         Date.today,
+      check_clashes:      true,
+      send_notifications: false
     })
-    @notifier.execute(:none, true)
+    @notifier.execute
   end
 
   private
@@ -62,6 +71,8 @@ class NotifiersController < ApplicationController
              permit(:start_date_text,
                     :end_date_text,
                     :modified_since_text,
-                    :extra_text)
+                    :extra_text,
+                    :check_clashes,
+                    :send_notifications)
     end
 end

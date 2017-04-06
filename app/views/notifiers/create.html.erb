@@ -1,5 +1,5 @@
 
-<h3>Notifications as follows:</h3>
+<h3>Notifications as follows <%= @sent ? "" : "(not actually sent)" %>:</h3>
 
 <% if @staff_entries.size > 0 %>
 <ul>
