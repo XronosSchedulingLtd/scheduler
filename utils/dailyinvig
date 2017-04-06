@@ -17,7 +17,7 @@ if [ "a$SCHEDULER_DIR" == "a" ]; then
 fi
 if [ -d $SCHEDULER_DIR ]; then
   cd $SCHEDULER_DIR
-  ./lib/invigilation/notify.rb
+  ./lib/invigilation/notify.rb --daily
 else
   echo "$SCHEDULER_DIR does not seem to be a directory."
   exit 2
