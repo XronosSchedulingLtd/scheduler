@@ -24,9 +24,12 @@ class NotifierRunner
     if options.weekly
       @run_type = :weekly
       @end_date = date_of_saturday(@start_date)
-    else
+    elsif options.daily
       @run_type = :daily
       @end_date = @start_date
+    else
+      @run_type = :clashchecking
+      @end_date = nil
     end
     if block_given?
       yield self
@@ -47,8 +50,9 @@ class NotifierRunner
       end_date:   @end_date
     })
     if notifier.valid?
-      notifier.execute(@run_type)
-      if @options.verbose
+      puts "@options.classes = #{@options.clashes}"
+      notifier.execute(@run_type, @options.clashes)
+      if @options.verbose && @run_type != :clashchecking
         if notifier.staff_entries.size > 0
           notifier.staff_entries.sort.each do |se|
             puts "  #{se.staff.name} (#{se.instances.count})#{ se.notify?(@run_type) ? "" : " - opted out"}"

@@ -13,6 +13,14 @@ class UserMailer < ActionMailer::Base
          subject: "Possible cover issues")
   end
 
+  def invigilation_clash_email(user, clashes)
+    @clashes = clashes.sort
+    puts "Sending to #{user.email}"
+    mail(to: user.email,
+         from: Setting.from_email_address,
+         subject: "Possible invigilation clashes")
+  end
+
   def commitment_rejected_email(commitment)
     parameters = Hash.new
     @event = commitment.event

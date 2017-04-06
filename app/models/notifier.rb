@@ -26,6 +26,30 @@ end
 
 class Notifier < FakeActiveRecord
 
+  class ClashEntry
+    attr_reader :cover_commitment, :clashing_commitment
+
+    def initialize(cover_commitment, clashing_commitment)
+      @cover_commitment    = cover_commitment
+      @clashing_commitment = clashing_commitment
+    end
+
+    def to_partial_path
+      "clash"
+    end
+
+    #
+    #  We sort by the corresponding cover events.
+    #
+    def <=>(other)
+      if self.cover_commitment.event && other.cover_commitment.event
+        self.cover_commitment.event <=> other.cover_commitment.event
+      else
+        0
+      end
+    end
+  end
+
   class StaffEntry
     attr_reader :staff, :instances
 
@@ -58,9 +82,12 @@ class Notifier < FakeActiveRecord
   column :end_date,       :date
   column :modified_since, :date
   column :extra_text,     :text
+  column :check_clashes,  :boolean
 
   validates :start_date, :presence => true
   validates_with NotifierValidator
+
+  attr_reader :clashes
 
   def staff_entries
     if @staff_entry_hash
@@ -97,10 +124,11 @@ class Notifier < FakeActiveRecord
     self.modified_since = Date.safe_parse(new_value)
   end
 
-  def execute(which_flag = :regardless)
+  def execute(which_flag = :regardless, check_clashes = false)
     if self.valid?
       property = Property.find_by(name: "Invigilation")
       @staff_entry_hash = Hash.new
+      @clashes = Array.new
       commitments = Commitment.commitments_on(
         startdate: self.start_date,
         enddate: self.end_date ? self.end_date : :never,
@@ -118,12 +146,31 @@ class Notifier < FakeActiveRecord
         #  which case it is definitely in the past.
         #
         event.commitments.preload(:element).each do |c|
-          if ((self.modified_since == nil) ||
-              (c.updated_at && c.updated_at >= self.modified_since)) &&
-             c.element.entity_type == "Staff"
-            staff = c.element.entity
-            staff_entry = (@staff_entry_hash[staff.id] ||= StaffEntry.new(staff))
-            staff_entry.note_instance(event)
+          if c.element.entity_type == "Staff"
+            #
+            #  Do we need to send a notification to the staff member?
+            #
+            if (self.modified_since == nil) ||
+               (c.updated_at && c.updated_at >= self.modified_since)
+              staff = c.element.entity
+              staff_entry = (@staff_entry_hash[staff.id] ||= StaffEntry.new(staff))
+              staff_entry.note_instance(event)
+            end
+            #
+            #  Should we check this one for clashes?
+            #
+            if check_clashes
+              clashing_commitments =
+                c.element.commitments_during(
+                  start_time:   event.starts_at,
+                  end_time:     event.ends_at,
+                  and_by_group: false).preload(:event) - [c]
+              if clashing_commitments.size > 0
+                clashing_commitments.each do |cc|
+                  @clashes << ClashEntry.new(c, cc)
+                end
+              end
+            end
           end
         end
       end
@@ -132,6 +179,13 @@ class Notifier < FakeActiveRecord
           StaffMailer.upcoming_invigilation_email(record.staff,
                                                   record.instances,
                                                   self.extra_text).deliver
+        end
+      end
+      if @clashes.size > 0
+        unless which_flag == :none
+          User.exams.each do |u|
+            UserMailer.invigilation_clash_email(u, @clashes).deliver
+          end
         end
       end
       true

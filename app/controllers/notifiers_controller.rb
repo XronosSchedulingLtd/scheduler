@@ -37,6 +37,19 @@ class NotifiersController < ApplicationController
     end
   end
 
+  #
+  #  This is slightly naughty.  There is no index of notifiers
+  #  because they never get saved to the database.  Instead we
+  #  fire up a notifier to get a list of clashes and display
+  #  that instead.
+  #
+  def index
+    @notifier = Notifier.new({
+      start_date: Date.today
+    })
+    @notifier.execute(:none, true)
+  end
+
   private
 
     def authorized?(action = action_name, resource = nil)
