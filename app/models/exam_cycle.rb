@@ -57,4 +57,20 @@ class ExamCycle < ActiveRecord::Base
   def <=>(other)
     self.starts_on <=> other.starts_on
   end
+
+  #
+  #  This is intended to work very much like the method:
+  #
+  #    exam_cycle.proto_events
+  #
+  #  provided as part of active record, but it returns a constructed
+  #  array of InvigilationProtoEvents instead of ProtoEvents.
+  #
+  #  Note that it does actually return an array, unlike the original
+  #  which returns a potential database query.  This is inevitable,
+  #  because the InvigilationProtoEvents aren't actually in the d/b.
+  #
+  def invigilation_proto_events
+    InvigilationProtoEvent.wrap(self.proto_events)
+  end
 end

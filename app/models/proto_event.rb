@@ -1,4 +1,133 @@
 
+#
+#  This module exists to hold any methods relating to a proto event
+#  functioning as part of the invigilation code.  It should probably
+#  be moved to a separate source file once ProtoEvents start being
+#  used for other purposes as well.
+#
+module ProtoEventInvigilationPersona
+
+  attr_accessor :num_staff, :location_id
+  attr_reader :room
+
+  def get_location_commitment
+    self.proto_commitments.find {|pc| pc.element.entity_type == "Location"}
+  end
+
+  def prepare
+    @persona = :invigilation
+    if new_record?
+      #
+      #  Two cases here.
+      #
+      #  1. A brand new record.
+      #  2. A dup of an existing record.
+      #
+      puts "Extended a new record."
+    else
+      puts "Extended an old record."
+      #
+      #  What current setting do we have for the number of invigilators
+      #  required?
+      #
+      pr = proto_requests[0]
+      if pr
+        @num_staff = pr.quantity.to_s
+      else
+        #
+        #  For some weird reason, the proto request is not there yet.
+        #
+      end
+      current_location_commitment = get_location_commitment
+      if current_location_commitment
+        @location_id = current_location_commitment.element_id
+        @room = current_location_commitment.element.name
+      end
+    end
+  end
+
+  def persona_specific_validation
+    if self.location_id.blank?
+      self.errors[:location_id] << "can't be blank"
+    else
+      @location_element = Element.find_by(id: location_id)
+      if @location_element
+        #
+        #  This isn't really the right place for this, but since we
+        #  have the location element to hand.
+        #
+        self.body = "#{@location_element.entity.name} Invigilation"
+      else
+        self.errors[:location_id] << "not found"
+      end
+    end
+    if self.num_staff.blank?
+      self.errors[:num_staff] << "can't be blank"
+    end
+    if /\A[+-]?\d+\z/ =~ self.num_staff
+      if self.num_staff.to_i < 0
+        self.errors[:num_staff] << "must not be negative"
+      end
+    else
+      self.errors[:num_staff] << "must be an integer"
+    end
+    if self.generator
+      unless self.generator.instance_of?(ExamCycle)
+        self.errors[:general] << "generator must be an exam cycle"
+      end
+    else
+      self.errors[:general] << "must have a generator"
+    end
+  end
+
+  def after_create_processing
+    #
+    #  Validation should already have checked to ensure we have
+    #  a valid generator which is an ExamCycle.
+    #
+    #  Use the bang version so if this fails we get an error
+    #  and the create will be rolled back.
+    #
+    self.proto_requests.create!({
+      element: self.generator.default_group_element,
+      quantity: self.num_staff
+    })
+    property = Property.find_by(name: "Invigilation")
+    if property
+      self.proto_commitments.create!({
+        element: property.element
+      })
+    end
+    #
+    #  @location_element is set up during validation.
+    #
+    self.proto_commitments.create!({
+      element: @location_element
+    })
+  end
+
+  def after_update_processing
+    pr = proto_requests[0]
+    if pr
+      if pr.quantity != num_staff.to_i
+        pr.quantity = num_staff.to_i
+        pr.save!
+      end
+    end
+    current_location_commitment = get_location_commitment
+    if current_location_commitment &&
+       current_location_commitment.element_id != @location_element.id
+      current_location_commitment.element = @location_element
+      current_location_commitment.save!
+      @room = @location_element.name
+    end
+  end
+
+  def self.extended(proto_event)
+    proto_event.prepare
+  end
+end
+
 class ProtoEventValidator < ActiveModel::Validator
   def validate(record)
     unless record[:starts_on].instance_of?(Date)
@@ -28,6 +157,12 @@ class ProtoEventValidator < ActiveModel::Validator
         record.errors[:ends_on] << "can't be before start date"
       end
     end
+    #
+    #  Now persona-specific stuff.
+    #
+    if record.have_persona
+      record.persona_specific_validation
+    end
   end
 end
 
@@ -53,40 +188,6 @@ class ProtoEvent < ActiveRecord::Base
   validates_with ProtoEventValidator
 
   attr_reader :org_starts_on, :org_ends_on
-
-  def resources
-    self.elements.collect {|e| e.entity}
-  end
-
-  def locations
-    self.resources.select {|r| r.instance_of?(Location)}
-  end
-
-  #
-  #  The first use of ProtoEvents is to provide exam invigilation stuff.
-  #  As such, the client end wants to see room information.
-  #
-  def room
-    l = locations[0]
-    if l
-      l.element_name
-    else
-      ""
-    end
-  end
-
-  def get_location_commitment
-    self.proto_commitments.find {|pc| pc.element.entity_type == "Location"}
-  end
-
-  def location_id
-    lc = get_location_commitment
-    if lc
-      lc.element_id
-    else
-      ""
-    end
-  end
 
   #
   #  And the name of the template in use.
@@ -125,85 +226,16 @@ class ProtoEvent < ActiveRecord::Base
   end
 
   #
-  #  Like a normal save, but will also add a location as a proto_commitment.
-  #
-  def save_with_location(location_id)
-    #
-    #  Check first whether we have a meaningful location id
-    #  and it points to a real location.  If not, then don't attempt
-    #  the save, but add an error to the relevant field.
-    #
-    if location_id
-      #
-      #  This is actually the ID of the location's element.
-      #
-      location_element = Element.find_by(id: location_id)
-      if location_element
-        #
-        #  Go for it.
-        #
-        self.body = "#{location_element.entity.name} Invigilation"
-        if self.save
-          self.proto_commitments.create({element: location_element})
-          return true
-        end
-      else
-        self.errors[:location] = "not found"
-      end
-    else
-      self.errors[:location] = "can't be blank"
-    end
-    return false
-  end
-
-  def update_with_location(params, new_location_id)
-    #
-    #  The location ID as received is liable to be a string, but
-    #  the ActiveRecord find methods can cope with this.
-    #
-    if new_location_id
-      new_location_element = Element.find_by(id: new_location_id)
-      if new_location_element
-        #
-        #  OK - we have the proposed new location (which may be
-        #  the same as it was before) so we are reasonably
-        #  confident we can apply that update (if indeed it is one).
-        #
-        if self.update(params)
-          #
-          #  That worked.  Just do the location too.
-          #
-          current_location_commitment = get_location_commitment
-          if current_location_commitment
-            if current_location_commitment.element_id != new_location_element.id
-              current_location_commitment.element = new_location_element
-              current_location_commitment.save
-            end
-          else
-            #
-            #  Slightly odd that we don't already have it, but...
-            #
-            self.proto_commitments.create({element: new_location_element})
-          end
-          return true
-        end
-      else
-        self.errors[:location] = "not found"
-      end
-    else
-      self.errors[:location] = "can't be blank"
-    end
-    return false
-  end
-
-  #
   #  Ensure a single event, as dictated by self, a date and a rota slot.
   #
   def ensure_event(date, rota_slot, existing)
     starts_at, ends_at = rota_slot.timings_for(date)
     if existing
-      Rails.logger.debug("Event already exists")
       event = existing
+      if event.body != self.body
+        event.body = self.body
+        event.save
+      end
     else
       event = self.events.create({
         body:          self.body,
@@ -212,12 +244,10 @@ class ProtoEvent < ActiveRecord::Base
         starts_at:     starts_at,
         ends_at:       ends_at,
         source_id:     rota_slot.id})
-      if event.valid?
-        Rails.logger.debug("Created event with id #{event.id}")
-      else
-        Rails.logger.debug("Failed to create")
+      unless event.valid?
+        Rails.logger.error("Failed to create event")
         event.errors.each do |e|
-          Rails.logger.debug(e)
+          Rails.logger.error(e)
         end
       end
     end
@@ -254,9 +284,7 @@ class ProtoEvent < ActiveRecord::Base
   def ensure_required_events
     if self.rota_template
       self.starts_on.upto(self.ends_on) do |date|
-        Rails.logger.debug(date.to_s(:dmy))
         existing_events = self.events.events_on(date)
-        Rails.logger.debug("#{existing_events.count} existing events.")
         self.rota_template.slots_for(date) do |slot|
           existing = existing_events.detect {|e| e.source_id == slot.id}
           ensure_event(date, slot, existing)
@@ -293,9 +321,10 @@ class ProtoEvent < ActiveRecord::Base
   end
 
   #
-  #  Take all events on or after the given date from the donor.  Before
-  #  we do that, we need to set up our own ProtoCommitments and ProtoRequests
-  #  to match the donor's.
+  #  Take all events on or after the given date from the donor.
+  #  In order to do that, we need a mapping between the donor's
+  #  ProtoRequests and ProtoCommitments and our own.  We should
+  #  have got a corresponding set when our record was saved.
   #
   def take_events(donor, date)
     #
@@ -303,22 +332,25 @@ class ProtoEvent < ActiveRecord::Base
     #  Data is our corresponding ProtoCommitment.
     #
     pc_hash = Hash.new
-    donor.proto_commitments.each do |pc|
-      pc_hash[pc.id] = self.proto_commitments.new({
-        proto_event: self,
-        element:     pc.element
-      })
+    donor.proto_commitments.each do |dpc|
+      opc = self.proto_commitments.detect {|pc| pc.element_id == dpc.element_id}
+      if opc
+        pc_hash[dpc.id] = opc
+      else
+        Rails.logger.error("Can't find matching proto_commitment duplicating proto_event.")
+      end
     end
     #
     #  And the same for ProtoRequests.
     #
     pr_hash = Hash.new
-    donor.proto_requests.each do |pr|
-      pr_hash[pr.id] = self.proto_requests.new({
-        proto_event: self,
-        element:     pr.element,
-        quantity:    pr.quantity
-      })
+    donor.proto_requests.each do |dpr|
+      opr = self.proto_requests.detect {|pr| pr.element_id == dpr.element_id }
+      if opr
+        pr_hash[dpr.id] = opr
+      else
+        Rails.logger.error("Can't find matching proto_request duplicating proto_event.")
+      end
     end
     #
     #  And now take the events.
@@ -363,6 +395,7 @@ class ProtoEvent < ActiveRecord::Base
     result = nil
     if (date > self.starts_on) && (date <= self.ends_on)
       other = self.dup
+      other.add_persona
       other.starts_on = date
       if other.save
         self.ends_on = date - 1.day
@@ -383,4 +416,158 @@ class ProtoEvent < ActiveRecord::Base
     end
     result
   end
+
+  #
+  #  Meta-programming functions
+  #
+  after_initialize :add_persona
+  after_create :after_create_processing
+  after_update :after_update_processing
+
+  def after_create_processing
+    #
+    #  This method does nothing, but may well be over-ridden by
+    #  a persona.
+    #
+  end
+
+  def after_update_processing
+    #
+    #  This method does nothing, but may well be over-ridden by
+    #  a persona.
+    #
+  end
+
+  def have_persona
+    #
+    #  Want to coerce this into returning just true and false.
+    #  @have_persona itself may be nil.
+    #
+    @have_persona ? true : false
+  end
+
+  def persona
+    @persona
+  end
+
+  def introspect
+    puts "Inspecting"
+    puts self.inspect
+    puts @persona_hash.inspect
+    puts "Inspected"
+  end
+
+  PERSONAE_BY_GENERATOR = {
+    "ExamCycle" => ProtoEventInvigilationPersona
+  }
+
+  PERSONAE_BY_NAME = {
+    "Invigilation" => ProtoEventInvigilationPersona
+  }
+
+  #
+  #  This function is called after initialisation.  It should by now be
+  #  possible to tell what kind of persona we have - we must have one -
+  #  and thus to pass it any additional parameters.
+  #
+  def add_persona
+    persona = PERSONAE_BY_GENERATOR[self.generator_type]
+    #
+    #  It's just possible that a caller might want to create a ProtoEvent
+    #  without doing it through its generator.  The usual way to create
+    #  one is with something like:
+    #
+    #    exam_cycle.proto_events.create({ ...hash... })
+    #
+    #  and that will work fine with the line above.  It is however just
+    #  possible that someone might want to create one and then assign
+    #  it to its generator later.  Allow the persona type to be specified
+    #  as a parameter.
+    #
+    if @persona_hash && (persona_name = @persona_hash[:persona])
+      @persona_hash.except!(:persona)
+      persona = PERSONAE_BY_NAME[persona_name]
+    end
+    if persona
+      self.extend persona
+      @have_persona = true
+      #
+      #  Now need to pass in all the assignments saved earlier.
+      #  If one of them doesn't work, it should raise an error as before.
+      #
+      if @persona_hash
+        @persona_hash.each do |key, value|
+          self.send("#{key}=", value)
+        end
+      end
+    else
+      raise ArgumentError, "proto_event must have a known generator_type #{self.generator_type}"
+    end
+  end
+
+  #
+  #  It would appear that this function is called only if we create a
+  #  new record in memory.  It is *not* called when you load one from
+  #  the database.
+  #
+  def initialize(*args)
+    puts "In initialize"
+    @have_persona = false
+    @persona_hash = {}
+    super
+  end
+
+  alias_method :really_respond_to?, :respond_to?
+
+  def method_missing(method_sym, *arguments, &block)
+    #
+    #  How we behave depends on whether or not we have already mixed
+    #  in our persona module.  If we've already mixed in our persona
+    #  then there's nothing more we can do.
+    #
+    if @have_persona
+      super
+    else
+      #
+      #  Don't yet know what our persona is, so need to be able to
+      #  store assignments to be handled later.  This code exists
+      #  to cope with calls on new() and create() where all the
+      #  parameters are passed in one go and we don't know the
+      #  order in which they'll be processed.
+      #
+      #  We won't know until we get our persona what assignments we
+      #  can actually cope with.  We attempt to cope with assignments
+      #  only.
+      #
+      if self.really_respond_to?(method_sym)
+        super
+      else
+        if method_sym.to_s =~ /=$/
+          @persona_hash[method_sym.to_s.chomp("=").to_sym] = arguments.first
+        else
+          super
+        end
+      end
+    end
+  end
+
+  #
+  #  This is slightly tricky - we don't know until we get our persona.
+  #
+  def respond_to?(method_sym, include_private = false)
+    if @have_persona
+      super
+    else
+      if super
+        true
+      else
+        if method_sym.to_s =~ /=$/
+          true
+        else
+          false
+        end
+      end
+    end
+  end
+
 end
