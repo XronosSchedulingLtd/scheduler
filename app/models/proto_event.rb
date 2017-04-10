@@ -32,6 +32,14 @@ module ProtoEventInvigilationPersona
       #
       pr = proto_requests[0]
       if pr
+        #
+        #  Because we apply validation to this field before we save
+        #  it, we need to hold its value as a string - the same way
+        #  we would receive it if it came from the front end.
+        #
+        #  ActiveRecord will turn it back into an integer as part
+        #  of saving the record.
+        #
         @num_staff = pr.quantity.to_s
       else
         #
@@ -104,6 +112,7 @@ module ProtoEventInvigilationPersona
     self.proto_commitments.create!({
       element: @location_element
     })
+    @room = @location_element.name
   end
 
   def after_update_processing
