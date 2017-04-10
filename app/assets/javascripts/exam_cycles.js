@@ -13,6 +13,10 @@ var examcycles = function() {
 
   var that = {};
 
+  var ExamCycle = Backbone.Model.extend({
+    urlRoot: '/exam_cycles'
+  });
+
   var ProtoEvent = Backbone.Model.extend({
     defaults: {
       status: "created",
@@ -21,13 +25,13 @@ var examcycles = function() {
       rota_template_name: "",
       starts_on_text: "",
       ends_on_text: "",
-      event_count: 0
+      event_count: 0,
+      num_staff: 0
     },
     initialize: function(options) {
       _.bindAll(this, 'generationResponse');
     },
     generate: function(callback) {
-      console.log("Model asked to generate.");
       //
       //  Sends a generate request for this model to the host.
       //
@@ -38,11 +42,19 @@ var examcycles = function() {
              "json");
     },
     generationResponse: function(data, textStatus, jqXHR) {
-      console.log("In response function.");
       if (textStatus === "success") {
         this.set(data);
       }
       this.generationDoneCallback();
+    },
+    paramsToCreate: function() {
+      return {
+        location_id:      this.get('location_id'),
+        rota_template_id: this.get('rota_template_id'),
+        starts_on_text:   this.get('starts_on_text'),
+        ends_on_text:     this.get('ends_on_text'),
+        num_staff:        this.get('num_staff')
+      }
     },
     canSplit: function() {
       return moment(this.get("ends_on")) > moment(this.get("starts_on"));
@@ -53,7 +65,6 @@ var examcycles = function() {
       //  Special care is needed when the interval is very short - 2 days.
       //
       var startDate = moment(this.get("starts_on"));
-      console.log("Start date: " + startDate.format("DD/MM/YYYY"));
       var endDate   = moment(this.get("ends_on"));
       var diff = endDate.diff(startDate, "days");
       var results = {}
@@ -106,8 +117,6 @@ var examcycles = function() {
       this.dates = this.model.splitDates();
       datePicker.val(this.dates.afterDate.format("DD/MM/YYYY"));
       this.$el.find("#daybefore").html(this.dates.beforeDate.format("DD/MM/YYYY"));
-      console.log("mindate: " + this.dates.minAfter.format("DD/MM/YYYY"));
-      console.log("maxdate: " + this.dates.maxAfter.format("DD/MM/YYYY"));
       datePicker.datepicker({
         dateFormat: "dd/mm/yy",
         minDate: this.dates.minAfter.format("DD/MM/YYYY"),
@@ -120,19 +129,16 @@ var examcycles = function() {
       this.setState("ready");
     },
     dateSelected: function(dateText, inst) {
-      console.log(dateText + " selected.");
       var newDate = moment(dateText, "DD/MM/YYYY");
       if (newDate.isValid() &&
           newDate >= this.dates.minAfter &&
           newDate <= this.dates.maxAfter) {
-        console.log("Acceptable.");
         this.dates.afterDate = newDate;
         this.dates.beforeDate = moment(newDate);
         this.dates.beforeDate.subtract(1, "days");
         this.splitModal.find("#daybefore").html(this.dates.beforeDate.format("DD/MM/YYYY"));
 
       } else {
-        console.log("Unacceptable.");
         var datePicker = this.splitModal.find('.datepicker');
         datePicker.val(this.dates.afterDate.format("DD/MM/YYYY"));
       }
@@ -148,7 +154,6 @@ var examcycles = function() {
              "json").done(this.splitOK).fail(this.splitFail);
     },
     splitOK: function(data, textStatus, jqXHR) {
-      console.log("Success response");
       //
       //  We update our existing model with its new end date (which
       //  we already know, and then add the new model (details of
@@ -165,23 +170,20 @@ var examcycles = function() {
       this.model.fetch();
     },
     splitFail: function(jqXHR, textStatus, errorThrown) {
-      console.log("Failure response");
       alert("Split failed.");
       this.splitModal.foundation('reveal', 'close');
     },
     doCancel: function() {
-      console.log("Asked to cancel.");
       this.splitModal.foundation('reveal', 'close');
     },
     modalClosed: function() {
-      console.log("Modal closed.");
       $(document).off('closed', '[data-reveal]', this.modalClosed);
       this.remove();
     }
   });
 
   var ProtoEventView = Backbone.View.extend({
-    tagName: 'tr',
+    tagName: 'tbody',
     className: 'ec-protoevent',
     template: _.template($('#ec-protoevent-row').html()),
     errortemplate: _.template($('#ec-error-msg').html()),
@@ -211,9 +213,6 @@ var examcycles = function() {
       this.$el.addClass(state);
     },
     render: function() {
-      console.log("ProtoEventView asked to render.");
-//      console.log(this.template(this.model.toJSON()));
-//      console.log("Currently contains: " + this.$el.html());
       this.setState(this.model.get("status"));
       this.$el.html(this.template(this.model.toJSON()));
       //
@@ -235,25 +234,21 @@ var examcycles = function() {
         alert("Won't delete a room entry with active events.\nIf you really want to delete it, change the template to one with no entries, re-generate the events and then hit Delete again.");
       }
     },
+    fieldContents: function() {
+      return {
+        room:             this.$('input.inputname').val(),
+        location_id:      this.$('.location_id').val(),
+        rota_template_id: this.$('.inputrtname').val(),
+        starts_on_text:   this.$('input.starts_on').val(),
+        ends_on_text:     this.$('input.ends_on').val(),
+        num_staff:        this.$('input.num_staff').val()
+      }
+    },
     syncModel: function() {
       //
       //  Read fields from the view back into the model.
       //
-      this.model.set({
-        "room":             this.$('input.inputname').val(),
-        "location_id":      this.$('input.location_id').val(),
-        "rota_template_id": this.$('select.inputrtname').val(),
-        "starts_on_text":   this.$('input.starts_on').val(),
-        "ends_on_text":     this.$('input.ends_on').val()
-      });
-    },
-    fieldContents: function() {
-      return {
-        location_id:      this.$('.location_id').val(),
-        rota_template_id: this.$('.inputrtname').val(),
-        starts_on_text:   this.$('input.starts_on').val(),
-        ends_on_text:     this.$('input.ends_on').val()
-      }
+      this.model.set(this.fieldContents());
     },
     clearErrorMessages: function() {
       this.$("small.error").remove();
@@ -280,25 +275,23 @@ var examcycles = function() {
       //  to pick up issues.
       //
       this.syncModel();
-      this.owner.createNewProtoEvent(this.fieldContents(),
-                                     this.creationOK,
-                                     this.creationError,
-                                     this);
+      this.model.trigger("addRequested");
     },
     creationOK: function() {
-      console.log("Created successfully.");
-      this.model.set("room", "");
+      this.model.set({
+        room: "",
+        location_id: ""
+      });
       this.$('input.inputname').focus();
     },
     creationError: function(model, response, options) {
       var view, errors;
 
-      console.log("ProtoEvent view noting error.");
       view = this;
       errors = $.parseJSON(response.responseText);
       for (var property in errors) {
         if (errors.hasOwnProperty(property)) {
-          console.log(property + ": " + errors[property]);
+          console.log("Error for " + property);
           var div = view.$el.find("div." + property);
           div.append(view.errortemplate({error_msg: errors[property]}));
           div.addClass("error");
@@ -327,12 +320,10 @@ var examcycles = function() {
     updateError: function(model, response) {
       var view, errors;
 
-      console.log("ProtoEvent view noting update error.");
       view = this;
       errors = $.parseJSON(response.responseText);
       for (var property in errors) {
         if (errors.hasOwnProperty(property)) {
-          console.log(property + ": " + errors[property]);
           var div = view.$el.find("div." + property);
           div.append(view.errortemplate({error_msg: errors[property]}));
           div.addClass("error");
@@ -343,7 +334,6 @@ var examcycles = function() {
       this.setState("created");
     },
     generate: function() {
-      console.log("View asked to generate.");
       this.setState("generating");
       this.model.generate(this.generationDone);
     },
@@ -373,83 +363,62 @@ var examcycles = function() {
   });
 
   var ProtoEventsView = Backbone.View.extend({
-    el: '#ec-table tbody',
+    el: '#ec-table',
+    headerTemplate: _.template($('#ec-protoevents-header').html()),
     initialize: function (ecid) {
-      _.bindAll(this, 'addOne');
+      this.examCycle = new ExamCycle({id: ecid});
+      this.listenTo(this.examCycle, 'sync', this.gotExamCycle);
       this.collection = new ProtoEvents(null, {ecid: ecid});
       this.listenTo(this.collection, 'sync', this.render);
-      this.listenTo(this.collection, 'add', this.render);
-      this.collection.fetch();
-    },
-    render: function() {
-      console.log("Asked to render " + this.collection.length + " proto events");
-      var $list = this.$el.empty();
-      this.collection.each(function(model) {
-        var protoEventView = new ProtoEventView({model: model});
-        $list.append(protoEventView.render().$el);
-      }, this);
-      return this;
-    },
-    addOne: function(params, success, failure, object) {
-      var newProtoEvent = this.collection.create(
-        params,
-        {
-          wait: true
-        }).on('sync', success, object).on('error', failure, object);
-    },
-  });
-
-  var ExamCycle = Backbone.Model.extend({
-    urlRoot: '/exam_cycles'
-  });
-
-  var ExamCycleView = Backbone.View.extend({
-    el: "#ec-table",
-    model: ExamCycle,
-    initialize: function(rtid) {
-      this.model = new ExamCycle({id: rtid});
-      this.listenTo(this.model, 'sync', this.render);
-      this.$forentry = this.$('tfoot tr')
-      this.model.fetch();
-      //
-      //  We also need a dummy ProtoEvent which will handle our
-      //  input fields in the bottom row.
-      //
       this.newPE = new ProtoEvent({
         status: "creating",
         id: ""
       });
-      this.newPEView = new ProtoEventView({
-        model: this.newPE,
-        el: this.$forentry,
-        owner: this
-      });
+      this.listenTo(this.newPE, 'addRequested', this.processAdd);
     },
     render: function() {
-      console.log("ExamCycleView asked to render.");
-      //
-      //  Nothing actually to render of the cycle itself, but
-      //  we do need to set up the input fields in the footer.
-      //
-      this.newPE.set({
-        "rota_template_id": this.model.get("default_rota_template_id"),
-        "starts_on_text":   this.model.get("starts_on_text"),
-        "ends_on_text":     this.model.get("ends_on_text")
+      console.log("Rendering collection.");
+      var $list = this.$el.empty();
+      $list.html(this.headerTemplate());
+      this.collection.each(function(model) {
+        var protoEventView = new ProtoEventView({model: model});
+        $list.append(protoEventView.render().$el);
+      }, this);
+      this.inputView = new ProtoEventView({
+        model: this.newPE
       });
+      $list.append(this.inputView.render().$el);
       return this;
     },
-    createNewProtoEvent: function(params, success, failure, object) {
-      console.log("Asked to create a new ProtoEvent.");
-      that.protoEventsView.addOne(params, success, failure, object);
+    processAdd: function() {
+      var newProtoEvent = this.collection.create(
+        this.newPE.paramsToCreate(),
+        {
+          wait: true
+        }).on('sync',
+              this.inputView.creationOK,
+              this.inputView).
+           on('error',
+              this.inputView.creationError,
+              this.inputView);
+    },
+    fetchExamCycle: function() {
+      this.examCycle.fetch();
+    },
+    gotExamCycle: function() {
+      this.newPE.set({
+        "rota_template_id": this.examCycle.get("default_rota_template_id"),
+        "starts_on_text":   this.examCycle.get("starts_on_text"),
+        "ends_on_text":     this.examCycle.get("ends_on_text"),
+        "num_staff":        this.examCycle.get("default_quantity")
+      });
+      this.collection.fetch();
     }
   });
 
-  function getExamCycle(ecid) {
-    var examCycleView = new ExamCycleView(ecid);
-  };
-
-  function getProtoEvents(ecid) {
+  function fetchData(ecid) {
     that.protoEventsView = new ProtoEventsView(ecid);
+    that.protoEventsView.fetchExamCycle();
   };
 
   that.init = function() {
@@ -458,8 +427,7 @@ var examcycles = function() {
     //  exists, otherwise we wouldn't be running at all.
     //
     var ecid = $('#examcycle').data("ecid");
-    getExamCycle(ecid);
-    getProtoEvents(ecid);
+    fetchData(ecid);
   }
 
   return that;

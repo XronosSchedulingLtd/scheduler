@@ -22,7 +22,7 @@ table#ec-table {
     height: 55px;
   }
 
-  tr.creating {
+  tbody.creating {
     div.forinput,
     button.add {
       display: inline;
@@ -41,7 +41,7 @@ table#ec-table {
     }
   }
 
-  tr.created {
+  tbody.created {
     button.edit,
     button.generate,
     button.split,
@@ -54,12 +54,13 @@ table#ec-table {
     button.deleteevents,
     button.cancel,
     div.forinput,
+    tr.pe-second-row,
     span.generating {
       display: none;
     }
   }
 
-  tr.generating {
+  tbody.generating {
     span.generating {
       display: inline;
     }
@@ -77,7 +78,7 @@ table#ec-table {
     }
   }
 
-  tr.editing {
+  tbody.editing {
     button.update,
     button.cancel,
     div.forinput {
