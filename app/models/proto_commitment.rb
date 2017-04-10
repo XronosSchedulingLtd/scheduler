@@ -7,6 +7,8 @@ class ProtoCommitment < ActiveRecord::Base
   validates :proto_event, :presence => true
   validates :element,     :presence => true
 
+  validates :element_id, uniqueness: { scope: :proto_event_id }
+
   def ensure_commitment(event)
     #
     #  We can find our commitment by either event.commitments or

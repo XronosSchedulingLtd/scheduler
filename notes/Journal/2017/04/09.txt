@@ -1,0 +1,20 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-04-09T08:31:04+01:00
+
+====== Sunday 09 Apr 2017 ======
+
+Thinking about how to handle the "Add room" event.
+
+We now have a ProtoEventsView which is parent to a number of ProtoEventViews - one of which is special and allows entry of new details.  Proposed processing:
+
+* Special ProtoEventView notices the click and extracts the data from the form into its model.
+* Triggers an event which the ProtoEventsView is listening for
+* The ProtoEventsView reads the necessary data out of the special ProtoEventView, and triggers the addition, specifying callbacks into the ProtoEventView on success or failure.
+* The ProtoEventView handles the result.
+
+
+Lots done.  Two queries:
+
+[*] Why, when I split a proto_event, does one of the new quantities show as 0.
+[*] Why, on regeneration, do all the existing events get the new room added rather than getting the room replaced?  And the request is there twice too.

@@ -3,7 +3,7 @@
 one:
   user_id: 1
   element_id: 1
-  equals: false
+  equality: false
   owns: false
   visible: false
   colour: MyString
@@ -11,7 +11,7 @@ one:
 two:
   user_id: 1
   element_id: 1
-  equals: false
+  equality: false
   owns: false
   visible: false
   colour: MyString

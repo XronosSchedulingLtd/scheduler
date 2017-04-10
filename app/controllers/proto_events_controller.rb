@@ -1,6 +1,10 @@
 class ProtoEventsController < ApplicationController
   wrap_parameters :proto_event,
-                  include: [:starts_on_text, :ends_on_text, :rota_template_id]
+                  include: [:starts_on_text,
+                            :ends_on_text,
+                            :rota_template_id,
+                            :num_staff,
+                            :location_id]
   before_action :find_exam_cycle, except: [:split]
   before_action :set_proto_event, only: [:show, :edit, :update, :destroy, :generate, :split]
 
@@ -15,16 +19,10 @@ class ProtoEventsController < ApplicationController
   def show
   end
 
-  # GET /proto_events/new
-  def new
-    @proto_event = ProtoEvent.new
-  end
-
   # GET /proto_events/1/edit
   def edit
   end
 
-  # POST /proto_events
   # POST /proto_events.json
   def create
     @proto_event = @exam_cycle.proto_events.new(proto_event_params)
@@ -54,19 +52,7 @@ class ProtoEventsController < ApplicationController
     #  a general purpose structure, but currently using it for
     #  only one purpose.
     #
-    if @proto_event.save_with_location(params[:location_id])
-      if @exam_cycle.default_group_element
-        @proto_event.proto_requests.create({
-          element: @exam_cycle.default_group_element,
-          quantity: @exam_cycle.default_quantity
-        })
-      end
-      property = Property.find_by(name: "Invigilation")
-      if property
-        @proto_event.proto_commitments.create({
-          element: property.element
-        })
-      end
+    if @proto_event.save
       respond_to do |format|
         format.json { render :show, status: :created }
       end
@@ -81,8 +67,7 @@ class ProtoEventsController < ApplicationController
   # PATCH/PUT /proto_events/1.json
   def update
     respond_to do |format|
-      if @proto_event.update_with_location(proto_event_params,
-                                           params[:location_id])
+      if @proto_event.update(proto_event_params)
         format.html { redirect_to @proto_event, notice: 'Proto event was successfully updated.' }
         format.json { render :show, status: :ok }
       else
@@ -155,6 +140,8 @@ class ProtoEventsController < ApplicationController
     def proto_event_params
       params.require(:proto_event).permit(:rota_template_id,
                                           :starts_on_text,
-                                          :ends_on_text)
+                                          :ends_on_text,
+                                          :num_staff,
+                                          :location_id)
     end
 end

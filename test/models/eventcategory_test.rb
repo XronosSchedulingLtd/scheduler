@@ -20,11 +20,6 @@ class EventcategoryTest < ActiveSupport::TestCase
     assert_not eventcategory.valid?
   end
 
-  test "should require a pecking order" do
-    eventcategory = Eventcategory.new(:name => "Banana")
-    assert_not eventcategory.valid?
-  end
-
   test "should require a numeric pecking order" do
     eventcategory = Eventcategory.new(:name => "Banana", :pecking_order => "fred")
     assert_not eventcategory.valid?
