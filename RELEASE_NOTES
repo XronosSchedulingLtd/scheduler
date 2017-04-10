@@ -1,3 +1,40 @@
+v0.17.2 2017-04-10
+
+* Add the means to edit the number of invigilators per room.
+
+  Previously one set a default number of invigilators for an exam
+  cycle and this propagated to all the invigilation slots.  Each slot
+  could then be amended individually, but there was no way to do it
+  for all the slots in a room.
+
+  It is now possible to set a default for the exam cycle, which will
+  be copied as the default for each new room record but can be amended
+  in the course of creating the room record, or later.
+
+  If the number for a room is altered after the actual invigilation
+  events have been generated then a re-generation of the events will
+  alter the individual invigilation event records provided:
+
+    1. The individual record has no invigilators allocated
+    2. The individual record has not been set to 0.
+
+  The idea is to preserve information which has been actively entered,
+  whilst allowing bulk changes where possible.
+
+* Fix a bug whereby events which were moved did not change name.
+
+  In the original implementation, all invigilation events were called
+  simply "Invigilation".  This was later changed to "<Room no> Invigilation".
+  Thus one would have, for instance, "M116 Invigilation", the idea
+  being to make it really obvious to the end user where he or she
+  was meant to be.
+
+  If however a set of invigilations were moved to a new room, the
+  name did not change.  The event would continue to be called
+  "M116 Invigilation" even though it was now in M115.  This release
+  fixes that problem.
+
+
 v0.17.1 2017-04-06
 
 * Add the means to check for events clashing with invigilation slots.
