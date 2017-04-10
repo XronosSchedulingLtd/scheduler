@@ -1,7 +1,5 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  attachment: MyString
-
-two:
-  attachment: MyString
+  title: "Able baker"
+  contents: "Charlie"
