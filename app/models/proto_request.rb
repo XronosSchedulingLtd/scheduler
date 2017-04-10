@@ -25,11 +25,23 @@ class ProtoRequest < ActiveRecord::Base
         modified = true
       end
       #
-      #  It's tempting at this point to update the quantity field too,
-      #  but that would break the principle that re-generation is safe.
-      #  The user may well have modified that value on existing events,
-      #  and we don't want to lose that information.
+      #  Under certain circumstances we can update the quantity too.
       #
+      #  Essentially we're trying to do it if the actual request
+      #  has not yet started being fulfilled.  Tests are:
+      #
+      #  * Existing request quantity != 0
+      #    (Implying the user has already said he doesn't want anyone here.)
+      #  * No existing commitments fulfilling the request
+      #    (Implying the user has started allocating.)
+      #
+      if existing.quantity != self.quantity
+        if existing.quantity != 0 &&
+           existing.commitments.count == 0
+          existing.quantity = self.quantity
+          modified = true
+        end
+      end
       if modified
         existing.save
       end
