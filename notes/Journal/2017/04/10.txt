@@ -1,0 +1,18 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-04-10T07:09:51+01:00
+
+====== Monday 10 Apr 2017 ======
+
+Thought I was ready to start testing but then realised I still want to let the number of invigilators be changed.  I propose to let it happen as follows:
+
+If the user changes the number of invigilators in the proto_event and regenerates events, then the number on each event will be updated provided:
+
+* The existing number isn't 0
+* There are no staff allocated to the event
+
+This pair of conditions implies that the individual event is not as yet modified from what it was before.
+
+It also occurred to me that I should not reduce the quantity below that currently allocated, but given the requirement above that the current allocation be 0, that won't arise.
+
+Let's try deleting all of Ian's invigilation and doing it again, better.  Test sending of e-mails too - both manual and automated.  Done all that.
