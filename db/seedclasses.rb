@@ -453,13 +453,14 @@ class Seeder
     Date.beginning_of_week = :sunday
     @weekdates = Hash.new
     sunday = Date.today.at_beginning_of_week
-    @weekdates[:sunday]    = sunday
-    @weekdates[:monday]    = sunday + 1.day
-    @weekdates[:tuesday]   = sunday + 2.days
-    @weekdates[:wednesday] = sunday + 3.days
-    @weekdates[:thursday]  = sunday + 4.days
-    @weekdates[:friday]    = sunday + 5.days
-    @weekdates[:saturday]  = sunday + 6.days
+    @weekdates[:sunday]     = sunday
+    @weekdates[:monday]     = sunday + 1.day
+    @weekdates[:tuesday]    = sunday + 2.days
+    @weekdates[:wednesday]  = sunday + 3.days
+    @weekdates[:thursday]   = sunday + 4.days
+    @weekdates[:friday]     = sunday + 5.days
+    @weekdates[:saturday]   = sunday + 6.days
+    @weekdates[:nextmonday] = sunday + 8.days
 
     #
     #  What academic year are we notionally in?
@@ -550,11 +551,14 @@ class Seeder
       SeedProperty.new("Gap")
     @properties[:suspensionproperty] =
       SeedProperty.new("Suspension")
+    @properties[:invigilationproperty] =
+      SeedProperty.new("Invigilation")
     #
     # Sources
     #
     @eventsources[:thisfile] = Eventsource.create!({ name: "Seedfile" })
     @eventsources[:manual]   = Eventsource.create!({ name: "Manual" })
+    @eventsources[:rotaslot] = Eventsource.create!({ name: "RotaSlot" })
   end
 
   Usefuls = [
