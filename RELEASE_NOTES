@@ -1,3 +1,26 @@
+v0.17.3 2017-04-14
+
+A bit of a drawing together of a few loose strands.
+
+* Don't complain about inconsistent data from the iSAMS database.
+
+  It's becoming steadily more apparent that the iSAMS database likes
+  basic consistency constraints.  We're getting membership records
+  for pupils which are apparently currently active, even though the
+  corresponding groups are currently inactive.  Stop complaining
+  about them.
+
+* In the course of testing the above, an instance of a hard coded
+  path was found in the script which invokes the import process.
+  An appropriate environment variable already exists, so the script
+  was amended to test for it and then use it.
+
+* The seed data used for setting up new systems and the demo system
+  has been enhanced to include information relevant to invigilation.
+  For the demo system, a period of suspended lessons is created to
+  allow the feature to be demonstrated.
+
+
 v0.17.2 2017-04-10
 
 * Add the means to edit the number of invigilators per room.

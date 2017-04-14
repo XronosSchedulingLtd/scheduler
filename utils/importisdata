@@ -16,54 +16,68 @@
 #
 . ~/.rvm/environments/scheduler
 #
-cd ~/Work/Coding/scheduler/import/isams
-rm -f Incoming/*
-if [ -f PreFetched/data.xml ]; then
-  echo "Using pre-fetched data.xml"
-  cp PreFetched/data.xml Incoming
-else
-  curl --silent https://abingdon.isams.co.uk:443/api/batch/1.0/xml.ashx?apikey=$APIKEY --output Incoming/data.xml
+#
+#  Make sure SCHEDULER_DIR is set
+#
+if [ "a$SCHEDULER_DIR" == "a" ]; then
+  echo "SCHEDULER_DIR environment variable needs to be set."
+  exit 1
 fi
-if [ $? -eq 0 ]; then
-  if [ -f PreFetched/TblActivityManagerEvent.csv ]; then
-    echo "Using pre-fetched csv files."
-    cp PreFetched/*.csv Incoming
+if [ -d $SCHEDULER_DIR/import/isams ]; then
+  cd $SCHEDULER_DIR/import/isams
+  rm -f Incoming/*
+  if [ -f PreFetched/data.xml ]; then
+    echo "Using pre-fetched data.xml"
+    cp PreFetched/data.xml Incoming
   else
-    #
-    #  Access to the iSAMS d/b seems to have been (temporarily?) blocked
-    #  from this IP address, so for now just copy the files which we
-    #  have already.
-    #
-    ../../utils/fetchisdata/extractor.rb --target Incoming --extract
-#    echo "Using OriginalStuff"
-#    cp OriginalStuff/TblActivityManagerEvent.csv OriginalStuff/TblActivityManagerEventOccurrence.csv OriginalStuff/TblActivityManagerEventPupilLink.csv OriginalStuff/TblActivityManagerEventTeacherLink.csv OriginalStuff/TblActivityManagerGroup.csv OriginalStuff/TblActivityManagerGroupPupilLink.csv Incoming
+    curl --silent https://abingdon.isams.co.uk:443/api/batch/1.0/xml.ashx?apikey=$APIKEY --output Incoming/data.xml
   fi
   if [ $? -eq 0 ]; then
-    #
-    #  We now appear to have a set of data files.  Move them to Current
-    #  and then archive them.
-    #
-    rm -f Current/*
-    mv Incoming/* Current
-    TARGET_DIR="Archive/`date +%Y/%m/%d`"
-    mkdir -p $TARGET_DIR
-    cp Current/* $TARGET_DIR
-    bzip2 -f $TARGET_DIR/*.csv $TARGET_DIR/*.xml
-    #
-    #  And now invoke the import utility to bring the new data into Scheduler.
-    #
-    ../../lib/import/misimport.rb --quiet --email | tee import.log
-    cp import.log $TARGET_DIR
-    bzip2 -f $TARGET_DIR/import.log
-    #
-    #  Feed to markbook if configured.
-    #
-    if [ "$FEED_MARKBOOK" == "true" ]; then
-      rsync ../ForMarkbook/*.yml markbook:FromScheduler
+    if [ -f PreFetched/TblActivityManagerEvent.csv ]; then
+      echo "Using pre-fetched csv files."
+      cp PreFetched/*.csv Incoming
+    else
+      #
+      #  Access to the iSAMS d/b seems to have been (temporarily?) blocked
+      #  from this IP address, so for now just copy the files which we
+      #  have already.
+      #
+      ../../utils/fetchisdata/extractor.rb --target Incoming --extract
+  #    echo "Using OriginalStuff"
+  #    cp OriginalStuff/TblActivityManagerEvent.csv OriginalStuff/TblActivityManagerEventOccurrence.csv OriginalStuff/TblActivityManagerEventPupilLink.csv OriginalStuff/TblActivityManagerEventTeacherLink.csv OriginalStuff/TblActivityManagerGroup.csv OriginalStuff/TblActivityManagerGroupPupilLink.csv Incoming
+    fi
+    if [ $? -eq 0 ]; then
+      #
+      #  We now appear to have a set of data files.  Move them to Current
+      #  and then archive them.
+      #
+      rm -f Current/*
+      mv Incoming/* Current
+      TARGET_DIR="Archive/`date +%Y/%m/%d`"
+      mkdir -p $TARGET_DIR
+      cp Current/* $TARGET_DIR
+      bzip2 -f $TARGET_DIR/*.csv $TARGET_DIR/*.xml
+      #
+      #  And now invoke the import utility to bring the new data into Scheduler.
+      #
+      ../../lib/import/misimport.rb --quiet --email | tee import.log
+      cp import.log $TARGET_DIR
+      bzip2 -f $TARGET_DIR/import.log
+      #
+      #  Feed to markbook if configured.
+      #
+      if [ "$FEED_MARKBOOK" == "true" ]; then
+        rsync ../ForMarkbook/*.yml markbook:FromScheduler
+      fi
+    else
+      echo "Failed to fetch data from iSAMS d/b."
+      exit 3
     fi
   else
-    echo "Failed to fetch data from iSAMS d/b."
+    echo "Failed to fetch data from iSAMS API."
+    exit 4
   fi
 else
-  echo "Failed to fetch data from iSAMS API."
+  echo "$SCHEDULER_DIR/import/isams does not seem to be a directory."
+  exit 2
 fi

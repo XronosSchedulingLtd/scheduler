@@ -35,7 +35,7 @@ class ISAMS_ActivityGroupPupilLink
     if end_date && end_date < accumulator.loader.start_date
       @complete = false
     else
-      @complete = find_dependencies(accumulator, DEPENDENCIES)
+      @complete = find_dependencies(accumulator, DEPENDENCIES, false)
       if @complete
         self.group.note_pupil_id(self.pupil_id)
       end

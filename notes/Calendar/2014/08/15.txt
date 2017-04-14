@@ -1,9 +1,0 @@
-Content-Type: text/x-zim-wiki
-Wiki-Format: zim 0.4
-Creation-Date: 2014-08-15T11:49:04+01:00
-
-====== Friday 15 Aug 2014 ======
-
-I had a thought on the way home from school today.  I could put a couple of tabs in the left-hand margin, one headed Resources, and one headed Categories.  The resources one would give the selection by resource as we have at present, whilst the category one would let you choose categories.  One might also like a pseudo-category of EBL (Everything But Lessons).
-
-I also hit an oddity in that, when I tried to edit a group which had been auto-created, it seemed to be willing to let me delete members, but then didn't respond to me clicking the X.  Permissions issue, or non-functional code?

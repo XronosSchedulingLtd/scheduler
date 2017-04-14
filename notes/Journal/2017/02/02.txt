@@ -1,9 +1,0 @@
-Content-Type: text/x-zim-wiki
-Wiki-Format: zim 0.4
-Creation-Date: 2017-02-02T13:38:12+00:00
-
-====== Thursday 02 Feb 2017 ======
-
-Rota templates are largely complete.  Now let's add an Exam Cycle.
-
-''$ rail g scaffold ExamCycle name:string default_rota_template_id:integer'' 
