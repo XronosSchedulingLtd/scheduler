@@ -1,3 +1,8 @@
+v0.17.5 2017-04-14
+
+* And do exactly the same for the LetsEncrypt config files
+
+
 v0.17.4 2017-04-14
 
 * Ignore the LetsEncrypt log files
