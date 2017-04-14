@@ -39,3 +39,7 @@ notes/.zim/*
 
 # Ignore compiled assets
 public/assets/*
+
+# Ignore LetsEncrypt logs, but not the directory.
+LetsEncrypt/logs/*
+!LetsEncrypt/logs/.keep
