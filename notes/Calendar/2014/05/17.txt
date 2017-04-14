@@ -1,9 +1,0 @@
-Content-Type: text/x-zim-wiki
-Wiki-Format: zim 0.4
-Creation-Date: 2014-05-17T16:02:31+01:00
-
-====== Saturday 17 May 2014 ======
-
-I need to set up some ground rules for my events about what fields need to exist, and how they are filled in.  I am also going to give in and have an all_day flag field - it's easier than deducing the condition.  I will document exactly which combinations are legal, and then ensure the validation to match.  After that I can always assume I've got a legal event combination.
-
-I also need to do a bit of tweaking in how events are returned to FullCalendar to display.  Some events imported from the existing school calendar appear to start at, say, 14:00 on one day, then run for several days (or more) and then end at, say, 16:00 on another day.  If you feed that to FullCalendar it doesn't display it terribly sensibly - it runs through the intermediate days as a continuous stripe.  It would be better to show it as a timed event on the start and finish days, and as a continuous all-day event on any intermediate days.  Can FullCalendar do this automatically?

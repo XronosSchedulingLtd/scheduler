@@ -1,8 +1,0 @@
-Content-Type: text/x-zim-wiki
-Wiki-Format: zim 0.4
-Creation-Date: 2014-06-11T14:13:07+01:00
-
-====== Wednesday 11 Jun 2014 ======
-
-Before I progress with the loading, can I get an ical feed working?  This should be largely a question of copying code from the same-ish place in Markbook.
-
