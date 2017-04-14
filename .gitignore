@@ -43,3 +43,6 @@ public/assets/*
 # Ignore LetsEncrypt logs, but not the directory.
 LetsEncrypt/logs/*
 !LetsEncrypt/logs/.keep
+# And likewise the config
+LetsEncrypt/config/*
+!LetsEncrypt/config/.keep
