@@ -5,7 +5,6 @@
 
 class Tutorgrouppersona < ActiveRecord::Base
 
-  validates :house, presence: true
   validates :staff, presence: true
 
   belongs_to :staff

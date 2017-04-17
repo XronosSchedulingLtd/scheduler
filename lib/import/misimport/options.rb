@@ -11,7 +11,9 @@ class Options
               :start_date,
               :ahead,
               :do_convert,
-              :check_recurring
+              :check_recurring,
+              :activities,
+              :cover
 
   #
   #  These next two are intended to be over-ridden by MIS-specific
@@ -31,6 +33,8 @@ class Options
     @do_timings      = false
     @quiet           = false
     @check_recurring = false
+    @activities      = false
+    @cover           = false
     @era             = nil
     @start_date      = nil
     @ahead           = 0
@@ -94,6 +98,17 @@ class Options
               "has been rolled over, add this value to",
               "pupils' year numbers etc.") do |years|
         @ahead = years
+      end
+
+      opts.on("--cover",
+              "Attempt to load cover slots") do |cover|
+        @cover = cover
+      end
+
+      opts.on("--activities",
+              "Load information about extra-curricular",
+              "activities") do |activities|
+        @activities = activities
       end
 
       opts.on("--convert",

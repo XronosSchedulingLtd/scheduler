@@ -109,8 +109,9 @@ class ISAMS_Week
   ]
 
   include Creator
+  include MIS_Utils
 
-  attr_reader :days, :day_hash
+  attr_reader :days, :day_hash, :part_time, :wanted
 
   def initialize(entry)
     @days = ISAMS_Day.construct(self, entry)
@@ -123,6 +124,12 @@ class ISAMS_Week
       #
       @day_hash[day.short_name] = day
     end
+    @part_time = false
+    @wanted = local_week_wanted(self)
+  end
+
+  def set_part_time
+    @part_time = true
   end
 
   def self.construct(loader, isams_data)
@@ -441,7 +448,7 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
         oh_events << self.new(record)
       end
     else
-      raise "Can't find OH event occurrences."
+      puts "Can't find OH event occurrences."
     end
     @events_by_date = Hash.new
     oh_events.each do |ohe|
@@ -467,6 +474,7 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
 end
 
 class ISAMS_DummyGroup
+  include MIS_Utils
   #
   #  All we actually need to provide for timetable loading to work
   #  is the right element id.
@@ -476,7 +484,7 @@ class ISAMS_DummyGroup
   attr_reader :element_id
 
   def initialize(nc_year)
-    g = Group.find_by(name: "#{(nc_year - 6).ordinalize} year",
+    g = Group.find_by(name: local_yeargroup_text(local_yeargroup(nc_year)),
                       era: Setting.perpetual_era)
     if g
       @element_id = g.element.id
@@ -780,7 +788,7 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
   end
 
   def self.construct(loader, inner_data)
-    events = self.slurp(inner_data)
+    events = self.slurp(inner_data, false)
     event_hash = Hash.new
     events.each do |event|
       existing = event_hash[event.hash_key]
@@ -797,33 +805,9 @@ end
 
 class MIS_Schedule
 
-  attr_reader :week_hash, :weeks, :entries
+  attr_reader :entries
 
-  def initialize(loader, isams_data, timetable)
-    @weeks = ISAMS_Week.construct(loader, isams_data)
-    if false
-      puts "Found #{@weeks.size} weeks."
-      @weeks.each do |week|
-        puts "#{week.name}"
-        week.days.each do |day|
-          puts "  #{day.name} - periods #{day.periods.collect {|p| p.short_name}.join(",")}"
-        end
-      end
-    end
-    #
-    #  Now need a hash so we can look up periods by their ids.
-    #  And another to look up weeks.
-    #
-    @period_hash = Hash.new
-    @week_hash = Hash.new
-    @weeks.each do |week|
-      @week_hash[week.isams_id] = week
-      week.days.each do |day|
-        day.periods.each do |period|
-          @period_hash[period.isams_id] = period
-        end
-      end
-    end
+  def initialize(loader, isams_data, timetable, period_hash)
     lessons = ISAMS_TimetableEntry.construct(loader, timetable.entry)
     @lessons_by_id = Hash.new
     lessons.each do |lesson|
@@ -844,7 +828,11 @@ class MIS_Schedule
     #
     #  And OH events.
     #
-    @oh_events = ISAMS_OtherHalfEntry.construct(isams_data)
+    if loader.options.activities
+      @oh_events = ISAMS_OtherHalfEntry.construct(isams_data)
+    else
+      @oh_events = []
+    end
     #
     @entries = lessons + meetings + year_events + tutorial_events
     #
@@ -853,7 +841,7 @@ class MIS_Schedule
     #  it is and then return all the relevant lessons.
     #
     @entries.each do |entry|
-      period = @period_hash[entry.period_id]
+      period = period_hash[entry.period_id]
       if period
         entry.note_period(period)
         period.day.note_lesson(entry)
@@ -866,8 +854,10 @@ class MIS_Schedule
     @entries.each do |entry|
       entry.find_resources(loader)
     end
-    @oh_events.each do |entry|
-      entry.find_resources(loader)
+    if loader.options.activities
+      @oh_events.each do |entry|
+        entry.find_resources(loader)
+      end
     end
   end
 
@@ -951,10 +941,39 @@ end
 class MIS_Timetable
 
   def initialize(loader, isams_data)
+    @activities = loader.options.activities
+    @weeks = ISAMS_Week.construct(loader, isams_data)
+    if false
+      puts "Found #{@weeks.size} weeks."
+      @weeks.each do |week|
+        puts "#{week.name}"
+        week.days.each do |day|
+          puts "  #{day.name} - periods #{day.periods.collect {|p| p.short_name}.join(",")}"
+        end
+      end
+    end
+    #
+    #  Now need a hash so we can look up periods by their ids.
+    #  And another to look up weeks.
+    #
+    @period_hash = Hash.new
+    @week_hash = Hash.new
+    @weeks.each do |week|
+      @week_hash[week.isams_id] = week
+      week.days.each do |day|
+        day.periods.each do |period|
+          @period_hash[period.isams_id] = period
+        end
+      end
+    end
     @week_allocations = ISAMS_WeekAllocation.construct(isams_data)
     @week_allocations_hash = Hash.new
     @week_allocations.each do |wa|
       @week_allocations_hash["#{wa.year}/#{wa.week}"] = wa
+      week = @week_hash[wa.timetableweek_id]
+      if week
+        week.set_part_time
+      end
     end
 #    puts "Got #{@week_allocations.size} week allocations."
     if loader.options.timetable_name
@@ -994,7 +1013,7 @@ class MIS_Timetable
   #  all necessary teaching groups.
   #
   def build_schedule(loader, isams_data)
-    @schedule = MIS_Schedule.new(loader, isams_data, @timetable_data)
+    @schedule = MIS_Schedule.new(loader, isams_data, @timetable_data, @period_hash)
   end
 
   #
@@ -1033,35 +1052,45 @@ class MIS_Timetable
   end
 
   def lessons_on(date)
-#    puts "Asked for lessons on #{date.to_s}"
-#    puts "Using hash #{date.year}/#{date.loony_isams_cweek}"
-    week_allocation = @week_allocations_hash["#{date.year}/#{date.loony_isams_cweek}"]
+    #
+    #  Note that more than one week may be extant on the indicated date.
+    #
+    weeks = []
+    week_allocation =
+      @week_allocations_hash["#{date.year}/#{date.loony_isams_cweek}"]
     if week_allocation
-#      puts "Found week_allocation with year #{week_allocation.year}, week #{week_allocation.week}"
-      week = @schedule.week_hash[week_allocation.timetableweek_id]
+      week = @week_hash[week_allocation.timetableweek_id]
       if week
-#        puts "Week: #{week.name}"
-        day = week.day_hash[date.strftime("%a")]
-        if day
-          lessons = day.lessons
-        else
-#          puts "Unable to find day for #{date.to_s}"
-#          puts "date.strftime(\"%a\") = #{date.strftime("%a")}"
-#          puts "Hash contains:"
-#          week.day_hash.each do |key, record|
-#            puts "  #{key} (#{key.class})"
-#          end
-          lessons = nil
-        end
-      else
-#        puts "Unable to find week for #{date.to_s}"
-        lessons = nil
+        weeks << week
       end
-    else
-#      puts "Unable to find week allocation for #{date.to_s}."
+    end
+    #
+    #  And now any weeks which are not part-timers.
+    #
+    weeks += @weeks.select {|week| !week.part_time}
+    lessons = []
+    weeks.each do |week|
+#      puts "Week: #{week.name}"
+      #
+      #  This is horrible.
+      #
+      day_name = date.strftime("%a")
+      if day_name == "Thu"
+        day_name = "Thur"
+      end
+      day = week.day_hash[day_name]
+      if day
+        lessons += day.lessons
+      end
+    end
+    if lessons.empty?
       lessons = nil
     end
-    oh = ISAMS_OtherHalfEntry.events_on(date)
+    if @activities
+      oh = ISAMS_OtherHalfEntry.events_on(date)
+    else
+      oh = nil
+    end
     if lessons
       if oh
         lessons + oh

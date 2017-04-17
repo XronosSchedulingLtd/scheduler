@@ -32,6 +32,15 @@
 /import/recurring/*
 !/import/recurring/README
 
+#
+#  School-specific bits of the import process get quite interesting.
+#
+/lib/import/school/*
+!/lib/import/school/linkup
+!/lib/import/school/Abingdon
+!/lib/import/school/DeanClose
+
+
 /scratch/*
 
 # Some zim files change too much
