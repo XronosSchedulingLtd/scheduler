@@ -234,10 +234,10 @@ begin
         end
         loader.do_auto_groups
         finished(options, "automatic groups")
-#        loader.do_extra_groups
-#        finished(options, "extra groups")
-#        loader.do_recurring_events
-#        finished(options, "recurring events")
+        loader.do_extra_groups
+        finished(options, "extra groups")
+        loader.do_recurring_events
+        finished(options, "recurring events")
         loader.do_customgroups
         finished(options, "customgroups")
       end
