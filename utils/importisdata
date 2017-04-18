@@ -18,25 +18,26 @@
 #
 cd ~/Work/Coding/scheduler/import/isams
 rm -f Incoming/*
-if [ -f PreFetched/data.xml ]; then
-  echo "Using pre-fetched data.xml"
-  cp PreFetched/data.xml Incoming
+if [ "$USE_ISAMS_API" = true ]; then
+  if [ -f PreFetched/data.xml ]; then
+    echo "Using pre-fetched data.xml"
+    cp PreFetched/data.xml Incoming
+  else
+    curl --silent https://abingdon.isams.co.uk:443/api/batch/1.0/xml.ashx?apikey=$APIKEY --output Incoming/data.xml
+  fi
 else
-  curl --silent https://abingdon.isams.co.uk:443/api/batch/1.0/xml.ashx?apikey=$APIKEY --output Incoming/data.xml
+  echo "Not using iSAMS API data."
 fi
 if [ $? -eq 0 ]; then
-  if [ -f PreFetched/TblActivityManagerEvent.csv ]; then
-    echo "Using pre-fetched csv files."
-    cp PreFetched/*.csv Incoming
+  if [ "$USE_ISAMS_DB" = true ]; then
+    if [ -f PreFetched/TblActivityManagerEvent.csv ]; then
+      echo "Using pre-fetched csv files."
+      cp PreFetched/*.csv Incoming
+    else
+      ../../utils/fetchisdata/extractor.rb --target Incoming --extract
+    fi
   else
-    #
-    #  Access to the iSAMS d/b seems to have been (temporarily?) blocked
-    #  from this IP address, so for now just copy the files which we
-    #  have already.
-    #
-    ../../utils/fetchisdata/extractor.rb --target Incoming --extract
-#    echo "Using OriginalStuff"
-#    cp OriginalStuff/TblActivityManagerEvent.csv OriginalStuff/TblActivityManagerEventOccurrence.csv OriginalStuff/TblActivityManagerEventPupilLink.csv OriginalStuff/TblActivityManagerEventTeacherLink.csv OriginalStuff/TblActivityManagerGroup.csv OriginalStuff/TblActivityManagerGroupPupilLink.csv Incoming
+    echo "Not using iSAMS table data."
   fi
   if [ $? -eq 0 ]; then
     #
@@ -48,7 +49,12 @@ if [ $? -eq 0 ]; then
     TARGET_DIR="Archive/`date +%Y/%m/%d`"
     mkdir -p $TARGET_DIR
     cp Current/* $TARGET_DIR
-    bzip2 -f $TARGET_DIR/*.csv $TARGET_DIR/*.xml
+    if [ "$USE_ISAMS_API" = true ]; then
+      bzip2 -f $TARGET_DIR/*.xml
+    fi
+    if [ "$USE_ISAMS_DB" = true ]; then
+      bzip2 -f $TARGET_DIR/*.csv
+    fi
     #
     #  And now invoke the import utility to bring the new data into Scheduler.
     #
