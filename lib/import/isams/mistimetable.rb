@@ -47,11 +47,18 @@ class ISAMS_Day
   #  Note that this selector assumes we are already looking inside a
   #  week entry.
   #
+  #  Rather weirdly, we need an XML node called "Day", but it in turn
+  #  contains a node called "Day", which has a completely different
+  #  meaning.  The latter one should really be called "DayNo" and it
+  #  contains the day number, using the unconventional convention of
+  #  1 for Sunday, 2 for Monday, etc.
+  #
   SELECTOR = "Days Day"
   REQUIRED_FIELDS = [
     IsamsField["Id",        :isams_id,   :attribute, :integer],
     IsamsField["Name",      :name,       :data,      :string],
-    IsamsField["ShortName", :short_name, :data,      :string]
+    IsamsField["ShortName", :short_name, :data,      :string],
+    IsamsField["Day",       :day_no,     :data,      :integer]
   ]
   
   include Creator
@@ -122,7 +129,7 @@ class ISAMS_Week
       #  of the day, but it quickly became apparent that the iSAMS
       #  programmers don't know what ordinal means.
       #
-      @day_hash[day.short_name] = day
+      @day_hash[day.day_no] = day
     end
     @part_time = false
     @wanted = local_week_wanted(self)
@@ -1072,13 +1079,11 @@ class MIS_Timetable
     weeks.each do |week|
 #      puts "Week: #{week.name}"
       #
-      #  This is horrible.
+      #  iSAMS day numbers are one more than is conventional.
       #
-      day_name = date.strftime("%a")
-      if day_name == "Thu"
-        day_name = "Thur"
-      end
-      day = week.day_hash[day_name]
+      #  Thus Sun = 1, Mon = 2, etc.
+      #
+      day = week.day_hash[date.wday + 1]
       if day
         lessons += day.lessons
       end
