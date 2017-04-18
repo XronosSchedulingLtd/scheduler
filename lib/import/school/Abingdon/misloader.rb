@@ -326,6 +326,86 @@ end
 class MIS_Loader
 
   #
+  #  This method is called by do_auto_groups if it exists.
+  #
+  def do_local_auto_groups
+    #
+    #  Staff by house they are tutors in.
+    #
+    all_tutors = []
+    tutors_by_year = {}
+    tges_by_year = {}
+    @houses.each do |house|
+      tutors = []
+      pupils = []
+      house_tges_by_year = {}
+      house.tugs.each do |tug|
+        tutors << tug.staff.dbrecord
+        all_tutors << tug.staff.dbrecord
+        tutors_by_year[tug.yeargroup] ||= []
+        tutors_by_year[tug.yeargroup] << tug.staff.dbrecord
+        #
+        #  And now, each of the pupils.
+        #
+        tug.pupils.each do |pupil|
+          tges_by_year[tug.yeargroup] ||= []
+          tges_by_year[tug.yeargroup] << pupil.dbrecord
+          house_tges_by_year[tug.yeargroup] ||= []
+          house_tges_by_year[tug.yeargroup] << pupil.dbrecord
+          pupils << pupil.dbrecord
+        end
+      end
+      if house.name == "Lower School"
+        ensure_membership("#{house.name} tutors",
+                          tutors,
+                          Staff)
+        ensure_membership("#{house.name} pupils",
+                          pupils,
+                          Pupil)
+      else
+        ensure_membership("#{house.name} House tutors",
+                          tutors,
+                          Staff)
+        ensure_membership("#{house.name} House pupils",
+                          pupils,
+                          Pupil)
+        house_tges_by_year.each do |year_group, pupils|
+          ensure_membership("#{house.name} House #{local_yeargroup_text(year_group)}",
+                            pupils,
+                            Pupil)
+        end
+      end
+    end
+    middle_school_tutors = []
+    upper_school_tutors = []
+    tutors_by_year.each do |year_group, tutors|
+      ensure_membership("#{local_yeargroup_text(year_group)} tutors",
+                        tutors,
+                        Staff)
+      #
+      #  Lower school tutors already have their own group from the house
+      #  processing.
+      #
+      if year_group == 3 ||
+         year_group == 4 ||
+         year_group == 5
+        middle_school_tutors += tutors
+      elsif year_group == 6 ||
+            year_group == 7
+        upper_school_tutors += tutors
+      end
+    end
+    tges_by_year.each do |year_group, pupils|
+      ensure_membership("#{local_yeargroup_text(year_group)}",
+                        pupils,
+                        Pupil)
+    end
+    ensure_membership("Middle school tutors", middle_school_tutors, Staff)
+    ensure_membership("Upper school tutors", upper_school_tutors, Staff)
+    ensure_membership("All tutors", all_tutors, Staff)
+  end
+
+  #
   #  We want some of the data for loading into Markbook.
   #  For historical reasons, all the structures are called SB_<something>
   def local_processing(options)
