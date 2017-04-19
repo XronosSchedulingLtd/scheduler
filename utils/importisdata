@@ -70,7 +70,7 @@ if [ "$USE_ISAMS_DB" = true ]; then
   else
     $SCHEDULER_DIR/utils/fetchisdata/extractor.rb --target Incoming --extract
     if [ $? -ne 0 ]; then
-      echo "Failed to fetch date from iSAMS database."
+      echo "Failed to fetch data from iSAMS database."
       exit 6
     fi
   fi
