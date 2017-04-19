@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  rota_template_id: 1
+  starts_at: 2017-01-25 09:32:05
+  ends_at: 2017-01-25 09:32:05
+  days: MyText
+
+two:
+  rota_template_id: 1
+  starts_at: 2017-01-25 09:32:05
+  ends_at: 2017-01-25 09:32:05
+  days: MyText

@@ -1,0 +1,10 @@
+Upcoming invigilation slots - <%=
+      now = Time.zone.now
+      now.strftime("%a #{now.day.ordinalize} %b, %Y %H:%M") %>
+
+Please could you invigilate as follows:
+
+<%= render partial: "invig_slot", collection: @slots %>
+<% if @extra_text %>
+  <%= @extra_text %>
+<% end %>

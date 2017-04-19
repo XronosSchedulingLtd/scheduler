@@ -15,6 +15,12 @@ div.ui-datepicker, .ui-datepicker td, .ui-datepicker th{
   right: 0px;
 }
 
+.evtopleft {
+  position: absolute;
+  top: 0px;
+  left: 24px;
+}
+
 li.name {
   a:hover {
     background-color: #313D58;

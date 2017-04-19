@@ -11,6 +11,7 @@ class Eventcategory < ActiveRecord::Base
   validates :pecking_order, numericality: { only_integer: true }
 
   has_many :events, dependent: :destroy
+  has_many :proto_events, dependent: :destroy
 
   has_many :users, foreign_key: :preferred_event_category_id, :dependent => :nullify
   after_save :flush_cache

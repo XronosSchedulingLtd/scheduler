@@ -31,7 +31,7 @@ Eventcategory.destroy_all
 #  The act of creating a seeder will ensure the necessary basic
 #  settings records and eras exist within the system.
 #
-seeder = Seeder.new
+seeder = Seeder.new(1, "xronos.uk")
 
 #
 #  First, some which are intrinsic to the functioning of the system.
@@ -112,8 +112,8 @@ pepupils  = seeder.new_group(:pepupils,  "PE pupils", :current_era)
 spapupils = seeder.new_group(:spapupils, "Spanish pupils", :current_era)
 sptpupils = seeder.new_group(:sptpupils, "Sport pupils", :current_era)
 
-seeder.location(:mainhall, "Main Hall")
-seeder.location(:gks, "Genghis Khan Suite", "GKS")
+seeder.location(:mainhall, "MH", "Main Hall")
+seeder.location(:gks, "GKS", "Genghis Khan Suite")
 seeder.location(:l101, "L101")
 seeder.location(:l102, "L102")
 seeder.location(:l103, "L103")
@@ -187,6 +187,13 @@ end
 seeder.event(:datecrucial,
                  "Founder's Day",
                  :monday,
+                 :all_day,
+                 nil,
+                 {involving: calendarproperty})
+
+seeder.event(:dateother,
+                 "Year 11 exams",
+                 :nextmonday,
                  :all_day,
                  nil,
                  {involving: calendarproperty})
@@ -452,4 +459,24 @@ seeder.lesson(:afg, :g11eng3,   :l103, :friday, 2)
 seeder.lesson(:dpr, :g11ita1,   :l102, :friday, 3)
 seeder.lesson(:dlj, :g11dra1,   :l102, :friday, 4)
 seeder.lesson(:prw, :g11his4,   :l106, :friday, 6)
+
+#
+#  And now some suspended lessons to represent an exam day.
+#
+seeder.lesson(:sjp, :g9mat1,   :l101, :nextmonday, 1)
+seeder.lesson(:sjp, :g10mat3,  :l101, :nextmonday, 3)
+seeder.lesson(:sjp, :g13mat1a, :l101, :nextmonday, 5)
+seeder.lesson(:sjp, :g12mat3p, :l101, :nextmonday, 6)
+seeder.lesson(:dlj, :g11mat3,  :l102, :nextmonday, 7, {non_existent: true})
+seeder.lesson(:sjp, :g11mat4,  :l101, :nextmonday, 7, {non_existent: true})
+
+seeder.lesson(:ced, :g7fre1,   :l108, :nextmonday, 1)
+seeder.lesson(:ced, :g10fre3,  :l108, :nextmonday, 7)
+
+seeder.lesson(:dlj, :g11dra1,   :l102, :nextmonday, 1, {non_existent: true})
+seeder.lesson(:afg, :g11eng3,   :l103, :nextmonday, 2, {non_existent: true})
+seeder.lesson(:psl, :g11geo4,   :l104, :nextmonday, 3, {non_existent: true})
+seeder.lesson(:dpr, :g11ger2,   :l105, :nextmonday, 4, {non_existent: true})
+seeder.lesson(:prw, :g11his4,   :l106, :nextmonday, 6, {non_existent: true})
+
 

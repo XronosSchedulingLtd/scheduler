@@ -7,7 +7,7 @@ Created Tuesday 27 May 2014
 
 The Staff record - any person who is a member of staff and might be associated with an event.
 
-Fields:
+==== Fields: ====
 
 id			Rails's id for the individual
 name		Display name of staff member

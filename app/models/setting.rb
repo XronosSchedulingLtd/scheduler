@@ -22,6 +22,8 @@ class Setting < ActiveRecord::Base
   @@previous_mis = nil
   @@auth_type = nil
   @@checked_auth_type = false
+  @@dns_domain_name = nil
+  @@from_email_address = nil
 
   belongs_to :current_era, class_name: :Era
   belongs_to :next_era, class_name: :Era
@@ -55,6 +57,8 @@ class Setting < ActiveRecord::Base
     @@checked_perpetual_era = false
     @@enforce_permissions = nil
     @@checked_enforce_permissions = false
+    @@dns_domain_name = nil
+    @@from_email_address = nil
   end
 
   def self.current_era
@@ -150,6 +154,26 @@ class Setting < ActiveRecord::Base
       @@checked_auth_type = true
     end
     @@auth_type
+  end
+
+  def self.dns_domain_name
+    unless @@dns_domain_name
+      setting = Setting.first
+      if setting
+        @@dns_domain_name = setting.dns_domain_name
+      end
+    end
+    @@dns_domain_name
+  end
+
+  def self.from_email_address
+    unless @@from_email_address
+      setting = Setting.first
+      if setting
+        @@from_email_address = setting.from_email_address
+      end
+    end
+    @@from_email_address
   end
 
   #

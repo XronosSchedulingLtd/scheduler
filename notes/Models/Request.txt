@@ -1,0 +1,23 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-02-04T16:40:19+00:00
+
+====== Request ======
+Created Saturday 04 February 2017
+
+Requests are pre-cursors to [[Commitment]] records.  They link together [[Event]] and [[Element]] records but indicate that the [[Commitment]] is not yet in place.  This could be for one of two reasons.
+
+1. The requested resource needs approval from someone.  Currently this element of their functionality is not implemented.  Approvals are done by means of a flag in [[Commitment]] records.  The intention is that Request records will replace that way of working later on.
+2. The [[Request]] is for a group of some kind, and the resulting [[Commitment]] record(s) will link not to the group, but to individual members of the group.  Thus a Request could be for a mini-bus (implemented as a group) and then the request would be fulfilled by creating a [[Commitment]] record which allocated a specific member of the mini-bus group. [[Request]] records can also specify a quantity (possibly 0) so a [[Request]] might be for 3 members of staff to do invigilation.  This would result in three separate [[Commitment]] records, linking in the actual members of staff.
+
+Each [[Commitment]] record created to fulfill a [[Request]] links back to the corresponding [[Request]] record.
+
+==== Fields ====
+
+
+==== Links ====
+
+has_many	Commitments
+belongs_to	Element
+belongs_to	Event
+

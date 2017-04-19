@@ -1,9 +1,0 @@
-Content-Type: text/x-zim-wiki
-Wiki-Format: zim 0.4
-Creation-Date: 2014-06-01T05:44:10+01:00
-
-====== Sunday 01 Jun 2014 ======
-
-Today I aim to load at least a week of the timetable - with resource commitments.
-
-If time, it would be nice to add resource commitments to the calendar too, and the display of resources to event display.  I don't think I'll have time to filter event display by resource.

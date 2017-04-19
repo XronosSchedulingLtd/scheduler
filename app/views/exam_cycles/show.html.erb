@@ -1,0 +1,222 @@
+<div id='examcycle' data-ecid='<%= @exam_cycle.id %>'>
+  <div id='ec-header'>
+    <h3>
+      Exam cycle: <%= @exam_cycle.name %>
+    </h3>
+  </div>
+  <h4>Rooms</h4>
+  <table id='ec-table' class='zftable ec-table'>
+    <thead>
+      <tr>
+        <th class='ec-deleteslot'></th>
+        <th class='ec-timeslot'>Room</th>
+        <th class='ec-daybox'>Starts</th>
+        <th class='ec-daybox'>Staff</th>
+        <th class='ec-daybox'>Events</th>
+        <th class='ec-action'></th>
+        <th class='ec-action'></th>
+        <th class='ec-action'></th>
+      </tr>
+      <tr>
+        <th class='ec-deleteslot'></th>
+        <th class='ec-daybox'>Template</th>
+        <th class='ec-daybox'>Ends</th>
+        <th class='ec-daybox'></th>
+        <th class='ec-daybox'></th>
+        <th class='ec-action'></th>
+        <th class='ec-action'></th>
+        <th class='ec-action'></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="8">populating...</td></tr>
+    </tbody>
+  </table>
+</div>
+<div align="right">
+  <%= link_to 'Done', exam_cycles_path, class: 'button tiny radius' %>
+</div>
+<div id="splitModal" class="reveal-modal" data-reveal>
+</div>
+
+<script type="text/template" id="ec-protoevents-header">
+  <thead>
+    <tr>
+      <th class='ec-deleteslot'></th>
+      <th class='ec-timeslot'>Room</th>
+      <th class='ec-daybox'>Starts</th>
+      <th class='ec-daybox'>Staff</th>
+      <th class='ec-daybox'>Events</th>
+      <th class='ec-action'></th>
+      <th class='ec-action'></th>
+      <th class='ec-action'></th>
+    </tr>
+    <tr>
+      <th class='ec-deleteslot'></th>
+      <th class='ec-daybox'>Template</th>
+      <th class='ec-daybox'>Ends</th>
+      <th class='ec-daybox'></th>
+      <th class='ec-daybox'></th>
+      <th class='ec-action'></th>
+      <th class='ec-action'></th>
+      <th class='ec-action'></th>
+    </tr>
+  </thead>
+</script>
+
+<script type="text/template" id="ec-protoevent-row">
+  <tr>
+    <td>
+      <button class='add tiny radius'>Add</button>
+      <button class='edit tiny radius'>Edit</button>
+    </td>
+    <td>
+      <span class="displaying"><%%= room %><br/><%%= rota_template_name %></span>
+      <div class="location forinput">
+        <label>Room
+          <input class="inputname"
+                 placeholder="Select room"
+                 value="<%%= room %>"
+                 data-autocomplete="/elements/autocomplete_location_element_name"
+                 data-auto-focus="true"
+                 data-id-element="#location_id_n<%%= id %>"
+                 type="text" />
+        </label>
+      </div>
+      <input class="location_id"
+             id="location_id_n<%%= id %>"
+             value="<%%= location_id %>"
+             type="hidden" />
+    </td>
+    <td>
+      <span class="displaying"><%%= starts_on_text %><br/><%%= ends_on_text %></span>
+      <div class="starts_on forinput">
+        <label>Starts on
+          <input class="starts_on datepicker" placeholder="Starts on" value="<%%= starts_on_text %>" type="text" />
+        </label>
+      </div>
+    </td>
+    <td>
+      <span class="displaying"><%%= num_staff %></span>
+      <div class="num_staff forinput">
+        <label>Staff
+          <input class="num_staff" value="<%%= num_staff %>" type="text" />
+        </label>
+      </div>
+    </td>
+    <td>
+      <span class="displaying"><%%= event_count %></span>
+    </td>
+    <td>
+      <button class='generate tiny radius'>Generate</button>
+      <button class='update tiny radius'>Update</button>
+      <span class="generating">Please wait...</span>
+    </td>
+    <td>
+      <button class='split tiny radius' title="Split into two separate durations">Split</button>
+      <button class='cancel tiny radius'>Cancel</button>
+    </td>
+    <td>
+      <button class='deleteevents tiny radius'>Delete events</button>
+      <button class='destroy tiny radius'>Delete</button>
+    </td>
+  </tr>
+  <tr class="pe-second-row">
+    <td>
+    </td>
+    <td>
+      <div class="rota_template forinput">
+        <label>Period template
+          <%= template_selector_text %>
+          </label>
+      </div>
+    </td>
+    <td>
+      <div class="ends_on forinput">
+        <label>Ends on
+          <input class="ends_on datepicker" placeholder="Ends on" value="<%%= ends_on_text %>" type="text" />
+        </label>
+      </div>
+    </td>
+    <td>
+      <div class="general">
+      </div>
+    </td>
+    <td>
+    </td>
+    <td>
+    </td>
+    <td>
+    </td>
+    <td>
+    </td>
+  </tr>
+</script>
+
+<script type="text/template" id="ec-error-msg">
+  <small class="error"><%%= error_msg %></small>
+</script>
+
+<script type="text/template" id="ec-split-dialog">
+<h2>Split room record</h2>
+<p>Splitting a room record divides it into two consecutive entries.  It is
+useful when part of an exam session needs to be transferred to a different
+room. Once the split is done, you can change the room for one of the two
+entries and re-generate its events.  Any existing events will be transferred
+seamlessly between the two rooms, keeping any existing invigilators.</p>
+
+<p>You specify a date (which must lie strictly between the current
+start dates and end dates of the entry) and the entry will then be split
+into two separate entries, the second one starting on your provided
+date.  The first one will end on the day before that date.</p>
+
+<p>A split like this cannot be un-done.</p>
+
+<h3>Proposing to split the room record for room "<%%= room %>"</h3>
+
+<table class='zftable splittable'>
+<thead>
+<tr>
+<th colspan="2">
+First half
+</th>
+<th colspan="2">
+Second half
+</th>
+<th></th>
+<th></th>
+</tr>
+<tr>
+<th>Current start</th>
+<th>Proposed end</th>
+<th>Proposed start</th>
+<th>Current end</th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><%%= starts_on_text %></td>
+<td><span id="daybefore"></span></td>
+<td>
+  <div class="splits_on">
+    <label>Split date
+      <input class="datepicker" placeholder="Split on" type="text" />
+    </label>
+  </div>
+</td>
+<td><%%= ends_on_text %></td>
+<td>
+  <button class='split tiny radius'>Split</button>
+  <span class="splitting">Please wait...</span>
+</td>
+<td>
+  <button class='cancel tiny radius'>Cancel</button>
+</td>
+</tr>
+</tbody>
+</table>
+
+</script>
+

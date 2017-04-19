@@ -49,7 +49,7 @@ class Freefinder < ActiveRecord::Base
     "date not given"
   end
 
-  def do_find
+  def do_find(except_event = nil)
     #
     #  The very minimum which we need in order to do our work is a
     #  group with which to start.  If date and time aren't specified
@@ -99,8 +99,13 @@ class Freefinder < ActiveRecord::Base
       #  slightly more long-winded.
       #
       overlapping_commitments =
-        Commitment.commitments_during(start_time: starts_at,
-                                      end_time: ends_at)
+        Commitment.commitments_during(
+          start_time: starts_at,
+          end_time: ends_at)
+      if except_event
+        overlapping_commitments =
+          overlapping_commitments.where.not(event_id: except_event.id)
+      end
       #
       #  Now I need a list of all the non-group entities referenced through
       #  these commitments.

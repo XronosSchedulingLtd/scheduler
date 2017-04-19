@@ -1,0 +1,7 @@
+DATA_YEAR="2016"
+MARKBOOK_DIR=/home/john/Work/Coding/markbook
+SCHEDULER_DIR=/home/john/Work/Coding/scheduler
+RAILS_ENV=development
+USE_ISAMS_API=true
+USE_ISAMS_DB=false
+export DATA_YEAR MARKBOOK_DIR RAILS_ENV SCHEDULER_DIR

@@ -88,6 +88,7 @@ class Event < ActiveRecord::Base
   belongs_to :eventcategory
   belongs_to :eventsource
   has_many :commitments, :dependent => :destroy
+  has_many :requests, :dependent => :destroy
   has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
   has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
   has_many :elements, :through => :firm_commitments
@@ -97,6 +98,8 @@ class Event < ActiveRecord::Base
   belongs_to :owner, :class_name => :User
 
   belongs_to :organiser, :class_name => :Element
+
+  belongs_to :proto_event
 
   validates :body, presence: true
   validates :eventcategory, presence: true
@@ -125,6 +128,12 @@ class Event < ActiveRecord::Base
   #
   scope :beginning, lambda {|date| where("ends_at >= ?", date) }
   scope :until, lambda {|date| where("starts_at < ?", date) }
+  #
+  #  And these are for specifying events which are over before a given
+  #  date, or start after a given date.
+  #
+  scope :before, lambda {|date| where("ends_at < ?", date) }
+  scope :after, lambda {|date| where("starts_at > ?", date + 1.day) }
   scope :eventcategory_id, lambda {|id| where("eventcategory_id = ?", id) }
   scope :eventsource_id, lambda {|id| where("eventsource_id = ?", id) }
   scope :on, lambda {|date| where("starts_at >= ? and ends_at < ?",
@@ -196,6 +205,23 @@ class Event < ActiveRecord::Base
       end
     end
   end
+
+  #
+  #  Colour parameter can be "r", "y" or "g".  We're looking for
+  #  the worst of these from all our requests.
+  #
+  #  "r" trumps "y" trumps "g" trumps blank.
+  #
+  def update_from_request(colour)
+    #
+    #  Not full functionality yet.
+    #
+    if self.flagcolour != colour
+      self.flagcolour = colour
+      self.save!
+    end
+  end
+
   #
   #  For pagination.
   #
@@ -237,6 +263,10 @@ class Event < ActiveRecord::Base
 
   def starts_at_text=(value)
     self.starts_at = value
+  end
+
+  def start_date_text
+    self.starts_at.strftime("%a #{self.starts_at.day.ordinalize} %b")
   end
 
   def jump_date_text
@@ -282,24 +312,24 @@ class Event < ActiveRecord::Base
 
   def starts_at_for_fc
     if all_day
-      starts_at.to_date.rfc822
+      starts_at.to_date.iso8601
     else
-      starts_at.rfc822
+      starts_at.iso8601
     end
   end
 
   def ends_at_for_fc
     if all_day
       if ends_at
-        ends_at.to_date.rfc822
+        ends_at.to_date.iso8601
       else
-        starts_at.to_date.rfc822
+        starts_at.to_date.iso8601
       end
     else
       if ends_at == nil || starts_at == ends_at
         nil
       else
-        ends_at.rfc822
+        ends_at.iso8601
       end
     end
   end
@@ -437,13 +467,23 @@ class Event < ActiveRecord::Base
     all_commitments =
       self.commitments.preload(:element).to_a   # to_a to force the d/b hit.
     all_commitments.each do |c|
-      if user && user.can_approve?(c) &&
-         (c.tentative || c.rejected || c.constraining)
-        approvables << c
-      else
-        by_type[c.element.entity_type] ||=
-          CommitmentSet.new(c.element.entity_type)
-        by_type[c.element.entity_type] << c
+      #
+      #  If a commitment is as the result of a request, and the current
+      #  user is an administrator of requests, don't show the commitment
+      #  in the general grouping.
+      #
+      #  Currently works only for exam invigilations.  Will need refining
+      #  when requests start being used for other purposes too.
+      #
+      unless user && user.exams? && c.request_id
+        if user && user.can_approve?(c) &&
+           (c.tentative || c.rejected || c.constraining)
+          approvables << c
+        else
+          by_type[c.element.entity_type] ||=
+            CommitmentSet.new(c.element.entity_type)
+          by_type[c.element.entity_type] << c
+        end
       end
     end
     if user
@@ -479,6 +519,18 @@ class Event < ActiveRecord::Base
       self.all_atomic_resources.select {|r| r.instance_of?(Location)}
     else
       self.resources.select {|r| r.instance_of?(Location)}
+    end
+  end
+
+  #
+  #  Get just one location name, or an empty string if there isn't one.
+  #
+  def location_name
+    all_locations = self.locations
+    if all_locations.size > 0
+      all_locations[0].friendly_name
+    else
+      ""
     end
   end
 

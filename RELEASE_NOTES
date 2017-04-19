@@ -1,3 +1,111 @@
+v0.17.5 2017-04-14
+
+* And do exactly the same for the LetsEncrypt config files
+
+
+v0.17.4 2017-04-14
+
+* Ignore the LetsEncrypt log files
+
+  Continuing the theme of tidying things up, the only thing which
+  changes here is the .gitignore file.  It now specifies that the
+  contents of the directory LetsEncrypt/logs should be ignored, although
+  the directory itself should be kept.
+
+
+v0.17.3 2017-04-14
+
+A bit of a drawing together of a few loose strands.
+
+* Don't complain about inconsistent data from the iSAMS database.
+
+  It's becoming steadily more apparent that the iSAMS database likes
+  basic consistency constraints.  We're getting membership records
+  for pupils which are apparently currently active, even though the
+  corresponding groups are currently inactive.  Stop complaining
+  about them.
+
+* In the course of testing the above, an instance of a hard coded
+  path was found in the script which invokes the import process.
+  An appropriate environment variable already exists, so the script
+  was amended to test for it and then use it.
+
+* The seed data used for setting up new systems and the demo system
+  has been enhanced to include information relevant to invigilation.
+  For the demo system, a period of suspended lessons is created to
+  allow the feature to be demonstrated.
+
+
+v0.17.2 2017-04-10
+
+* Add the means to edit the number of invigilators per room.
+
+  Previously one set a default number of invigilators for an exam
+  cycle and this propagated to all the invigilation slots.  Each slot
+  could then be amended individually, but there was no way to do it
+  for all the slots in a room.
+
+  It is now possible to set a default for the exam cycle, which will
+  be copied as the default for each new room record but can be amended
+  in the course of creating the room record, or later.
+
+  If the number for a room is altered after the actual invigilation
+  events have been generated then a re-generation of the events will
+  alter the individual invigilation event records provided:
+
+    1. The individual record has no invigilators allocated
+    2. The individual record has not been set to 0.
+
+  The idea is to preserve information which has been actively entered,
+  whilst allowing bulk changes where possible.
+
+* Fix a bug whereby events which were moved did not change name.
+
+  In the original implementation, all invigilation events were called
+  simply "Invigilation".  This was later changed to "<Room no> Invigilation".
+  Thus one would have, for instance, "M116 Invigilation", the idea
+  being to make it really obvious to the end user where he or she
+  was meant to be.
+
+  If however a set of invigilations were moved to a new room, the
+  name did not change.  The event would continue to be called
+  "M116 Invigilation" even though it was now in M115.  This release
+  fixes that problem.
+
+
+v0.17.1 2017-04-06
+
+* Add the means to check for events clashing with invigilation slots.
+
+  These can arise either because the exams administrator has over
+  ridden the list of free staff being offered, or because other
+  events have been added since the invigilation slots were populated.
+
+  The report can be displayed on screen, or e-mailed users flagged as
+  being exam adminstrators.  The latter can be done automatically as
+  part of the overnight processing.
+
+* Exam processing has been renamed as Invigilation processing, since
+  that's what it actually deals with.  As a result, the documentation
+  is now at:
+
+    https://xronos.uk/invigilation.html
+
+
+v0.17   2017-03-22
+
+* This release implements a major new feature - exam invigilation.
+
+  For details on how to use it, see the on-line documentation at:
+
+    https://xronos.uk/exams.html
+
+  When installing this version, it is necessary to migrate the
+  database (rake db:migrate) re-compile the assets (rake assets:precompile)
+  restart the application, and then edit the system settings to add
+  the system's domain name and source e-mail address.
+
+
 v0.16.1 2017-02-27
 
 There are no code changes in this release, just a change to this

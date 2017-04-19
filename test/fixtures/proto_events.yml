@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  body: MyText
+  starts_on: 2017-02-05
+  ends_on: 2017-02-05
+  eventcategory_id: 1
+  eventsource_id: 1
+
+two:
+  body: MyText
+  starts_on: 2017-02-05
+  ends_on: 2017-02-05
+  eventcategory_id: 1
+  eventsource_id: 1

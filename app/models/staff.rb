@@ -98,7 +98,6 @@ class Staff < ActiveRecord::Base
     if result == 0
       result = self.forename <=> other.forename
     end
-    puts "result = #{result}"
     result
   end
 
@@ -111,6 +110,29 @@ class Staff < ActiveRecord::Base
       self.element.concerns.me[0].user
     else
       nil
+    end
+  end
+
+  #
+  #  Users who have bothered to log on can choose to cut down on their
+  #  notifications.  Users who haven't bothered get them regardless.
+  #
+  #
+  def invig_weekly_notifications?
+    my_user = corresponding_user
+    if my_user
+      my_user.invig_weekly
+    else
+      true
+    end
+  end
+
+  def invig_daily_notifications?
+    my_user = corresponding_user
+    if my_user
+      my_user.invig_daily
+    else
+      true
     end
   end
 

@@ -1,0 +1,67 @@
+<div id='exam-cycle-editing'>
+<%= form_for(@exam_cycle) do |f| %>
+  <% if @exam_cycle.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@exam_cycle.errors.count, "error") %> prohibited this exam_cycle from being saved:</h2>
+
+      <ul>
+      <% @exam_cycle.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row">
+    <div class="small-9 columns">
+      <label>Name</label>
+        <%= f.text_field :name,
+                         :placeholder => "Descriptive name of the cycle" %>
+    </div>
+    <div class="small-3 columns">
+      <label>Starts on</label>
+      <%= f.text_field :starts_on_text,
+                       :class => :datepicker %>
+    </div>
+    <div class="small-9 columns">
+      <label>Default rota template</label>
+      <%= f.collection_select(:default_rota_template_id,
+                              RotaTemplate.all.sort,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
+    </div>
+    <div class="small-3 columns">
+      <label>Ends on</label>
+      <%= f.text_field :ends_on_text,
+                       :class => :datepicker %>
+    </div>
+    <div class="small-6 columns">
+      <label>Group listing potential invigilators</label>
+      <%= f.autocomplete_field :default_group_element_name,
+                               autocomplete_group_element_name_elements_path,
+                               :id_element => '#exam_cycle_default_group_element_id',
+                               :placeholder => "Invigilator group",
+                               "data-auto-focus" => true %>
+        <%= f.text_field :default_group_element_id, :type => :hidden %>
+    </div>
+    <div class="small-3 columns">
+      <label>Default quantity</label>
+      <%= f.number_field :default_quantity,
+                         :max => 8,
+                         :min => 1 %>
+    </div>
+    <div class="small-3 columns">
+        These dates are purely for information and to let the records be sorted.
+        They do not constrain when events may be entered.
+    </div>
+  </div> 
+  <div class='bottom-spacer'>
+  </div>
+
+  <div id="dialogue-buttons">
+    <%= f.submit @exam_cycle.id ? "Update" : "Create", :class => "button tiny radius" %>
+    <%= link_to "Cancel", exam_cycles_url, :class => "button tiny radius" %>
+  </div>
+<% end %>
+</div>

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170110110658) do
+ActiveRecord::Schema.define(version: 20170320091221) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -28,22 +28,28 @@ ActiveRecord::Schema.define(version: 20170110110658) do
   end
 
   create_table "commitments", force: true do |t|
-    t.integer "event_id"
-    t.integer "element_id"
-    t.integer "covering_id"
-    t.boolean "names_event",  default: false
-    t.integer "source_id"
-    t.boolean "tentative",    default: false
-    t.boolean "rejected",     default: false
-    t.boolean "constraining", default: false
-    t.string  "reason",       default: ""
-    t.integer "by_whom_id"
+    t.integer  "event_id"
+    t.integer  "element_id"
+    t.integer  "covering_id"
+    t.boolean  "names_event",         default: false
+    t.integer  "source_id"
+    t.boolean  "tentative",           default: false
+    t.boolean  "rejected",            default: false
+    t.boolean  "constraining",        default: false
+    t.string   "reason",              default: ""
+    t.integer  "by_whom_id"
+    t.integer  "proto_commitment_id"
+    t.integer  "request_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   add_index "commitments", ["constraining"], name: "index_commitments_on_constraining", using: :btree
   add_index "commitments", ["covering_id"], name: "index_commitments_on_covering_id", using: :btree
   add_index "commitments", ["element_id"], name: "index_commitments_on_element_id", using: :btree
   add_index "commitments", ["event_id"], name: "index_commitments_on_event_id", using: :btree
+  add_index "commitments", ["proto_commitment_id"], name: "index_commitments_on_proto_commitment_id", using: :btree
+  add_index "commitments", ["request_id"], name: "index_commitments_on_request_id", using: :btree
   add_index "commitments", ["tentative"], name: "index_commitments_on_tentative", using: :btree
 
   create_table "concerns", force: true do |t|
@@ -153,6 +159,8 @@ ActiveRecord::Schema.define(version: 20170110110658) do
     t.boolean  "complete",         default: true
     t.boolean  "constrained",      default: false
     t.boolean  "has_clashes",      default: false
+    t.integer  "proto_event_id"
+    t.string   "flagcolour"
   end
 
   add_index "events", ["complete"], name: "index_events_on_complete", using: :btree
@@ -161,6 +169,7 @@ ActiveRecord::Schema.define(version: 20170110110658) do
   add_index "events", ["has_clashes"], name: "index_events_on_has_clashes", using: :btree
   add_index "events", ["organiser_id"], name: "index_events_on_organiser_id", using: :btree
   add_index "events", ["owner_id"], name: "index_events_on_owner_id", using: :btree
+  add_index "events", ["proto_event_id"], name: "index_events_on_proto_event_id", using: :btree
   add_index "events", ["source_hash"], name: "index_events_on_source_hash", using: :btree
   add_index "events", ["source_id"], name: "index_events_on_source_id", using: :btree
   add_index "events", ["starts_at"], name: "index_events_on_starts_at", using: :btree
@@ -169,6 +178,17 @@ ActiveRecord::Schema.define(version: 20170110110658) do
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
+  end
+
+  create_table "exam_cycles", force: true do |t|
+    t.string   "name"
+    t.integer  "default_rota_template_id"
+    t.date     "starts_on"
+    t.date     "ends_on"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "default_group_element_id"
+    t.integer  "default_quantity",         default: 5
   end
 
   create_table "freefinders", force: true do |t|
@@ -291,7 +311,7 @@ ActiveRecord::Schema.define(version: 20170110110658) do
     t.integer  "owner_id"
     t.integer  "promptnote_id"
     t.boolean  "visible_guest", default: false
-    t.boolean  "visible_staff", default: false
+    t.boolean  "visible_staff", default: true
     t.boolean  "visible_pupil", default: false
     t.integer  "note_type",     default: 0
     t.datetime "created_at"
@@ -337,6 +357,45 @@ ActiveRecord::Schema.define(version: 20170110110658) do
     t.boolean  "make_public", default: false
   end
 
+  create_table "proto_commitments", force: true do |t|
+    t.integer  "proto_event_id"
+    t.integer  "element_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "proto_commitments", ["element_id"], name: "index_proto_commitments_on_element_id", using: :btree
+  add_index "proto_commitments", ["proto_event_id"], name: "index_proto_commitments_on_proto_event_id", using: :btree
+
+  create_table "proto_events", force: true do |t|
+    t.text     "body"
+    t.date     "starts_on"
+    t.date     "ends_on"
+    t.integer  "eventcategory_id"
+    t.integer  "eventsource_id"
+    t.integer  "rota_template_id"
+    t.integer  "generator_id"
+    t.string   "generator_type"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "proto_events", ["eventcategory_id"], name: "index_proto_events_on_eventcategory_id", using: :btree
+  add_index "proto_events", ["eventsource_id"], name: "index_proto_events_on_eventsource_id", using: :btree
+  add_index "proto_events", ["generator_id", "generator_type"], name: "index_proto_events_on_generator_id_and_generator_type", using: :btree
+  add_index "proto_events", ["rota_template_id"], name: "index_proto_events_on_rota_template_id", using: :btree
+
+  create_table "proto_requests", force: true do |t|
+    t.integer  "proto_event_id"
+    t.integer  "element_id"
+    t.integer  "quantity"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "proto_requests", ["element_id"], name: "index_proto_requests_on_element_id", using: :btree
+  add_index "proto_requests", ["proto_event_id"], name: "index_proto_requests_on_proto_event_id", using: :btree
+
   create_table "pupils", force: true do |t|
     t.string   "name"
     t.string   "surname"
@@ -355,6 +414,36 @@ ActiveRecord::Schema.define(version: 20170110110658) do
   add_index "pupils", ["datasource_id"], name: "index_pupils_on_datasource_id", using: :btree
   add_index "pupils", ["source_id"], name: "index_pupils_on_source_id", using: :btree
 
+  create_table "requests", force: true do |t|
+    t.integer  "event_id"
+    t.integer  "element_id"
+    t.integer  "proto_request_id"
+    t.integer  "quantity",         default: 1
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "requests", ["element_id"], name: "index_requests_on_element_id", using: :btree
+  add_index "requests", ["event_id"], name: "index_requests_on_event_id", using: :btree
+  add_index "requests", ["proto_request_id"], name: "index_requests_on_proto_request_id", using: :btree
+
+  create_table "rota_slots", force: true do |t|
+    t.integer  "rota_template_id"
+    t.time     "starts_at"
+    t.time     "ends_at"
+    t.text     "days"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "rota_slots", ["rota_template_id"], name: "index_rota_slots_on_rota_template_id", using: :btree
+
+  create_table "rota_templates", force: true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "services", force: true do |t|
     t.string   "name"
     t.datetime "created_at"
@@ -372,6 +461,8 @@ ActiveRecord::Schema.define(version: 20170110110658) do
     t.string   "current_mis"
     t.string   "previous_mis"
     t.integer  "auth_type",           default: 0
+    t.string   "dns_domain_name",     default: ""
+    t.string   "from_email_address",  default: ""
   end
 
   create_table "staffs", force: true do |t|
@@ -479,6 +570,10 @@ ActiveRecord::Schema.define(version: 20170110110658) do
     t.boolean  "clash_immediate",             default: false
     t.boolean  "edit_all_events",             default: false
     t.boolean  "subedit_all_events",          default: false
+    t.boolean  "exams",                       default: false
+    t.boolean  "invig_weekly",                default: true
+    t.boolean  "invig_daily",                 default: true
+    t.date     "last_invig_run_date"
   end
 
 end

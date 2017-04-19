@@ -7,6 +7,8 @@ class Commitment < ActiveRecord::Base
 
   belongs_to :event
   belongs_to :element
+  belongs_to :proto_commitment
+  belongs_to :request
   belongs_to :by_whom, class_name: "User"
   has_many :notes, as: :parent, :dependent => :destroy
 
@@ -347,7 +349,8 @@ class Commitment < ActiveRecord::Base
                           eventsource:         nil,
                           resource:            nil,
                           owned_by:            nil,
-                          include_nonexistent: false)
+                          include_nonexistent: false,
+                          only_nonexistent:    false)
     #
     #  Might be passed startdate and enddate as:
     #
@@ -380,17 +383,21 @@ class Commitment < ActiveRecord::Base
                             eventsource:         eventsource,
                             resource:            resource,
                             owned_by:            owned_by,
-                            include_nonexistent: include_nonexistent)
+                            include_nonexistent: include_nonexistent,
+                            only_nonexistent:    only_nonexistent)
   end
 
 
-  def self.commitments_during(start_time:          nil,
-                              end_time:            nil,
-                              eventcategory:       nil,
-                              eventsource:         nil,
-                              resource:            nil,
-                              owned_by:            nil,
-                              include_nonexistent: false)
+  def self.commitments_during(
+    start_time:          nil,
+    end_time:            nil,
+    eventcategory:       nil,
+    eventsource:         nil,
+    resource:            nil,
+    owned_by:            nil,
+    include_nonexistent: false,
+    only_nonexistent:    false)
+
     duffparameter = false
     start_time = Time.zone.now unless start_time
     end_time   = start_time unless end_time
@@ -555,8 +562,12 @@ class Commitment < ActiveRecord::Base
           end
         end
       end
-      unless include_nonexistent
-        query_string_parts << "not events.non_existent"
+      if only_nonexistent
+        query_string_parts << "events.non_existent"
+      else
+        unless include_nonexistent
+          query_string_parts << "not events.non_existent"
+        end
       end
       Commitment.joins(:event).
                  where(query_string_parts.join(" and "), query_hash)
