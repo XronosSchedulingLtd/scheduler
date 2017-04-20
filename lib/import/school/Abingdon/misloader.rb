@@ -249,11 +249,9 @@ class SB_Period
   def self.dump(mis_timetable)
     periods = Array.new
     mis_timetable.weeks.each do |week|
-      if week.part_time
-        week.days.each do |day|
-          day.periods.each do |period|
-            periods << SB_Period.new(period, week)
-          end
+      week.days.each do |day|
+        day.periods.each do |period|
+          periods << SB_Period.new(period, week)
         end
       end
     end

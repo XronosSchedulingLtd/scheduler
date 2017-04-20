@@ -155,7 +155,7 @@ class MIS_Cover
     #
     def initialize(staff_cover,
                    descriptive_text)
-      puts "Creating an oddity"
+#      puts "Creating an oddity"
       @staff_cover        = staff_cover
       @descriptive_text   = descriptive_text
       #
