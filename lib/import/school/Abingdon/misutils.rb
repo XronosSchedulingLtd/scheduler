@@ -18,8 +18,12 @@ module MIS_Utils
     nc_year < 20
   end
 
-  def local_week_wanted(week)
-    week.name != "Prep Week"
+  #
+  #  We don't want the prep school week, the one which doesn't
+  #  appear in the schedule, to break through.
+  #
+  def local_week_load_regardless(week)
+    false
   end
 
 end

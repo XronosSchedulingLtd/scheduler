@@ -26,7 +26,7 @@ module MIS_Utils
     true
   end
 
-  def local_week_wanted(week)
+  def local_week_load_regardless(week)
     true
   end
 

@@ -118,7 +118,7 @@ class ISAMS_Week
   include Creator
   include MIS_Utils
 
-  attr_reader :days, :day_hash, :part_time, :wanted
+  attr_reader :days, :day_hash, :part_time, :load_regardless
 
   def initialize(entry)
     @days = ISAMS_Day.construct(self, entry)
@@ -129,10 +129,22 @@ class ISAMS_Week
       #  of the day, but it quickly became apparent that the iSAMS
       #  programmers don't know what ordinal means.
       #
+      #  Then I did it by means of the short name, but that too can
+      #  of course vary.  Since I first implemented it though, iSAMS have
+      #  added a mis-named <Day> node to the <Day> node (!!).  The inner
+      #  one should really be called <DayNo> and we'll use that.
+      #
       @day_hash[day.day_no] = day
     end
     @part_time = false
-    @wanted = local_week_wanted(self)
+    #
+    #  A flag allowing weeks to be loaded regardless of whether or
+    #  not they occur in the iSAMS schedule.  iSAMS has weeks which
+    #  conform to a schedule, and others which fail to appear in the
+    #  schedule but should be loaded anyway.  By setting this flag,
+    #  we identify the latter ones so they still get loaded.
+    #
+    @load_regardless = local_week_load_regardless(self)
   end
 
   def set_part_time
@@ -947,6 +959,8 @@ end
 
 class MIS_Timetable
 
+  attr_reader :weeks
+
   def initialize(loader, isams_data)
     @activities = loader.options.activities
     @weeks = ISAMS_Week.construct(loader, isams_data)
@@ -1073,8 +1087,9 @@ class MIS_Timetable
     end
     #
     #  And now any weeks which are not part-timers.
+    #  Note that these must be flagged as being intended to come through.
     #
-    weeks += @weeks.select {|week| !week.part_time}
+    weeks += @weeks.select {|week| week.load_regardless && !week.part_time}
     lessons = []
     weeks.each do |week|
 #      puts "Week: #{week.name}"

@@ -248,10 +248,12 @@ class SB_Period
 
   def self.dump(mis_timetable)
     periods = Array.new
-    mis_timetable.schedule.weeks.each do |week|
-      week.days.each do |day|
-        day.periods.each do |period|
-          periods << SB_Period.new(period, week)
+    mis_timetable.weeks.each do |week|
+      if week.part_time
+        week.days.each do |day|
+          day.periods.each do |period|
+            periods << SB_Period.new(period, week)
+          end
         end
       end
     end
@@ -300,7 +302,7 @@ class SB_Timetableentry
     #  Need to be able to filter out prep school lessons.
     #
     periods_wanted = Hash.new
-    mis_timetable.schedule.weeks.each do |week|
+    mis_timetable.weeks.each do |week|
       if week.isams_id != 3
         week.days.each do |day|
           day.periods.each do |period|

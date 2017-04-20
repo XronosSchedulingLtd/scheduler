@@ -47,7 +47,7 @@ class MIS_Pupil
   end
 
   def wanted
-    @nc_year && local_wanted(@year_id)
+    @nc_year && local_wanted(@nc_year)
   end
 
   def source_id

@@ -70,18 +70,20 @@ module MIS_Utils
   #
   #  And also filter out weeks.  This is more interesting and must be
   #  implemented in a school specific way.  Abingdon wants its two
-  #  A and B weeks, but not the prep school week.  If this returns
-  #  false, then all lessons belonging to the indicated week will
-  #  be dropped as part of the import process.
+  #  A and B weeks, but not the prep school week.
   #
-  #  def local_week_wanted(week)
+  #  A and B weeks are loaded according to the schedule provided by
+  #  iSAMS, but then extra local knowledge is needed to decide whether
+  #  to load any others.
+  #
+  #  def local_week_load_regardless(week)
 
   UTILS_NEEDED = [
     :local_yeargroup,
     :local_yeargroup_text,
     :local_effective_start_year,
     :local_wanted,
-    :local_week_wanted
+    :local_week_load_regardless
   ]
 
   def utils_ok?
