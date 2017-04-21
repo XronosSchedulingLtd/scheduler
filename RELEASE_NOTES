@@ -1,3 +1,51 @@
+v0.18   2017-04-21
+
+* Improved the iSAMS data import code to cope with more than one school.
+
+  The original implementation of Scheduler imported timetable data
+  from a single-school MIS called Schola.  It did this by taking
+  all the individual staff and pupil timetables and from them
+  reconstructing the complete timetable and set lists.
+
+  The next implementation imported data from SchoolBase by means of
+  direct access to SchoolBase's database tables.  This version of
+  the importer still exists, but it's a single large (5100 line)
+  Ruby program.  It would need tweaking to work for a different school.
+
+  The next requirement was to import timetables from iSAMS and the
+  opportunity was taken to re-write the importer as a modular
+  implementation.  It now consists of 41 separate Ruby source
+  files plus a few specific to each school each of which does
+  a separate specific task.  They are split into three hierarchical
+  groups in separate directories:
+
+    * General code regardless of MIS (18 source files)
+    * iSAMS-specific code (23 source files)
+    * School specific code (varies - 3 - 7 files)
+
+  There remains the task of taking the SchoolBase importer mentioned
+  above and adding it in to this new structured implementation.
+
+  Although the code above was always intended to work with more than
+  one school, the acid test came when it was time to install it at
+  its second school.  Overall the results were good, but a small
+  amount of cleaning up was required.  Some code was in the iSAMS
+  area which should have been in the School area, and a false
+  assumption (that the three-letter abbreviation of Thursday is
+  always "Thu") came to light.
+
+  This release pulls together all the tweaks into a version which has
+  been tested to work well at both the current iSAMS-using schools.
+
+  When doing a new installation, or installing this release for the
+  first time, it is necessary to go into the directory:
+
+  ~/Work/Coding/scheduler/lib/import/school
+
+  and type "./linkup <School name>" in order to pick the right
+  school-specific code files.
+
+
 v0.17.5 2017-04-14
 
 * And do exactly the same for the LetsEncrypt config files
@@ -19,7 +67,7 @@ A bit of a drawing together of a few loose strands.
 
 * Don't complain about inconsistent data from the iSAMS database.
 
-  It's becoming steadily more apparent that the iSAMS database likes
+  It's becoming steadily more apparent that the iSAMS database lacks
   basic consistency constraints.  We're getting membership records
   for pupils which are apparently currently active, even though the
   corresponding groups are currently inactive.  Stop complaining
