@@ -1,0 +1,29 @@
+#!/bin/bash
+
+. ~/etc/whichsystem
+
+#
+#  Make sure SCHEDULER_DIR is set
+#
+if [ "a$SCHEDULER_DIR" == "a" ]; then
+  echo "SCHEDULER_DIR environment variable needs to be set."
+  exit 1
+fi
+SCHOOL_DIR=$SCHEDULER_DIR/lib/import/school
+if [ -d $SCHOOL_DIR ]; then
+  cd $SCHOOL_DIR
+  SOURCE=$1
+  if [ -d $SOURCE ]; then
+    rm *.rb
+    for file in $SOURCE/*.rb; do
+      ln -s $file
+    done
+  else
+    echo "$SOURCE source directory not found."
+    exit 3
+  fi
+else
+  echo "$SCHOOL_DIR does not seem to be a directory."
+  exit 2
+fi
+

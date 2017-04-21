@@ -4,6 +4,7 @@
 #
 class MIS_Record
 
+  include MIS_Utils
   #
   #  Note that this code gets run just once as the class is being
   #  defined.  It defines class variables for use later.

@@ -1,13 +1,5 @@
 
 class MIS_House
-  SELECTOR = "SchoolManager AcademicHouses House"
-  REQUIRED_FIELDS = [
-    IsamsField["Id",                 :isams_id,       :attribute, :integer],
-    IsamsField["HouseMasterId",      :housemaster_id, :attribute, :integer],
-    IsamsField["Name",               :name,           :data,      :string]
-  ]
-
-  include Creator
 
   def initialize(entry)
     @tugs = Array.new
@@ -29,13 +21,19 @@ class MIS_House
   end
 
   def self.construct(loader, isams_data)
-    houses = self.slurp(isams_data.xml)
     @namehash = Hash.new
-    houses.each do |house|
+    academic_houses = ISAMS_AcademicHouse.slurp(isams_data.xml, false)
+    academic_houses.each do |house|
       @namehash[house.name] = house
       house.find_housemaster(loader)
     end
-    houses
+    boarding_houses = ISAMS_BoardingHouse.slurp(isams_data.xml, false)
+    boarding_houses.each do |house|
+      @namehash[house.name] = house
+      house.find_housemaster(loader)
+    end
+    all_houses = academic_houses + boarding_houses
+    all_houses
   end
 
   def self.by_name(name)
@@ -46,3 +44,28 @@ class MIS_House
   end
 
 end
+
+class ISAMS_AcademicHouse < MIS_House
+  SELECTOR = "SchoolManager AcademicHouses House"
+  REQUIRED_FIELDS = [
+    IsamsField["Id",                 :isams_id,       :attribute, :integer],
+    IsamsField["HouseMasterId",      :housemaster_id, :attribute, :integer],
+    IsamsField["Name",               :name,           :data,      :string]
+  ]
+
+  include Creator
+
+end
+
+class ISAMS_BoardingHouse < MIS_House
+  SELECTOR = "SchoolManager BoardingHouses House"
+  REQUIRED_FIELDS = [
+    IsamsField["Id",                 :isams_id,       :attribute, :integer],
+    IsamsField["HouseMasterId",      :housemaster_id, :attribute, :integer],
+    IsamsField["Name",               :name,           :data,      :string]
+  ]
+
+  include Creator
+
+end
+

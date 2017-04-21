@@ -136,4 +136,75 @@ class Staff < ActiveRecord::Base
     end
   end
 
+  #
+  #  A maintenance method to move over information from manually created
+  #  staff (existing before an iSAMS import) to the corresponding
+  #  record from iSAMS.
+  #
+  #  Not that this method is not generally robust.  It was written for
+  #  the specific case of Dean Close school, where only two members
+  #  of staff had any existing commitments at all and only one each.
+  #
+  #  None had any existing memberships.
+  #
+
+  def check_and_transfer(messages)
+    messages << "Processing #{self.name}."
+    messages << "#{self.element.commitments.count} existing commitments."
+    user = self.corresponding_user
+    if user
+      messages << "Has user record."
+    else
+      messages << "Has no user record."
+    end
+    candidates = Staff.where(email: self.email) - [self]
+    puts "#{candidates.size} candidates."
+    if candidates.size == 1
+      new_one = candidates[0]
+      #
+      #  Hand over our commitments.
+      #
+      self.element.commitments.each do |c|
+        c.element = new_one.element
+        c.save!
+      end
+      #
+      #  And our user record.
+      #
+      if user
+        concern = self.element.concerns.me[0]
+        concern.element = new_one.element
+        concern.save!
+      end
+      #
+      #  The danger we have here is that if we simply destroy our
+      #  record, there will be a cached copy of its element in memory
+      #  which will lead to other things being destroyed as well,
+      #  speficially the commitments which we have just re-assigned.
+      #  (The commitment no longer thinks it is connected to the element,
+      #  but the cached element will still contain a reference to the
+      #  commitment.)
+      #
+      #  Reload the element first.
+      #
+      self.element.reload
+      self.destroy!
+      true
+    else
+      false
+    end
+  end
+
+  def self.check_and_transfer
+    messages = []
+    Staff.where(datasource: nil).each do |staff|
+      if staff.check_and_transfer(messages)
+        messages << "Processed #{staff.name}."
+      else
+        messages << "Didn't process #{staff.name}."
+      end
+    end
+    puts messages.join("\n")
+    nil
+  end
 end

@@ -13,12 +13,13 @@ class MIS_Pupil
     IsamsField["Fullname",           :full_name,  :data,      :string],
     IsamsField["Preferredname",      :known_as,   :data,      :string],
     IsamsField["Form",               :form_name,  :data,      :string],
-    IsamsField["AcademicHouse",      :house_name, :data,      :string]
+    IsamsField["AcademicHouse",      :academic_house_name, :data, :string],
+    IsamsField["BoardingHouse",      :boarding_house_name, :data, :string]
   ]
 
   include Creator
 
-  attr_reader :name, :datasource_id, :current, :house, :sb_id
+  attr_reader :name, :datasource_id, :current, :house, :sb_id, :house_name
 
   def initialize(entry)
     #
@@ -32,6 +33,11 @@ class MIS_Pupil
   def adjust
     @email.downcase!
     @name = "#{@known_as} #{@surname}"
+    if @academic_house_name.blank?
+      @house_name = @boarding_house_name
+    else
+      @house_name = @academic_house_name
+    end
     @house = MIS_House.by_name(@house_name)
     #
     #  This isn't really right, but unfortunately Niki has overwritten
@@ -41,7 +47,7 @@ class MIS_Pupil
   end
 
   def wanted
-    @nc_year && @nc_year < 20
+    @nc_year && local_wanted(@nc_year)
   end
 
   def source_id
@@ -80,7 +86,7 @@ class MIS_Pupil
   #  move them *up* by this amount, you subtract it from their start year.
   #
   def effective_start_year(era)
-    era.starts_on.year + 7 - (self.nc_year + ahead)
+    local_effective_start_year(era, self.nc_year, self.ahead)
   end
 
   def check_idents

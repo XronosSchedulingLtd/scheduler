@@ -1,5 +1,7 @@
 class MIS_Loader
 
+  include MIS_Utils
+
   attr_reader :options,
               :era,
               :start_date,
@@ -40,6 +42,7 @@ class MIS_Loader
     #  Need houses before pupils, to be able to link them.
     #
     @houses = MIS_House.construct(self, whatever)
+    puts "Got #{@houses.count} houses." if options.verbose
     @pupils = MIS_Pupil.construct(self, whatever)
     puts "Got #{@pupils.count} pupils." if options.verbose
     @pupil_hash = Hash.new
@@ -72,11 +75,13 @@ class MIS_Loader
     @teachinggroups.each do |tg|
       @teachinggroup_hash[tg.source_id] = tg
     end
-    @ohgroups = MIS_Otherhalfgroup.construct(self, whatever)
-    puts "Got #{@ohgroups.count} other half groups." if options.verbose
-    @oh_groups_hash = Hash.new
-    @ohgroups.each do |ohg|
-      @oh_groups_hash[ohg.isams_id] = ohg
+    if options.activities
+      @ohgroups = MIS_Otherhalfgroup.construct(self, whatever)
+      puts "Got #{@ohgroups.count} other half groups." if options.verbose
+      @oh_groups_hash = Hash.new
+      @ohgroups.each do |ohg|
+        @oh_groups_hash[ohg.isams_id] = ohg
+      end
     end
     self.mis_specific_preparation
     #
@@ -95,8 +100,10 @@ class MIS_Loader
       @customgroup_hash[cg.source_id_str] = cg
 #      cg.report
     end
-    @covers = MIS_Cover.construct(self, whatever)
-    puts "Got #{@covers.size} cover records." if options.verbose
+    if options.cover
+      @covers = MIS_Cover.construct(self, whatever)
+      puts "Got #{@covers.size} cover records." if options.verbose
+    end
   end
 
   def initialize(options)
@@ -785,83 +792,12 @@ class MIS_Loader
     ensure_membership("All staff",
                       Staff.active.current.to_a,
                       Staff)
-    #
-    #  Staff by house they are tutors in.
-    #
-    all_tutors = []
-    tutors_by_year = {}
-    tges_by_year = {}
-    @houses.each do |house|
-      tutors = []
-      pupils = []
-      house_tges_by_year = {}
-      house.tugs.each do |tug|
-        tutors << tug.staff.dbrecord
-        all_tutors << tug.staff.dbrecord
-        tutors_by_year[tug.yeargroup] ||= []
-        tutors_by_year[tug.yeargroup] << tug.staff.dbrecord
-        #
-        #  And now, each of the pupils.
-        #
-        tug.pupils.each do |pupil|
-          tges_by_year[tug.yeargroup] ||= []
-          tges_by_year[tug.yeargroup] << pupil.dbrecord
-          house_tges_by_year[tug.yeargroup] ||= []
-          house_tges_by_year[tug.yeargroup] << pupil.dbrecord
-          pupils << pupil.dbrecord
-        end
-      end
-      if house.name == "Lower School"
-        ensure_membership("#{house.name} tutors",
-                          tutors,
-                          Staff)
-        ensure_membership("#{house.name} pupils",
-                          pupils,
-                          Pupil)
-      else
-        ensure_membership("#{house.name} House tutors",
-                          tutors,
-                          Staff)
-        ensure_membership("#{house.name} House pupils",
-                          pupils,
-                          Pupil)
-        house_tges_by_year.each do |year_group, pupils|
-          ensure_membership("#{house.name} House #{year_group.ordinalize} year",
-                            pupils,
-                            Pupil)
-        end
-      end
-    end
-    middle_school_tutors = []
-    upper_school_tutors = []
-    tutors_by_year.each do |year_group, tutors|
-      ensure_membership("#{year_group.ordinalize} year tutors",
-                        tutors,
-                        Staff)
-      #
-      #  Lower school tutors already have their own group from the house
-      #  processing.
-      #
-      if year_group == 3 ||
-         year_group == 4 ||
-         year_group == 5
-        middle_school_tutors += tutors
-      elsif year_group == 6 ||
-            year_group == 7
-        upper_school_tutors += tutors
-      end
-    end
-    tges_by_year.each do |year_group, pupils|
-      ensure_membership("#{year_group.ordinalize} year",
-                        pupils,
-                        Pupil)
-    end
-    ensure_membership("Middle school tutors", middle_school_tutors, Staff)
-    ensure_membership("Upper school tutors", upper_school_tutors, Staff)
-    ensure_membership("All tutors", all_tutors, Staff)
     ensure_membership("All pupils",
                       Pupil.current.to_a,
                       Pupil)
+    if self.respond_to?(:do_local_auto_groups)
+      do_local_auto_groups
+    end
     @subjects.each do |subject|
       #
       #  Who teaches this subject at all?
@@ -882,7 +818,7 @@ class MIS_Loader
           teachers.collect {|t| t.dbrecord}.
                   compact.select {|dbr| dbr.active}
         if dbteachers.size > 0
-          ensure_membership("#{yeargroup.ordinalize} year #{subject.name} teachers",
+          ensure_membership("#{local_yeargroup_text(yeargroup)} #{subject.name} teachers",
                             dbteachers,
                             Staff)
         end
@@ -904,7 +840,7 @@ class MIS_Loader
       subject.year_groups.each do |yeargroup, groups|
         dbgroups = groups.collect {|g| g.dbrecord}.compact
         if dbgroups.size > 0
-          ensure_membership("#{yeargroup.ordinalize} year #{subject.name} pupils",
+          ensure_membership("#{local_yeargroup_text(yeargroup)} #{subject.name} pupils",
                             dbgroups,
                             Group)
         end
@@ -919,7 +855,7 @@ class MIS_Loader
         teachers.collect {|t| t.dbrecord}.
                 compact.select {|dbr| dbr.active}
       if dbteachers.size > 0
-        ensure_membership("#{yeargroup.ordinalize} year teachers",
+        ensure_membership("#{local_yeargroup_text(yeargroup)} teachers",
                           dbteachers,
                           Staff)
       end
@@ -944,26 +880,32 @@ class MIS_Loader
 
   def do_extra_groups
     EXTRA_GROUP_FILES.each do |control_data|
-      file_data =
-        YAML.load(
-          File.open(Rails.root.join(IMPORT_DIR, control_data[:file_name])))
-      file_data.each do |group_name, members|
-        if members
-          dbrecords = members.collect do |m|
-            if control_data[:dbclass].respond_to?(:active)
-              dbrecord = control_data[:dbclass].active.current.find_by(name: m)
+      begin
+        file_data =
+          YAML.load(
+            File.open(Rails.root.join(IMPORT_DIR, control_data[:file_name])))
+        if file_data
+          file_data.each do |group_name, members|
+            if members
+              dbrecords = members.collect do |m|
+                if control_data[:dbclass].respond_to?(:active)
+                  dbrecord = control_data[:dbclass].active.current.find_by(name: m)
+                else
+                  dbrecord = control_data[:dbclass].current.find_by(name: m)
+                end
+                unless dbrecord
+                  puts "Can't find #{m} for extra group #{group_name}"
+                end
+                dbrecord
+              end.compact
             else
-              dbrecord = control_data[:dbclass].current.find_by(name: m)
+              dbrecords = []
             end
-            unless dbrecord
-              puts "Can't find #{m} for extra group #{group_name}"
-            end
-            dbrecord
-          end.compact
-        else
-          dbrecords = []
+            ensure_membership(group_name, dbrecords, control_data[:dbclass])
+          end
         end
-        ensure_membership(group_name, dbrecords, control_data[:dbclass])
+      rescue Errno::ENOENT => e
+        puts "No file #{control_data[:file_name]}." if @verbose
       end
     end
   end

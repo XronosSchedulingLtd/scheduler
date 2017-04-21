@@ -1,0 +1,4 @@
+ISAMS_API_URL='https://whatever...'
+APIKEY='whatever...'
+PASSWORD='whatever...'
+export APIKEY ISAMS_API_URL PASSWORD

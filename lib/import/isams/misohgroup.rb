@@ -39,7 +39,7 @@ class MIS_Otherhalfgroup
   end
 
   def wanted
-    @year_id && @year_id < 20
+    @year_id && local_wanted(@year_id)
   end
 
   def note_subject(subject_hash)

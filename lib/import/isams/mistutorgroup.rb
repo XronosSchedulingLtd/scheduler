@@ -28,11 +28,11 @@ class MIS_Tutorgroup
   end
 
   def wanted
-    @tutor_id && @year_id && @year_id < 20
+    @tutor_id && @year_id && local_wanted(@year_id)
   end
 
   def start_year
-    (self.era.starts_on.year - @year_id) + 7
+    local_effective_start_year(self.era, @year_id, 0)
   end
 
   #
@@ -50,7 +50,7 @@ class MIS_Tutorgroup
   #    7        NC 13
   #
   def yeargroup
-    @year_id - 6
+    local_yeargroup(@year_id)
   end
 
   #
@@ -72,11 +72,13 @@ class MIS_Tutorgroup
   end
 
   def link_to_house
-    @house_rec = MIS_House.by_name(self.house)
-    if @house_rec
-      @house_rec.note_tutorgroup(self)
-    else
-      puts "Tutor group #{self.name} can't find house #{self.house}."
+    unless @pupils.empty?
+      @house_rec = MIS_House.by_name(self.house)
+      if @house_rec
+        @house_rec.note_tutorgroup(self)
+      else
+        puts "Tutor group #{self.name} can't find house #{self.house}."
+      end
     end
   end
 
@@ -108,7 +110,7 @@ class MIS_Tutorgroup
     end
     without_tutor, with_tutor = tgs.partition {|tg| tg.staff == nil}
     without_tutor.each do |tg|
-      puts "Dropping tutor group #{tg.name} because it has no tutor."
+      puts "Dropping tutor group #{tg.name} because it has no tutor." if loader.options.verbose
     end
     #
     #  And link them to houses?
