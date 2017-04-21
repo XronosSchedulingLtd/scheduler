@@ -25,6 +25,80 @@ require_relative '../../config/environment'
 #
 
 #
+#  The following module must be implemented as school-specific code.
+#
+module MIS_Utils
+  #
+  #  Different schools refer to their year groups in different ways.
+  #  Some use the National Curriculum year groups, "Year 9" etc.
+  #  Others use the older "1st year", "2nd year" etc.
+  #
+  #  This method takes a numeric National Curriculum year and converts
+  #  it to the local numeric value.
+  #
+  #  def local_yeargroup(nc_year)
+
+  #
+  #  And this one formats a local numeric value as text.
+  #
+  #    Year 9
+  #    1st year
+  #
+  #  etc.
+  #
+  #  def local_yeargroup_text(yeargroup)
+
+  #
+  #  If a pupil is in National Curriculum year nc_year for the era
+  #  indicated by era, then in what calendar year would he have started
+  #  in the school's local idea of the first year?  Note - not the
+  #  date at which he or she *did* start at the school, just what year
+  #  would it have been if the start had been in local year 1.
+  #
+  # def local_effective_start_year(era, nc_year, ahead = 0)
+  #
+
+  #  We can potentially filter out incoming records by NC year.
+  #  This is, for instance, used at Abingdon to filter out all
+  #  pupils, tutor groups and teaching groups where the NC year
+  #  number is greater than 20, indicating they belong to the prep
+  #  school.
+  #
+  # def local_wanted(nc_year)
+  #
+  
+  #
+  #  And also filter out weeks.  This is more interesting and must be
+  #  implemented in a school specific way.  Abingdon wants its two
+  #  A and B weeks, but not the prep school week.
+  #
+  #  A and B weeks are loaded according to the schedule provided by
+  #  iSAMS, but then extra local knowledge is needed to decide whether
+  #  to load any others.
+  #
+  #  def local_week_load_regardless(week)
+
+  UTILS_NEEDED = [
+    :local_yeargroup,
+    :local_yeargroup_text,
+    :local_effective_start_year,
+    :local_wanted,
+    :local_week_load_regardless
+  ]
+
+  def utils_ok?
+    result = true
+    UTILS_NEEDED.each do |un|
+      unless self.respond_to?(un)
+        puts "A method #{un} must be defined to suit the current school"
+        result = false
+      end
+    end
+    result
+  end
+end
+
+#
 #  Support files.
 #
 require_relative 'misimport/options.rb'
@@ -114,7 +188,15 @@ def finished(options, stage)
   end
 end
 
+class LocalTester
+  include MIS_Utils
+end
+
 begin
+  lt = LocalTester.new
+  unless lt.utils_ok?
+    exit
+  end
   options = Options.new
   MIS_Loader.new(options) do |loader|
     unless options.just_initialise
@@ -142,12 +224,16 @@ begin
         finished(options, "tutor groups")
         loader.do_teachinggroups
         finished(options, "teaching groups")
-        loader.do_otherhalfgroups
-        finished(options, "other half groups")
+        if options.activities
+          loader.do_otherhalfgroups
+          finished(options, "other half groups")
+        end
         loader.do_timetable
         finished(options, "timetable")
-        loader.do_cover
-        finished(options, "cover")
+        if options.cover
+          loader.do_cover
+          finished(options, "cover")
+        end
         loader.do_auto_groups
         finished(options, "automatic groups")
         loader.do_extra_groups
@@ -160,6 +246,7 @@ begin
     end
   end
 rescue RuntimeError => e
+  puts "Got a run time error."
   puts e
 end
 

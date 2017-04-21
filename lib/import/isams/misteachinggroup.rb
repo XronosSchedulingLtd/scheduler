@@ -51,7 +51,7 @@ class MIS_Teachinggroup
   end
 
   def wanted
-    @year_id && @year_id < 20
+    @year_id && local_wanted(@year_id)
   end
 
   #
@@ -75,11 +75,11 @@ class MIS_Teachinggroup
   end
 
   def start_year
-    (@era.starts_on.year - @year_id) + 7
+    local_effective_start_year(@era, @year_id)
   end
 
   def yeargroup
-    @year_id - 6
+    local_yeargroup(@year_id)
   end
 
   def self.construct(loader, isams_data)
@@ -181,11 +181,11 @@ class ISAMS_FakeTeachinggroup < MIS_Group
   end
 
   def start_year
-    (@era.starts_on.year - @year_id) + 7
+    local_effective_start_year(@era, @year_id)
   end
 
   def yeargroup
-    @year_id - 6
+    local_yeargroup(@year_id)
   end
 
   def members

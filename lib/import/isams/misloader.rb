@@ -12,24 +12,36 @@ class MIS_Loader
     #  is also a Group => Event link.  I may well switch to the latter,
     #  in which case events will need to be loaded before groups.
     #
-    TO_SLURP = [
+    ACTIVITIES_TO_SLURP = [
       ISAMS_ActivityGroup,
       ISAMS_ActivityGroupPupilLink,
       ISAMS_ActivityEvent,
       ISAMS_ActivityEventOccurrence,
-      ISAMS_ActivityEventTeacherLink,
+      ISAMS_ActivityEventTeacherLink
+    ]
+    COVER_TO_SLURP = [
       ISAMS_Cover
     ]
 
-    def initialize(loader)
+    def initialize(loader, options)
       super()
       @loader = loader
+      @options = options
       full_dir_path = Rails.root.join(ISAMS_IMPORT_DIR)
       @xml =
         Nokogiri::XML(File.open(File.expand_path("data.xml", full_dir_path)))
-      TO_SLURP.each do |is_type|
-        unless is_type.construct(self, full_dir_path)
-          puts "Failed to load #{is_type}"
+      if options.activities
+        ACTIVITIES_TO_SLURP.each do |is_type|
+          unless is_type.construct(self, full_dir_path)
+            puts "Failed to load #{is_type}"
+          end
+        end
+      end
+      if options.cover
+        COVER_TO_SLURP.each do |is_type|
+          unless is_type.construct(self, full_dir_path)
+            puts "Failed to load #{is_type}"
+          end
         end
       end
       if loader.options.verbose
@@ -49,7 +61,7 @@ class MIS_Loader
               :subjects_by_name_hash
 
   def prepare(options)
-    ISAMS_Data.new(self)
+    ISAMS_Data.new(self, options)
   end
 
   def mis_specific_preparation
@@ -90,10 +102,12 @@ class MIS_Loader
     @subjects.each do |subject|
       @subjects_by_name_hash[subject.name] = subject
     end
-    #
-    #  Only now can we populate the other half groups.
-    #
-    MIS_Otherhalfgroup.populate(self)
+    if @options.activities
+      #
+      #  Only now can we populate the other half groups.
+      #
+      MIS_Otherhalfgroup.populate(self)
+    end
     #
     #  Here we should really have finished, but we need to cope with
     #  iSAMS's broken API.  There are more groups which are simply
