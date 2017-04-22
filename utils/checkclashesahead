@@ -18,7 +18,7 @@ fi
 if [ -d $SCHEDULER_DIR ]; then
   cd $SCHEDULER_DIR
   ./lib/clashes/clashcheck.rb --ahead 2 --weeks 4
-  touch tmp/clashcheckfinished.txt
+  touch tmp/aheadclashcheckfinished.txt
 else
   echo "$SCHEDULER_DIR does not seem to be a directory."
   exit 2
