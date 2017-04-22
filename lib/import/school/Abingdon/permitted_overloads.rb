@@ -19,9 +19,21 @@ PermittedOverload = Struct.new(:cover_event_body, :clash_event_body)
 
 PERMITTED_OVERLOADS = [
   #
+  #  3rd year private study.
+  #
+  PermittedOverload.new(/^3H PS/,   /^3H PS/),
+  #
   #  4th year private study.
   #
   PermittedOverload.new(/^4S PS/,   /^4S PS/),
+  #
+  #  3rd year rowing.
+  #
+  PermittedOverload.new(/^3 Row/,   /^3 Row/),
+  #
+  #  5th year rowing.
+  #
+  PermittedOverload.new(/^5 Row/,   /^5 Row/),
   #
   #  Lower School Be The Best
   #

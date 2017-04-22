@@ -1,3 +1,30 @@
+v0.18.1 2017-04-22
+
+  Some more tidying up following on from yesterday's big tidy up.
+  The tidier things get, the more obvious the remaining items become.
+
+* Each installation needs its own secret key for securing the sessions
+  between browser and server.  This is a long pseudo-random hex string
+  generated using the command "rake secret" in the application's root
+  directory.
+
+  Up until now, each installation has had its unique secret edited into
+  the file config/secrets.yml, which is the wrong way to do it.
+
+  From this release, the secret goes in ~/.profile, and the config/secrets.yml
+  file picks it up from the environment, meaning that the same file
+  can be used on all installations.  This is how it should always have been
+  done.
+
+* The file utils/checkclashesahead existed in a slightly different
+  (corrected) form on Abingdon's installation but not in the main
+  repository.  Pulled back into the main repository.
+
+* Likewise the file lib/import/school/permitted_overloads.rb on
+  Abingdon's installation differed from the main repository.  Pulled
+  back in.
+
+
 v0.18   2017-04-21
 
 * Improved the iSAMS data import code to cope with more than one school.
