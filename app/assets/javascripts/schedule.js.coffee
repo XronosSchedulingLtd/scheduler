@@ -70,6 +70,8 @@ $(document).ready ->
         window.prepareToRender(view, element)
       eventRender: (event, element) ->
         window.tweakElement(event, element)
+      eventAfterAllRender: (view) ->
+        window.allRendered(view)
       eventSources: [{
         url: '/schedule/events'
       }]
@@ -155,6 +157,8 @@ $(document).ready ->
         window.prepareToRender(view, element)
       eventRender: (event, element) ->
         window.tweakElement(event, element)
+      eventAfterAllRender: (view) ->
+        window.allRendered(view)
       eventSources: [{
         url: '/schedule/events'
       }]
@@ -278,6 +282,9 @@ window.prepareToRender = (view, element) ->
   $('#datepicker').datepicker('setDate', view.start.toDate())
   window.viewStartDate = view.start.toDate()
   window.viewName = view.name
+  window.elementsSeen = {}
+
+window.allRendered = (view) ->
   window.elementsSeen = {}
 
 window.tweakElement = (event, element) ->
