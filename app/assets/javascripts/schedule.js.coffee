@@ -68,20 +68,17 @@ $(document).ready ->
       scrollTime: "08:00"
       viewRender: (view, element) ->
         $('#datepicker').datepicker('setDate', view.start.toDate())
+        window.viewStartDate = view.start.toDate()
+        window.viewName = view.name
       eventRender: (event, element) ->
         window.flagClashes(event, element)
       eventSources: [{
         url: '/schedule/events'
       }]
       eventClick: (event, jsEvent, view) ->
-        if event.edit_dialogue
-          $('#eventModal').foundation('reveal', 'open', {
-            url: '/events/' + event.id + '/edit'
-          })
-        else
-          $('#eventModal').foundation('reveal',
-                                      'open',
-                                      '/events/' + event.id)
+        $('#eventModal').foundation('reveal',
+                                    'open',
+                                    '/events/' + event.id)
       eventDrop: (event, delta, revertFunc) ->
         jQuery.ajax
           url:  "/events/" + event.id + "/moved"
@@ -280,6 +277,11 @@ window.activateColourPicker = (field_id, sample_id) ->
       $(sample_id).css('background-color', colour.toHexString())
 
 window.flagClashes = (event, element) ->
+  if event.prefix
+    startDate = window.viewStartDate
+    if event.start >= startDate &&
+       (window.viewName == "agendaWeek" || window.viewName == "agendaDay")
+      element.find('.fc-event-inner').prepend(event.prefix)
   if event.has_clashes
     element.find(".fc-event-inner").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
   else if event.fc == "r"
