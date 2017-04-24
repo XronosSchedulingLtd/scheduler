@@ -67,11 +67,9 @@ $(document).ready ->
       minTime: "06:00"
       scrollTime: "08:00"
       viewRender: (view, element) ->
-        $('#datepicker').datepicker('setDate', view.start.toDate())
-        window.viewStartDate = view.start.toDate()
-        window.viewName = view.name
+        window.prepareToRender(view, element)
       eventRender: (event, element) ->
-        window.flagClashes(event, element)
+        window.tweakElement(event, element)
       eventSources: [{
         url: '/schedule/events'
       }]
@@ -154,9 +152,9 @@ $(document).ready ->
       minTime: "06:00"
       scrollTime: "08:00"
       viewRender: (view, element) ->
-        $('#datepicker').datepicker('setDate', view.start.toDate())
+        window.prepareToRender(view, element)
       eventRender: (event, element) ->
-        window.flagClashes(event, element)
+        window.tweakElement(event, element)
       eventSources: [{
         url: '/schedule/events'
       }]
@@ -276,12 +274,32 @@ window.activateColourPicker = (field_id, sample_id) ->
     change: (colour) ->
       $(sample_id).css('background-color', colour.toHexString())
 
-window.flagClashes = (event, element) ->
+window.prepareToRender = (view, element) ->
+  $('#datepicker').datepicker('setDate', view.start.toDate())
+  window.viewStartDate = view.start.toDate()
+  window.viewName = view.name
+  window.elementsSeen = {}
+
+window.tweakElement = (event, element) ->
   if event.prefix
+    #
+    #  We are being asked, at least some of the time, to put a prefix
+    #  on the event's title.  We do this only for elements which show
+    #  the chronological start of the event - not those where it
+    #  is just continuing.
+    #
     startDate = window.viewStartDate
-    if event.start >= startDate &&
-       (window.viewName == "agendaWeek" || window.viewName == "agendaDay")
-      element.find('.fc-event-inner').prepend(event.prefix)
+    if event.start >= startDate
+      if (window.viewName == "agendaWeek" || window.viewName == "agendaDay")
+        element.find('.fc-event-inner').prepend(event.prefix)
+      else if window.viewName == "month"
+        #
+        #  This one takes a bit more thought.  The event may occur in
+        #  several elements, and only the first gets the prefix.
+        #
+        if !window.elementsSeen[event.id]
+          window.elementsSeen[event.id] = true
+          element.find('.fc-event-inner').prepend(event.prefix)
   if event.has_clashes
     element.find(".fc-event-inner").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
   else if event.fc == "r"
