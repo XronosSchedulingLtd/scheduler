@@ -15,7 +15,6 @@ $(document).ready ->
     onSelect: (dateText, inst) ->
       $('#fullcalendar').fullCalendar( 'gotoDate', new Date(dateText))
       $('#topdatepicker').val("").datepicker("hide")
-  window.activateCheckboxes()
   $(document).on('opened', '[data-reveal]', ->
     $('#first_field').focus()
     $('#first_field').select()
@@ -23,8 +22,8 @@ $(document).ready ->
     $('.datetimepicker').datetimepicker
       dateFormat: "dd/mm/yy"
       stepMinute: 5
-    $('.rejection-link').click(window.noClicked)
-    window.activateColourPicker('#dynamic_colour_picker', '#dynamic_colour_sample')
+    $('.rejection-link').click(noClicked)
+    activateColourPicker('#dynamic_colour_picker', '#dynamic_colour_sample')
     $('#event_starts_at').change( (event) ->
       starts_at = new Date($('#event_starts_at').val())
       ends_at = new Date($('#event_ends_at').val())
@@ -41,134 +40,104 @@ $(document).ready ->
       $('#fullcalendar').data("dorefresh", "0")
       $('#fullcalendar').fullCalendar('refetchEvents')
     )
-  window.activateAutoSubmit()
-  if ($('.withedit').length)
-    $('#fullcalendar').fullCalendar
-      currentTimezone: 'Europe/London'
-      columnFormat:
-        month: 'ddd'
-        week: 'ddd D/M'
-        day: 'ddd D/M'
-      timeFormat: 'H:mm',
-      header:
-        left: 'prev,next today'
-        center: 'title'
-        right: 'month,agendaWeek,agendaDay,basicDay'
-      buttonText:
-        basicDay: "day list"
-      titleFormat:
-        month: 'MMMM YYYY'
-        week: 'Do MMM, YYYY'
-        day: 'ddd Do MMM, YYYY'
-      defaultView: "agendaWeek"
-      firstDay: $('#fullcalendar').data("firstday")
-      defaultDate: $('#fullcalendar').data("defaultdate")
-      snapDuration: "00:05"
-      minTime: "06:00"
-      scrollTime: "08:00"
-      viewRender: (view, element) ->
-        window.prepareToRender(view, element)
-      eventRender: (event, element) ->
-        window.tweakElement(event, element)
-      eventAfterAllRender: (view) ->
-        window.allRendered(view)
-      eventSources: [{
-        url: '/schedule/events'
-      }]
-      eventClick: (event, jsEvent, view) ->
-        $('#eventModal').foundation('reveal',
-                                    'open',
-                                    '/events/' + event.id)
-      eventDrop: (event, delta, revertFunc) ->
-        jQuery.ajax
-          url:  "/events/" + event.id + "/moved"
-          type: "PUT"
-          dataType: "json"
-          error: (jqXHR, textStatus, errorThrown) ->
-            alert("Failed: " + textStatus)
-            revertFunc()
-          data:
-            event:
-              new_start: event.start.format()
-              all_day: !event.start.hasTime()
-      eventResize: (event, revertFunc) ->
-        jQuery.ajax
-          url:  "/events/" + event.id
-          type: "PUT"
-          dataType: "json"
-          error: (jqXHR, textStatus, errorThrown) ->
-            alert("Failed: " + textStatus)
-            revertFunc()
-          data:
-            event:
-              new_end: event.end.format()
-      droppable: true
-      drop: (date, jsEvent, ui) ->
+  #
+  #  These are the parameters which we use to initialize FullCalendar
+  #  regardless.
+  #
+  fcParams =
+    currentTimezone: 'Europe/London'
+    columnFormat:
+      month: 'ddd'
+      week: 'ddd D/M'
+      day: 'ddd D/M'
+    timeFormat: 'H:mm',
+    header:
+      left: 'prev,next today'
+      center: 'title'
+      right: 'month,agendaWeek,agendaDay,basicDay'
+    buttonText:
+      basicDay: "day list"
+    titleFormat:
+      month: 'MMMM YYYY'
+      week: 'Do MMM, YYYY'
+      day: 'ddd Do MMM, YYYY'
+    defaultView: "agendaWeek"
+    firstDay: $('#fullcalendar').data("firstday")
+    defaultDate: $('#fullcalendar').data("defaultdate")
+    snapDuration: "00:05"
+    minTime: "06:00"
+    scrollTime: "08:00"
+    viewRender: (view, element) ->
+      prepareToRender(view, element)
+    eventRender: (event, element) ->
+      tweakElement(event, element)
+    eventAfterAllRender: (view) ->
+      allRendered(view)
+    eventSources: [{
+      url: '/schedule/events'
+    }]
+    eventClick: (event, jsEvent, view) ->
+      $('#eventModal').foundation('reveal',
+                                  'open',
+                                  '/events/' + event.id)
+  #
+  #  And these are the extra ones which we use if the user can edit
+  #  events.
+  #
+  editFcParams =
+    eventDrop: (event, delta, revertFunc) ->
+      jQuery.ajax
+        url:  "/events/" + event.id + "/moved"
+        type: "PUT"
+        dataType: "json"
+        error: (jqXHR, textStatus, errorThrown) ->
+          alert("Failed: " + textStatus)
+          revertFunc()
+        data:
+          event:
+            new_start: event.start.format()
+            all_day: !event.start.hasTime()
+    eventResize: (event, revertFunc) ->
+      jQuery.ajax
+        url:  "/events/" + event.id
+        type: "PUT"
+        dataType: "json"
+        error: (jqXHR, textStatus, errorThrown) ->
+          alert("Failed: " + textStatus)
+          revertFunc()
+        data:
+          event:
+            new_end: event.end.format()
+    droppable: true
+    drop: (date, jsEvent, ui) ->
+      $('#eventModal').foundation('reveal', 'open', {
+        url: '/events/new?date=' +
+             date.format("YYYY-MM-DD HH:mm") +
+             '&precommit=' +
+             $(this).data("eid")
+      })
+    selectable: true
+    selectHelper: true
+    select: (start_time, end_time, jsEvent, view) ->
+      $('#fullcalendar').fullCalendar('unselect')
+      if end_time - start_time > 300000
         $('#eventModal').foundation('reveal', 'open', {
           url: '/events/new?date=' +
-               date.format("YYYY-MM-DD HH:mm") +
-               '&precommit=' +
-               $(this).data("eid")
+               start_time.format("YYYY-MM-DD HH:mm") +
+               '&enddate=' +
+               end_time.format("YYYY-MM-DD HH:mm")
         })
-      selectable: true
-      selectHelper: true
-      select: (start_time, end_time, jsEvent, view) ->
-        $('#fullcalendar').fullCalendar('unselect')
-        if end_time - start_time > 300000
-          $('#eventModal').foundation('reveal', 'open', {
-            url: '/events/new?date=' +
-                 start_time.format("YYYY-MM-DD HH:mm") +
-                 '&enddate=' +
-                 end_time.format("YYYY-MM-DD HH:mm")
-          })
-        else
-          $('#eventModal').foundation('reveal', 'open', {
-            url: '/events/new?date=' +
-                 start_time.format("YYYY-MM-DD HH:mm")
-          })
-    $('.dynamic-element').each (index) ->
-      window.addEventSource($(this).data('cid'))
-    window.activateDragging()
-  else
-    $('#fullcalendar').fullCalendar
-      currentTimezone: 'Europe/London'
-      columnFormat:
-        month: 'ddd'
-        week: 'ddd D/M'
-        day: 'ddd D/M'
-      timeFormat: 'H:mm',
-      header:
-        left: 'prev,next today'
-        center: 'title'
-        right: 'month,agendaWeek,agendaDay,basicDay'
-      buttonText:
-        basicDay: "day list"
-      titleFormat:
-        month: 'MMMM YYYY'
-        week: 'Do MMM, YYYY'
-        day: 'ddd Do MMM, YYYY'
-      defaultView: "agendaWeek"
-      firstDay: $('#fullcalendar').data("firstday")
-      defaultDate: $('#fullcalendar').data("defaultdate")
-      snapDuration: "00:05"
-      minTime: "06:00"
-      scrollTime: "08:00"
-      viewRender: (view, element) ->
-        window.prepareToRender(view, element)
-      eventRender: (event, element) ->
-        window.tweakElement(event, element)
-      eventAfterAllRender: (view) ->
-        window.allRendered(view)
-      eventSources: [{
-        url: '/schedule/events'
-      }]
-      eventClick: (event, jsEvent, view) ->
-        $('#eventModal').foundation('reveal',
-                                    'open',
-                                    '/events/' + event.id)
-    $('.dynamic-element').each (index) ->
-      window.addEventSource($(this).data('cid'))
-    window.activateDragging()
+      else
+        $('#eventModal').foundation('reveal', 'open', {
+          url: '/events/new?date=' +
+               start_time.format("YYYY-MM-DD HH:mm")
+        })
+  if ($('.withedit').length)
+    $.extend(fcParams, editFcParams)
+  $('#fullcalendar').fullCalendar(fcParams)
+  $('.dynamic-element').each (index) ->
+    window.addEventSource($(this).data('cid'))
+  window.activateUserColumn()
 
 window.addEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('addEventSource',
@@ -178,50 +147,31 @@ window.removeEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('removeEventSource',
                                   '/schedule/events?cid=' + cid)
 
-window.checkboxFlipped = (thebox) ->
+checkboxFlipped = (thebox) ->
   concern_id = $(thebox).data('cid')
   jQuery.ajax
     url: "/concerns/" + concern_id + "/flipped?state=" + if thebox.checked then "on" else "off"
     type: "PUT"
     dataType: "json"
     error: (jqXHR, textStatus, errorThrown) ->
-      window.refreshConcerns()
+      refreshConcerns()
     success: (data, textStatus, jqXHR) ->
       $('#fullcalendar').fullCalendar('refetchEvents')
 
-window.activateCheckboxes = ->
-  $('.active-checkbox').change( ->
-    window.checkboxFlipped(this))
-
-window.activateDragging = ->
-  $('.dynamic-element').each (index) ->
-    $(this).click(window.concernClicked)
-  if ($('.withedit').length)
-    $('.dynamic-element').each (index) ->
-      $(this).draggable
-        revert: true
-        revertDuration: 0
-        zIndex: 100
-        cursorAt:
-          top: 0
-        start: (event, ui) ->
-          $(this).addClass('noclick')
-      $(this).droppable();
-
-window.refreshConcerns = ->
-  $('#current_user').load('/concerns/sidebar', window.activateCheckboxes)
+refreshConcerns = ->
+  $('#current_user').load('/concerns/sidebar', activateCheckboxes)
   $('#fullcalendar').fullCalendar('refetchEvents')
 
 window.replaceShownCommitments = (new_html) ->
   $('#show-all-commitments').html(new_html)
-  $('.rejection-link').click(window.noClicked)
+  $('.rejection-link').click(noClicked)
   $('#fullcalendar').data("dorefresh", "1")
 
 window.replaceEditingCommitments = (new_html) ->
   $('#event_resources').html(new_html)
   $('#fullcalendar').data("dorefresh", "1")
 
-window.noClicked = (event) ->
+noClicked = (event) ->
   response = prompt("Please state the problem briefly:")
   if response == null
     #
@@ -237,7 +187,7 @@ window.noClicked = (event) ->
     new_url = base_url + "?reason=" + encodeURIComponent(response)
     $(this).attr('href', new_url)
 
-window.concernClicked = (event) ->
+concernClicked = (event) ->
   if $(this).hasClass('noclick')
     $(this).removeClass('noclick')
   else
@@ -255,12 +205,7 @@ window.hideCloser = ->
 window.showCloser = ->
   $('#event-done-button').show()
 
-window.resized = (event) ->
-  $('#fullcalendar').fullCalendar('option',
-                                  'height',
-                                  $(window).height() - 46)
-
-window.activateColourPicker = (field_id, sample_id) ->
+activateColourPicker = (field_id, sample_id) ->
   palette = ["#483D8B", "#CD5C5C", "#B8860B", "#7B68EE",
              "#808000", "#6B8E23", "#DB7093", "#2E8B57",
              "#A0522D", "#008080", "#3CB371", "#2F4F4F",
@@ -278,16 +223,16 @@ window.activateColourPicker = (field_id, sample_id) ->
     change: (colour) ->
       $(sample_id).css('background-color', colour.toHexString())
 
-window.prepareToRender = (view, element) ->
+prepareToRender = (view, element) ->
   $('#datepicker').datepicker('setDate', view.start.toDate())
-  window.viewStartDate = view.start.toDate()
-  window.viewName = view.name
-  window.elementsSeen = {}
+  @viewStartDate = view.start.toDate()
+  @viewName = view.name
+  @elementsSeen = {}
 
-window.allRendered = (view) ->
-  window.elementsSeen = {}
+allRendered = (view) ->
+  @elementsSeen = {}
 
-window.tweakElement = (event, element) ->
+tweakElement = (event, element) ->
   if event.prefix
     #
     #  We are being asked, at least some of the time, to put a prefix
@@ -295,17 +240,18 @@ window.tweakElement = (event, element) ->
     #  the chronological start of the event - not those where it
     #  is just continuing.
     #
-    startDate = window.viewStartDate
-    if event.start >= startDate
-      if (window.viewName == "agendaWeek" || window.viewName == "agendaDay")
+    if event.start >= @viewStartDate
+      if (@viewName == "agendaWeek" ||
+          @viewName == "agendaDay" ||
+          @viewName == "basicDay")
         element.find('.fc-event-inner').prepend(event.prefix)
-      else if window.viewName == "month"
+      else if @viewName == "month"
         #
         #  This one takes a bit more thought.  The event may occur in
         #  several elements, and only the first gets the prefix.
         #
-        if !window.elementsSeen[event.id]
-          window.elementsSeen[event.id] = true
+        if !@elementsSeen[event.id]
+          @elementsSeen[event.id] = true
           element.find('.fc-event-inner').prepend(event.prefix)
   if event.has_clashes
     element.find(".fc-event-inner").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
@@ -317,7 +263,31 @@ window.tweakElement = (event, element) ->
     element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/gf.png\" />")
   return true
 
-window.activateAutoSubmit = ->
+activateCheckboxes = ->
+  $('.active-checkbox').change( ->
+    checkboxFlipped(this))
+
+activateDragging = ->
+  $('.dynamic-element').each (index) ->
+    $(this).click(concernClicked)
+  if ($('.withedit').length)
+    $('.dynamic-element').each (index) ->
+      $(this).draggable
+        revert: true
+        revertDuration: 0
+        zIndex: 100
+        cursorAt:
+          top: 0
+        start: (event, ui) ->
+          $(this).addClass('noclick')
+      $(this).droppable();
+
+activateAutoSubmit = ->
   $('.auto_submit_item').on( "autocompleteclose", (event, ui) ->
     if $('#concern_element_id').val().length > 0
       $('.hidden_submit').click())
+
+window.activateUserColumn = ->
+  activateCheckboxes()
+  activateDragging()
+  activateAutoSubmit()

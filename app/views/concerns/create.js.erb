@@ -6,7 +6,5 @@ $('#current_user').html("<%=j render @user %>")
 window.addEventSource(<%= @concern_id %>);
 <% end %>
 <% end %>
-window.activateCheckboxes();
-window.activateDragging();
-window.activateAutoSubmit();
+window.activateUserColumn();
 $('#concern_name').focus();
