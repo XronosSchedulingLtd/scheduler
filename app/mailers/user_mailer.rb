@@ -59,7 +59,7 @@ class UserMailer < ActionMailer::Base
       email = @event.owner.email
     end
     mail(to: email,
-         from: Settng.from_email_address,
+         from: Setting.from_email_address,
          subject: "Event now complete")
   end
 
