@@ -1,3 +1,12 @@
+v0.18.2 2017-04-26
+
+* A hotfix to a typo in the UserMailer object.
+
+  All attempts to confirm requests for resources were failing because
+  of a typo (missing letter) in the user mailer.  This release corrects
+  that problem.
+
+
 v0.18.1 2017-04-22
 
   Some more tidying up following on from yesterday's big tidy up.
