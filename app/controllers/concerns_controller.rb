@@ -33,6 +33,7 @@ class ConcernsController < ApplicationController
         existing_concern.save
         @reload_concerns = true
       end
+      setvars_for_lhs(current_user)
       respond_to do |format|
         format.js
       end
