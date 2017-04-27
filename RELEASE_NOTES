@@ -1,3 +1,23 @@
+v0.18.3 2017-04-27
+
+  Another two tiny fixes to problems which became apparent during
+  testing of currently ongoing development work.
+
+* When a user is creating an event, the date/time fields provide
+  a pop-up box allowing the information to be entered by means of
+  clicks etc.  (Or the date/time can be entered simply by typing text.)
+
+  When editing an existing event the same facility should be available
+  but wasn't.  This release re-instates that missing functionality.
+
+* It is possible that a user will try to add a concern to the left
+  hand column even though the relevant item is already there but
+  un-ticked.  In this circumstance the natural thing for the program to
+  do is simply to tick the existing item and update the display.
+
+  This is what it now does.
+
+
 v0.18.2 2017-04-26
 
 * A hotfix to a typo in the UserMailer object.
