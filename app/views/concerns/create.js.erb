@@ -1,10 +1,5 @@
-$('#current_user').html("<%=j render @user %>")
 <% if @reload_concerns %>
-  $('#fullcalendar').fullCalendar('refetchEvents');
-<% else %>
-<% if @concern_id %>
-window.addEventSource(<%= @concern_id %>);
+window.updateUserColumn("<%=j render @user %>", null, null, true);
+<% else %>    
+  window.updateUserColumn("<%=j render @user %>", <%= @concern_id %>, null, false);
 <% end %>
-<% end %>
-window.activateUserColumn();
-$('#concern_name').focus();

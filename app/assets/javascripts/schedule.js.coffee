@@ -136,14 +136,14 @@ $(document).ready ->
     $.extend(fcParams, editFcParams)
   $('#fullcalendar').fullCalendar(fcParams)
   $('.dynamic-element').each (index) ->
-    window.addEventSource($(this).data('cid'))
-  window.activateUserColumn()
+    addEventSource($(this).data('cid'))
+  activateUserColumn()
 
-window.addEventSource = (cid) ->
+addEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('addEventSource',
                                   '/schedule/events?cid=' + cid)
 
-window.removeEventSource = (cid) ->
+removeEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('removeEventSource',
                                   '/schedule/events?cid=' + cid)
 
@@ -161,15 +161,6 @@ checkboxFlipped = (thebox) ->
 refreshConcerns = ->
   $('#current_user').load('/concerns/sidebar', activateCheckboxes)
   $('#fullcalendar').fullCalendar('refetchEvents')
-
-window.replaceShownCommitments = (new_html) ->
-  $('#show-all-commitments').html(new_html)
-  $('.rejection-link').click(noClicked)
-  $('#fullcalendar').data("dorefresh", "1")
-
-window.replaceEditingCommitments = (new_html) ->
-  $('#event_resources').html(new_html)
-  $('#fullcalendar').data("dorefresh", "1")
 
 noClicked = (event) ->
   response = prompt("Please state the problem briefly:")
@@ -194,16 +185,6 @@ concernClicked = (event) ->
     target = $(this).data('link-target')
     if target
       location.href = target
-
-window.primeCloser = ->
-  $('.closer').click ->
-    $('#eventModal').foundation('reveal', 'close')
-
-window.hideCloser = ->
-  $('#event-done-button').hide()
-
-window.showCloser = ->
-  $('#event-done-button').show()
 
 activateColourPicker = (field_id, sample_id) ->
   palette = ["#483D8B", "#CD5C5C", "#B8860B", "#7B68EE",
@@ -287,7 +268,61 @@ activateAutoSubmit = ->
     if $('#concern_element_id').val().length > 0
       $('.hidden_submit').click())
 
-window.activateUserColumn = ->
+activateUserColumn = ->
   activateCheckboxes()
   activateDragging()
   activateAutoSubmit()
+
+#
+#  All entrypoints - functions which can be called from outside this
+#  module - are now below here.  Trying to cut them down.
+#
+
+window.updateUserColumn = (newContents, added, removed, doReload) ->
+  $('#current_user').html(newContents)
+  if doReload
+    #
+    #  Nothing added or removed, but we've changed at least one
+    #  of the ticks, so re-fetch the events.
+    #
+    $('#fullcalendar').fullCalendar('refetchEvents')
+  else
+    if added
+      addEventSource(added)
+    else if removed
+      removeEventSource(removed)
+  #
+  #  And now re-activate everything.
+  #
+  activateUserColumn()
+  $('#concern_name').focus()
+
+window.replaceShownCommitments = (new_html) ->
+  $('#show-all-commitments').html(new_html)
+  $('.rejection-link').click(noClicked)
+  $('#fullcalendar').data("dorefresh", "1")
+
+window.replaceEditingCommitments = (new_html) ->
+  $('#event_resources').html(new_html)
+  $('#fullcalendar').data("dorefresh", "1")
+
+window.primeCloser = ->
+  $('.closer').click ->
+    $('#eventModal').foundation('reveal', 'close')
+
+window.hideCloser = ->
+  $('#event-done-button').hide()
+
+window.showCloser = ->
+  $('#event-done-button').show()
+
+window.beginNoteEditing = (body_text) ->
+  $('#event-notes').html(body_text)
+  $('#note_contents').focus()
+  window.hideCloser()
+
+window.endNoteEditing = (new_note_text, new_shown_commitments) ->
+  $('#event-notes').html(new_note_text)
+  if new_shown_commitments
+    window.replaceShownCommitments(new_shown_commitments)
+  window.showCloser()
