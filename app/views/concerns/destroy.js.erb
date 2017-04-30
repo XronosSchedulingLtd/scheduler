@@ -1,5 +1,5 @@
-$('#current_user').html("<%=j render @user %>")
-window.removeEventSource(<%= @concern_id %>);
-window.activateCheckboxes();
-window.activateDragging();
-window.activateAutoSubmit();
+window.updateUserColumn(
+    "<%=j render @user %>",
+    null,
+    <%= @concern_id %>,
+    false)

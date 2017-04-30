@@ -1,5 +1,3 @@
 <% if @go_ahead %>
-$('#event-notes').html("<%=j render "edit" %>")
-$('#note_contents').focus()
-window.hideCloser()
+  window.beginNoteEditing("<%=j render "edit" %>")
 <% end %>

@@ -1,3 +1,58 @@
+v0.18.4 2017-04-30
+
+  Quite a bit of code tidying has been done in this release to
+  facilitate the imminent migration to the latest version of
+  FullCalendar.
+
+  Code for preparing events and sending them to FullCalendar in
+  the front end used to be spread between the Event model and the
+  Events controller.  It has now all been moved to a Service Object
+  and unified.  The number of entrypoints in the JavaScript module
+  which drives FullCalendar has been greatly reduced, and the code
+  has been simplified.
+
+  Actual changes visible to the end user are:
+
+* When a resource attached to an event requires approval, it is also
+  possible for the resource administrator to set up what is called
+  a Prompt Note.  This prompts the end user to provide additional
+  information relating to the request - e.g. ancillary information
+  about catering.  In previous releases, the software did not
+  always set this up correctly.  Provided the user simply added the
+  resource to an event then all was well, but if the user dragged the
+  resource onto the calendar, or set up the resource to auto-add to
+  new events then the note did not get added.  It now gets added in
+  all circumstances.
+
+* Such notes are now visible only to the requester and the resource
+  administrator unless the requester chooses to make them more
+  generally visible.
+
+* Scheduler allows the user to set up two kinds of events - timed
+  events and all-day events.  All-day events appear across the top of
+  the display and last an integer number of days.  Timed events appear
+  in the main area of the display and have a specific start and end time.
+
+  It is possible to enter a timed event which lasts more than one day.
+  E.g. starting at 08:30 on Monday 1st, and running to 16:30 on
+  Tuesday 9th.  Until now this resulted in a vertical coloured block
+  running through every day's display for that period.  More than a
+  couple of these made the display look very messy.  This has not been
+  a problem at Abingdon because multi-day events have always been
+  entered without times (or perhaps, users learned to do that to keep
+  the display clean).
+
+  At Dean Close school however, it is desired to put the events in with
+  times, and so Scheduler's display code has been made a little more
+  intelligent.  Where a timed event lasts more than one day it will be
+  displayed in the all-day section of FullCalendar's display (at the
+  top) but with the start time pre-pended to the first part of
+  the event's display.  Thus for the example above, the event would
+  appear as running from Monday to Saturday in the first week, with
+  "(08:30) " before its name, and then from Sunday to Tuesday in
+  the second week, without the extra time field.
+
+
 v0.18.3 2017-04-27
 
   Another two tiny fixes to problems which became apparent during

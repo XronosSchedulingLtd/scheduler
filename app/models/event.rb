@@ -15,12 +15,17 @@ class DurationValidator < ActiveModel::Validator
         if record.ends_at
           if record.ends_at < record.starts_at
             record.errors[:ends_at] << "The end date cannot be before the start date."
+          elsif record.ends_at.to_date == record.starts_at.to_date
+            #
+            #  This should have been prevented earlier, but fix anyway.
+            #
+            record.ends_at = record.starts_at.to_date + 1.day
           end
         else
           #
           #  Don't complain - just fix it.
           #
-          record.ends_at = record.starts_at
+          record.ends_at = record.starts_at.to_date + 1.day
         end
       else
         if record.ends_at
@@ -307,30 +312,6 @@ class Event < ActiveRecord::Base
       #  the following day.
       #
       self.ends_at = self.ends_at.to_date + 1.day
-    end
-  end
-
-  def starts_at_for_fc
-    if all_day
-      starts_at.to_date.iso8601
-    else
-      starts_at.iso8601
-    end
-  end
-
-  def ends_at_for_fc
-    if all_day
-      if ends_at
-        ends_at.to_date.iso8601
-      else
-        starts_at.to_date.iso8601
-      end
-    else
-      if ends_at == nil || starts_at == ends_at
-        nil
-      else
-        ends_at.iso8601
-      end
     end
   end
 
@@ -902,19 +883,6 @@ class Event < ActiveRecord::Base
     else
       self.starts_at <=> other.starts_at
     end
-  end
-
-  def as_json(options = {})
-    {
-      :id        => "#{id}",
-      :title     => body,
-      :start     => starts_at_for_fc,
-      :end       => ends_at_for_fc,
-      :allDay    => all_day,
-      :recurring => false,
-      :editable  => can_edit?,
-      :color     => colour
-    }
   end
 
   #
