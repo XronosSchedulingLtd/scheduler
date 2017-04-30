@@ -92,6 +92,7 @@ class Itemreport < ActiveRecord::Base
     extras << "no_end_time" unless self.end_time
     extras << "breaks" if self.breaks
     extras << "suppress_empties" if self.suppress_empties
+    extras << "no_dot" unless self.enddot
     extras << "tentative" if self.tentative
     extras << "firm" if self.firm
     if self.my_notes || self.other_notes || self.general_notes

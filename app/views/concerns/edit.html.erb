@@ -130,7 +130,10 @@ end
                  {field: :breaks,
                   annotation: "Put each event on a separate line of its own."},
                  {field: :suppress_empties,
-                  annotation: "Don't produce output for days with no events."}]) %>
+                  annotation: "Don't produce output for days with no events."},
+                  {field: :enddot,
+                   prompt: "Full stop",
+                  annotation: "Should there be a full stop at the end of each event description?"}]) %>
   <%= flag_group(f, 12, 6, "Filters", [
                  {field: :tentative,
                   annotation: "Show events for which this resource has been requested, but where the request is still awaiting approval."},
