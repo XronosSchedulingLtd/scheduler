@@ -1,3 +1,16 @@
+###*
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2017 John Winters
+# Licensed under the GNU GPL, version 2.
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+###
+#
+#  Because this bit of the program is written in CoffeeScript I can
+#  be as copious as I like with the comments without worrying about
+#  there being any overhead at all.  The comments will be stripped
+#  out by the CoffeeScript compiler.
+#
 $(document).ready ->
   $('#datepicker').datepicker
     showOtherMonths: true
@@ -18,7 +31,7 @@ $(document).ready ->
   $(document).on('opened', '[data-reveal]', ->
     $('#first_field').focus()
     $('#first_field').select()
-    window.primeCloser()
+    primeCloser()
     $('.datetimepicker').datetimepicker
       dateFormat: "dd/mm/yy"
       stepMinute: 5
@@ -273,6 +286,16 @@ activateUserColumn = ->
   activateDragging()
   activateAutoSubmit()
 
+primeCloser = ->
+  $('.closer').click ->
+    $('#eventModal').foundation('reveal', 'close')
+
+hideCloser = ->
+  $('#event-done-button').hide()
+
+showCloser = ->
+  $('#event-done-button').show()
+
 #
 #  All entrypoints - functions which can be called from outside this
 #  module - are now below here.  Trying to cut them down.
@@ -306,23 +329,21 @@ window.replaceEditingCommitments = (new_html) ->
   $('#event_resources').html(new_html)
   $('#fullcalendar').data("dorefresh", "1")
 
-window.primeCloser = ->
-  $('.closer').click ->
-    $('#eventModal').foundation('reveal', 'close')
-
-window.hideCloser = ->
-  $('#event-done-button').hide()
-
-window.showCloser = ->
-  $('#event-done-button').show()
-
 window.beginNoteEditing = (body_text) ->
   $('#event-notes').html(body_text)
   $('#note_contents').focus()
-  window.hideCloser()
+  hideCloser()
 
 window.endNoteEditing = (new_note_text, new_shown_commitments) ->
   $('#event-notes').html(new_note_text)
   if new_shown_commitments
     window.replaceShownCommitments(new_shown_commitments)
-  window.showCloser()
+  showCloser()
+
+window.finishEditingEvent = (event_summary, do_refresh) ->
+  $('#events-dialogue').html(event_summary)
+  primeCloser()
+  if do_refresh
+    $('#fullcalendar').data('dorefresh', '1')
+
+
