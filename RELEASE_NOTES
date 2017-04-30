@@ -1,3 +1,27 @@
+v0.18.5 2017-04-30
+
+  Still drawing together strands and tidying up.
+
+* Update the seed data used for new installations and the demo system
+  adding items to enable the demonstration of the full facilities
+  of resource requests.
+
+* A new flag on the reporting page allows control of whether or
+  not entries should end with a full stop.
+
+  When the legacy calendar data were imported into Scheduler in its
+  first school, the entries were rather a mess.  Some had a full stop,
+  some didn't, and at least one ended in "  ."  (Two spaces and then
+  a full stop.)  To produce a consistent report for printing, the
+  reporting code massaged all the entries to end in a single correctly
+  positioned full stop.
+
+  Now Scheduler is in use in another school, and they would prefer
+  not to have the full stop, so it's now a configurable item on
+  the report generation page.  Once you've made a choice it will
+  be remembered and used by default on subsequent runs.
+
+
 v0.18.4 2017-04-30
 
   Quite a bit of code tidying has been done in this release to
