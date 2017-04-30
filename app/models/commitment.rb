@@ -58,6 +58,7 @@ class Commitment < ActiveRecord::Base
   #
   after_save    :update_event_after_save
   after_destroy :update_event_after_destroy
+  after_create  :check_for_promptnotes
 
   #
   #  This isn't a real field in the d/b.  It exists to allow a name
@@ -618,6 +619,17 @@ class Commitment < ActiveRecord::Base
   def update_event_after_destroy
     if self.event
       self.event.update_from_commitments(false, false)
+    end
+  end
+
+  def check_for_promptnotes
+    if self.element.promptnote && self.event.owner && self.event.owner != 0
+      self.notes.create({
+        title:         self.element.name,
+        visible_staff: false,
+        promptnote:    self.element.promptnote,
+        owner:         self.event.owner
+      })
     end
   end
 
