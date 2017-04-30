@@ -131,6 +131,13 @@ class Day
         @table_text =
           @table_text.chomp(".") + " - " + @locations_string + "."
       end
+      #
+      #  This is a cludgy way to do it, but...
+      #
+      unless day.options[:full_stop]
+        @table_text.chomp!(".")
+        @csv_text.chomp!(".")
+      end
       unless day.options[:show_notes].empty?
         #
         #  Need to accumulate the notes suitable for the current user,

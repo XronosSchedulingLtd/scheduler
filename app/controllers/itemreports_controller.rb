@@ -52,7 +52,7 @@ class ItemreportsController < ApplicationController
                   :ends_on, :twelve_hour, :no_space, :end_time,
                   :breaks, :suppress_empties, :tentative,
                   :firm, :my_notes, :other_notes, :general_notes, :categories,
-                  :excluded_element_name, :excluded_element_id)
+                  :excluded_element_name, :excluded_element_id, :enddot)
   end
 
 end

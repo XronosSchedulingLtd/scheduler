@@ -29,6 +29,7 @@ class DaysController < ApplicationController
       end_times:        true,
       do_breaks:        false,
       suppress_empties: false,
+      full_stop:        true,
       show_tentative:   false,
       show_firm:        true,
       show_notes:       ""
@@ -107,6 +108,9 @@ class DaysController < ApplicationController
     end
     if params.has_key?(:suppress_empties)
       options[:suppress_empties] = true
+    end
+    if params.has_key?(:no_dot)
+      options[:full_stop] = false
     end
     #
     #  Must check tentative before firm, because tentative will unset
