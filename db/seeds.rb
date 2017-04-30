@@ -67,6 +67,18 @@ seeder.subject(:sport,     "Sport")
 
 sjp = seeder.new_staff("Mr",  "Simon",    "Philpotts", "SJP", [:maths, :fm])
 ced = seeder.new_staff("Mrs", "Claire",   "Dunwoody",  "CED", [:french])
+catering = seeder.new_service("Catering")
+medical = seeder.new_service("Medical")
+seeder.new_user(ced).
+       controls(seeder.properties[:calendarproperty]).
+       controls(catering).
+       controls(medical)
+catering.add_prompt("Please specify in detail what you need from the catering department.\r\n\r\n* How many people?\r\n* What kind of food/drink?\r\n* Any special requirements - e.g. vegetarian?\r\n* When and where to deliver?\r\n* Do you require staff to serve food or drink?\r\n* When will you need equipment taking away?\r\n\r\nYou may also want to consider putting in a request for cleaning\r\nservices if you are having significant catering.",
+                    "Edit this note to specify your catering requirements")
+medical.add_prompt("",
+                   "For medical centre services, please phone X273 or e-mail\r\nmedical@school to give your detailed requirements.",
+                  true)
+
 psl = seeder.new_staff("Ms",  "Phillipa", "Long",      "PSL", [:maths, 
                                                                :geography])
 dlj = seeder.new_staff("Mr",  "David",    "Jones",     "DLJ", [:drama,

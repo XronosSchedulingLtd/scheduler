@@ -22,7 +22,18 @@ end
 
 class Seeder
 
+  module HasElement
+
+    def add_prompt(prompt, default_contents, read_only = false)
+      SeedPromptNote.new(self, prompt, default_contents, read_only)
+    end
+
+  end
+
   class SeedProperty
+
+    attr_reader :dbrecord
+
     def initialize(name, make_public = false)
       @dbrecord = Property.create!({
         name:        name,
@@ -42,6 +53,20 @@ class Seeder
     end
   end
 
+  class SeedService
+
+    include HasElement
+
+    attr_reader :dbrecord
+
+    def initialize(name)
+      @dbrecord = Service.create!({
+        name: name
+      })
+      @dbrecord.reload
+    end
+
+  end
 
   class SeedStaff
     attr_reader :dbrecord, :initials
@@ -77,6 +102,72 @@ class Seeder
     end
   end
 
+  class SeedUser
+    attr_reader :dbrecord
+
+    def initialize(corresponding_staff)
+      @dbrecord = User.create!({
+        name:  corresponding_staff.dbrecord.name,
+        email: corresponding_staff.dbrecord.email
+      })
+      #
+      #  The user model will automatically have linked this new
+      #  user record to the first member of staff (because we
+      #  are in demo mode) which isn't actually what we want.
+      #
+      @dbrecord.reload
+      #
+      concern = @dbrecord.concerns.me[0]
+      if concern
+        concern.element = corresponding_staff.dbrecord.element
+        concern.save!
+      end
+    end
+
+    def controls(entity)
+      existing = Concern.find_by({
+        user_id:    self.dbrecord.id,
+        element_id: entity.dbrecord.element.id
+      })
+      if existing
+        existing.owns = true
+        existing.save!
+      else
+        SeedConcern.new(self, entity, false, true, "#123456")
+      end
+      self
+    end
+
+  end
+
+  class SeedConcern
+    attr_reader :dbrecord
+
+    def initialize(user, entity, equality, controls, colour)
+      @dbrecord = Concern.create!({
+        user:     user.dbrecord,
+        element:  entity.dbrecord.element,
+        equality: equality,
+        owns:     controls,
+        colour:   colour
+      })
+    end
+
+  end
+
+  class SeedPromptNote
+    attr_reader :dbrecord
+
+    def initialize(entity, prompt, default_contents, read_only = false)
+      @dbrecord = Promptnote.create!({
+        element:          entity.dbrecord.element,
+        prompt:           prompt,
+        default_contents: default_contents,
+        read_only:        read_only
+      })
+    end
+
+  end
 
   class SeedEvent
     attr_reader :event
@@ -598,7 +689,9 @@ class Seeder
     {id: :setup,
      ech: ECH.new({name: "Event set-up"})},
     {id: :meeting,
-     ech: ECH.new({name: "Meeting"})}
+     ech: ECH.new({name: "Meeting"})},
+    {id: :hospitality,
+     ech: ECH.new({name: "Hospitality"})}
   ]
 
 
@@ -717,6 +810,17 @@ class Seeder
     end
     @staff[key] = rec
     rec
+  end
+
+  #
+  #  Create a new user record to match an existing member of staff.
+  #
+  def new_user(existing_staff)
+    SeedUser.new(existing_staff)
+  end
+
+  def new_service(name)
+    SeedService.new(name)
   end
 
   #
