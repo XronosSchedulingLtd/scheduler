@@ -59,21 +59,23 @@ $(document).ready ->
   #
   fcParams =
     currentTimezone: 'Europe/London'
-    columnFormat:
-      month: 'ddd'
-      week: 'ddd D/M'
-      day: 'ddd D/M'
-    timeFormat: 'H:mm',
     header:
       left: 'prev,next today'
       center: 'title'
-      right: 'month,agendaWeek,agendaDay,basicDay'
+      right: 'month,agendaWeek,agendaDay,listMonth'
     buttonText:
       basicDay: "day list"
-    titleFormat:
-      month: 'MMMM YYYY'
-      week: 'Do MMM, YYYY'
-      day: 'ddd Do MMM, YYYY'
+    views:
+      month:
+        columnFormat: 'ddd'
+        titleFormat: 'MMMM YYYY'
+      week:
+        columnFormat: 'ddd D/M'
+        titleFormat: 'Do MMM, YYYY'
+      day:
+        columnFormat: 'ddd D/M'
+        titleFormat: 'ddd Do MMM, YYYY'
+    timeFormat: 'H:mm',
     defaultView: "agendaWeek"
     firstDay: $('#fullcalendar').data("firstday")
     defaultDate: $('#fullcalendar').data("defaultdate")
@@ -238,7 +240,7 @@ tweakElement = (event, element) ->
       if (@viewName == "agendaWeek" ||
           @viewName == "agendaDay" ||
           @viewName == "basicDay")
-        element.find('.fc-event-inner').prepend(event.prefix)
+        element.find('.fc-title').prepend(event.prefix)
       else if @viewName == "month"
         #
         #  This one takes a bit more thought.  The event may occur in
@@ -246,15 +248,15 @@ tweakElement = (event, element) ->
         #
         if !@elementsSeen[event.id]
           @elementsSeen[event.id] = true
-          element.find('.fc-event-inner').prepend(event.prefix)
+          element.find('.fc-title').prepend(event.prefix)
   if event.has_clashes
-    element.find(".fc-event-inner").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
+    element.find(".fc-title").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
   else if event.fc == "r"
-    element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/rf.png\" />")
+    element.find(".fc-title").append("<img class=\"evtopleft\" src=\"images/rf.png\" />")
   else if event.fc == "y"
-    element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/yf.png\" />")
+    element.find(".fc-title").append("<img class=\"evtopleft\" src=\"images/yf.png\" />")
   else if event.fc == "g"
-    element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/gf.png\" />")
+    element.find(".fc-title").append("<img class=\"evtopleft\" src=\"images/gf.png\" />")
   return true
 
 activateCheckboxes = ->
