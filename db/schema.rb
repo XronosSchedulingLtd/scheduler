@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170430103401) do
+ActiveRecord::Schema.define(version: 20170504122216) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -102,10 +102,12 @@ ActiveRecord::Schema.define(version: 20170430103401) do
     t.integer  "owner_id"
     t.string   "preferred_colour"
     t.boolean  "owned",            default: false
+    t.string   "uuid"
   end
 
   add_index "elements", ["entity_id"], name: "index_elements_on_entity_id", using: :btree
   add_index "elements", ["owner_id"], name: "index_elements_on_owner_id", using: :btree
+  add_index "elements", ["uuid"], name: "index_elements_on_uuid", unique: true, using: :btree
 
   create_table "eras", force: true do |t|
     t.string   "name"

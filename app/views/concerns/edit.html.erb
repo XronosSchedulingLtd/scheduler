@@ -16,6 +16,10 @@ end
   <br/>
   Approvals: <%= @concern.element.owners.collect {|u| u.name }.join(", ") %>
 <% end %>
+<% unless @concern.element.uuid.blank? %>
+  <br/>
+  iCal link: http://scheduler.abingdon.org.uk/ical/UU-<%= @concern.element.uuid %>
+<% end %>
 
 </p>
 <hr/>

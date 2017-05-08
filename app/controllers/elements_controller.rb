@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2015 John Winters
+# Copyright (C) 2009-2017 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -513,7 +513,17 @@ class ElementsController < ApplicationController
         calendar_name = "School dates"
         calendar_description = "Abingdon school key dates"
       else
-        element = Element.find_by_id(element_id)
+        if /^UU-/ =~ element_id
+          #
+          #  Being specified by UUID
+          #
+          element = Element.find_by(uuid: element_id[3..-1])
+        else
+          #
+          #  Use find_by to avoid throwing an error.
+          #
+          element = Element.find_by(id: element_id)
+        end
         unless element
           staff = Staff.eager_load(:element).find_by_initials(params[:id].upcase)
           if staff
@@ -587,6 +597,9 @@ class ElementsController < ApplicationController
       unless got_something
         #
         #  Invalid requests now get a useless file.
+        #
+        #  TODO: Surely we should return some sort of error to avoid
+        #  being asked again?
         #
         calendar_name = "Unknown"
         calendar_description = "Request was invalid"

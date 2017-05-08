@@ -67,7 +67,17 @@ module Elemental
           creation_hash[:owner_id] = self.entitys_owner_id
         end
         self.adjust_element_creation_hash(creation_hash)
-        Element.create!(creation_hash)
+        begin
+          Element.create!(creation_hash)
+        rescue ActiveRecord::RecordNotUnique => e
+          Rails.logger.error("Failed to create element for #{self.class}")
+          #
+          #  Unfortunately we still need to raise an error, because it's
+          #  the only way now to stop our parent entity record being
+          #  created.
+          #
+          raise "Couldn't create Element."
+        end
       end
     end
   end
