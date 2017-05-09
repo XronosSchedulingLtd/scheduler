@@ -15,10 +15,22 @@ div.ui-datepicker, .ui-datepicker td, .ui-datepicker th{
   right: 0px;
 }
 
-.evtopleft {
+.evalmosttopright {
   position: absolute;
   top: 0px;
-  left: 24px;
+  right: 20px;
+}
+
+.evnearleft {
+  position: absolute;
+  top: 0px;
+  left: 32px;
+}
+
+.evrightoftime {
+  position: absolute;
+  top: 0px;
+  left: 80px;
 }
 
 li.name {

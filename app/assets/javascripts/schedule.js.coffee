@@ -247,15 +247,46 @@ tweakElement = (event, element) ->
         if !@elementsSeen[event.id]
           @elementsSeen[event.id] = true
           element.find('.fc-event-inner').prepend(event.prefix)
+  #
+  #  And now, do we need to add an icon?
+  #
   if event.has_clashes
-    element.find(".fc-event-inner").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
+    icon = "rc.png"
   else if event.fc == "r"
-    element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/rf.png\" />")
+    icon = "rf.png"
   else if event.fc == "y"
-    element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/yf.png\" />")
+    icon = "yf.png"
   else if event.fc == "g"
-    element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/gf.png\" />")
+    icon = "gf.png"
+  else
+    icon = null
+  if icon
+      #
+      #  Have something.  Now decide where to put it, which depends on
+      #  which view we are using.  This is quite hard.  See journal
+      #  notes for 9th May, 2017 for an explanation of the various
+      #  problems which resulted in this compromise solution.
+      #
+    if @viewName == "basicDay"
+      element.find(".fc-event-time").
+              before("<span><img src=\"images/#{icon}\" /></span>")
+    else if @viewName == "agendaDay"
+      element.find(".fc-event-inner").
+              append("<img class=\"evnearleft\" src=\"images/#{icon}\" />")
+    else
+      element.find(".fc-event-inner").
+              append("<img class=\"evtopright\" src=\"images/#{icon}\" />")
   return true
+
+
+#  if event.has_clashes
+#    element.find(".fc-event-inner").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
+#  else if event.fc == "r"
+#    element.find(".fc-event-inner").append("<img class=\"evalmosttopright\" src=\"images/rf.png\" />")
+#  else if event.fc == "y"
+#    element.find(".fc-event-inner").append("<img class=\"evalmosttopright\" src=\"images/yf.png\" />")
+#  else if event.fc == "g"
+#    element.find(".fc-event-inner").append("<img class=\"evalmosttopright\" src=\"images/gf.png\" />")
 
 activateCheckboxes = ->
   $('.active-checkbox').change( ->
