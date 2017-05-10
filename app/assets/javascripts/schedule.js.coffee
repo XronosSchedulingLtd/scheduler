@@ -62,7 +62,7 @@ $(document).ready ->
     header:
       left: 'prev,next today'
       center: 'title'
-      right: 'month,agendaWeek,agendaDay,listMonth'
+      right: 'month,agendaWeek,agendaDay,basicDay,listMonth'
     buttonText:
       basicDay: "day list"
     views:
@@ -249,15 +249,37 @@ tweakElement = (event, element) ->
         if !@elementsSeen[event.id]
           @elementsSeen[event.id] = true
           element.find('.fc-title').prepend(event.prefix)
+  #
+  #  And now, do we need to add an icon?
+  #
   if event.has_clashes
-    element.find(".fc-title").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
+    icon = "rc.png"
   else if event.fc == "r"
-    element.find(".fc-title").append("<img class=\"evtopleft\" src=\"images/rf.png\" />")
+    icon = "rf.png"
   else if event.fc == "y"
-    element.find(".fc-title").append("<img class=\"evtopleft\" src=\"images/yf.png\" />")
+    icon = "yf.png"
   else if event.fc == "g"
-    element.find(".fc-title").append("<img class=\"evtopleft\" src=\"images/gf.png\" />")
+    icon = "gf.png"
+  else
+    icon = null
+  if icon
+      #
+      #  Have something.  Now decide where to put it, which depends on
+      #  which view we are using.  This is quite hard.  See journal
+      #  notes for 9th May, 2017 for an explanation of the various
+      #  problems which resulted in this compromise solution.
+      #
+    if @viewName == "basicDay"
+      element.find(".fc-time").
+              before("<span><img src=\"images/#{icon}\" /></span>")
+    else if @viewName == "agendaDay"
+      element.find(".fc-content").
+              append("<img class=\"evnearleft\" src=\"images/#{icon}\" />")
+    else if @viewName == "agendaWeek" || @viewName == "month"
+      element.find(".fc-content").
+              append("<img class=\"evtopright\" src=\"images/#{icon}\" />")
   return true
+
 
 activateCheckboxes = ->
   $('.active-checkbox').change( ->

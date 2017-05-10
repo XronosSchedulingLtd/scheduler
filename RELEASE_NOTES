@@ -1,3 +1,36 @@
+v0.18.6 2017-04-09
+
+  Two small fixes
+
+* Handle duplicate staff initials in ical feed.
+
+  It is possible to request an ical feed for a member of staff by
+  specifying either the staff member's element ID (the preferred
+  way) or for reverse compatibility with an earlier implementation,
+  by specifying the staff member's initials.  The latter failed
+  if the school configured two members of staff with the same initials.
+  The system would always pick the first such member of staff, which
+  generally would be someone who had left.
+
+  The database query has been enhanced to specify "current: true"
+  in addition to the existing criteria, so as to pick the later
+  member of staff.
+
+  This has the side effect that it is no longer possible to get an
+  ical feed for an ex-member of staff by means of his or her initials.
+  If you really need that, then use the element ID.
+
+* Re-position invigilation flag in some views
+
+  When handling invigilation slots, the system shows the status of
+  each slot with a little red/yellow/green flag.  In some views this
+  ended up in a less than ideal place.
+
+  This release adds view-specific code to position the flag to be
+  visible in each view, and as far as possible, not to cover up other
+  information.
+
+
 v0.18.5 2017-04-30
 
   Still drawing together strands and tidying up.

@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2015 John Winters
+# Copyright (C) 2009-2017 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -496,6 +496,11 @@ class ElementsController < ApplicationController
         end
         #raise customer_categories.inspect
       end
+      #
+      #  That concludes processing relating to modifiers to the
+      #  request.  Now we turn to the request itself - what item
+      #  has the customer asked for information about?
+      #
       if element_id == '0'
         #
         #  Request for the breakthrough events.
@@ -515,7 +520,9 @@ class ElementsController < ApplicationController
       else
         element = Element.find_by_id(element_id)
         unless element
-          staff = Staff.eager_load(:element).find_by_initials(params[:id].upcase)
+          staff = Staff.eager_load(:element).
+                        find_by(initials: params[:id].upcase,
+                                current:  true)
           if staff
             element = staff.element
             by_initials = true
