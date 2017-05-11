@@ -9,9 +9,15 @@ div.ui-datepicker, .ui-datepicker td, .ui-datepicker th{
   min-height: 18px;
 }
 
+//
+//  Because our font is slightly smaller than FC is expecting, we
+//  have elsewhere moved the body of the event down by 2px.  In order
+//  to make the dots/flags look right, we need to move them back up
+//  by the same.
+//
 .evtopright {
   position: absolute;
-  top: 0px;
+  top: -2px;
   right: 0px;
 }
 
