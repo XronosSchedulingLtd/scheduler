@@ -58,6 +58,7 @@ $(document).ready ->
   #  regardless.
   #
   fcParams =
+    height: 'parent'
     currentTimezone: 'Europe/London'
     header:
       left: 'prev,next today'

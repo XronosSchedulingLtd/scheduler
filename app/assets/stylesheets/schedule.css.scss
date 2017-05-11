@@ -53,3 +53,33 @@ div.hidden-lhs {
 input.hidden_submit {
   display: none;
 }
+
+#mainContainer {
+  position: relative;
+  height: calc(100% - 45px);
+  width: 100%;
+}
+
+.calendarbit {
+//  border: 1px solid red;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  bottom: 20px;
+  height: calc(100% - 20px);
+  width: 100%;
+}
+
+.fillup {
+  height: 100%;
+}
+
+.bottomtext {
+//  border: 1px solid blue;
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  height: 20px;
+  width: 100%;
+  text-align: center;
+}
