@@ -25,11 +25,12 @@
     </div>
     <div class="small-9 columns">
       <label>Default rota template</label>
-      <%= f.collection_select(:default_rota_template_id,
-                              RotaTemplate.all.sort,
-                              :id,
-                              :name,
-                              { :prompt => true }) %>
+      <%= f.collection_select(
+        :default_rota_template_id,
+        InvigilationManager.template_type.rota_templates.all.sort,
+        :id,
+        :name,
+        { :prompt => true }) %>
     </div>
     <div class="small-3 columns">
       <label>Ends on</label>

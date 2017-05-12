@@ -650,6 +650,11 @@ class Seeder
     @eventsources[:thisfile] = Eventsource.create!({ name: "Seedfile" })
     @eventsources[:manual]   = Eventsource.create!({ name: "Manual" })
     @eventsources[:rotaslot] = Eventsource.create!({ name: "RotaSlot" })
+    #
+    #  Rota template types.
+    #
+    RotaTemplateType.create!({ name: "Invigilation" })
+    RotaTemplateType.create!({ name: "Day shape" })
   end
 
   Usefuls = [

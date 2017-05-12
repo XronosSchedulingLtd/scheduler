@@ -1,4 +1,4 @@
-<%= form_for(@rota_template) do |f| %>
+<%= form_for([@rota_template_type, @rota_template]) do |f| %>
   <% if @rota_template.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(@rota_template.errors.count, "error") %> prohibited this rota_template from being saved:</h2>

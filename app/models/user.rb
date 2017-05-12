@@ -58,6 +58,7 @@ class User < ActiveRecord::Base
            dependent: :nullify
 
   belongs_to :preferred_event_category, class_name: Eventcategory
+  belongs_to :day_shape, class_name: RotaTemplate
 
   #
   #  The only elements we can actually own currently are groups.  By creating

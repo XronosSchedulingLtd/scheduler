@@ -58,7 +58,8 @@
             <li class="has-dropdown">
               <a href="#">Invigilation</a>
               <ul class="dropdown">
-                <li><%= link_to "Templates", rota_templates_path %></li>
+                <li><%= link_to "Templates",
+                                rota_template_type_rota_templates_path(InvigilationManager.template_type) %></li>
                 <li><%= link_to "Cycles", exam_cycles_path %></li>
                 <li><%= link_to "E-mails", new_notifier_path %></li>
                 <li><%= link_to "Clashes", notifiers_path %></li>
@@ -101,6 +102,8 @@
             </li>
             <li><%= link_to "Settings", settings_path %></li>
 <%     end %>
+            <li><%= link_to "Day shape", 
+                            rota_template_type_rota_templates_path(DayShapeManager.template_type) %></li>
           </ul>
         </li>
         <li class="divider">

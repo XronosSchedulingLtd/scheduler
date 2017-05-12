@@ -1,14 +1,15 @@
 class RotaTemplatesController < ApplicationController
+  before_action :find_rota_template_type, only: [:index, :new, :create]
   before_action :set_rota_template, only: [:show,
                                            :edit,
                                            :update,
                                            :destroy,
                                            :do_clone]
 
-  # GET /rota_templates
-  # GET /rota_templates.json
+  # GET /rota_template_type/:id/rota_templates
   def index
-    @rota_templates = RotaTemplate.page(params[:page]).order('name')
+    @rota_templates =
+      @rota_template_type.rota_templates.page(params[:page]).order('name')
   end
 
   # GET /rota_templates/1
@@ -16,19 +17,19 @@ class RotaTemplatesController < ApplicationController
   def show
   end
 
-  # GET /rota_templates/new
+  # GET /rota_template_type/:id/rota_templates/new
   def new
-    @rota_template = RotaTemplate.new
+    @rota_template = @rota_template_type.rota_templates.new
   end
 
   # GET /rota_templates/1/edit
   def edit
   end
 
-  # POST /rota_templates
-  # POST /rota_templates.json
+  # POST /rota_template_type/:id/rota_templates
   def create
-    @rota_template = RotaTemplate.new(rota_template_params)
+    @rota_template =
+      @rota_template_type.rota_templates.new(rota_template_params)
 
     respond_to do |format|
       if @rota_template.save
@@ -58,9 +59,10 @@ class RotaTemplatesController < ApplicationController
   # DELETE /rota_templates/1
   # DELETE /rota_templates/1.json
   def destroy
+    rota_template_type = @rota_template.rota_template_type
     @rota_template.destroy
     respond_to do |format|
-      format.html { redirect_to rota_templates_url }
+      format.html { redirect_to rota_template_type_rota_templates_url(rota_template_type) }
       format.json { head :no_content }
     end
   end
@@ -68,7 +70,7 @@ class RotaTemplatesController < ApplicationController
   # POST /rota_templates/1/do_clone
   def do_clone
     @new_template = @rota_template.do_clone
-    redirect_to rota_templates_path
+    redirect_to rota_template_type_rota_templates_path(@rota_template.rota_template_type)
   end
 
   private
@@ -79,6 +81,11 @@ class RotaTemplatesController < ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_rota_template
       @rota_template = RotaTemplate.find(params[:id])
+    end
+
+    def find_rota_template_type
+      @rota_template_type =
+        RotaTemplateType.find(params[:rota_template_type_id])
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.
