@@ -49,7 +49,7 @@ class RotaTemplate < ActiveRecord::Base
   #  link them to a type.  They are all Invigilation ones.
   #
   def self.make_all_invigilation
-    rtt = RotaTemplateType.find(name: "Invigilation")
+    rtt = RotaTemplateType.find_by(name: "Invigilation")
     if rtt
       RotaTemplate.all.each do |rt|
         unless rt.rota_template_type
