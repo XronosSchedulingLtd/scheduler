@@ -470,6 +470,17 @@ class User < ActiveRecord::Base
             })
           end
         end
+        #
+        #  By default, turn on period times.
+        #
+        rtt = DayShapeManager.template_type
+        if rtt
+          rt = rtt.rota_templates.first
+          if rt
+            self.day_shape = rt
+            self.save!
+          end
+        end
         set_initial_permissions
       end
     end
