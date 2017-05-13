@@ -33,6 +33,7 @@ class RotaTemplatesController < ApplicationController
 
     respond_to do |format|
       if @rota_template.save
+        TemplateManager.flush_all
         format.html { redirect_to @rota_template, notice: 'Rota template was successfully created.' }
         format.json { render :show, status: :created, location: @rota_template }
       else
@@ -61,6 +62,7 @@ class RotaTemplatesController < ApplicationController
   def destroy
     rota_template_type = @rota_template.rota_template_type
     @rota_template.destroy
+    TemplateManager.flush_all
     respond_to do |format|
       format.html { redirect_to rota_template_type_rota_templates_url(rota_template_type) }
       format.json { head :no_content }
@@ -70,6 +72,7 @@ class RotaTemplatesController < ApplicationController
   # POST /rota_templates/1/do_clone
   def do_clone
     @new_template = @rota_template.do_clone
+    TemplateManager.flush_all
     redirect_to rota_template_type_rota_templates_path(@rota_template.rota_template_type)
   end
 

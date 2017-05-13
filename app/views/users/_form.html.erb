@@ -56,6 +56,17 @@
       <%= f.text_field(:default_event_text) %>
     </div>
 <% end %>
+<% if @day_shapes %>
+    <div class="small-12 medium-6 large-4 columns">
+      <label>Background events</label>
+      <%= f.collection_select(:day_shape_id,
+                              @day_shapes,
+                              :id,
+                              :name,
+                              {:include_blank => "--None--"}) %>
+
+    </div>
+<% end %>
   </div>
 
 <div class="row">

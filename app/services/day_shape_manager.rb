@@ -3,26 +3,15 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class DayShapeManager
+class DayShapeManager < TemplateManager
 
-  @@template_type = nil
-  @@checked_tt = false
+  KEY = "Day shape"
 
-  #
-  #  This is a class level method so it can be used without instantiating
-  #  an object and the result cached.
-  #
   def self.template_type
-    unless @@checked_tt
-      @@template_type =
-        RotaTemplateType.find_by(name: "Day shape")
-      @@checked_tt = true
-    end
-    @@template_type
+    self.template_type_for(KEY)
   end
 
   def self.flush_cache
-    @@template_type = nil
-    @@checked_tt = false
+    self.flush_cache_for(KEY)
   end
 end
