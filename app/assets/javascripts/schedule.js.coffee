@@ -78,6 +78,7 @@ $(document).ready ->
         titleFormat: 'ddd Do MMM, YYYY'
     timeFormat: 'H:mm',
     defaultView: "agendaWeek"
+    eventOrder: "sort_by"
     firstDay: $('#fullcalendar').data("firstday")
     defaultDate: $('#fullcalendar').data("defaultdate")
     snapDuration: "00:05"

@@ -72,7 +72,12 @@ class EventAssembler
                    current_user = nil,
                    colour = nil,
                    mine = false)
-      @event  = event
+      @event   = event
+      if via_element
+        @sort_by = via_element.id
+      else
+        @sort_by = 0
+      end
       if colour
         @colour = colour
         #
@@ -268,7 +273,8 @@ class EventAssembler
         :editable      => @editable,
         :color         => @colour,
         :has_clashes   => @has_clashes,
-        :fc            => @flag_colour
+        :fc            => @flag_colour,
+        :sort_by       => @sort_by
       }
       if @prefix
         result[:prefix] = @prefix
