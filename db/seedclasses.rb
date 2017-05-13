@@ -841,6 +841,19 @@ class Seeder
     period_times.each do |pt|
       @periods << SeedPeriod.new(*pt)
     end
+    #
+    #  And set up background events as well.
+    #
+    rt = DayShapeManager.template_type.rota_templates.create!({
+      name: "Period times"
+    })
+    @periods.each do |period|
+      rt.rota_slots.create!({
+        starts_at: period.start_time,
+        ends_at:   period.end_time,
+        days:      [false, true, true, true, true, true, false]
+      })
+    end
   end
 
   def location(id, name, aliasname = nil, display = true, friendly = true)
