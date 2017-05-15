@@ -1,7 +1,6 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  current_era_id: 1
+  current_era: eraone
+  perpetual_era: perpetual
 
-two:
-  current_era_id: 1

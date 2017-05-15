@@ -16,16 +16,17 @@ module ProtoEventInvigilationPersona
 
   def prepare
     @persona = :invigilation
-    if new_record?
+#    if new_record?
+    unless new_record?
       #
       #  Two cases here.
       #
       #  1. A brand new record.
       #  2. A dup of an existing record.
       #
-      puts "Extended a new record."
-    else
-      puts "Extended an old record."
+#      puts "Extended a new record."
+#    else
+#      puts "Extended an old record."
       #
       #  What current setting do we have for the number of invigilators
       #  required?

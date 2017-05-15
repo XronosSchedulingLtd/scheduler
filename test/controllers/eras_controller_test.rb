@@ -3,6 +3,8 @@ require 'test_helper'
 class ErasControllerTest < ActionController::TestCase
   setup do
     @era = eras(:eraone)
+    @eratodelete = eras(:eratwo)
+    session[:user_id] = users(:admin).id
   end
 
   test "should get index" do
@@ -36,14 +38,24 @@ class ErasControllerTest < ActionController::TestCase
 
   test "should update era" do
     patch :update, id: @era, era: { ends_on: @era.ends_on, name: @era.name, starts_on: @era.starts_on }
-    assert_redirected_to era_path(assigns(:era))
+    assert_redirected_to eras_path
   end
 
   test "should destroy era" do
+    request.env["HTTP_REFERER"] = "/"
     assert_difference('Era.count', -1) do
-      delete :destroy, id: @era
+      delete :destroy, id: @eratodelete
     end
 
     assert_redirected_to eras_path
+  end
+
+  test "should fail to destroy era" do
+    request.env["HTTP_REFERER"] = "/"
+    assert_difference('Era.count', 0) do
+      delete :destroy, id: @era
+    end
+
+    assert_redirected_to "/"
   end
 end

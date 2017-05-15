@@ -14,15 +14,6 @@ class ProtoEventsController < ApplicationController
     @proto_events = @exam_cycle.proto_events
   end
 
-  # GET /proto_events/1
-  # GET /proto_events/1.json
-  def show
-  end
-
-  # GET /proto_events/1/edit
-  def edit
-  end
-
   # POST /proto_events.json
   def create
     @proto_event = @exam_cycle.proto_events.new(proto_event_params)

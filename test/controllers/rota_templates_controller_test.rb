@@ -3,6 +3,7 @@ require 'test_helper'
 class RotaTemplatesControllerTest < ActionController::TestCase
   setup do
     @rota_template = rota_templates(:one)
+    session[:user_id] = users(:admin).id
   end
 
   test "should get index" do

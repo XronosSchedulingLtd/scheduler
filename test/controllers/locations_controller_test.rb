@@ -2,7 +2,8 @@ require 'test_helper'
 
 class LocationsControllerTest < ActionController::TestCase
   setup do
-    @location = locations(:one)
+    @location = locations(:roomone)
+    session[:user_id] = users(:admin).id
   end
 
   test "should get index" do
@@ -35,8 +36,9 @@ class LocationsControllerTest < ActionController::TestCase
   end
 
   test "should update location" do
+    session[:editing_location_from] = "/banana"
     patch :update, id: @location, location: { active: @location.active, current: @location.current, name: @location.name }
-    assert_redirected_to location_path(assigns(:location))
+    assert_redirected_to "/banana"
   end
 
   test "should destroy location" do

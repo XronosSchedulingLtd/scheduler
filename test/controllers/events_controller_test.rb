@@ -3,6 +3,7 @@ require 'test_helper'
 class EventsControllerTest < ActionController::TestCase
   setup do
     @event = events(:one)
+    session[:user_id] = users(:admin).id
   end
 
   test "should get index" do
@@ -18,7 +19,7 @@ class EventsControllerTest < ActionController::TestCase
 
   test "should create event" do
     assert_difference('Event.count') do
-      post :create, event: { approximate: @event.approximate, body: @event.body, ends_at: @event.ends_at, eventcategory_id: @event.eventcategory_id, eventsource_id: @event.eventsource_id, non_existent: @event.non_existent, owner_id: @event.owner_id, private: @event.private, reference_id: @event.reference_id, reference_type: @event.reference_type, starts_at: @event.starts_at }
+      post :create, event: { approximate: @event.approximate, body: @event.body, ends_at: @event.ends_at, eventcategory_id: @event.eventcategory_id, eventsource_id: @event.eventsource_id, non_existent: @event.non_existent, owner_id: @event.owner_id, private: @event.private, reference_id: @event.reference_id, reference_type: @event.reference_type, starts_at_text: @event.starts_at }
     end
 
     assert_redirected_to events_path
@@ -35,7 +36,7 @@ class EventsControllerTest < ActionController::TestCase
   end
 
   test "should update event" do
-    patch :update, id: @event, event: { approximate: @event.approximate, body: @event.body, ends_at: @event.ends_at, eventcategory_id: @event.eventcategory_id, eventsource_id: @event.eventsource_id, non_existent: @event.non_existent, owner_id: @event.owner_id, private: @event.private, reference_id: @event.reference_id, reference_type: @event.reference_type, starts_at: @event.starts_at }
+    patch :update, id: @event, event: { approximate: @event.approximate, body: @event.body, ends_at: @event.ends_at, eventcategory_id: @event.eventcategory_id, eventsource_id: @event.eventsource_id, non_existent: @event.non_existent, owner_id: @event.owner_id, private: @event.private, reference_id: @event.reference_id, reference_type: @event.reference_type, starts_at_text: @event.starts_at }
     assert_redirected_to events_path
   end
 

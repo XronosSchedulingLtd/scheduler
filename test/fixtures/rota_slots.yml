@@ -2,12 +2,24 @@
 
 one:
   rota_template_id: 1
-  starts_at: 2017-01-25 09:32:05
-  ends_at: 2017-01-25 09:32:05
-  days: MyText
+  starts_at: "09:30"
+  ends_at:   "10:30"
+  days: [false, true, true, true, true, true, false]
 
 two:
   rota_template_id: 1
-  starts_at: 2017-01-25 09:32:05
-  ends_at: 2017-01-25 09:32:05
-  days: MyText
+  starts_at: "10:30"
+  ends_at:   "11:30"
+  days: [false, true, true, true, true, true, false]
+
+ie1:
+  rota_template: internalexams
+  starts_at: "09:00"
+  ends_at:   "10:00"
+  days: [false, true, true, true, true, true, false]
+
+ie2:
+  rota_template: internalexams
+  starts_at: "10:00"
+  ends_at:   "11:00"
+  days: [false, true, true, true, true, true, false]
