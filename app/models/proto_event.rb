@@ -521,7 +521,6 @@ class ProtoEvent < ActiveRecord::Base
   #  the database.
   #
   def initialize(*args)
-    puts "In initialize"
     @have_persona = false
     @persona_hash = {}
     super
