@@ -56,7 +56,7 @@
     <div class="small-2 columns">&nbsp;</div>
     <div class="small-2 columns">
       <div class="actions">
-        <%= f.submit @group.id ? "Finished" : "Create", :class => "button tiny radius"  %>
+        <%= f.submit @group.id ? "Finished" : "Create", :class => "zfbutton tiny radius"  %>
       </div>
     </div>
     <div class="small-8 columns">
@@ -101,7 +101,7 @@
       <%= link_to "Clone",
                   do_clone_group_path(@group),
                   :method => :post,
-                  :class => "button tiny radius" %>
+                  :class => "zfbutton tiny radius" %>
     </div>
     <div class="small-6 columns">
       Make an exact copy of this group, except for the name, including
@@ -115,7 +115,7 @@
       <%= link_to "Flatten",
                   flatten_group_path(@group),
                   :method => :post,
-                  :class => "button tiny radius" %>
+                  :class => "zfbutton tiny radius" %>
     </div>
     <div class="small-6 columns">
       Make a flattened copy of this group, with all the same eventual members

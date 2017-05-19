@@ -13,9 +13,10 @@
  *= require_self
  *= require foundation_and_overrides
  *= require zftable
+ *= require zfbutton
  *= require jquery.ui.all
  *= require jquery-ui-timepicker-addon
- *= require fullcalendar
+ *= require fullcalendar.min
  *= require spectrum
  *= require_tree .
 

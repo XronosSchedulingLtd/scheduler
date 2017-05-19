@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  resources :periods, only: [:index]
+
   resources :notifiers
 
   resources :requests do
@@ -25,12 +27,36 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :rota_templates do
+  resources :posts do
+      resources :comments, except: [:show, :edit, :update, :destroy]
+  end
+  resources :comments, only: [:show, :edit, :update, :destroy]
+
+  #
+  #  I don't seem to be able to achieve this by means of the shallow
+  #  modifier, because it recurses into inner nestings and can't
+  #  be turned off again.  I can't make things properly shallow because
+  #  Backbone doesn't work that way.
+  #
+  resources :rota_template_types do
+    resources :rota_templates, except: [:show, :edit, :update, :destroy]
+  end
+
+  resources :rota_templates, only: [:show, :edit, :update, :destroy] do
     resources :rota_slots
     member do
       post :do_clone
     end
   end
+
+#  resources :rota_template_types, shallow: true do
+#    resources :rota_templates
+#      resources :rota_slots
+#      member do
+#        post :do_clone
+#      end
+#    end
+#  end
 
   resources :settings
 

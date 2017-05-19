@@ -418,10 +418,19 @@ ActiveRecord::Schema.define(version: 20170515090847) do
 
   add_index "rota_slots", ["rota_template_id"], name: "index_rota_slots_on_rota_template_id", using: :btree
 
+  create_table "rota_template_types", force: true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "rota_templates", force: true do |t|
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "rota_template_type_id"
+    t.integer  "owner_id"
+    t.string   "owner_type"
   end
 
   create_table "services", force: true do |t|
@@ -554,6 +563,7 @@ ActiveRecord::Schema.define(version: 20170515090847) do
     t.boolean  "invig_weekly",                default: true
     t.boolean  "invig_daily",                 default: true
     t.date     "last_invig_run_date"
+    t.integer  "day_shape_id"
   end
 
 end

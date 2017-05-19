@@ -56,6 +56,17 @@
       <%= f.text_field(:default_event_text) %>
     </div>
 <% end %>
+<% if @day_shapes && !@day_shapes.empty? %>
+    <div class="small-12 medium-6 large-4 columns">
+      <label>Background events</label>
+      <%= f.collection_select(:day_shape_id,
+                              @day_shapes,
+                              :id,
+                              :name,
+                              {:include_blank => "--None--"}) %>
+
+    </div>
+<% end %>
   </div>
 
 <div class="row">
@@ -131,7 +142,7 @@
       if current_user.admin && !@minimal
         link_to "Back to list",
           users_path({user_id: @user.id}),
-          class: "button tiny"
+          class: "zfbutton tiny radius"
       else
         ""
       end
@@ -140,13 +151,13 @@
   <div class="small-4 columns">
     <% if current_user.can_su && !@minimal && current_user.id != @user.id %>
       <div align="center">
-         <%= link_to 'su', become_path(@user), :method => :put, class: "tiny button radius" %>
+         <%= link_to 'su', become_path(@user), :method => :put, class: "tiny zfbutton radius" %>
       </div>
     <% end %>
   </div>
   <div class="small-4 columns">
     <div class="actions" align="right">
-      <%= f.submit "Update", :class => "button tiny radius" %>
+      <%= f.submit "Update", :class => "zfbutton tiny radius" %>
     </div>
   </div>
 </div>
