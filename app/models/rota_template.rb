@@ -45,6 +45,38 @@ class RotaTemplate < ActiveRecord::Base
   end
 
   #
+  #  Provide our first slot which contains the indicated time
+  #  on the corresponding date.
+  #
+  #  Nil if we don't have one.
+  #
+  def slot_for(datetime)
+    the_date = datetime.to_date
+    slots_for(the_date) do |rs|
+      starts_at, ends_at = rs.timings_for(the_date)
+      if datetime >= starts_at && datetime < ends_at
+        return rs
+      end
+    end
+    return nil
+  end
+
+  def snap_to_period(datetime)
+    slot = slot_for(datetime)
+    if slot
+      slot.timings_for(datetime.to_date)
+    else
+      return datetime, datetime
+    end
+  end
+
+  def periods(&block)
+    self.rota_slots.each do |rs|
+      rs.periods(&block)
+    end
+  end
+
+  #
   #  A maintenance method to update all existing rota templates and
   #  link them to a type.  They are all Invigilation ones.
   #

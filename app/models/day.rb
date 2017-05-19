@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2017 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
@@ -8,6 +8,9 @@ require 'csv'
 #
 #  This isn't an ActiveRecord and doesn't exist in the database.  They
 #  are constructed in memory when required, and then used.
+#
+#  TODO: Remove this hard-coding and use the information stored in
+#  rota_templates instead.
 #
 class Day
 

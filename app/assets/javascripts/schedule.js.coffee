@@ -126,28 +126,21 @@ $(document).ready ->
           event:
             new_end: event.end.format()
     droppable: true
-    drop: (date, jsEvent, ui) ->
+    drop: (starts_at, jsEvent, ui) ->
       $('#eventModal').foundation('reveal', 'open', {
-        url: '/events/new?date=' +
-             date.format("YYYY-MM-DD HH:mm") +
-             '&precommit=' +
-             $(this).data("eid")
+        url: newEventUrl(starts_at, null, $(this).data("eid"))
       })
     selectable: true
     selectHelper: true
-    select: (start_time, end_time, jsEvent, view) ->
+    select: (starts_at, ends_at, jsEvent, view) ->
       $('#fullcalendar').fullCalendar('unselect')
-      if end_time - start_time > 300000
+      if ends_at - starts_at > 300000
         $('#eventModal').foundation('reveal', 'open', {
-          url: '/events/new?date=' +
-               start_time.format("YYYY-MM-DD HH:mm") +
-               '&enddate=' +
-               end_time.format("YYYY-MM-DD HH:mm")
+          url: newEventUrl(starts_at, ends_at)
         })
       else
         $('#eventModal').foundation('reveal', 'open', {
-          url: '/events/new?date=' +
-               start_time.format("YYYY-MM-DD HH:mm")
+          url: newEventUrl(starts_at)
         })
   if ($('.withedit').length)
     $.extend(fcParams, editFcParams)
@@ -155,6 +148,35 @@ $(document).ready ->
   $('.dynamic-element').each (index) ->
     addEventSource($(this).data('cid'))
   activateUserColumn()
+
+newEventUrl = (starts_at, ends_at, precommit) ->
+  #
+  #  It may seem slightly odd to pass up the all_day flag separately
+  #  given that it is derived from the starts_at field.  However it
+  #  is technically possible to have a timed event which starts at
+  #  00:00, even though the UI doesn't currently allow it.
+  #  At this point we know the difference, but once the time has been
+  #  turned into text we won't.  By adding the extra flag we preserve
+  #  that information.
+  #
+  "/events/new?starts_at=#{
+      starts_at.format("YYYY-MM-DD HH:mm")
+    }#{
+      if starts_at.hasTime()
+        ""
+      else
+        "&all_day"
+    }#{
+      if ends_at
+        "&ends_at=#{ends_at.format("YYYY-MM-DD HH:mm")}"
+      else
+        ""
+    }#{
+      if precommit
+        "&precommit=#{precommit}"
+      else
+        ""
+    }"
 
 addEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('addEventSource',

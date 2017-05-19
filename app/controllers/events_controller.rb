@@ -57,9 +57,27 @@ class EventsController < ApplicationController
 
   # GET /events/new
   def new
-    @event = Event.new
-    es = Eventsource.find_by name: "Manual"
-    @event.eventsource = es if es
+    #
+    #  Note that we place parameters explicitly into our new event model
+    #  here, rather than by passing a hash to the model.  This allows
+    #  us to control the order (all_day before timings), and to adjust
+    #  certain items.
+    #
+    #  In particular, the model is expecting to receive timings via
+    #  starts_at_text= and ends_at_text=.  These provide certain adjustments
+    #  to suit the UI.  Both FC and my database agree on how event timings
+    #  should be stored, but users need a slightly different presentation.
+    #
+    #  A user will think of an all-day event as running from Mon 1st
+    #  to Wed 3rd, but from the point of view of both FullCalendar
+    #  and my d/b it runs from 00:00 on Mon 1st to 00:00 on Thu 4th.
+    #  The starts/ends_at_text(=) methods in the model handle the conversion.
+    #
+    #  At this point in the processing though, the input is coming from
+    #  FC, and not from the UI.  Hence we don't want the conversion to
+    #  happen.
+    #
+    @event = Eventsource.find_by(name: "Manual").events.new
     if current_user.preferred_event_category
       @event.eventcategory = current_user.preferred_event_category
     end
@@ -82,21 +100,40 @@ class EventsController < ApplicationController
     else
       @event.precommit_element_id = ""
     end
-    if params[:date]
-      start_date = Time.zone.parse(params[:date])
-      @event.starts_at = start_date
-      if params[:enddate]
-        end_date = Time.zone.parse(params[:enddate])
-        @event.ends_at = end_date
-      else
-        end_date = nil
-        @event.ends_at   = start_date
-      end
-      if start_date.hour == 0 &&
-         start_date.min == 0
-        @event.all_day = true
-        unless end_date
-          @event.ends_at = start_date + 1.day
+    @event.all_day = params.has_key?(:all_day)
+    #
+    #  It's potentially feasible that a front end might request
+    #  to create an event without specifying a start time at this
+    #  stage.  The current front end does not do this, but allow
+    #  for the possibility.
+    #
+    if params[:starts_at]
+      @event.starts_at = Time.zone.parse(params[:starts_at])
+    end
+    if params[:ends_at]
+      @event.ends_at = Time.zone.parse(params[:ends_at])
+    else
+      if @event.starts_at
+        if @event.all_day
+          @event.ends_at = @event.starts_at + 1.day
+        else
+          #
+          #  If we have been given a start date and time, but no end
+          #  date then the possibility arises of snapping to a period time.
+          #
+          #  We do this only if the current user has a period set
+          #  on display.
+          #
+          #  If no suitable period is found, then the snap_to_period
+          #  method returns the given parameter twice, producing the
+          #  same effect as if we hadn't called it.
+          #
+          if ds = current_user.day_shape
+            @event.starts_at, @event.ends_at =
+              ds.snap_to_period(@event.starts_at)
+          else
+            @event.ends_at = @event.starts_at
+          end
         end
       end
     end
@@ -147,7 +184,7 @@ class EventsController < ApplicationController
   # POST /events
   # POST /events.json
   def create
-    @event = Event.new(event_params)
+    @event = Eventsource.find_by(name: "Manual").events.new(event_params)
     @event.owner = current_user
 
     respond_to do |format|
@@ -404,6 +441,6 @@ class EventsController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def event_params
-    params.require(:event).permit(:body, :eventcategory_id, :eventsource_id, :owner_id, :integer, :starts_at_text, :ends_at_text, :all_day_field, :approximate, :non_existent, :private, :reference_id, :reference_type, :new_end, :organiser_name, :organiser_id, :organiser_ref, :precommit_element_id)
+    params.require(:event).permit(:body, :eventcategory_id, :owner_id, :integer, :starts_at_text, :ends_at_text, :all_day_field, :approximate, :non_existent, :private, :reference_id, :reference_type, :new_end, :organiser_name, :organiser_id, :organiser_ref, :precommit_element_id)
   end
 end

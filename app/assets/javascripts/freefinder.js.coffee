@@ -9,6 +9,9 @@ window.handlePeriodClick = (item) ->
   #
   #  These should be coming from the database, but hardcoded for now.
   #
+  #  TODO: These are now potentially available from the Periods
+  #  controller, so get them from there.
+  #
   day_names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
   monFriTimes =
     "0":

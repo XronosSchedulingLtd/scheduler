@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  resources :periods, only: [:index]
+
   resources :notifiers
 
   resources :requests do
