@@ -22,10 +22,6 @@ class RotaTemplatesController < ApplicationController
     @rota_template = @rota_template_type.rota_templates.new
   end
 
-  # GET /rota_templates/1/edit
-  def edit
-  end
-
   # POST /rota_template_type/:id/rota_templates
   def create
     @rota_template =

@@ -227,6 +227,18 @@ ActiveRecord::Schema.define(version: 20170515090847) do
   add_index "groups", ["source_id"], name: "index_groups_on_source_id", using: :btree
   add_index "groups", ["source_id_str"], name: "index_groups_on_source_id_str", using: :btree
 
+  create_table "interests", force: true do |t|
+    t.integer  "user_id"
+    t.integer  "element_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "colour",     default: "gray"
+    t.boolean  "visible",    default: true
+  end
+
+  add_index "interests", ["element_id"], name: "index_interests_on_element_id", using: :btree
+  add_index "interests", ["user_id"], name: "index_interests_on_user_id", using: :btree
+
   create_table "itemreports", force: true do |t|
     t.integer  "concern_id"
     t.boolean  "compact",             default: false
@@ -317,6 +329,15 @@ ActiveRecord::Schema.define(version: 20170515090847) do
   end
 
   add_index "otherhalfgrouppersonae", ["source_id"], name: "index_otherhalfgrouppersonae_on_source_id", using: :btree
+
+  create_table "ownerships", force: true do |t|
+    t.integer  "user_id"
+    t.integer  "element_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.boolean  "equality",   default: false
+    t.string   "colour",     default: "#225599"
+  end
 
   create_table "promptnotes", force: true do |t|
     t.string   "title",            default: ""

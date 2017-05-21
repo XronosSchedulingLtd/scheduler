@@ -2,8 +2,8 @@ require 'test_helper'
 
 class RotaSlotsControllerTest < ActionController::TestCase
   setup do
-    @rota_template = rota_templates(:one)
-    @rota_slot = rota_slots(:one)
+    @rota_template = rota_templates(:internalexams)
+    @rota_slot = rota_slots(:ie1)
     session[:user_id] = users(:admin).id
   end
 
@@ -22,6 +22,7 @@ class RotaSlotsControllerTest < ActionController::TestCase
 
   test "should update rota_slot" do
     patch :update, format: :json, rota_template_id: @rota_template.id, id: @rota_slot, rota_slot: { days: @rota_slot.days, ends_at: @rota_slot.ends_at, starts_at: @rota_slot.starts_at }
+#    puts assigns(:rota_slot).errors.inspect
     assert_response :success
   end
 

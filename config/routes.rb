@@ -42,7 +42,7 @@ Rails.application.routes.draw do
     resources :rota_templates, except: [:show, :edit, :update, :destroy]
   end
 
-  resources :rota_templates, only: [:show, :edit, :update, :destroy] do
+  resources :rota_templates, only: [:show, :update, :destroy] do
     resources :rota_slots
     member do
       post :do_clone

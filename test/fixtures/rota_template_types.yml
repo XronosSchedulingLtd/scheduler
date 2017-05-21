@@ -1,5 +1,8 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-internalexams:
-  rota_template_type: invigilation
-  name:               InternalExams
+invigilation:
+  name: "Invigilation"
+
+dayshape:
+  name: "Day shape"
+

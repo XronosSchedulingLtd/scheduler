@@ -1,13 +1,13 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  rota_template_id: 1
+  rota_template: dayshape
   starts_at: "09:30"
   ends_at:   "10:30"
   days: [false, true, true, true, true, true, false]
 
 two:
-  rota_template_id: 1
+  rota_template: dayshape
   starts_at: "10:30"
   ends_at:   "11:30"
   days: [false, true, true, true, true, true, false]
