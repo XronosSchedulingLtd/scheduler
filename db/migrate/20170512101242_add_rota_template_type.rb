@@ -8,5 +8,11 @@ class AddRotaTemplateType < ActiveRecord::Migration
     add_column :rota_templates, :owner_id,              :integer
     add_column :rota_templates, :owner_type,            :string
     add_column :users,          :day_shape_id,          :integer
+    reversible do |change|
+      change.up do
+        RotaTemplateType.create_basics
+        RotaTemplate.make_all_invigilation
+      end
+    end
   end
 end
