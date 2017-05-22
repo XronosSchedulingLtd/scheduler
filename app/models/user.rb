@@ -58,6 +58,7 @@ class User < ActiveRecord::Base
            dependent: :nullify
 
   belongs_to :preferred_event_category, class_name: Eventcategory
+  belongs_to :day_shape, class_name: RotaTemplate
 
   #
   #  The only elements we can actually own currently are groups.  By creating
@@ -467,6 +468,17 @@ class User < ActiveRecord::Base
               visible:  true,
               colour:   p.element.preferred_colour || "green"
             })
+          end
+        end
+        #
+        #  By default, turn on period times.
+        #
+        rtt = DayShapeManager.template_type
+        if rtt
+          rt = rtt.rota_templates.first
+          if rt
+            self.day_shape = rt
+            self.save!
           end
         end
         set_initial_permissions

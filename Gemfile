@@ -41,9 +41,7 @@ gem 'spring',        group: :development
 # gem 'debugger', group: [:development, :test]
 
 gem 'foundation-rails'
-gem 'momentjs-rails'
 gem 'jquery-ui-rails'
-gem 'fullcalendar-rails'
 gem 'charlock_holmes'
 gem 'will_paginate', '~> 3.0'
 gem 'rails-observers'

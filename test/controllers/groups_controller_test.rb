@@ -3,6 +3,7 @@ require 'test_helper'
 class GroupsControllerTest < ActionController::TestCase
   setup do
     @group = groups(:groupone)
+    session[:user_id] = users(:admin).id
   end
 
   test "should get index" do
@@ -18,10 +19,15 @@ class GroupsControllerTest < ActionController::TestCase
 
   test "should create group" do
     assert_difference('Group.count') do
-      post :create, group: { current: @group.current, era_id: @group.era_id, name: @group.name }
+      post :create, group: {
+        current: @group.current,
+        era_id: @group.era_id,
+        starts_on: @group.starts_on,
+        name: @group.name }
+#      puts assigns(:group).errors.inspect
     end
 
-    assert_redirected_to group_path(assigns(:group))
+    assert_redirected_to edit_group_path(assigns(:group))
   end
 
   test "should show group" do
@@ -35,12 +41,23 @@ class GroupsControllerTest < ActionController::TestCase
   end
 
   test "should update group" do
-    patch :update, id: @group, group: { current: @group.current, era_id: @group.era_id, house: @group.house, name: @group.name, staff_id: @group.staff_id, start_year: @group.start_year }
+    patch :update, id: @group, group: { current: @group.current, era_id: @group.era_id, name: @group.name  }
     assert_redirected_to groups_path
   end
 
+  #
+  #  This test needs re-thinking.  In general, we don't delete groups,
+  #  merely mark them as over.
+  #
+#  test "should destroy group" do
+#    assert_difference('Group.count', -1) do
+#      delete :destroy, id: @group
+#    end
+
+#    assert_redirected_to groups_path
+#  end
   test "should destroy group" do
-    assert_difference('Group.count', -1) do
+    assert_difference('Group.current.count', -1) do
       delete :destroy, id: @group
     end
 

@@ -34,7 +34,7 @@
   </table>
 </div>
 <div align="right">
-  <%= link_to 'Done', exam_cycles_path, class: 'button tiny radius' %>
+  <%= link_to 'Done', exam_cycles_path, class: 'zfbutton tiny radius' %>
 </div>
 <div id="splitModal" class="reveal-modal" data-reveal>
 </div>
@@ -67,8 +67,8 @@
 <script type="text/template" id="ec-protoevent-row">
   <tr>
     <td>
-      <button class='add tiny radius'>Add</button>
-      <button class='edit tiny radius'>Edit</button>
+      <button class='zfbutton add tiny radius'>Add</button>
+      <button class='zfbutton edit tiny radius'>Edit</button>
     </td>
     <td>
       <span class="displaying"><%%= room %><br/><%%= rota_template_name %></span>
@@ -108,17 +108,17 @@
       <span class="displaying"><%%= event_count %></span>
     </td>
     <td>
-      <button class='generate tiny radius'>Generate</button>
-      <button class='update tiny radius'>Update</button>
+      <button class='zfbutton generate tiny radius'>Generate</button>
+      <button class='zfbutton update tiny radius'>Update</button>
       <span class="generating">Please wait...</span>
     </td>
     <td>
-      <button class='split tiny radius' title="Split into two separate durations">Split</button>
-      <button class='cancel tiny radius'>Cancel</button>
+      <button class='zfbutton split tiny radius' title="Split into two separate durations">Split</button>
+      <button class='zfbutton cancel tiny radius'>Cancel</button>
     </td>
     <td>
-      <button class='deleteevents tiny radius'>Delete events</button>
-      <button class='destroy tiny radius'>Delete</button>
+      <button class='zfbutton deleteevents tiny radius'>Delete events</button>
+      <button class='zfbutton destroy tiny radius'>Delete</button>
     </td>
   </tr>
   <tr class="pe-second-row">
@@ -208,11 +208,11 @@ Second half
 </td>
 <td><%%= ends_on_text %></td>
 <td>
-  <button class='split tiny radius'>Split</button>
+  <button class='zfbutton split tiny radius'>Split</button>
   <span class="splitting">Please wait...</span>
 </td>
 <td>
-  <button class='cancel tiny radius'>Cancel</button>
+  <button class='zfbutton cancel tiny radius'>Cancel</button>
 </td>
 </tr>
 </tbody>

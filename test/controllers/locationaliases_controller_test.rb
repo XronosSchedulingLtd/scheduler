@@ -3,6 +3,7 @@ require 'test_helper'
 class LocationaliasesControllerTest < ActionController::TestCase
   setup do
     @locationalias = locationaliases(:one)
+    session[:user_id] = users(:admin).id
   end
 
   test "should get index" do
@@ -35,8 +36,9 @@ class LocationaliasesControllerTest < ActionController::TestCase
   end
 
   test "should update locationalias" do
+    session[:editing_locationalias_from] = "/banana"
     patch :update, id: @locationalias, locationalias: { location_id: @locationalias.location_id, name: @locationalias.name, source_id: @locationalias.source_id }
-    assert_redirected_to locationalias_path(assigns(:locationalias))
+    assert_redirected_to "/banana"
   end
 
   test "should destroy locationalias" do

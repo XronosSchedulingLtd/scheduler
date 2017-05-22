@@ -58,23 +58,27 @@ $(document).ready ->
   #  regardless.
   #
   fcParams =
+    height: 'parent'
     currentTimezone: 'Europe/London'
-    columnFormat:
-      month: 'ddd'
-      week: 'ddd D/M'
-      day: 'ddd D/M'
-    timeFormat: 'H:mm',
     header:
       left: 'prev,next today'
       center: 'title'
-      right: 'month,agendaWeek,agendaDay,basicDay'
+      right: 'month,agendaWeek,agendaDay,basicDay,listMonth'
     buttonText:
       basicDay: "day list"
-    titleFormat:
-      month: 'MMMM YYYY'
-      week: 'Do MMM, YYYY'
-      day: 'ddd Do MMM, YYYY'
+    views:
+      month:
+        columnFormat: 'ddd'
+        titleFormat: 'MMMM YYYY'
+      week:
+        columnFormat: 'ddd D/M'
+        titleFormat: 'Do MMM, YYYY'
+      day:
+        columnFormat: 'ddd D/M'
+        titleFormat: 'ddd Do MMM, YYYY'
+    timeFormat: 'H:mm',
     defaultView: "agendaWeek"
+    eventOrder: "sort_by"
     firstDay: $('#fullcalendar').data("firstday")
     defaultDate: $('#fullcalendar').data("defaultdate")
     snapDuration: "00:05"
@@ -122,28 +126,21 @@ $(document).ready ->
           event:
             new_end: event.end.format()
     droppable: true
-    drop: (date, jsEvent, ui) ->
+    drop: (starts_at, jsEvent, ui) ->
       $('#eventModal').foundation('reveal', 'open', {
-        url: '/events/new?date=' +
-             date.format("YYYY-MM-DD HH:mm") +
-             '&precommit=' +
-             $(this).data("eid")
+        url: newEventUrl(starts_at, null, $(this).data("eid"))
       })
     selectable: true
     selectHelper: true
-    select: (start_time, end_time, jsEvent, view) ->
+    select: (starts_at, ends_at, jsEvent, view) ->
       $('#fullcalendar').fullCalendar('unselect')
-      if end_time - start_time > 300000
+      if ends_at - starts_at > 300000
         $('#eventModal').foundation('reveal', 'open', {
-          url: '/events/new?date=' +
-               start_time.format("YYYY-MM-DD HH:mm") +
-               '&enddate=' +
-               end_time.format("YYYY-MM-DD HH:mm")
+          url: newEventUrl(starts_at, ends_at)
         })
       else
         $('#eventModal').foundation('reveal', 'open', {
-          url: '/events/new?date=' +
-               start_time.format("YYYY-MM-DD HH:mm")
+          url: newEventUrl(starts_at)
         })
   if ($('.withedit').length)
     $.extend(fcParams, editFcParams)
@@ -151,6 +148,35 @@ $(document).ready ->
   $('.dynamic-element').each (index) ->
     addEventSource($(this).data('cid'))
   activateUserColumn()
+
+newEventUrl = (starts_at, ends_at, precommit) ->
+  #
+  #  It may seem slightly odd to pass up the all_day flag separately
+  #  given that it is derived from the starts_at field.  However it
+  #  is technically possible to have a timed event which starts at
+  #  00:00, even though the UI doesn't currently allow it.
+  #  At this point we know the difference, but once the time has been
+  #  turned into text we won't.  By adding the extra flag we preserve
+  #  that information.
+  #
+  "/events/new?starts_at=#{
+      starts_at.format("YYYY-MM-DD HH:mm")
+    }#{
+      if starts_at.hasTime()
+        ""
+      else
+        "&all_day"
+    }#{
+      if ends_at
+        "&ends_at=#{ends_at.format("YYYY-MM-DD HH:mm")}"
+      else
+        ""
+    }#{
+      if precommit
+        "&precommit=#{precommit}"
+      else
+        ""
+    }"
 
 addEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('addEventSource',
@@ -238,7 +264,7 @@ tweakElement = (event, element) ->
       if (@viewName == "agendaWeek" ||
           @viewName == "agendaDay" ||
           @viewName == "basicDay")
-        element.find('.fc-event-inner').prepend(event.prefix)
+        element.find('.fc-title').prepend(event.prefix)
       else if @viewName == "month"
         #
         #  This one takes a bit more thought.  The event may occur in
@@ -246,7 +272,7 @@ tweakElement = (event, element) ->
         #
         if !@elementsSeen[event.id]
           @elementsSeen[event.id] = true
-          element.find('.fc-event-inner').prepend(event.prefix)
+          element.find('.fc-title').prepend(event.prefix)
   #
   #  And now, do we need to add an icon?
   #
@@ -268,25 +294,16 @@ tweakElement = (event, element) ->
       #  problems which resulted in this compromise solution.
       #
     if @viewName == "basicDay"
-      element.find(".fc-event-time").
+      element.find(".fc-time").
               before("<span><img src=\"images/#{icon}\" /></span>")
     else if @viewName == "agendaDay"
-      element.find(".fc-event-inner").
+      element.find(".fc-content").
               append("<img class=\"evnearleft\" src=\"images/#{icon}\" />")
-    else
-      element.find(".fc-event-inner").
+    else if @viewName == "agendaWeek" || @viewName == "month"
+      element.find(".fc-content").
               append("<img class=\"evtopright\" src=\"images/#{icon}\" />")
   return true
 
-
-#  if event.has_clashes
-#    element.find(".fc-event-inner").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
-#  else if event.fc == "r"
-#    element.find(".fc-event-inner").append("<img class=\"evalmosttopright\" src=\"images/rf.png\" />")
-#  else if event.fc == "y"
-#    element.find(".fc-event-inner").append("<img class=\"evalmosttopright\" src=\"images/yf.png\" />")
-#  else if event.fc == "g"
-#    element.find(".fc-event-inner").append("<img class=\"evalmosttopright\" src=\"images/gf.png\" />")
 
 activateCheckboxes = ->
   $('.active-checkbox').change( ->

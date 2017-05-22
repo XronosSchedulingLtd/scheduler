@@ -1,9 +1,8 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  user_id: 1
-  element_id: 1
+invigilation:
+  name: "Invigilation"
 
-two:
-  user_id: 1
-  element_id: 1
+dayshape:
+  name: "Day shape"
+

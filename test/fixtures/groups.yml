@@ -1,24 +1,29 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 groupone:
+  name: "Group one"
   starts_on: 2013-09-01
   ends_on: 2014-08-31
+  current: true
   era: eraone
   persona: teachingpersonaone (Teachinggrouppersona)
 
 grouptwo:
+  name: "Group two"
   starts_on: 2013-09-01
   ends_on: 2014-08-31
   era: eraone
   persona: teachingpersonatwo (Teachinggrouppersona)
 
 groupthree:
+  name: "Group three"
   starts_on: 2013-09-01
   ends_on: 2014-08-31
   era: eraone
   persona: tutorpersonaone (Tutorgrouppersona)
 
 groupfour:
+  name: "Group four"
   starts_on: 2013-09-01
   ends_on: 2014-08-31
   era: eraone

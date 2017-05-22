@@ -650,6 +650,11 @@ class Seeder
     @eventsources[:thisfile] = Eventsource.create!({ name: "Seedfile" })
     @eventsources[:manual]   = Eventsource.create!({ name: "Manual" })
     @eventsources[:rotaslot] = Eventsource.create!({ name: "RotaSlot" })
+    #
+    #  Rota template types.
+    #
+    RotaTemplateType.create!({ name: "Invigilation" })
+    RotaTemplateType.create!({ name: "Day shape" })
   end
 
   Usefuls = [
@@ -835,6 +840,19 @@ class Seeder
   def configure_periods(period_times)
     period_times.each do |pt|
       @periods << SeedPeriod.new(*pt)
+    end
+    #
+    #  And set up background events as well.
+    #
+    rt = DayShapeManager.template_type.rota_templates.create!({
+      name: "Period times"
+    })
+    @periods.each do |period|
+      rt.rota_slots.create!({
+        starts_at: period.start_time,
+        ends_at:   period.end_time,
+        days:      [false, true, true, true, true, true, false]
+      })
     end
   end
 

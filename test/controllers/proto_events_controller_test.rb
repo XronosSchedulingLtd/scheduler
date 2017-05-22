@@ -2,48 +2,56 @@ require 'test_helper'
 
 class ProtoEventsControllerTest < ActionController::TestCase
   setup do
-    @proto_event = proto_events(:one)
+    @proto_event = proto_events(:fourthexamspe)
+    @generator = exam_cycles(:fourthyearexams)
+    @location = elements(:roomoneelement)
+    @rota_template = rota_templates(:internalexams)
+    session[:user_id] = users(:admin).id
   end
 
   test "should get index" do
-    get :index
+    get :index, format: :json, exam_cycle_id: @generator.id
     assert_response :success
     assert_not_nil assigns(:proto_events)
   end
 
-  test "should get new" do
-    get :new
-    assert_response :success
-  end
-
   test "should create proto_event" do
     assert_difference('ProtoEvent.count') do
-      post :create, proto_event: { body: @proto_event.body, ends_on: @proto_event.ends_on, event_category_id: @proto_event.event_category_id, event_source_id: @proto_event.event_source_id, starts_on: @proto_event.starts_on }
+      post :create,
+           format: :json,
+           exam_cycle_id: @generator.id,
+           proto_event: {
+             body: @proto_event.body,
+             rota_template_id: @rota_template.id,
+             starts_on_text: @proto_event.starts_on,
+             ends_on_text: @proto_event.ends_on,
+             num_staff: "1",
+             location_id: @location.id
+           }
     end
-
-    assert_redirected_to proto_event_path(assigns(:proto_event))
-  end
-
-  test "should show proto_event" do
-    get :show, id: @proto_event
-    assert_response :success
-  end
-
-  test "should get edit" do
-    get :edit, id: @proto_event
     assert_response :success
   end
 
   test "should update proto_event" do
-    patch :update, id: @proto_event, proto_event: { body: @proto_event.body, ends_on: @proto_event.ends_on, event_category_id: @proto_event.event_category_id, event_source_id: @proto_event.event_source_id, starts_on: @proto_event.starts_on }
-    assert_redirected_to proto_event_path(assigns(:proto_event))
+    patch :update,
+          format: :json,
+          exam_cycle_id: @generator.id,
+          id: @proto_event,
+          proto_event: {
+            body: @proto_event.body,
+            starts_on_text: @proto_event.starts_on,
+            ends_on_text: @proto_event.ends_on,
+             num_staff: "1",
+             location_id: @location.id
+          }
+    assert_response :success
   end
 
   test "should destroy proto_event" do
     assert_difference('ProtoEvent.count', -1) do
-      delete :destroy, id: @proto_event
+      delete :destroy, format: :json, exam_cycle_id: @generator.id, id: @proto_event
     end
+    assert_response :success
 
-    assert_redirected_to proto_events_path
   end
 end

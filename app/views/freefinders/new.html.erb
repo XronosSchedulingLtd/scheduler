@@ -56,10 +56,10 @@
       <%= f.label "Period", class: "right inline" %>
     </div>
     <div class="small-8 columns">
-      <ul class="button-group round">
-        <li class="button tiny period-selector" data-period-no="0" title="Tutor period">0</li>
+      <ul class="zfbutton-group round">
+        <li class="zfbutton tiny period-selector" data-period-no="0" title="Tutor period">0</li>
 <% 1.upto(8) do |index| %>
-        <li class="button tiny period-selector" data-period-no="<%= index %>"><%= index %></li>
+        <li class="zfbutton tiny period-selector" data-period-no="<%= index %>"><%= index %></li>
 <% end %>
       </ul>
     </div>
@@ -69,19 +69,19 @@
   </div>
   <div class="row collapse">
     <div class="small-2 small-offset-3 columns">
-      <%= f.submit "Find free", :class => "button small radius" %>
+      <%= f.submit "Find free", :class => "zfbutton tiny radius" %>
     </div>
 <% if @freefinder.done_search %>
     <div class="small-2 columns">
       <%= f.submit "Export",
                    :name => :export,
-                   :class => "button small radius" %>
+                   :class => "zfbutton tiny radius" %>
     </div>
     <div class="small-2 columns">
 <% if current_user.can_has_groups %>
       <%= f.submit "Create group",
                    :name => :create,
-                   :class => "button small radius" %>
+                   :class => "zfbutton tiny radius" %>
 <% end %>
     </div>
     <div class="small-3 columns">

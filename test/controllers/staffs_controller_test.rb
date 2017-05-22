@@ -3,6 +3,7 @@ require 'test_helper'
 class StaffsControllerTest < ActionController::TestCase
   setup do
     @staff = staffs(:staffone)
+    session[:user_id] = users(:admin).id
   end
 
   test "should get index" do
@@ -36,7 +37,7 @@ class StaffsControllerTest < ActionController::TestCase
 
   test "should update staff" do
     patch :update, id: @staff, staff: { active: @staff.active, current: @staff.current, email: @staff.email, forename: @staff.forename, initials: @staff.initials, name: @staff.name, source_id: @staff.source_id, surname: @staff.surname, title: @staff.title }
-    assert_redirected_to staff_path(assigns(:staff))
+    assert_redirected_to staffs_path
   end
 
   test "should destroy staff" do

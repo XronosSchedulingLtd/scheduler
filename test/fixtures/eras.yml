@@ -5,7 +5,11 @@ eraone:
   starts_on: 2013-09-01
   ends_on: 2014-08-31
 
+perpetual:
+  name: "Perpetual era"
+  starts_on: 2013-09-01
+
 eratwo:
-  name: MyString
+  name: "Can delete this one"
   starts_on: 2014-04-28
   ends_on: 2014-04-28

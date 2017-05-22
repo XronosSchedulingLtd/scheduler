@@ -3,6 +3,7 @@ require 'test_helper'
 class PupilsControllerTest < ActionController::TestCase
   setup do
     @pupil = pupils(:pupilone)
+    session[:user_id] = users(:admin).id
   end
 
   test "should get index" do

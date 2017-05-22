@@ -87,6 +87,18 @@ class RotaSlot < ActiveRecord::Base
     return [self[:starts_at].on(date), self[:ends_at].on(date)]
   end
 
+  #
+  #  Passed a block, this will yield all the entries in this rota_slot
+  #  as individual periods.
+  #
+  def periods
+    0.upto(6) do |i|
+      if self.days[i]
+        yield i, self.starts_at, self.ends_at
+      end
+    end
+  end
+
   private
 
   def assign_tod_value(field, value)

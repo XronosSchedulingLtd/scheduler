@@ -3,6 +3,7 @@ require 'test_helper'
 class EventcategoriesControllerTest < ActionController::TestCase
   setup do
     @eventcategory = eventcategories(:one)
+    session[:user_id] = users(:admin).id
   end
 
   test "should get index" do

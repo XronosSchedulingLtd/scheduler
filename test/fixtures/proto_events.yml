@@ -1,15 +1,11 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  body: MyText
-  starts_on: 2017-02-05
-  ends_on: 2017-02-05
-  eventcategory_id: 1
-  eventsource_id: 1
+fourthexamspe:
+  body: "Proto event for fourth year exams"
+  starts_on: 2017-05-01
+  ends_on:   2017-05-07
+  eventcategory: invigilation
+  eventsource: rotaslot
+  rota_template: internalexams
+  generator: fourthyearexams (ExamCycle)
 
-two:
-  body: MyText
-  starts_on: 2017-02-05
-  ends_on: 2017-02-05
-  eventcategory_id: 1
-  eventsource_id: 1
