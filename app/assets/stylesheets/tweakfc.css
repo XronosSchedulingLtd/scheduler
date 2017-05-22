@@ -5,3 +5,7 @@
 .rounded-corners {
   border-radius: 3px;
 }
+
+.fc-content {
+  margin-top: 2px;
+}

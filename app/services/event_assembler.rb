@@ -72,7 +72,12 @@ class EventAssembler
                    current_user = nil,
                    colour = nil,
                    mine = false)
-      @event  = event
+      @event   = event
+      if via_element
+        @sort_by = via_element.id
+      else
+        @sort_by = 0
+      end
       if colour
         @colour = colour
         #
@@ -268,12 +273,47 @@ class EventAssembler
         :editable      => @editable,
         :color         => @colour,
         :has_clashes   => @has_clashes,
-        :fc            => @flag_colour
+        :fc            => @flag_colour,
+        :sort_by       => @sort_by
       }
       if @prefix
         result[:prefix] = @prefix
       end
       result
+    end
+
+  end
+
+  class BackgroundEvent
+    #
+    #  Sort of similar-ish, but used to provide background events
+    #  which typically show when the periods are in a school.
+    #
+   
+    def initialize(starts_at, ends_at)
+      @starts_at = starts_at
+      @ends_at = ends_at
+    end
+
+    def as_json(options = {})
+      result = {
+        :start         => @starts_at.iso8601,
+        :end           => @ends_at.iso8601,
+        :rendering     => 'background'
+      }
+      result
+    end
+
+    def self.construct(rota_template, start_date, end_date)
+      events = []
+      start_date.upto(end_date) do |date|
+        rota_template.slots_for(date) do |slot|
+          starts_at, ends_at = slot.timings_for(date)
+          events << BackgroundEvent.new(starts_at, ends_at)
+        end
+      end
+      Rails.logger.debug("Returning #{events.count} background events.")
+      events
     end
 
   end
@@ -370,6 +410,12 @@ class EventAssembler
                               nil,
                               @current_user)
           }
+        if @current_user && @current_user.day_shape
+          resulting_events +=
+            BackgroundEvent.construct(@current_user.day_shape,
+                                      start_date.to_date,
+                                      end_date.to_date)
+        end
       else
         #
         #  An explicit request for the events relating to a specified

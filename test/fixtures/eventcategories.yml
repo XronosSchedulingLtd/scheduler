@@ -35,3 +35,12 @@ lesson:
   public: false
   for_users: false
   unimportant: false
+
+invigilation:
+  name: Invigilation
+  pecking_order: 1
+  schoolwide: false
+  publish: false
+  public: false
+  for_users: false
+  unimportant: false

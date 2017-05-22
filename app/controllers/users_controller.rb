@@ -77,6 +77,10 @@ class UsersController < ApplicationController
   def edit
     if current_user.known? &&
        (current_user.admin || current_user.id == @user.id)
+      tt = DayShapeManager.template_type
+      if tt
+        @day_shapes = tt.rota_templates
+      end
       if request.xhr?
         @minimal = true
         render :layout => false
@@ -110,12 +114,14 @@ class UsersController < ApplicationController
   def update
     original_firstday = @user.firstday
     original_colour = @user.colour_not_involved
+    original_day_shape_id = @user.day_shape_id
     respond_to do |format|
       if @user.update(user_params)
         @success = true
         @changed_display_options =
           (@user.firstday != original_firstday) ||
-          (@user.colour_not_involved != original_colour)
+          (@user.colour_not_involved != original_colour) ||
+          (@user.day_shape_id != original_day_shape_id)
         format.html { redirect_to users_path({user_id: @user.id}), notice: 'User was successfully updated.' }
         format.json { render :show, status: :ok, location: @user }
         format.js
@@ -182,7 +188,8 @@ class UsersController < ApplicationController
                       :firstday,
                       :preferred_event_category_id,
                       :colour_not_involved,
-                      :default_event_text)
+                      :default_event_text,
+                      :day_shape_id)
       elsif current_user.editor
         params.require(:user).
                permit(:firstday,
@@ -195,7 +202,8 @@ class UsersController < ApplicationController
                       :invig_daily,
                       :preferred_event_category_id,
                       :colour_not_involved,
-                      :default_event_text)
+                      :default_event_text,
+                      :day_shape_id)
       else
         params.require(:user).
                permit(:firstday,
@@ -206,7 +214,8 @@ class UsersController < ApplicationController
                       :clash_daily,
                       :clash_immediate,
                       :invig_weekly,
-                      :invig_daily)
+                      :invig_daily,
+                      :day_shape_id)
       end
     end
 end

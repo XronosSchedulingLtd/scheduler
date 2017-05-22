@@ -17,8 +17,8 @@
 //= require foundation
 //= require jquery.ui.all
 //= require autocomplete-rails
-//= require moment
-//= require fullcalendar
+//= require moment.min
+//= require fullcalendar.min
 //= require jquery-ui-timepicker-addon
 //= require spectrum
 //= require_tree .

@@ -418,7 +418,7 @@ $row-width: 100%;
 // 05. Buttons
 // - - - - - - - - - - - - - - - - - - - - - - - - -
 
-// $include-html-button-classes: $include-html-classes;
+$include-html-button-classes: false;
 
 // We use these to build padding for buttons.
 // $button-tny: rem-calc(10);

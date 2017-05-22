@@ -3,6 +3,7 @@ require 'test_helper'
 class EventsourcesControllerTest < ActionController::TestCase
   setup do
     @eventsource = eventsources(:one)
+    session[:user_id] = users(:admin).id
   end
 
   test "should get index" do

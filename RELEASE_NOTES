@@ -1,3 +1,39 @@
+v0.19   2017-05-22
+
+* The main change in this release is that the version of FullCalendar
+  used has been updated to the latest available - 3.4.0.  Previously
+  Scheduler was using 2.0.2.  This has enabled various other enhancements.
+
+* When events are being viewed for multiple resources, the left-to-right
+  ordering has historically been by alphabetical ordering of event title.
+  This can lead to a less than clear display.  From this release, the
+  left to right ordering is dictated by the resource involved, so resource
+  A's events will always be to the left of resource B's events, etc.
+
+* It is now possible for the system adminstrator to enter period times in
+  the system and for these then to be displayed to individual users as
+  background events (pale shaded areas) on the display.  More than one
+  set can be entered (e.g. for a main school and a junior school) and
+  each user can choose which to see.
+
+* If a user has period times switched on and the user then tries to
+  create a new event within a configured period - either by clicking
+  within a period or by dragging a resource onto the calendar - then
+  the default times for the new event will now default to the period's
+  times.  Clicking and dragging to create a new event with duration is
+  not affected and will continue to work as before.
+
+* The framing of the calendar has been tightened up and the user should
+  no longer find that there are two simultaneous scroll bars.  The calendar
+  resizes as far as it can to fit the user's chosen window size.
+
+* A new view is available in the calendar display.  Called simply "list"
+  it provides a nicely formatted list of all the chosen events in a month.
+
+* The automated test suite for the application had fallen rather behind
+  developments.  It has been updated and now runs without error.
+
+
 v0.18.6 2017-04-09
 
   Two small fixes
