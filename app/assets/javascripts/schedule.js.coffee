@@ -11,6 +11,7 @@
 #  there being any overhead at all.  The comments will be stripped
 #  out by the CoffeeScript compiler.
 #
+that = {}
 $(document).ready ->
   $('#datepicker').datepicker
     showOtherMonths: true
@@ -84,12 +85,9 @@ $(document).ready ->
     snapDuration: "00:05"
     minTime: "06:00"
     scrollTime: "08:00"
-    viewRender: (view, element) ->
-      prepareToRender(view, element)
-    eventRender: (event, element) ->
-      tweakElement(event, element)
-    eventAfterAllRender: (view) ->
-      allRendered(view)
+    viewRender: prepareToRender
+    eventRender: tweakElement
+    eventAfterAllRender: allRendered
     eventSources: [{
       url: '/schedule/events'
     }]
@@ -245,12 +243,12 @@ activateColourPicker = (field_id, sample_id) ->
 
 prepareToRender = (view, element) ->
   $('#datepicker').datepicker('setDate', view.start.toDate())
-  @viewStartDate = view.start.toDate()
-  @viewName = view.name
-  @elementsSeen = {}
+  that.viewStartDate = view.start.toDate()
+  that.viewName = view.name
+  that.elementsSeen = {}
 
 allRendered = (view) ->
-  @elementsSeen = {}
+  that.elementsSeen = {}
 
 tweakElement = (event, element) ->
   if event.prefix
@@ -260,18 +258,18 @@ tweakElement = (event, element) ->
     #  the chronological start of the event - not those where it
     #  is just continuing.
     #
-    if event.start >= @viewStartDate
-      if (@viewName == "agendaWeek" ||
-          @viewName == "agendaDay" ||
-          @viewName == "basicDay")
+    if event.start >= that.viewStartDate
+      if (that.viewName == "agendaWeek" ||
+          that.viewName == "agendaDay" ||
+          that.viewName == "basicDay")
         element.find('.fc-title').prepend(event.prefix)
-      else if @viewName == "month"
+      else if that.viewName == "month"
         #
         #  This one takes a bit more thought.  The event may occur in
         #  several elements, and only the first gets the prefix.
         #
-        if !@elementsSeen[event.id]
-          @elementsSeen[event.id] = true
+        if !that.elementsSeen[event.id]
+          that.elementsSeen[event.id] = true
           element.find('.fc-title').prepend(event.prefix)
   #
   #  And now, do we need to add an icon?
@@ -293,13 +291,13 @@ tweakElement = (event, element) ->
       #  notes for 9th May, 2017 for an explanation of the various
       #  problems which resulted in this compromise solution.
       #
-    if @viewName == "basicDay"
+    if that.viewName == "basicDay"
       element.find(".fc-time").
               before("<span><img src=\"images/#{icon}\" /></span>")
-    else if @viewName == "agendaDay"
+    else if that.viewName == "agendaDay"
       element.find(".fc-content").
               append("<img class=\"evnearleft\" src=\"images/#{icon}\" />")
-    else if @viewName == "agendaWeek" || @viewName == "month"
+    else if that.viewName == "agendaWeek" || that.viewName == "month"
       element.find(".fc-content").
               append("<img class=\"evtopright\" src=\"images/#{icon}\" />")
   return true
