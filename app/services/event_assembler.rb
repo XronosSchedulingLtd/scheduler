@@ -439,6 +439,14 @@ class EventAssembler
             event_categories = Eventcategory.visible.to_a
           end
           #
+          #  Has the user filtered out some categories?
+          #
+          unless @current_user.suppressed_eventcategories.empty?
+            event_categories = event_categories.select {|ec|
+              !@current_user.suppressed_eventcategories.include?(ec.id)
+            }
+          end
+          #
           #  Start by assembling all the relevant commitments, including
           #  those for events flagged as being non-existent.
           #
@@ -460,26 +468,36 @@ class EventAssembler
           #  (because of group membership) so uniq them, and then
           #  construct our ScheduleEvent objects - one per event.
           #
-          resulting_events =
-            element.commitments_on(startdate:           start_date,
-                                   enddate:             end_date,
-                                   eventcategory:       event_categories,
-                                   include_nonexistent: true).
-                    preload(:event).
-                    select {|c| concern.owns ||
-                                @current_user.admin ||
-                                !c.tentative ||
-                                c.event.owner_id == @current_user.id }.
-                    collect {|c| c.event}.
-                    uniq.
-                    collect {|e|
-                      ScheduleEvent.new(start_date,
-                                        e,
-                                        element,
-                                        @current_user,
-                                        concern.colour,
-                                        concern.equality)
-                    }
+          if event_categories.empty?
+            #
+            #  If the user has suppressed all his event categories
+            #  then the underlying code would treat an empty array
+            #  as meaning "no restriction" and you'd be back to seeing
+            #  them all again.
+            #
+            resulting_events = []
+          else
+            resulting_events =
+              element.commitments_on(startdate:           start_date,
+                                     enddate:             end_date,
+                                     eventcategory:       event_categories,
+                                     include_nonexistent: true).
+                      preload(:event).
+                      select {|c| concern.owns ||
+                                  @current_user.admin ||
+                                  !c.tentative ||
+                                  c.event.owner_id == @current_user.id }.
+                      collect {|c| c.event}.
+                      uniq.
+                      collect {|e|
+                        ScheduleEvent.new(start_date,
+                                          e,
+                                          element,
+                                          @current_user,
+                                          concern.colour,
+                                          concern.equality)
+                      }
+          end
         end
       end
     else

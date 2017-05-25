@@ -1,0 +1,30 @@
+<a class="close-reveal-modal">&#215;</a>
+<%= form_for(@filter, url: user_filter_path(@user, @filter), remote: true) do |f| %>
+  <ul>
+    <% if filter.num_columns == 1 %>
+      <%= render partial: "filterslot", collection: filter.slots, locals: {f: f} %>
+    <% elsif filter.num_columns == 2 %>
+      <div class="row collapse">
+        <div class="small-12 large-6 columns">
+          <%= render partial: "filterslot", collection: filter.columns[0], locals: {f: f} %>
+        </div>
+        <div class="small-12 large-6 columns">
+          <%= render partial: "filterslot", collection: filter.columns[1], locals: {f: f} %>
+        </div>
+      </div>
+    <% else %>
+      <div class="row collapse">
+        <div class="small-12 large-4 columns">
+          <%= render partial: "filterslot", collection: filter.columns[0], locals: {f: f} %>
+        </div>
+        <div class="small-12 large-4 columns">
+          <%= render partial: "filterslot", collection: filter.columns[1], locals: {f: f} %>
+        </div>
+        <div class="small-12 large-4 columns">
+          <%= render partial: "filterslot", collection: filter.columns[2], locals: {f: f} %>
+        </div>
+      </div>
+    <% end %>
+  </ul>
+  <%= f.submit "Save", :class => "zfbutton tiny radius" %>
+<% end %>

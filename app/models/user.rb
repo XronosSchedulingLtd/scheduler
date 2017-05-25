@@ -48,6 +48,9 @@ class User < ActiveRecord::Base
   }
   FIELD_TITLE_TEXTS.default = ""
 
+  serialize :suppressed_eventcategories, Array
+  serialize :extra_eventcategories,      Array
+
   has_many :concerns,   :dependent => :destroy
 
   has_many :events, foreign_key: :owner_id, dependent: :nullify
