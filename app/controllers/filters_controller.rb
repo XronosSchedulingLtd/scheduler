@@ -16,13 +16,17 @@ class FiltersController < ApplicationController
     #  generated.  The service object isn't going to do a bulk assign
     #  anyway.
     #
-    @modified = fm.generate_filter.update(params)
+    @modified, @filter_state = fm.generate_filter.update(params)
     respond_to do |format|
       format.js
     end
   end
 
   private
+    def authorized?(action = action_name, resource = nil)
+      logged_in? && current_user.known?
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def find_user
       @user = User.find(params[:user_id])

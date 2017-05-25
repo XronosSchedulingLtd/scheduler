@@ -384,11 +384,21 @@ class EventAssembler
           my_owned_events = []
           my_organised_events = []
         end
-        schoolwide_events =
-          Event.events_on(start_date,
-                          end_date,
-                          Eventcategory.schoolwide) -
-                          (my_owned_events + my_organised_events)
+        schoolwide_categories = Eventcategory.schoolwide.to_a
+        unless @current_user.suppressed_eventcategories.empty?
+          schoolwide_categories = schoolwide_categories.select {|ec|
+            !@current_user.suppressed_eventcategories.include?(ec.id)
+          }
+        end
+        if schoolwide_categories.empty?
+          schoolwide_events = []
+        else
+          schoolwide_events =
+            Event.events_on(start_date,
+                            end_date,
+                            schoolwide_categories) -
+                            (my_owned_events + my_organised_events)
+        end
         resulting_events =
           my_owned_events.collect {|e|
             ScheduleEvent.new(start_date,
@@ -428,16 +438,12 @@ class EventAssembler
           @current_user.concerns.detect {|ci| ci.id == concern_id}
         if concern && concern.visible
           element = concern.element
-          if element.entity.instance_of?(Property)
-            #
-            #  The .to_a forces the lambda to be evaluated now.  We don't
-            #  want the database being queried again and again for the
-            #  same answer.
-            #
-            event_categories = Eventcategory.not_schoolwide.visible.to_a
-          else
-            event_categories = Eventcategory.visible.to_a
-          end
+          #
+          #  The .to_a forces the lambda to be evaluated now.  We don't
+          #  want the database being queried again and again for the
+          #  same answer.
+          #
+          event_categories = Eventcategory.not_schoolwide.visible.to_a
           #
           #  Has the user filtered out some categories?
           #

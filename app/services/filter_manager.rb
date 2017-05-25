@@ -149,7 +149,7 @@ class FilterManager
           @slots.select {|s| !s.ticked}.collect {|s| s.id}
         @user.save!
       end
-      modified
+      return [modified, @user.filter_state]
     end
 
   end

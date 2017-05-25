@@ -417,7 +417,16 @@ window.finishEditingEvent = (event_summary, do_refresh) ->
   if do_refresh
     $('#fullcalendar').data('dorefresh', '1')
 
-window.closeModal = (with_reload) ->
+window.closeModal = (full_reload, just_events, filter_state) ->
   $('#eventModal').foundation('reveal', 'close')
-  if with_reload
+  if full_reload
     location.reload()
+  else
+    if just_events
+      $('#fullcalendar').fullCalendar('refetchEvents')
+      if filter_state
+        el = $('#filter-state')
+        el.removeClass('filter-on')
+        el.removeClass('filter-off')
+        el.addClass("filter-#{filter_state}")
+        el.text(filter_state)

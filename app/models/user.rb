@@ -599,6 +599,10 @@ class User < ActiveRecord::Base
     end
   end
 
+  def filter_state
+    self.suppressed_eventcategories.empty? ? "off" : "on"
+  end
+
   #
   #  Fix all users who are students so that they have a concern with
   #  themselves and the calendar, and no others.

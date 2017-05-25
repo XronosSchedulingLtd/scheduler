@@ -11,7 +11,7 @@ module DisplaySettings
       @selector_box = user.can_add_concerns
       @do_filters   = true
       @userid       = user.id
-      @filter_state = user.suppressed_eventcategories.empty? ? "off" : "on"
+      @filter_state = user.filter_state
 
       @my_events    = user.editor
       #

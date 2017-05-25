@@ -1,1 +1,1 @@
-window.closeModal(<%= @modified ? "true" : "false" %>);
+window.closeModal(false, <%= @modified ? "true" : "false" %>, "<%= "#{@filter_state}" %>");
