@@ -55,7 +55,7 @@ class FilterManager
       @slots = []
     end
 
-    PER_COLUMN = 10
+    PER_COLUMN = 12
 
     def generate_slots
       Eventcategory.available.visible.sort.collect do |ec|
