@@ -104,4 +104,12 @@ span#filter-state.filter-on {
 
 ul.filter-list {
   list-style-type: none;
+  li {
+    input {
+      margin-bottom: 6px;
+    }
+    label {
+      font-size: 13px;
+    }
+  }
 }
