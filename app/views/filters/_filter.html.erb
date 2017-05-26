@@ -1,40 +1,36 @@
-<a class="close-reveal-modal">&#215;</a>
-<%= form_for(@filter, url: user_filter_path(@user, @filter), remote: true) do |f| %>
-    <% if filter.num_columns == 1 %>
-      <ul>
-      <%= render partial: "filterslot", collection: filter.slots, locals: {f: f} %>
+<% if filter.num_columns == 1 %>
+  <ul class='filter-list'>
+  <%= render partial: "filterslot", collection: filter.slots, locals: {f: f} %>
+  </ul>
+<% elsif filter.num_columns == 2 %>
+  <div class="row collapse">
+    <div class="small-12 large-6 columns">
+      <ul class='filter-list'>
+      <%= render partial: "filterslot", collection: filter.columns[0], locals: {f: f} %>
       </ul>
-    <% elsif filter.num_columns == 2 %>
-      <div class="row collapse">
-        <div class="small-12 large-6 columns">
-          <ul class='filter-list'>
-          <%= render partial: "filterslot", collection: filter.columns[0], locals: {f: f} %>
-          </ul>
-        </div>
-        <div class="small-12 large-6 columns">
-          <ul class='filter-list'>
-          <%= render partial: "filterslot", collection: filter.columns[1], locals: {f: f} %>
-          </ul>
-        </div>
-      </div>
-    <% else %>
-      <div class="row collapse">
-        <div class="small-12 large-4 columns">
-          <ul class='filter-list'>
-          <%= render partial: "filterslot", collection: filter.columns[0], locals: {f: f} %>
-          </ul>
-        </div>
-        <div class="small-12 large-4 columns">
-          <ul class='filter-list'>
-          <%= render partial: "filterslot", collection: filter.columns[1], locals: {f: f} %>
-          </ul>
-        </div>
-        <div class="small-12 large-4 columns">
-          <ul class='filter-list'>
-          <%= render partial: "filterslot", collection: filter.columns[2], locals: {f: f} %>
-          </ul>
-        </div>
-      </div>
-    <% end %>
-  <%= f.submit "Save", :class => "zfbutton tiny radius" %>
+    </div>
+    <div class="small-12 large-6 columns">
+      <ul class='filter-list'>
+      <%= render partial: "filterslot", collection: filter.columns[1], locals: {f: f} %>
+      </ul>
+    </div>
+  </div>
+<% else %>
+  <div class="row collapse">
+    <div class="small-12 large-4 columns">
+      <ul class='filter-list'>
+      <%= render partial: "filterslot", collection: filter.columns[0], locals: {f: f} %>
+      </ul>
+    </div>
+    <div class="small-12 large-4 columns">
+      <ul class='filter-list'>
+      <%= render partial: "filterslot", collection: filter.columns[1], locals: {f: f} %>
+      </ul>
+    </div>
+    <div class="small-12 large-4 columns">
+      <ul class='filter-list'>
+      <%= render partial: "filterslot", collection: filter.columns[2], locals: {f: f} %>
+      </ul>
+    </div>
+  </div>
 <% end %>

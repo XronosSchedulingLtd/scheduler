@@ -5,20 +5,38 @@
 
 class FilterManager
 
-  class FilterSlot
-    attr_reader :title, :ticked, :id
+  attr_reader :positives, :negatives
 
-    def initialize(ec, user)
+  class FilterSlot
+    attr_reader :title, :ticked, :id, :symbol
+
+    #
+    #  Type can be either :positive or :negative
+    #
+    #  The former means it's an extra category to add in, whilst the
+    #  latter means it's one to subtract.  The difference comes in
+    #  how we save them.  Negatives are stored in the d/b if unticked,
+    #  whilst positives are stored if ticked.
+    #
+    #  Blank records in the database mean no negatives (nothing to
+    #  subtract) and no positives (nothing to add).
+    #
+    def initialize(ec, user, type)
       @title = ec.name
       @id    = ec.id
-      #
-      #  Each defaults to ticked, unless suppressed.
-      #
-      @ticked = !user.suppressed_eventcategories.include?(ec.id)
-    end
-
-    def symbol
-      "fs#{@id}".to_sym
+      raise "Invalid FilterSlot type - #{type}" unless type == :positive ||
+                                                       type == :negative
+      @type  = type
+      if @type == :negative
+        #
+        #  Each defaults to ticked, unless suppressed.
+        #
+        @ticked = !user.suppressed_eventcategories.include?(ec.id)
+        @symbol = "fsn#{@id}".to_sym
+      else
+        @ticked = user.extra_eventcategories.include?(ec.id)
+        @symbol = "fsp#{@id}".to_sym
+      end
     end
 
     def to_partial_path
@@ -43,63 +61,58 @@ class FilterManager
 
   end
 
-  class Filter < FakeActiveRecord
-    attr_reader :num_columns, :columns, :slots, :id
+  class Filter
+    attr_reader :num_columns, :columns, :slots
 
-    #
-    #  This class behaves a bit like an ActiveRecord model.
-    #
-    def initialize(user)
-      @id    = 1   # Always
-      @user  = user
-      @slots = []
+    def initialize(user, type, min_cols = 1)
+      @user     = user
+      @slots    = []
+      @type     = type
+      @min_cols = min_cols
     end
 
-    PER_COLUMN = 12
+    PER_COLUMN = 10
 
     def generate_slots
-      Eventcategory.available.visible.sort.collect do |ec|
-        @slots << FilterSlot.new(ec, @user)
-        @slot_hash = Hash.new
-        @slots.each do |s|
-          @slot_hash[s.symbol] = s
+      if @type == :positive
+        Eventcategory.available.invisible.sort.collect do |ec|
+          @slots << FilterSlot.new(ec, @user, :positive)
         end
-        #
-        #  Should also add a getter and setter so that each
-        #  slot appears as an apparent attribute of the Filter
-        #  fake record.
-        #
-        #
-        #  If there are sufficient slots, then split them into
-        #  columns.  Can have up to three of these.
-        #
-        @columns = []
-        if @slots.size > PER_COLUMN
-          if @slots.size > (PER_COLUMN * 2)
-            #
-            #  Three columns
-            #
-            per_column = (@slots.size + 2) / 3
-            @columns << @slots[0,per_column]
-            @columns << @slots[per_column, per_column]
-            @columns << @slots[(per_column * 2)..-1]
-          else
-            #
-            #  Two columns.  If not an even split, then the
-            #  first column gets more.
-            #
-            per_column = (@slots.size + 1) / 2
-            @columns << @slots[0,per_column]
-            @columns << @slots[per_column..-1]
-          end
+      else
+        Eventcategory.available.visible.sort.collect do |ec|
+          @slots << FilterSlot.new(ec, @user, :negative)
+        end
+      end
+      #
+      #  If there are sufficient slots, then split them into
+      #  columns.  Can have up to three of these.
+      #
+      @columns = []
+      if @slots.size > PER_COLUMN || @min_cols > 1
+        if @slots.size > (PER_COLUMN * 2) || @min_cols > 2
+          #
+          #  Three columns
+          #
+          per_column = (@slots.size + 2) / 3
+          @columns << @slots[0,per_column]
+          @columns << @slots[per_column, per_column]
+          @columns << @slots[(per_column * 2)..-1]
         else
           #
-          #  One column
+          #  Two columns.  If not an even split, then the
+          #  first column gets more.
           #
-          @columns << @slots
+          per_column = (@slots.size + 1) / 2
+          @columns << @slots[0,per_column]
+          @columns << @slots[per_column..-1]
         end
-        @num_columns = @columns.size
+      else
+        #
+        #  One column
+        #
+        @columns << @slots
       end
+      @num_columns = @columns.size
       #
       #  Return self for chaining.
       #
@@ -110,8 +123,38 @@ class FilterManager
       "filter"
     end
 
+  end
+
+  #
+  #  This is the thing which looks like an ActiveRecord.  We have one
+  #  form for one of these, although it contains and references two
+  #  actual filters - one positive and one negative.
+  #
+  #  We will be asked for the values of fields, and to assign new
+  #  values to fields.  Each of these needs to be delegated to the
+  #  correct subsidiary record.
+  #
+  class FilterSet < FakeActiveRecord
+    attr_reader :positives, :negatives, :id
+
+    def initialize(user)
+      @id    = 1   # Always
+      @user = user
+      @negatives = Filter.new(@user, :negative).generate_slots
+      @positives = Filter.new(@user,
+                              :positive,
+                              @negatives.slots.size).generate_slots
+      @slot_hash = Hash.new
+      @positives.slots.each do |s|
+        @slot_hash[s.symbol] = s
+      end
+      @negatives.slots.each do |s|
+        @slot_hash[s.symbol] = s
+      end
+    end
+
     def method_missing(method_sym, *arguments, &block)
-      if /^fs\d+/ =~ method_sym
+      if /^fs[n|p]\d+/ =~ method_sym
         if /=$/ =~ method_sym
           fs = @slot_hash[method_sym.chomp("=")]
           if fs
@@ -134,10 +177,10 @@ class FilterManager
 
     def update(params)
       modified = false
-      mine = params[:filter_manager_filter]
+      mine = params[:filter_manager_filter_set]
       if mine
         mine.each do |key, value|
-          if /^fs\d+/ =~ key && (slot = @slot_hash[key.to_sym])
+          if /^fs[n|p]\d+/ =~ key && (slot = @slot_hash[key.to_sym])
             if slot.set(value)
               modified = true
             end
@@ -145,14 +188,21 @@ class FilterManager
         end
       end
       if modified
+        @user.extra_eventcategories =
+          @positives.slots.select {|s| s.ticked}.collect {|s| s.id}
         @user.suppressed_eventcategories =
-          @slots.select {|s| !s.ticked}.collect {|s| s.id}
+          @negatives.slots.select {|s| !s.ticked}.collect {|s| s.id}
         @user.save!
       end
       return [modified, @user.filter_state]
     end
 
+    def to_partial_path
+      "filterset"
+    end
+
   end
+
 
   def initialize(user)
     @user = user
@@ -163,7 +213,7 @@ class FilterManager
   #  and their individual states.
   #
   def generate_filter
-    Filter.new(@user).generate_slots
+    FilterSet.new(@user)
   end
 
 end
