@@ -361,11 +361,10 @@ showCloser = ->
 #  Functions for the filter dialogue.
 #
 wantsAll = ->
-  console.log("#{$('#filter-dialogue input:checkbox').count} checkboxes.")
-  $('#filter-dialogue input:checkbox').prop('checked', true)
+  $('#filter-dialogue #exclusions input:checkbox').prop('checked', true)
 
 wantsNone = ->
-  $('#filter-dialogue input:checkbox').prop('checked', false)
+  $('#filter-dialogue #exclusions input:checkbox').prop('checked', false)
 
 #
 #  All entrypoints - functions which can be called from outside this
