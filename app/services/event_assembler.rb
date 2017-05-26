@@ -384,12 +384,14 @@ class EventAssembler
           my_owned_events = []
           my_organised_events = []
         end
-        schoolwide_categories = Eventcategory.schoolwide.to_a
+        selector = Eventcategory.schoolwide
         unless @current_user.suppressed_eventcategories.empty?
-          schoolwide_categories = schoolwide_categories.select {|ec|
-            !@current_user.suppressed_eventcategories.include?(ec.id)
-          }
+          selector = selector.exclude(@current_user.suppressed_eventcategories)
         end
+        #
+        #  The to_a causes the query to actually happen.
+        #
+        schoolwide_categories = selector.to_a
         if schoolwide_categories.empty?
           schoolwide_events = []
         else
@@ -438,20 +440,17 @@ class EventAssembler
           @current_user.concerns.detect {|ci| ci.id == concern_id}
         if concern && concern.visible
           element = concern.element
+          selector = Eventcategory.not_schoolwide.visible
+          unless @current_user.suppressed_eventcategories.empty?
+            selector =
+              selector.exclude(@current_user.suppressed_eventcategories)
+          end
           #
           #  The .to_a forces the lambda to be evaluated now.  We don't
           #  want the database being queried again and again for the
           #  same answer.
           #
-          event_categories = Eventcategory.not_schoolwide.visible.to_a
-          #
-          #  Has the user filtered out some categories?
-          #
-          unless @current_user.suppressed_eventcategories.empty?
-            event_categories = event_categories.select {|ec|
-              !@current_user.suppressed_eventcategories.include?(ec.id)
-            }
-          end
+          event_categories = selector.to_a
           #
           #  Start by assembling all the relevant commitments, including
           #  those for events flagged as being non-existent.
