@@ -3,33 +3,40 @@ class FiltersController < ApplicationController
 
   # GET /users/1/filters/1/edit
   def edit
-    fm = FilterManager.new(@user)
-    @filter = fm.generate_filter
+    @filter = FilterManager.new(@user).generate_filter
+    @show_extra = current_user.admin
     render :layout => false
   end
 
   # PATCH/PUT /users/1/filters/1.js
   def update
-    fm = FilterManager.new(@user)
+    filter = FilterManager.new(@user).generate_filter
     #
     #  We can't pre-filter the params because they are dynamically
     #  generated.  The service object isn't going to do a bulk assign
     #  anyway.
     #
-    @modified, @filter_state = fm.generate_filter.update(params)
+    @modified, @filter_state = filter.update(params)
     respond_to do |format|
       format.js
     end
   end
 
   private
-    def authorized?(action = action_name, resource = nil)
-      logged_in? && current_user.known?
-    end
+  #
+  #  In theory we allow admin to edit anybody's filters, although there
+  #  is no provision for it currently in the UI.
+  #
+  #  Others can edit only their own.
+  #
+  def authorized?(action = action_name, resource = nil)
+    logged_in? && current_user.known? &&
+      (current_user.admin || params[:user_id].to_i == current_user.id)
+  end
 
-    # Use callbacks to share common setup or constraints between actions.
-    def find_user
-      @user = User.find(params[:user_id])
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def find_user
+    @user = User.find(params[:user_id])
+  end
 
 end
