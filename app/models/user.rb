@@ -600,7 +600,8 @@ class User < ActiveRecord::Base
   end
 
   def filter_state
-    self.suppressed_eventcategories.empty? ? "off" : "on"
+    (self.suppressed_eventcategories.empty? &&
+     self.extra_eventcategories.empty?) ? "off" : "on"
   end
 
   #
