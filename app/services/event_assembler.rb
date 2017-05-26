@@ -74,9 +74,9 @@ class EventAssembler
                    mine = false)
       @event   = event
       if via_element
-        @sort_by = via_element.id
+        @sort_by = "#{via_element.id} #{event.body}"
       else
-        @sort_by = 0
+        @sort_by = "0 #{event.body}"
       end
       if colour
         @colour = colour
@@ -451,6 +451,20 @@ class EventAssembler
           #  same answer.
           #
           event_categories = selector.to_a
+          #
+          #  Does the user have any extra event categories listed?
+          #
+          #  Note that we make no attempt here to check whether the
+          #  user is allowed to have any extra - that's done at
+          #  the stage of updating the user's record.
+          #
+          unless @current_user.extra_eventcategories.empty?
+            extra_categories =
+              Eventcategory.where(id: @current_user.extra_eventcategories)
+            unless extra_categories.empty?
+              event_categories = (event_categories + extra_categories).uniq
+            end
+          end
           #
           #  Start by assembling all the relevant commitments, including
           #  those for events flagged as being non-existent.
