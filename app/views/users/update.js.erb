@@ -1,8 +1,5 @@
 <% if @success %>
-$('#eventModal').foundation('reveal', 'close')
-<% if @changed_display_options %>
-location.reload();
-<% end %>
+  window.closeModal(<%= @changed_display_options ? "true" : "false" %>);
 <% else %>
 $('#for_errors').html("<%=j render "error_msgs" %>")
 <% end %>

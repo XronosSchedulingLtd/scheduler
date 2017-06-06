@@ -47,7 +47,12 @@ $(document).ready ->
       starts_at = new Date($('#event_starts_at').val())
       ends_at = new Date($('#event_ends_at').val())
       if starts_at > ends_at
-        $('#event_starts_at').val($('#event_ends_at').val())))
+        $('#event_starts_at').val($('#event_ends_at').val()))
+    filter_dialogue = $('#filter-dialogue')
+    if filter_dialogue.length > 0
+      filter_dialogue.find('#all').click(wantsAll)
+      filter_dialogue.find('#none').click(wantsNone))
+
   $(document).on('closed', '[data-reveal]', ->
     flag = $('#fullcalendar').data("dorefresh")
     if flag == "1"
@@ -223,6 +228,12 @@ concernClicked = (event) ->
     if target
       location.href = target
 
+filterClicked = (event) ->
+  $('#eventModal').foundation(
+    'reveal',
+    'open',
+    "/users/#{$('div#filter-switch').data('userid')}/filters/1/edit")
+
 activateColourPicker = (field_id, sample_id) ->
   palette = ["#483D8B", "#CD5C5C", "#B8860B", "#7B68EE",
              "#808000", "#6B8E23", "#DB7093", "#2E8B57",
@@ -327,10 +338,14 @@ activateAutoSubmit = ->
     if $('#concern_element_id').val().length > 0
       $('.hidden_submit').click())
 
+activateFilterSwitch = ->
+  $('div#filter-switch').click(filterClicked)
+
 activateUserColumn = ->
   activateCheckboxes()
   activateDragging()
   activateAutoSubmit()
+  activateFilterSwitch()
 
 primeCloser = ->
   $('.closer').click ->
@@ -341,6 +356,15 @@ hideCloser = ->
 
 showCloser = ->
   $('#event-done-button').show()
+
+#
+#  Functions for the filter dialogue.
+#
+wantsAll = ->
+  $('#filter-dialogue #exclusions input:checkbox').prop('checked', true)
+
+wantsNone = ->
+  $('#filter-dialogue #exclusions input:checkbox').prop('checked', false)
 
 #
 #  All entrypoints - functions which can be called from outside this
@@ -392,4 +416,16 @@ window.finishEditingEvent = (event_summary, do_refresh) ->
   if do_refresh
     $('#fullcalendar').data('dorefresh', '1')
 
-
+window.closeModal = (full_reload, just_events, filter_state) ->
+  $('#eventModal').foundation('reveal', 'close')
+  if full_reload
+    location.reload()
+  else
+    if just_events
+      $('#fullcalendar').fullCalendar('refetchEvents')
+      if filter_state
+        el = $('#filter-state')
+        el.removeClass('filter-on')
+        el.removeClass('filter-off')
+        el.addClass("filter-#{filter_state}")
+        el.text(filter_state)

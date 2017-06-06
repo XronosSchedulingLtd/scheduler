@@ -48,6 +48,9 @@ class User < ActiveRecord::Base
   }
   FIELD_TITLE_TEXTS.default = ""
 
+  serialize :suppressed_eventcategories, Array
+  serialize :extra_eventcategories,      Array
+
   has_many :concerns,   :dependent => :destroy
 
   has_many :events, foreign_key: :owner_id, dependent: :nullify
@@ -594,6 +597,11 @@ class User < ActiveRecord::Base
     else
       "Can't find element #{element_or_name} for #{self.name} to view."
     end
+  end
+
+  def filter_state
+    (self.suppressed_eventcategories.empty? &&
+     self.extra_eventcategories.empty?) ? "off" : "on"
   end
 
   #
