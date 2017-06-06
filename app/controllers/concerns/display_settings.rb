@@ -9,6 +9,10 @@ module DisplaySettings
       @user         = user
       @with_edit    = user.create_events?
       @selector_box = user.can_add_concerns
+      @do_filters   = true
+      @userid       = user.id
+      @filter_state = user.filter_state
+
       @my_events    = user.editor
       #
       #  If they can't add them, then they can't delete them.
@@ -21,6 +25,8 @@ module DisplaySettings
       @user         = User.new
       @with_edit    = false
       @selector_box = false
+      @do_filters   = false
+      @filter_state = "unknown"
       @my_events    = false
       @third_column = false
       @first_day    = 0

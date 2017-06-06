@@ -1,0 +1,17 @@
+<div id='filter-dialogue'>
+<h2>Filter event categories</h2>
+<button id='all' class="zfbutton tiny radius">See all</button>
+<button id='none' class="zfbutton tiny radius">See none</button>
+<a class="close-reveal-modal">&#215;</a>
+<%= form_for(@filter, url: user_filter_path(@user, @filter), remote: true) do |f| %>
+  <div id='exclusions'>
+    <%= render partial: "filter", object: @filter.negatives, locals: {f: f} %>
+  </div>
+  <% if @show_extra %>
+    <hr/>
+    <h4>Hidden categories</h4>
+    <%= render partial: "filter", object: @filter.positives, locals: {f: f} %>
+  <% end %>
+  <%= f.submit "Save", :class => "zfbutton tiny radius" %>
+<% end %>
+</div>

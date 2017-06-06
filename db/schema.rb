@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170515090847) do
+ActiveRecord::Schema.define(version: 20170524100412) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -564,6 +564,8 @@ ActiveRecord::Schema.define(version: 20170515090847) do
     t.boolean  "invig_daily",                 default: true
     t.date     "last_invig_run_date"
     t.integer  "day_shape_id"
+    t.text     "suppressed_eventcategories"
+    t.text     "extra_eventcategories"
   end
 
 end

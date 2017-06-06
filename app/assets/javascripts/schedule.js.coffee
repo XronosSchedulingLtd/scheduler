@@ -11,6 +11,7 @@
 #  there being any overhead at all.  The comments will be stripped
 #  out by the CoffeeScript compiler.
 #
+that = {}
 $(document).ready ->
   $('#datepicker').datepicker
     showOtherMonths: true
@@ -46,7 +47,12 @@ $(document).ready ->
       starts_at = new Date($('#event_starts_at').val())
       ends_at = new Date($('#event_ends_at').val())
       if starts_at > ends_at
-        $('#event_starts_at').val($('#event_ends_at').val())))
+        $('#event_starts_at').val($('#event_ends_at').val()))
+    filter_dialogue = $('#filter-dialogue')
+    if filter_dialogue.length > 0
+      filter_dialogue.find('#all').click(wantsAll)
+      filter_dialogue.find('#none').click(wantsNone))
+
   $(document).on('closed', '[data-reveal]', ->
     flag = $('#fullcalendar').data("dorefresh")
     if flag == "1"
@@ -84,12 +90,9 @@ $(document).ready ->
     snapDuration: "00:05"
     minTime: "06:00"
     scrollTime: "08:00"
-    viewRender: (view, element) ->
-      prepareToRender(view, element)
-    eventRender: (event, element) ->
-      tweakElement(event, element)
-    eventAfterAllRender: (view) ->
-      allRendered(view)
+    viewRender: prepareToRender
+    eventRender: tweakElement
+    eventAfterAllRender: allRendered
     eventSources: [{
       url: '/schedule/events'
     }]
@@ -225,6 +228,12 @@ concernClicked = (event) ->
     if target
       location.href = target
 
+filterClicked = (event) ->
+  $('#eventModal').foundation(
+    'reveal',
+    'open',
+    "/users/#{$('div#filter-switch').data('userid')}/filters/1/edit")
+
 activateColourPicker = (field_id, sample_id) ->
   palette = ["#483D8B", "#CD5C5C", "#B8860B", "#7B68EE",
              "#808000", "#6B8E23", "#DB7093", "#2E8B57",
@@ -245,12 +254,12 @@ activateColourPicker = (field_id, sample_id) ->
 
 prepareToRender = (view, element) ->
   $('#datepicker').datepicker('setDate', view.start.toDate())
-  @viewStartDate = view.start.toDate()
-  @viewName = view.name
-  @elementsSeen = {}
+  that.viewStartDate = view.start.toDate()
+  that.viewName = view.name
+  that.elementsSeen = {}
 
 allRendered = (view) ->
-  @elementsSeen = {}
+  that.elementsSeen = {}
 
 tweakElement = (event, element) ->
   if event.prefix
@@ -260,18 +269,18 @@ tweakElement = (event, element) ->
     #  the chronological start of the event - not those where it
     #  is just continuing.
     #
-    if event.start >= @viewStartDate
-      if (@viewName == "agendaWeek" ||
-          @viewName == "agendaDay" ||
-          @viewName == "basicDay")
+    if event.start >= that.viewStartDate
+      if (that.viewName == "agendaWeek" ||
+          that.viewName == "agendaDay" ||
+          that.viewName == "basicDay")
         element.find('.fc-title').prepend(event.prefix)
-      else if @viewName == "month"
+      else if that.viewName == "month"
         #
         #  This one takes a bit more thought.  The event may occur in
         #  several elements, and only the first gets the prefix.
         #
-        if !@elementsSeen[event.id]
-          @elementsSeen[event.id] = true
+        if !that.elementsSeen[event.id]
+          that.elementsSeen[event.id] = true
           element.find('.fc-title').prepend(event.prefix)
   #
   #  And now, do we need to add an icon?
@@ -293,13 +302,13 @@ tweakElement = (event, element) ->
       #  notes for 9th May, 2017 for an explanation of the various
       #  problems which resulted in this compromise solution.
       #
-    if @viewName == "basicDay"
+    if that.viewName == "basicDay"
       element.find(".fc-time").
               before("<span><img src=\"images/#{icon}\" /></span>")
-    else if @viewName == "agendaDay"
+    else if that.viewName == "agendaDay"
       element.find(".fc-content").
               append("<img class=\"evnearleft\" src=\"images/#{icon}\" />")
-    else if @viewName == "agendaWeek" || @viewName == "month"
+    else if that.viewName == "agendaWeek" || that.viewName == "month"
       element.find(".fc-content").
               append("<img class=\"evtopright\" src=\"images/#{icon}\" />")
   return true
@@ -329,10 +338,14 @@ activateAutoSubmit = ->
     if $('#concern_element_id').val().length > 0
       $('.hidden_submit').click())
 
+activateFilterSwitch = ->
+  $('div#filter-switch').click(filterClicked)
+
 activateUserColumn = ->
   activateCheckboxes()
   activateDragging()
   activateAutoSubmit()
+  activateFilterSwitch()
 
 primeCloser = ->
   $('.closer').click ->
@@ -343,6 +356,15 @@ hideCloser = ->
 
 showCloser = ->
   $('#event-done-button').show()
+
+#
+#  Functions for the filter dialogue.
+#
+wantsAll = ->
+  $('#filter-dialogue #exclusions input:checkbox').prop('checked', true)
+
+wantsNone = ->
+  $('#filter-dialogue #exclusions input:checkbox').prop('checked', false)
 
 #
 #  All entrypoints - functions which can be called from outside this
@@ -394,4 +416,16 @@ window.finishEditingEvent = (event_summary, do_refresh) ->
   if do_refresh
     $('#fullcalendar').data('dorefresh', '1')
 
-
+window.closeModal = (full_reload, just_events, filter_state) ->
+  $('#eventModal').foundation('reveal', 'close')
+  if full_reload
+    location.reload()
+  else
+    if just_events
+      $('#fullcalendar').fullCalendar('refetchEvents')
+      if filter_state
+        el = $('#filter-state')
+        el.removeClass('filter-on')
+        el.removeClass('filter-off')
+        el.addClass("filter-#{filter_state}")
+        el.text(filter_state)

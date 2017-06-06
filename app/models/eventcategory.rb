@@ -30,6 +30,8 @@ class Eventcategory < ActiveRecord::Base
   scope :visible, -> { where(visible: true) }
   scope :invisible, -> { where(visible: false) }
 
+  scope :exclude, lambda { |ids| where.not(id: ids) }
+
   @@category_cache = {}
 
   TO_DEPRECATE = ["Calendar",

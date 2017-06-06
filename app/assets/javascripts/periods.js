@@ -27,7 +27,7 @@ if ($('#fullcalendar').length) {
         this.collection.fetch();
       },
       gotsome: function() {
-        console.log("Got " + this.collection.size() + " periods");
+//        console.log("Got " + this.collection.size() + " periods");
       }
     });
 
