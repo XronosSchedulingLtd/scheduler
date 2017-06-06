@@ -1,3 +1,25 @@
+v0.20   2017-06-06
+
+* This release implements filters in the main schedule display.
+
+  Users can now choose to reduce what they see by filtering out events
+  by event category.  If they have any filter in effect then a red marker
+  appears at top left to remind them that it is on.
+
+  Administrators can also add in event categories which would not
+  otherwise be visible - those with the visible flag not set.  In a
+  default installation this is just the "Hidden" event category.
+  This can be useful in order to track down inivisible events belonging
+  to another user.
+
+* The sort order for multiple events at the same time has been improved.
+
+  Prior to the last release, concurrent events were displayed in alphabetical
+  order.  In the last release this was changed to have them displayed in
+  order of the relevant resource.  Now both are used - they are sorted
+  first by resource and then alphabetically.
+
+
 v0.19   2017-05-22
 
 * The main change in this release is that the version of FullCalendar
