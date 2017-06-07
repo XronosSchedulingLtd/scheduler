@@ -72,7 +72,12 @@ class EventAssembler
                    current_user = nil,
                    colour = nil,
                    mine = false)
-      @event  = event
+      @event   = event
+      if via_element
+        @sort_by = "#{via_element.id} #{event.body}"
+      else
+        @sort_by = "0 #{event.body}"
+      end
       if colour
         @colour = colour
         #
@@ -268,12 +273,47 @@ class EventAssembler
         :editable      => @editable,
         :color         => @colour,
         :has_clashes   => @has_clashes,
-        :fc            => @flag_colour
+        :fc            => @flag_colour,
+        :sort_by       => @sort_by
       }
       if @prefix
         result[:prefix] = @prefix
       end
       result
+    end
+
+  end
+
+  class BackgroundEvent
+    #
+    #  Sort of similar-ish, but used to provide background events
+    #  which typically show when the periods are in a school.
+    #
+   
+    def initialize(starts_at, ends_at)
+      @starts_at = starts_at
+      @ends_at = ends_at
+    end
+
+    def as_json(options = {})
+      result = {
+        :start         => @starts_at.iso8601,
+        :end           => @ends_at.iso8601,
+        :rendering     => 'background'
+      }
+      result
+    end
+
+    def self.construct(rota_template, start_date, end_date)
+      events = []
+      start_date.upto(end_date) do |date|
+        rota_template.slots_for(date) do |slot|
+          starts_at, ends_at = slot.timings_for(date)
+          events << BackgroundEvent.new(starts_at, ends_at)
+        end
+      end
+      Rails.logger.debug("Returning #{events.count} background events.")
+      events
     end
 
   end
@@ -344,11 +384,23 @@ class EventAssembler
           my_owned_events = []
           my_organised_events = []
         end
-        schoolwide_events =
-          Event.events_on(start_date,
-                          end_date,
-                          Eventcategory.schoolwide) -
-                          (my_owned_events + my_organised_events)
+        selector = Eventcategory.schoolwide
+        unless @current_user.suppressed_eventcategories.empty?
+          selector = selector.exclude(@current_user.suppressed_eventcategories)
+        end
+        #
+        #  The to_a causes the query to actually happen.
+        #
+        schoolwide_categories = selector.to_a
+        if schoolwide_categories.empty?
+          schoolwide_events = []
+        else
+          schoolwide_events =
+            Event.events_on(start_date,
+                            end_date,
+                            schoolwide_categories) -
+                            (my_owned_events + my_organised_events)
+        end
         resulting_events =
           my_owned_events.collect {|e|
             ScheduleEvent.new(start_date,
@@ -370,6 +422,12 @@ class EventAssembler
                               nil,
                               @current_user)
           }
+        if @current_user && @current_user.day_shape
+          resulting_events +=
+            BackgroundEvent.construct(@current_user.day_shape,
+                                      start_date.to_date,
+                                      end_date.to_date)
+        end
       else
         #
         #  An explicit request for the events relating to a specified
@@ -382,15 +440,30 @@ class EventAssembler
           @current_user.concerns.detect {|ci| ci.id == concern_id}
         if concern && concern.visible
           element = concern.element
-          if element.entity.instance_of?(Property)
-            #
-            #  The .to_a forces the lambda to be evaluated now.  We don't
-            #  want the database being queried again and again for the
-            #  same answer.
-            #
-            event_categories = Eventcategory.not_schoolwide.visible.to_a
-          else
-            event_categories = Eventcategory.visible.to_a
+          selector = Eventcategory.not_schoolwide.visible
+          unless @current_user.suppressed_eventcategories.empty?
+            selector =
+              selector.exclude(@current_user.suppressed_eventcategories)
+          end
+          #
+          #  The .to_a forces the lambda to be evaluated now.  We don't
+          #  want the database being queried again and again for the
+          #  same answer.
+          #
+          event_categories = selector.to_a
+          #
+          #  Does the user have any extra event categories listed?
+          #
+          #  Note that we make no attempt here to check whether the
+          #  user is allowed to have any extra - that's done at
+          #  the stage of updating the user's record.
+          #
+          unless @current_user.extra_eventcategories.empty?
+            extra_categories =
+              Eventcategory.where(id: @current_user.extra_eventcategories)
+            unless extra_categories.empty?
+              event_categories = (event_categories + extra_categories).uniq
+            end
           end
           #
           #  Start by assembling all the relevant commitments, including
@@ -414,26 +487,36 @@ class EventAssembler
           #  (because of group membership) so uniq them, and then
           #  construct our ScheduleEvent objects - one per event.
           #
-          resulting_events =
-            element.commitments_on(startdate:           start_date,
-                                   enddate:             end_date,
-                                   eventcategory:       event_categories,
-                                   include_nonexistent: true).
-                    preload(:event).
-                    select {|c| concern.owns ||
-                                @current_user.admin ||
-                                !c.tentative ||
-                                c.event.owner_id == @current_user.id }.
-                    collect {|c| c.event}.
-                    uniq.
-                    collect {|e|
-                      ScheduleEvent.new(start_date,
-                                        e,
-                                        element,
-                                        @current_user,
-                                        concern.colour,
-                                        concern.equality)
-                    }
+          if event_categories.empty?
+            #
+            #  If the user has suppressed all his event categories
+            #  then the underlying code would treat an empty array
+            #  as meaning "no restriction" and you'd be back to seeing
+            #  them all again.
+            #
+            resulting_events = []
+          else
+            resulting_events =
+              element.commitments_on(startdate:           start_date,
+                                     enddate:             end_date,
+                                     eventcategory:       event_categories,
+                                     include_nonexistent: true).
+                      preload(:event).
+                      select {|c| concern.owns ||
+                                  @current_user.admin ||
+                                  !c.tentative ||
+                                  c.event.owner_id == @current_user.id }.
+                      collect {|c| c.event}.
+                      uniq.
+                      collect {|e|
+                        ScheduleEvent.new(start_date,
+                                          e,
+                                          element,
+                                          @current_user,
+                                          concern.colour,
+                                          concern.equality)
+                      }
+          end
         end
       end
     else

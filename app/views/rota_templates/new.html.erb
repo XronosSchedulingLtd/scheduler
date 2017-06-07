@@ -1,5 +1,6 @@
-<h1>New rota_template</h1>
+<h1>New <%= @rota_template_type.name.downcase %> rota template</h1>
 
 <%= render 'form' %>
 
-<%= link_to 'Back', rota_templates_path %>
+<%= link_to 'Back',
+            rota_template_type_rota_templates_path(@rota_template_type) %>

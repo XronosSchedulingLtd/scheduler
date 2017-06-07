@@ -217,7 +217,7 @@ class Setting < ActiveRecord::Base
   def no_more_than_one
     existing = Setting.first
     if (existing) && (existing.id != self.id)
-      errors.add(:overall, "No more than one settings record allowed.")
+      errors.add(:base, "No more than one settings record allowed.")
     end
   end
 end

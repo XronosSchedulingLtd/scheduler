@@ -9,16 +9,34 @@ div.ui-datepicker, .ui-datepicker td, .ui-datepicker th{
   min-height: 18px;
 }
 
+//
+//  Because our font is slightly smaller than FC is expecting, we
+//  have elsewhere moved the body of the event down by 2px.  In order
+//  to make the dots/flags look right, we need to move them back up
+//  by the same.
+//
 .evtopright {
   position: absolute;
-  top: 0px;
+  top: -2px;
   right: 0px;
 }
 
-.evtopleft {
+.evalmosttopright {
   position: absolute;
   top: 0px;
-  left: 24px;
+  right: 20px;
+}
+
+.evnearleft {
+  position: absolute;
+  top: 0px;
+  left: 32px;
+}
+
+.evrightoftime {
+  position: absolute;
+  top: 0px;
+  left: 80px;
 }
 
 li.name {
@@ -40,4 +58,59 @@ div.hidden-lhs {
 
 input.hidden_submit {
   display: none;
+}
+
+#mainContainer {
+  position: relative;
+  height: calc(100% - 45px);
+  width: 100%;
+}
+
+.calendarbit {
+//  border: 1px solid red;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  bottom: 20px;
+  height: calc(100% - 20px);
+  width: 100%;
+}
+
+.fillup {
+  height: 100%;
+}
+
+.bottomtext {
+//  border: 1px solid blue;
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  height: 20px;
+  width: 100%;
+  text-align: center;
+}
+
+div#filter-switch {
+  margin: 5px;
+}
+
+span#filter-state.filter-on {
+  color: white;
+  background-color: red;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-bottom: 2px;
+  border-radius: 4px;
+}
+
+ul.filter-list {
+  list-style-type: none;
+  li {
+    input {
+      margin-bottom: 6px;
+    }
+    label {
+      font-size: 13px;
+    }
+  }
 }

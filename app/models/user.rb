@@ -48,6 +48,9 @@ class User < ActiveRecord::Base
   }
   FIELD_TITLE_TEXTS.default = ""
 
+  serialize :suppressed_eventcategories, Array
+  serialize :extra_eventcategories,      Array
+
   has_many :concerns,   :dependent => :destroy
 
   has_many :events, foreign_key: :owner_id, dependent: :nullify
@@ -58,6 +61,7 @@ class User < ActiveRecord::Base
            dependent: :nullify
 
   belongs_to :preferred_event_category, class_name: Eventcategory
+  belongs_to :day_shape, class_name: RotaTemplate
 
   #
   #  The only elements we can actually own currently are groups.  By creating
@@ -469,6 +473,17 @@ class User < ActiveRecord::Base
             })
           end
         end
+        #
+        #  By default, turn on period times.
+        #
+        rtt = DayShapeManager.template_type
+        if rtt
+          rt = rtt.rota_templates.first
+          if rt
+            self.day_shape = rt
+            self.save!
+          end
+        end
         set_initial_permissions
       end
     end
@@ -582,6 +597,11 @@ class User < ActiveRecord::Base
     else
       "Can't find element #{element_or_name} for #{self.name} to view."
     end
+  end
+
+  def filter_state
+    (self.suppressed_eventcategories.empty? &&
+     self.extra_eventcategories.empty?) ? "off" : "on"
   end
 
   #

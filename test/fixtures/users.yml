@@ -11,3 +11,11 @@ two:
   uid: MyString
   name: MyString
   email: MyString
+
+admin:
+  provider: MyString
+  uid: MyString
+  name: "Admin user"
+  email: "admin@nowhere"
+  admin: true
+

@@ -496,6 +496,11 @@ class ElementsController < ApplicationController
         end
         #raise customer_categories.inspect
       end
+      #
+      #  That concludes processing relating to modifiers to the
+      #  request.  Now we turn to the request itself - what item
+      #  has the customer asked for information about?
+      #
       if element_id == '0'
         #
         #  Request for the breakthrough events.
@@ -525,7 +530,9 @@ class ElementsController < ApplicationController
           element = Element.find_by(id: element_id)
         end
         unless element
-          staff = Staff.eager_load(:element).find_by_initials(params[:id].upcase)
+          staff = Staff.eager_load(:element).
+                        find_by(initials: params[:id].upcase,
+                                current:  true)
           if staff
             element = staff.element
             by_initials = true

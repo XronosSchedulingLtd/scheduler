@@ -11,6 +11,7 @@
 #  there being any overhead at all.  The comments will be stripped
 #  out by the CoffeeScript compiler.
 #
+that = {}
 $(document).ready ->
   $('#datepicker').datepicker
     showOtherMonths: true
@@ -46,7 +47,12 @@ $(document).ready ->
       starts_at = new Date($('#event_starts_at').val())
       ends_at = new Date($('#event_ends_at').val())
       if starts_at > ends_at
-        $('#event_starts_at').val($('#event_ends_at').val())))
+        $('#event_starts_at').val($('#event_ends_at').val()))
+    filter_dialogue = $('#filter-dialogue')
+    if filter_dialogue.length > 0
+      filter_dialogue.find('#all').click(wantsAll)
+      filter_dialogue.find('#none').click(wantsNone))
+
   $(document).on('closed', '[data-reveal]', ->
     flag = $('#fullcalendar').data("dorefresh")
     if flag == "1"
@@ -58,34 +64,35 @@ $(document).ready ->
   #  regardless.
   #
   fcParams =
+    height: 'parent'
     currentTimezone: 'Europe/London'
-    columnFormat:
-      month: 'ddd'
-      week: 'ddd D/M'
-      day: 'ddd D/M'
-    timeFormat: 'H:mm',
     header:
       left: 'prev,next today'
       center: 'title'
-      right: 'month,agendaWeek,agendaDay,basicDay'
+      right: 'month,agendaWeek,agendaDay,basicDay,listMonth'
     buttonText:
       basicDay: "day list"
-    titleFormat:
-      month: 'MMMM YYYY'
-      week: 'Do MMM, YYYY'
-      day: 'ddd Do MMM, YYYY'
+    views:
+      month:
+        columnFormat: 'ddd'
+        titleFormat: 'MMMM YYYY'
+      week:
+        columnFormat: 'ddd D/M'
+        titleFormat: 'Do MMM, YYYY'
+      day:
+        columnFormat: 'ddd D/M'
+        titleFormat: 'ddd Do MMM, YYYY'
+    timeFormat: 'H:mm',
     defaultView: "agendaWeek"
+    eventOrder: "sort_by"
     firstDay: $('#fullcalendar').data("firstday")
     defaultDate: $('#fullcalendar').data("defaultdate")
     snapDuration: "00:05"
     minTime: "06:00"
     scrollTime: "08:00"
-    viewRender: (view, element) ->
-      prepareToRender(view, element)
-    eventRender: (event, element) ->
-      tweakElement(event, element)
-    eventAfterAllRender: (view) ->
-      allRendered(view)
+    viewRender: prepareToRender
+    eventRender: tweakElement
+    eventAfterAllRender: allRendered
     eventSources: [{
       url: '/schedule/events'
     }]
@@ -122,28 +129,21 @@ $(document).ready ->
           event:
             new_end: event.end.format()
     droppable: true
-    drop: (date, jsEvent, ui) ->
+    drop: (starts_at, jsEvent, ui) ->
       $('#eventModal').foundation('reveal', 'open', {
-        url: '/events/new?date=' +
-             date.format("YYYY-MM-DD HH:mm") +
-             '&precommit=' +
-             $(this).data("eid")
+        url: newEventUrl(starts_at, null, $(this).data("eid"))
       })
     selectable: true
     selectHelper: true
-    select: (start_time, end_time, jsEvent, view) ->
+    select: (starts_at, ends_at, jsEvent, view) ->
       $('#fullcalendar').fullCalendar('unselect')
-      if end_time - start_time > 300000
+      if ends_at - starts_at > 300000
         $('#eventModal').foundation('reveal', 'open', {
-          url: '/events/new?date=' +
-               start_time.format("YYYY-MM-DD HH:mm") +
-               '&enddate=' +
-               end_time.format("YYYY-MM-DD HH:mm")
+          url: newEventUrl(starts_at, ends_at)
         })
       else
         $('#eventModal').foundation('reveal', 'open', {
-          url: '/events/new?date=' +
-               start_time.format("YYYY-MM-DD HH:mm")
+          url: newEventUrl(starts_at)
         })
   if ($('.withedit').length)
     $.extend(fcParams, editFcParams)
@@ -151,6 +151,35 @@ $(document).ready ->
   $('.dynamic-element').each (index) ->
     addEventSource($(this).data('cid'))
   activateUserColumn()
+
+newEventUrl = (starts_at, ends_at, precommit) ->
+  #
+  #  It may seem slightly odd to pass up the all_day flag separately
+  #  given that it is derived from the starts_at field.  However it
+  #  is technically possible to have a timed event which starts at
+  #  00:00, even though the UI doesn't currently allow it.
+  #  At this point we know the difference, but once the time has been
+  #  turned into text we won't.  By adding the extra flag we preserve
+  #  that information.
+  #
+  "/events/new?starts_at=#{
+      starts_at.format("YYYY-MM-DD HH:mm")
+    }#{
+      if starts_at.hasTime()
+        ""
+      else
+        "&all_day"
+    }#{
+      if ends_at
+        "&ends_at=#{ends_at.format("YYYY-MM-DD HH:mm")}"
+      else
+        ""
+    }#{
+      if precommit
+        "&precommit=#{precommit}"
+      else
+        ""
+    }"
 
 addEventSource = (cid) ->
   $('#fullcalendar').fullCalendar('addEventSource',
@@ -199,6 +228,12 @@ concernClicked = (event) ->
     if target
       location.href = target
 
+filterClicked = (event) ->
+  $('#eventModal').foundation(
+    'reveal',
+    'open',
+    "/users/#{$('div#filter-switch').data('userid')}/filters/1/edit")
+
 activateColourPicker = (field_id, sample_id) ->
   palette = ["#483D8B", "#CD5C5C", "#B8860B", "#7B68EE",
              "#808000", "#6B8E23", "#DB7093", "#2E8B57",
@@ -219,12 +254,12 @@ activateColourPicker = (field_id, sample_id) ->
 
 prepareToRender = (view, element) ->
   $('#datepicker').datepicker('setDate', view.start.toDate())
-  @viewStartDate = view.start.toDate()
-  @viewName = view.name
-  @elementsSeen = {}
+  that.viewStartDate = view.start.toDate()
+  that.viewName = view.name
+  that.elementsSeen = {}
 
 allRendered = (view) ->
-  @elementsSeen = {}
+  that.elementsSeen = {}
 
 tweakElement = (event, element) ->
   if event.prefix
@@ -234,28 +269,50 @@ tweakElement = (event, element) ->
     #  the chronological start of the event - not those where it
     #  is just continuing.
     #
-    if event.start >= @viewStartDate
-      if (@viewName == "agendaWeek" ||
-          @viewName == "agendaDay" ||
-          @viewName == "basicDay")
-        element.find('.fc-event-inner').prepend(event.prefix)
-      else if @viewName == "month"
+    if event.start >= that.viewStartDate
+      if (that.viewName == "agendaWeek" ||
+          that.viewName == "agendaDay" ||
+          that.viewName == "basicDay")
+        element.find('.fc-title').prepend(event.prefix)
+      else if that.viewName == "month"
         #
         #  This one takes a bit more thought.  The event may occur in
         #  several elements, and only the first gets the prefix.
         #
-        if !@elementsSeen[event.id]
-          @elementsSeen[event.id] = true
-          element.find('.fc-event-inner').prepend(event.prefix)
+        if !that.elementsSeen[event.id]
+          that.elementsSeen[event.id] = true
+          element.find('.fc-title').prepend(event.prefix)
+  #
+  #  And now, do we need to add an icon?
+  #
   if event.has_clashes
-    element.find(".fc-event-inner").append("<img class=\"evtopright\" src=\"images/rc.png\" />")
+    icon = "rc.png"
   else if event.fc == "r"
-    element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/rf.png\" />")
+    icon = "rf.png"
   else if event.fc == "y"
-    element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/yf.png\" />")
+    icon = "yf.png"
   else if event.fc == "g"
-    element.find(".fc-event-inner").append("<img class=\"evtopleft\" src=\"images/gf.png\" />")
+    icon = "gf.png"
+  else
+    icon = null
+  if icon
+      #
+      #  Have something.  Now decide where to put it, which depends on
+      #  which view we are using.  This is quite hard.  See journal
+      #  notes for 9th May, 2017 for an explanation of the various
+      #  problems which resulted in this compromise solution.
+      #
+    if that.viewName == "basicDay"
+      element.find(".fc-time").
+              before("<span><img src=\"images/#{icon}\" /></span>")
+    else if that.viewName == "agendaDay"
+      element.find(".fc-content").
+              append("<img class=\"evnearleft\" src=\"images/#{icon}\" />")
+    else if that.viewName == "agendaWeek" || that.viewName == "month"
+      element.find(".fc-content").
+              append("<img class=\"evtopright\" src=\"images/#{icon}\" />")
   return true
+
 
 activateCheckboxes = ->
   $('.active-checkbox').change( ->
@@ -281,10 +338,14 @@ activateAutoSubmit = ->
     if $('#concern_element_id').val().length > 0
       $('.hidden_submit').click())
 
+activateFilterSwitch = ->
+  $('div#filter-switch').click(filterClicked)
+
 activateUserColumn = ->
   activateCheckboxes()
   activateDragging()
   activateAutoSubmit()
+  activateFilterSwitch()
 
 primeCloser = ->
   $('.closer').click ->
@@ -295,6 +356,15 @@ hideCloser = ->
 
 showCloser = ->
   $('#event-done-button').show()
+
+#
+#  Functions for the filter dialogue.
+#
+wantsAll = ->
+  $('#filter-dialogue #exclusions input:checkbox').prop('checked', true)
+
+wantsNone = ->
+  $('#filter-dialogue #exclusions input:checkbox').prop('checked', false)
 
 #
 #  All entrypoints - functions which can be called from outside this
@@ -346,4 +416,16 @@ window.finishEditingEvent = (event_summary, do_refresh) ->
   if do_refresh
     $('#fullcalendar').data('dorefresh', '1')
 
-
+window.closeModal = (full_reload, just_events, filter_state) ->
+  $('#eventModal').foundation('reveal', 'close')
+  if full_reload
+    location.reload()
+  else
+    if just_events
+      $('#fullcalendar').fullCalendar('refetchEvents')
+      if filter_state
+        el = $('#filter-state')
+        el.removeClass('filter-on')
+        el.removeClass('filter-off')
+        el.addClass("filter-#{filter_state}")
+        el.text(filter_state)

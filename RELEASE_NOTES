@@ -1,3 +1,94 @@
+v0.20   2017-06-06
+
+* This release implements filters in the main schedule display.
+
+  Users can now choose to reduce what they see by filtering out events
+  by event category.  If they have any filter in effect then a red marker
+  appears at top left to remind them that it is on.
+
+  Administrators can also add in event categories which would not
+  otherwise be visible - those with the visible flag not set.  In a
+  default installation this is just the "Hidden" event category.
+  This can be useful in order to track down inivisible events belonging
+  to another user.
+
+* The sort order for multiple events at the same time has been improved.
+
+  Prior to the last release, concurrent events were displayed in alphabetical
+  order.  In the last release this was changed to have them displayed in
+  order of the relevant resource.  Now both are used - they are sorted
+  first by resource and then alphabetically.
+
+
+v0.19   2017-05-22
+
+* The main change in this release is that the version of FullCalendar
+  used has been updated to the latest available - 3.4.0.  Previously
+  Scheduler was using 2.0.2.  This has enabled various other enhancements.
+
+* When events are being viewed for multiple resources, the left-to-right
+  ordering has historically been by alphabetical ordering of event title.
+  This can lead to a less than clear display.  From this release, the
+  left to right ordering is dictated by the resource involved, so resource
+  A's events will always be to the left of resource B's events, etc.
+
+* It is now possible for the system adminstrator to enter period times in
+  the system and for these then to be displayed to individual users as
+  background events (pale shaded areas) on the display.  More than one
+  set can be entered (e.g. for a main school and a junior school) and
+  each user can choose which to see.
+
+* If a user has period times switched on and the user then tries to
+  create a new event within a configured period - either by clicking
+  within a period or by dragging a resource onto the calendar - then
+  the default times for the new event will now default to the period's
+  times.  Clicking and dragging to create a new event with duration is
+  not affected and will continue to work as before.
+
+* The framing of the calendar has been tightened up and the user should
+  no longer find that there are two simultaneous scroll bars.  The calendar
+  resizes as far as it can to fit the user's chosen window size.
+
+* A new view is available in the calendar display.  Called simply "list"
+  it provides a nicely formatted list of all the chosen events in a month.
+
+* The automated test suite for the application had fallen rather behind
+  developments.  It has been updated and now runs without error.
+
+
+v0.18.6 2017-04-09
+
+  Two small fixes
+
+* Handle duplicate staff initials in ical feed.
+
+  It is possible to request an ical feed for a member of staff by
+  specifying either the staff member's element ID (the preferred
+  way) or for reverse compatibility with an earlier implementation,
+  by specifying the staff member's initials.  The latter failed
+  if the school configured two members of staff with the same initials.
+  The system would always pick the first such member of staff, which
+  generally would be someone who had left.
+
+  The database query has been enhanced to specify "current: true"
+  in addition to the existing criteria, so as to pick the later
+  member of staff.
+
+  This has the side effect that it is no longer possible to get an
+  ical feed for an ex-member of staff by means of his or her initials.
+  If you really need that, then use the element ID.
+
+* Re-position invigilation flag in some views
+
+  When handling invigilation slots, the system shows the status of
+  each slot with a little red/yellow/green flag.  In some views this
+  ended up in a less than ideal place.
+
+  This release adds view-specific code to position the flag to be
+  visible in each view, and as far as possible, not to cover up other
+  information.
+
+
 v0.18.5 2017-04-30
 
   Still drawing together strands and tidying up.

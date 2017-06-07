@@ -1,9 +1,9 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  name: MyString
-  default_rota_template_id: 1
-
-two:
-  name: MyString
-  default_rota_template_id: 1
+fourthyearexams:
+  name: "Fourth year exams"
+  default_rota_template: internalexams
+  starts_on: 2017-05-01
+  ends_on:   2017-05-07
+  default_group_element: teachingoneelement
+  default_quantity: 2

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170504122216) do
+ActiveRecord::Schema.define(version: 20170524100412) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -229,18 +229,6 @@ ActiveRecord::Schema.define(version: 20170504122216) do
   add_index "groups", ["source_id"], name: "index_groups_on_source_id", using: :btree
   add_index "groups", ["source_id_str"], name: "index_groups_on_source_id_str", using: :btree
 
-  create_table "interests", force: true do |t|
-    t.integer  "user_id"
-    t.integer  "element_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.string   "colour",     default: "gray"
-    t.boolean  "visible",    default: true
-  end
-
-  add_index "interests", ["element_id"], name: "index_interests_on_element_id", using: :btree
-  add_index "interests", ["user_id"], name: "index_interests_on_user_id", using: :btree
-
   create_table "itemreports", force: true do |t|
     t.integer  "concern_id"
     t.boolean  "compact",             default: false
@@ -331,15 +319,6 @@ ActiveRecord::Schema.define(version: 20170504122216) do
   end
 
   add_index "otherhalfgrouppersonae", ["source_id"], name: "index_otherhalfgrouppersonae_on_source_id", using: :btree
-
-  create_table "ownerships", force: true do |t|
-    t.integer  "user_id"
-    t.integer  "element_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.boolean  "equality",   default: false
-    t.string   "colour",     default: "#225599"
-  end
 
   create_table "promptnotes", force: true do |t|
     t.string   "title",            default: ""
@@ -441,10 +420,19 @@ ActiveRecord::Schema.define(version: 20170504122216) do
 
   add_index "rota_slots", ["rota_template_id"], name: "index_rota_slots_on_rota_template_id", using: :btree
 
+  create_table "rota_template_types", force: true do |t|
+    t.string   "name"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "rota_templates", force: true do |t|
     t.string   "name"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "rota_template_type_id"
+    t.integer  "owner_id"
+    t.string   "owner_type"
   end
 
   create_table "services", force: true do |t|
@@ -577,6 +565,9 @@ ActiveRecord::Schema.define(version: 20170504122216) do
     t.boolean  "invig_weekly",                default: true
     t.boolean  "invig_daily",                 default: true
     t.date     "last_invig_run_date"
+    t.integer  "day_shape_id"
+    t.text     "suppressed_eventcategories"
+    t.text     "extra_eventcategories"
   end
 
 end

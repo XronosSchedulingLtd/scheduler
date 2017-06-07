@@ -5,9 +5,9 @@
       Rota template:
       <span id='title'></span>
       <input id='title-box'></input>
-      <button class='edit tiny radius'>Edit name</button>
-      <button class='update tiny radius'>Update</button>
-      <button class='cancel tiny radius'>Cancel</button>
+      <button class='zfbutton edit tiny radius'>Edit name</button>
+      <button class='zfbutton update tiny radius'>Update</button>
+      <button class='zfbutton cancel tiny radius'>Cancel</button>
     </h3>
   </div>
   <table id='rt-table' class='zftable rt-table'>
@@ -29,7 +29,7 @@
     <tfoot>
       <tr id='rt-newslot-row'>
         <td>
-          <button class='add tiny radius'>Add</button>
+          <button class='zfbutton add tiny radius'>Add</button>
         </td>
         <td>
           <form>
@@ -64,11 +64,13 @@
   </p>
 </div>
 <div align="right">
-  <%= link_to 'Done', rota_templates_path, class: 'button tiny radius' %>
+  <%= link_to 'Done',
+    rota_template_type_rota_templates_path(@rota_template.rota_template_type),
+    class: 'zfbutton tiny radius' %>
 </div>
 
 <script type="text/template" id="rt-slot-row">
-  <td class='destroy-box'><button class='destroy tiny radius'>Remove</button></td>
+  <td class='destroy-box'><button class='zfbutton destroy tiny radius'>Remove</button></td>
   <td><%%= starts_at + " - " + ends_at %></td>
   <% 0.upto(6) do |i| %>
     <td class='tickbox'>

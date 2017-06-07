@@ -1,11 +1,11 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  name: MyString
-  active: false
-  current: false
+roomone:
+  name: "Room one"
+  active: true
+  current: true
 
-two:
-  name: MyString
-  active: false
-  current: false
+roomtwo:
+  name: "Room two"
+  active: true
+  current: true

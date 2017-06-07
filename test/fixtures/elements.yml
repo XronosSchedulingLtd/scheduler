@@ -42,4 +42,11 @@ tutortwoelement:
   name: TutorTwo
   entity: tutortwo (Tutorgroup)
 
+roomoneelement:
+  name: "Room one"
+  entity: roomone (Location)
+
+roomtwoelement:
+  name: "Room two"
+  entity: roomtwo (Location)
 
