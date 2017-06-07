@@ -1,3 +1,12 @@
+v0.20.1 2017-06-07
+
+* Fix settings dialogue.
+
+  A small error was discovered which got into the system at v0.19.
+  It prevented the system administrator from accessing the global
+  system settings dialogue.  This release fixes that problem.
+
+  
 v0.20   2017-06-06
 
 * This release implements filters in the main schedule display.
