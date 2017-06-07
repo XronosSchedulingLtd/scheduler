@@ -518,11 +518,11 @@ class ElementsController < ApplicationController
         calendar_name = "School dates"
         calendar_description = "Abingdon school key dates"
       else
-        if /^UU-/ =~ element_id
+        if /^UUE-/ =~ element_id
           #
           #  Being specified by UUID
           #
-          element = Element.find_by(uuid: element_id[3..-1])
+          element = Element.find_by(uuid: element_id[4..-1])
         else
           #
           #  Use find_by to avoid throwing an error.
