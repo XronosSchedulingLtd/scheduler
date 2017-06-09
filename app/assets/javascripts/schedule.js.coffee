@@ -82,7 +82,8 @@ $(document).ready ->
       day:
         columnFormat: 'ddd D/M'
         titleFormat: 'ddd Do MMM, YYYY'
-    timeFormat: 'H:mm',
+    timeFormat: 'H:mm'
+    nowIndicator: true
     defaultView: "agendaWeek"
     eventOrder: "sort_by"
     firstDay: $('#fullcalendar').data("firstday")
