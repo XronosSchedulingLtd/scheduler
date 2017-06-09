@@ -1,3 +1,11 @@
+v0.20.2 2017-06-09
+
+* Add an indicator of the time.
+
+  A long-standing request that turns out now to be very easy.
+  Add a little red line showing the current time.
+
+
 v0.20.1 2017-06-07
 
 * Fix settings dialogue.
