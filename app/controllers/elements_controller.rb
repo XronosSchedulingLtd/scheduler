@@ -530,7 +530,7 @@ class ElementsController < ApplicationController
           #
           if Setting.require_uuid
             element = nil
-          end
+          else
             #
             #  Use find_by to avoid throwing an error.
             #
