@@ -503,10 +503,14 @@ class Element < ActiveRecord::Base
   end
 
   def rename_affected_events
-    self.commitments.names_event.each do |c|
-      if c.event.body != self.name
-        c.event.body = self.name
-        c.event.save!
+    if @dont_rename
+      @dont_rename = false
+    else
+      self.commitments.names_event.each do |c|
+        if c.event.body != self.name
+          c.event.body = self.name
+          c.event.save!
+        end
       end
     end
   end
@@ -581,6 +585,7 @@ class Element < ActiveRecord::Base
   def generate_initial_uuid
     if self.uuid.blank?
       generate_uuid
+      @dont_rename = true
     end
   end
 

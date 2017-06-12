@@ -525,17 +525,25 @@ class ElementsController < ApplicationController
           element = Element.find_by(uuid: element_id[4..-1])
         else
           #
-          #  Use find_by to avoid throwing an error.
+          #  We have some fallback methods of finding an element, but
+          #  as they are potentially insecure we may not allow them.
           #
-          element = Element.find_by(id: element_id)
-        end
-        unless element
-          staff = Staff.eager_load(:element).
-                        find_by(initials: params[:id].upcase,
-                                current:  true)
-          if staff
-            element = staff.element
-            by_initials = true
+          if Setting.require_uuid
+            element = nil
+          end
+            #
+            #  Use find_by to avoid throwing an error.
+            #
+            element = Element.find_by(id: element_id)
+            unless element
+              staff = Staff.eager_load(:element).
+                            find_by(initials: params[:id].upcase,
+                                    current:  true)
+              if staff
+                element = staff.element
+                by_initials = true
+              end
+            end
           end
         end
         if element

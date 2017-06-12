@@ -18,7 +18,7 @@ end
 <% end %>
 <% unless @concern.element.uuid.blank? %>
   <br/>
-  iCal link: http://scheduler.abingdon.org.uk/ical/UUE-<%= @concern.element.uuid %>
+  iCal link: <%= Setting.protocol_prefix %>://<%= Setting.dns_domain_name %><%= Setting.port_no %>/ical/UUE-<%= @concern.element.uuid %>
 <% end %>
 
 </p>

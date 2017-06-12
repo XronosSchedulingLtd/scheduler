@@ -454,6 +454,8 @@ ActiveRecord::Schema.define(version: 20170607085043) do
     t.integer  "auth_type",           default: 0
     t.string   "dns_domain_name",     default: ""
     t.string   "from_email_address",  default: ""
+    t.boolean  "prefer_https",        default: true
+    t.boolean  "require_uuid",        default: false
   end
 
   create_table "staffs", force: true do |t|
