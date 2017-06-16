@@ -1,3 +1,10 @@
+v0.20.3 2017-06-16
+
+* Remove date/time from heading in invigilation notification e-mail.
+
+  It was unnecessary and confusing.  Removed.
+
+
 v0.20.2 2017-06-09
 
 * Add an indicator of the time.
