@@ -89,10 +89,21 @@ class CommitmentsController < ApplicationController
       #  of all the new commitments created in an editing session.  Since
       #  this commitment has only just been created, its id can't
       #  already be in the array.
-      #
-      #Rails.logger.debug(session.inspect)
+      # 
       session[:commitments_added] << @commitment.id
-#      Rails.logger.debug("Commitments_added - #{session[:commitments_added].to_s}")
+      #
+      #  It is however possible that earlier in the same editing session
+      #  the user has deleted a commitment for the same element.  If this
+      #  is the case, we need to remove that element id from the list
+      #  of cancelled requests, because it is no longer cancelled.
+      #
+      #  The responsible person will get a fresh notification of the
+      #  request, but that's always been the way it's worked.  I could
+      #  now prevent that, but I'll wait for a request.
+      #
+      if session[:elements_removed].include?(@commitment.element_id)
+        session[:elements_removed] -= [@commitment.element_id]
+      end
     end
     @event = @commitment.event
     respond_to do |format|
