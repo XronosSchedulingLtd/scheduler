@@ -102,6 +102,7 @@ Rails.application.routes.draw do
 
   resources :users do
     get :autocomplete_user_name, :on => :collection
+    get :pp, :on => :collection
     resources :filters, only: [:edit, :update]
   end
 
