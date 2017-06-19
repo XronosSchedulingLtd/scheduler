@@ -137,6 +137,8 @@ class EventsController < ApplicationController
         end
       end
     end
+    session[:commitments_added] = []
+    session[:elements_removed] = []
     if request.xhr?
       @minimal = true
       render :layout => false
@@ -150,6 +152,13 @@ class EventsController < ApplicationController
   def edit
     @commitment = Commitment.new
     @commitment.event = @event
+    #
+    #  These next two are used in cooperation by this controller and
+    #  the commitments controller.  They are zeroed (here) each time
+    #  we start a new event editing session.
+    #
+    session[:commitments_added] = []
+    session[:elements_removed] = []
     #
     #  Admin can edit anything.  Other editors can only edit their
     #  own events.
@@ -328,6 +337,7 @@ class EventsController < ApplicationController
   # DELETE /events/1.json
   def destroy
     if current_user.can_edit?(@event)
+      send_notifications_for(@event, true)
       @event.destroy
     end
     respond_to do |format|
@@ -418,12 +428,51 @@ class EventsController < ApplicationController
   #  notifications needed for requested resources, provided the administrator
   #  of said resource has requested immediate notification.
   #
-  def send_notifications_for(event)
-    event.commitments.tentative.not_rejected.each do |c|
-      resource = c.element
-      resource.owners.each do |owner|
-        if owner.immediate_notification
-          UserMailer.resource_requested_email(owner, resource, event).deliver
+  #  Also called when an event is about to be deleted and sends similar
+  #  notifications for cancelled requests.
+  #
+  def send_notifications_for(event, deleting = false)
+    if deleting
+      event.commitments.tentative.not_rejected.each do |c|
+        resource = c.element
+        resource.owners.each do |owner|
+          if owner.immediate_notification
+            UserMailer.resource_request_cancelled_email(owner,
+                                                        resource,
+                                                        event,
+                                                        current_user).deliver
+          end
+        end
+      end
+    else
+      event.commitments.tentative.not_rejected.each do |c|
+        resource = c.element
+        resource.owners.each do |owner|
+          if owner.immediate_notification
+            UserMailer.resource_requested_email(owner,
+                                                resource,
+                                                event,
+                                                current_user).deliver
+          end
+        end
+      end
+      #
+      #  Has the user deleted any signficant elements in the course
+      #  of this editing session?
+      #
+      if session[:elements_removed]
+        session[:elements_removed].each do |er|
+          resource = Element.find_by(id: er)
+          if resource
+            resource.owners.each do |owner|
+              if owner.immediate_notification
+                UserMailer.resource_request_cancelled_email(owner,
+                                                            resource,
+                                                            event,
+                                                            current_user).deliver
+              end
+            end
+          end
         end
       end
     end

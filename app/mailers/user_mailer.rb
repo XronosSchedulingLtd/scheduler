@@ -63,17 +63,38 @@ class UserMailer < ActionMailer::Base
          subject: "Event now complete")
   end
 
-  def resource_requested_email(owner, resource, event)
+  def resource_requested_email(owner, resource, event, user = nil)
     @resource = resource
     @event = event
     if @event.organiser
       @name = @event.organiser.entity.name
-    else
+    elsif @event.owner
       @name = @event.owner.name
+    elsif user
+      @name = user.name
+    else
+      @name = "System"
     end
     mail(to: owner.email,
          from: Setting.from_email_address,
          subject: "Request for #{resource.name}")
+  end
+
+  def resource_request_cancelled_email(owner, resource, event, user = nil)
+    @resource = resource
+    @event = event
+    if @event.organiser
+      @name = @event.organiser.entity.name
+    elsif @event.owner
+      @name = @event.owner.name
+    elsif user
+      @name = user.name
+    else
+      @name = "System"
+    end
+    mail(to: owner.email,
+         from: Setting.from_email_address,
+         subject: "Request for #{resource.name} cancelled")
   end
 
   def pending_approvals_email(email, user_set)

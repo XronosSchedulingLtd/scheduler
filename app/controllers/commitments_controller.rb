@@ -84,6 +84,15 @@ class CommitmentsController < ApplicationController
     #
     if @commitment.save
       @commitment.reload
+      #
+      #  This array is initialised by events_controller and keeps track
+      #  of all the new commitments created in an editing session.  Since
+      #  this commitment has only just been created, its id can't
+      #  already be in the array.
+      #
+      #Rails.logger.debug(session.inspect)
+      session[:commitments_added] << @commitment.id
+#      Rails.logger.debug("Commitments_added - #{session[:commitments_added].to_s}")
     end
     @event = @commitment.event
     respond_to do |format|
@@ -95,6 +104,23 @@ class CommitmentsController < ApplicationController
   def destroy
     @event = @commitment.event
     if current_user.can_delete?(@commitment)
+      if session[:commitments_added].include?(@commitment.id)
+        #
+        #  Added and then deleted in the course of a single session.
+        #  Not interesting.
+        #
+        session[:commitments_added] -= [@commitment.id]
+      else
+        #
+        #  Added earlier and deleted in this editing session.  Might
+        #  need to send a notification.  We do this only for commitments
+        #  which were in a state of being tentative, but not rejected.
+        #  In other words - those pending approval.
+        #
+        if @commitment.tentative && !@commitment.rejected
+          session[:elements_removed] << @commitment.element_id
+        end
+      end
       @commitment.destroy
     end
     respond_to do |format|
