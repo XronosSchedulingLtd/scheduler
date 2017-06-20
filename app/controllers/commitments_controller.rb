@@ -84,25 +84,8 @@ class CommitmentsController < ApplicationController
     #
     if @commitment.save
       @commitment.reload
-      #
-      #  This array is initialised by events_controller and keeps track
-      #  of all the new commitments created in an editing session.  Since
-      #  this commitment has only just been created, its id can't
-      #  already be in the array.
-      # 
-      session[:commitments_added] << @commitment.id
-      #
-      #  It is however possible that earlier in the same editing session
-      #  the user has deleted a commitment for the same element.  If this
-      #  is the case, we need to remove that element id from the list
-      #  of cancelled requests, because it is no longer cancelled.
-      #
-      #  The responsible person will get a fresh notification of the
-      #  request, but that's always been the way it's worked.  I could
-      #  now prevent that, but I'll wait for a request.
-      #
-      if session[:elements_removed].include?(@commitment.element_id)
-        session[:elements_removed] -= [@commitment.element_id]
+      if session[:request_notifier]
+        session[:request_notifier].commitment_added(@commitment)
       end
     end
     @event = @commitment.event
@@ -115,22 +98,8 @@ class CommitmentsController < ApplicationController
   def destroy
     @event = @commitment.event
     if current_user.can_delete?(@commitment)
-      if session[:commitments_added].include?(@commitment.id)
-        #
-        #  Added and then deleted in the course of a single session.
-        #  Not interesting.
-        #
-        session[:commitments_added] -= [@commitment.id]
-      else
-        #
-        #  Added earlier and deleted in this editing session.  Might
-        #  need to send a notification.  We do this only for commitments
-        #  which were in a state of being tentative, but not rejected.
-        #  In other words - those pending approval.
-        #
-        if @commitment.tentative && !@commitment.rejected
-          session[:elements_removed] << @commitment.element_id
-        end
+      if session[:request_notifier]
+        session[:request_notifier].commitment_removed(@commitment)
       end
       @commitment.destroy
     end
