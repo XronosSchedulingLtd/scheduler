@@ -171,13 +171,21 @@ class Notifier < FakeActiveRecord
     end
   end
 
-  def do_send(which_flag)
+  def do_send(which_flag, user = nil)
     if @executed
+      unless user
+        #
+        #  If a specific user is specified, then only he goes into
+        #  the reply-to field.  Otherwise all exam people get it.
+        #
+        user = User.exams.to_a
+      end
       @staff_entry_hash.values.sort.each do |record|
         if record.notify?(which_flag)
           StaffMailer.upcoming_invigilation_email(record.staff,
                                                   record.instances,
-                                                  self.extra_text).deliver
+                                                  self.extra_text,
+                                                  user).deliver
         end
       end
     else
