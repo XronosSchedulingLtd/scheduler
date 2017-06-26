@@ -1,3 +1,56 @@
+v0.20.5 2017-06-21
+
+* Add reply-to to invigilation e-mails.
+
+  The system generates e-mails to warn people when they have invigilation
+  slots.  Some users reply to these without thinking, which has no useful
+  result if it goes to the system.
+
+  Added a reply-to field so that such replies will go to a real person.
+
+
+v0.20.4 2017-06-20
+
+* Notify impatient users of request cancellations.
+
+  Some time ago a facility was added whereby users who control resources
+  could request instant e-mails each time someone put in a request for
+  that resource.  It's an opt-in facility, controlled by a flag in
+  the user record.
+
+  This release adds the means to notify the same users if a pending
+  request is cancelled - either because the requester deletes the
+  individual request, or because the whole corresponding event has
+  been deleted.  Note that this happens only for requests which have
+  not yet been approved.
+
+  It is controlled by the same flag in the user record, so you can't
+  choose to have one and not the other.
+
+  Note that the notification e-mails are sent out only at the end of
+  an event-editing session.  A user can add and remove the same resource
+  as often as he likes during one edit and no e-mails will be sent.
+  Only when the user clicks "Update" does the system send either
+  kind of e-mail.
+
+* Update pending request count in the main screen.
+
+  Resource administrators get a count of outstanding requests, "(4)"
+  and the like in their top menu bar.  Until now, this was updated
+  each time they interacted with the application, but not otherwise.
+
+  This release adds a 5 minute update.  Every 5 minutes the front end
+  polls the back end to see if the count has changed, and if it has then
+  it updates the display.
+
+
+v0.20.3 2017-06-16
+
+* Remove date/time from heading in invigilation notification e-mail.
+
+  It was unnecessary and confusing.  Removed.
+
+
 v0.20.2 2017-06-09
 
 * Add an indicator of the time.

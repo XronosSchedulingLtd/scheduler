@@ -28,7 +28,7 @@ class NotifiersController < ApplicationController
       if @notifier.save
         @notifier.execute
         if @notifier.send_notifications
-          @notifier.do_send(:regardless)
+          @notifier.do_send(:regardless, current_user)
         end
         if @notifier.check_clashes
           @notifier.notify_clashes

@@ -23,6 +23,22 @@ class UsersController < ApplicationController
   end
 
 
+  # 
+  # Permissions pending.  A very brief request for the current number
+  # of outstanding permissions for the current user.
+  #
+  def pp
+    @pph = Hash.new
+    if current_user && current_user.element_owner
+      @pph[:pp] = current_user.permissions_pending
+    else
+      @pph[:pp] = 0
+    end
+    respond_to do |format|
+      format.json
+    end
+  end
+
   # GET /users
   # GET /users.json
   def index

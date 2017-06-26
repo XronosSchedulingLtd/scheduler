@@ -84,6 +84,9 @@ class CommitmentsController < ApplicationController
     #
     if @commitment.save
       @commitment.reload
+      if session[:request_notifier]
+        session[:request_notifier].commitment_added(@commitment)
+      end
     end
     @event = @commitment.event
     respond_to do |format|
@@ -95,6 +98,9 @@ class CommitmentsController < ApplicationController
   def destroy
     @event = @commitment.event
     if current_user.can_delete?(@commitment)
+      if session[:request_notifier]
+        session[:request_notifier].commitment_removed(@commitment)
+      end
       @commitment.destroy
     end
     respond_to do |format|

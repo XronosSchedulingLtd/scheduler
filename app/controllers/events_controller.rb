@@ -137,6 +137,7 @@ class EventsController < ApplicationController
         end
       end
     end
+    session[:request_notifier] = RequestNotifier.new
     if request.xhr?
       @minimal = true
       render :layout => false
@@ -150,6 +151,12 @@ class EventsController < ApplicationController
   def edit
     @commitment = Commitment.new
     @commitment.event = @event
+    #
+    #  These next two are used in cooperation by this controller and
+    #  the commitments controller.  They are zeroed (here) each time
+    #  we start a new event editing session.
+    #
+    session[:request_notifier] = RequestNotifier.new
     #
     #  Admin can edit anything.  Other editors can only edit their
     #  own events.
@@ -199,6 +206,9 @@ class EventsController < ApplicationController
           c.tentative = current_user.needs_permission_for?(concern.element)
           c.element = concern.element
           c.save
+          if session[:request_notifier]
+            session[:request_notifier].commitment_added(c)
+          end
         end
         #
         #  And was anything specified in the request?
@@ -215,6 +225,9 @@ class EventsController < ApplicationController
               c.tentative = current_user.needs_permission_for?(element)
               c.element = element
               c.save
+              if session[:request_notifier]
+                session[:request_notifier].commitment_added(c)
+              end
             end
           else
             Rails.logger.debug("Couldn't find element with id #{@event.precommit_element_id}")
@@ -242,7 +255,7 @@ class EventsController < ApplicationController
     if current_user.can_subedit?(@event)
       respond_to do |format|
         if @event.update(event_params)
-          send_notifications_for(@event)
+          session[:request_notifier].send_notifications_for(current_user, @event)
           @success = true
           @notes = @event.all_notes_for(current_user)
           @files = Array.new
@@ -328,6 +341,7 @@ class EventsController < ApplicationController
   # DELETE /events/1.json
   def destroy
     if current_user.can_edit?(@event)
+      RequestNotifier.new.send_notifications_for(current_user, @event, true)
       @event.destroy
     end
     respond_to do |format|
@@ -412,22 +426,6 @@ class EventsController < ApplicationController
   end
 
   private
-
-  #
-  #  Called when a user has finished editing an event.  Sends any
-  #  notifications needed for requested resources, provided the administrator
-  #  of said resource has requested immediate notification.
-  #
-  def send_notifications_for(event)
-    event.commitments.tentative.not_rejected.each do |c|
-      resource = c.element
-      resource.owners.each do |owner|
-        if owner.immediate_notification
-          UserMailer.resource_requested_email(owner, resource, event).deliver
-        end
-      end
-    end
-  end
 
   def authorized?(action = action_name, resource = nil)
     (logged_in? && current_user.create_events?) ||
