@@ -255,7 +255,10 @@ class EventsController < ApplicationController
     if current_user.can_subedit?(@event)
       respond_to do |format|
         if @event.update(event_params)
-          session[:request_notifier].send_notifications_for(current_user, @event)
+          if session[:request_notifier]
+            session[:request_notifier].
+              send_notifications_for(current_user, @event)
+          end
           @success = true
           @notes = @event.all_notes_for(current_user)
           @files = Array.new
