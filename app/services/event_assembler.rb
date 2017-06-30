@@ -503,12 +503,18 @@ class EventAssembler
             #
             resulting_events = []
           else
-            resulting_events =
+            selector =
               element.commitments_on(startdate:           start_date,
                                      enddate:             end_date,
                                      eventcategory:       event_categories,
-                                     include_nonexistent: true).
-                      preload(:event).
+                                     include_nonexistent: true)
+            if concern.list_teachers
+              selector = selector.preload(event: {elements: :entity})
+            else
+              selector = selector.preload(:event)
+            end
+            resulting_events =
+                      selector.
                       select {|c| concern.owns ||
                                   @current_user.admin ||
                                   !c.tentative ||
