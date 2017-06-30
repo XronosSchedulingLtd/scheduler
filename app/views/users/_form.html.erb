@@ -113,6 +113,12 @@
                  ]) %>
 <% end %>
 <% if current_user.admin || current_user.staff? %>
+  <%= flag_group(f, 12, 6, "Display options",
+                 [
+                   {field: :list_teachers,
+                    prompt: "List teachers",
+                    annotation: "Should newly created concerns default to listing teachers' initials in events?"}
+                 ]) %>
   <%= flag_group(f, 12, 6, "Clash notifications",
                  [
                    {field: :clash_weekly,

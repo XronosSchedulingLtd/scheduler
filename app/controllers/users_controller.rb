@@ -202,6 +202,7 @@ class UsersController < ApplicationController
                       :can_su,
                       :can_roam,
                       :firstday,
+                      :list_teachers,
                       :preferred_event_category_id,
                       :colour_not_involved,
                       :default_event_text,
@@ -209,6 +210,7 @@ class UsersController < ApplicationController
       elsif current_user.editor
         params.require(:user).
                permit(:firstday,
+                      :list_teachers,
                       :email_notification,
                       :immediate_notification,
                       :clash_weekly,
@@ -223,6 +225,7 @@ class UsersController < ApplicationController
       else
         params.require(:user).
                permit(:firstday,
+                      :list_teachers,
                       :colour_not_involved,
                       :email_notification,
                       :immediate_notification,

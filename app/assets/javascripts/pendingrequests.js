@@ -10,7 +10,7 @@ if ($('#pending_count').length) {
     var that = {};
 
     var RequestCount = Backbone.Model.extend({
-      url: "users/pp",
+      url: "/users/pp",
       pp: "0"
     });
 

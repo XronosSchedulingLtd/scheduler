@@ -71,7 +71,8 @@ class EventAssembler
                    via_element,
                    current_user = nil,
                    colour = nil,
-                   mine = false)
+                   mine = false,
+                   list_teachers = false)
       @event   = event
       if via_element
         @sort_by = "#{via_element.id} #{event.body}"
@@ -206,6 +207,12 @@ class EventAssembler
         @prefix = nil
       end
       @title = event.body
+      if list_teachers
+        staff = event.staff
+        if staff.size > 0
+          @title += " - #{staff.collect {|s| s.initials}.join(", ")}"
+        end
+      end
       @all_day = event.all_day || @multi_day_timed
       #
       #  Note that our idea of editable is slightly different from
@@ -514,7 +521,8 @@ class EventAssembler
                                           element,
                                           @current_user,
                                           concern.colour,
-                                          concern.equality)
+                                          concern.equality,
+                                          concern.list_teachers)
                       }
           end
         end
