@@ -97,6 +97,16 @@ class Event < ActiveRecord::Base
   has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
   has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
   has_many :elements, :through => :firm_commitments
+  #
+  #  This next one took a bit of crafting.  It is used to optimize
+  #  fetching the directly associated staff elements on events when
+  #  it is desired to list staff too in the main display.
+  #
+  #  Note that to get the benefit, you need to make sure your pre-load
+  #  and subsequent access to the items match.  If you pre-load with
+  #  this, but access them through event.elements (above) you don't
+  #  get any benefit.
+  #
   has_many :staff_elements, -> { where(elements: {entity_type: "Staff"}) }, class_name: "Element", :source => :element, :through => :firm_commitments
   has_many :notes, as: :parent, :dependent => :destroy
   has_many :attachments, as: :parent, :dependent => :destroy
@@ -534,6 +544,19 @@ class Event < ActiveRecord::Base
     else
       self.resources.select {|r| r.instance_of?(Staff)}
     end
+  end
+
+  #
+  #  Try for a potentially optimised way of doing it.
+  #  If the client does a preload() on staff_elements and the
+  #  corresponding entities, then these should already be in memory.
+  #
+  #  element.commitments_on(...).preload(event: {staff_elements: :entity})
+  #
+  #  does the job.
+  #
+  def staff_entities
+    staff_elements.collect {|e| e.entity}
   end
 
   def groups

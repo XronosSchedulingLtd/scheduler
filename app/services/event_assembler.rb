@@ -208,7 +208,7 @@ class EventAssembler
       end
       @title = event.body
       if list_teachers
-        staff = event.staff
+        staff = event.staff_entities
         if staff.size > 0
           @title += " - #{staff.collect {|s| s.initials}.join(", ")}"
         end
@@ -509,7 +509,7 @@ class EventAssembler
                                      eventcategory:       event_categories,
                                      include_nonexistent: true)
             if concern.list_teachers
-              selector = selector.preload(event: {elements: :entity})
+              selector = selector.preload(event: {staff_elements: :entity})
             else
               selector = selector.preload(:event)
             end
