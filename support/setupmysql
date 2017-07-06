@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# A skeletal script for setting up the necessary MYSQL databases.
+# Set the following environment variables before using it.
+
+DATABASE_PREFIX="not set"
+DATABASE_PASSWORD="not set"
+
+#
+#  These next two probably don't need changing, but you might want to.
+#
+DATABASE_USER="scheduler"
+CLIENT_HOST="localhost"
+
+if [ "$DATABASE_PREFIX" == "not set" ]; then
+  echo "Please edit this script first and set a suitable prefix"
+  echo "for your database names."
+  exit 1
+fi
+
+if [ "$DATABASE_PASSWORD" == "not set" ]; then
+  echo "Please edit this script first and set a password which"
+  echo "your client programs will use.  (*Not* the admin password"
+  echo "for the database engine)."
+  exit 1
+fi
+
+mysql -u root -p << EOF
+create database ${DATABASE_PREFIX}_development;
+create database ${DATABASE_PREFIX}_production;
+create database ${DATABASE_PREFIX}_test;
+
+grant all on ${DATABASE_PREFIX}_development.* to '${DATABASE_USER}'@'${CLIENT_HOST}' identified by '${DATABASE_PASSWORD}';
+grant all on ${DATABASE_PREFIX}_production.* to '${DATABASE_USER}'@'${CLIENT_HOST}' identified by '${DATABASE_PASSWORD}';
+grant all on ${DATABASE_PREFIX}_test.* to '${DATABASE_USER}'@'${CLIENT_HOST}' identified by '${DATABASE_PASSWORD}';
+flush privileges;
+
+exit
+EOF
