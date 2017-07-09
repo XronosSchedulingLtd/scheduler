@@ -462,7 +462,14 @@ class User < ActiveRecord::Base
         #  By default, each user gets the public calendars displayed.
         #  Students can't remove them (although they can suppress them).
         #
-        Property.public_ones.each do |p|
+        if staff
+          selector = Property.for_staff
+        elsif pupil
+          selector = Property.for_pupils
+        else
+          selector = Property.none
+        end
+        selector.each do |p|
           unless self.concern_with(p.element)
             self.concerns.create!({
               element:  p.element,
