@@ -197,7 +197,17 @@ class EventAssembler
       #               for the case of a fake all-day event.
       #
       if !event.all_day && event.starts_at.to_date < event.ends_at.to_date
-        @multi_day_timed = true
+        #
+        #  One final thing might prevent this being a timed multi-day event.
+        #  It might end at midnight on the same day that it starts.  This
+        #  is recorded as 00:00:00 on the next day.
+        #
+        if (event.starts_at.to_date + 1.day == event.ends_at.to_date) &&
+           event.ends_at.midnight?
+          @multi_day_timed = false
+        else
+          @multi_day_timed = true
+        end
       else
         @multi_day_timed = false
       end
@@ -255,7 +265,16 @@ class EventAssembler
           @event.starts_at.to_date.iso8601
         end
       elsif @multi_day_timed
-        (@event.ends_at.to_date + 1.day).iso8601
+        #
+        #  It is just possible that although this is a timed event, the
+        #  end time has been set to midnight.  If that's the case, then
+        #  we don't need to add an extra day.
+        #
+        if @event.ends_at.midnight?
+          @event.ends_at.to_date.iso8601
+        else
+          (@event.ends_at.to_date + 1.day).iso8601
+        end
       else
         #
         #  Odd to see a test here for ends_at being nil, because the
