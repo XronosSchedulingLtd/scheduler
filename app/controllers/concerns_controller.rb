@@ -1,6 +1,58 @@
 class ConcernsController < ApplicationController
   include DisplaySettings
 
+  class IcalUrl
+    attr_reader :title, :url, :linkid
+
+    def initialize(title, element, id, options = nil)
+      @title = title
+      if element
+        @url = "#{Setting.protocol_prefix}://#{Setting.dns_domain_name}#{Setting.port_no}/ical/UUE-#{element.uuid}"
+        if options
+          options_array = []
+          options.each do |key, element|
+            case key
+            when :cover
+              if element
+                options_array << "cover"
+              else
+                options_array << "!cover"
+              end
+            when :categories
+              options_array << "categories=#{element}"
+            when :everything
+              options_array << "everything"
+            end
+          end
+          unless options_array.empty?
+            @url = @url + "?#{options_array.join("&")}"
+          end
+        end
+      else
+        @url = "#{Setting.protocol_prefix}://#{Setting.dns_domain_name}#{Setting.port_no}/ical/0"
+      end
+      @linkid = id.to_s
+    end
+
+    def to_partial_path
+      "ical_url"
+    end
+
+  end
+
+  class IcalUrlSet < Array
+    attr_reader :heading
+
+    def initialize(heading)
+      @heading = heading
+    end
+
+    def to_partial_path
+      "ical_url_set"
+    end
+
+  end
+
   before_action :set_concern, only: [:edit, :update]
 
   # POST /concerns
@@ -112,6 +164,11 @@ class ConcernsController < ApplicationController
   def edit
     if current_user.can_edit?(@concern)
       session[:return_to] = request.referer
+      #
+      #  If the user has generated a report for this concern's element
+      #  before then we will have saved the options used on that occasion.
+      #  If not, then create a new one with some default values.
+      #
       if @concern.itemreport
         @item_report = @concern.itemreport
       else
@@ -134,57 +191,14 @@ class ConcernsController < ApplicationController
       #  There's quite a bit of thinking about what flags to show, so
       #  do it here rather than in the view.
       #
-      @options_flags = [
-        {field: :visible,
-         annotation: "Should this resource's events be visible currently?"},
-        {field: :list_teachers,
-         annotation: "Do you want teachers' initials listed with the event title?"}]
-      if current_user.editor || current_user.admin
-        @options_flags <<
-          {field: :auto_add,
-           annotation: "When creating a new event, should this resource be added automatically?"}
-      end
+      @options_flags = construct_options_flags
       #
-      #  If we are doing the "reduced" version, then this field appears
-      #  later.
+      #  And URLs for getting ical feeds.
       #
-      if @concern.equality && !@reduced
-        @options_flags <<
-          {field: :owns,
-           prompt: "Approve events",
-           annotation: "Do you want to approve events as you are added to them?"}
-      end
-      if @concern.owns || @concern.skip_permissions || @reduced
-        @options_flags <<
-          {field: :seek_permission,
-           annotation: "Although you can add this resource without permission, would you like to go through the permissions process anyway?"}
-      end
-      #
-      #  And now some more which only an administrator can change.
-      #  This incidentally is where an admin gets access to the "owns" flag.
-      #  Note the slightly confusing names of the underlying flags.
-      #  The "controls" flag, gives the owner additional control - the
-      #  means to edit any event involving the resource.
-      #
-      #  Note that the @reduced flag is set only if the user is an admin,
-      #  so these flags won't ever be displayed to non-admins, even if
-      #  they put ?reduced on their URL.
-      #
-      if @reduced
-        @options_flags <<
-          {field: :equality,
-           annotation: "Is this user the same thing as the corresponding element? Generally used to link users to staff or pupil records."}
-        @options_flags <<
-          {field: :owns,
-           prompt: "Controls",
-           annotation: "Does this user control this element and approve requests for its use?"}
-        @options_flags <<
-          {field: :controls,
-           prompt: "Edit any",
-           annotation: "Should this user be able to edit any event which uses this resource?"}
-        @options_flags <<
-          {field: :skip_permissions,
-           annotation: "Should this user be able to skip the permissions process when adding this resource to an event?"}
+      if @concern.element.uuid.blank?
+        @urls = nil
+      else
+        @urls = construct_urls
       end
     else
       redirect_to :root
@@ -273,6 +287,105 @@ class ConcernsController < ApplicationController
   end
 
   private
+
+  #
+  #  Set up the options flags which the user will be able to manipulate
+  #  on the concern.
+  #
+  def construct_options_flags
+    options_flags = [
+      {field: :visible,
+       annotation: "Should this resource's events be visible currently?"},
+      {field: :list_teachers,
+       annotation: "Do you want teachers' initials listed with the event title?"}]
+    if current_user.editor || current_user.admin
+      options_flags <<
+        {field: :auto_add,
+         annotation: "When creating a new event, should this resource be added automatically?"}
+    end
+    #
+    #  If we are doing the "reduced" version, then this field appears
+    #  later.
+    #
+    if @concern.equality && !@reduced
+      options_flags <<
+        {field: :owns,
+         prompt: "Approve events",
+         annotation: "Do you want to approve events as you are added to them?"}
+    end
+    if @concern.owns || @concern.skip_permissions || @reduced
+      options_flags <<
+        {field: :seek_permission,
+         annotation: "Although you can add this resource without permission, would you like to go through the permissions process anyway?"}
+    end
+    #
+    #  And now some more which only an administrator can change.
+    #  This incidentally is where an admin gets access to the "owns" flag.
+    #  Note the slightly confusing names of the underlying flags.
+    #  The "controls" flag, gives the owner additional control - the
+    #  means to edit any event involving the resource.
+    #
+    #  Note that the @reduced flag is set only if the user is an admin,
+    #  so these flags won't ever be displayed to non-admins, even if
+    #  they put ?reduced on their URL.
+    #
+    if @reduced
+      options_flags <<
+        {field: :equality,
+         annotation: "Is this user the same thing as the corresponding element? Generally used to link users to staff or pupil records."}
+      options_flags <<
+        {field: :owns,
+         prompt: "Controls",
+         annotation: "Does this user control this element and approve requests for its use?"}
+      options_flags <<
+        {field: :controls,
+         prompt: "Edit any",
+         annotation: "Should this user be able to edit any event which uses this resource?"}
+      options_flags <<
+        {field: :skip_permissions,
+         annotation: "Should this user be able to skip the permissions process when adding this resource to an event?"}
+    end
+    options_flags
+  end
+
+  def construct_urls
+    #
+    #  Just the one set to start with.
+    #
+    result = []
+    entity_type = @concern.element.entity_type
+    if entity_type == "Pupil" || entity_type == "Staff"
+      set1 = IcalUrlSet.new("Simple feed")
+      set1 << IcalUrl.new("Breakthrough events", nil, 0)
+      set1 << IcalUrl.new("Schedule", @concern.element, 1)
+      result << set1
+      if entity_type == "Staff"
+        set2 = IcalUrlSet.new("More separate feeds")
+        set2 << IcalUrl.new("Breakthrough events", nil, 2)
+        set2 << IcalUrl.new("Basic schedule",
+                            @concern.element,
+                            3,
+                            cover: false,
+                            categories: "!Invigilation")
+        set2 << IcalUrl.new("Cover",
+                            @concern.element,
+                            4,
+                            cover: true)
+        set2 << IcalUrl.new("Invigilation",
+                            @concern.element,
+                            5,
+                            categories: "Invigilation")
+        result << set2
+      end
+    end
+    set3 = IcalUrlSet.new("All in one")
+    set3 << IcalUrl.new("The lot",
+                        @concern.element,
+                        6,
+                        everything: true)
+    result << set3
+    result
+  end
 
   def set_concern
     @concern = Concern.find(params[:id])

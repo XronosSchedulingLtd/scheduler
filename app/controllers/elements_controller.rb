@@ -422,6 +422,7 @@ class ElementsController < ApplicationController
       got_something = false
       any_params    = false
       by_initials   = false
+      everything    = false
       prefix = "notset"
       calendar_name = "notset"
       calendar_description = "notset"
@@ -445,6 +446,10 @@ class ElementsController < ApplicationController
         #  The requestor wants to exclude cover events.
         #
         include_cover = false
+      end
+      if params.has_key?(:everything)
+        any_params = true
+        everything = true
       end
       if params[:start_date]
         any_params = true
@@ -547,7 +552,7 @@ class ElementsController < ApplicationController
           end
         end
         if element
-          if by_initials && !any_params
+          if (by_initials && !any_params) || everything
             #
             #  We fall back to old-style processing for reverse compatibility.
             #

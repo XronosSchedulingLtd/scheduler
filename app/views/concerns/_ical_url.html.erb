@@ -1,0 +1,21 @@
+<div class="row collapse">
+  <label><%= ical_url.title %></label>
+  <div class="large-12 columns">
+    <div class="row collapse">
+      <div class="small-9 columns">
+        <input id='ical-link-<%= ical_url.linkid %>'
+             type='text'
+             value='<%= ical_url.url %>'/>
+      </div>
+      <div class="small-1 column">
+        <a class="clip-button zfbutton postfix"
+           data-clipboard-target='#ical-link-<%= ical_url.linkid %>'
+           title="Copy to clipboard">
+        <img src="/images/clippy.png" />
+        </a>
+      </div>
+      <div class="small-2 columns">
+      </div>
+    </div>
+  </div>
+</div>
