@@ -76,6 +76,13 @@ module Elemental
           #  the only way now to stop our parent entity record being
           #  created.
           #
+          #  There is a long standing bug in ActiveRecord which comes
+          #  and goes, but can result in the record having an id, even
+          #  though we raise an error and thus cause a rollback.
+          #
+          #  Set it back to nil ourselves.
+          #
+          self.id = nil
           raise "Couldn't create Element."
         end
       end
