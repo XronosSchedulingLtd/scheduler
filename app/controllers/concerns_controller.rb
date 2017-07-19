@@ -9,6 +9,7 @@ class ConcernsController < ApplicationController
     @reload_concerns = false
     @concern = Concern.new(concern_params)
     @concern.user = current_user
+    @concern.list_teachers = current_user.list_teachers
     if @concern.element &&
        @concern.element.preferred_colour
       @concern.colour = @concern.element.preferred_colour
@@ -135,7 +136,9 @@ class ConcernsController < ApplicationController
       #
       @options_flags = [
         {field: :visible,
-         annotation: "Should this resource's events be visible currently?"}]
+         annotation: "Should this resource's events be visible currently?"},
+        {field: :list_teachers,
+         annotation: "Do you want teachers' initials listed with the event title?"}]
       if current_user.editor || current_user.admin
         @options_flags <<
           {field: :auto_add,
@@ -288,7 +291,8 @@ class ConcernsController < ApplicationController
                     :seek_permission,
                     :equality,
                     :controls,
-                    :skip_permissions)
+                    :skip_permissions,
+                    :list_teachers)
     else
       params.require(:concern).
              permit(:element_id,
@@ -297,7 +301,8 @@ class ConcernsController < ApplicationController
                     :colour,
                     :auto_add,
                     :owns,
-                    :seek_permission)
+                    :seek_permission,
+                    :list_teachers)
     end
   end
 end

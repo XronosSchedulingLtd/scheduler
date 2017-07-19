@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170607085043) do
+ActiveRecord::Schema.define(version: 20170719114100) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -65,6 +65,7 @@ ActiveRecord::Schema.define(version: 20170607085043) do
     t.boolean  "controls",         default: false
     t.boolean  "skip_permissions", default: false
     t.boolean  "seek_permission",  default: false
+    t.boolean  "list_teachers",    default: false
   end
 
   add_index "concerns", ["element_id"], name: "index_concerns_on_element_id", using: :btree
@@ -570,6 +571,7 @@ ActiveRecord::Schema.define(version: 20170607085043) do
     t.integer  "day_shape_id"
     t.text     "suppressed_eventcategories"
     t.text     "extra_eventcategories"
+    t.boolean  "list_teachers",               default: false
   end
 
 end

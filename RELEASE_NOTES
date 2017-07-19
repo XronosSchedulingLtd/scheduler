@@ -1,3 +1,40 @@
+v0.20.6 2016-06-30
+
+* Display staff initials on invigilation (and other) events.
+
+  At the request of Abingdon School, it is now possible to switch
+  on the display of staff initials for events in the main calendar
+  display.  This is done on a per-concern basis and defaults to off.
+
+  Note that it will display only staff directly connected to the event.
+  Staff indirectly connected by way of a group membership will not
+  be included (far too computationally expensive).
+  
+  The primary function is to enable a quick view of who is doing
+  each invigilation slot, but it may also be of use to students wanting
+  to see who is teaching each lesson.
+
+  To switch on, click on the relevant concern in your left hand column
+  and tick the "List teachers" box.  You can also set it to default to
+  on by clicking on your user name (top right) and ticking the box
+  there.  Any new concerns you create will then have the box pre-ticked.
+
+* Fix to auto-update of pending requests count.
+
+  The URL used to auto-update a user's pending request count was slightly
+  wrong, meaning it worked only if the user was on the main screen.
+  This has now been corrected so it will work anywhere.
+
+* Fix to testing environment.
+
+  The request notification code implemented in the previous release had
+  an edge case which cannot arise in the development or production
+  environments but can be triggered in the test environment where things
+  are potentially done out of sequence.  Specifically - attempting to
+  update an event without first starting to edit it.  This led to one
+  test failing.  The code has been fixed so the test no longer fails.
+
+
 v0.20.5 2017-06-21
 
 * Add reply-to to invigilation e-mails.

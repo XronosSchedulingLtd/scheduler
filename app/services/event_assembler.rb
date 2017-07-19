@@ -71,7 +71,8 @@ class EventAssembler
                    via_element,
                    current_user = nil,
                    colour = nil,
-                   mine = false)
+                   mine = false,
+                   list_teachers = false)
       @event   = event
       if via_element
         @sort_by = "#{via_element.id} #{event.body}"
@@ -206,6 +207,12 @@ class EventAssembler
         @prefix = nil
       end
       @title = event.body
+      if list_teachers
+        staff = event.staff_entities
+        if staff.size > 0
+          @title += " - #{staff.collect {|s| s.initials}.join(", ")}"
+        end
+      end
       @all_day = event.all_day || @multi_day_timed
       #
       #  Note that our idea of editable is slightly different from
@@ -496,12 +503,18 @@ class EventAssembler
             #
             resulting_events = []
           else
-            resulting_events =
+            selector =
               element.commitments_on(startdate:           start_date,
                                      enddate:             end_date,
                                      eventcategory:       event_categories,
-                                     include_nonexistent: true).
-                      preload(:event).
+                                     include_nonexistent: true)
+            if concern.list_teachers
+              selector = selector.preload(event: {staff_elements: :entity})
+            else
+              selector = selector.preload(:event)
+            end
+            resulting_events =
+                      selector.
                       select {|c| concern.owns ||
                                   @current_user.admin ||
                                   !c.tentative ||
@@ -514,7 +527,8 @@ class EventAssembler
                                           element,
                                           @current_user,
                                           concern.colour,
-                                          concern.equality)
+                                          concern.equality,
+                                          concern.list_teachers)
                       }
           end
         end
