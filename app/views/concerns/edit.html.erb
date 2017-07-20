@@ -16,10 +16,6 @@ end
   <br/>
   Approvals: <%= @concern.element.owners.collect {|u| u.name }.join(", ") %>
 <% end %>
-<% if @urls %>
-  <%= render @urls %>
-<% end %>
-
 </p>
 <hr/>
 <h3>Appearance</h3>
@@ -60,6 +56,11 @@ end
     <%= f.submit "Save changes", :class => "zfbutton tiny radius" %>
   </div>
 </div>
+<% end %>
+
+<% if @urls %>
+<hr/>
+  <%= render @urls %>
 <% end %>
 
 <hr/>
