@@ -552,6 +552,8 @@ class ElementsController < ApplicationController
           end
         end
         if element
+          prefix = "E#{element.id}E"
+          calendar_description = "#{element.name}'s events"
           if (by_initials && !any_params) || everything
             #
             #  We fall back to old-style processing for reverse compatibility.
@@ -569,9 +571,7 @@ class ElementsController < ApplicationController
                Event.events_on(starts_on, ends_on, extra_categories).
                      includes(elements: :entity)).uniq
             got_something = true
-            prefix = staff.initials
-            calendar_name = staff.initials
-            calendar_description = "#{staff.name}'s timetable"
+            calendar_name = element.short_name
           else
             #
             #  Either specified by id number, or by initials but with some
@@ -604,13 +604,11 @@ class ElementsController < ApplicationController
             dbevents =
               selector.includes(event: {elements: :entity}).collect {|c| c.event}
             got_something = true
-            prefix = "E#{element.id}E"
             if include_non_cover
               calendar_name = element.short_name
             else
               calendar_name = "#{element.short_name}'s cover"
             end
-            calendar_description = "#{element.name}'s events"
           end
         end
       end
