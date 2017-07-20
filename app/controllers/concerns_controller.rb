@@ -355,12 +355,12 @@ class ConcernsController < ApplicationController
     result = []
     entity_type = @concern.element.entity_type
     if entity_type == "Pupil" || entity_type == "Staff"
-      set1 = IcalUrlSet.new("Simple feed")
+      set1 = IcalUrlSet.new("Simple feeds")
       set1 << IcalUrl.new("Breakthrough events", nil, 0)
       set1 << IcalUrl.new("Schedule", @concern.element, 1)
       result << set1
       if entity_type == "Staff"
-        set2 = IcalUrlSet.new("More separate feeds")
+        set2 = IcalUrlSet.new("More separation")
         set2 << IcalUrl.new("Breakthrough events", nil, 2)
         set2 << IcalUrl.new("Basic schedule",
                             @concern.element,
