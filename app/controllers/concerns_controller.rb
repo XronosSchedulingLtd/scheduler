@@ -187,6 +187,11 @@ class ConcernsController < ApplicationController
       #  the actual concern which can be edited is increased.
       #
       @reduced = params.has_key?(:reduced) && current_user.admin
+      if @reduced
+        @title = "#{@concern.user.name}'s concern with #{@concern.element.name}"
+      else
+        @title = "#{@concern.element.name}"
+      end
       #
       #  There's quite a bit of thinking about what flags to show, so
       #  do it here rather than in the view.
@@ -200,6 +205,7 @@ class ConcernsController < ApplicationController
       else
         @urls = construct_urls
       end
+      @proforma = @concern.owns && !@concern.equality
     else
       redirect_to :root
     end
