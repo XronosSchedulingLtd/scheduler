@@ -1,4 +1,44 @@
-v0.20.6 2016-06-30
+v0.21   2017-07-21
+
+* Provide ical feeds by UUID
+
+  Originally, ical feeds were specified by staff initials, then later by
+  element ID allowing feeds to be taken for any element, not just staff.
+  This is slightly insecure in that element IDs are allocated sequentially,
+  so any reasonably small integer would result in some sort of feed
+  although it was impossible to predict what you'd get.
+
+  This release adds a random UUID to each element record and ical feeds
+  can now be requested by UUID as well.  For security, the system administrator
+  can choose to turn off the previous methods, meaning only the UUID one
+  will work.  Guessing a UUID is pretty much impossible.
+
+* Pre-formatted ical feed URLs.
+
+  Since UUIDs are long and potentially very boring to type, the system
+  now also provides pre-formatted feed URLs which can be copied to the
+  user's clipboard and then pasted into whatever calendar program is in
+  use.  These will be found on each element's "Concern" page - accessed
+  by clicking on one of the coloured boxes down the left hand side of
+  the page.
+
+  Several different URLs are provided for each item, allowing them to get
+  all their events in one go, or split out such things as cover and
+  invigilation.  This means they can choose to display these items in
+  a different colour from their normal events.
+
+  Additional system settings have been provided to allow the system
+  adminstrator to set the base URL to use, and whether the URLs should
+  begin "http:" or "https:".
+
+* Split concerns page into tabs.
+
+  With the addition of the URLs to the existing page about each Concern,
+  the length of the page became excessive.  It has been split into several
+  tabs to make it easier to use.
+
+
+v0.20.6 2017-06-30
 
 * Display staff initials on invigilation (and other) events.
 
