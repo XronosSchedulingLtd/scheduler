@@ -125,6 +125,26 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= f.label :prefer_https, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.check_box :prefer_https %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "Required UUID for iCal feed", class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.check_box :require_uuid %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       <%= f.label :from_email_address, "E-mail address for From:", class: "right" %>
     </div>
     <div class="small-6 columns">

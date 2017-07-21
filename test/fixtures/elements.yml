@@ -4,49 +4,61 @@ one:
   name: MyString
   entity_id: 1
   entity_type: MyString
+  uuid: "aaaa"
 
 two:
   name: MyString
   entity_id: 1
   entity_type: MyString
+  uuid: "bbbb"
 
 pupiloneelement:
   name: PupilOne
   entity: pupilone (Pupil)
+  uuid: "cccc"
 
 pupiltwoelement:
   name: PupilOne
   entity: pupiltwo (Pupil)
+  uuid: "dddd"
 
 staffoneelement:
   name: StaffOne
   entity: staffone (Staff)
+  uuid: "eeee"
 
 stafftwoelement:
   name: StaffTwo
   entity: stafftwo (Staff)
+  uuid: "ffff"
 
 teachingoneelement:
   name: TeachingOne
   entity: teachingone (Teachinggroup)
+  uuid: "gggg"
 
 teachingtwoelement:
   name: TeachingTwo
   entity: teachingtwo (Teachinggroup)
+  uuid: "hhhh"
 
 tutoroneelement:
   name: TutorOne
   entity: tutorone (Tutorgroup)
+  uuid: "iiii"
 
 tutortwoelement:
   name: TutorTwo
   entity: tutortwo (Tutorgroup)
+  uuid: "jjjj"
 
 roomoneelement:
   name: "Room one"
   entity: roomone (Location)
+  uuid: "kkkk"
 
 roomtwoelement:
   name: "Room two"
   entity: roomtwo (Location)
+  uuid: "llll"
 

@@ -49,6 +49,8 @@ class SettingsController < ApplicationController
                     :previous_mis,
                     :auth_type,
                     :dns_domain_name,
-                    :from_email_address)
+                    :from_email_address,
+                    :prefer_https,
+                    :require_uuid)
     end
 end
