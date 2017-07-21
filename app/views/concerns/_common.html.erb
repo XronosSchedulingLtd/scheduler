@@ -1,0 +1,12 @@
+Unique ID: <%= @concern.element_id %><br/>
+Type: <%= @concern.element.description %>
+<% if @concern.element.entity.instance_of?(Group) %>
+- <%= @concern.element.entity.members.count %> current members
+<% end %>
+<%= link_to "Full details", element_path(@concern.element) %>
+
+<% if @concern.element.owned %>
+<br/>
+Approvals: <%= @concern.element.owners.collect {|u| u.name }.join(", ") %>
+<% end %>
+

@@ -422,6 +422,7 @@ class ElementsController < ApplicationController
       got_something = false
       any_params    = false
       by_initials   = false
+      everything    = false
       prefix = "notset"
       calendar_name = "notset"
       calendar_description = "notset"
@@ -445,6 +446,10 @@ class ElementsController < ApplicationController
         #  The requestor wants to exclude cover events.
         #
         include_cover = false
+      end
+      if params.has_key?(:everything)
+        any_params = true
+        everything = true
       end
       if params[:start_date]
         any_params = true
@@ -518,18 +523,38 @@ class ElementsController < ApplicationController
         calendar_name = "School dates"
         calendar_description = "Abingdon school key dates"
       else
-        element = Element.find_by_id(element_id)
-        unless element
-          staff = Staff.eager_load(:element).
-                        find_by(initials: params[:id].upcase,
-                                current:  true)
-          if staff
-            element = staff.element
-            by_initials = true
+        if /^UUE-/ =~ element_id
+          #
+          #  Being specified by UUID
+          #
+          element = Element.find_by(uuid: element_id[4..-1])
+        else
+          #
+          #  We have some fallback methods of finding an element, but
+          #  as they are potentially insecure we may not allow them.
+          #
+          if Setting.require_uuid
+            element = nil
+          else
+            #
+            #  Use find_by to avoid throwing an error.
+            #
+            element = Element.find_by(id: element_id)
+            unless element
+              staff = Staff.eager_load(:element).
+                            find_by(initials: params[:id].upcase,
+                                    current:  true)
+              if staff
+                element = staff.element
+                by_initials = true
+              end
+            end
           end
         end
         if element
-          if by_initials && !any_params
+          prefix = "E#{element.id}E"
+          calendar_description = "#{element.name}'s events"
+          if (by_initials && !any_params) || everything
             #
             #  We fall back to old-style processing for reverse compatibility.
             #
@@ -546,9 +571,7 @@ class ElementsController < ApplicationController
                Event.events_on(starts_on, ends_on, extra_categories).
                      includes(elements: :entity)).uniq
             got_something = true
-            prefix = staff.initials
-            calendar_name = staff.initials
-            calendar_description = "#{staff.name}'s timetable"
+            calendar_name = element.short_name
           else
             #
             #  Either specified by id number, or by initials but with some
@@ -581,19 +604,20 @@ class ElementsController < ApplicationController
             dbevents =
               selector.includes(event: {elements: :entity}).collect {|c| c.event}
             got_something = true
-            prefix = "E#{element.id}E"
             if include_non_cover
               calendar_name = element.short_name
             else
               calendar_name = "#{element.short_name}'s cover"
             end
-            calendar_description = "#{element.name}'s events"
           end
         end
       end
       unless got_something
         #
         #  Invalid requests now get a useless file.
+        #
+        #  TODO: Surely we should return some sort of error to avoid
+        #  being asked again?
         #
         calendar_name = "Unknown"
         calendar_description = "Request was invalid"

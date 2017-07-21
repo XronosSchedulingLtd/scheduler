@@ -1,0 +1,39 @@
+<%= form_for(@concern) do |f| %>
+  <% if @concern.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@group.errors.count, "error") %> prohibited this group from being saved:</h2>
+
+      <ul>
+<% @group.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+<% end %>
+      </ul>
+    </div>
+  <% end %>
+
+<div class="row">
+  <div class="small-12 medium-6 large-4 columns">
+    <label>Colour</label>
+    <div class="concern-block">
+      <div class="concern-button" id="colour-sample" style="background-color:<%= @concern.colour %>">
+        <span class="concern-spacer"></span>
+        <div class="concern-text"><%= @concern.element.name %></div>
+      </div>
+      <span style="float: right">
+        <% if @concern.element.preferred_colour.blank? %>
+          <%= f.hidden_field :colour, :id => :colour_picker %>
+        <% else %>
+          <%= f.hidden_field :colour,
+            :id => :colour_picker,
+            "data-default-colour" => @concern.element.preferred_colour %>
+        <% end %>
+      </span>
+    </div>
+  </div>
+  <%= flag_group(f, 12, 6, "Options", @options_flags) %>
+  <div class="small-12 medium-6 large-4 columns">
+    <%= f.submit "Save changes", :class => "zfbutton tiny radius" %>
+  </div>
+</div>
+<% end %>
+

@@ -25,6 +25,8 @@ class GroupsControllerTest < ActionController::TestCase
         starts_on: @group.starts_on,
         name: @group.name }
 #      puts assigns(:group).errors.inspect
+#      assigns(:group).reload
+#      puts assigns(:group).element.uuid
     end
 
     assert_redirected_to edit_group_path(assigns(:group))

@@ -67,7 +67,24 @@ module Elemental
           creation_hash[:owner_id] = self.entitys_owner_id
         end
         self.adjust_element_creation_hash(creation_hash)
-        Element.create!(creation_hash)
+        begin
+          Element.create!(creation_hash)
+        rescue ActiveRecord::RecordNotUnique => e
+          Rails.logger.error("Failed to create element for #{self.class}")
+          #
+          #  Unfortunately we still need to raise an error, because it's
+          #  the only way now to stop our parent entity record being
+          #  created.
+          #
+          #  There is a long standing bug in ActiveRecord which comes
+          #  and goes, but can result in the record having an id, even
+          #  though we raise an error and thus cause a rollback.
+          #
+          #  Set it back to nil ourselves.
+          #
+          self.id = nil
+          raise "Couldn't create Element."
+        end
       end
     end
   end
