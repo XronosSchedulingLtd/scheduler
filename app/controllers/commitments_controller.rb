@@ -89,6 +89,7 @@ class CommitmentsController < ApplicationController
       end
     end
     @event = @commitment.event
+    @resourcewarning = @event.resourceless?
     respond_to do |format|
       format.js
     end
@@ -102,6 +103,8 @@ class CommitmentsController < ApplicationController
         session[:request_notifier].commitment_removed(@commitment)
       end
       @commitment.destroy
+      @event.reload
+      @resourcewarning = @event.resourceless?
     end
     respond_to do |format|
       format.js

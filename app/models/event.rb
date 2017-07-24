@@ -435,6 +435,13 @@ class Event < ActiveRecord::Base
     self.elements.collect {|e| e.entity}
   end
 
+  #
+  #  Do we actually have any resources?
+  #
+  def resourceless?
+    self.commitments.count == 0
+  end
+
   def all_atomic_resources
     found = Array.new
     self.elements.each do |e|

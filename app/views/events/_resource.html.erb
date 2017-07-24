@@ -31,6 +31,22 @@
     <%= commitment_entries_for(resource, Property, editing, current_user) %>
   </div>
 </div>
+  <% if @resourcewarning %>
+    <div class="row collapse">
+      <div class="small-10 small-offset-1 columns">
+        <div class="no-resource-warning">
+        Warning!  Your event currently has no resources attached to it
+        which means that no-one other than you will be able to see it
+        (and then only if you tick the "My events" box).  Think about
+        what resources - people, places and services - your event is
+        going to use and add them to the event so that your event will
+        appear in all the appropriate schedules.
+        </div>
+      </div>
+      <div class="small-1 column">
+      </div>
+    </div>
+  <% end %>
 <% else %>
 <div class="row collapse">
   <div class="small-12 medium-4 columns">

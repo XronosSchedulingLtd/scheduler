@@ -114,3 +114,12 @@ ul.filter-list {
     }
   }
 }
+
+.no-resource-warning {
+  border: 3px solid red;
+  padding-left: 8px;
+  padding-top: 4px;
+  padding-right: 8px;
+  padding-bottom: 8px;
+  border-radius: 8px;
+}
