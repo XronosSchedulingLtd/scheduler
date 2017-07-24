@@ -203,7 +203,7 @@ class UsersController < ApplicationController
                       :can_roam,
                       :firstday,
                       :list_teachers,
-                      :no_resource_warning,
+                      :warn_no_resources,
                       :preferred_event_category_id,
                       :colour_not_involved,
                       :default_event_text,
@@ -212,7 +212,7 @@ class UsersController < ApplicationController
         params.require(:user).
                permit(:firstday,
                       :list_teachers,
-                      :no_resource_warning,
+                      :warn_no_resources,
                       :email_notification,
                       :immediate_notification,
                       :clash_weekly,
@@ -228,7 +228,7 @@ class UsersController < ApplicationController
         params.require(:user).
                permit(:firstday,
                       :list_teachers,
-                      :no_resource_warning,
+                      :warn_no_resources,
                       :colour_not_involved,
                       :email_notification,
                       :immediate_notification,

@@ -89,7 +89,7 @@ class CommitmentsController < ApplicationController
       end
     end
     @event = @commitment.event
-    @resourcewarning = current_user.no_resource_warning && @event.resourceless?
+    @resourcewarning = current_user.warn_no_resources && @event.resourceless?
     respond_to do |format|
       format.js
     end
@@ -105,7 +105,7 @@ class CommitmentsController < ApplicationController
       @commitment.destroy
       @event.reload
       @resourcewarning =
-        current_user.no_resource_warning && @event.resourceless?
+        current_user.warn_no_resources && @event.resourceless?
     end
     respond_to do |format|
       format.js

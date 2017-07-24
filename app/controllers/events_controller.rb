@@ -32,6 +32,18 @@ class EventsController < ApplicationController
     #
     @visible_commitments, @approvable_commitments =
       @event.commitments_for(current_user)
+    #
+    #  No point in warning a user who doesn't have the edit privileges
+    #  to do anything about it.
+    #
+    if current_user &&
+       current_user.warn_no_resources &&
+       current_user.can_subedit?(@event) &&
+       @event.resourceless?
+      @resourcewarning = true
+    else
+      @resourcewarning = false
+    end
   end
 
   # GET /events/1
@@ -163,7 +175,7 @@ class EventsController < ApplicationController
     #
     if current_user.can_subedit?(@event)
       @resourcewarning =
-        current_user.no_resource_warning && @event.resourceless?
+        current_user.warn_no_resources && @event.resourceless?
       respond_to do |format|
         format.html do
           if request.xml_http_request?
@@ -203,8 +215,7 @@ class EventsController < ApplicationController
         #  Does this user have any Concerns with the auto_add flag set?
         #
         current_user.concerns.auto_add.each do |concern|
-          c = Commitment.new
-          c.event = @event
+          c = @event.commitments.new
           c.tentative = current_user.needs_permission_for?(concern.element)
           c.element = concern.element
           c.save
@@ -222,8 +233,7 @@ class EventsController < ApplicationController
             #  Guard against double commitment.
             #
             unless current_user.concerns.auto_add.detect {|c| c.element == element}
-              c = Commitment.new
-              c.event = @event
+              c = @event.commitments.new
               c.tentative = current_user.needs_permission_for?(element)
               c.element = element
               c.save
@@ -239,6 +249,8 @@ class EventsController < ApplicationController
         @minimal = true
         @commitment = Commitment.new
         @commitment.event = @event
+        @resourcewarning =
+          current_user.warn_no_resources && @event.resourceless?
         format.html { redirect_to events_path, notice: 'Event was successfully created.' }
         format.json { render :show, status: :created, location: @event }
         format.js
@@ -266,6 +278,8 @@ class EventsController < ApplicationController
           @files = Array.new
           @visible_commitments, @approvable_commitments =
             @event.commitments_for(current_user)
+          @resourcewarning =
+            current_user.warn_no_resources && @event.resourceless?
           format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
           format.json { render :show, status: :ok, location: @event }
           format.js { @minimal = true; render :update }

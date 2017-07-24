@@ -572,7 +572,7 @@ ActiveRecord::Schema.define(version: 20170724115731) do
     t.text     "suppressed_eventcategories"
     t.text     "extra_eventcategories"
     t.boolean  "list_teachers",               default: false
-    t.boolean  "no_resource_warning",         default: true
+    t.boolean  "warn_no_resources",           default: true
   end
 
 end
