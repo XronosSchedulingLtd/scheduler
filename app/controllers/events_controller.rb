@@ -162,7 +162,8 @@ class EventsController < ApplicationController
     #  own events.
     #
     if current_user.can_subedit?(@event)
-      @resourcewarning = @event.resourceless?
+      @resourcewarning =
+        current_user.no_resource_warning && @event.resourceless?
       respond_to do |format|
         format.html do
           if request.xml_http_request?
