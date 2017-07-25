@@ -61,10 +61,13 @@ class CategoryValidator < ActiveModel::Validator
 end
 
 class CommitmentSet < Array
-  attr_reader :commitment_type
+  attr_reader :commitment_type, :show_clashes
 
   def initialize(commitment_type)
     @commitment_type = commitment_type
+    @show_clashes = (commitment_type == "Staff" ||
+                     commitment_type == "Pupil" ||
+                     commitment_type == "Location")
   end
 
   def element_names
@@ -433,6 +436,13 @@ class Event < ActiveRecord::Base
   #
   def resources
     self.elements.collect {|e| e.entity}
+  end
+
+  #
+  #  Do we actually have any resources?
+  #
+  def resourceless?
+    self.commitments.count == 0
   end
 
   def all_atomic_resources

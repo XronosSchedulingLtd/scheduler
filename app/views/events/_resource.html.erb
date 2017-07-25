@@ -31,6 +31,15 @@
     <%= commitment_entries_for(resource, Property, editing, current_user) %>
   </div>
 </div>
+  <% if @resourcewarning %>
+    <div class="row collapse">
+      <div class="small-10 small-offset-1 columns">
+        <%= render partial: "events/warning" %>
+      </div>
+      <div class="small-1 column">
+      </div>
+    </div>
+  <% end %>
 <% else %>
 <div class="row collapse">
   <div class="small-12 medium-4 columns">
