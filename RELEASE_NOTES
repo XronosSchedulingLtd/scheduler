@@ -1,3 +1,32 @@
+v0.22   2017-07-25
+
+* Issue a warning for events with no resources
+
+  The most common mistake which new users make is to create an event
+  but give it no resources at all.  They are then puzzled as to why
+  no-one can see it.
+
+  The system will now display a large warning message as soon as they
+  save an event with no resources.
+
+* Warn if rooms or people are double-booked.
+
+  Similarly, the system now checks whilst a user is adding resources
+  to an event, and highlights any people or locations which are explicitly
+  double-booked.  That is - have a direct commitment to an overlapping
+  event.
+
+  This feature won't pick up indirect commitments - via a group - so
+  it won't tell you if the student you want is in a lesson.  This is
+  too computationally expensive to perform on the fly, but the existing
+  flagging of clashes should pick these up and put a red dot on the
+  lessons.
+
+  The main purpose of this is to point out to people that the ICT room
+  (or whatever) which they've attempted to book is already booked
+  by someone else.
+
+
 v0.21   2017-07-21
 
 * Provide ical feeds by UUID
