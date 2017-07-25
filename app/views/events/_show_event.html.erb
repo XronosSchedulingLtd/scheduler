@@ -94,6 +94,9 @@
 
   </div>
   <div class="small-12 medium-9 columns">
+    <% if @resourcewarning %>
+      <%= render partial: "events/warning" %>
+    <% end %>
     <div id="show-all-commitments">
       <%= render partial: "show_all_commitments" %>
     </div>

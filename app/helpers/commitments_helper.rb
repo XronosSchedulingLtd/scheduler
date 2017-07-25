@@ -81,6 +81,20 @@ module CommitmentsHelper
         if editing && user.can_delete?(commitment)
           body = "#{body} #{delete_link(commitment)}"
         end
+        #
+        #  If the user is editing this event, then we also do a quick
+        #  check for clashes.  This is done for people and places only.
+        #
+        if editing &&
+           (target_class == Staff ||
+            target_class == Pupil ||
+            target_class == Location) &&
+           commitment.has_simple_clash?
+          #
+          #  Put it in yet another span.
+          #
+          body = "<span class=\"double-booked\" title=\"Double booked\">#{body}</span>"
+        end
         result << "<li>#{body}</li>"
       else
         #
