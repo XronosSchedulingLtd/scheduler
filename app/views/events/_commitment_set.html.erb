@@ -1,6 +1,6 @@
 <div class="small-12 large-<%= singleton ? "12" : "6" %> columns">
   <div class="commitmentset">
     <label><%= commitment_set.label_text %></label>
-    <p><%= list_commitment_set(commitment_set) %></p>
+    <p><%= list_commitment_set(commitment_set, current_user) %></p>
   </div>
 </div>

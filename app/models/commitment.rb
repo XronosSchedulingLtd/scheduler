@@ -163,6 +163,18 @@ class Commitment < ActiveRecord::Base
   end
 
   #
+  #  Does this commitment have a simple clash with another commitment.
+  #  That is, does its element have another direct commitment (not
+  #  by group) in the same time period.
+  #
+  def has_simple_clash?
+    self.element.commitments_during(
+      start_time:   self.event.starts_at,
+      end_time:     self.event.ends_at,
+      and_by_group: false).size > 1
+  end
+
+  #
   #  This is intended for use explicitly by the results of calling
   #  memberships_by_duration on the element model.
   #

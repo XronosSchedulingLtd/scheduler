@@ -8,7 +8,7 @@ module EventsHelper
     end
   end
 
-  def highlighted_name(commitment)
+  def highlighted_name(commitment, show_clashes, user)
     text = be_linken(commitment.element.name, commitment.element)
     if commitment.covering
       text = "#{text} (covering <span title='#{h(commitment.covering.element.name)}'>#{be_linken(commitment.covering.element.short_name, commitment.covering.element)}</span>)"
@@ -20,6 +20,9 @@ module EventsHelper
     elsif commitment.constraining
       text = "<span class='constraining-commitment'>#{text}</span>"
     end
+    if show_clashes && commitment.has_simple_clash? && user
+      text = "<span class='double-booked' title='Double booked'>#{text}</span>"
+    end
     text
   end
 
@@ -27,7 +30,8 @@ module EventsHelper
   #  Generate suitable html to list the members of a commitment set
   #  reasonably intelligently.
   #
-  def list_commitment_set(commitment_set)
+  def list_commitment_set(commitment_set,
+                          user = nil)
     results = Array.new
     commitment_set.each do |commitment|
       #
@@ -35,14 +39,14 @@ module EventsHelper
       #  under the covering commitment.
       #
       unless commitment.covered
-        results << highlighted_name(commitment)
+        results << highlighted_name(commitment, commitment_set.show_clashes, user)
       end
     end
     results.join(", ").html_safe
   end
 
-  def approval_links(commitment)
-    text = highlighted_name(commitment)
+  def approval_links(commitment, show_clashes = false, user = nil)
+    text = highlighted_name(commitment, show_clashes, user)
     if commitment.rejected
       text = "#{text} #{approve_link(commitment, "Confirm")}"
     elsif commitment.tentative
