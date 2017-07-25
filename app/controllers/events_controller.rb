@@ -174,8 +174,8 @@ class EventsController < ApplicationController
     #  own events.
     #
     if current_user.can_subedit?(@event)
-      @resourcewarning =
-        current_user.warn_no_resources && @event.resourceless?
+      @resourcewarning = false
+#        current_user.warn_no_resources && @event.resourceless?
       respond_to do |format|
         format.html do
           if request.xml_http_request?
@@ -249,8 +249,8 @@ class EventsController < ApplicationController
         @minimal = true
         @commitment = Commitment.new
         @commitment.event = @event
-        @resourcewarning =
-          current_user.warn_no_resources && @event.resourceless?
+        @resourcewarning = false
+#          current_user.warn_no_resources && @event.resourceless?
         format.html { redirect_to events_path, notice: 'Event was successfully created.' }
         format.json { render :show, status: :created, location: @event }
         format.js
@@ -274,12 +274,7 @@ class EventsController < ApplicationController
               send_notifications_for(current_user, @event)
           end
           @success = true
-          @notes = @event.all_notes_for(current_user)
-          @files = Array.new
-          @visible_commitments, @approvable_commitments =
-            @event.commitments_for(current_user)
-          @resourcewarning =
-            current_user.warn_no_resources && @event.resourceless?
+          assemble_event_info
           format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
           format.json { render :show, status: :ok, location: @event }
           format.js { @minimal = true; render :update }
