@@ -123,6 +123,7 @@ Rails.application.routes.draw do
     member do
       get :shownotes
       get :canceledit
+      get :coverrooms
       put 'moved'
       post :clone
       post :upload

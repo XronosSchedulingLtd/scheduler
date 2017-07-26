@@ -12,7 +12,8 @@ class EventsController < ApplicationController
                        :clone,
                        :destroy,
                        :shownotes,
-                       :canceledit]
+                       :canceledit,
+                       :coverrooms]
 
   # GET /events
   # GET /events.json
@@ -43,6 +44,11 @@ class EventsController < ApplicationController
       @resourcewarning = true
     else
       @resourcewarning = false
+    end
+    if current_user && current_user.can_relocate?(@event)
+      @relocate_link = true
+    else
+      @relocate_link = false
     end
   end
 
@@ -418,6 +424,15 @@ class EventsController < ApplicationController
     end
   end
 
+  # GET /events/1/coverrooms.json
+  def coverrooms
+    crf = CoverRoomFinder.new(@event)
+    @coverrooms = crf.find_rooms
+    respond_to do |format|
+      format.json
+    end
+  end
+
   def shownotes
     @notes = @event.all_notes_for(current_user)
     respond_to do |format|
@@ -443,6 +458,7 @@ class EventsController < ApplicationController
 
   def authorized?(action = action_name, resource = nil)
     (logged_in? && current_user.create_events?) ||
+    (logged_in? && action == 'coverrooms') ||
     action == 'show' || action == "search"
   end
 

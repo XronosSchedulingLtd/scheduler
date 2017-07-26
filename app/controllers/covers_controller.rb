@@ -1,0 +1,2 @@
+class CoversController < ApplicationController
+end

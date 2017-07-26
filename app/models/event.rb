@@ -99,6 +99,7 @@ class Event < ActiveRecord::Base
   has_many :requests, :dependent => :destroy
   has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
   has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
+  has_many :non_covering_commitments, -> { where("covering_id IS NULL") }, class_name: "Commitment"
   has_many :elements, :through => :firm_commitments
   #
   #  This next one took a bit of crafting.  It is used to optimize
@@ -113,6 +114,7 @@ class Event < ActiveRecord::Base
   has_many :staff_elements, -> { where(elements: {entity_type: "Staff"}) }, class_name: "Element", :source => :element, :through => :firm_commitments
   has_many :notes, as: :parent, :dependent => :destroy
   has_many :attachments, as: :parent, :dependent => :destroy
+  has_many :direct_locations, -> { where(elements: {entity_type: "Location"}) }, class_name: "Element", :source => :element, :through => :non_covering_commitments
 
   belongs_to :owner, :class_name => :User
 

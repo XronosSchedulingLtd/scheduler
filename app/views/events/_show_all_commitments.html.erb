@@ -3,6 +3,16 @@
     collection: @visible_commitments,
     locals: {singleton: @visible_commitments.size == 1}
   %>
+<% if @relocate_link %>
+  <div class="small-12 columns">
+    <div id="relocate-link">
+      <%= link_to "Relocate lesson", "#" %>
+    </div>
+    <div id="relocate-space" data-event-id="<%= @event.id %>">
+      <p>I'm some space for relocating a lesson.</p>
+    </div>
+  </div>
+<% end %>
 </div>
 <% if @approvable_commitments.size > 0 %>
   <div class="row">

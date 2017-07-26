@@ -44,7 +44,8 @@ class User < ActiveRecord::Base
     can_add_concerns: "Can this user dynamically choose which schedules to look at?",
     can_roam: "Can this user follow links from one displayed element to another?",
     can_su: "Can this user become another user?",
-    exams: "Does this user administer exams or invigilation?"
+    exams: "Does this user administer exams or invigilation?",
+    can_relocate_lessons: "Can this user relocate lessons - not just his or her own?"
   }
   FIELD_TITLE_TEXTS.default = ""
 
@@ -274,6 +275,30 @@ class User < ActiveRecord::Base
       self.can_edit?(item) ||
         self.subedit_all_events? ||
         self.organiser_of?(item)
+    else
+      false
+    end
+  end
+
+  #
+  #  Can this user relocate the indicated event - that is, can he or
+  #  she allocate another room to the event in the fashion of allocating
+  #  a cover teacher?
+  #
+  #  Requirements:
+  #
+  #  * It's a system owned event (effectively a lesson)
+  #  * It has a single room directly allocated.
+  #  * Either:
+  #    * User has the can_relocate_lessons flag set
+  #    * User is the member of staff teaching the lesson
+  #
+  def can_relocate?(event)
+    if !event.owner &&
+      event.direct_locations.count == 1 &&
+      (self.can_relocate_lessons ||
+       event.staff_entities.include?(self.corresponding_staff))
+      true
     else
       false
     end

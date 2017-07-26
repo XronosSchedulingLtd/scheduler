@@ -13,6 +13,7 @@ class Setting < ActiveRecord::Base
   belongs_to :next_era, class_name: :Era
   belongs_to :previous_era, class_name: :Era
   belongs_to :perpetual_era, class_name: :Era
+  belongs_to :room_cover_group_element, class_name: :Element
 
   after_save :flush_cache
 
@@ -33,6 +34,16 @@ class Setting < ActiveRecord::Base
   #
   def flush_cache
     @@setting = Setting.first
+  end
+
+  def room_cover_group_element_name
+    room_cover_group_element ? room_cover_group_element.name : ""
+  end
+
+  def room_cover_group_element_name=(newname)
+    #
+    #  Do nothing with it.
+    #
   end
 
   def self.current_era
@@ -140,6 +151,15 @@ class Setting < ActiveRecord::Base
       "http"
     else
       "https"
+    end
+  end
+
+  def self.room_cover_group_element
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.room_cover_group_element
+    else
+      nil
     end
   end
 

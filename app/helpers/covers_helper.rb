@@ -1,0 +1,2 @@
+module CoversHelper
+end
