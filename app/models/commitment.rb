@@ -44,6 +44,8 @@ class Commitment < ActiveRecord::Base
 
   scope :covering_commitment, lambda { where("covering_id IS NOT NULL") }
   scope :non_covering_commitment, lambda { where("covering_id IS NULL") }
+  scope :covering_location, lambda { where("covering_id IS NOT NULL").joins(:element).where(elements: {entity_type: "Location"}) }
+  scope :not_covering_location, lambda { where("covering_id IS NULL").joins(:element).where(elements: {entity_type: "Location"}) }
   scope :covered_commitment, -> { joins(:covered) }
   scope :uncovered_commitment, -> { joins("left outer join `commitments` `covereds_commitments` ON `covereds_commitments`.`covering_id` = `commitments`.`id`").where("covereds_commitments.id IS NULL") }
   scope :firm, -> { where(:tentative => false) }

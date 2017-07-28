@@ -292,12 +292,14 @@ class User < ActiveRecord::Base
   #  * Either:
   #    * User has the can_relocate_lessons flag set
   #    * User is the member of staff teaching the lesson
+  #  * A room cover group element has been configured
   #
   def can_relocate?(event)
     if !event.owner &&
       event.direct_locations.count == 1 &&
       (self.can_relocate_lessons ||
-       event.staff_entities.include?(self.corresponding_staff))
+       event.staff_entities.include?(self.corresponding_staff)) &&
+      Setting.room_cover_group_element
       true
     else
       false

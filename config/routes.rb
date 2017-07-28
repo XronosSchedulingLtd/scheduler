@@ -113,6 +113,8 @@ Rails.application.routes.draw do
     end
   end
 
+  post '/commitments/:commitment_id/coverwith/:id', to: 'covers#coverwith'
+
   resources :memberships
 
   resources :staffs

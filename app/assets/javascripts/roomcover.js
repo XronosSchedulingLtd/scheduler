@@ -18,7 +18,7 @@ if ($('#fullcalendar').length) {
     var Building = Backbone.Model.extend({
       createChildren: function() {
         this.rooms = new RoomCollection(this.get("rooms"));
-        console.log("Got " + this.rooms.length + " rooms.");
+//        console.log("Got " + this.rooms.length + " rooms.");
       }
     });
 
@@ -39,9 +39,8 @@ if ($('#fullcalendar').length) {
         return '/events/' + this.event_id + '/coverrooms';
       },
       createChildren: function () {
-        console.log("Selector creating children.");
         this.buildings = new BuildingCollection(this.get("coverrooms"));
-        console.log("Got " + this.buildings.length + " buildings.");
+//        console.log("Got " + this.buildings.length + " buildings.");
         this.buildings.createChildren();
       }
     });
@@ -54,6 +53,7 @@ if ($('#fullcalendar').length) {
       tagName: "option",
       attributes: function() {
         var result = {};
+        result["value"] = this.model.get("element_id");
         if (this.model.get("selected")) {
           result["selected"] = "selected";
         }
@@ -86,16 +86,29 @@ if ($('#fullcalendar').length) {
       }
     });
 
+    //
+    //  This view handles *just* the pop-down list - not the surrounding
+    //  buttons.
+    //
     var SelectorView = Backbone.View.extend({
       tagName: 'select',
+      attributes: {
+        id: 'room-cover-selector'
+      },
       initialize: function(options) {
-        this.model = new Selector(null, {event_id: options.event_id});
-        this.listenTo(this.model, 'sync', this.render);
+        this.event_id = options.event_id;
+        //
+        //  Set up placeholder contents.
+        //
         this.$el.html('<option value="0">Fetching free rooms</option>');
+        //
+        //  And get ourselves some real data.
+        //
+        this.model = new Selector(null, {event_id: this.event_id});
+        this.listenTo(this.model, 'sync', this.render);
         this.model.fetch();
       },
       render: function() {
-        console.log("Asked to render.");
         this.model.createChildren();
         this.$el.empty();
         this.$el.html('<option value="0">Stay in ' + this.model.get("orgroom") + "</option>");
@@ -106,40 +119,85 @@ if ($('#fullcalendar').length) {
       }
     });
 
+    //
+    //  Whilst this one handles the whole area, including the pop-down
+    //  list and buttons.
+    //
+    var CoverView = Backbone.View.extend({
+      events: {
+        'click #relocate-ok'     : 'okClicked',
+        'click #relocate-cancel' : 'cancelClicked'
+      },
+      initialize: function() {
+        var event_id = this.$el.data('event-id');
+        this.commitment_id = this.$el.data('commitment-id');
+        this.popdown_container = this.$el.find('#for-pop-down');
+        this.popdown_container.empty();
+        this.selectorView = new SelectorView({event_id: event_id});
+        this.popdown_container.append(this.selectorView.$el);
+        this.$el.show();
+      },
+      okClicked: function() {
+        console.log("OK clicked");
+        var selector = this.$el.find('#room-cover-selector');
+        var value = selector.find(':selected').val();
+        console.log("Value is " + value);
+        $.ajax({
+          url: "/commitments/" + this.commitment_id + "/coverwith/" + value,
+          type: 'POST',
+          context: this,
+          contentType: 'application/json',
+        }).done(this.coverSucceeded).
+           fail(this.coverFailed);
+      },
+      cancelClicked: function() {
+        this.$el.hide();
+        this.unbind();
+        this.undelegateEvents();
+        this.stopListening();
+        $('#relocate-link').show();
+      },
+      coverSucceeded: function(data, textStatus, jqXHR) {
+        console.log("Cover succeeded");
+        //
+        //  Replacement HTML should be in data["newhtml"]
+        //
+        $('#commitments-to-location').empty();
+        console.log("New HTML is " + data["newhtml"]);
+        $('#commitments-to-location').html(data["newhtml"]);
+        this.cancelClicked();
+        $('#fullcalendar').data("dorefresh", "1");
+      },
+      coverFailed: function() {
+        console.log("Cover failed");
+      }
+    });
+
     that.linkClicked = function() {
-      console.log("Link clicked.");
       $('#relocate-link').hide();
-      var relocate_space = $('#relocate-space');
-      var event_id = relocate_space.data('event-id');
-      that.roomListsView = new SelectorView({event_id: event_id});
-      var for_pop_down = relocate_space.find('#for-pop-down');
-      for_pop_down.empty();
-      for_pop_down.append(that.roomListsView.$el);
-      relocate_space.show();
+      that.coverView = new CoverView({el: '#relocate-space'});
     }
 
     that.modalOpened = function() {
-      console.log("Modal opened.");
       var our_link = $('#relocate-link');
       if (our_link.length) {
-        console.log("And we have our link.");
         our_link.click(that.linkClicked);
-        $('#relocate-ok').click(that.okClicked);
-        $('#relocate-cancel').click(that.cancelClicked);
       }
     }
 
-    that.okClicked = function() {
-      console.log("OK clicked");
-    }
-
-    that.cancelClicked = function() {
-      console.log("Cancel clicked");
+    that.modalClosed = function() {
+      if (that.coverView) {
+        that.coverView.unbind();
+        that.coverView.undelegateEvents();
+        that.coverView.stopListening();
+        delete that.coverView;
+      }
     }
 
     that.init = function() {
-      _.bindAll(that, 'modalOpened', "okClicked", "cancelClicked");
+      _.bindAll(that, 'modalOpened', 'modalClosed');
       $(document).on('opened', '[data-reveal]', that.modalOpened);
+      $(document).on('closed', '[data-reveal]', that.modalClosed);
     };
 
     return that;

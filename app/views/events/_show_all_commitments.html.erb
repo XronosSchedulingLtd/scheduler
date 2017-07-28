@@ -8,8 +8,21 @@
     <div id="relocate-link">
       <%= link_to "Relocate lesson", "#" %>
     </div>
-    <div id="relocate-space" data-event-id="<%= @event.id %>">
-      <p>I'm some space for relocating a lesson.</p>
+    <div id="relocate-space" data-event-id="<%= @event.id %>" data-commitment-id="<%= @location_commitment_id %>">
+      <div class="row collapse">
+        <h5>Re-locating</h5>
+        <div class="small-6 columns" id="for-pop-down">
+          <p>I'm some space for relocating a lesson.</p>
+        </div>
+        <div class="small-1 small-offset-1 column">
+          <span class="zfbutton tiny radius" id="relocate-ok">OK</span>
+        </div>
+        <div class="small-1 small-offset-1 column">
+          <span class="zfbutton tiny radius" id="relocate-cancel">Cancel</span>
+        </div>
+        <div class="small-2 columns">
+        </div>
+      </div>
     </div>
   </div>
 <% end %>

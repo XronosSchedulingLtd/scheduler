@@ -47,6 +47,16 @@ class EventsController < ApplicationController
     end
     if current_user && current_user.can_relocate?(@event)
       @relocate_link = true
+      #
+      #  We also need to provide the id of the commitment to the first
+      #  (should be only) location.
+      #
+      location_commitment = @event.commitments.not_covering_location.take
+      if location_commitment
+        @location_commitment_id = location_commitment.id
+      else
+        @location_commitment_id = 0
+      end
     else
       @relocate_link = false
     end
@@ -428,6 +438,12 @@ class EventsController < ApplicationController
   def coverrooms
     crf = CoverRoomFinder.new(@event)
     @coverrooms = crf.find_rooms
+    locations = @event.direct_locations.to_a
+    if locations.size > 0
+      @orgroom = locations[0].short_name
+    else
+      @orgroom = "Unknown"
+    end
     respond_to do |format|
       format.json
     end

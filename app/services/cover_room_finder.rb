@@ -6,11 +6,12 @@
 class CoverRoomFinder
 
   class CandidateRoom
-    attr_reader :name, :element_id
+    attr_reader :name, :element_id, :covering
 
-    def initialize(name, element_id)
-      @name = name
+    def initialize(name, element_id, covering = false)
+      @name       = name
       @element_id = element_id
+      @covering   = covering
     end
 
   end
@@ -23,9 +24,9 @@ class CoverRoomFinder
       @rooms = Array.new
     end
 
-    def <<(location)
+    def add(location, covering = false)
       @rooms <<
-        CandidateRoom.new(location.short_name, location.element.id)
+        CandidateRoom.new(location.short_name, location.element.id, covering)
     end
   end
 
@@ -41,6 +42,16 @@ class CoverRoomFinder
         start_time: @event.starts_at,
         end_time:   @event.ends_at
       })
+      #
+      #  Is there already a room cover set up?  If so then we add that
+      #  to our list of "free" rooms (even though it isn't) and flag
+      #  it as the currently selected one.
+      #
+      @location_covering_commitment =
+        @event.commitments.covering_location.take
+      if @location_covering_commitment
+        @cover_location_id = @location_covering_commitment.element.entity_id
+      end
     else
       @ff = nil
     end
@@ -80,7 +91,12 @@ class CoverRoomFinder
         sg.members(@event.starts_at.to_date, false).
            select{|e| e.instance_of?(Location)}.each do |l|
           if free_room_ids.include?(l.id)
-            crg << l
+            crg.add(l)
+          elsif l.id == @cover_location_id
+            #
+            #  This is the location currently set as providing cover.
+            #
+            crg.add(l, true)
           end
         end
         result << crg
