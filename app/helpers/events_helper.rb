@@ -10,9 +10,6 @@ module EventsHelper
 
   def highlighted_name(commitment, show_clashes, user)
     text = be_linken(commitment.element.name, commitment.element)
-    if commitment.covering
-      text = "#{text} (covering <span title='#{h(commitment.covering.element.name)}'>#{be_linken(commitment.covering.element.short_name, commitment.covering.element)}</span>)"
-    end
     if commitment.rejected
       text = "<span class='rejected-commitment' title='#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : ""}'>#{text}</span>"
     elsif commitment.tentative
@@ -22,6 +19,14 @@ module EventsHelper
     end
     if show_clashes && commitment.has_simple_clash? && user
       text = "<span class='double-booked' title='Double booked'>#{text}</span>"
+    end
+    if commitment.covering
+      if commitment.element.entity_type == "Location"
+        word = "normally"
+      else
+        word = "covering"
+      end
+      text = "#{text} (#{word} <span title='#{h(commitment.covering.element.name)}'>#{be_linken(commitment.covering.element.short_name, commitment.covering.element)}</span>)"
     end
     text
   end
