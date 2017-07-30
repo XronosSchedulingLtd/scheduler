@@ -44,6 +44,8 @@ class Commitment < ActiveRecord::Base
 
   scope :covering_commitment, lambda { where("covering_id IS NOT NULL") }
   scope :non_covering_commitment, lambda { where("covering_id IS NULL") }
+  scope :with_source_id, lambda { where("commitments.source_id IS NOT NULL") }
+  scope :without_source_id, lambda { where("commitments.source_id IS NULL") }
   scope :covering_location, lambda { where("covering_id IS NOT NULL").joins(:element).where(elements: {entity_type: "Location"}) }
   scope :not_covering_location, lambda { where("covering_id IS NULL").joins(:element).where(elements: {entity_type: "Location"}) }
   scope :covered_commitment, -> { joins(:covered) }
