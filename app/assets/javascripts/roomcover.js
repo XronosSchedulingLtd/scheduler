@@ -18,7 +18,6 @@ if ($('#fullcalendar').length) {
     var Building = Backbone.Model.extend({
       createChildren: function() {
         this.rooms = new RoomCollection(this.get("rooms"));
-//        console.log("Got " + this.rooms.length + " rooms.");
       }
     });
 
@@ -40,7 +39,6 @@ if ($('#fullcalendar').length) {
       },
       createChildren: function () {
         this.buildings = new BuildingCollection(this.get("coverrooms"));
-//        console.log("Got " + this.buildings.length + " buildings.");
         this.buildings.createChildren();
       }
     });
@@ -100,7 +98,7 @@ if ($('#fullcalendar').length) {
         //
         //  Set up placeholder contents.
         //
-        this.$el.html('<option value="0">Fetching free rooms</option>');
+        this.$el.html('<option value="0">Fetching free rooms...</option>');
         //
         //  And get ourselves some real data.
         //
@@ -138,10 +136,8 @@ if ($('#fullcalendar').length) {
         this.$el.show();
       },
       okClicked: function() {
-        console.log("OK clicked");
         var selector = this.$el.find('#room-cover-selector');
         var value = selector.find(':selected').val();
-        console.log("Value is " + value);
         $.ajax({
           url: "/commitments/" + this.commitment_id + "/coverwith/" + value,
           type: 'POST',
@@ -158,12 +154,10 @@ if ($('#fullcalendar').length) {
         $('#relocate-link').show();
       },
       coverSucceeded: function(data, textStatus, jqXHR) {
-        console.log("Cover succeeded");
         //
         //  Replacement HTML should be in data["newhtml"]
         //
         $('#commitments-to-location').empty();
-        console.log("New HTML is " + data["newhtml"]);
         $('#commitments-to-location').html(data["newhtml"]);
         this.cancelClicked();
         $('#fullcalendar').data("dorefresh", "1");
