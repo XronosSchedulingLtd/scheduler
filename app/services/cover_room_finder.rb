@@ -26,7 +26,7 @@ class CoverRoomFinder
 
     def add(location, covering = false)
       @rooms <<
-        CandidateRoom.new(location.short_name, location.element.id, covering)
+        CandidateRoom.new(location.element_name, location.element.id, covering)
     end
   end
 
