@@ -164,7 +164,8 @@ class UsersController < ApplicationController
     def authorized?(action = action_name, resource = nil)
       logged_in? && (current_user.admin ||
                      action == 'edit' ||
-                     action == 'update')
+                     action == 'update' ||
+                     action == 'pp')
     end
 
     # Use callbacks to share common setup or constraints between actions.

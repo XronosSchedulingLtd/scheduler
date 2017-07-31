@@ -1,3 +1,21 @@
+v0.22.1 2017-07-31
+
+  Two small fixes
+
+* Further fix to the auto-update of the pending requests count.  It turned
+  out the permission checking was wrong, meaning that although the
+  feature worked, it worked only for admin users.  Now corrected so that
+  it will work for anyone.
+
+* The consistency check in the Commitment model was slightly wrong, in that
+  any time a Commitment record was validated, it caused the corresponding
+  Event and Element records to be validated too.  This was caused by a
+  misunderstanding about the meaning of the declaration of the relationship
+  between the two.  There is no reason for the Commitment model to be
+  attempting to validate the other two, so the relevant declaration has
+  been removed.
+
+
 v0.22   2017-07-25
 
 * Issue a warning for events with no resources
