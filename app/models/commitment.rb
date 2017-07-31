@@ -13,8 +13,6 @@ class Commitment < ActiveRecord::Base
   has_many :notes, as: :parent, :dependent => :destroy
 
   validates_presence_of :event, :element
-  validates_associated  :event,   :message => "Event does not exist"
-  validates_associated  :element, :message => "Element does not exist"
 
   validates :element_id, uniqueness: { scope: [:event_id, :covering_id] }
 
