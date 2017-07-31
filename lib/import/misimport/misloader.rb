@@ -1326,17 +1326,21 @@ class MIS_Loader
       #  Now need to get the existing covers for this date and check
       #  that they match.
       #
+      #  We are interested only in covers where the commitment record
+      #  contains a source ID - i.e. it came from the MIS.  Manually
+      #  created ones do not have a source ID and we leave them alone.
+      #
       existing_covers =
-        Commitment.commitments_on(startdate: date,
-                                  include_nonexistent: true).covering_commitment
+        Commitment.commitments_on(
+          startdate: date,
+          include_nonexistent: true).covering_commitment.with_source_id
       mis_ids = mis_covers.collect {|mc| mc.source_id}.uniq
       db_ids = existing_covers.collect {|ec| ec.source_id}.uniq
       db_only = db_ids - mis_ids
       db_only.each do |db_id|
         #
         #  It's possible there's more than one db record with the same
-        #  id - for historical reasons this may be nil.  Need to get rid
-        #  of all of them.
+        #  id - Need to get rid of all of them.
         #
         if @verbose
           puts "Deleting covers with source_id #{db_id ? db_id : "nil"}."

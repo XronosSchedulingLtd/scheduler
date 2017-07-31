@@ -208,7 +208,8 @@ class UsersController < ApplicationController
                       :preferred_event_category_id,
                       :colour_not_involved,
                       :default_event_text,
-                      :day_shape_id)
+                      :day_shape_id,
+                      :can_relocate_lessons)
       elsif current_user.editor
         params.require(:user).
                permit(:firstday,

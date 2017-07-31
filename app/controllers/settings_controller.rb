@@ -51,6 +51,8 @@ class SettingsController < ApplicationController
                     :dns_domain_name,
                     :from_email_address,
                     :prefer_https,
-                    :require_uuid)
+                    :require_uuid,
+                    :room_cover_group_element_name,
+                    :room_cover_group_element_id)
     end
 end

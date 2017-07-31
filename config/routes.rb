@@ -113,6 +113,8 @@ Rails.application.routes.draw do
     end
   end
 
+  post '/commitments/:commitment_id/coverwith/:id', to: 'covers#coverwith'
+
   resources :memberships
 
   resources :staffs
@@ -123,6 +125,7 @@ Rails.application.routes.draw do
     member do
       get :shownotes
       get :canceledit
+      get :coverrooms
       put 'moved'
       post :clone
       post :upload
