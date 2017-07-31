@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170724115731) do
+ActiveRecord::Schema.define(version: 20170726081657) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -449,14 +449,15 @@ ActiveRecord::Schema.define(version: 20170724115731) do
     t.integer  "next_era_id"
     t.integer  "previous_era_id"
     t.integer  "perpetual_era_id"
-    t.boolean  "enforce_permissions", default: false
+    t.boolean  "enforce_permissions",         default: false
     t.string   "current_mis"
     t.string   "previous_mis"
-    t.integer  "auth_type",           default: 0
-    t.string   "dns_domain_name",     default: ""
-    t.string   "from_email_address",  default: ""
-    t.boolean  "prefer_https",        default: true
-    t.boolean  "require_uuid",        default: false
+    t.integer  "auth_type",                   default: 0
+    t.string   "dns_domain_name",             default: ""
+    t.string   "from_email_address",          default: ""
+    t.boolean  "prefer_https",                default: true
+    t.boolean  "require_uuid",                default: false
+    t.integer  "room_cover_group_element_id"
   end
 
   create_table "staffs", force: true do |t|
@@ -573,6 +574,7 @@ ActiveRecord::Schema.define(version: 20170724115731) do
     t.text     "extra_eventcategories"
     t.boolean  "list_teachers",               default: false
     t.boolean  "warn_no_resources",           default: true
+    t.boolean  "can_relocate_lessons",        default: false
   end
 
 end

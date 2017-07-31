@@ -40,27 +40,28 @@ class UserMailer < ActionMailer::Base
       #  Who the e-mail goes to depends on what information is in the
       #  event.
       #
-      if @event.organiser
-        parameters[:to] = @event.organiser.entity.email
+      email = appropriate_email(@event)
+      if email
+        parameters[:to] = email
+        parameters[:subject] = "Resource request declined"
+        parameters[:from] = Setting.from_email_address
+        mail(parameters)
       else
-        parameters[:to] = @event.owner.email
+        Rails.logger.info("Unable to send request rejected e-mail.  No-one to send to.")
       end
-      parameters[:subject] = "Resource request declined"
-      parameters[:from] = Setting.from_email_address
-      mail(parameters)
     end
   end
 
   def event_complete_email(event)
     @event = event
-    if @event.organiser
-      email = @event.organiser.entity.email
+    email = appropriate_email(@event)
+    if email
+      mail(to: email,
+           from: Setting.from_email_address,
+           subject: "Event now complete")
     else
-      email = @event.owner.email
+      Rails.logger.info("Unable to send event complete e-mail.  No-one to send to.")
     end
-    mail(to: email,
-         from: Setting.from_email_address,
-         subject: "Event now complete")
   end
 
   def resource_requested_email(owner, resource, event, user = nil)
@@ -109,6 +110,27 @@ class UserMailer < ActionMailer::Base
     mail(to: email,
          from: Setting.from_email_address,
          subject: "Predicted absences")
+  end
+
+  private
+
+  def appropriate_email(event)
+    #
+    #  Find someone to tell about a change to this event.
+    #
+    if event.organiser
+      email = event.organiser.entity.email
+    elsif event.owner
+      email = event.owner.email
+    else
+      staff_element = event.staff_elements.take
+      if staff_element
+        email = staff_element.entity.email
+      else
+        email = nil
+      end
+    end
+    email
   end
 
 end

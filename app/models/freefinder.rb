@@ -5,6 +5,18 @@
 #
 require 'csv'
 
+#
+#  A class which does the work of finding free resources of
+#  a specified type.
+#
+#  Although this item has a database table (which defines its
+#  fields) we don't actually ever save it to the database at
+#  present.
+#
+#  Each freefinder is linked to an element, which should be a
+#  group.  The group lists the candidates for us to find free
+#  ones of.
+#
 class Freefinder < ActiveRecord::Base
 
   belongs_to :element
