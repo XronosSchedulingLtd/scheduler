@@ -383,13 +383,23 @@ class ConcernsController < ApplicationController
                             categories: "Invigilation")
         result << set2
       end
+      set3 = IcalUrlSet.new("All in one")
+      set3 << IcalUrl.new("The lot",
+                          @concern.element,
+                          6,
+                          everything: true)
+      result << set3
+    else
+      set4 = IcalUrlSet.new("Feeds for #{@concern.element.name}")
+      set4 << IcalUrl.new("On its own",
+                          @concern.element,
+                          7)
+      set4 << IcalUrl.new("With breakthrough events",
+                          @concern.element,
+                          8,
+                          everything: true)
+      result << set4
     end
-    set3 = IcalUrlSet.new("All in one")
-    set3 << IcalUrl.new("The lot",
-                        @concern.element,
-                        6,
-                        everything: true)
-    result << set3
     result
   end
 
