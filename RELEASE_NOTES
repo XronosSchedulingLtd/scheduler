@@ -1,3 +1,13 @@
+v0.22.2 2017-07-31
+
+* In the area of pre-formatted iCal feed URLs.
+
+  For people (staff and pupils) a variety of feed options are offered,
+  but for other elements there was just one.  This release changes that
+  to two - one with breakthrough events and one without.  It's
+  conceivable that either might be required by end users.
+
+
 v0.22.1 2017-07-31
 
   Two small fixes
