@@ -1,3 +1,64 @@
+v0.24   2017-08-07
+
+* Configurable properties to show to new users
+
+  When a new user registers on the system, the practice to date has been
+  to include automatically all public calendars on the system as his or
+  her immediate concerns.  For students (who can't add or delete concerns)
+  this then becomes their fixed list of concerns.
+
+  This release adds a little more flexibility, in that each Property
+  within the system acquires two flags, controlling whether that Property
+  will be included as an automatic concern for new staff or pupil users.
+
+  It is thus possible to have a calendar which is not public, but is
+  automatically shown to all new staff users, and not pupils (or vice
+  versa).
+
+  When this release is installed, all existing public calendars will
+  get both these bits set, and from then on the system admin can set
+  them as required.
+
+* Correct display of edge case of timed multi-day events.
+
+  If a timed multi-day event began at a time other than midnight and ended
+  at exactly midnight, it was displayed as one day too long.  Now
+  corrected.
+
+* Improved handling of conversion to/from timed/all-day events.
+
+  When a user changes an event from being timed to being all-day, or
+  from being all-day to being timed, the default behaviour is now
+  less surprising.
+
+* New support file - setupmysql
+
+  A new file has been added to the support area to help in the
+  creation of MySql databases in a new installation.
+
+* Import of iCal files
+
+  Early versions of Scheduler included the means to import a set of
+  calendar data from an old calendaring program which exported them
+  as a CSV file.  Since the old calendaring program has gone away
+  (its maker ceased trading a long time ago) this facility was disabled
+  a while back.
+
+  In this release, a similar facility is added in which allows the
+  import of iCal files from Google Calendar.  It is thus possible to
+  move over a whole existing school calendar from Google Calendar,
+  allocating it an event category + property and getting it into
+  Scheduler.
+
+  Note that this is intended to be done on a one-off basis.  It
+  includes no means to do an in-place update of such events.  If it's
+  run a second time then all the events brought in in the first run
+  will be deleted and re-created, losing any edits done to them
+  subsequently.
+
+  The facility is available only to the system administrator.
+
+
 v0.23   2017-07-31
 
 * Room covers (or lesson relocation)
