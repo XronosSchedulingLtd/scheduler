@@ -9,7 +9,7 @@
           <%= file %>
         </td>
         <td><%= link_to "Import",
-                        imports_check_csv_path(:params => {:name => file }) %></td>
+                        imports_check_file_path(:params => {:name => file }) %></td>
         <td><%= link_to "Delete",
                         imports_delete_path(:params => {:name => file }),
                         :method => :delete,

@@ -185,8 +185,8 @@ Rails.application.routes.draw do
   get 'imports/index'
   post 'imports/upload'
   delete 'imports/delete'
-  get 'imports/check_csv'
-  post 'imports/commit_csv'
+  get 'imports/check_file'
+  post 'imports/commit_file'
 
   resources :eras
 

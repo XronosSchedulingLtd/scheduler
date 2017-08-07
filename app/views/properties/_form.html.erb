@@ -11,15 +11,35 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :name %><br>
-    <%= f.text_field :name, :class => "focus_please" %>
-  </div>
-  <div class="field">
-    <%= f.label :public %><br>
-    <%= f.check_box :make_public %>
+  <div class="row">
+    <div class="small-6 columns">
+      <div class="field">
+        <%= f.label :name %><br>
+        <%= f.text_field :name, :class => "focus_please" %>
+      </div>
+    </div>
+    <%=
+      flag_group(f, 12, 6, "Flags",
+                 [
+                   {
+                     field: :make_public,
+                     prompt: "Make public",
+                     annotation: "Should this property cause its events to be publicly visible?"
+                   },
+                   {
+                     field: :auto_staff,
+                     prompt: "Auto staff",
+                     annotation: "Should new staff users get these events shown by default?"
+                   },
+                   {
+                     field: :auto_pupils,
+                     prompt: "Auto pupils",
+                     annotation: "Should new pupil users get these events shown by default?"
+                   }
+      ])
+    %>
   </div>
   <div class="actions">
-    <%= f.submit @property.id ? "Update" : "Create", :class => "zfbutton small radius" %>
+    <%= f.submit @property.id ? "Update" : "Create", :class => "zfbutton tiny radius" %>
   </div>
 <% end %>
