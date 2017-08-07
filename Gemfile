@@ -56,8 +56,6 @@ gem 'dalli'
 gem 'spectrum-rails'
 gem 'nokogiri'
 gem 'tod'
-gem 'icalendar'
-gem 'icalendar-recurrence'
 group :production do
   gem 'tiny_tds'
 end
