@@ -450,7 +450,7 @@ class ImportsController < ApplicationController
   #  to upload something else.
   #
   def index
-    @files = Dir.entries(Rails.root.join(IMPORT_DIR)) - [".", ".."]
+    @files = Dir.entries(Rails.root.join(IMPORT_DIR)) - [".", "..", ".keep"]
   end
 
   #

@@ -317,7 +317,7 @@ class Event < ActiveRecord::Base
   end
 
   def ends_at_text=(value)
-    Rails.logger.debug("Setting ends_at to #{value}")
+#    Rails.logger.debug("Setting ends_at to #{value}")
     self.ends_at = value
     #
     #  May need this again later.
@@ -1082,7 +1082,7 @@ class Event < ActiveRecord::Base
   end
 
   def become_timed
-    Rails.logger.debug("Becoming timed, with starts_at = #{self.starts_at} and ends_at = #{self.ends_at}.")
+#    Rails.logger.debug("Becoming timed, with starts_at = #{self.starts_at} and ends_at = #{self.ends_at}.")
     #
     #  Was an all day event, but now am not.
     #  Used to do some messing about with setting times to 08:00, but
