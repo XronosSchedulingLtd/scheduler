@@ -22,7 +22,7 @@
 </table>
 
 <h2>Confirm data import</h2>
-<%= form_tag({action: :commit_csv}) do %>
+<%= form_tag({action: :commit_file}) do %>
 <%= hidden_field_tag(:name, @name, :readonly => true) %>
 <table class="zftable">
   <tbody>
@@ -33,6 +33,30 @@
                        options_from_collection_for_select(Eventsource.all.sort,
                                                           :id,
                                                           :name)) %>
+      </td>
+    </tr>
+    <tr>
+      <td>Event category:</td>
+      <td>
+        <%= select_tag(:event_category,
+                       options_from_collection_for_select(Eventcategory.all.sort,
+                                                          :id,
+                                                          :name)) %>
+      </td>
+    </tr>
+    <tr>
+      <td>Property:</td>
+      <td>
+        <%=
+          autocomplete_field_tag(:property_name,
+                                 '',
+                                 autocomplete_property_element_name_elements_path,
+                                 :id_element => '#element_id',
+                                 :placeholder => "property name",
+                                 "data-auto-focus" => true)
+         %>
+       <%= text_field_tag :property_element_id, '', :type => :hidden, :id => 'element_id' %>
+         
       </td>
     </tr>
     <tr>

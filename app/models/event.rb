@@ -1072,54 +1072,38 @@ class Event < ActiveRecord::Base
     #  Was a timed event - now an all day event.  Set the start time
     #  to be midnight at the start of the day containing the start time.
     #  Set the end time to be midnight at the end of the day containing
-    #  the end time.
+    #  the end time, unless the end time is already midnight in which
+    #  case leave it alone.
     #
     self.starts_at = self.starts_at.to_date
-    self.ends_at = self.ends_at.to_date + 1.day
+    unless self.ends_at.midnight?
+      self.ends_at = self.ends_at.to_date + 1.day
+    end
   end
 
   def become_timed
 #    Rails.logger.debug("Becoming timed, with starts_at = #{self.starts_at} and ends_at = #{self.ends_at}.")
     #
-    #  Was an all day event, but now am not.  If the start time
-    #  is midnight, then set it to be 08:00 so the event doesn't
-    #  disappear from the calendar.  If the user has selected a new
-    #  start time as well, then respect it.
-    #
-    #  If the end time is midnight 24 hours later, set it to be the
-    #  same as the start time.  If it is more than 24 hours later, but
-    #  a multiple of 24 hours, then set it to be 08:00 on the erstwhile
-    #  last day of the event.
+    #  Was an all day event, but now am not.
+    #  Used to do some messing about with setting times to 08:00, but
+    #  that's now relatively unnecessary because multi-day timed
+    #  events are displayed differently.
     #
     if @ends_at_text_value
+      Rails.logger.debug("@ends_at_text_value = #{@ends_at_text_value}")
       #
       #  We have earlier adjusted our ends_at value on the basis that this
       #  is an all day event.  Undo that adjustment, because we now know
       #  it isn't.
       #
       self.ends_at = @ends_at_text_value
+      Rails.logger.debug("self.ends_at is now #{self.ends_at}")
       #
       #  Adjust this as if we were still un-timed.
       #
-      if self.ends_at.to_date == self.ends_at
+      if self.ends_at.midnight?
+        Rails.logger.debug("Adjusting")
         self.ends_at = self.ends_at + 1.day
-      end
-    end
-    if self.starts_at == self.starts_at.to_date
-      if self.ends_at == self.starts_at.to_date + 1.day
-        self.ends_at = self.starts_at + 8.hours
-      elsif self.ends_at == self.ends_at.to_date
-        self.ends_at = self.ends_at - 16.hours
-      end
-      self.starts_at = self.starts_at + 8.hours
-    elsif self.ends_at == self.ends_at.to_date
-      #
-      #  User seems to have specified a new start time, but left the
-      #  end time as just a date.  If it's the end of the same day as the
-      #  start time, then adjust it to be the same as the start time.
-      #
-      if self.ends_at == self.starts_at.to_date + 1.day
-        self.ends_at = self.starts_at
       end
     end
 #    Rails.logger.debug("Now timed, with starts_at = #{self.starts_at} and ends_at = #{self.ends_at}.")

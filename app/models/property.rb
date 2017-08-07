@@ -6,6 +6,8 @@
 class Property < ActiveRecord::Base
 
   scope :public_ones, -> { where(make_public: true) }
+  scope :for_staff, -> { where(auto_staff: true) }
+  scope :for_pupils, -> { where(auto_pupils: true) }
   validates :name, presence: true
   validates :name, uniqueness: true
 
