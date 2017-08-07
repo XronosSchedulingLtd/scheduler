@@ -13,8 +13,6 @@ class Commitment < ActiveRecord::Base
   has_many :notes, as: :parent, :dependent => :destroy
 
   validates_presence_of :event, :element
-  validates_associated  :event,   :message => "Event does not exist"
-  validates_associated  :element, :message => "Element does not exist"
 
   validates :element_id, uniqueness: { scope: [:event_id, :covering_id] }
 
@@ -44,6 +42,10 @@ class Commitment < ActiveRecord::Base
 
   scope :covering_commitment, lambda { where("covering_id IS NOT NULL") }
   scope :non_covering_commitment, lambda { where("covering_id IS NULL") }
+  scope :with_source_id, lambda { where("commitments.source_id IS NOT NULL") }
+  scope :without_source_id, lambda { where("commitments.source_id IS NULL") }
+  scope :covering_location, lambda { where("covering_id IS NOT NULL").joins(:element).where(elements: {entity_type: "Location"}) }
+  scope :not_covering_location, lambda { where("covering_id IS NULL").joins(:element).where(elements: {entity_type: "Location"}) }
   scope :covered_commitment, -> { joins(:covered) }
   scope :uncovered_commitment, -> { joins("left outer join `commitments` `covereds_commitments` ON `covereds_commitments`.`covering_id` = `commitments`.`id`").where("covereds_commitments.id IS NULL") }
   scope :firm, -> { where(:tentative => false) }
@@ -160,6 +162,18 @@ class Commitment < ActiveRecord::Base
     else
       :never
     end
+  end
+
+  #
+  #  Does this commitment have a simple clash with another commitment.
+  #  That is, does its element have another direct commitment (not
+  #  by group) in the same time period.
+  #
+  def has_simple_clash?
+    self.element.commitments_during(
+      start_time:   self.event.starts_at,
+      end_time:     self.event.ends_at,
+      and_by_group: false).size > 1
   end
 
   #

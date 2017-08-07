@@ -12,7 +12,8 @@ class EventsController < ApplicationController
                        :clone,
                        :destroy,
                        :shownotes,
-                       :canceledit]
+                       :canceledit,
+                       :coverrooms]
 
   # GET /events
   # GET /events.json
@@ -32,6 +33,33 @@ class EventsController < ApplicationController
     #
     @visible_commitments, @approvable_commitments =
       @event.commitments_for(current_user)
+    #
+    #  No point in warning a user who doesn't have the edit privileges
+    #  to do anything about it.
+    #
+    if current_user &&
+       current_user.warn_no_resources &&
+       current_user.can_subedit?(@event) &&
+       @event.resourceless?
+      @resourcewarning = true
+    else
+      @resourcewarning = false
+    end
+    if current_user && current_user.can_relocate?(@event)
+      @relocate_link = true
+      #
+      #  We also need to provide the id of the commitment to the first
+      #  (should be only) location.
+      #
+      location_commitment = @event.commitments.not_covering_location.take
+      if location_commitment
+        @location_commitment_id = location_commitment.id
+      else
+        @location_commitment_id = 0
+      end
+    else
+      @relocate_link = false
+    end
   end
 
   # GET /events/1
@@ -162,6 +190,8 @@ class EventsController < ApplicationController
     #  own events.
     #
     if current_user.can_subedit?(@event)
+      @resourcewarning = false
+#        current_user.warn_no_resources && @event.resourceless?
       respond_to do |format|
         format.html do
           if request.xml_http_request?
@@ -201,8 +231,7 @@ class EventsController < ApplicationController
         #  Does this user have any Concerns with the auto_add flag set?
         #
         current_user.concerns.auto_add.each do |concern|
-          c = Commitment.new
-          c.event = @event
+          c = @event.commitments.new
           c.tentative = current_user.needs_permission_for?(concern.element)
           c.element = concern.element
           c.save
@@ -220,8 +249,7 @@ class EventsController < ApplicationController
             #  Guard against double commitment.
             #
             unless current_user.concerns.auto_add.detect {|c| c.element == element}
-              c = Commitment.new
-              c.event = @event
+              c = @event.commitments.new
               c.tentative = current_user.needs_permission_for?(element)
               c.element = element
               c.save
@@ -237,6 +265,8 @@ class EventsController < ApplicationController
         @minimal = true
         @commitment = Commitment.new
         @commitment.event = @event
+        @resourcewarning = false
+#          current_user.warn_no_resources && @event.resourceless?
         format.html { redirect_to events_path, notice: 'Event was successfully created.' }
         format.json { render :show, status: :created, location: @event }
         format.js
@@ -260,10 +290,7 @@ class EventsController < ApplicationController
               send_notifications_for(current_user, @event)
           end
           @success = true
-          @notes = @event.all_notes_for(current_user)
-          @files = Array.new
-          @visible_commitments, @approvable_commitments =
-            @event.commitments_for(current_user)
+          assemble_event_info
           format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
           format.json { render :show, status: :ok, location: @event }
           format.js { @minimal = true; render :update }
@@ -407,6 +434,21 @@ class EventsController < ApplicationController
     end
   end
 
+  # GET /events/1/coverrooms.json
+  def coverrooms
+    crf = CoverRoomFinder.new(@event)
+    @coverrooms = crf.find_rooms
+    locations = @event.direct_locations.to_a
+    if locations.size > 0
+      @orgroom = locations[0].short_name
+    else
+      @orgroom = "Unknown"
+    end
+    respond_to do |format|
+      format.json
+    end
+  end
+
   def shownotes
     @notes = @event.all_notes_for(current_user)
     respond_to do |format|
@@ -432,6 +474,7 @@ class EventsController < ApplicationController
 
   def authorized?(action = action_name, resource = nil)
     (logged_in? && current_user.create_events?) ||
+    (logged_in? && action == 'coverrooms') ||
     action == 'show' || action == "search"
   end
 

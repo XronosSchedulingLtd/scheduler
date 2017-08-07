@@ -1,4 +1,157 @@
-v0.20.6 2016-06-30
+v0.23   2017-07-31
+
+* Room covers (or lesson relocation)
+
+  There are two common scenarios where a lesson needs to be re-located.
+
+  1. The teacher wants to move to an ICT room or other specialized location.
+  2. A lesson needs to be moved from its normal room to free that room
+     up for another function.
+
+  This release adds provision for users to make such relocations quickly
+  and easily, and automatically prevents them choosing a room which isn't
+  free.
+
+  Lessons can be re-located by the teacher of the lesson, or by a
+  specially privileged user of the system.  An extra privilege bit
+  has been added to the user record for this purpose.
+
+  To relocate a lesson, click on the lesson in the normal display,
+  and then on the "Re-locate lesson" link.  This link appears only
+  for users with the appropriate authority as described above.
+
+  After a short delay (1-2 seconds) a pop-down menu is populated with
+  a list of all the rooms which are free at the required time.  Selecting
+  one and clicking OK will cause the lesson to be relocated.
+
+  If the selected room requires approval, the usual process will be
+  enforced, including e-mails if the administrator of the room has
+  requested them.
+
+  The same dialogue can be used to remove a re-location and revert the
+  lesson to its original room.
+
+  The mechanism implementing this behind the scenes is exactly the same
+  as that used for cover for teachers, although it may not be immediately
+  apparent to end users that they're really the same thing.
+
+  The system adminstrator should set up a two-tier layer of groups
+  to indicate which rooms can be used for cover.  Typically something
+  like this:
+
+  Cover Rooms ->  Able Building  -> A11
+                                    A12
+                                    A13
+                  Baker Building -> B11
+                                    B12
+                                    B13
+                  ICT rooms      -> ICT-A
+                                    ICT-B
+
+  A group of groups of rooms.  Once the "Cover Rooms" group exists, it
+  can be configured for this purpose in the system settings.  Until that
+  configuration is done, the "Re-locate lesson" link will not appear for
+  any user.
+
+
+v0.22.2 2017-07-31
+
+* In the area of pre-formatted iCal feed URLs.
+
+  For people (staff and pupils) a variety of feed options are offered,
+  but for other elements there was just one.  This release changes that
+  to two - one with breakthrough events and one without.  It's
+  conceivable that either might be required by end users.
+
+
+v0.22.1 2017-07-31
+
+  Two small fixes
+
+* Further fix to the auto-update of the pending requests count.  It turned
+  out the permission checking was wrong, meaning that although the
+  feature worked, it worked only for admin users.  Now corrected so that
+  it will work for anyone.
+
+* The consistency check in the Commitment model was slightly wrong, in that
+  any time a Commitment record was validated, it caused the corresponding
+  Event and Element records to be validated too.  This was caused by a
+  misunderstanding about the meaning of the declaration of the relationship
+  between the two.  There is no reason for the Commitment model to be
+  attempting to validate the other two, so the relevant declaration has
+  been removed.
+
+
+v0.22   2017-07-25
+
+* Issue a warning for events with no resources
+
+  The most common mistake which new users make is to create an event
+  but give it no resources at all.  They are then puzzled as to why
+  no-one can see it.
+
+  The system will now display a large warning message as soon as they
+  save an event with no resources.
+
+* Warn if rooms or people are double-booked.
+
+  Similarly, the system now checks whilst a user is adding resources
+  to an event, and highlights any people or locations which are explicitly
+  double-booked.  That is - have a direct commitment to an overlapping
+  event.
+
+  This feature won't pick up indirect commitments - via a group - so
+  it won't tell you if the student you want is in a lesson.  This is
+  too computationally expensive to perform on the fly, but the existing
+  flagging of clashes should pick these up and put a red dot on the
+  lessons.
+
+  The main purpose of this is to point out to people that the ICT room
+  (or whatever) which they've attempted to book is already booked
+  by someone else.
+
+
+v0.21   2017-07-21
+
+* Provide ical feeds by UUID
+
+  Originally, ical feeds were specified by staff initials, then later by
+  element ID allowing feeds to be taken for any element, not just staff.
+  This is slightly insecure in that element IDs are allocated sequentially,
+  so any reasonably small integer would result in some sort of feed
+  although it was impossible to predict what you'd get.
+
+  This release adds a random UUID to each element record and ical feeds
+  can now be requested by UUID as well.  For security, the system administrator
+  can choose to turn off the previous methods, meaning only the UUID one
+  will work.  Guessing a UUID is pretty much impossible.
+
+* Pre-formatted ical feed URLs.
+
+  Since UUIDs are long and potentially very boring to type, the system
+  now also provides pre-formatted feed URLs which can be copied to the
+  user's clipboard and then pasted into whatever calendar program is in
+  use.  These will be found on each element's "Concern" page - accessed
+  by clicking on one of the coloured boxes down the left hand side of
+  the page.
+
+  Several different URLs are provided for each item, allowing them to get
+  all their events in one go, or split out such things as cover and
+  invigilation.  This means they can choose to display these items in
+  a different colour from their normal events.
+
+  Additional system settings have been provided to allow the system
+  adminstrator to set the base URL to use, and whether the URLs should
+  begin "http:" or "https:".
+
+* Split concerns page into tabs.
+
+  With the addition of the URLs to the existing page about each Concern,
+  the length of the page became excessive.  It has been split into several
+  tabs to make it easier to use.
+
+
+v0.20.6 2017-06-30
 
 * Display staff initials on invigilation (and other) events.
 

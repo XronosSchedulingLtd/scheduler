@@ -1,165 +1,53 @@
-<h2><%=
-if @reduced
-  "#{@concern.user.name}'s concern with "
-else
-  ""
-end
-%><%= @concern.element.name %></h2>
+<h2><%= @title %></h2>
 <p>
-  Unique ID: <%= @concern.element_id %><br/>
-  Type: <%= @concern.element.description %>
-<% if @concern.element.entity.instance_of?(Group) %>
-  - <%= @concern.element.entity.members.count %> current members
-<% end %>
-<%= link_to "Full details", element_path(@concern.element) %>
-<% if @concern.element.owned %>
-  <br/>
-  Approvals: <%= @concern.element.owners.collect {|u| u.name }.join(", ") %>
-<% end %>
-
+<%= render "common" %>
 </p>
-<hr/>
+
+<% if @reduced %>
 <h3>Appearance</h3>
-<%= form_for(@concern) do |f| %>
-  <% if @concern.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@group.errors.count, "error") %> prohibited this group from being saved:</h2>
+<%= render "appearance" %>
 
-      <ul>
-<% @group.errors.full_messages.each do |message| %>
-        <li><%= message %></li>
-<% end %>
-      </ul>
-    </div>
+<% else %>
+<ul class="tabs" data-tab>
+  <li class="tab-title active"><a href="#concern-appearance">Appearance</a></li>
+  <% if @urls %>
+    <li class="tab-title"><a href="#concern-feeds">Feeds</a></li>
   <% end %>
+  <li class="tab-title"><a href="#concern-report">Report</a></li>
+  <% if @proforma %>
+    <li class="tab-title"><a href="#concern-proforma">Pro-forma</a></li>
+  <% end %>
+</ul>
 
-<div class="row">
-  <div class="small-12 medium-6 large-4 columns">
-    <label>Colour</label>
-    <div class="concern-block">
-      <div class="concern-button" id="colour-sample" style="background-color:<%= @concern.colour %>">
-        <span class="concern-spacer"></span>
-        <div class="concern-text"><%= @concern.element.name %></div>
-      </div>
-      <span style="float: right">
-        <% if @concern.element.preferred_colour.blank? %>
-          <%= f.hidden_field :colour, :id => :colour_picker %>
-        <% else %>
-          <%= f.hidden_field :colour,
-            :id => :colour_picker,
-            "data-default-colour" => @concern.element.preferred_colour %>
-        <% end %>
-      </span>
+<hr/>
+<div class="tabs-content">
+  <div class="content active" id="concern-appearance">
+    <h3>Appearance</h3>
+    <%= render "appearance" %>
+  </div>
+<% if @urls %>
+  <div class="content" id="concern-feeds">
+    <%= render @urls %>
+  </div>
+<% end %>
+  <div class="content" id="concern-report">
+    <h3>Report</h3>
+    <%= render "report" %>
+  </div>
+<% if @proforma %>
+  <div class="content" id="concern-proforma">
+    <h3>Requirements pro-forma</h3>
+    <p>
+    This is what will be shown to users who request this item for their events.
+    </p>
+    <div id="pro-forma-space">
+      <% if @concern.element.promptnote %>
+        <%= render @concern.element.promptnote %>
+      <% else %>
+        <%= render "promptnotes/no_promptnote.html.erb" %>
+      <% end %>
     </div>
   </div>
-  <%= flag_group(f, 12, 6, "Options", @options_flags) %>
-  <div class="small-12 medium-6 large-4 columns">
-    <%= f.submit "Save changes", :class => "zfbutton tiny radius" %>
-  </div>
-</div>
 <% end %>
-
 <hr/>
-<% unless @reduced %>
-<h3>Report</h3>
-<p>You can get a listing of all events involving this resource.</p>
-
-<%= form_for(@item_report) do |f| %>
-<%= f.hidden_field :concern_id %>
-<div class="row">
-  <div class="small-6 medium-2 columns">
-    <label>Start date</label>
-<%= f.text_field :starts_on, :class => "reportdate" %>
-  </div>
-  <div class="small-6 medium-2 columns">
-    <label>End date</label>
-<%= f.text_field :ends_on, :class => "reportdate" %>
-  </div>
-  <div class="small-12 medium-5 columns">
-    <label>Event categories</label>
-    <%= f.text_field :categories,
-                     placeholder: "Comma-separated list of categories",
-                     title: "Enter a comma-separated list of event categories to which to restrict the report.  Leave blank for all categories." %>
-  </div>
-  <div class="small-12 medium-3 columns">
-    <label>Exclude</label>
-    <%= f.autocomplete_field :excluded_element_name,
-                             autocomplete_property_element_name_elements_path,
-                             :id_element => '#itemreport_excluded_element_id',
-                             :placeholder => "Exclude events from",
-                             :title => "You can enter here the name of a property.  All events with that property will then be excluded from your report.",
-                             "data-auto-focus" => true %>
-    <%= f.text_field :excluded_element_id, :type => :hidden %>
-  </div>
-</div>
-<div class="row collapse">
-  <%= flag_group(f, 12, 6, "Duration", [
-                 {field: :compact,
-                  annotation: "If set, multi-day events will be mentioned only on their first day."},
-                 {field: :duration,
-                  annotation: "For use with the previous option - will cause the end-date of the event to be appended to the entry on the first day."},
-                 {field: :mark_end,
-                  annotation: "If set, causes the end day of a multi-day event to be annotated too."},
-                 {field: :periods,
-                  annotation: "For events which align with the school's standard periods, list them by period number instead of by time."},
-                 {field: :twelve_hour,
-                  annotation: "Use the 12 hour clock instead of the default 24 hour clock in reports."},
-                 {field: :no_space,
-                  annotation: "For times in the 12 hour format, don't put a space between the numbers and am/pm."},
-                 {field: :end_time,
-                  annotation: "For events with a duration, show the end time as well as the start time."}
-                  ]) %>
-  <%= flag_group(f, 12, 6, "Resources", [
-                 {field: :locations,
-                  annotation: "Include the (short) names of locations for each event."},
-                 {field: :staff,
-                  annotation: "List staff involved in each event."},
-                 {field: :pupils,
-                  annotation: "List pupils involved in each event."}]) %>
-  <%= flag_group(f, 12, 6, "Notes", [
-                 {field: :my_notes,
-                  prompt: "Mine",
-                  annotation: "Show notes specifically relating to this item's commitment to the event(s)."},
-                 {field: :other_notes,
-                  prompt: "Other",
-                  annotation: "Show notes relating to the commitment of other items to the event(s)."},
-                 {field: :general_notes,
-                  prompt: "General",
-                  annotation: "Show general notes attached to the event(s), not related to particular items."}]) %>
-  <%= flag_group(f, 12, 6, "Formatting", [
-                 {field: :breaks,
-                  annotation: "Put each event on a separate line of its own."},
-                 {field: :suppress_empties,
-                  annotation: "Don't produce output for days with no events."},
-                  {field: :enddot,
-                   prompt: "Full stop",
-                  annotation: "Should there be a full stop at the end of each event description?"}]) %>
-  <%= flag_group(f, 12, 6, "Filters", [
-                 {field: :tentative,
-                  annotation: "Show events for which this resource has been requested, but where the request is still awaiting approval."},
-                 {field: :firm,
-                  prompt: "And firm",
-                  annotation: "For use with the previous flag. Still show firm events, even though the tentative ones have been requested.  In other words, show both."}
-                 ]) %>
-</div>
-
-<%= f.submit "Display", :class => "zfbutton tiny radius" %>
-<%= f.submit "doc", :class => "zfbutton tiny radius" %>
-<%= f.submit "csv", :class => "zfbutton tiny radius" %>
-<% end %>
-
-<hr/>
-
-<% if @concern.owns && !@concern.equality %>
-  <h3>Requirements pro-forma</h3>
-  <p>This is what will be shown to users who request this item for their events.</p>
-  <div id="pro-forma-space">
-    <% if @concern.element.promptnote %>
-      <%= render @concern.element.promptnote %>
-    <% else %>
-      <%= render "promptnotes/no_promptnote.html.erb" %>
-    <% end %>
-    <hr/>
-  </div>
-<% end %>
 <% end %>

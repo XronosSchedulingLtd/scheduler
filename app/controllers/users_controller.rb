@@ -164,7 +164,8 @@ class UsersController < ApplicationController
     def authorized?(action = action_name, resource = nil)
       logged_in? && (current_user.admin ||
                      action == 'edit' ||
-                     action == 'update')
+                     action == 'update' ||
+                     action == 'pp')
     end
 
     # Use callbacks to share common setup or constraints between actions.
@@ -203,14 +204,17 @@ class UsersController < ApplicationController
                       :can_roam,
                       :firstday,
                       :list_teachers,
+                      :warn_no_resources,
                       :preferred_event_category_id,
                       :colour_not_involved,
                       :default_event_text,
-                      :day_shape_id)
+                      :day_shape_id,
+                      :can_relocate_lessons)
       elsif current_user.editor
         params.require(:user).
                permit(:firstday,
                       :list_teachers,
+                      :warn_no_resources,
                       :email_notification,
                       :immediate_notification,
                       :clash_weekly,
@@ -226,6 +230,7 @@ class UsersController < ApplicationController
         params.require(:user).
                permit(:firstday,
                       :list_teachers,
+                      :warn_no_resources,
                       :colour_not_involved,
                       :email_notification,
                       :immediate_notification,

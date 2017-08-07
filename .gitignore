@@ -15,8 +15,10 @@
 /log/*
 /tmp
 
-# Ignore any files in the staging directory
+# Ignore any files in the staging directory, except the one which keeps
+# it there.
 /staging/*
+!/staging/.keep
 
 # And any in the import directory
 #

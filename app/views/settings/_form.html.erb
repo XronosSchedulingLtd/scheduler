@@ -125,10 +125,45 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= f.label :prefer_https, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.check_box :prefer_https %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label "Required UUID for iCal feed", class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.check_box :require_uuid %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       <%= f.label :from_email_address, "E-mail address for From:", class: "right" %>
     </div>
     <div class="small-6 columns">
       <%= f.text_field :from_email_address %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :room_cover_group_element_name, "Room cover group", class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.autocomplete_field :room_cover_group_element_name,
+                               autocomplete_group_element_name_elements_path,
+                               :id_element => '#setting_room_cover_group_element_id',
+                               :placeholder => "Group of rooms to use for cover",
+                               "data-auto-focus" => true %>
+      <%= f.text_field :room_cover_group_element_id, :type => :hidden %>
     </div>
     <div class="small-3 columns">
     </div>

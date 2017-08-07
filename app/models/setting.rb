@@ -5,30 +5,15 @@
 
 class Setting < ActiveRecord::Base
 
-  @@current_era = nil
-  @@next_era = nil
-  @@checked_next_era = false
-  @@previous_era = nil
-  @@checked_previous_era = false
-  @@perpetual_era = nil
-  @@checked_perpetual_era = false
-  @@hostname = nil
+  @@setting = nil
   @@got_hostname = false
-  @@enforce_permissions = false
-  @@checked_enforce_permissions = false
-  @@checked_current_mis = false
-  @@current_mis = nil
-  @@checked_previous_mis = false
-  @@previous_mis = nil
-  @@auth_type = nil
-  @@checked_auth_type = false
-  @@dns_domain_name = nil
-  @@from_email_address = nil
+  @@hostname = ""
 
   belongs_to :current_era, class_name: :Era
   belongs_to :next_era, class_name: :Era
   belongs_to :previous_era, class_name: :Era
   belongs_to :perpetual_era, class_name: :Era
+  belongs_to :room_cover_group_element, class_name: :Element
 
   after_save :flush_cache
 
@@ -48,132 +33,142 @@ class Setting < ActiveRecord::Base
   #  values.
   #
   def flush_cache
-    @@current_era = nil
-    @@next_era = nil
-    @@checked_next_era = false
-    @@previous_era = nil
-    @@checked_previous_era = false
-    @@perpetual_era = nil
-    @@checked_perpetual_era = false
-    @@enforce_permissions = nil
-    @@checked_enforce_permissions = false
-    @@dns_domain_name = nil
-    @@from_email_address = nil
+    @@setting = Setting.first
+  end
+
+  def room_cover_group_element_name
+    room_cover_group_element ? room_cover_group_element.name : ""
+  end
+
+  def room_cover_group_element_name=(newname)
+    #
+    #  Do nothing with it.
+    #
   end
 
   def self.current_era
-    unless @@current_era
-      setting = Setting.first
-      if setting
-        @@current_era = setting.current_era
-      else
-        @@current_era = nil
-      end
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.current_era
+    else
+      nil
     end
-    @@current_era
   end
 
   def self.next_era
-    unless @@checked_next_era
-      setting = Setting.first
-      if setting
-        @@next_era = setting.next_era
-      else
-        @@next_era = nil
-      end
-      @@checked_next_era = true
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.next_era
+    else
+      nil
     end
-    @@next_era
   end
 
   def self.previous_era
-    unless @@checked_previous_era
-      setting = Setting.first
-      if setting
-        @@previous_era = setting.previous_era
-      else
-        @@previous_era = nil
-      end
-      @@checked_previous_era = true
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.previous_era
+    else
+      nil
     end
-    @@previous_era
   end
 
   def self.perpetual_era
-    unless @@checked_perpetual_era
-      setting = Setting.first
-      if setting
-        @@perpetual_era = setting.perpetual_era
-      else
-        @@perpetual_era = nil
-      end
-      @@checked_perpetual_era = true
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.perpetual_era
+    else
+      nil
     end
-    @@perpetual_era
   end
 
   def self.enforce_permissions?
-    unless @@checked_enforce_permissions
-      setting = Setting.first
-      if setting
-        @@enforce_permissions = setting.enforce_permissions
-      end
-      @@checked_enforce_permissions = true
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.enforce_permissions
+    else
+      true
     end
-    @@enforce_permissions
   end
 
   def self.current_mis
-    unless @@checked_current_mis
-      setting = Setting.first
-      if setting
-        @@current_mis = setting.current_mis
-      end
-      @@checked_current_mis = true
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.current_mis
+    else
+      nil
     end
-    @@current_mis
   end
 
   def self.previous_mis
-    unless @@checked_previous_mis
-      setting = Setting.first
-      if setting
-        @@previous_mis = setting.previous_mis
-      end
-      @@checked_previous_mis = true
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.previous_mis
+    else
+      nil
     end
-    @@previous_mis
   end
 
   def self.auth_type
-    unless @@checked_auth_type
-      setting = Setting.first
-      if setting
-        @@auth_type = setting.auth_type
-      end
-      @@checked_auth_type = true
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.auth_type
+    else
+      nil
     end
-    @@auth_type
   end
 
   def self.dns_domain_name
-    unless @@dns_domain_name
-      setting = Setting.first
-      if setting
-        @@dns_domain_name = setting.dns_domain_name
-      end
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.dns_domain_name
+    else
+      ""
     end
-    @@dns_domain_name
   end
 
   def self.from_email_address
-    unless @@from_email_address
-      setting = Setting.first
-      if setting
-        @@from_email_address = setting.from_email_address
-      end
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.from_email_address
+    else
+      ""
     end
-    @@from_email_address
+  end
+
+  def self.require_uuid
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.require_uuid
+    else
+      true
+    end
+  end
+
+  def self.protocol_prefix
+    @@setting ||= Setting.first
+    if @@setting && !@@setting.prefer_https
+      "http"
+    else
+      "https"
+    end
+  end
+
+  def self.room_cover_group_element
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.room_cover_group_element
+    else
+      nil
+    end
+  end
+
+  def self.port_no
+    if Rails.env == "development"
+      ":3000"
+    else
+      ""
+    end
   end
 
   #

@@ -26,6 +26,16 @@ class Element < ActiveRecord::Base
   has_one :promptnote, :dependent => :destroy
   belongs_to :owner, :class_name => :User
 
+  #
+  #  This is actually a constraint in the database too, but by specifying
+  #  it here we can catch errors earlier.
+  #
+  #  It's quite incredibly unlikely that we will actually generated duplicate
+  #  uuids, but it's just possible that client code might copy one
+  #  between records.
+  #
+  validates :uuid, uniqueness: true
+
   scope :current, -> { where(current: true) }
   scope :staff, -> { where(entity_type: "Staff") }
   scope :agroup, -> { where(entity_type: "Group") }
@@ -35,6 +45,7 @@ class Element < ActiveRecord::Base
   scope :owned, -> { where(owned: true) }
   scope :disowned, -> { where(owned: false) }
 
+  before_create :add_uuid
   before_destroy :being_destroyed
   after_save :rename_affected_events
 
@@ -492,10 +503,14 @@ class Element < ActiveRecord::Base
   end
 
   def rename_affected_events
-    self.commitments.names_event.each do |c|
-      if c.event.body != self.name
-        c.event.body = self.name
-        c.event.save!
+    if @dont_rename
+      @dont_rename = false
+    else
+      self.commitments.names_event.each do |c|
+        if c.event.body != self.name
+          c.event.body = self.name
+          c.event.save!
+        end
       end
     end
   end
@@ -513,10 +528,78 @@ class Element < ActiveRecord::Base
     nil
   end
 
+  #
+  #  Client code is not allowed to modify uuid.
+  #
+  def uuid=(value)
+  end
+
+  #
+  #  This method is called as the element record is about to be
+  #  created in the database.
+  #
+  def add_uuid
+    #
+    #  In theory we shouldn't get here if the record isn't valid, but...
+    #
+    if self.valid?
+      generate_uuid
+      #
+      #  This seems really stupid, but surely we should have some
+      #  code to cope with the possibility of a clash?
+      #
+      #  I don't want a loop in case of a coding error which means
+      #  it turns into an endless loop.
+      #
+      #  If after a second attempt our record is still invalid
+      #  (meaning the uuid is still clashing with one already in
+      #  the database) then the create!() (invoked from elemental.rb)
+      #  will throw an error and the creation of the underlying
+      #  element will be rolled back.  On the other hand, if you're
+      #  that unlucky you're not going to live much longer anyway.
+      #
+      #  Note that by this point, the automatic Rails record validation
+      #  has already been performed, and won't be performed again.
+      #  The only thing which is going to stop the save succeeding
+      #  is an actual constraint on the database - which is there.
+      #
+      unless self.valid?
+        generate_uuid
+      end
+    end
+  end
+
+  def self.generate_uuids
+    self.find_each do |element|
+      if element.uuid.blank?
+        element.generate_initial_uuid
+        element.save!
+      end
+    end
+    nil
+  end
+
+  #
+  #  This one is public, but won't overwrite an existing uuid.
+  #
+  def generate_initial_uuid
+    if self.uuid.blank?
+      generate_uuid
+      @dont_rename = true
+    end
+  end
+
   protected
 
   def being_destroyed
     @being_destroyed = true
+  end
+
+  #
+  #  This one generates a uuid regardless.
+  #
+  def generate_uuid
+    write_attribute(:uuid, SecureRandom.uuid)
   end
 
 end
