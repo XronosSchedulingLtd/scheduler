@@ -198,6 +198,7 @@ class UsersController < ApplicationController
                       :invig_weekly,
                       :invig_daily,
                       :can_has_groups,
+                      :can_has_forms,
                       :can_find_free,
                       :can_add_concerns,
                       :can_su,

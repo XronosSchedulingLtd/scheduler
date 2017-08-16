@@ -39,6 +39,7 @@ class User < ActiveRecord::Base
     subedit_all_events: "Can this user sub-edit all events within the system?",
     privileged: "Can this user enter events into the privileged event categories?",
     can_has_groups: "Can this user create and edit groups within the system?",
+    can_has_forms: "Can this user create and edit forms within the system?",
     public_groups: "Can this user create publicly visible groups?",
     can_find_free: "Can this user do searches for free resources?",
     can_add_concerns: "Can this user dynamically choose which schedules to look at?",

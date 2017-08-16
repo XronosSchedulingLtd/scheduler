@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170806103706) do
+ActiveRecord::Schema.define(version: 20170814072035) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -535,6 +535,15 @@ ActiveRecord::Schema.define(version: 20170806103706) do
     t.datetime "updated_at"
   end
 
+  create_table "user_forms", force: true do |t|
+    t.string   "name"
+    t.integer  "created_by_user_id"
+    t.integer  "edited_by_user_id"
+    t.text     "definition"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "users", force: true do |t|
     t.string   "provider"
     t.string   "uid"
@@ -577,6 +586,7 @@ ActiveRecord::Schema.define(version: 20170806103706) do
     t.boolean  "list_teachers",               default: false
     t.boolean  "warn_no_resources",           default: true
     t.boolean  "can_relocate_lessons",        default: false
+    t.boolean  "can_has_forms",               default: false
   end
 
 end

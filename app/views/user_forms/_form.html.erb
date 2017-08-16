@@ -1,0 +1,21 @@
+<%= form_for(@user_form) do |f| %>
+  <% if @user_form.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@user_form.errors.count, "error") %> prohibited this user_form from being saved:</h2>
+
+      <ul>
+      <% @user_form.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+    <%= f.hidden_field :definition %>
+  </div>
+  <div id="fb-editor"></div>
+<% end %>
+

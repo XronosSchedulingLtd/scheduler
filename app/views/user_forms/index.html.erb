@@ -1,0 +1,30 @@
+<h1>Listing forms</h1>
+<p id="notice"><%= notice %></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Created by</th>
+      <th>Last edited by</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @user_forms.each do |user_form| %>
+      <tr>
+        <td><%= user_form.name %></td>
+        <td><%= user_form.created_by_user ? user_form.created_by_user.name : "" %></td>
+        <td><%= user_form.edited_by_user ? user_form.edited_by_user.name : "" %></td>
+        <td><%= link_to 'Show', user_form, class: "zfbutton tiny radius" %></td>
+        <td><%= link_to 'Edit', edit_user_form_path(user_form), class: "zfbutton tiny radius" %></td>
+        <td><%= link_to 'Destroy', user_form, class: "zfbutton tiny radius", method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New form', new_user_form_path, class: "zfbutton tiny radius" %>

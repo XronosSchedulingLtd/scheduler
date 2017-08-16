@@ -54,6 +54,9 @@
 <%     if current_user.element_owner %>
             <li><%= link_to "Approvals", commitments_path %></li>
 <%     end %>
+<%     if current_user.can_has_forms %>
+            <li><%= link_to "Forms", user_forms_path %></li>
+<%     end %>
 <%     if current_user.exams? %>
             <li class="has-dropdown">
               <a href="#">Invigilation</a>

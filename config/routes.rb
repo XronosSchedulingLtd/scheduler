@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  resources :user_forms
+
   resources :periods, only: [:index]
 
   resources :notifiers
