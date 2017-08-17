@@ -9,7 +9,7 @@ if ($('#fb-editor').length) {
 //  Wrap everything in a function to avoid namespace pollution
 //  Note that we invoke the function immediately.
 //
-var user_forms = function() {
+var user_form_edit = function() {
 
   var that = {};
 
@@ -55,6 +55,35 @@ var user_forms = function() {
 //
 //  Once the DOM is ready, get our code to initialise itself.
 //
-$(user_forms.init);
+$(user_form_edit.init);
 
 }
+
+//
+//  And we also have the code for displaying.  Note that this code is
+//  *not* used for filling in the forms - it just displays.
+//
+if ($('.fb-render').length) {
+
+//
+//  Wrap everything in a function to avoid namespace pollution
+//  Note that we invoke the function immediately.
+//
+var user_form_display = function() {
+  var that = {};
+
+  that.init = function() {
+    $('.fb-render').formRender({
+      dataType: 'json',
+      formData: $('#user_form_definition').val()
+    });
+  }
+
+  return that;
+
+}();
+
+$(user_form_display.init);
+}
+
+

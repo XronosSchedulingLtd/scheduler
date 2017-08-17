@@ -1,14 +1,16 @@
-<p id="notice"><%= notice %></p>
 
-<p>
-  <strong>Name:</strong>
-  <%= @user_form.name %>
-</p>
+<h1>Form: <%= @user_form.name %></h1>
 
-<p>
-  <strong>Definition:</strong>
-  <%= @user_form.definition %>
-</p>
+<hr/>
+
+<div class="fb-render">
+  <textarea id="user_form_definition" style="display:none">
+    <%= @user_form.definition %>
+  </textarea>
+</div>
+
+
+<br/>
 
 <%= link_to 'Edit', edit_user_form_path(@user_form) %> |
 <%= link_to 'Back', user_forms_path %>

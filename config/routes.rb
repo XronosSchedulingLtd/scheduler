@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
 
-  resources :user_forms
+  resources :user_forms, shallow: true do
+    resources :user_form_responses
+  end
 
   resources :periods, only: [:index]
 

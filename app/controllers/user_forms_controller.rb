@@ -4,7 +4,7 @@ class UserFormsController < ApplicationController
   # GET /user_forms
   # GET /user_forms.json
   def index
-    @user_forms = UserForm.all
+    @user_forms = UserForm.order(:name).page(params[:page])
   end
 
   # GET /user_forms/1
@@ -24,9 +24,9 @@ class UserFormsController < ApplicationController
   # POST /user_forms
   # POST /user_forms.json
   def create
-    params = user_form_params
-    params[:created_by_user] = current_user
-    @user_form = UserForm.new(params)
+    local_params = user_form_params
+    local_params[:created_by_user] = current_user
+    @user_form = UserForm.new(local_params)
 
     respond_to do |format|
       if @user_form.save
@@ -43,9 +43,9 @@ class UserFormsController < ApplicationController
   # PATCH/PUT /user_forms/1.json
   def update
     respond_to do |format|
-      params = user_form_params
-      params[:edited_by_user] = current_user
-      if @user_form.update(params)
+      local_params = user_form_params
+      local_params[:edited_by_user] = current_user
+      if @user_form.update(local_params)
         format.html { redirect_to user_forms_url, notice: 'User form was successfully updated.' }
         format.json { render :show, status: :ok, location: @user_form }
       else

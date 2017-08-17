@@ -54,6 +54,7 @@ class User < ActiveRecord::Base
   serialize :extra_eventcategories,      Array
 
   has_many :concerns,   :dependent => :destroy
+  has_many :user_form_responses, :dependent => :destroy
 
   has_many :events, foreign_key: :owner_id, dependent: :nullify
 

@@ -1,0 +1,30 @@
+<div style='display:none'>
+  <%= form_for([@user_form, @user_form_response]) do |f| %>
+    <%= f.text_field :definition, disabled: true %>
+    <%= f.text_field :form_data %>
+  <% end %>
+</div>
+<form id='user-form'>
+  <div class='user-form-response-area'></div>
+  <input type='submit' style='display:none'/>
+</form>
+
+<button class='zfbutton tiny radius' id='save-button'>Save</button>
+<%=
+#
+#  If we are creating a new response then (for now) we came from
+#  the listing of user forms.  If we are editing an existing one
+#  then we came from the list of response.
+#
+#  Creating is done in the context of a user form, editing is not.
+#
+if @user_form
+  #
+  #  Creation
+  #
+  target = user_forms_path
+else
+  target = user_form_user_form_responses_path(@user_form_response.user_form)
+end
+link_to "Cancel", target, class: 'zfbutton tiny radius' %>
+

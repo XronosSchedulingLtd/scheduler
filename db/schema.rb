@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170814072035) do
+ActiveRecord::Schema.define(version: 20170816091849) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -531,6 +531,16 @@ ActiveRecord::Schema.define(version: 20170814072035) do
     t.string   "house"
     t.integer  "staff_id"
     t.integer  "start_year"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "user_form_responses", force: true do |t|
+    t.integer  "user_form_id"
+    t.integer  "parent_id"
+    t.string   "parent_type"
+    t.integer  "user_id"
+    t.text     "form_data"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
