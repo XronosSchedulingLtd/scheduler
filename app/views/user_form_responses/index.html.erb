@@ -6,6 +6,7 @@
     <tr>
       <th>Last modified</th>
       <th>Event</th>
+      <th>At</th>
       <th>On</th>
       <th>User</th>
       <th colspan="3"></th>
@@ -18,6 +19,7 @@
         <td><%= user_form_response.updated_at_text %></td>
         <td><%= user_form_response.event_text %></td>
         <td><%= user_form_response.event_time_text %></td>
+        <td><%= user_form_response.event_date_text %></td>
         <td><%= user_form_response.user_text %></td>
         <td><%= link_to 'Show', user_form_response %></td>
         <td><%= link_to 'Edit', edit_user_form_response_path(user_form_response) %></td>

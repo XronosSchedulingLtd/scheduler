@@ -1,7 +1,7 @@
 class UserFormResponse < ActiveRecord::Base
 
   belongs_to :user_form
-  belongs_to :owner, polymorphic: true
+  belongs_to :parent, polymorphic: true
   belongs_to :user
 
   validates :user_form, presence: true
@@ -22,11 +22,11 @@ class UserFormResponse < ActiveRecord::Base
   end
 
   def corresponding_event
-    if self.owner
-      if self.owner.instance_of?(Event)
-        self.owner
-      elsif self.owner.instance_of?(Commitment)
-        self.owner.event
+    if self.parent
+      if self.parent.instance_of?(Event)
+        self.parent
+      elsif self.parent.instance_of?(Commitment)
+        self.parent.event
       else
         nil
       end
@@ -48,6 +48,15 @@ class UserFormResponse < ActiveRecord::Base
     event = corresponding_event
     if event
       event.starts_at.interval_str(event.ends_at)
+    else
+      ""
+    end
+  end
+
+  def event_date_text
+    event = corresponding_event
+    if event
+      event.starts_at.strftime("%d/%m/%Y")
     else
       ""
     end

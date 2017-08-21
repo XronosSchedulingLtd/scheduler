@@ -40,6 +40,7 @@ var user_form_edit = function() {
 
     var options = {
       disableFields: ['autocomplete', 'button', 'hidden', 'file'],
+      disabledAttrs: ['access', 'className'],
       onSave: that.saveRequested,
       dataType: 'json',
       formData: that.definition_field.val()
