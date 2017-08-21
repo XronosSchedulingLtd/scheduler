@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  resources :journals, only: [:index, :show]
+
   resources :user_forms, shallow: true do
     resources :user_form_responses
   end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170816091849) do
+ActiveRecord::Schema.define(version: 20170821081354) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -258,6 +258,33 @@ ActiveRecord::Schema.define(version: 20170816091849) do
   end
 
   add_index "itemreports", ["concern_id"], name: "index_itemreports_on_concern_id", using: :btree
+
+  create_table "journal_entries", force: true do |t|
+    t.integer  "journal_id"
+    t.integer  "user_id"
+    t.integer  "entry_type"
+    t.text     "details"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "journal_entries", ["journal_id"], name: "index_journal_entries_on_journal_id", using: :btree
+
+  create_table "journals", force: true do |t|
+    t.integer  "event_id"
+    t.text     "event_body"
+    t.integer  "event_eventcategory_id"
+    t.integer  "event_owner_id"
+    t.datetime "event_starts_at"
+    t.datetime "event_ends_at"
+    t.boolean  "event_all_day"
+    t.integer  "event_organiser_id"
+    t.text     "event_organiser_ref"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "journals", ["event_id"], name: "index_journals_on_event_id", using: :btree
 
   create_table "locationaliases", force: true do |t|
     t.string   "name"

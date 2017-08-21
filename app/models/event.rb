@@ -118,6 +118,7 @@ class Event < ActiveRecord::Base
   has_many :direct_locations, -> { where(elements: {entity_type: "Location"}) }, class_name: "Element", :source => :element, :through => :non_covering_commitments
   has_many :cover_locations, -> { where(elements: {entity_type: "Location"}) }, class_name: "Element", :source => :element, :through => :covering_commitments
 
+  has_one :journal, :dependent => :nullify
   belongs_to :owner, :class_name => :User
 
   belongs_to :organiser, :class_name => :Element
@@ -1062,6 +1063,46 @@ class Event < ActiveRecord::Base
     end
     puts "Total resources attached to events - #{total_resources}."
     nil
+  end
+
+  #
+  #  Journal stuff
+  #
+
+  def ensure_journal
+    unless self.journal
+      self.journal = Journal.new.populate_from_event(self)
+    end
+  end
+
+  def journal_event_created(by_user)
+    #
+    #  Since we are meant to be called just after the creation of
+    #  the event, the journal should not already exist, but just
+    #  to be safe, and for consistency...
+    #
+    ensure_journal
+    self.journal.event_created(by_user)
+  end
+
+  def journal_event_updated(by_user)
+    ensure_journal
+    self.journal.event_updated(by_user)
+  end
+
+  def journal_event_destroyed(by_user)
+    ensure_journal
+    self.journal.event_destroyed(by_user)
+  end
+
+  def journal_commitment_added(commitment, by_user)
+    ensure_journal
+    self.journal.commitment_added(commitment, by_user)
+  end
+
+  def journal_commitment_removed(commitment, by_user)
+    ensure_journal
+    self.journal.commitment_removed(commitment, by_user)
   end
 
   private

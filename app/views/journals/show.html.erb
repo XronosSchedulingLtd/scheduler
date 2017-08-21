@@ -1,0 +1,17 @@
+<h3>Journal entries for "<%= @journal.event_body %>"</h3>
+
+<div class="row collapse">
+  <div class="small-12 columns">
+    <table class="zftable">
+      <thead>
+        <th>Id</th>
+        <th>Type</th>
+        <th>By</th>
+        <th>Details</th>
+      </thead>
+      <tbody>
+        <%= render @journal.journal_entries %>
+      </tbody>
+    </table>
+  </div>
+</div>

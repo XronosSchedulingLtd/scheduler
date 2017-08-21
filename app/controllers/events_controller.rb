@@ -227,6 +227,7 @@ class EventsController < ApplicationController
     respond_to do |format|
       if @event.save
         @event.reload
+        @event.journal_event_created(current_user)
         #
         #  Does this user have any Concerns with the auto_add flag set?
         #
@@ -238,6 +239,7 @@ class EventsController < ApplicationController
           if session[:request_notifier]
             session[:request_notifier].commitment_added(c)
           end
+          @event.journal_commitment_added(c, current_user)
         end
         #
         #  And was anything specified in the request?
@@ -256,6 +258,7 @@ class EventsController < ApplicationController
               if session[:request_notifier]
                 session[:request_notifier].commitment_added(c)
               end
+              @event.journal_commitment_added(c, current_user)
             end
           else
             Rails.logger.debug("Couldn't find element with id #{@event.precommit_element_id}")
@@ -284,7 +287,13 @@ class EventsController < ApplicationController
   def update
     if current_user.can_subedit?(@event)
       respond_to do |format|
+        #
+        #  Want to make sure the journal exists before we do the
+        #  update so that we can tell what if anything has changed.
+        #
+        @event.ensure_journal
         if @event.update(event_params)
+          @event.journal_event_updated(current_user)
           if session[:request_notifier]
             session[:request_notifier].
               send_notifications_for(current_user, @event)
@@ -326,11 +335,13 @@ class EventsController < ApplicationController
   #
   def moved
     if current_user.can_retime?(@event)
+      @event.ensure_journal
       new_start = params[:event][:new_start]
       new_all_day = (params[:event][:all_day] == "true")
       @event.set_timing(new_start, new_all_day)
       respond_to do |format|
         if @event.save
+          @event.journal_event_updated(current_user)
           format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
           format.json { render :show, status: :ok, location: @event }
         else
@@ -372,6 +383,7 @@ class EventsController < ApplicationController
   def destroy
     if current_user.can_edit?(@event)
       RequestNotifier.new.send_notifications_for(current_user, @event, true)
+      @event.journal_event_destroyed(current_user)
       @event.destroy
     end
     respond_to do |format|

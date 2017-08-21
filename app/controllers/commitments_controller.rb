@@ -84,6 +84,7 @@ class CommitmentsController < ApplicationController
     #
     if @commitment.save
       @commitment.reload
+      @commitment.event.journal_commitment_added(@commitment, current_user)
       if session[:request_notifier]
         session[:request_notifier].commitment_added(@commitment)
       end
@@ -102,6 +103,7 @@ class CommitmentsController < ApplicationController
       if session[:request_notifier]
         session[:request_notifier].commitment_removed(@commitment)
       end
+      @commitment.event.journal_commitment_removed(@commitment, current_user)
       @commitment.destroy
       @event.reload
       @resourcewarning = false
