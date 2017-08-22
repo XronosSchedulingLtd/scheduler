@@ -138,6 +138,7 @@ class CommitmentsController < ApplicationController
     if current_user.can_approve?(@commitment) && @commitment.tentative
       @commitment.approve_and_save!(current_user)
       @event.reload
+      @event.journal_commitment_approved(@commitment, current_user)
       if @event.complete
         #
         #  Given that our commitment was previously tentative, this
@@ -160,6 +161,7 @@ class CommitmentsController < ApplicationController
       (@commitment.tentative || @commitment.constraining)
       @commitment.reject_and_save!(current_user, params[:reason])
       @event.reload
+      @event.journal_commitment_rejected(@commitment, current_user)
       UserMailer.commitment_rejected_email(@commitment).deliver
     end
     @visible_commitments, @approvable_commitments =

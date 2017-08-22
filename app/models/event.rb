@@ -941,6 +941,7 @@ class Event < ActiveRecord::Base
       new_self.send("#{key}=", value)
     end
     new_self.save!
+    new_self.journal_event_created(modifiers[:owner], true)
     #
     #  Commitments don't get copied by dup.
     #
@@ -949,7 +950,8 @@ class Event < ActiveRecord::Base
       #  And we don't want to clone cover commitments.
       #
       unless commitment.covering
-        commitment.clone_and_save(event: new_self)
+        c = commitment.clone_and_save(event: new_self)
+        new_self.journal_commitment_added(c, modifiers[:owner])
       end
     end
     new_self
@@ -1075,14 +1077,14 @@ class Event < ActiveRecord::Base
     end
   end
 
-  def journal_event_created(by_user)
+  def journal_event_created(by_user, cloned = false)
     #
     #  Since we are meant to be called just after the creation of
     #  the event, the journal should not already exist, but just
     #  to be safe, and for consistency...
     #
     ensure_journal
-    self.journal.event_created(by_user)
+    self.journal.event_created(by_user, cloned)
   end
 
   def journal_event_updated(by_user)
@@ -1104,6 +1106,40 @@ class Event < ActiveRecord::Base
     ensure_journal
     self.journal.commitment_removed(commitment, by_user)
   end
+
+  def journal_commitment_approved(commitment, by_user)
+    ensure_journal
+    self.journal.commitment_approved(commitment, by_user)
+  end
+
+  def journal_commitment_rejected(commitment, by_user)
+    ensure_journal
+    self.journal.commitment_rejected(commitment, by_user)
+  end
+
+  #
+  #  If a commitment goes back from either "approved" or "rejected"
+  #  to a "pending" state.
+  #
+  def journal_commitment_reset(commitment, by_user)
+    ensure_journal
+    self.journal.commitment_reset(commitment, by_user)
+  end
+
+  #
+  #  We don't generally journal ordinary notes, since they aren't
+  #  significant.  We do journal commitment notes, since those affect
+  #  whether the 
+  def journal_note_added(note, by_user)
+    ensure_journal
+    self.journal.note_added(note, by_user)
+  end
+
+  def journal_note_updated(note, by_user)
+    ensure_journal
+    self.journal.note_updated(note, by_user)
+  end
+
 
   private
 

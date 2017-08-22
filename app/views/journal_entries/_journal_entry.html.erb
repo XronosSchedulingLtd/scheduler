@@ -2,5 +2,6 @@
 <td><%= journal_entry.id %></td>
 <td><%= journal_entry.entry_type_text %></td>
 <td><%= journal_entry.user.name %></td>
-<td><%= journal_entry.details %></td>
+<td><%= journal_entry.when %></td>
+<td><%= preserve_line_breaks(journal_entry.details) %></td>
 </tr>

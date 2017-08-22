@@ -14,7 +14,13 @@ class JournalEntry < ActiveRecord::Base
     :resource_added,
     :resource_removed,
     :resource_approved,
-    :resource_denied
+    :resource_denied,
+    :commitment_approved,
+    :commitment_rejected,
+    :commitment_reset,
+    :note_added,
+    :note_updated,
+    :clone_created
   ]
   NEATER_TEXTS = [
     "Event created",
@@ -26,7 +32,13 @@ class JournalEntry < ActiveRecord::Base
     "Resource added",
     "Resource removed",
     "Resource approved",
-    "Resource denied"
+    "Resource denied",
+    "Commitment approved",
+    "Commitment rejected",
+    "Commitment reset",
+    "Note added",
+    "Note updated",
+    "Created as clone"
   ]
   belongs_to :journal
   belongs_to :user
@@ -35,5 +47,9 @@ class JournalEntry < ActiveRecord::Base
 
   def entry_type_text
     NEATER_TEXTS[JournalEntry.entry_types[entry_type]] || ""
+  end
+
+  def when
+    self.created_at.strftime("%H:%M:%S %d/%m/%Y")
   end
 end

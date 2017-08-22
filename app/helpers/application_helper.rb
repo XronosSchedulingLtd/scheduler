@@ -67,4 +67,14 @@ module ApplicationHelper
     result << "</div>"
     result.join("\n").html_safe
   end
+
+  #
+  #  Take a piece of plain text, with line breaks, and convert it to
+  #  the equivalent HTML with <br/> characters.  Escape any dangerous
+  #  input, and flag the result as html_safe.
+  #
+  def preserve_line_breaks(text)
+    h(text).gsub("\n", '<br/>').html_safe
+  end
+
 end

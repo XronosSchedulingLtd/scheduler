@@ -36,10 +36,21 @@ class Journal < ActiveRecord::Base
     self
   end
 
-  def event_created(by_user)
+  def event_created(by_user, cloned)
     self.journal_entries.create({
       user:       by_user,
-      entry_type: :event_created
+      entry_type: cloned ? :clone_created : :event_created,
+      details:    "\"#{
+                      self.event_body
+                    }\"\n#{
+                      format_timing(self.event_starts_at,
+                                    self.event_ends_at,
+                                    self.event_all_day)
+                    }#{
+                      if self.event_organiser
+                        "\nOrganiser: #{self.event_organiser.name}"
+                      end
+                    }"
     })
   end
 
@@ -53,7 +64,7 @@ class Journal < ActiveRecord::Base
       self.journal_entries.create({
         user:       by_user,
         entry_type: :body_text_changed,
-        details:    "From \"#{self.event_body}\" to \"#{self.event.body}\""
+        details:    "From \"#{self.event_body}\"\nTo \"#{self.event.body}\""
       })
       anything_changed = true
     end
@@ -67,7 +78,7 @@ class Journal < ActiveRecord::Base
           format_timing(self.event_starts_at,
                         self.event_ends_at,
                         self.event_all_day)
-        }\" to \"#{
+        }\"\nTo \"#{
           format_timing(self.event.starts_at,
                         self.event.ends_at,
                         self.event.all_day)
@@ -79,7 +90,7 @@ class Journal < ActiveRecord::Base
       self.journal_entries.create({
         user:       by_user,
         entry_type: :category_changed,
-        details:    "From #{self.event_eventcategory.name} to #{self.event.eventcategory.name}"
+        details:    "From #{self.event_eventcategory.name}\nTo #{self.event.eventcategory.name}"
       })
       anything_changed = true
     end
@@ -89,7 +100,7 @@ class Journal < ActiveRecord::Base
         entry_type: :organiser_changed,
         details:    "From #{
           self.event_organiser ?  self.event_organiser.name : "<none>"
-        } to #{
+        }\nTo #{
           self.event.organiser ? self.event.organiser.name : "<none>"
         }"
       })
@@ -124,10 +135,53 @@ class Journal < ActiveRecord::Base
     })
   end
 
+  def commitment_approved(commitment, by_user)
+    self.journal_entries.create({
+      user:       by_user,
+      entry_type: :commitment_approved,
+      details:    commitment_description(commitment)
+    })
+  end
+
+  def commitment_rejected(commitment, by_user)
+    self.journal_entries.create({
+      user:       by_user,
+      entry_type: :commitment_rejected,
+      details:    commitment_description(commitment, true)
+    })
+  end
+
+  def commitment_reset(commitment, by_user)
+    self.journal_entries.create({
+      user:       by_user,
+      entry_type: :commitment_reset,
+      details:    commitment_description(commitment)
+    })
+  end
+
+  def note_added(note, by_user)
+    self.journal_entries.create({
+      user:       by_user,
+      entry_type: :note_added
+    })
+  end
+
+  def note_updated(note, by_user)
+    self.journal_entries.create({
+      user:       by_user,
+      entry_type: :note_updated,
+      details:    note.parent.instance_of?(Commitment) ?
+                  "Relating to #{note.parent.element.name}" :
+                  ""
+    })
+  end
+
   private
 
-  def commitment_description(commitment)
-    "#{commitment.element.entity_type}: #{commitment.element.name}"
+  def commitment_description(commitment, with_reason = false)
+    "#{commitment.element.entity_type}: #{commitment.element.name}#{
+      with_reason ? "\nReason: #{commitment.reason}" : ""
+    }"
   end
 
   def format_timing(starts_at, ends_at, all_day)
