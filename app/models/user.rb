@@ -397,6 +397,24 @@ class User < ActiveRecord::Base
     !!concerns.can_commit.detect {|c| (c.element_id == element.id)}
   end
 
+  def can_view_journal_for?(object)
+    #
+    #  For now it's just the admin users, but we may add more fine-grained
+    #  control later.
+    #
+    if object.instance_of?(Element)
+      self.admin
+    elsif object.instance_of?(Event)
+      self.admin
+    elsif object == :elements
+      self.admin
+    elsif object == :events
+      self.admin
+    else
+      false
+    end
+  end
+
   #
   #  Does this user need permission to create a commitment for this
   #  element?

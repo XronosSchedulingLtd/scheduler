@@ -166,6 +166,7 @@ Rails.application.routes.draw do
 
   resources :elements do
     resources :promptnotes, shallow: true
+    resources :journal_entries, only: [:index]
     get :autocomplete_element_name, :on => :collection
     get :autocomplete_unowned_element_name, :on => :collection
     get :autocomplete_staff_element_name, :on => :collection

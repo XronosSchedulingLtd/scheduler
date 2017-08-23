@@ -1130,14 +1130,14 @@ class Event < ActiveRecord::Base
   #  We don't generally journal ordinary notes, since they aren't
   #  significant.  We do journal commitment notes, since those affect
   #  whether the 
-  def journal_note_added(note, by_user)
+  def journal_note_added(note, commitment, by_user)
     ensure_journal
-    self.journal.note_added(note, by_user)
+    self.journal.note_added(note, commitment, by_user)
   end
 
-  def journal_note_updated(note, by_user)
+  def journal_note_updated(note, commitment, by_user)
     ensure_journal
-    self.journal.note_updated(note, by_user)
+    self.journal.note_updated(note, commitment, by_user)
   end
 
 

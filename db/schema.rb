@@ -264,11 +264,17 @@ ActiveRecord::Schema.define(version: 20170821081354) do
     t.integer  "user_id"
     t.integer  "entry_type"
     t.text     "details"
+    t.integer  "element_id"
+    t.datetime "event_starts_at"
+    t.datetime "event_ends_at"
+    t.boolean  "event_all_day"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
+  add_index "journal_entries", ["element_id"], name: "index_journal_entries_on_element_id", using: :btree
   add_index "journal_entries", ["journal_id"], name: "index_journal_entries_on_journal_id", using: :btree
+  add_index "journal_entries", ["user_id"], name: "index_journal_entries_on_user_id", using: :btree
 
   create_table "journals", force: true do |t|
     t.integer  "event_id"

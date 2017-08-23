@@ -21,7 +21,7 @@ class NotesController < ApplicationController
       if @note.save
         @note.reload
         if @note.parent.instance_of?(Commitment)
-          @event.journal_note_created(@note, current_user)
+          @event.journal_note_created(@note, @note.parent, current_user)
         end
         @notes = @event.all_notes_for(current_user)
         format.js
@@ -68,7 +68,7 @@ class NotesController < ApplicationController
         #  Notes attached to commitments are part of the contract
         #  between user and approver.
         #
-        @event.journal_note_updated(@note, current_user)
+        @event.journal_note_updated(@note, @note.parent, current_user)
         if @note.parent.rejected || @note.parent.constraining
           @note.parent.revert_and_save!
           @event.journal_commitment_reset(@note.parent, current_user)

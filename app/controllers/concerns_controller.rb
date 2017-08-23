@@ -206,6 +206,14 @@ class ConcernsController < ApplicationController
         @urls = construct_urls
       end
       @proforma = @concern.owns && !@concern.equality
+      #
+      #  Can we show the journal?
+      #
+      if current_user.can_view_journal_for?(@element)
+        @journal_entries = @element.journal_entries.order('created_at DESC').to_a
+      else
+        @journal_entries = nil
+      end
     else
       redirect_to :root
     end

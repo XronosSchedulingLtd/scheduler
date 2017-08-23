@@ -13,7 +13,7 @@ class Journal < ActiveRecord::Base
 
   validates :event, presence: true
 
-  self.per_page = 10
+  self.per_page = 18
 
   def populate_from_event(event)
     #
@@ -38,6 +38,7 @@ class Journal < ActiveRecord::Base
 
   def event_created(by_user, cloned)
     self.journal_entries.create({
+      event:      self.event,
       user:       by_user,
       entry_type: cloned ? :clone_created : :event_created,
       details:    "\"#{
@@ -62,6 +63,7 @@ class Journal < ActiveRecord::Base
     anything_changed = false
     if self.event_body != self.event.body
       self.journal_entries.create({
+        event:      self.event,
         user:       by_user,
         entry_type: :body_text_changed,
         details:    "From \"#{self.event_body}\"\nTo \"#{self.event.body}\""
@@ -72,6 +74,7 @@ class Journal < ActiveRecord::Base
       self.event_ends_at != self.event.ends_at ||
       self.event_all_day != self.event.all_day
       self.journal_entries.create({
+        event:      self.event,
         user:       by_user,
         entry_type: :timing_changed,
         details:    "From \"#{
@@ -88,6 +91,7 @@ class Journal < ActiveRecord::Base
     end
     if self.event_eventcategory_id != self.event.eventcategory_id
       self.journal_entries.create({
+        event:      self.event,
         user:       by_user,
         entry_type: :category_changed,
         details:    "From #{self.event_eventcategory.name}\nTo #{self.event.eventcategory.name}"
@@ -96,6 +100,7 @@ class Journal < ActiveRecord::Base
     end
     if self.event_organiser_id != self.event.organiser_id
       self.journal_entries.create({
+        event:      self.event,
         user:       by_user,
         entry_type: :organiser_changed,
         details:    "From #{
@@ -114,6 +119,7 @@ class Journal < ActiveRecord::Base
 
   def event_destroyed(by_user)
     self.journal_entries.create({
+      event:      self.event,
       user:       by_user,
       entry_type: :event_destroyed
     })
@@ -121,67 +127,85 @@ class Journal < ActiveRecord::Base
 
   def commitment_added(commitment, by_user)
     self.journal_entries.create({
+      event:      self.event,
       user:       by_user,
       entry_type: :resource_added,
-      details:    commitment_description(commitment)
+      element:    commitment.element,
+      details:    commitment_description(:resource_added, commitment)
     })
   end
 
   def commitment_removed(commitment, by_user)
     self.journal_entries.create({
+      event:      self.event,
       user:       by_user,
       entry_type: :resource_removed,
-      details:    commitment_description(commitment)
+      element:    commitment.element,
+      details:    commitment_description(:resource_removed, commitment)
     })
   end
 
   def commitment_approved(commitment, by_user)
     self.journal_entries.create({
+      event:      self.event,
       user:       by_user,
       entry_type: :commitment_approved,
-      details:    commitment_description(commitment)
+      element:    commitment.element,
+      details:    commitment_description(:commitment_approved, commitment)
     })
   end
 
   def commitment_rejected(commitment, by_user)
     self.journal_entries.create({
+      event:      self.event,
       user:       by_user,
       entry_type: :commitment_rejected,
-      details:    commitment_description(commitment, true)
+      element:    commitment.element,
+      details:    commitment_description(:commitment_rejected, commitment)
     })
   end
 
   def commitment_reset(commitment, by_user)
     self.journal_entries.create({
+      event:      self.event,
       user:       by_user,
       entry_type: :commitment_reset,
-      details:    commitment_description(commitment)
+      element:    commitment.element,
+      details:    commitment_description(:commitment_reset, commitment)
     })
   end
 
-  def note_added(note, by_user)
+  def note_added(note, commitment, by_user)
     self.journal_entries.create({
+      event:      self.event,
       user:       by_user,
-      entry_type: :note_added
+      entry_type: :note_added,
+      element:    commitment ? commitment.element : nil
     })
   end
 
-  def note_updated(note, by_user)
+  def note_updated(note, commitment, by_user)
     self.journal_entries.create({
+      event:      self.event,
       user:       by_user,
       entry_type: :note_updated,
-      details:    note.parent.instance_of?(Commitment) ?
-                  "Relating to #{note.parent.element.name}" :
+      element:    commitment ? commitment.element : nil,
+      details:    commitment ?
+                  "Relating to #{commitment.element.name}" :
                   ""
     })
   end
 
   private
 
-  def commitment_description(commitment, with_reason = false)
-    "#{commitment.element.entity_type}: #{commitment.element.name}#{
-      with_reason ? "\nReason: #{commitment.reason}" : ""
-    }"
+  def commitment_description(entry_type, commitment)
+    if entry_type == :resource_added && commitment.tentative
+      "Needs approval"
+    elsif entry_type == :commitment_rejected
+      "Reason: #{commitment.reason}"
+    else
+      ""
+    end
   end
 
   def format_timing(starts_at, ends_at, all_day)

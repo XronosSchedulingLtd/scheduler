@@ -17,6 +17,9 @@
   <% if @proforma %>
     <li class="tab-title"><a href="#concern-proforma">Pro-forma</a></li>
   <% end %>
+  <% if @journal_entries %>
+    <li class="tab-title"><a href="#concern-journal">Journal</a></li>
+  <% end %>
 </ul>
 
 <hr/>
@@ -47,6 +50,24 @@
         <%= render "promptnotes/no_promptnote.html.erb" %>
       <% end %>
     </div>
+  </div>
+<% end %>
+<% if @journal_entries %>
+  <div class="content" id="concern-journal">
+    <h3>Journal entries</h3>
+    <table class="zftable">
+      <thead>
+        <th>Action</th>
+        <th>Event</th>
+        <th>On</th>
+        <th>By</th>
+        <th>At</th>
+        <th>Details</th>
+      </thead>
+      <tbody>
+        <%= render partial: "journal_entries/element_journal_entry", collection: @journal_entries %>
+      </tbody>
+    </table>
   </div>
 <% end %>
 <hr/>

@@ -15,6 +15,11 @@ class Element < ActiveRecord::Base
            :dependent => :nullify
   has_many :concerns,    :dependent => :destroy
   has_many :freefinders, :dependent => :destroy
+  #
+  #  Interesting question about what happens to journal entries if
+  #  the element goes away.  Elements aren't meant to go away
+  #
+  has_many :journal_entries, :dependent => :nullify
   has_many :organised_events,
            :class_name => "Event",
            :foreign_key => :organiser_id,

@@ -1,0 +1,19 @@
+<h3>Journal entries for "<%= @element.name %>"</h3>
+
+<div class="row collapse">
+  <div class="small-12 columns">
+    <table class="zftable">
+      <thead>
+        <th>Action</th>
+        <th>Event</th>
+        <th>On</th>
+        <th>By</th>
+        <th>At</th>
+        <th>Details</th>
+      </thead>
+      <tbody>
+        <%= render partial: "element_journal_entry", collection: @journal_entries %>
+      </tbody>
+    </table>
+  </div>
+</div>

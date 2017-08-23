@@ -57,6 +57,15 @@
 <%     if current_user.can_has_forms %>
             <li><%= link_to "Forms", user_forms_path %></li>
 <%     end %>
+<%     if current_user.can_view_journal_for?(:events) %>
+            <li class = "has-dropdown">
+              <%= link_to "Journals", journals_path %>
+              <ul class="dropdown">
+                <li><%= link_to "Current", journals_path(:current => true) %></li>
+                <li><%= link_to "Deleted", journals_path(:deleted => true) %></li>
+              </ul>
+            </li>
+<%     end %>
 <%     if current_user.exams? %>
             <li class="has-dropdown">
               <a href="#">Invigilation</a>
