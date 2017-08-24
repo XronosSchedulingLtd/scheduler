@@ -50,6 +50,14 @@ class Journal < ActiveRecord::Base
                     }#{
                       if self.event_organiser
                         "\nOrganiser: #{self.event_organiser.name}"
+                      else
+                        ""
+                      end
+                    }#{
+                      if self.event_organiser_ref.blank?
+                        ""
+                      else
+                        "\nReference: #{self.event_organiser_ref}"
                       end
                     }"
     })
@@ -66,7 +74,7 @@ class Journal < ActiveRecord::Base
         event:      self.event,
         user:       by_user,
         entry_type: :body_text_changed,
-        details:    "From \"#{self.event_body}\"\nTo \"#{self.event.body}\""
+        details:    "From: \"#{self.event_body}\"\nTo: \"#{self.event.body}\""
       })
       anything_changed = true
     end
@@ -77,11 +85,11 @@ class Journal < ActiveRecord::Base
         event:      self.event,
         user:       by_user,
         entry_type: :timing_changed,
-        details:    "From \"#{
+        details:    "From: \"#{
           format_timing(self.event_starts_at,
                         self.event_ends_at,
                         self.event_all_day)
-        }\"\nTo \"#{
+        }\"\nTo: \"#{
           format_timing(self.event.starts_at,
                         self.event.ends_at,
                         self.event.all_day)
@@ -94,7 +102,7 @@ class Journal < ActiveRecord::Base
         event:      self.event,
         user:       by_user,
         entry_type: :category_changed,
-        details:    "From #{self.event_eventcategory.name}\nTo #{self.event.eventcategory.name}"
+        details:    "From: #{self.event_eventcategory.name}\nTo: #{self.event.eventcategory.name}"
       })
       anything_changed = true
     end
@@ -103,11 +111,20 @@ class Journal < ActiveRecord::Base
         event:      self.event,
         user:       by_user,
         entry_type: :organiser_changed,
-        details:    "From #{
+        details:    "From: #{
           self.event_organiser ?  self.event_organiser.name : "<none>"
-        }\nTo #{
+        }\nTo: #{
           self.event.organiser ? self.event.organiser.name : "<none>"
         }"
+      })
+      anything_changed = true
+    end
+    if self.event_organiser_ref != self.event.organiser_ref
+      self.journal_entries.create({
+        event:      self.event,
+        user:       by_user,
+        entry_type: :organiser_reference_changed,
+        details:    "From: #{self.event_organiser_ref}\nTo: #{self.event.organiser_ref}"
       })
       anything_changed = true
     end

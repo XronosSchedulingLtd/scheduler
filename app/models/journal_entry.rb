@@ -19,7 +19,8 @@ class JournalEntry < ActiveRecord::Base
     :note_added,
     :note_updated,
     :clone_created,
-    :event_relocated
+    :event_relocated,
+    :organiser_reference_changed
   ]
   NEATER_TEXTS = [
     "Event created",
@@ -36,7 +37,8 @@ class JournalEntry < ActiveRecord::Base
     "Note added",
     "Note updated",
     "Created as clone",
-    "Event re-located"
+    "Event re-located",
+    "Reference changed"
   ]
   ELEMENT_TEXTS = {
     resource_added:      "Added",
