@@ -59,3 +59,7 @@ gem 'tod'
 group :production do
   gem 'tiny_tds'
 end
+
+group :development do
+  gem 'quiet_assets'
+end
