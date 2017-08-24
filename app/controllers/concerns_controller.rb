@@ -1,6 +1,8 @@
 class ConcernsController < ApplicationController
   include DisplaySettings
 
+  JOURNAL_ENTRIES_TO_SHOW = 10
+
   class IcalUrl
     attr_reader :title, :url, :linkid
 
@@ -210,7 +212,15 @@ class ConcernsController < ApplicationController
       #  Can we show the journal?
       #
       if current_user.can_view_journal_for?(@element)
-        @journal_entries = @element.journal_entries.order('created_at DESC').to_a
+        @journal_entries =
+          @element.journal_entries.order('created_at').
+                   last(JOURNAL_ENTRIES_TO_SHOW).to_a
+        @journal_link_text = "Full journal"
+        total_entries = @element.journal_entries.count
+        if total_entries > JOURNAL_ENTRIES_TO_SHOW
+          @journal_link_text +=
+            " (#{total_entries - JOURNAL_ENTRIES_TO_SHOW} more entries)"
+        end
       else
         @journal_entries = nil
       end

@@ -55,6 +55,8 @@ class JournalEntry < ActiveRecord::Base
   validates :journal, presence: true
   validates :user,    presence: true
 
+  self.per_page = 15
+
   def entry_type_text
     NEATER_TEXTS[JournalEntry.entry_types[entry_type]] || ""
   end

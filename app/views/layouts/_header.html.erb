@@ -62,7 +62,7 @@
               <%= link_to "Journals", journals_path %>
               <ul class="dropdown">
                 <li><%= link_to "Current", journals_path(:current => true) %></li>
-                <li><%= link_to "Deleted", journals_path(:deleted => true) %></li>
+                <li><%= link_to "Deleted events", journals_path(:deleted => true) %></li>
               </ul>
             </li>
 <%     end %>

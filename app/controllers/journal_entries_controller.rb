@@ -9,7 +9,7 @@ class JournalEntriesController < ApplicationController
   # GET /journals
   # GET /journals.json
   def index
-    selector = @element.journal_entries.order('created_at DESC')
+    selector = @element.journal_entries.order('created_at')
     @journal_entries = selector.page(params[:page])
   end
 

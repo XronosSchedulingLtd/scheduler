@@ -3,6 +3,13 @@
 <td><%= journal_entry.entry_type_text %></td>
 <td><%= journal_entry.user.name %></td>
 <td><%= journal_entry.when %></td>
-<td><%= journal_entry.what %></td>
+<td><%=
+if journal_entry.element &&
+   current_user.can_view_journal_for?(journal_entry.element)
+  link_to journal_entry.what, element_journal_entries_path(journal_entry.element)
+else
+  journal_entry.what
+end
+%></td>
 <td><%= preserve_line_breaks(journal_entry.details) %></td>
 </tr>

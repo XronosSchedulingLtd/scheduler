@@ -2,6 +2,10 @@
 
 <div class="row collapse">
   <div class="small-12 columns">
+    <div class="digg_pagination">
+      <%= will_paginate @journal_entries %>
+    </div>
+
     <table class="zftable">
       <thead>
         <th>Action</th>
@@ -15,5 +19,9 @@
         <%= render partial: "element_journal_entry", collection: @journal_entries %>
       </tbody>
     </table>
+
+    <div class="digg_pagination">
+      <%= will_paginate @journal_entries %>
+    </div>
   </div>
 </div>

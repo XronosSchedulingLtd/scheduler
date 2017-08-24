@@ -68,6 +68,7 @@
         <%= render partial: "journal_entries/element_journal_entry", collection: @journal_entries %>
       </tbody>
     </table>
+    <%= link_to @journal_link_text, element_journal_entries_path(@element) %>
   </div>
 <% end %>
 <hr/>

@@ -87,6 +87,9 @@
         <div id="meta_data">
           Created: <%= @event.created_at_text %><br/>
           Updated: <%= @event.updated_at_text %>
+        <% if @event.journal && current_user.can_view_journal_for?(@event) %>
+          <br/><%= link_to "Journal", @event.journal %>
+        <% end %>
         </div>
       </small>
       </p>
