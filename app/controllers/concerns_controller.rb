@@ -215,11 +215,18 @@ class ConcernsController < ApplicationController
         @journal_entries =
           @element.journal_entries.order('created_at').
                    last(JOURNAL_ENTRIES_TO_SHOW).to_a
-        @journal_link_text = "Full journal"
-        total_entries = @element.journal_entries.count
-        if total_entries > JOURNAL_ENTRIES_TO_SHOW
-          @journal_link_text +=
-            " (#{total_entries - JOURNAL_ENTRIES_TO_SHOW} more entries)"
+        if @journal_entries.empty?
+          #
+          #  No point in showing an empty journal.
+          #
+          @journal_entries = nil
+        else
+          @journal_link_text = "Full journal"
+          total_entries = @element.journal_entries.count
+          if total_entries > JOURNAL_ENTRIES_TO_SHOW
+            @journal_link_text +=
+              " (#{total_entries - JOURNAL_ENTRIES_TO_SHOW} more entries)"
+          end
         end
       else
         @journal_entries = nil
