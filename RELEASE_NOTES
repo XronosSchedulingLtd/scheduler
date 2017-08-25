@@ -1,3 +1,13 @@
+v0.24.1 2017-08-25
+
+* Fix to handling of conversion from timed to all-day
+
+  The previous release introduced a change to edge-cases when converting
+  existing events from being timed to being all-day.  Unfortunately the
+  same change introduced a bug in the creation of new all-day events -
+  they all ended up one day short.  This release fixes that bug.
+
+
 v0.24   2017-08-07
 
 * Configurable properties to show to new users
