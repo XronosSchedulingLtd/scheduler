@@ -764,7 +764,13 @@ class MIS_Loader
     #
     #  Also allow for the odd nil entry by ignoring it.
     #
-    intended_member_ids = members.compact.collect {|m| m.element.id}
+    #  It's also just possible that we will receive an entry with no
+    #  element - typically happens because a member of staff has not
+    #  been set up correctly in iSAMS.  Cope with that too.
+    #
+    intended_member_ids = members.compact.collect {|m|
+      m.element ?  m.element.id : nil
+    }.compact
     current_member_ids = group.members(@start_date, false, false).collect {|m| m.element.id}
     to_remove = current_member_ids - intended_member_ids
     to_add = intended_member_ids - current_member_ids

@@ -1084,6 +1084,32 @@ class MIS_Timetable
       if week
         weeks << week
       end
+    elsif
+      #
+      #  It's possible that the week allocations haven't yet been put into
+      #  iSAMS, but we can work them out ourselves.  Relies on someone
+      #  having already put them into Scheduler as events, and them
+      #  conforming to "WEEK A" => 1, "WEEK B" => 2
+      #
+      #  This code is very fragile, and intended just as a stopgap.
+      #
+      ec = Eventcategory.find_by(name: "Week letter")
+      if ec
+        candidate = Event.events_on(date, nil, ec).take
+        if candidate
+          char = candidate.body[-1]
+          if char == 'A'
+            week = @week_hash[1]
+          elsif char == 'B'
+            week = @week_hash[2]
+          else
+            week = nil
+          end
+          if week
+            weeks << week
+          end
+        end
+      end
     end
     #
     #  And now any weeks which are not part-timers.

@@ -1152,8 +1152,14 @@ class Event < ActiveRecord::Base
     #  the end time, unless the end time is already midnight in which
     #  case leave it alone.
     #
+    #  It's more complex than that.  This method also has to cope with
+    #  the case of when the event is first created.  Then we tend to
+    #  receive the ends_at_text before the all_day setting, so we do
+    #  need to do the adjustment.  Check whether we have an id, and
+    #  if we don't then we need to do the adjustment.
+    #
     self.starts_at = self.starts_at.to_date
-    unless self.ends_at.midnight?
+    unless self.ends_at.midnight? && self.id != nil
       self.ends_at = self.ends_at.to_date + 1.day
     end
   end

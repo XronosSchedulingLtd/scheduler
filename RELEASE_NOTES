@@ -1,3 +1,34 @@
+v0.24.2 2017-08-27
+
+No changes to the application itself - just to the data importer.
+
+* Cope with new staff not fully set up in iSAMS.
+
+  One new member of staff had not been fully set up in iSAMS but
+  nonetheless had been used as a form tutor, which caused the import
+  utility to trip up.  Now copes with this situation.
+
+* Cope with week letters missing from iSAMS.
+
+  For schools with a two week timetable, iSAMS holds a record of
+  which calendar week gets which of the two weekly timetables.  The
+  importer uses this information to populate individual schedules.
+
+  If that information is missing from iSAMS, the importer will now
+  look at Scheduler's own database for events in the "Week letter"
+  category, and if found will use that information instead.
+
+
+v0.24.1 2017-08-25
+
+* Fix to handling of conversion from timed to all-day
+
+  The previous release introduced a change to edge-cases when converting
+  existing events from being timed to being all-day.  Unfortunately the
+  same change introduced a bug in the creation of new all-day events -
+  they all ended up one day short.  This release fixes that bug.
+
+
 v0.24   2017-08-07
 
 * Configurable properties to show to new users
