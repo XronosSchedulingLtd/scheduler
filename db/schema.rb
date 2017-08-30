@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170821081354) do
+ActiveRecord::Schema.define(version: 20170830081024) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -493,6 +493,8 @@ ActiveRecord::Schema.define(version: 20170821081354) do
     t.boolean  "prefer_https",                default: true
     t.boolean  "require_uuid",                default: false
     t.integer  "room_cover_group_element_id"
+    t.text     "event_creation_markup"
+    t.text     "event_creation_html"
   end
 
   create_table "staffs", force: true do |t|
