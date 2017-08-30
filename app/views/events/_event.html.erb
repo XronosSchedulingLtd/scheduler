@@ -1,10 +1,7 @@
 <tr>
   <td><%= event.body %></td>
   <td><%= event.eventcategory.name %></td>
-  <td><%= event.eventsource.name %></td>
-  <td><%= event.starts_at_text %></td>
-  <td><%= event.ends_at_text %></td>
-  <td><%= event.all_day ? "Yes" : "No" %></td>
+  <td><%= event.format_timing %></td>
   <td><%= link_to 'Show', event %></td>
   <td><%= link_to 'Edit', edit_event_path(event) %></td>
   <td><%= link_to 'Destroy', event, method: :delete, data: { confirm: 'Are you sure?' } %></td>

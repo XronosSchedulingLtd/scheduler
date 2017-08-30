@@ -18,7 +18,7 @@ class EventsController < ApplicationController
   # GET /events
   # GET /events.json
   def index
-    @events = Event.page(params[:page]).order('starts_at')
+    @events = current_user.events.page(params[:page]).order('starts_at')
   end
 
   def assemble_event_info

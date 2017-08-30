@@ -44,9 +44,7 @@ class Journal < ActiveRecord::Base
       details:    "\"#{
                       self.event_body
                     }\"\n#{
-                      format_timing(self.event_starts_at,
-                                    self.event_ends_at,
-                                    self.event_all_day)
+                      self.format_timing
                     }#{
                       if self.event_organiser
                         "\nOrganiser: #{self.event_organiser.name}"
@@ -86,13 +84,9 @@ class Journal < ActiveRecord::Base
         user:       by_user,
         entry_type: :timing_changed,
         details:    "From: \"#{
-          format_timing(self.event_starts_at,
-                        self.event_ends_at,
-                        self.event_all_day)
+          self.format_timing
         }\"\nTo: \"#{
-          format_timing(self.event.starts_at,
-                        self.event.ends_at,
-                        self.event.all_day)
+          self.event.format_timing
         }\""
       })
       anything_changed = true
@@ -213,6 +207,10 @@ class Journal < ActiveRecord::Base
     })
   end
 
+  def format_timing
+    format_timings(self.event_starts_at, self.event_ends_at, self.event_all_day)
+  end
+
   private
 
   def commitment_description(entry_type, commitment)
@@ -222,28 +220,6 @@ class Journal < ActiveRecord::Base
       "Reason: #{commitment.reason}"
     else
       ""
-    end
-  end
-
-  def format_timing(starts_at, ends_at, all_day)
-    if all_day
-      #
-      #  Single day or multi-day?
-      #
-      if ends_at == starts_at + 1.day
-        "All day #{starts_at.strftime("%d/%m/%Y")}"
-      else
-        "#{starts_at.strftime("%d/%m/%Y")} - #{(ends_at - 1.day).strftime("%d/%m/%Y")}"
-      end
-    else
-      if starts_at.to_date == ends_at.to_date
-        #
-        #  Starts and ends on the same day.
-        #
-        "#{starts_at.interval_str(ends_at)} #{starts_at.strftime("%d/%m/%Y")}"
-      else
-        "#{starts_at.strftime("%H:%M %d/%m/%Y")} - #{ends_at.strftime("%H:%M %d/%m/%Y")}"
-      end
     end
   end
 
