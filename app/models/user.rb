@@ -46,7 +46,8 @@ class User < ActiveRecord::Base
     can_roam: "Can this user follow links from one displayed element to another?",
     can_su: "Can this user become another user?",
     exams: "Does this user administer exams or invigilation?",
-    can_relocate_lessons: "Can this user relocate lessons - not just his or her own?"
+    can_relocate_lessons: "Can this user relocate lessons - not just his or her own?",
+    show_pre_requisites: "Do you want to be prompted for likely requirements when creating new events?"
   }
   FIELD_TITLE_TEXTS.default = ""
 

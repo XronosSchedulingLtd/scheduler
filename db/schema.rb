@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170830131529) do
+ActiveRecord::Schema.define(version: 20170831091127) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -641,6 +641,7 @@ ActiveRecord::Schema.define(version: 20170830131529) do
     t.boolean  "warn_no_resources",           default: true
     t.boolean  "can_relocate_lessons",        default: false
     t.boolean  "can_has_forms",               default: false
+    t.boolean  "show_pre_requisites",         default: true
   end
 
 end

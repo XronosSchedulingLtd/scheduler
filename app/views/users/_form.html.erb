@@ -119,11 +119,19 @@
                  [
                    {field: :list_teachers,
                     prompt: "List teachers",
-                    annotation: "Should newly created concerns default to listing teachers' initials in events?"},
-                   {field: :warn_no_resources,
-                    prompt: "Warn no resources",
-                    annotation: "When creating a new event, should the system display a warning message if it has no resources?"}
+                    annotation: "Should newly created concerns default to listing teachers' initials in events?"}
                  ]) %>
+<% if current_user.create_events? %>
+  <%= flag_group(f, 12, 6, "Creating events",
+                 [
+                   {field: :warn_no_resources,
+                    prompt: "Warn resources",
+                    annotation: "When creating a new event, should the system display a warning message if it has no resources?"},
+                    {field: :show_pre_requisites,
+                     prompt: "Show pre-requisites",
+                     annotation: "When creating a new event, should the system prompt you with likely resources which you might want to include?"}
+                 ]) %>
+<% end %>
   <%= flag_group(f, 12, 6, "Clash notifications",
                  [
                    {field: :clash_weekly,
