@@ -15,10 +15,12 @@ class UserFormsController < ApplicationController
   # GET /user_forms/new
   def new
     @user_form = UserForm.new
+    @include_formbuilder = true
   end
 
   # GET /user_forms/1/edit
   def edit
+    @include_formbuilder = true
   end
 
   # POST /user_forms

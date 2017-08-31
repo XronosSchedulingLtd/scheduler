@@ -1,3 +1,6 @@
     <%= javascript_include_tag "application" %>
+<% if @include_formbuilder %>
+    <%= javascript_include_tag "formbuilder" %>
+<% end %>
   </body>
 </html>
