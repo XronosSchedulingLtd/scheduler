@@ -246,23 +246,26 @@ class EventsController < ApplicationController
         #  And was anything specified in the request?
         #
         unless @event.precommit_element_id.blank?
-          element = Element.find_by(id: @event.precommit_element_id)
-          if element
-            #
-            #  Guard against double commitment.
-            #
-            unless current_user.concerns.auto_add.detect {|c| c.element == element}
-              c = @event.commitments.new
-              c.tentative = current_user.needs_permission_for?(element)
-              c.element = element
-              c.save
-              if session[:request_notifier]
-                session[:request_notifier].commitment_added(c)
+          element_ids = @event.precommit_element_id.split(",")
+          element_ids.each do |eid|
+            element = Element.find_by(id: eid)
+            if element
+              #
+              #  Guard against double commitment.
+              #
+              unless current_user.concerns.auto_add.detect {|c| c.element == element}
+                c = @event.commitments.new
+                c.tentative = current_user.needs_permission_for?(element)
+                c.element = element
+                c.save
+                if session[:request_notifier]
+                  session[:request_notifier].commitment_added(c)
+                end
+                @event.journal_commitment_added(c, current_user)
               end
-              @event.journal_commitment_added(c, current_user)
+            else
+              Rails.logger.debug("Couldn't find element with id #{eid}")
             end
-          else
-            Rails.logger.debug("Couldn't find element with id #{@event.precommit_element_id}")
           end
         end
         @success = true
