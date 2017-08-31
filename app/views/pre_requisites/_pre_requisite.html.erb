@@ -1,6 +1,6 @@
 <div class="row collapse">
   <div class="small-2 columns">
-    <%= check_box_tag pre_requisite.field_id %>
+    <%= check_box_tag pre_requisite.field_id, pre_requisite.element_id, false, class: 'pr-checkbox' %>
     <%= label_tag pre_requisite.field_id, pre_requisite.label_text %><br/>
   </div>
   <div class="small-10 columns">

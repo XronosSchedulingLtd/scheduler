@@ -51,7 +51,9 @@ $(document).ready ->
     filter_dialogue = $('#filter-dialogue')
     if filter_dialogue.length > 0
       filter_dialogue.find('#all').click(wantsAll)
-      filter_dialogue.find('#none').click(wantsNone))
+      filter_dialogue.find('#none').click(wantsNone)
+    primePreRequisites()
+  )
 
   $(document).on('closed', '[data-reveal]', ->
     flag = $('#fullcalendar').data("dorefresh")
@@ -351,6 +353,33 @@ activateUserColumn = ->
 primeCloser = ->
   $('.closer').click ->
     $('#eventModal').foundation('reveal', 'close')
+
+#
+#  I want to share a couple of variables between the next two functions,
+#  so I think I need to put them here.
+#
+prOwnForm = null
+prTargetForm = null
+
+submittingCreate = ->
+  console.log("Creation form being submitted.")
+  targetField = prTargetForm.find('#event_precommit_element_id')
+  if targetField.length
+    console.log("Found target field.")
+    sources = prOwnForm.find('.pr-checkbox')
+    result = targetField.val()
+    sources.each (index, source) =>
+      if source.checked
+        result = result + ',' + $(source).val()
+    console.log("Setting targetField to " + result)
+    targetField.val(result)
+
+primePreRequisites = ->
+  prOwnForm = $('form#event-pre-requisites')
+  prTargetForm = $('form#new_event')
+  if prOwnForm.length && prTargetForm.length
+    prTargetForm.submit(submittingCreate)
+
 
 hideCloser = ->
   $('#event-done-button').hide()
