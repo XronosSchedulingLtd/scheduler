@@ -246,7 +246,17 @@ class EventsController < ApplicationController
         #  And was anything specified in the request?
         #
         unless @event.precommit_element_id.blank?
-          element_ids = @event.precommit_element_id.split(",")
+          #
+          #  It's just *possible* that the same ID might appear
+          #  more than once due to mis-configuration by a system
+          #  admin.  Convert to integers to be really sure we've
+          #  found any duplicates.
+          #
+          element_ids =
+            @event.precommit_element_id.
+                   split(",").
+                   collect {|e| e.to_i}.
+                   uniq
           element_ids.each do |eid|
             element = Element.find_by(id: eid)
             if element
