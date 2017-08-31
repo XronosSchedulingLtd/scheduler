@@ -165,6 +165,7 @@ class EventsController < ApplicationController
         end
       end
     end
+    @pre_requisites = PreRequisite.order(:priority).to_a
     session[:request_notifier] = RequestNotifier.new
     if request.xhr?
       @minimal = true

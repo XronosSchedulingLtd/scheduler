@@ -127,6 +127,7 @@ GEM
     rake (10.3.1)
     rdoc (4.1.1)
       json (~> 1.4)
+    redcarpet (3.4.0)
     ri_cal (0.8.8)
     ruby-prof (0.15.1)
     sass (3.3.14)
@@ -189,6 +190,7 @@ DEPENDENCIES
   rails (= 4.1.0)
   rails-jquery-autocomplete
   rails-observers
+  redcarpet
   ri_cal
   ruby-prof
   sass (~> 3.3.0)

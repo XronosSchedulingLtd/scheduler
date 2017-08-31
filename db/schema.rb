@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170830081024) do
+ActiveRecord::Schema.define(version: 20170830131529) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -353,6 +353,15 @@ ActiveRecord::Schema.define(version: 20170830081024) do
   end
 
   add_index "otherhalfgrouppersonae", ["source_id"], name: "index_otherhalfgrouppersonae_on_source_id", using: :btree
+
+  create_table "pre_requisites", force: true do |t|
+    t.string   "label"
+    t.text     "description"
+    t.integer  "element_id"
+    t.integer  "priority"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "promptnotes", force: true do |t|
     t.string   "title",            default: ""

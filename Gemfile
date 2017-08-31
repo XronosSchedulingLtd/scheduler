@@ -56,6 +56,7 @@ gem 'dalli'
 gem 'spectrum-rails'
 gem 'nokogiri'
 gem 'tod'
+gem 'redcarpet'
 group :production do
   gem 'tiny_tds'
 end

@@ -1,0 +1,33 @@
+<%= form_for(@pre_requisite) do |f| %>
+  <% if @pre_requisite.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@pre_requisite.errors.count, "error") %> prohibited this pre_requisite from being saved:</h2>
+
+      <ul>
+      <% @pre_requisite.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :label %><br>
+    <%= f.text_field :label %>
+  </div>
+  <div class="field">
+    <%= f.label :description %><br>
+    <%= f.text_area :description %>
+  </div>
+  <div class="field">
+    <%= f.label :element_id %><br>
+    <%= f.number_field :element_id %>
+  </div>
+  <div class="field">
+    <%= f.label :priority %><br>
+    <%= f.number_field :priority %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

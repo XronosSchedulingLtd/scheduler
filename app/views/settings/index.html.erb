@@ -44,6 +44,11 @@
         <td><%= setting.from_email_address %></td>
       </tr>
       <tr>
+        <td>Event creation prompt</td>
+        <td><%=
+          setting.event_creation_html ?  setting.event_creation_html.html_safe : "" %></td>
+      </tr>
+      <tr>
         <td><%= link_to 'Edit', edit_setting_path(setting) %></td>
         <td></td>
       </tr>

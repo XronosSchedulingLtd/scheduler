@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  resources :pre_requisites
+
   resources :journals, only: [:index, :show]
 
   resources :user_forms, shallow: true do
