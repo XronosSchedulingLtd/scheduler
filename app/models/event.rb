@@ -443,6 +443,19 @@ class Event < ActiveRecord::Base
   end
 
   #
+  #  Trying this a slightly different way.
+  #
+  def non_covering_resources
+    self.commitments.
+         firm.
+         non_covering_commitment.
+         includes(element: :entity).
+         collect {|c|
+      c.element.entity
+    }
+  end
+
+  #
   #  Do we actually have any resources?
   #
   def resourceless?
@@ -458,6 +471,24 @@ class Event < ActiveRecord::Base
                                   true)
       else
         found << e.entity
+      end
+    end
+    found.uniq
+  end
+
+  def all_non_covering_atomic_resources
+    found = Array.new
+    self.commitments.
+         firm.
+         non_covering_commitment.
+         includes(element: :entity).
+         collect {|c| c.element.entity }.each do |e|
+      if e.instance_of?(Group)
+        found += e.members(self.starts_at.to_date,
+                           true,
+                           true)
+      else
+        found << e
       end
     end
     found.uniq
@@ -803,25 +834,33 @@ class Event < ActiveRecord::Base
 
   #
   #  Lose a property if the event currently has it.
+  #  Returns true if it was found and lost, false if it wasn't
+  #  there in the first place.
   #
   def lose_property(property)
+    removed = false
     self.commitments.each do |c|
       if c.element_id == property.element.id
         c.destroy
+        removed = true
       end
     end
+    removed
   end
 
   #
   #  Add a property if the event does not already have it.
+  #  Returns true if it was added, false if it was already there.
   #
-  def add_property(property)
+  def ensure_property(property)
+    added = false
     unless self.involves?(property)
-      c = Commitment.new
-      c.event = self
-      c.element = property.element
-      c.save!
+      self.commitments.create({
+        element: property.element
+      })
+      added = true
     end
+    added
   end
 
 
