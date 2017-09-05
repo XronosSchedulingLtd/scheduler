@@ -1,3 +1,32 @@
+v0.24.3 2017-09-05
+
+* Group re-located lessons using a new property.
+
+  In v0.23, a new facility was added whereby individual lessons could
+  be relocated by users into different classrooms.  This release
+  adds a new property - "Re-located" - which will automatically be
+  added to all lessons so re-located.  It is then possible to view
+  them or report on them as required.
+
+* Make sure lessons can be re-located after editing.
+
+  It's not a normal workflow, but there was a small bug in the
+  re-location code.  If a user first edited an event, and then went
+  back to the display screen, the re-location link no longer worked.
+  It was necessary to close the dialogue and re-open it in order to
+  do a re-location.  This bug has been fixed.
+
+* Reports now understand covers/re-location
+
+  The reporting code used to list cover staff and lesson re-locations
+  simply as more resources on the event, without indicating their special
+  status.  It now displays staff covers as "ABC (covering DEF)" and room
+  re-locations as "G112 (normally G111)".
+
+* The seed data for a new system has been enhanced to add the "Covered"
+  and "Re-located" properties.
+
+
 v0.24.2 2017-08-27
 
 No changes to the application itself - just to the data importer.
