@@ -73,13 +73,76 @@ class Day
       end
     end
 
+    def prepare_strings(event)
+      #
+      #  First identify any covers which are happening and assemble
+      #  lists for later use.  Note that we use the covered entity's
+      #  id as the key to the hash, because that's how we want to
+      #  find it later on.
+      #
+      staff_covers = Hash.new
+      location_covers = Hash.new
+      event.commitments.covering_commitment.each do |cc|
+        covering_element = cc.element
+        covered_element = cc.covering.element
+        if covering_element.entity_type == "Staff"
+          staff_covers[covered_element.entity_id] =
+            covering_element.entity
+        elsif covering_element.entity_type == "Location"
+          location_covers[covered_element.entity_id] =
+            covering_element.entity
+        end
+      end
+      #
+      #  The calls to find all the event's resources are relatively
+      #  expensive.  Let's call them just once.
+      #
+      direct_resources = event.non_covering_resources
+      indirect_resources =
+        event.all_non_covering_atomic_resources - direct_resources
+      location_strings = Array.new
+      staff_strings = Array.new
+      pupil_strings = Array.new
+      #
+      #  Only direct resources can be covered.
+      #
+      direct_resources.each do |r|
+        if r.instance_of?(Location)
+          cover = location_covers[r.id]
+          if cover
+            location_strings <<
+              "#{cover.friendly_name} (normally #{r.friendly_name})"
+          else
+            location_strings << r.friendly_name
+          end
+        elsif r.instance_of?(Staff)
+          cover = staff_covers[r.id]
+          if cover
+            staff_strings <<
+              "#{cover.short_name} (covering #{r.short_name})"
+          else
+            staff_strings << r.short_name
+          end
+        elsif r.instance_of?(Pupil)
+          pupil_strings << r.short_name
+        end
+      end
+      indirect_resources.each do |r|
+        if r.instance_of?(Location)
+          location_strings << r.friendly_name
+        elsif r.instance_of?(Staff)
+          staff_strings << r.short_name
+        elsif r.instance_of?(Pupil)
+          pupil_strings << r.short_name
+        end
+      end
+      @locations_string = location_strings.join(", ")
+      @staff_string = staff_strings.join(", ")
+      @pupil_string = pupil_strings.join(", ")
+    end
+
     def initialize(event, day, current_user)
-      @locations_string =
-        event.locations.collect {|l| l.friendly_name}.join(", ")
-      @staff_string =
-        event.staff(true).collect {|s| s.short_name}.join(", ")
-      @pupil_string =
-        event.pupils(true).collect {|s| s.short_name}.join(", ")
+      prepare_strings(event)
       @period_no = period_no(event)
 #      Rails.logger.debug("@period_no = #{@period_no}")
       @note_contents = Array.new

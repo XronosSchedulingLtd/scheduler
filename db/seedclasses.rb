@@ -644,6 +644,10 @@ class Seeder
       SeedProperty.new("Suspension")
     @properties[:invigilationproperty] =
       SeedProperty.new("Invigilation")
+    @properties[:coveredproperty] =
+      SeedProperty.new("Covered")
+    @properties[:relocatedproperty] =
+      SeedProperty.new("Re-located")
     #
     # Sources
     #

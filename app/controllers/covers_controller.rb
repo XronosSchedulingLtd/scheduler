@@ -8,12 +8,6 @@ class CoversController < ApplicationController
   #  finding of the commitment in the authorized? method.
 #  before_action :set_commitment
 
-  class PseudoCommitmentSet < Array
-    def show_clashes
-      true
-    end
-  end
-
   #
   # /commitments/1/coverwith/1.json
   #
@@ -33,6 +27,18 @@ class CoversController < ApplicationController
   #  If they come from an external MIS then they should have a source id.
   #
   def coverwith
+    #
+    #  If either of these hard-coded properties does not exist in
+    #  this particular system, then we end up with nil, just
+    #  as if we had set it explicitly.
+    #
+    if @commitment.element.entity_type == "Location"
+      property = Property.find_by(name: "Re-located")
+    elsif @commitment.element.entity_type == "Staff"
+      property = Property.find_by(name: "Covered")
+    else
+      property = nil
+    end
     id = params[:id]
     #
     #  Normally notifications are sent at the end of an editing session.
@@ -49,27 +55,35 @@ class CoversController < ApplicationController
     #
     request_notifier = RequestNotifier.new
     if id == "0"
+      #
+      #  A request to cancel an existing cover, if any.
+      #
       if @commitment.covered
         request_notifier.commitment_removed(@commitment.covered)
         @commitment.covered.destroy
         @commitment.reload
+        #
+        #  Arguably, we should check whether any other covers of the
+        #  same type exist for this event, but currently we allow
+        #  covers only for single rooms anyway.
+        #
+        if property
+          @commitment.event.lose_property(property)
+        end
       end
-      to_list = @commitment
     else
       @element = Element.find(id)
-      if @commitment.covered &&
-         @commitment.covered.element == @element
-        #
-        #  The user has asked for exactly the same as he's already
-        #  got.  Leave things alone.
-        #
-        #  Should we actually change things if the user has,
-        #  for instance, re-requested a room which was previously
-        #  turned down?  See how it goes and whether the user experience
-        #  surprises them.
-        #
-        to_list = @commitment.covered
-      else
+      #
+      #  What if the user has asked for exactly what they've already
+      #  got?  Leave things alone.
+      #
+      #  Should we actually change things if the user has,
+      #  for instance, re-requested a room which was previously
+      #  turned down?  See how it goes and whether the user experience
+      #  surprises them.
+      #
+      unless @commitment.covered &&
+             @commitment.covered.element == @element
         #
         #  Originally we tried to re-cycle an existing cover commitment,
         #  but there's a danger it may have left-over flags set.  Destroy
@@ -91,12 +105,14 @@ class CoversController < ApplicationController
           covering:  @commitment,
           tentative: current_user.needs_permission_for?(@element)
         })
-        request_notifier.commitment_added(c)
+        if property
+          @commitment.event.ensure_property(property)
+        end
         #
         #  Need to check for pending approval and send e-mail if
         #  required.
         #
-        to_list = c
+        request_notifier.commitment_added(c)
       end
     end
     request_notifier.send_notifications_for(current_user,
@@ -105,8 +121,11 @@ class CoversController < ApplicationController
     #  Now need to prepare some replacement HTML to go in the dialogue's
     #  description of locations.
     #
-    @pcs = PseudoCommitmentSet.new
-    @pcs << to_list
+    @visible_commitments, @approvable_commitments =
+      @commitment.event.commitments_for(current_user)
+    @new_html =
+      render_to_string(action: "new_commitments", layout: false)
+    Rails.logger.debug("New html #{@new_html.inspect}")
     respond_to do |format|
       format.json
     end
