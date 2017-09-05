@@ -1,1 +1,1 @@
-json.newhtml list_commitment_set(@pcs, current_user)
+json.newhtml @new_html

@@ -803,25 +803,33 @@ class Event < ActiveRecord::Base
 
   #
   #  Lose a property if the event currently has it.
+  #  Returns true if it was found and lost, false if it wasn't
+  #  there in the first place.
   #
   def lose_property(property)
+    removed = false
     self.commitments.each do |c|
       if c.element_id == property.element.id
         c.destroy
+        removed = true
       end
     end
+    removed
   end
 
   #
   #  Add a property if the event does not already have it.
+  #  Returns true if it was added, false if it was already there.
   #
-  def add_property(property)
+  def ensure_property(property)
+    added = false
     unless self.involves?(property)
-      c = Commitment.new
-      c.event = self
-      c.element = property.element
-      c.save!
+      self.commitments.create({
+        element: property.element
+      })
+      added = true
     end
+    added
   end
 
 
