@@ -443,6 +443,19 @@ class Event < ActiveRecord::Base
   end
 
   #
+  #  Trying this a slightly different way.
+  #
+  def non_covering_resources
+    self.commitments.
+         firm.
+         non_covering_commitment.
+         includes(element: :entity).
+         collect {|c|
+      c.element.entity
+    }
+  end
+
+  #
   #  Do we actually have any resources?
   #
   def resourceless?
@@ -458,6 +471,24 @@ class Event < ActiveRecord::Base
                                   true)
       else
         found << e.entity
+      end
+    end
+    found.uniq
+  end
+
+  def all_non_covering_atomic_resources
+    found = Array.new
+    self.commitments.
+         firm.
+         non_covering_commitment.
+         includes(element: :entity).
+         collect {|c| c.element.entity }.each do |e|
+      if e.instance_of?(Group)
+        found += e.members(self.starts_at.to_date,
+                           true,
+                           true)
+      else
+        found << e
       end
     end
     found.uniq
