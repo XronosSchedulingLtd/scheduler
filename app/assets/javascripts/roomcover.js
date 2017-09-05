@@ -154,11 +154,12 @@ if ($('#fullcalendar').length) {
         $('#relocate-link').show();
       },
       coverSucceeded: function(data, textStatus, jqXHR) {
+        this.cancelClicked();
         //
         //  Replacement HTML should be in data["newhtml"]
         //
         window.replaceShownCommitments(data["newhtml"]);
-        this.cancelClicked();
+        window.activateRelocateLink();
       },
       coverFailed: function() {
         console.log("Cover failed");

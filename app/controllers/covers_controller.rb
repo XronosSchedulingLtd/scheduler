@@ -123,9 +123,11 @@ class CoversController < ApplicationController
     #
     @visible_commitments, @approvable_commitments =
       @commitment.event.commitments_for(current_user)
+    @event = @commitment.event
+    @relocate_link = true
+    @location_commitment_id = @commitment.id
     @new_html =
       render_to_string(action: "new_commitments", layout: false)
-    Rails.logger.debug("New html #{@new_html.inspect}")
     respond_to do |format|
       format.json
     end
