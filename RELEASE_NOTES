@@ -1,3 +1,16 @@
+v0.24.4 2017-09-05
+
+* Allow re-location to be done more than once in the same dialogue
+  session.
+
+  Once a lesson had been re-located, the re-locate link disappeared.
+  This release re-instates it.
+
+* Remove spurious debug message.
+
+  A debug message was accidentally left in the last release.
+
+
 v0.24.3 2017-09-05
 
 * Group re-located lessons using a new property.
