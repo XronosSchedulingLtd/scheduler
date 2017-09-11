@@ -4,7 +4,7 @@ class PreRequisitesController < ApplicationController
   # GET /pre_requisites
   # GET /pre_requisites.json
   def index
-    @pre_requisites = PreRequisite.all
+    @pre_requisites = PreRequisite.all.order(:priority)
   end
 
   # GET /pre_requisites/1
@@ -28,7 +28,7 @@ class PreRequisitesController < ApplicationController
 
     respond_to do |format|
       if @pre_requisite.save
-        format.html { redirect_to @pre_requisite, notice: 'Pre requisite was successfully created.' }
+        format.html { redirect_to pre_requisites_path, notice: 'Pre requisite was successfully created.' }
         format.json { render :show, status: :created, location: @pre_requisite }
       else
         format.html { render :new }
@@ -42,7 +42,7 @@ class PreRequisitesController < ApplicationController
   def update
     respond_to do |format|
       if @pre_requisite.update(pre_requisite_params)
-        format.html { redirect_to @pre_requisite, notice: 'Pre requisite was successfully updated.' }
+        format.html { redirect_to pre_requisites_path, notice: 'Pre requisite was successfully updated.' }
         format.json { render :show, status: :ok, location: @pre_requisite }
       else
         format.html { render :edit }
@@ -69,6 +69,10 @@ class PreRequisitesController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def pre_requisite_params
-      params.require(:pre_requisite).permit(:label, :description, :element_id, :priority)
+      params.require(:pre_requisite).permit(:label,
+                                            :description,
+                                            :element_id,
+                                            :element_name,
+                                            :priority)
     end
 end

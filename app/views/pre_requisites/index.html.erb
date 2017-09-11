@@ -1,13 +1,22 @@
-<h1>Listing pre_requisites</h1>
+<h1>Listing event pre-requisites</h1>
 
-<table>
+<p>When a user creates a new event, these will be listed as services
+which the user might want to consider adding to the event.  The
+"priority" value controls the order in which they will be shown -
+lowest value first.</p>
+
+<%= link_to('New pre-requisite',
+            new_pre_requisite_path,
+            class: "zfbutton tiny radius") %>
+
+<table class="zftable">
   <thead>
     <tr>
       <th>Label</th>
-      <th>Description</th>
+      <th>Descriptive text</th>
       <th>Element</th>
       <th>Priority</th>
-      <th colspan="3"></th>
+      <th colspan="2"></th>
     </tr>
   </thead>
 
@@ -16,11 +25,10 @@
       <tr>
         <td><%= pre_requisite.label %></td>
         <td><%= pre_requisite.description %></td>
-        <td><%= pre_requisite.element_id %></td>
+        <td><%= pre_requisite.element ? pre_requisite.element.name : "None!" %></td>
         <td><%= pre_requisite.priority %></td>
-        <td><%= link_to 'Show', pre_requisite %></td>
         <td><%= link_to 'Edit', edit_pre_requisite_path(pre_requisite) %></td>
-        <td><%= link_to 'Destroy', pre_requisite, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <td><%= link_to 'Destroy', pre_requisite, method: :delete, data: { confirm: "Are you sure you want to completely delete the pre-requisite \"#{pre_requisite.label}\"?" } %></td>
       </tr>
     <% end %>
   </tbody>
@@ -28,4 +36,7 @@
 
 <br>
 
-<%= link_to 'New Pre requisite', new_pre_requisite_path %>
+<%= link_to('New pre-requisite',
+            new_pre_requisite_path,
+            class: "zfbutton tiny radius") %>
+

@@ -15,4 +15,13 @@ class PreRequisite < ActiveRecord::Base
     end
   end
 
+  def element_name
+    element ? element.name : ""
+  end
+
+  def element_name=(name)
+    #
+    #  Do nothing.
+    #
+  end
 end
