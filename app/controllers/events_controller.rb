@@ -166,6 +166,13 @@ class EventsController < ApplicationController
       end
     end
     @pre_requisites = PreRequisite.order(:priority).to_a
+    #
+    #  Split into two columns.
+    #
+    per_column = (@pre_requisites.size + 1) / 2
+    @pr_columns = Array.new
+    @pr_columns << @pre_requisites[0,per_column]
+    @pr_columns << @pre_requisites[per_column..-1]
     session[:request_notifier] = RequestNotifier.new
     if request.xhr?
       @minimal = true

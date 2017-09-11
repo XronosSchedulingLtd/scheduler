@@ -143,7 +143,9 @@
   <%= Setting.event_creation_prompt %>
   <% if @pre_requisites %>
     <form id='event-pre-requisites'>
-      <%= render @pre_requisites %>
+      <div class="row collapse">
+        <%= render partial: "pr_column", collection: @pr_columns %>
+      </div>
     </form>
   <% end %>
 <% end %>
