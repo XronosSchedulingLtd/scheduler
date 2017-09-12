@@ -266,7 +266,7 @@ class MIS_Cover
             #  Flag lesson as covered.
             #
             if covered_property
-              dblesson.add_property(covered_property)
+              dblesson.ensure_property(covered_property)
             end
           else
             puts "Failed to save cover."

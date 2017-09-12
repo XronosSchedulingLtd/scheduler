@@ -1,3 +1,13 @@
+v0.24.5 2017-09-12
+
+* Add in file accidentally missed from the last release.
+
+  A file - lib/import/misimport/miscover.rb - was accidentally missed
+  out from the last release, which caused covers to stop flowing from
+  iSAMS to Scheduler.  This release simply includes the update version
+  of that file which should have been in the last release package.
+
+
 v0.24.4 2017-09-05
 
 * Allow re-location to be done more than once in the same dialogue
