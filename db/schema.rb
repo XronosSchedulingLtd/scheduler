@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170831091127) do
+ActiveRecord::Schema.define(version: 20170912122846) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -104,6 +104,7 @@ ActiveRecord::Schema.define(version: 20170831091127) do
     t.string   "preferred_colour"
     t.boolean  "owned",            default: false
     t.string   "uuid"
+    t.integer  "user_form_id"
   end
 
   add_index "elements", ["entity_id"], name: "index_elements_on_entity_id", using: :btree
@@ -587,6 +588,7 @@ ActiveRecord::Schema.define(version: 20170831091127) do
     t.text     "form_data"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "complete",     default: false
   end
 
   create_table "user_forms", force: true do |t|

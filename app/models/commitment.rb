@@ -10,7 +10,8 @@ class Commitment < ActiveRecord::Base
   belongs_to :proto_commitment
   belongs_to :request
   belongs_to :by_whom, class_name: "User"
-  has_many :notes, as: :parent, :dependent => :destroy
+  has_many :notes, as: :parent, dependent: :destroy
+  has_many :user_form_responses, as: :parent, dependent: :destroy
 
   validates_presence_of :event, :element
 
@@ -637,13 +638,21 @@ class Commitment < ActiveRecord::Base
   end
 
   def check_for_promptnotes
-    if self.element.promptnote && self.event.owner && self.event.owner != 0
-      self.notes.create({
-        title:         self.element.name,
-        visible_staff: false,
-        promptnote:    self.element.promptnote,
-        owner:         self.event.owner
-      })
+    if self.event.owner && self.event.owner != 0
+      if self.element.promptnote
+        self.notes.create({
+          title:         self.element.name,
+          visible_staff: false,
+          promptnote:    self.element.promptnote,
+          owner:         self.event.owner
+        })
+      end
+      if self.element.user_form
+        self.user_form_responses.create({
+          user_form: self.element.user_form,
+          user:      self.event.owner
+        })
+      end
     end
   end
 

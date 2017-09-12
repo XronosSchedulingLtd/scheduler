@@ -39,17 +39,7 @@
   </div>
 <% if @proforma %>
   <div class="content" id="concern-proforma">
-    <h3>Requirements pro-forma</h3>
-    <p>
-    This is what will be shown to users who request this item for their events.
-    </p>
-    <div id="pro-forma-space">
-      <% if @concern.element.promptnote %>
-        <%= render @concern.element.promptnote %>
-      <% else %>
-        <%= render "promptnotes/no_promptnote.html.erb" %>
-      <% end %>
-    </div>
+    <%= render "proforma" %>
   </div>
 <% end %>
 <% if @journal_entries %>

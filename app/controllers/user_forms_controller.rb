@@ -1,6 +1,8 @@
 class UserFormsController < ApplicationController
   before_action :set_user_form, only: [:show, :edit, :update, :destroy]
 
+  autocomplete :user_form, :name, :full => true
+  
   # GET /user_forms
   # GET /user_forms.json
   def index

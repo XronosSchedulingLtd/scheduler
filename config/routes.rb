@@ -6,7 +6,10 @@ Rails.application.routes.draw do
 
   resources :user_forms, shallow: true do
     resources :user_form_responses
+    get :autocomplete_user_form_name, :on => :collection
   end
+
+  resources :user_form_responses
 
   resources :periods, only: [:index]
 

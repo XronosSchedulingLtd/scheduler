@@ -4,6 +4,7 @@ class UserForm < ActiveRecord::Base
   belongs_to :edited_by_user, class_name: :User
 
   has_many :user_form_responses, dependent: :destroy
+  has_many :elements, dependent: :nullify
 
   validates :name, presence: true
 

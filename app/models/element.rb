@@ -30,6 +30,7 @@ class Element < ActiveRecord::Base
            :dependent => :nullify
   has_one :promptnote, :dependent => :destroy
   belongs_to :owner, :class_name => :User
+  belongs_to :user_form
 
   #
   #  This is actually a constraint in the database too, but by specifying
@@ -592,6 +593,19 @@ class Element < ActiveRecord::Base
       generate_uuid
       @dont_rename = true
     end
+  end
+
+  #
+  #  Dummy methods for user form editing.
+  #
+  def user_form_name
+    user_form ? user_form.name : ""
+  end
+
+  def user_form_name=(name)
+    #
+    #  Do nothing
+    #
   end
 
   protected

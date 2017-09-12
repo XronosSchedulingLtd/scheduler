@@ -208,6 +208,7 @@ class ConcernsController < ApplicationController
         @urls = construct_urls
       end
       @proforma = @concern.owns && !@concern.equality
+      @message = ""
       #
       #  Can we show the journal?
       #

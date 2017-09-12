@@ -1,11 +1,18 @@
 class UserFormResponsesController < ApplicationController
-  before_action :find_user_form, only: [:index, :new, :create]
+  before_action :find_user_form, only: [:new, :create]
+  before_action :maybe_find_user_form, only: [:index]
   before_action :set_user_form_response, only: [:show, :edit, :update, :destroy]
 
   # GET /user_form_responses
   # GET /user_form_responses.json
   def index
-    @user_form_responses = @user_form.user_form_responses.order('updated_at DESC')
+    if @user_form && current_user.can_has_forms?
+      @user_form_responses =
+        @user_form.user_form_responses.order('updated_at DESC')
+    else
+      @user_form_responses =
+        current_user.user_form_responses
+    end
   end
 
   # GET /user_form_responses/1
@@ -45,8 +52,14 @@ class UserFormResponsesController < ApplicationController
   # PATCH/PUT /user_form_responses/1
   # PATCH/PUT /user_form_responses/1.json
   def update
+    #
+    #  We rely on the front end to check that all required fields
+    #  have been filled in.
+    #
+    my_params = user_form_response_params
+    my_params[:complete] = true
     respond_to do |format|
-      if @user_form_response.update(user_form_response_params)
+      if @user_form_response.update(my_params)
         format.html { redirect_to user_form_user_form_responses_path(@user_form_response.user_form), notice: 'User form response was successfully updated.' }
         format.json { render :show, status: :ok, location: @user_form_response }
       else
@@ -68,6 +81,14 @@ class UserFormResponsesController < ApplicationController
   end
 
   private
+
+    def authorized?(action = action_name, resource = nil)
+      logged_in? && (current_user.admin ||
+                     action == "index" ||
+                     action == "edit" ||
+                     action == "update")
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_user_form_response
       @user_form_response = UserFormResponse.find(params[:id])
@@ -75,6 +96,14 @@ class UserFormResponsesController < ApplicationController
 
     def find_user_form
       @user_form = UserForm.find(params[:user_form_id])
+    end
+
+    def maybe_find_user_form
+      #
+      #  If this fails, I don't want an error.  It just means we're
+      #  not working in the context of a user form.
+      #
+      @user_form = UserForm.find_by(id: params[:user_form_id])
     end
 
     # Never trust parameters from the scary internet, only allow the white list through.

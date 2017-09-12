@@ -7,6 +7,8 @@ require 'csv'
 
 class ElementsController < ApplicationController
 
+  before_action :set_element, only: [:update]
+
   #
   #  A class to hold a set of groups, each of a similar type.
   #
@@ -403,6 +405,23 @@ class ElementsController < ApplicationController
     end
   end
 
+  def update
+    old_form = @element.user_form
+    @element.update(element_params)
+    if @element.user_form
+      @message = "Requirements form set to #{@element.user_form.name}."
+    else
+      if old_form
+        @message = "Requirements form removed."
+      else
+        @message = "No requirements form set."
+      end
+    end
+    respond_to do |format|
+      format.js
+    end
+  end
+
   IcalDataSet = Struct.new(:prefix, :data)
 
   # GET /elements/:id/ical
@@ -663,6 +682,14 @@ class ElementsController < ApplicationController
   end
 
   private
+
+  def set_element
+    @element = Element.find(params[:id])
+  end
+
+  def element_params
+    params.require(:element).permit(:user_form_id, :user_form_name)
+  end
 
   def populate_panel(panel, memberships, old_memberships, element, era)
     element.entity.display_columns.each do |col|

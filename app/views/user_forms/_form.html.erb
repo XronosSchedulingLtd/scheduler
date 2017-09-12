@@ -11,11 +11,16 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :name %><br>
-    <%= f.text_field :name %>
-    <%= f.hidden_field :definition %>
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :name, class: "right inline" %>
+    </div>
+    <div class="small-10 columns">
+      <%= f.text_field :name %>
+      <%= f.hidden_field :definition %>
+    </div>
   </div>
+  <hr/>
   <div id="fb-editor"></div>
 <% end %>
 

@@ -6,6 +6,8 @@ class UserFormResponse < ActiveRecord::Base
 
   validates :user_form, presence: true
 
+  scope :complete, -> { where(complete: true) }
+  scope :incomplete, -> { where(complete: false) }
   #
   #  The following are helper methods intended to make life easier for
   #  the view.  They could go in a helper, but it seems more logical
