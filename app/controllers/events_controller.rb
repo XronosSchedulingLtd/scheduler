@@ -18,7 +18,42 @@ class EventsController < ApplicationController
   # GET /events
   # GET /events.json
   def index
-    @events = current_user.events.page(params[:page]).order('starts_at')
+    Rails.logger.debug(params.inspect)
+    if params.has_key?(:all) && current_user.admin?
+      #
+      #  The user is asking for all events.  Allow this only for
+      #  a system administrator.
+      #
+      selector = Event.all
+    elsif current_user.can_add_concerns? &&
+          params[:element_id] &&
+          element = Element.find_by(id: params[:element_id])
+      #
+      #  Note that we are selecting only events *directly* involving
+      #  this element.  Going through groups would be too complicated.
+      #  Typically this is intended for things like getting listings
+      #  of events requiring catering.
+      #
+      selector = Event.involving(element)
+    else
+      #
+      #  Just give this user's own events.  He or she is either
+      #  the owner or the organiser.  Since we are currently on
+      #  Rails 4.x we can't use ActiveRecords "or" constructor.
+      #
+      staff = current_user.corresponding_staff
+      if staff
+        #
+        #  Events are owned by users, but organised by elements.
+        #
+        selector = Event.where("owner_id = ? OR organiser_id = ?",
+                               current_user.id,
+                               staff.element.id)
+      else
+        selector = current_user.events
+      end
+    end
+    @events = selector.page(params[:page]).order('starts_at')
   end
 
   def assemble_event_info
