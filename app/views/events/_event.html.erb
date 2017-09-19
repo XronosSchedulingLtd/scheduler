@@ -1,8 +1,31 @@
 <tr>
-  <td><%= event.body %></td>
-  <td><%= event.eventcategory.name %></td>
-  <td><%= event.format_timing %></td>
+  <td><%= event.starts_at_text %></td>
+  <td><%= event.duration_text %></td>
+  <td title="<%= event.body %>"><%= event.trimmed_body(40) %></td>
+  <% if @show_status %>
+    <td>
+      <span class="<%= @resource_status_class %>"><%= @resource_status %></span>
+    </td>
+  <% end %>
+  <% if @show_our_form_status %>
+    <td>
+    </td>
+  <% end %>
+  <% if event.complete %>
+    <td></td>
+  <% else %>
+    <td class="incomplete-event" title="Incomplete">Inc</td>
+  <% end %>
+  <td>
+    <%= event.pending_count_no_db > 0 ? event.pending_count_no_db : "" %>
+  </td>
+  <td>
+    <%= event.rejected_count_no_db > 0 ? event.rejected_count_no_db : "" %>
+  </td>
+  <% if @show_pending_form_count %>
+    <td>
+      <%= event.pending_form_count > 0 ? event.pending_form_count : "" %>
+    </td>
+  <% end %>
   <td><%= link_to 'Show', event %></td>
-  <td><%= link_to 'Edit', edit_event_path(event) %></td>
-  <td><%= link_to 'Destroy', event, method: :delete, data: { confirm: 'Are you sure?' } %></td>
 </tr>

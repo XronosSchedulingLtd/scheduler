@@ -18,28 +18,21 @@ class EventsController < ApplicationController
   # GET /events
   # GET /events.json
   def index
-    Rails.logger.debug(params.inspect)
-    if params.has_key?(:all) && current_user.admin?
+    @show_status             = false
+    @show_our_form_status    = false
+    @show_pending_form_count = true
+    if params[:user_id]
       #
-      #  The user is asking for all events.  Allow this only for
-      #  a system administrator.
-      #
-      selector = Event.all
-    elsif current_user.can_add_concerns? &&
-          params[:element_id] &&
-          element = Element.find_by(id: params[:element_id])
-      #
-      #  Note that we are selecting only events *directly* involving
-      #  this element.  Going through groups would be too complicated.
-      #  Typically this is intended for things like getting listings
-      #  of events requiring catering.
-      #
-      selector = Event.involving(element)
-    else
+      #  Being asked for events related to this user.  Note, not
+      #  events *involving* this user - events which he owns or
+      #  organises.
       #
       #  Just give this user's own events.  He or she is either
       #  the owner or the organiser.  Since we are currently on
-      #  Rails 4.x we can't use ActiveRecords "or" constructor.
+      #  Rails 4.x we can't use ActiveRecord's "or" constructor.
+      #
+      #  All users can *ask* for them, but those who don't have
+      #  any will get an empty list.
       #
       staff = current_user.corresponding_staff
       if staff
@@ -51,9 +44,58 @@ class EventsController < ApplicationController
                                staff.element.id)
       else
         selector = current_user.events
+        @title = "#{current_user.name}'s events"
       end
+    elsif current_user.can_add_concerns? &&
+          params[:element_id] &&
+          element = Element.find_by(id: params[:element_id])
+      #
+      #  Note that we are selecting only events *directly* involving
+      #  this element.  Going through groups would be too complicated
+      #  and expensive.
+      #  Typically this is intended for things like getting listings
+      #  of events requiring catering.
+      #
+      selector = Event.involving(element)
+      @title = "Events requesting #{element.short_name}".html_safe
+      @show_status = true
+      @resource_status = "banana"
+      @resource_status_class = "constraining-commitment"
+      @show_our_form_status = true
+      @show_pending_form_count = false
+    elsif current_user.admin?
+      #
+      #  The user is asking for all events.  Allow this only for
+      #  a system administrator.
+      #
+      selector = Event.all
+      @title = "All events"
+    else
+      #
+      #  If we get here then either the user has tried for all events
+      #  and isn't an admin, or for events for an element and isn't
+      #  allowed free browsing.  Either way, send him or her back to
+      #  his or her own events.
+      #
+      selector = nil
     end
-    @events = selector.page(params[:page]).order('starts_at')
+    if selector
+      #
+      #  If there are lots of events, then it makes sense to start
+      #  on the page for today.  The user can page forward or backward
+      #  as required.  Do this only if the user has not specified an
+      #  explicit page.
+      #
+      page_no = params[:page]
+      unless page_no
+        previous_event_count = selector.until(Time.zone.now.midnight).count
+        Rails.logger.debug("Previous event count = #{previous_event_count}")
+        page_no = (previous_event_count / Event.per_page) + 1
+      end
+      @events = selector.includes(:commitments).page(page_no).order('starts_at')
+    else
+      redirect_to user_events_path(current_user)
+    end
   end
 
   def assemble_event_info

@@ -115,6 +115,7 @@ Rails.application.routes.draw do
     get :autocomplete_user_name, :on => :collection
     get :pp, :on => :collection
     resources :filters, only: [:edit, :update]
+    resources :events, only: [:index]
   end
 
   resources :commitments do
@@ -172,6 +173,7 @@ Rails.application.routes.draw do
   resources :elements do
     resources :promptnotes, shallow: true
     resources :journal_entries, only: [:index]
+    resources :events, only: [:index]
     get :autocomplete_element_name, :on => :collection
     get :autocomplete_unowned_element_name, :on => :collection
     get :autocomplete_staff_element_name, :on => :collection

@@ -234,11 +234,29 @@ class User < ActiveRecord::Base
   #  What elements do we control?  This information is cached because
   #  we may need it many times during the course of rendering one page.
   #
+  #  "Control" here means we can edit all events which involve this
+  #  element.
+  #
   def controlled_elements
     unless @controlled_elements
-      @controlled_elements = self.concerns.controlling.collect {|c| c.element}
+      @controlled_elements =
+        self.concerns.includes(:element).controlling.collect {|c| c.element}
     end
     @controlled_elements
+  end
+
+  #
+  #  Similarly, what elements do we own.
+  #
+  #  Owning means we approve requests to use it.  Confusingly, this appears
+  #  as "controls" in the user interface.
+  #
+  def owned_elements
+    unless @owned_elements
+      @owned_elements =
+        self.concerns.includes(:element).owned.collect {|c| c.element}
+    end
+    @owned_elements
   end
 
   #

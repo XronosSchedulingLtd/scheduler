@@ -1,16 +1,28 @@
-<h1>Listing events</h1>
-<p id="notice"><%= notice %></p>
+<h1><%= @title %></h1>
 
 <div class="digg_pagination">
   <%= will_paginate @events %>
 </div>
+
 <table class="zftable">
   <thead>
     <tr>
+      <th>Start</th>
+      <th>Duration</th>
       <th>Body</th>
-      <th>Category</th>
-      <th>When</th>
-      <th colspan="3"></th>
+      <% if @show_status %>
+        <th>Approval</th>
+      <% end %>
+      <% if @show_our_form_status %>
+        <th>Form</th>
+      <% end %>
+      <th title="Incomplete">Inc</th>
+      <th title="Pending approvals">Pend</th>
+      <th title="Rejections">Rej</th>
+      <% if @show_pending_form_count %>
+        <th title="Forms to complete">Frms</th>
+      <% end %>
+      <th colspan="1"></th>
     </tr>
   </thead>
 

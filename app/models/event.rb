@@ -289,6 +289,38 @@ class Event < ActiveRecord::Base
     self.starts_at = value
   end
 
+  def duration_text
+    #
+    #  This seems to give me a float indicating the number of seconds.
+    #  Not interested in partial seconds, so co-erce to being an integer.
+    #
+    duration = (self.ends_at - self.starts_at).to_i
+    if duration > 0
+      days = duration / 86400
+      duration = duration % 86400
+      hours = duration / 3600
+      duration = duration % 3600
+      mins = duration / 60
+      result = []
+      if days > 0
+        result << ActionController::Base.helpers.pluralize(days, "day")
+      end
+      if hours > 0
+        result << ActionController::Base.helpers.pluralize(hours, "hr")
+      end
+      if mins > 0
+#        if hours > 0
+          result << "#{mins} m"
+#        else
+#          result << ActionController::Base.helpers.pluralize(mins, "mn")
+#        end
+      end
+      result.join(", ")
+    else
+      ""
+    end
+  end
+
   def start_date_text
     self.starts_at.strftime("%a #{self.starts_at.day.ordinalize} %b")
   end
@@ -448,6 +480,62 @@ class Event < ActiveRecord::Base
   #
   def resourceless?
     self.commitments.count == 0
+  end
+
+  #
+  #  How many pending commitments do we have?
+  #
+  def pending_count
+    unless @pending_count
+      @pending_count = self.commitments.tentative.count
+    end
+    @pending_count
+  end
+
+  def rejected_count
+    unless @rejected_count
+      @rejected_count = self.commitments.rejected.count
+    end
+    @rejected_count
+  end
+
+  #
+  #  If the client has already explicitly loaded the commitments for
+  #  the event into memory, then these methods can be more efficient than
+  #  their predecessors.
+  #
+  #  Of course, if they're not pre-loaded then they will be less efficient.
+  #
+  def pending_count_no_db
+    unless @pending_count_no_db
+      @pending_count_no_db = self.commitments.select {|c| c.tentative}.count
+    end
+    @pending_count_no_db
+  end
+
+  def rejected_count_no_db
+    unless @rejected_count_no_db
+      @rejected_count_no_db = self.commitments.select {|c| c.rejected}.count
+    end
+    @rejected_count_no_db
+  end
+
+  #
+  #  And how many forms are waiting to be filled in.  This is slightly
+  #  more interesting because the forms themselves are attached to
+  #  our commitments, not directly to the event.
+  #
+  #  This should also include a count of any pro-formae which haven't
+  #  been done.
+  #
+  def pending_form_count
+    unless @pending_form_count
+      @pending_form_count =
+        self.commitments.inject(0) do |total, commitment|
+        total + commitment.user_form_responses.incomplete.count
+      end
+    end
+    @pending_form_count
   end
 
   def all_atomic_resources
@@ -901,6 +989,10 @@ class Event < ActiveRecord::Base
   #
   def tidied_body(with_dot = false)
     "#{self.body.chomp(" ").chomp(".").chomp(" ")}#{with_dot ? "." : ""}"
+  end
+
+  def trimmed_body(max = 30)
+    self.body[0,max]
   end
 
   def short_end_date_str

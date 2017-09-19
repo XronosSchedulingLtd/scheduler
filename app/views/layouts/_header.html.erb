@@ -33,32 +33,54 @@
 
 <% if current_user %>
 <%   if current_user.sees_menu? %>
-        <li class="has-dropdown">
-          <a href="#"><%= header_menu_text(current_user) %></a>
-          <ul class="dropdown">
+  <li class="has-dropdown">
+    <a href="#"><%= header_menu_text(current_user) %></a>
+    <ul class="dropdown">
 <%     if current_user.admin %>
-            <li class="has-dropdown">
-              <%= link_to "Groups", groups_path %>
-              <ul class="dropdown">
-                <li><%= link_to "All", groups_path %></li>
-                <li><%= link_to "Mine", groups_path(:mine => true) %></li>
-                <li><%= link_to "Tutor", tutorgroups_path %></li>
-              </ul>
-            </li>
+      <li class="has-dropdown">
+        <%= link_to "Groups", groups_path %>
+        <ul class="dropdown">
+          <li><%= link_to "All", groups_path %></li>
+          <li><%= link_to "Mine", groups_path(:mine => true) %></li>
+          <li><%= link_to "Tutor", tutorgroups_path %></li>
+        </ul>
+      </li>
 <%     elsif current_user.can_has_groups %>
-            <li><%= link_to "Groups", groups_path %></li>
+      <li><%= link_to "Groups", groups_path %></li>
 <%     end %>
 <%     if current_user.create_events? %>
-            <li><%= link_to "Events", events_path %></li>
+<%       if current_user.admin || current_user.owned_elements.size > 0 %>
+      <li class="has-dropdown">
+        <%= link_to "Events", user_events_path(current_user) %>
+        <ul class="dropdown">
+          <li><%= link_to "Mine", user_events_path(current_user) %></li>
+<%         if current_user.admin %>
+          <li><%= link_to "All", events_path %></li>
+<%         end %>
+<%         current_user.owned_elements.each do |ce| %>
+          <li><%= link_to ce.name, element_events_path(ce) %></li>
+<%         end %>
+        </ul>
+      </li>
+<%       else %>
+      <li><%= link_to "Events", user_events_path(current_user) %></li>
+<%       end %>
 <%     end %>
 <%     if current_user.can_find_free %>
-            <li><%= link_to "Find free", new_freefinder_path %></li>
+      <li><%= link_to "Find free", new_freefinder_path %></li>
 <%     end %>
 <%     if current_user.element_owner %>
             <li><%= link_to "Approvals", commitments_path %></li>
 <%     end %>
 <%     if current_user.can_has_forms %>
-            <li><%= link_to "Forms", user_forms_path %></li>
+            <li class="has-dropdown">
+              <%= link_to "Forms", user_form_responses_path, id: 'ufr-link' %>
+              <ul class="dropdown">
+                <li><%= link_to "Maintain", user_forms_path %></li>
+              </ul>
+            </li>
+<%     elsif current_user.create_events? %>
+            <li><%= link_to "Forms (#{current_user.user_form_responses.incomplete.count})", user_form_responses_path, id: 'ufr-link' %></li>
 <%     end %>
 <%     if current_user.can_view_journal_for?(:events) %>
             <li class = "has-dropdown">

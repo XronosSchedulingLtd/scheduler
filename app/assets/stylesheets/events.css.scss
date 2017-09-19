@@ -136,6 +136,10 @@
   float: left;
 }
 
+table.zftable td.incomplete-event {
+  color: red;
+}
+
 #events-dialogue {
   position: relative;
 }
