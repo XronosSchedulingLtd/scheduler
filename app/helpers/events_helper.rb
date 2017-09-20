@@ -62,4 +62,57 @@ module EventsHelper
     text.html_safe
   end
 
+  #
+  #  These two expect to be called on events where the corresponding
+  #  commitments have been pre-loaded into memory.  They will work
+  #  without, but it's less efficient.
+  #
+  def resource_status(event, element)
+    commitment = event.commitment_to(element)
+    if commitment
+      if commitment.rejected
+        "Rejected"
+      elsif commitment.tentative
+        "Pending"
+      else
+        "OK"
+      end
+    else
+      "Unknown"
+    end
+  end
+
+  def resource_status_class(event, element)
+    commitment = event.commitment_to(element)
+    if commitment
+      if commitment.rejected
+        "rejected-commitment"
+      elsif commitment.tentative
+        "tentative-commitment"
+      else
+        "constraining-commitment"
+      end
+    else
+      "unknown-commitment"
+    end
+  end
+
+  def resource_form_status(event, element)
+    commitment = event.commitment_to(element)
+    if commitment
+      response = commitment.user_form_responses[0]
+      if response
+        if response.complete
+          "Complete"
+        else
+          "Pending"
+        end
+      else
+        "None"
+      end
+    else
+      ""
+    end
+  end
+
 end

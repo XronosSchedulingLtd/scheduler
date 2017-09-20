@@ -66,6 +66,7 @@ class User < ActiveRecord::Base
 
   belongs_to :preferred_event_category, class_name: Eventcategory
   belongs_to :day_shape, class_name: RotaTemplate
+  belongs_to :corresponding_staff, class_name: "Staff"
 
   #
   #  The only elements we can actually own currently are groups.  By creating
@@ -97,8 +98,7 @@ class User < ActiveRecord::Base
   end
 
   def staff?
-    @staff ||= (self.own_element != nil &&
-                self.own_element.entity.class == Staff)
+    self.corresponding_staff != nil
   end
 
   def pupil?
@@ -486,6 +486,12 @@ class User < ActiveRecord::Base
       end
       if staff
         got_something = true
+        #
+        #  We set the corresponding staff here, and rely on
+        #  set_initial_permissions to save our record, which it will
+        #  because we are a member of staff.
+        #
+        self.corresponding_staff = staff
         concern = self.concern_with(staff.element)
         if concern
           unless concern.equality
@@ -559,14 +565,6 @@ class User < ActiveRecord::Base
         end
         set_initial_permissions
       end
-    end
-  end
-
-  def corresponding_staff
-    if self.email
-      Staff.find_by_email(self.email)
-    else
-      nil
     end
   end
 
@@ -739,6 +737,29 @@ class User < ActiveRecord::Base
     end
     results.each do |text|
       puts text
+    end
+    nil
+  end
+
+  #
+  #  Maintenance methods to populate the newly created "corresponding_staff"
+  #  field.
+  #
+  #
+  def set_corresponding_staff
+    unless self.corresponding_staff
+      self.concerns.me.each do |concern|
+        if concern.element.entity_type == "Staff"
+          self.corresponding_staff = concern.element.entity
+          self.save!
+        end
+      end
+    end
+  end
+
+  def self.populate_corresponding_staff
+    User.all.each do |u|
+      u.set_corresponding_staff
     end
     nil
   end

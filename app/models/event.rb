@@ -460,7 +460,15 @@ class Event < ActiveRecord::Base
   def organiser_name=(on)
     @organiser_name = on
   end
- 
+
+  def organisers_initials
+    if self.organiser && self.organiser.entity_type == "Staff"
+      self.organiser.entity.initials
+    else
+      ""
+    end
+  end
+
   def owners_initials
     if self.owner
       self.owner.initials
@@ -487,7 +495,7 @@ class Event < ActiveRecord::Base
   #
   def pending_count
     unless @pending_count
-      @pending_count = self.commitments.tentative.count
+      @pending_count = self.commitments.tentative.not_rejected.count
     end
     @pending_count
   end
@@ -508,7 +516,8 @@ class Event < ActiveRecord::Base
   #
   def pending_count_no_db
     unless @pending_count_no_db
-      @pending_count_no_db = self.commitments.select {|c| c.tentative}.count
+      @pending_count_no_db =
+        self.commitments.select {|c| c.tentative && !c.rejected }.count
     end
     @pending_count_no_db
   end
@@ -943,6 +952,10 @@ class Event < ActiveRecord::Base
     else
       false
     end
+  end
+
+  def commitment_to(element)
+    self.commitments.detect {|c| c.element_id == element.id}
   end
 
   #

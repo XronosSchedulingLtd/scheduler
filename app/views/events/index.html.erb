@@ -10,15 +10,25 @@
       <th>Start</th>
       <th>Duration</th>
       <th>Body</th>
-      <% if @show_status %>
+      <% if @show_owner %>
+        <th title="Owner">Own</th>
+      <% end %>
+      <% if @show_organiser %>
+        <th title="Organiser">Org</th>
+      <% end %>
+      <% if @show_resource_status %>
         <th>Approval</th>
       <% end %>
       <% if @show_our_form_status %>
         <th>Form</th>
       <% end %>
-      <th title="Incomplete">Inc</th>
-      <th title="Pending approvals">Pend</th>
-      <th title="Rejections">Rej</th>
+      <% if @show_overall_status %>
+        <th title="Incomplete">Inc</th>
+      <% end %>
+      <% if @show_counts %>
+        <th title="Pending approvals">Pend</th>
+        <th title="Rejections">Rej</th>
+      <% end %>
       <% if @show_pending_form_count %>
         <th title="Forms to complete">Frms</th>
       <% end %>
@@ -36,4 +46,3 @@
 
 <br>
 
-<%= link_to 'New Event', new_event_path, class: "zfbutton tiny radius" %>

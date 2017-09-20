@@ -2,26 +2,41 @@
   <td><%= event.starts_at_text %></td>
   <td><%= event.duration_text %></td>
   <td title="<%= event.body %>"><%= event.trimmed_body(40) %></td>
-  <% if @show_status %>
+  <% if @show_owner %>
+    <td title="Owner"><%= event.owners_initials %></td>
+  <% end %>
+  <% if @show_organiser %>
+    <td title="Organiser"><%= event.organisers_initials %></td>
+  <% end %>
+  <% if @show_resource_status %>
     <td>
-      <span class="<%= @resource_status_class %>"><%= @resource_status %></span>
+      <span class="<%= resource_status_class(event, @element) %>">
+        <%= resource_status(event, @element) %>
+      </span>
     </td>
   <% end %>
   <% if @show_our_form_status %>
-    <td>
-    </td>
+    <td><%= resource_form_status(event, @element) %></td>
   <% end %>
-  <% if event.complete %>
-    <td></td>
-  <% else %>
-    <td class="incomplete-event" title="Incomplete">Inc</td>
+  <% if @show_overall_status %>
+    <% if event.complete %>
+      <td></td>
+    <% else %>
+      <td class="incomplete-event" title="Incomplete">Inc</td>
+    <% end %>
   <% end %>
-  <td>
-    <%= event.pending_count_no_db > 0 ? event.pending_count_no_db : "" %>
-  </td>
-  <td>
-    <%= event.rejected_count_no_db > 0 ? event.rejected_count_no_db : "" %>
-  </td>
+  <% if @show_counts %>
+    <% if event.pending_count_no_db > 0 %>
+      <td title="Pending approvals"><%= event.pending_count_no_db %></td>
+    <% else %>
+      <td></td>
+    <% end %>
+    <% if event.rejected_count_no_db > 0 %>
+      <td title="Rejected requests"><%= event.rejected_count_no_db %></td>
+    <% else %>
+      <td></td>
+    <% end %>
+  <% end %>
   <% if @show_pending_form_count %>
     <td>
       <%= event.pending_form_count > 0 ? event.pending_form_count : "" %>
