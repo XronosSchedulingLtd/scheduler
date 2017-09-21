@@ -1,6 +1,9 @@
 "use strict";
 //
-//  And this is the code for filling in a form.
+//  And this is the code for filling in or displaying a form.
+//
+//  The same code is used for both edit and show functions, with
+//  flags indicating different behaviour.
 //
 if ($('.user-form-response-area').length) {
 
@@ -47,6 +50,8 @@ var user_form_response = function() {
     that.responseArea = $('.user-form-response-area');
     that.responseField = $('#user_form_response_form_data');
     that.serverForm = $("form[class$=_user_form_response]");
+    that.readOnly = that.responseArea.data("readonly");
+//    console.log("Read only = " + that.readOnly);
     //
     //  Render the form with its default contents.
     //
@@ -78,6 +83,20 @@ var user_form_response = function() {
         console.log("Trapped error: " + err);
       }
     }
+    //
+    //  May not want to let things be changed.
+    //
+    if (that.readOnly) {
+      var elements = document.getElementById("user-form").elements
+      for (var i = 0; i < elements.length; i++) {
+        var element = elements[i];
+        element.disabled = true;
+      }
+    }
+    //
+    //  There may be no save button, in which case this will do
+    //  nothing.
+    //
     $('#save-button').click(that.handleSave);
   }
 

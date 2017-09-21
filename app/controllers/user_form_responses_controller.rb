@@ -18,16 +18,33 @@ class UserFormResponsesController < ApplicationController
   # GET /user_form_responses/1
   # GET /user_form_responses/1.json
   def show
+    Rails.logger.debug("request.referer = #{request.referer}")
+    @read_only = true
+    @save_button = false
+    @cancel_button = true
+    @cancel_url = request.referer || root_path
+    @cancel_text = "Back"
   end
 
   # GET /user_form_responses/new
   def new
+    session[:return_to] = request.referer
     @user_form_response = @user_form.user_form_responses.new
+    @read_only = false
+    @save_button = true
+    @cancel_button = true
+    @cancel_url = request.referer || root_path
+    @cancel_text = "Cancel"
   end
 
   # GET /user_form_responses/1/edit
   def edit
-#    @user_form = @user_form_response.user_form
+    session[:return_to] = request.referer
+    @read_only = false
+    @save_button = true
+    @cancel_button = true
+    @cancel_url = request.referer || root_path
+    @cancel_text = "Cancel"
   end
 
   # POST /user_form_responses
@@ -35,12 +52,13 @@ class UserFormResponsesController < ApplicationController
   def create
     local_params = user_form_response_params
     local_params[:user] = current_user
+    local_params[:complete] = true
     @user_form_response =
       @user_form.user_form_responses.new(local_params)
 
     respond_to do |format|
       if @user_form_response.save
-        format.html { redirect_to user_form_user_form_responses_path(@user_form), notice: 'User form response was successfully created.' }
+        format.html { redirect_to session[:return_to] || root_path }
         format.json { render :show, status: :created, location: @user_form_response }
       else
         format.html { render :new }
@@ -60,7 +78,7 @@ class UserFormResponsesController < ApplicationController
     my_params[:complete] = true
     respond_to do |format|
       if @user_form_response.update(my_params)
-        format.html { redirect_to user_form_user_form_responses_path(@user_form_response.user_form), notice: 'User form response was successfully updated.' }
+        format.html { redirect_to session[:return_to] || root_path }
         format.json { render :show, status: :ok, location: @user_form_response }
       else
         format.html { render :edit }
