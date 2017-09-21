@@ -19,6 +19,17 @@ class UserFormResponsesController < ApplicationController
   # GET /user_form_responses/1.json
   def show
     Rails.logger.debug("request.referer = #{request.referer}")
+    parent = @user_form_response.parent
+    if parent
+      if parent.instance_of?(Commitment)
+        @event = parent.event
+        @resource = parent.element
+      else
+        @event = nil
+      end
+    else
+      @event = nil
+    end
     @read_only = true
     @save_button = false
     @cancel_button = true

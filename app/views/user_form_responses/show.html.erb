@@ -1,1 +1,9 @@
+<% if @event %>
+  <h3>Request form for <%= @resource.name %></h3>
+  Event: <%= @event.body %><br/>
+  Starts: <%= @event.starts_at_text %><br/>
+  Duration: <%= @event.duration_text %>
+
+  <hr/>
+<% end %>
 <%= render 'form' %>
