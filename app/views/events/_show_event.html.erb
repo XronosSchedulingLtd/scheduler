@@ -99,6 +99,8 @@
   <div class="small-12 medium-9 columns">
     <% if @resourcewarning %>
       <%= render partial: "events/warning" %>
+    <% elsif @form_count && (@form_count > 0) %>
+      <%= render partial: "events/pending_count" %>
     <% end %>
     <div id="show-all-commitments">
       <%= render partial: "show_all_commitments" %>

@@ -131,6 +131,7 @@ class EventsController < ApplicationController
       @resourcewarning = true
     else
       @resourcewarning = false
+      @form_count = @event.pending_form_count
     end
     if current_user && current_user.can_relocate?(@event)
       @relocate_link = true
