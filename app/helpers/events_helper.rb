@@ -63,6 +63,20 @@ module EventsHelper
   end
 
   #
+  #  This one is for use in the event listing.
+  #
+  def singleton_approval_links(commitment)
+    if commitment.rejected
+      text = approve_link(commitment, "Approve", true)
+    elsif commitment.tentative
+      text = "#{approve_link(commitment, "Approve", true)} / #{reject_link(commitment, "Raise issue", true)}"
+    else
+      text = reject_link(commitment, "Raise issue", true)
+    end
+    text.html_safe
+  end
+
+  #
   #  These two expect to be called on events where the corresponding
   #  commitments have been pre-loaded into memory.  They will work
   #  without, but it's less efficient.

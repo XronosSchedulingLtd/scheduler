@@ -29,6 +29,7 @@ class EventsController < ApplicationController
     @show_overall_status     = true
     @show_counts             = true
     @show_pending_form_count = true
+    @allow_approvals         = false
     if params[:user_id]
       #
       #  Being asked for events related to this user.  Note, not
@@ -73,6 +74,7 @@ class EventsController < ApplicationController
       @show_overall_status     = false
       @show_counts             = false
       @show_pending_form_count = false
+      @allow_approvals         = true
     elsif current_user.admin?
       #
       #  The user is asking for all events.  Allow this only for

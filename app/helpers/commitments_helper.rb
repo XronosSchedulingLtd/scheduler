@@ -34,16 +34,16 @@ module CommitmentsHelper
     link_to("&#215;".html_safe, commitment, method: :delete, remote: true)
   end
 
-  def approve_link(commitment, text)
+  def approve_link(commitment, text, singleton = false)
     "<span class=\"commitment-yes\">#{
-      link_to(text, approve_commitment_path(commitment),
+      link_to(text, approve_commitment_path(commitment, singleton: singleton),
               :method => :put, :remote => true)
      }</span>"
   end
 
-  def reject_link(commitment, text)
+  def reject_link(commitment, text, singleton = false)
     "<span class=\"commitment-no\">#{
-      link_to(text, reject_commitment_path(commitment),
+      link_to(text, reject_commitment_path(commitment, singleton: singleton),
               :method => :put,
               :remote => true,
               :class => "rejection-link")

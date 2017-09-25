@@ -1,4 +1,9 @@
-<tr>
+<% if @allow_approvals %>
+  <tr class='approval-item'
+      data-commitment-id=<%= event.commitment_to(@element).id %>>
+<% else %>
+  <tr>
+<% end %>
   <td><%= event.starts_at_text %></td>
   <td><%= event.duration_text %></td>
   <td title="<%= event.body %>"><%= event.trimmed_body(40) %></td>
@@ -10,9 +15,14 @@
   <% end %>
   <% if @show_resource_status %>
     <td>
-      <span class="<%= resource_status_class(event, @element) %>">
+      <span class="approval-status <%= resource_status_class(event, @element) %>">
         <%= resource_status(event, @element) %>
       </span>
+    </td>
+    <td>
+    <% if commitment = event.commitment_to(@element) %>
+      <%= singleton_approval_links(commitment) %>
+    <% end %>
     </td>
   <% end %>
   <% if @show_our_form_status %>
@@ -42,5 +52,4 @@
       <%= event.pending_form_count > 0 ? event.pending_form_count : "" %>
     </td>
   <% end %>
-  <td><%= link_to 'Show', event %></td>
 </tr>

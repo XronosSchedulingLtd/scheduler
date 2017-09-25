@@ -18,6 +18,7 @@
       <% end %>
       <% if @show_resource_status %>
         <th>Approval</th>
+        <th></th>
       <% end %>
       <% if @show_our_form_status %>
         <th>Form</th>
@@ -32,11 +33,14 @@
       <% if @show_pending_form_count %>
         <th title="Forms to complete">Frms</th>
       <% end %>
-      <th colspan="1"></th>
     </tr>
   </thead>
 
-  <tbody>
+  <% if @allow_approvals %>
+    <tbody class='approvals-region'>
+  <% else %>
+    <tbody>
+  <% end %>
     <%= render @events %>
   </tbody>
 </table>

@@ -115,6 +115,7 @@ class UserFormResponsesController < ApplicationController
       logged_in? && (current_user.admin ||
                      action == "index" ||
                      action == "edit" ||
+                     action == "show" ||
                      action == "update")
     end
 
