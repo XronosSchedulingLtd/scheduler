@@ -1,5 +1,10 @@
 class CommitmentsController < ApplicationController
-  before_action :set_commitment, only: [:approve, :reject, :destroy, :view]
+  before_action :set_commitment, only: [:ajaxapprove,
+                                        :approve,
+                                        :ajaxreject,
+                                        :reject,
+                                        :destroy,
+                                        :view]
 
   class ConcernWithRequests
 
@@ -30,33 +35,36 @@ class CommitmentsController < ApplicationController
 
   end
 
-  #
-  #  Slightly unusually, doesn't give a list of all the commitments
-  #  (which would be vast), but lists those in the future over which
-  #  we have approval authority.
-  #
   def index
-    if current_user.element_owner
-      @requests = Array.new
-      current_user.concerns.owned.each do |concern|
-#        Rails.logger.debug("Processing concern with #{concern.element.name}")
-        requests = ConcernWithRequests.new(concern)
-        concern.element.commitments.tentative.each do |commitment|
-#          Rails.logger.debug("Event ends at #{commitment.event.ends_at}")
-#          Rails.logger.debug("Currently #{Date.today}")
-          if commitment.event.ends_at >= Date.today
-            requests.note(commitment)
-          end
-        end
-        @requests << requests
+    if current_user.can_add_concerns? &&
+          params[:element_id] &&
+          @element = Element.find_by(id: params[:element_id])
+      selector = @element.commitments
+      if params.has_key?(:pending)
+        @pending = true
+        selector = selector.tentative
+      else
+        @pending = false
       end
-#      Rails.logger.debug("Got #{@requests.size} owned elements.")
+      #
+      #  If there are lots of commitments, then it makes sense to start
+      #  on the page for today.  The user can page forward or backward
+      #  as required.  Do this only if the user has not specified an
+      #  explicit page.
+      #
+      page_no = params[:page]
+      unless page_no
+        previous_commitment_count = selector.until(Time.zone.now.midnight).count
+        Rails.logger.debug("Previous commitment count = #{previous_commitment_count}")
+        page_no = (previous_commitment_count / Commitment.per_page) + 1
+      end
+      @commitments =
+        selector.includes(:event).page(page_no).order('events.starts_at')
     else
       #
-      #  Shouldn't be able to get here, but if someone is playing at
-      #  silly buggers then kick them out.
+      #  Send him off to look at his own events.
       #
-      redirect_to '/'
+      redirect_to user_events_path(current_user)
     end
   end
 
@@ -133,7 +141,7 @@ class CommitmentsController < ApplicationController
   #  that he should lost any hand-crafted approve button which he
   #  previously created.
   #
-  def approve
+  def do_approve
     @event = @commitment.event
     if current_user.can_approve?(@commitment) && @commitment.tentative
       @commitment.approve_and_save!(current_user)
@@ -146,7 +154,14 @@ class CommitmentsController < ApplicationController
         #
         UserMailer.event_complete_email(@event).deliver
       end
+      true
+    else
+      false
     end
+  end
+
+  def approve
+    do_approve
     @visible_commitments, @approvable_commitments =
       @event.commitments_for(current_user)
     respond_to do |format|
@@ -154,8 +169,23 @@ class CommitmentsController < ApplicationController
     end
   end
 
-  # PUT /commitments/1/reject.js
-  def reject
+  def ajaxapprove
+    @status = do_approve
+    respond_to do |format|
+      format.json
+    end
+  end
+  #
+  #  It would be really nice to have a single method for approve and
+  #  reject, handling both Rails's remote: links (format.js) and ordinary
+  #  AJAX requests (format.json), but unfortunately the former makes
+  #  use of the latter under the skin.  If both exist in the same action
+  #  and templates then Rails always assumes it's format.js.
+  #
+  #  I therefore need to put the actual work in a helper method, and
+  #  have two actions being invoked.
+  #
+  def do_reject
     @event = @commitment.event
     if current_user.can_approve?(@commitment) &&
       (@commitment.tentative || @commitment.constraining)
@@ -163,11 +193,33 @@ class CommitmentsController < ApplicationController
       @event.reload
       @event.journal_commitment_rejected(@commitment, current_user)
       UserMailer.commitment_rejected_email(@commitment).deliver
+      return true
+    else
+      return false
     end
-    @visible_commitments, @approvable_commitments =
-      @event.commitments_for(current_user)
+  end
+
+  #
+  #  This one handles remote links, and sends back some JavaScript
+  #  to be executed in the client.
+  #
+  def reject
+    do_reject
     respond_to do |format|
-      format.js
+      format.js do
+        @visible_commitments, @approvable_commitments =
+          @event.commitments_for(current_user)
+      end
+    end
+  end
+
+  #
+  #  And this one handles genuine AJAX requests.
+  #
+  def ajaxreject
+    @status = do_reject
+    respond_to do |format|
+      format.json
     end
   end
 

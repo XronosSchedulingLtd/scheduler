@@ -63,20 +63,6 @@ module EventsHelper
   end
 
   #
-  #  This one is for use in the event listing.
-  #
-  def singleton_approval_links(commitment)
-    if commitment.rejected
-      text = approve_link(commitment, "Approve", true)
-    elsif commitment.tentative
-      text = "#{approve_link(commitment, "Approve", true)} / #{reject_link(commitment, "Raise issue", true)}"
-    else
-      text = reject_link(commitment, "Raise issue", true)
-    end
-    text.html_safe
-  end
-
-  #
   #  These two expect to be called on events where the corresponding
   #  commitments have been pre-loaded into memory.  They will work
   #  without, but it's less efficient.
@@ -84,13 +70,7 @@ module EventsHelper
   def resource_status(event, element)
     commitment = event.commitment_to(element)
     if commitment
-      if commitment.rejected
-        "Rejected"
-      elsif commitment.tentative
-        "Pending"
-      else
-        "OK"
-      end
+      commitment_status(commitment)
     else
       "Unknown"
     end
@@ -99,13 +79,7 @@ module EventsHelper
   def resource_status_class(event, element)
     commitment = event.commitment_to(element)
     if commitment
-      if commitment.rejected
-        "rejected-commitment"
-      elsif commitment.tentative
-        "tentative-commitment"
-      else
-        "constraining-commitment"
-      end
+      commitment.status
     else
       "unknown-commitment"
     end
@@ -114,16 +88,7 @@ module EventsHelper
   def resource_form_status(event, element)
     commitment = event.commitment_to(element)
     if commitment
-      response = commitment.user_form_responses[0]
-      if response
-        if response.complete
-          link_to("Complete", user_form_response_path(response))
-        else
-          "Pending"
-        end
-      else
-        "None"
-      end
+      commitment_form_status(commitment)
     else
       ""
     end

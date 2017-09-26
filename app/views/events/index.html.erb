@@ -16,34 +16,18 @@
       <% if @show_organiser %>
         <th title="Organiser">Org</th>
       <% end %>
-      <% if @show_resource_status %>
-        <th>Approval</th>
-        <th></th>
-      <% end %>
-      <% if @show_our_form_status %>
-        <th>Form</th>
-      <% end %>
-      <% if @show_overall_status %>
-        <th title="Incomplete">Inc</th>
-      <% end %>
-      <% if @show_counts %>
-        <th title="Pending approvals">Pend</th>
-        <th title="Rejections">Rej</th>
-      <% end %>
-      <% if @show_pending_form_count %>
-        <th title="Forms to complete">Frms</th>
-      <% end %>
+      <th title="Incomplete">Inc</th>
+      <th title="Pending approvals">Pend</th>
+      <th title="Rejections">Rej</th>
+      <th title="Forms to complete">Frms</th>
     </tr>
   </thead>
 
-  <% if @allow_approvals %>
-    <tbody class='approvals-region'>
-  <% else %>
-    <tbody>
-  <% end %>
+  <tbody>
     <%= render @events %>
   </tbody>
 </table>
+
 <div class="digg_pagination">
   <%= will_paginate @events %>
 </div>

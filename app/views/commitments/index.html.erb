@@ -1,5 +1,31 @@
-<% if @requests.size > 0 %>
-<%= render @requests %>
-<% else %>
-<h3>No outstanding requests for approval.</h3>
-<% end %>
+<h1>Events requesting <%= @element.short_name %></h1>
+
+<div class="digg_pagination">
+  <%= will_paginate @commitments %>
+</div>
+
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>Start</th>
+      <th>Duration</th>
+      <th>Body</th>
+      <th title="Owner">Own</th>
+      <th title="Organiser">Org</th>
+      <th>Approval</th>
+      <th></th>
+      <th>Form</th>
+    </tr>
+  </thead>
+
+  <tbody class='approvals-region'>
+    <%= render @commitments %>
+  </tbody>
+</table>
+
+<div class="digg_pagination">
+  <%= will_paginate @commitments %>
+</div>
+
+<br>
+

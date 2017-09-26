@@ -1,27 +1,16 @@
-<tr>
-  <td>
-    <%= commitment.event.body %>
+<tr class='approval-item' data-commitment-id=<%= commitment.id %>>
+  <td><%= commitment.event.starts_at_text %></td>
+  <td><%= commitment.event.duration_text %></td>
+  <td title="<%= commitment.event.body %>">
+    <%= commitment.event.trimmed_body(40) %>
   </td>
+  <td title="Owner"><%= commitment.event.owners_initials %></td>
+  <td title="Organiser"><%= commitment.event.organisers_initials %></td>
   <td>
-    <%= commitment.event.owner ? commitment.event.owner.name : "" %>
+    <span class="approval-status <%= commitment_status_class(commitment) %>">
+      <%= commitment_status(commitment) %>
+    </span>
   </td>
-  <td>
-    <%= commitment.event.organiser ? commitment.event.organiser.name : "" %>
-  </td>
-  <td>
-    <%= commitment.event.starts_at_text %>
-  </td>
-  <td>
-    <%= commitment.event.ends_at_text %>
-  </td>
-  <td>
-    <%= commitment.event.commitments.tentative.count == 1 ? "Yes" : "No" %>
-  </td>
-  <td>
-    <%=
-      link_to "View",
-              schedule_show_path +
-              "?date=#{commitment.event.jump_date_text}&concern_id=#{concern_id}"
-     %>
-  </td>
+  <td class="approval-buttons"><%= commitment_approval_links(commitment) %></td>
+  <td><%= commitment_form_status(commitment) %></td>
 </tr>

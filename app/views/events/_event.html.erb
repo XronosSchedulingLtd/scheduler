@@ -1,9 +1,4 @@
-<% if @allow_approvals %>
-  <tr class='approval-item'
-      data-commitment-id=<%= event.commitment_to(@element).id %>>
-<% else %>
-  <tr>
-<% end %>
+<tr>
   <td><%= event.starts_at_text %></td>
   <td><%= event.duration_text %></td>
   <td title="<%= event.body %>"><%= event.trimmed_body(40) %></td>
@@ -13,43 +8,22 @@
   <% if @show_organiser %>
     <td title="Organiser"><%= event.organisers_initials %></td>
   <% end %>
-  <% if @show_resource_status %>
-    <td>
-      <span class="approval-status <%= resource_status_class(event, @element) %>">
-        <%= resource_status(event, @element) %>
-      </span>
-    </td>
-    <td>
-    <% if commitment = event.commitment_to(@element) %>
-      <%= singleton_approval_links(commitment) %>
-    <% end %>
-    </td>
+  <% if event.complete %>
+    <td></td>
+  <% else %>
+    <td class="incomplete-event" title="Incomplete">Inc</td>
   <% end %>
-  <% if @show_our_form_status %>
-    <td><%= resource_form_status(event, @element) %></td>
+  <% if event.pending_count_no_db > 0 %>
+    <td title="Pending approvals"><%= event.pending_count_no_db %></td>
+  <% else %>
+    <td></td>
   <% end %>
-  <% if @show_overall_status %>
-    <% if event.complete %>
-      <td></td>
-    <% else %>
-      <td class="incomplete-event" title="Incomplete">Inc</td>
-    <% end %>
+  <% if event.rejected_count_no_db > 0 %>
+    <td title="Rejected requests"><%= event.rejected_count_no_db %></td>
+  <% else %>
+    <td></td>
   <% end %>
-  <% if @show_counts %>
-    <% if event.pending_count_no_db > 0 %>
-      <td title="Pending approvals"><%= event.pending_count_no_db %></td>
-    <% else %>
-      <td></td>
-    <% end %>
-    <% if event.rejected_count_no_db > 0 %>
-      <td title="Rejected requests"><%= event.rejected_count_no_db %></td>
-    <% else %>
-      <td></td>
-    <% end %>
-  <% end %>
-  <% if @show_pending_form_count %>
-    <td>
-      <%= event.pending_form_count > 0 ? event.pending_form_count : "" %>
-    </td>
-  <% end %>
+  <td>
+    <%= event.pending_form_count > 0 ? event.pending_form_count : "" %>
+  </td>
 </tr>

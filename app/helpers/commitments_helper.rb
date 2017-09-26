@@ -13,6 +13,24 @@ module CommitmentsHelper
      "  </tr>"].join("\n").html_safe
   end
 
+  #
+  #  This one is for use in the commitment listing.
+  #
+  def commitment_approval_links(commitment)
+    if commitment.tentative || commitment.constraining
+      if commitment.rejected
+        text = approve_link(commitment, "Approve", true)
+      elsif commitment.tentative
+        text = "#{approve_link(commitment, "Approve", true)} / #{reject_link(commitment, "Reject", true)}"
+      else
+        text = reject_link(commitment, "Reject", true)
+      end
+    else
+      text = ""
+    end
+    text.html_safe
+  end
+
   def element_name_with_cover(commitment)
     result = h(commitment.element.name)
     if commitment.covering
@@ -35,19 +53,34 @@ module CommitmentsHelper
   end
 
   def approve_link(commitment, text, singleton = false)
-    "<span class=\"commitment-yes\">#{
-      link_to(text, approve_commitment_path(commitment, singleton: singleton),
-              :method => :put, :remote => true)
-     }</span>"
+    #
+    #  A bit of reverse-compatibility.  New code has singleton set to true.
+    #
+    if singleton
+      "<span class=\"commitment-yes\">#{
+        link_to(text, "#", class: "approval-yes")
+       }</span>"
+    else
+      "<span class=\"commitment-yes\">#{
+        link_to(text, approve_commitment_path(commitment),
+                :method => :put, :remote => true)
+       }</span>"
+    end
   end
 
   def reject_link(commitment, text, singleton = false)
-    "<span class=\"commitment-no\">#{
-      link_to(text, reject_commitment_path(commitment, singleton: singleton),
-              :method => :put,
-              :remote => true,
-              :class => "rejection-link")
-     }</span>"
+    if singleton
+      "<span class=\"commitment-no\">#{
+        link_to(text, "#", class: "approval-no")
+       }</span>"
+    else
+      "<span class=\"commitment-no\">#{
+        link_to(text, reject_commitment_path(commitment),
+                :method => :put,
+                :remote => true,
+                :class => "rejection-link")
+       }</span>"
+    end
   end
 
   def header_menu_text(user)
@@ -110,5 +143,34 @@ module CommitmentsHelper
     result.join("\n").html_safe
   end
 
+  def commitment_status(commitment)
+    if commitment.rejected
+      "Rejected"
+    elsif commitment.tentative
+      "Pending"
+    else
+      "OK"
+    end
+  end
+
+  def commitment_status_class(commitment)
+    #
+    #  The model actually does the work.
+    #
+    commitment.status
+  end
+
+  def commitment_form_status(commitment)
+    response = commitment.user_form_responses[0]
+    if response
+      if response.complete
+        link_to("Complete", user_form_response_path(response))
+      else
+        "Pending"
+      end
+    else
+      "None"
+    end
+  end
 end
 

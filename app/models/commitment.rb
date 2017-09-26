@@ -56,12 +56,15 @@ class Commitment < ActiveRecord::Base
   scope :constraining, -> { where(:constraining => true) }
   scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}
 
+  scope :until, lambda { |datetime| joins(:event).merge(Event.until(datetime)) }
   #
   #  Call-backs.
   #
   after_save    :update_event_after_save
   after_destroy :update_event_after_destroy
   after_create  :check_for_promptnotes
+
+  self.per_page = 15
 
   #
   #  This isn't a real field in the d/b.  It exists to allow a name
@@ -621,6 +624,19 @@ class Commitment < ActiveRecord::Base
       puts "Can't find property \"Covered\"."
     end
     nil
+  end
+
+  #
+  #  Returns a textual status, suitable for creating CSS classes.
+  #
+  def status
+    if self.rejected
+      "rejected-commitment"
+    elsif self.tentative
+      "tentative-commitment"
+    else
+      "constraining-commitment"
+    end
   end
 
   protected

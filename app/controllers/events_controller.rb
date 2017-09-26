@@ -18,18 +18,9 @@ class EventsController < ApplicationController
   # GET /events
   # GET /events.json
   def index
-    #
-    #  Defaults are for user and general view.
-    #  When viewing by resource, we switch things around.
-    #
     @show_owner              = true
     @show_organiser          = true
-    @show_resource_status    = false
-    @show_our_form_status    = false
-    @show_overall_status     = true
-    @show_counts             = true
-    @show_pending_form_count = true
-    @allow_approvals         = false
+
     if params[:user_id]
       #
       #  Being asked for events related to this user.  Note, not
@@ -57,24 +48,6 @@ class EventsController < ApplicationController
       end
       @show_owner     = false
       @show_organiser = false
-    elsif current_user.can_add_concerns? &&
-          params[:element_id] &&
-          @element = Element.find_by(id: params[:element_id])
-      #
-      #  Note that we are selecting only events *directly* involving
-      #  this element.  Going through groups would be too complicated
-      #  and expensive.
-      #  Typically this is intended for things like getting listings
-      #  of events requiring catering.
-      #
-      selector = Event.involving(@element)
-      @title = "Events requesting #{@element.short_name}".html_safe
-      @show_resource_status    = true
-      @show_our_form_status    = (@element.user_form != nil)
-      @show_overall_status     = false
-      @show_counts             = false
-      @show_pending_form_count = false
-      @allow_approvals         = true
     elsif current_user.admin?
       #
       #  The user is asking for all events.  Allow this only for

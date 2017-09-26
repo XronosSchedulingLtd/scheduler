@@ -1005,7 +1005,11 @@ class Event < ActiveRecord::Base
   end
 
   def trimmed_body(max = 30)
-    self.body[0,max]
+    if self.body.length > max
+      "#{self.body[0,max - 3]}..."
+    else
+      self.body
+    end
   end
 
   def short_end_date_str
