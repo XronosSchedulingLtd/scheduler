@@ -442,10 +442,74 @@ class User < ActiveRecord::Base
     Setting.enforce_permissions? && element.owned && !self.can_commit?(element)
   end
 
+  #
+  #  Another one to cache because it is needed a lot.
+  #
   def permissions_pending
-    self.concerns.owned.inject(0) do |total, concern|
-      total + concern.permissions_pending
+    unless @permissions_pending
+      @permissions_pending = self.concerns.owned.inject(0) do |total, concern|
+        total + concern.permissions_pending
+      end
     end
+    @permissions_pending
+  end
+
+  def forms_pending
+    unless @forms_pending
+      @forms_pending = self.user_form_responses.incomplete.count
+    end
+    @forms_pending
+  end
+
+  #
+  #  This should be a count of the events which *this user* can do
+  #  something about.  Being incomplete is not enough - they need to
+  #  be rejected, or have pending forms.
+  #
+  #  Not really interested in ones in the past.
+  #
+  def events_pending
+    unless @events_pending
+      @events_pending =
+        self.events.
+             future.
+             incomplete.
+             includes(commitments: :user_form_responses).
+             inject(0) do |total, event|
+        count = 0
+        event.commitments.each do |c|
+          if c.rejected
+            count += 1
+          end
+          #
+          #  As we've already loaded these into memory, it's
+          #  quicker to count them ourselves rather than hitting
+          #  the d/b again.
+          #
+          c.user_form_responses.each do |ufr|
+            unless ufr.complete?
+              count += 1
+            end
+          end
+        end
+        total + count
+      end
+    end
+    @events_pending
+  end
+
+  def events_pending_total
+    unless @events_pending_total
+      @events_pending_total = permissions_pending + events_pending
+    end
+    @events_pending_total
+  end
+
+  def pending_grand_total
+    unless @pending_grand_total
+      @pending_grand_total = events_pending_total + forms_pending
+    end
+    @pending_grand_total
   end
 
   def events_on(start_date = nil,

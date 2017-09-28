@@ -84,11 +84,31 @@ module CommitmentsHelper
   end
 
   def header_menu_text(user)
-    if user.element_owner
-      "Menu (<span id='pending_count'>#{user.permissions_pending}</span>)".html_safe
+    if user.create_events?
+      "Menu (<span id='pending_count pending-grand-total'>#{user.pending_grand_total}</span>)".html_safe
     else
       "Menu"
     end
+  end
+
+  def form_menu_text(user)
+    if user.create_events?
+      "Forms (<span id='pending-forms'>#{user.forms_pending}</span>)".html_safe
+    else
+      "Forms"
+    end
+  end
+
+  def events_menu_text(user)
+    "Events (<span id='pending-events-total'>#{user.events_pending_total}</span>)".html_safe
+  end
+
+  def my_events_menu_text(user)
+    "Mine (<span id='pending-my-events'>#{user.events_pending}</span>)".html_safe
+  end
+
+  def controlled_element_menu_text(ce)
+    "#{ce.name} (<span id='pending-element-#{ce.id}'>#{ce.permissions_pending}</span>)".html_safe
   end
 
   def commitment_entries_for(event, target_class, editing, user)

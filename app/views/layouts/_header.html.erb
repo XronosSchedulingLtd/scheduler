@@ -51,15 +51,18 @@
 <%     if current_user.create_events? %>
 <%       if current_user.admin || current_user.owned_elements.size > 0 %>
       <li class="has-dropdown">
-        <%= link_to "Events", user_events_path(current_user) %>
+        <%= link_to(events_menu_text(current_user),
+                    user_events_path(current_user)) %>
         <ul class="dropdown">
-          <li><%= link_to "Mine", user_events_path(current_user) %></li>
+          <li><%= link_to(my_events_menu_text(current_user),
+                          user_events_path(current_user)) %></li>
 <%         if current_user.admin %>
           <li><%= link_to "All", events_path %></li>
 <%         end %>
 <%         current_user.owned_elements.each do |ce| %>
           <li class="has-dropdown">
-            <%= link_to ce.name, element_commitments_path(ce) %>
+            <%= link_to(controlled_element_menu_text(ce),
+                        element_commitments_path(ce)) %>
             <ul class="dropdown">
               <li><%= link_to "Pending",
                 element_commitments_path(ce,
@@ -78,13 +81,17 @@
 <%     end %>
 <%     if current_user.can_has_forms %>
             <li class="has-dropdown">
-              <%= link_to "Forms", user_form_responses_path, id: 'ufr-link' %>
+              <%= link_to(form_menu_text(current_user),
+                          user_form_responses_path,
+                          id: 'ufr-link') %>
               <ul class="dropdown">
                 <li><%= link_to "Maintain", user_forms_path %></li>
               </ul>
             </li>
 <%     elsif current_user.create_events? %>
-            <li><%= link_to "Forms (#{current_user.user_form_responses.incomplete.count})", user_form_responses_path, id: 'ufr-link' %></li>
+          <li><%= link_to(form_menu_text(current_user),
+                          user_form_responses_path,
+                          id: 'ufr-link') %></li>
 <%     end %>
 <%     if current_user.can_view_journal_for?(:events) %>
             <li class = "has-dropdown">

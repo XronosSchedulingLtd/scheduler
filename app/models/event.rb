@@ -158,6 +158,12 @@ class Event < ActiveRecord::Base
   #
   scope :before, lambda {|date| where("ends_at < ?", date) }
   scope :after, lambda {|date| where("starts_at > ?", date + 1.day) }
+
+  #
+  #  Events in the future.  Today or later.
+  #
+  scope :future, lambda { where("starts_at > ?", Time.zone.now.midnight) }
+
   scope :eventcategory_id, lambda {|id| where("eventcategory_id = ?", id) }
   scope :eventsource_id, lambda {|id| where("eventsource_id = ?", id) }
   scope :on, lambda {|date| where("starts_at >= ? and ends_at < ?",

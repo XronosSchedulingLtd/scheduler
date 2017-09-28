@@ -595,6 +595,14 @@ class Element < ActiveRecord::Base
     end
   end
 
+  def permissions_pending
+    unless @permissions_pending
+      @permissions_pending = 
+        self.commitments.future.tentative.not_rejected.count
+    end
+    @permissions_pending
+  end
+
   #
   #  Dummy methods for user form editing.
   #
