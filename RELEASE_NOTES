@@ -1,3 +1,52 @@
+v0.24.6 2017-10-01
+
+* Include room information in meetings coming from iSAMS.
+
+  It has been pointed out that the importer taking data from iSAMS
+  installations was not bringing over room information.  I must
+  have just missed the fact that it was there in the meeting records
+  when I implemented it.  This release corrects that ommission and
+  meetings now get their rooms.
+
+  iSAMS produces one meeting record per person at the meeting, each
+  with all the other meeting information duplicated.  Scheduler merges
+  all of these into a single event, and will take the room information
+  from any record which has it.  In practice iSAMS seems to include
+  the room information in all the records of a meeting, or none of them.
+
+* Merge lessons coming from iSAMS with more than one teacher.
+
+  iSAMS can't cope with lessons which have more than one teacher.
+  (SchoolBase has exactly the same limitation.)  In practice, lessons
+  with more than one teacher do occur.  The best you can do in iSAMS
+  is to make multiple simultaneous lessons with all the same information
+  apart from the teacher.  On detecting an instance of this, the
+  Scheduler importer will then merge them back into the single event
+  which they in fact are.  The test is:
+
+    Same timing
+    Same group of pupils
+    Same lesson name
+    Same room
+
+  Apart from thus recording what is happening more accurately, this has
+  the knock-on advantage that you don't then get an apparent clash for
+  pupils who have two apparent lessons simultaneously.
+
+* Assign cover to merged lessons correctly.
+
+  When storing cover information, iSAMS records who is doing the cover,
+  but not who is being covered.  It can get away with this because of
+  its assumption that there is only one teacher for a lesson.  It knows
+  which lesson is being covered, and therefore infers which teacher it
+  must be.
+
+  Once multiple records for the same lesson have been merged as described
+  above, this assumption no longer holds.  The importer therefore keeps
+  track of all the original part-lessons which have been merged, and thus
+  assigns covers to the correct covered teacher.
+
+
 v0.24.5 2017-09-12
 
 * Add in file accidentally missed from the last release.
