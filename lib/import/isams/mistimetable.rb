@@ -325,7 +325,6 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
     #  iSAMS can cope with only one teacher per lesson, but it's perfectly
     #  feasible to want more than one.  The only way around it within iSAMS
     #  is to create parallel lessons for each teacher.
-    #  "Lessons #{@isams_ids.join(",")}"
     #
     #  To tidy things up, we merge such cases into a single lesson.
     #
