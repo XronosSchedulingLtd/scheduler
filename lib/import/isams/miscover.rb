@@ -9,9 +9,13 @@ class MIS_Cover
   #  involved in a given lesson, and each of these could be separately
   #  covered.
   #
-  #  If and when we decide to merge iSAMS lesson records (because
-  #  we've had to create duplicates in their d/b to cope with multi-teacher
-  #  lessons) we'll also have to improve the handling here.
+  #  If you want to have a lesson with multiple teachers in iSAMS then
+  #  you need to set up multiple otherwise-identical lessons.  Scheduler
+  #  will then merge them into a single lesson as it imports them.
+  #
+  #  This then means that we need to keep track of which teacher was
+  #  teaching each original lesson so that we can recognize which teacher
+  #  is being covered when that happens.
   #
   #  iSAMS does seem to have the ability to specify a cover classroom
   #  too.  If ICF decides to use this facility then it would make sense
@@ -30,7 +34,14 @@ class MIS_Cover
     if @schedule_entry
       @lesson_source_hash = @schedule_entry.source_hash
       @staff_covering     = loader.secondary_staff_hash[entry.teacher_school_id]
-      @staff_covered      = @schedule_entry.staff[0]
+      #
+      #  Where lessons have been merged, the merged lesson record contains
+      #  a hash allowing us to work out who was the original teacher of
+      #  the indicated lesson.
+      #
+      @staff_covered      =
+        loader.secondary_staff_hash[
+          @schedule_entry.original_teacher_id(@schedule_id)]
       @starts_at          = @schedule_entry.period_time.starts_at
       @ends_at            = @schedule_entry.period_time.ends_at
     else

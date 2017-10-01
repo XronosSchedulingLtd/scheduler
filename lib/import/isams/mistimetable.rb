@@ -170,13 +170,28 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
 
   include Creator
 
-  attr_reader :subject
+  attr_reader :subject, :isams_ids
 
   def initialize(entry)
     super()
   end
 
   def adjust
+    #
+    #  If we end up merging this lesson, then we will want to keep
+    #  track of all the individual original iSAMS IDs.
+    #
+    #  For consistency, even non-merged lessons will have an array
+    #  of size 1.
+    #
+    @isams_ids = [@isams_id]
+    @teacher_ids = [@teacher_id]
+    #
+    #  So that later, given a lesson id, we can work out who the
+    #  teacher of that particular instance is.
+    #
+    @lesson_teacher_hash = Hash.new
+    @lesson_teacher_hash[@isams_id] = @teacher_id
   end
 
   def find_resources(loader)
@@ -200,9 +215,11 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
     else
       @subject = nil
     end
-    staff = loader.secondary_staff_hash[@teacher_id]
-    if staff
-      @staff << staff
+    @teacher_ids.each do |teacher_id|
+      staff = loader.secondary_staff_hash[teacher_id]
+      if staff
+        @staff << staff
+      end
     end
     room = loader.location_hash[@room_id]
     if room
@@ -219,7 +236,17 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
   end
 
   def source_hash
-    "Lesson #{@isams_id}"
+    if @isams_ids.size == 1
+      "Lesson #{@isams_id}"
+    else
+      #
+      #  It is just possible that the order in which iSAMS provides
+      #  the individual lesson records might change even though
+      #  the lessons haven't.  Sort them into numerical order to
+      #  cope with this.
+      #
+      "Lessons #{@isams_ids.sort.join(",")}"
+    end
   end
 
   def body_text
@@ -252,8 +279,68 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
     end
   end
 
+  #
+  #  We merge lessons provided they have:
+  #
+  #    Same timing
+  #    Same group of pupils
+  #    Same lesson name
+  #    Same room
+  #
+  #  We thus need a hash key which will reflects all of these.
+  #
+  def hash_key
+    "#{self.code}/#{self.period_id}/#{self.room_id}"
+  end
+
+  #
+  #  Merge another lesson into this one, keeping note of crucial data.
+  #
+  def merge(other)
+    #
+    #  Merge another of the same into this one.
+    #
+    @teacher_ids << other.teacher_id
+    @isams_ids << other.isams_id
+    #
+    #  The cover records coming from iSAMS are also deficient.  They
+    #  record who is doing the cover, but not which teacher they are
+    #  covering.  They rely on the fact that iSAMS lessons can manage
+    #  only one teacher per lesson.
+    #
+    #  Since in reality lessons may well have more than one teacher,
+    #  we need to keep track of which teacher belongs to which
+    #  original lesson record.
+    #
+    @lesson_teacher_hash[other.isams_id] = other.teacher_id
+  end
+
+  def original_teacher_id(isams_id)
+    @lesson_teacher_hash[isams_id]
+  end
+
   def self.construct(loader, inner_data)
-    self.slurp(inner_data)
+    lessons = self.slurp(inner_data)
+    #
+    #  iSAMS can cope with only one teacher per lesson, but it's perfectly
+    #  feasible to want more than one.  The only way around it within iSAMS
+    #  is to create parallel lessons for each teacher.
+    #
+    #  To tidy things up, we merge such cases into a single lesson.
+    #
+    lesson_hash = Hash.new
+    lessons.each do |lesson|
+      existing = lesson_hash[lesson.hash_key]
+      if existing
+        existing.merge(lesson)
+      else
+        lesson_hash[lesson.hash_key] = lesson
+      end
+    end
+    #
+    #  And return the resulting reduced list.
+    #
+    lesson_hash.values
   end
 
 end
@@ -830,7 +917,13 @@ class MIS_Schedule
     lessons = ISAMS_TimetableEntry.construct(loader, timetable.entry)
     @lessons_by_id = Hash.new
     lessons.each do |lesson|
-      @lessons_by_id[lesson.isams_id] = lesson
+      #
+      #  Each lesson may consist of more than one original iSAMS lesson.
+      #  Keep track of them all.
+      #
+      lesson.isams_ids.each do |isams_id|
+        @lessons_by_id[isams_id] = lesson
+      end
     end
     #
     #  Now get the meetings.
