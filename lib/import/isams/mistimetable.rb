@@ -352,6 +352,7 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
     IsamsField["PeriodId",       :period_id,  :data,      :integer],
     IsamsField["TeacherId",      :teacher_id, :data,      :string],
     IsamsField["MeetingGroupId", :meeting_id, :data,      :integer],
+    IsamsField["RoomId",         :room_id,    :data,      :integer],
     IsamsField["DisplayName",    :name,       :data,      :string]
   ]
 
@@ -371,6 +372,14 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
     #  Merge another of the same into this one.
     #
     @teacher_ids << other.teacher_id
+    #
+    #  It appears that if a room is specified then all entries will
+    #  carry it, but let's be cautious.  I have yet to see a case of
+    #  them specifying different rooms.
+    #
+    if other.room_id && !@room_id
+      @room_id = other.room_id
+    end
   end
 
   def find_resources(loader)
@@ -384,6 +393,10 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
     #  It assumes that the data coming from iSAMS will be correct.
     #  Needs reinforcing.
     #
+    room = loader.location_hash[@room_id]
+    if room
+      @rooms << room
+    end
     @teacher_ids.each do |teacher_id|
       staff = loader.secondary_staff_hash[teacher_id]
       if staff
