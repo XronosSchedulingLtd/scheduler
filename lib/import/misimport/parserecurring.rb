@@ -221,7 +221,7 @@ class RecurringEvent
       end
       @resource_ids = Array.new
       @staff.each do |s|
-        rec = Staff.find_by(initials: s)
+        rec = Staff.current.find_by(initials: s)
         if rec
           @resource_ids << rec.element.id
         else
@@ -408,7 +408,6 @@ class RecurringEventStore
   def events_on(date, week)
     events = []
     weekday = date.strftime("%A")
-#    puts "#{date} is a #{weekday}"
     unless week
       week = " "
     end
@@ -421,11 +420,15 @@ class RecurringEventStore
         #  date
         #
         events = events.select {|e| e.active_on?(date) }
-#      else
-#        puts "No events on #{weekday}s in week #{week}."
+      else
+        #
+        #  It's important to return an empty array rather than nil,
+        #  because the day still needs to be processed.  It might be
+        #  that there used to be events and now there aren't.  The old
+        #  ones need to be deleted.
+        #
+        events = []
       end
-#    else
-#      puts "No events in week #{week}."
     end
     events
   end
