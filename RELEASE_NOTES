@@ -1,3 +1,107 @@
+v0.24.7 2017-10-01
+
+* Include room information in meetings coming from iSAMS.
+
+  It has been pointed out that the importer taking data from iSAMS
+  installations was not bringing over room information.  I must
+  have just missed the fact that it was there in the meeting records
+  when I implemented it.  This release corrects that ommission and
+  meetings now get their rooms.
+
+  iSAMS produces one meeting record per person at the meeting, each
+  with all the other meeting information duplicated.  Scheduler merges
+  all of these into a single event, and will take the room information
+  from any record which has it.  In practice iSAMS seems to include
+  the room information in all the records of a meeting, or none of them.
+
+
+v0.24.6 2017-10-01
+
+* Merge lessons coming from iSAMS with more than one teacher.
+
+  iSAMS can't cope with lessons which have more than one teacher.
+  (SchoolBase has exactly the same limitation.)  In practice, lessons
+  with more than one teacher do occur.  The best you can do in iSAMS
+  is to make multiple simultaneous lessons with all the same information
+  apart from the teacher.  On detecting an instance of this, the
+  Scheduler importer will then merge them back into the single event
+  which they in fact are.  The test is:
+
+    Same timing
+    Same group of pupils
+    Same lesson name
+    Same room
+
+  Apart from thus recording what is happening more accurately, this has
+  the knock-on advantage that you don't then get an apparent clash for
+  pupils who have two apparent lessons simultaneously.
+
+* Assign cover to merged lessons correctly.
+
+  When storing cover information, iSAMS records who is doing the cover,
+  but not who is being covered.  It can get away with this because of
+  its assumption that there is only one teacher for a lesson.  It knows
+  which lesson is being covered, and therefore infers which teacher it
+  must be.
+
+  Once multiple records for the same lesson have been merged as described
+  above, this assumption no longer holds.  The importer therefore keeps
+  track of all the original part-lessons which have been merged, and thus
+  assigns covers to the correct covered teacher.
+
+
+v0.24.5 2017-09-12
+
+* Add in file accidentally missed from the last release.
+
+  A file - lib/import/misimport/miscover.rb - was accidentally missed
+  out from the last release, which caused covers to stop flowing from
+  iSAMS to Scheduler.  This release simply includes the update version
+  of that file which should have been in the last release package.
+
+
+v0.24.4 2017-09-05
+
+* Allow re-location to be done more than once in the same dialogue
+  session.
+
+  Once a lesson had been re-located, the re-locate link disappeared.
+  This release re-instates it.
+
+* Remove spurious debug message.
+
+  A debug message was accidentally left in the last release.
+
+
+v0.24.3 2017-09-05
+
+* Group re-located lessons using a new property.
+
+  In v0.23, a new facility was added whereby individual lessons could
+  be relocated by users into different classrooms.  This release
+  adds a new property - "Re-located" - which will automatically be
+  added to all lessons so re-located.  It is then possible to view
+  them or report on them as required.
+
+* Make sure lessons can be re-located after editing.
+
+  It's not a normal workflow, but there was a small bug in the
+  re-location code.  If a user first edited an event, and then went
+  back to the display screen, the re-location link no longer worked.
+  It was necessary to close the dialogue and re-open it in order to
+  do a re-location.  This bug has been fixed.
+
+* Reports now understand covers/re-location
+
+  The reporting code used to list cover staff and lesson re-locations
+  simply as more resources on the event, without indicating their special
+  status.  It now displays staff covers as "ABC (covering DEF)" and room
+  re-locations as "G112 (normally G111)".
+
+* The seed data for a new system has been enhanced to add the "Covered"
+  and "Re-located" properties.
+
+
 v0.24.2 2017-08-27
 
 No changes to the application itself - just to the data importer.

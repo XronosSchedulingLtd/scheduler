@@ -593,39 +593,6 @@ class Commitment < ActiveRecord::Base
     end
   end
 
-#  def self.set_names_event_flags
-#    flags_set = 0
-#    Commitment.preload(:element).commitments_on("2013-09-01", "2015-08-31", "Lesson", "SchoolBase").each do |c|
-      #
-      #  A lesson loaded from SchoolBase, therefore named after the
-      #  teaching group.
-      #
-#      if c.element.entity.class == Group &&
-#         c.element.entity.name == c.event.body &&
-#         !c.names_event
-#        c.names_event = true
-#        c.save!
-#        flags_set += 1
-#      end
-#    end
-#    puts "Set #{flags_set} flags."
-#  end
-
-  def self.flag_all_covers
-    property = Property.find_by(name: "Covered")
-    if property
-      found = 0
-      Commitment.covering_commitment.each do |c|
-        found += 1
-        c.event.add_property(property)
-      end
-      puts "Found #{found} covering commitments."
-    else
-      puts "Can't find property \"Covered\"."
-    end
-    nil
-  end
-
   #
   #  Returns a textual status, suitable for creating CSS classes.
   #

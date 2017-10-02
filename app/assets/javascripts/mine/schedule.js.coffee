@@ -443,6 +443,8 @@ window.endNoteEditing = (new_note_text, new_shown_commitments) ->
 window.finishEditingEvent = (event_summary, do_refresh) ->
   $('#events-dialogue').html(event_summary)
   primeCloser()
+  if typeof window.activateRelocateLink == 'function'
+    window.activateRelocateLink()
   if do_refresh
     $('#fullcalendar').data('dorefresh', '1')
 

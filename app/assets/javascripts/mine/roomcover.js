@@ -154,13 +154,12 @@ if ($('#fullcalendar').length) {
         $('#relocate-link').show();
       },
       coverSucceeded: function(data, textStatus, jqXHR) {
+        this.cancelClicked();
         //
         //  Replacement HTML should be in data["newhtml"]
         //
-        $('#commitments-to-location').empty();
-        $('#commitments-to-location').html(data["newhtml"]);
-        this.cancelClicked();
-        $('#fullcalendar').data("dorefresh", "1");
+        window.replaceShownCommitments(data["newhtml"]);
+        window.activateRelocateLink();
       },
       coverFailed: function() {
         console.log("Cover failed");
@@ -173,10 +172,7 @@ if ($('#fullcalendar').length) {
     }
 
     that.modalOpened = function() {
-      var our_link = $('#relocate-link');
-      if (our_link.length) {
-        our_link.click(that.linkClicked);
-      }
+      window.activateRelocateLink();
     }
 
     that.modalClosed = function() {
@@ -192,6 +188,12 @@ if ($('#fullcalendar').length) {
       _.bindAll(that, 'modalOpened', 'modalClosed');
       $(document).on('opened', '[data-reveal]', that.modalOpened);
       $(document).on('closed', '[data-reveal]', that.modalClosed);
+      window.activateRelocateLink = function() {
+        var our_link = $('#relocate-link');
+        if (our_link.length) {
+          our_link.click(that.linkClicked);
+        }
+      }
     };
 
     return that;
