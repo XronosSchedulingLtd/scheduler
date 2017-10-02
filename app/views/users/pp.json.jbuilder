@@ -1,1 +1,1 @@
-json.extract! @pph, :pp
+json.pph @pph

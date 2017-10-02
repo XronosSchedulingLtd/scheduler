@@ -85,7 +85,7 @@ module CommitmentsHelper
 
   def header_menu_text(user)
     if user.create_events?
-      "Menu (<span id='pending_count pending-grand-total'>#{user.pending_grand_total}</span>)".html_safe
+      "Menu (<span id='pending-grand-total' data-auto-poll=#{user.start_auto_polling}>#{user.pending_grand_total}</span>)".html_safe
     else
       "Menu"
     end

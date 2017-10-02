@@ -20,6 +20,7 @@ window.approvalsHandler = function () {
       this['yesButton']     = this['buttons'].find('.approval-yes');
       this['noButton']      = this['buttons'].find('.approval-no');
       this['noButton'].click(this, noClicked);
+      window.triggerCountsUpdate();
     } else {
       alert("Approval request rejected.");
     }
@@ -56,6 +57,7 @@ window.approvalsHandler = function () {
       //
       this['noButton']      = this['buttons'].find('.approval-no');
       this['yesButton'].click(this, yesClicked);
+      window.triggerCountsUpdate();
     } else {
       alert("Rejection request rejected.");
     }

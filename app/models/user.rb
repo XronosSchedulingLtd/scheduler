@@ -447,8 +447,15 @@ class User < ActiveRecord::Base
   #
   def permissions_pending
     unless @permissions_pending
-      @permissions_pending = self.concerns.owned.inject(0) do |total, concern|
-        total + concern.permissions_pending
+      #
+      #  Don't bother calculating if we know the answer would be 0.
+      #
+      if self.element_owner
+        @permissions_pending = self.concerns.owned.inject(0) do |total, concern|
+          total + concern.permissions_pending
+        end
+      else
+        @permissions_pending = 0
       end
     end
     @permissions_pending
@@ -498,6 +505,36 @@ class User < ActiveRecord::Base
     @events_pending
   end
 
+  #
+  #  How many future events does this user have waiting for approval(s).
+  #  I.e. not something this user can do anything about, but where
+  #  he or she is waiting on someone else.
+  #
+  def events_waiting
+    unless @events_waiting
+      @events_waiting =
+        self.events.
+             future.
+             incomplete.
+             includes(commitments: :user_form_responses).
+             inject(0) do |total, event|
+        count = 0
+        event.commitments.each do |c|
+          if !c.rejected
+            #
+            #  Are all forms complete?
+            #
+            if c.user_form_responses.select {|ufr| !ufr.complete} == 0
+              count += 1
+            end
+          end
+        end
+        total + count
+      end
+    end
+    @events_waiting
+  end
+
   def events_pending_total
     unless @events_pending_total
       @events_pending_total = permissions_pending + events_pending
@@ -510,6 +547,10 @@ class User < ActiveRecord::Base
       @pending_grand_total = events_pending_total + forms_pending
     end
     @pending_grand_total
+  end
+
+  def start_auto_polling
+    self.element_owner || self.events_waiting > 0
   end
 
   def events_on(start_date = nil,

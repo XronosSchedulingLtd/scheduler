@@ -29,10 +29,17 @@ class UsersController < ApplicationController
   #
   def pp
     @pph = Hash.new
-    if current_user && current_user.element_owner
-      @pph[:pp] = current_user.permissions_pending
-    else
-      @pph[:pp] = 0
+    if current_user
+      @pph["pending-grand-total"]  = current_user.pending_grand_total
+      @pph["pending-forms"]        = current_user.forms_pending
+      @pph["pending-events-total"] = current_user.events_pending_total
+      @pph["pending-my-events"]    = current_user.events_pending
+      if current_user.element_owner
+        current_user.concerns.owned.each do |concern|
+          @pph["pending-element-#{concern.element_id}".to_sym] =
+          concern.permissions_pending
+        end
+      end
     end
     respond_to do |format|
       format.json
