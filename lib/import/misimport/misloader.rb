@@ -1071,89 +1071,88 @@ class MIS_Loader
     @start_date.upto(@era.ends_on) do |date|
       puts "Processing #{date}" if @verbose
       week_letter = get_week_letter(date)
-      if events = res.events_on(date, week_letter)
-        existing_events = Event.events_on(date,
-                                          date,
-                                          nil,
-                                          @yaml_source,
-                                          nil,
-                                          nil,
-                                          true)
-        #
-        #  We count duties from our input file and the database as being
-        #  the same one if they have the same title, the same start time
-        #  the same end time and the same category.
-        #
-        events.each do |event|
-          starts_at =
-            Time.zone.parse("#{date.to_s} #{event.starts}")
-          ends_at =
-            Time.zone.parse("#{date.to_s} #{event.ends}")
-          existing_event = existing_events.detect {|ed|
-            ed.body      == event.title &&
-            ed.starts_at == starts_at &&
-            ed.ends_at   == ends_at &&
-            ed.eventcategory == event.eventcategory
-          }
-          if existing_event
-            #
-            #  Remove from the array.  We will deal with any leftovers
-            #  at the end.
-            #
-            existing_events = existing_events - [existing_event]
-            #
-            #  Check its greyed-ness is right.
-            #
-            if existing_event.non_existent != event.greyed
-              existing_event.non_existent = event.greyed
-              existing_event.save!
-            end
-          else
-            #
-            #  Event needs creating in the database.
-            #
-            existing_event = Event.new
-            existing_event.body = event.title
-            existing_event.eventcategory = event.eventcategory
-            existing_event.eventsource   = @yaml_source
-            existing_event.starts_at     = starts_at
-            existing_event.ends_at       = ends_at
-            existing_event.non_existent  = event.greyed
+      events = res.events_on(date, week_letter)
+      existing_events = Event.events_on(date,
+                                        date,
+                                        nil,
+                                        @yaml_source,
+                                        nil,
+                                        nil,
+                                        true)
+      #
+      #  We count duties from our input file and the database as being
+      #  the same one if they have the same title, the same start time
+      #  the same end time and the same category.
+      #
+      events.each do |event|
+        starts_at =
+          Time.zone.parse("#{date.to_s} #{event.starts}")
+        ends_at =
+          Time.zone.parse("#{date.to_s} #{event.ends}")
+        existing_event = existing_events.detect {|ed|
+          ed.body      == event.title &&
+          ed.starts_at == starts_at &&
+          ed.ends_at   == ends_at &&
+          ed.eventcategory == event.eventcategory
+        }
+        if existing_event
+          #
+          #  Remove from the array.  We will deal with any leftovers
+          #  at the end.
+          #
+          existing_events = existing_events - [existing_event]
+          #
+          #  Check its greyed-ness is right.
+          #
+          if existing_event.non_existent != event.greyed
+            existing_event.non_existent = event.greyed
             existing_event.save!
-            existing_event.reload
-            events_added_count += 1
           end
+        else
           #
-          #  Now check that the resources match.
+          #  Event needs creating in the database.
           #
-          requested_ids = event.resource_ids
-          current_ids = existing_event.elements.collect {|e| e.id}
-          to_add = requested_ids - current_ids
-          de_trop = current_ids - requested_ids
-          to_add.each do |id|
+          existing_event = Event.new
+          existing_event.body = event.title
+          existing_event.eventcategory = event.eventcategory
+          existing_event.eventsource   = @yaml_source
+          existing_event.starts_at     = starts_at
+          existing_event.ends_at       = ends_at
+          existing_event.non_existent  = event.greyed
+          existing_event.save!
+          existing_event.reload
+          events_added_count += 1
+        end
+        #
+        #  Now check that the resources match.
+        #
+        requested_ids = event.resource_ids
+        current_ids = existing_event.elements.collect {|e| e.id}
+        to_add = requested_ids - current_ids
+        de_trop = current_ids - requested_ids
+        to_add.each do |id|
 #            puts "Adding element with id #{id}."
-            c = Commitment.new
-            c.event_id = existing_event.id
-            c.element_id = id
-            c.save!
-            resources_added_count += 1
-          end
-          if de_trop.size > 0
-            existing_event.commitments.each do |c|
-              if de_trop.include?(c.element_id)
-                c.destroy
-                resources_removed_count += 1
-              end
+          c = Commitment.new
+          c.event_id = existing_event.id
+          c.element_id = id
+          c.save!
+          resources_added_count += 1
+        end
+        if de_trop.size > 0
+          existing_event.commitments.each do |c|
+            if de_trop.include?(c.element_id)
+              c.destroy
+              resources_removed_count += 1
             end
           end
         end
-        #
-        #  Any of the existing events left?
-        #
-        existing_events.each do |ed|
-          ed.destroy
-          events_deleted_count += 1
-        end
+      end
+      #
+      #  Any of the existing events left?
+      #
+      existing_events.each do |ed|
+        ed.destroy
+        events_deleted_count += 1
       end
     end
     if events_added_count > 0 || @verbose
