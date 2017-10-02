@@ -1,3 +1,38 @@
+v0.24.8 2017-10-02
+
+Two small bug fixes relating to the creation of repeating events.
+
+* Limit staff to current staff.
+
+  The YML files defining repeating events identify staff by means of
+  their initials.  If a staff member has left and then another member
+  of staff arrives with the same initials, the old member of staff
+  will tend to be found first, before the new one.
+
+  The selector for finding staff has been changed from:
+
+     Staff.find_by(initials: "...")
+
+  to:
+
+     Staff.current.find_by(initials: "...")
+
+  It thus becomes impossible to define a recurring event involving
+  an ex-member of staff, but...
+
+* Delete recurring events on days which now have none at all.
+
+  Although the loader deletes recurring events which have been removed
+  from the YAML definition files, a logic error in the code meant that
+  it completely ignored days which had no events on them at all.  Thus
+  if events were created via YAML files, and then deleted from those
+  files leaving no events at all on that particular day, the events
+  in the database never got deleted.
+
+  The loader now processes *all* days, regardless of whether the
+  files define any events on those days.
+
+
 v0.24.7 2017-10-01
 
 * Include room information in meetings coming from iSAMS.
