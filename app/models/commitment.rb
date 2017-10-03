@@ -124,6 +124,10 @@ class Commitment < ActiveRecord::Base
     !self.tentative && !self.rejected && !self.constraining
   end
 
+  def in_approvals?
+    self.tentative || self.rejected || self.constraining
+  end
+
   #
   #  Clone an existing commitment and save to d/b.
   #  Note that you *must* provide at least one modifier or the save
@@ -604,6 +608,33 @@ class Commitment < ActiveRecord::Base
     else
       "constraining-commitment"
     end
+  end
+
+  #
+  #  Textual indication of what we have in the way of a form.
+  #
+  def form_status
+    if self.user_form_responses.size > 0
+      #
+      #  Currently cope with only one.
+      #
+      ufr = self.user_form_responses[0]
+      if self.constraining?
+        "Locked"
+      else
+        if ufr.complete?
+          "Complete"
+        else
+          "Pending"
+        end
+      end
+    else
+      "None"
+    end
+  end
+
+  def corresponding_form
+    self.user_form_responses[0]
   end
 
   protected

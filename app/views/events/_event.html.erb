@@ -13,17 +13,6 @@
   <% else %>
     <td class="incomplete-event" title="Incomplete">No</td>
   <% end %>
-  <% if event.pending_count_no_db > 0 %>
-    <td title="Pending approvals"><%= event.pending_count_no_db %></td>
-  <% else %>
-    <td></td>
-  <% end %>
-  <% if event.rejected_count_no_db > 0 %>
-    <td title="Rejected requests"><%= event.rejected_count_no_db %></td>
-  <% else %>
-    <td></td>
-  <% end %>
-  <td>
-    <%= event.pending_form_count > 0 ? event.pending_form_count : "" %>
-  </td>
+  <td><%= approvals_table_list(event) %></td>
+  <td><%= forms_table_list(event) %></td>
 </tr>

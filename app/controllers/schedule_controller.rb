@@ -40,6 +40,16 @@ class ScheduleController < ApplicationController
           end
         end
       end
+      #
+      #  And it's possible that the URL specifies that we should
+      #  turn on the user's own events.
+      #
+      if params.has_key?(:my_events) && current_user
+        unless current_user.show_owned
+          current_user.show_owned = true
+          current_user.save
+        end
+      end
       redirect_to :root
     else
       #

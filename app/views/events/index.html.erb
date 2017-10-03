@@ -1,3 +1,8 @@
+<% if @flip_button %>
+  <div class="flip-button">
+    <%= link_to @flip_text, @flip_target, class: "zfbutton tiny radius" %>
+  </div>
+<% end %>
 <h1><%= @title %></h1>
 
 <div class="digg_pagination">
@@ -17,8 +22,7 @@
         <th title="Organiser">Org</th>
       <% end %>
       <th title="Complete?">Complete</th>
-      <th title="Pending approvals">Pend</th>
-      <th title="Rejections">Rej</th>
+      <th title="Resources requiring approval">Approvals</th>
       <th title="Forms to complete">Forms</th>
     </tr>
   </thead>

@@ -44,8 +44,18 @@ class EventsController < ApplicationController
                                staff.element.id)
       else
         selector = current_user.events
-        @title = "#{current_user.name}'s events"
       end
+      if params.has_key?(:pending)
+        selector = selector.future.in_approvals
+        @title = "#{current_user.name}'s pending events"
+        @flip_target = user_events_path(current_user)
+        @flip_text = "See All"
+      else
+        @title = "#{current_user.name}'s events"
+        @flip_target = user_events_path(current_user, pending: true)
+        @flip_text = "See Pending"
+      end
+      @flip_button    = true
       @show_owner     = false
       @show_organiser = false
     elsif current_user.admin?
@@ -55,6 +65,7 @@ class EventsController < ApplicationController
       #
       selector = Event.all
       @title = "All events"
+      @flip_button = false
     else
       #
       #  If we get here then either the user has tried for all events
@@ -77,7 +88,7 @@ class EventsController < ApplicationController
         Rails.logger.debug("Previous event count = #{previous_event_count}")
         page_no = (previous_event_count / Event.per_page) + 1
       end
-      @events = selector.includes(:commitments).page(page_no).order('starts_at')
+      @events = selector.includes(commitments: :user_form_responses).page(page_no).order('starts_at')
     else
       redirect_to user_events_path(current_user)
     end

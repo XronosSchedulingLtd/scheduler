@@ -164,6 +164,11 @@ class Event < ActiveRecord::Base
   #
   scope :future, lambda { where("starts_at > ?", Time.zone.now.midnight) }
 
+  #
+  #  Events subject to the approvals process.
+  #
+  scope :in_approvals, lambda { where("constrained OR NOT complete") }
+
   scope :eventcategory_id, lambda {|id| where("eventcategory_id = ?", id) }
   scope :eventsource_id, lambda {|id| where("eventsource_id = ?", id) }
   scope :on, lambda {|date| where("starts_at >= ? and ends_at < ?",
@@ -564,6 +569,16 @@ class Event < ActiveRecord::Base
       end
     end
     @pending_form_count
+  end
+
+  def pending_form_count_no_db
+    unless @pending_form_count_no_db
+      @pending_form_count_no_db =
+        self.commitments.inject(0) do |total, commitment|
+        total + commitment.user_form_responses.select {|ufr| !ufr.complete}.count
+      end
+    end
+    @pending_form_count_no_db
   end
 
   def all_atomic_resources
