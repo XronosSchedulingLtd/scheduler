@@ -1,5 +1,15 @@
 <tr>
-  <td><%= event.starts_at_text %></td>
+  <td>
+    <%=
+      link_to(
+        event.starts_at_text,
+        schedule_show_path(
+          date: event.jump_date_text,
+          my_events: true
+        )
+      )
+    %>
+  </td>
   <td><%= event.duration_text %></td>
   <td title="<%= event.body %>"><%= event.trimmed_body(40) %></td>
   <% if @show_owner %>
