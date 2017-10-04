@@ -43,8 +43,12 @@ class CommitmentsController < ApplicationController
       if params.has_key?(:pending)
         @pending = true
         selector = selector.tentative
+        @flip_target = element_commitments_path(@element)
+        @flip_text = "See All"
       else
         @pending = false
+        @flip_target = element_commitments_path(@element, pending: true)
+        @flip_text = "See Pending"
       end
       #
       #  If there are lots of commitments, then it makes sense to start
