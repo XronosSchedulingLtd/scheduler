@@ -20,7 +20,8 @@ class JournalEntry < ActiveRecord::Base
     :note_updated,
     :clone_created,
     :event_relocated,
-    :organiser_reference_changed
+    :organiser_reference_changed,
+    :form_completed
   ]
   NEATER_TEXTS = [
     "Event created",
@@ -38,7 +39,8 @@ class JournalEntry < ActiveRecord::Base
     "Note updated",
     "Created as clone",
     "Event re-located",
-    "Reference changed"
+    "Reference changed",
+    "Form completed"
   ]
   ELEMENT_TEXTS = {
     resource_added:      "Added",
@@ -46,7 +48,8 @@ class JournalEntry < ActiveRecord::Base
     commitment_approved: "Approved",
     commitment_rejected: "Rejected",
     commitment_reset:    "Reset",
-    note_updated:        "Note updated"
+    note_updated:        "Note updated",
+    form_completed:      "Form completed"
   }
   ELEMENT_TEXTS.default = "Other"
 

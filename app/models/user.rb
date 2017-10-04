@@ -475,14 +475,24 @@ class User < ActiveRecord::Base
   #
   #  Not really interested in ones in the past.
   #
+  #  We are also interested in pending forms for events where we are
+  #  the organiser, but not the owner.
+  #
   def events_pending
     unless @events_pending
+      staff = self.corresponding_staff
+      if staff && staff.active
+        selector = Event.where("owner_id = ? OR organiser_id = ?",
+                               self.id,
+                               staff.element.id)
+      else
+        selector = self.events
+      end
       @events_pending =
-        self.events.
-             future.
-             incomplete.
-             includes(commitments: :user_form_responses).
-             inject(0) do |total, event|
+        selector.future.
+                 incomplete.
+                 includes(commitments: :user_form_responses).
+                 inject(0) do |total, event|
         count = 0
         event.commitments.each do |c|
           if c.rejected

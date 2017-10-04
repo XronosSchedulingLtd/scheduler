@@ -56,6 +56,23 @@ class UserFormResponsesController < ApplicationController
     @cancel_button = true
     @cancel_url = request.referer || root_path
     @cancel_text = "Cancel"
+    parent = @user_form_response.parent
+    if parent
+      if parent.instance_of?(Commitment)
+        @event = parent.event
+        @resource = parent.element
+        if parent.rejected
+          @extra_text = "Previously rejected#{ parent.by_whom ? " by: #{parent.by_whom.name}" : ""}"
+          if parent.reason
+            @extra_text << "\nReason: #{parent.reason}"
+          end
+        end
+      else
+        @event = nil
+      end
+    else
+      @event = nil
+    end
   end
 
   # POST /user_form_responses
@@ -85,10 +102,24 @@ class UserFormResponsesController < ApplicationController
     #  We rely on the front end to check that all required fields
     #  have been filled in.
     #
+    #  TODO: Should check here that the current user does actually have
+    #  permission to fill in this form.
+    #
     my_params = user_form_response_params
     my_params[:complete] = true
     respond_to do |format|
       if @user_form_response.update(my_params)
+        if parent = @user_form_response.parent
+          if parent.instance_of?(Commitment)
+            if parent.rejected
+              parent.rejected = false
+              parent.save
+            end
+            parent.event.journal_form_completed(@user_form_response,
+                                                parent,
+                                                current_user)
+          end
+        end
         format.html { redirect_to session[:return_to] || root_path }
         format.json { render :show, status: :ok, location: @user_form_response }
       else

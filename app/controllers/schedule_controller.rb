@@ -39,6 +39,40 @@ class ScheduleController < ApplicationController
             concern.save
           end
         end
+      else
+        #
+        #  Or alternatively, it is possible to specify an element
+        #  id.  This allows users who can add concerns to get one
+        #  intelligently added directly through a link.
+        #
+        element_id = params[:element_id]
+        if current_user.can_add_concerns? && element_id
+          element = Element.find_by(id: element_id)
+          if element
+            #
+            #  He or she may already have one.
+            #
+            existing_concern = current_user.concern_with(element)
+            if existing_concern
+              unless existing_concern.visible
+                existing_concern.visible = true
+                existing_concern.save
+              end
+            else
+              #
+              #  Need to add one.
+              #
+              current_user.concerns.create({
+                element:       element,
+                list_teachers: current_user.list_teachers,
+                colour:        element.preferred_colour ?
+                               element.preferred_colour :
+                               current_user.free_colour,
+                visible:       true
+              })
+            end
+          end
+        end
       end
       #
       #  And it's possible that the URL specifies that we should

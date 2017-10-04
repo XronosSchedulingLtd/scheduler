@@ -40,6 +40,7 @@ class CommitmentsController < ApplicationController
           params[:element_id] &&
           @element = Element.find_by(id: params[:element_id])
       selector = @element.commitments
+      @allow_buttons = current_user.owns?(@element)
       if params.has_key?(:pending)
         @pending = true
         selector = selector.tentative
@@ -197,6 +198,12 @@ class CommitmentsController < ApplicationController
       @event.reload
       @event.journal_commitment_rejected(@commitment, current_user)
       UserMailer.commitment_rejected_email(@commitment).deliver
+      @commitment.user_form_responses.each do |ufr|
+        if ufr.complete
+          ufr.complete = false
+          ufr.save
+        end
+      end
       return true
     else
       return false

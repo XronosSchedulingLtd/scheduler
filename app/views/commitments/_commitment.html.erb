@@ -1,5 +1,11 @@
 <tr class='approval-item' data-commitment-id=<%= commitment.id %>>
-  <td><%= commitment.event.starts_at_text %></td>
+  <td>
+    <%=
+      link_to(commitment.event.starts_at_text,
+              schedule_show_path(date: commitment.event.jump_date_text,
+                                 element_id: commitment.element_id))
+    %>
+  </td>
   <td><%= commitment.event.duration_text %></td>
   <td title="<%= commitment.event.body %>">
     <%= commitment.event.trimmed_body(40) %>
@@ -7,10 +13,19 @@
   <td title="Owner"><%= commitment.event.owners_initials %></td>
   <td title="Organiser"><%= commitment.event.organisers_initials %></td>
   <td>
-    <span class="approval-status <%= commitment_status_class(commitment) %>">
+    <span class="approval-status <%= commitment_status_class(commitment) %>"
+      <% if commitment.rejected %>
+            title="<%= commitment.reason %>"
+      <% end %> >
       <%= commitment_status(commitment) %>
     </span>
   </td>
-  <td class="approval-buttons"><%= commitment_approval_links(commitment) %></td>
+  <% if @allow_buttons %>
+    <td class="approval-buttons">
+      <%= commitment_approval_links(commitment) %>
+    </td>
+  <% else %>
+    <td></td>
+  <% end %>
   <td><%= commitment_form_status(commitment) %></td>
 </tr>

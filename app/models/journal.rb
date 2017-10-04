@@ -207,6 +207,15 @@ class Journal < ActiveRecord::Base
     })
   end
 
+  def form_completed(ufr, commitment, by_user)
+    self.journal_entries.create({
+      event:      self.event,
+      user:       by_user,
+      entry_type: :form_completed,
+      element:    commitment ? commitment.element : nil
+    })
+  end
+
   def format_timing
     format_timings(self.event_starts_at, self.event_ends_at, self.event_all_day)
   end

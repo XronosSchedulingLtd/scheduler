@@ -6,7 +6,7 @@
 
     <title><%= title_text %></title>
 
-    <%= stylesheet_link_tag    "application" %>
+    <%= stylesheet_link_tag    "application", media: "all" %>
     <%= javascript_include_tag "vendor/modernizr" %>
     <%= csrf_meta_tags %>
   </head>
@@ -48,7 +48,6 @@
       <li><%= link_to "Groups", groups_path %></li>
 <%     end %>
 <%     if current_user.create_events? %>
-<%       if current_user.admin || current_user.owned_elements.size > 0 %>
       <li class="has-dropdown">
         <%= link_to(events_menu_text(current_user),
                     user_events_path(current_user)) %>
@@ -78,9 +77,6 @@
 <%         end %>
         </ul>
       </li>
-<%       else %>
-      <li><%= link_to "Events", user_events_path(current_user) %></li>
-<%       end %>
 <%     end %>
 <%     if current_user.can_find_free %>
       <li><%= link_to "Find free", new_freefinder_path %></li>

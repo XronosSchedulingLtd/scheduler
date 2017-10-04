@@ -1309,6 +1309,11 @@ class Event < ActiveRecord::Base
     self.journal.note_updated(note, commitment, by_user)
   end
 
+  def journal_form_completed(ufr, commitment, by_user)
+    ensure_journal
+    self.journal.form_completed(ufr, commitment, by_user)
+  end
+
   def format_timing
     format_timings(self.starts_at, self.ends_at, self.all_day)
   end

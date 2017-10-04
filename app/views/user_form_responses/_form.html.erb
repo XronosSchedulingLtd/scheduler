@@ -1,3 +1,14 @@
+<% if @event %>
+  <h3>Request form for <%= @resource.name %></h3>
+  Event: <%= @event.body %><br/>
+  Starts: <%= @event.starts_at_text %><br/>
+  Duration: <%= @event.duration_text %>
+<% if @extra_text %>
+  <br/>
+  <%= preserve_line_breaks(@extra_text) %>
+<% end %>
+  <hr/>
+<% end %>
 <div style='display:none'>
   <%= form_for([@user_form, @user_form_response]) do |f| %>
     <%= f.text_field :definition, disabled: true %>
