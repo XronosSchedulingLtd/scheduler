@@ -461,12 +461,12 @@ class User < ActiveRecord::Base
     @permissions_pending
   end
 
-  def forms_pending
-    unless @forms_pending
-      @forms_pending = self.user_form_responses.incomplete.count
-    end
-    @forms_pending
-  end
+#  def forms_pending
+#    unless @forms_pending
+#      @forms_pending = self.user_form_responses.incomplete.count
+#    end
+#    @forms_pending
+#  end
 
   #
   #  This should be a count of the events which *this user* can do
@@ -554,7 +554,7 @@ class User < ActiveRecord::Base
 
   def pending_grand_total
     unless @pending_grand_total
-      @pending_grand_total = events_pending_total + forms_pending
+      @pending_grand_total = events_pending_total
     end
     @pending_grand_total
   end

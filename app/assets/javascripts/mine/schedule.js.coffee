@@ -447,6 +447,7 @@ window.finishEditingEvent = (event_summary, do_refresh) ->
     window.activateRelocateLink()
   if do_refresh
     $('#fullcalendar').data('dorefresh', '1')
+    window.triggerCountsUpdate()
 
 window.closeModal = (full_reload, just_events, filter_state) ->
   $('#eventModal').foundation('reveal', 'close')

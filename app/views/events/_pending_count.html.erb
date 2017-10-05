@@ -1,8 +1,12 @@
-<div class="no-resource-warning">
+<div class="forms-to-fill">
 <p>There <%= @form_count == 1 ? "is" : "are" %> currently
 <%= pluralize(@form_count, "form") %> which you will
-need to fill in order to get your resource requests approved.</p>
+need to fill in order to get your event approved.</p>
 
-<p>Close this dialogue and then use the menu at the top of the
-screen to access <%= @form_count == 1 ? "it" : "them" %>.</p>
+<p>You can either <a href="<%=
+  user_events_path(current_user, pending: true)
+%>">complete <%=
+  @form_count = 1 ? "it" : "them"
+%> now</a> or
+do it later using Menu => Events => Mine at the top of the screen.</p>
 </div>

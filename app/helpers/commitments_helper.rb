@@ -91,13 +91,13 @@ module CommitmentsHelper
     end
   end
 
-  def form_menu_text(user)
-    if user.create_events?
-      "Forms (<span id='pending-forms'>#{user.forms_pending}</span>)".html_safe
-    else
-      "Forms"
-    end
-  end
+#  def form_menu_text(user)
+#    if user.create_events?
+#      "Forms (<span id='pending-forms'>#{user.forms_pending}</span>)".html_safe
+#    else
+#      "Forms"
+#    end
+#  end
 
   def events_menu_text(user)
     "Events (<span id='pending-events-total'>#{user.events_pending_total}</span>)".html_safe

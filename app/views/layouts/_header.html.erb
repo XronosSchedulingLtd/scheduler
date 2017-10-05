@@ -82,18 +82,7 @@
       <li><%= link_to "Find free", new_freefinder_path %></li>
 <%     end %>
 <%     if current_user.can_has_forms %>
-            <li class="has-dropdown">
-              <%= link_to(form_menu_text(current_user),
-                          user_form_responses_path,
-                          id: 'ufr-link') %>
-              <ul class="dropdown">
-                <li><%= link_to "Maintain", user_forms_path %></li>
-              </ul>
-            </li>
-<%     elsif current_user.create_events? %>
-          <li><%= link_to(form_menu_text(current_user),
-                          user_form_responses_path,
-                          id: 'ufr-link') %></li>
+        <li><%= link_to "Forms", user_forms_path %></li>
 <%     end %>
 <%     if current_user.can_view_journal_for?(:events) %>
             <li class = "has-dropdown">

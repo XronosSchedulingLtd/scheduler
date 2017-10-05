@@ -27,8 +27,13 @@
         <td><%= user_form_response.event_date_text %></td>
         <td><%= user_form_response.user_text %></td>
         <td><%= user_form_response.complete? ? "Yes" : "No" %></td>
-        <td><%= link_to 'Edit', edit_user_form_response_path(user_form_response) %></td>
-        <td><%= link_to 'Destroy', user_form_response, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <% if current_user && current_user.admin? %>
+          <td><%= link_to 'Edit', edit_user_form_response_path(user_form_response) %></td>
+          <td><%= link_to 'Destroy', user_form_response, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <% else %>
+          <td></td>
+          <td></td>
+        <% end %>
       </tr>
     <% end %>
   </tbody>
