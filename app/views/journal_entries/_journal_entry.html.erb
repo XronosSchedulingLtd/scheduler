@@ -1,8 +1,8 @@
 <tr>
-<td><%= journal_entry.id %></td>
 <td><%= journal_entry.entry_type_text %></td>
 <td><%= journal_entry.user.name %></td>
 <td><%= journal_entry.when %></td>
+<td><%= preserve_line_breaks(journal_entry.details) %></td>
 <td><%=
 if journal_entry.element &&
    current_user.can_view_journal_for?(journal_entry.element)
@@ -11,5 +11,4 @@ else
   journal_entry.what
 end
 %></td>
-<td><%= preserve_line_breaks(journal_entry.details) %></td>
 </tr>

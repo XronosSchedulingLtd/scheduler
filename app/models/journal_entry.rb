@@ -71,7 +71,7 @@ class JournalEntry < ActiveRecord::Base
   end
 
   def when
-    self.created_at.strftime("%H:%M:%S %d/%m/%Y")
+    self.created_at.strftime("%d/%m/%Y %H:%M:%S")
   end
 
   def what
