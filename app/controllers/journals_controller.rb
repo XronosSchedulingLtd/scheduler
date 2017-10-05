@@ -23,6 +23,7 @@ class JournalsController < ApplicationController
 
   # GET /journals/1
   def show
+    @journal_entries = @journal.journal_entries.page(params[:page])
   end
 
   private

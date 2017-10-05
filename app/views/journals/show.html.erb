@@ -2,6 +2,10 @@
 
 <div class="row collapse">
   <div class="small-12 columns">
+    <div class="digg_pagination">
+      <%= will_paginate @journal_entries %>
+    </div>
+
     <table class="zftable">
       <thead>
         <th>Id</th>
@@ -12,8 +16,11 @@
         <th>Details</th>
       </thead>
       <tbody>
-        <%= render @journal.journal_entries %>
+        <%= render @journal_entries %>
       </tbody>
     </table>
+    <div class="digg_pagination">
+      <%= will_paginate @journal_entries %>
+    </div>
   </div>
 </div>
