@@ -54,11 +54,10 @@
         <ul class="dropdown">
           <li class="has-dropdown">
             <%= link_to(my_events_menu_text(current_user),
-                        user_events_path(current_user)) %>
+                        user_events_path(current_user, pending: true)) %>
             <ul class="dropdown">
-              <li><%= link_to "Pending",
-                user_events_path(current_user,
-                                 pending: true) %></li>
+              <li><%= link_to "All",
+                user_events_path(current_user) %></li>
             </ul>
           </li>
 <%         if current_user.admin %>
@@ -67,11 +66,10 @@
 <%         current_user.owned_elements.each do |ce| %>
           <li class="has-dropdown">
             <%= link_to(controlled_element_menu_text(ce),
-                        element_commitments_path(ce)) %>
+                        element_commitments_path(ce, pending: true)) %>
             <ul class="dropdown">
-              <li><%= link_to "Pending",
-                element_commitments_path(ce,
-                                         pending: true) %></li>
+              <li><%= link_to "All",
+                element_commitments_path(ce) %></li>
             </ul>
           </li>
 <%         end %>

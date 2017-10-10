@@ -186,7 +186,7 @@ module CommitmentsHelper
       if response.complete
         link_to("Complete", user_form_response_path(response))
       else
-        "Pending"
+        "To fill in"
       end
     else
       "None"

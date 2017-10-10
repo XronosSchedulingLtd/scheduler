@@ -19,10 +19,40 @@ class ApplicationController < ActionController::Base
   end
 
   def access_denied
+    #
+    #  New method of working, with different behaviour depending on the
+    #  problem.
+    #
+    #  If a user is logged in and tries to access something unauthorized,
+    #  then said user is re-directed to the home page.
+    #
+    #  If the user is *not* logged in, then we remember what page
+    #  was being attempted, and re-direct to the login page.
+    #
+    #  If the login later completes successfully, we look to see whether
+    #  we have a stored intended page, and then forward the user on there.
+    #  Of course, the user may still not be authorised, but he or she is
+    #  now logged on (because the loging completed successfully) and
+    #  therefore will be directed to the home page - no infinite loop.
+    #
+    #  All of this happens only for HTML requests.  Need to do some
+    #  better processing for json, xml and js.
+    #
     respond_to do |format|
       format.html do
-        redirect_to '/'
+        if logged_in?
+          redirect_to '/'
+        else
+          session[:url_requested] = request.fullpath
+          redirect_to sessions_new_url
+        end
       end
+      #
+      #  It appears that I should return one of two error codes for the
+      #  other requests.  If the user is not logged in then they should
+      #  get 401 Unauthenticated, whilst if they are logged in then the
+      #  error is 403 Forbidden.
+      #
       format.any(:json, :xml, :js) do
         redirect_to '/'
       end

@@ -126,7 +126,7 @@ module EventsHelper
           select {|c| c.in_approvals? }.
           collect do |c|
             status = c.form_status
-            if status == "Pending" || status == "Complete"
+            if status == "To fill in" || status == "Complete"
               #
               #  Link to edit the form.
               #

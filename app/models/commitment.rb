@@ -625,7 +625,7 @@ class Commitment < ActiveRecord::Base
         if ufr.complete?
           "Complete"
         else
-          "Pending"
+          "To fill in"
         end
       end
     else
