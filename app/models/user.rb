@@ -872,6 +872,35 @@ class User < ActiveRecord::Base
     end
   end
 
+  #
+  #  Maintenance method to fix a user who is linked to the wrong member
+  #  of staff record.
+  #
+  def set_right_staff
+    own_concern = self.concerns.me[0]
+    if own_concern
+      if own_concern.element.current
+        puts "#{self.name} already linked to current element."
+      else
+        staff = Staff.active.current.find_by(email: self.email)
+        if staff
+          puts "Found a current staff member for #{self.email}"
+          own_concern.element = staff.element
+          own_concern.save!
+          self.corresponding_staff = staff
+          self.save!
+          puts "Updated user record."
+        else
+          puts "No current staff member for #{self.email}"
+        end
+      end
+    else
+      "#{self.email} has no \"me\" concern."
+    end
+    nil
+  end
+
+
   def self.populate_corresponding_staff
     User.all.each do |u|
       u.set_corresponding_staff
