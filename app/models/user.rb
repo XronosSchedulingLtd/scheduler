@@ -597,7 +597,7 @@ class User < ActiveRecord::Base
       if Setting.auth_type == "google_demo_auth"
         staff = Staff.first
       else
-        staff = Staff.active.find_by_email(self.email)
+        staff = Staff.active.current.find_by_email(self.email)
       end
       if staff
         got_something = true
