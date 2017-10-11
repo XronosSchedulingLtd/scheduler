@@ -142,6 +142,10 @@ class Commitment < ActiveRecord::Base
     #  Existing approvals don't get carried over.
     #
     if new_self.constraining
+      #
+      #  Note that we have a custom setter for "tentative=" which also
+      #  adjusts the constraining field to match.
+      #
       new_self.tentative = true
     end
     new_self.save!
