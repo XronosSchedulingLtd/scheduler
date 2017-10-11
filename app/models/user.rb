@@ -416,6 +416,16 @@ class User < ActiveRecord::Base
     !!concerns.can_commit.detect {|c| (c.element_id == element.id)}
   end
 
+  #
+  #  Can this user complete forms for the indicated event?  Basically,
+  #  is he either the owner or the organiser?
+  #
+  def can_complete_forms_for?(event)
+    event.owner_id == self.id ||
+      (self.corresponding_staff &&
+       self.corresponding_staff.element == event.organiser)
+  end
+
   def can_view_journal_for?(object)
     #
     #  For now it's just the admin users, but we may add more fine-grained
