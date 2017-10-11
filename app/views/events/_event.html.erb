@@ -25,4 +25,7 @@
   <% end %>
   <td><%= approvals_table_list(event) %></td>
   <td><%= forms_table_list(event) %></td>
+  <% if @show_actions %>
+    <td><%= actions_table_list(event) %></td>
+  <% end %>
 </tr>

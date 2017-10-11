@@ -20,6 +20,7 @@ class EventsController < ApplicationController
   def index
     @show_owner              = true
     @show_organiser          = true
+    @show_actions            = false
 
     if params[:user_id]
       #
@@ -58,6 +59,7 @@ class EventsController < ApplicationController
       @flip_button    = true
       @show_owner     = false
       @show_organiser = false
+      @show_actions   = true
     elsif current_user.admin?
       #
       #  The user is asking for all events.  Allow this only for

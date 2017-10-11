@@ -145,4 +145,21 @@ module EventsHelper
           join("<br/>").html_safe
   end
 
+  #
+  #  Just produces a marker against each potential action.
+  #
+  def actions_table_list(event)
+    event.commitments.
+          select {|c| c.in_approvals?}.
+          collect do |c|
+            if c.rejected || c.form_status == "To fill in"
+              "<" 
+            else
+              "&nbsp;"
+            end
+          end.
+          join("<br/>").html_safe
+  end
+
+
 end
