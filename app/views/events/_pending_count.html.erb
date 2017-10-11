@@ -1,12 +1,15 @@
 <div class="forms-to-fill">
+<a href="<%=
+  user_events_path(current_user, pending: true)
+  %>" class="zfbutton tiny radius flip-button">Do form<%= @form_count == 1 ? "" : "s" %></a>
 <p>There <%= @form_count == 1 ? "is" : "are" %> currently
 <%= pluralize(@form_count, "form") %> which you will
-need to fill in order to get your event approved.</p>
+need to fill in order to get your event approved.<br/>
 
-<p>You can either <a href="<%=
-  user_events_path(current_user, pending: true)
-%>">complete <%=
+Use the button on the right to complete <%=
   @form_count = 1 ? "it" : "them"
-%> now</a> or
-do it later using Menu => Events => Mine at the top of the screen.</p>
+%> now or
+do it later using</p>
+<p class="indented">Menu => Events => Mine</p>
+<p>at the top of the screen.</p>
 </div>
