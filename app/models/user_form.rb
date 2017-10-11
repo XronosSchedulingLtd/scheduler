@@ -18,4 +18,12 @@ class UserForm < ActiveRecord::Base
   def can_destroy?
     self.user_form_responses.count == 0
   end
+
+  #
+  #  If this form has been linked to an element then give its name.
+  #  Otherwise, an empty string.
+  #
+  def resource_name
+    self.elements.collect {|e| e.short_name}.join(",")
+  end
 end
