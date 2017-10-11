@@ -505,17 +505,26 @@ class User < ActiveRecord::Base
                  inject(0) do |total, event|
         count = 0
         event.commitments.each do |c|
+          #
+          #  If the event has been rejected, then we count that
+          #  as 1, but we don't go on and count the corresponding
+          #  forms as well.  If we do then it gets confusing.
+          #  A rejected event, with a pending form (which it will
+          #  be because the action of rejecting the event causes
+          #  the form to be marked as pending) would get counted as 2.
+          #
           if c.rejected
             count += 1
-          end
-          #
-          #  As we've already loaded these into memory, it's
-          #  quicker to count them ourselves rather than hitting
-          #  the d/b again.
-          #
-          c.user_form_responses.each do |ufr|
-            unless ufr.complete?
-              count += 1
+          else
+            #
+            #  As we've already loaded these into memory, it's
+            #  quicker to count them ourselves rather than hitting
+            #  the d/b again.
+            #
+            c.user_form_responses.each do |ufr|
+              unless ufr.complete?
+                count += 1
+              end
             end
           end
         end
