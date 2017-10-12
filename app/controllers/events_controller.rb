@@ -22,7 +22,8 @@ class EventsController < ApplicationController
     @show_organiser          = true
     @show_actions            = false
 
-    if params[:user_id]
+    if params[:user_id] && 
+      params[:user_id].to_i == current_user.id
       #
       #  Being asked for events related to this user.  Note, not
       #  events *involving* this user - events which he owns or
@@ -92,7 +93,11 @@ class EventsController < ApplicationController
       end
       @events = selector.includes(commitments: :user_form_responses).page(page_no).order('starts_at')
     else
-      redirect_to user_events_path(current_user)
+      if params.has_key?(:pending)
+        redirect_to user_events_path(current_user, pending: true)
+      else
+        redirect_to user_events_path(current_user)
+      end
     end
   end
 
