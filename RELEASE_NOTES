@@ -1,3 +1,43 @@
+v0.25-pre1 2017-10-23
+
+This is a preparatory release to be installed at Abingdon to allow final
+polishing of some new features, which are:
+
+* Forms to enable requirements to be specified when requesting resources
+  for events.
+
+* Journalling of edits to events.
+
+  All manual edits to events are now journalled.  The journal can be
+  viewed by system administrators.
+
+* Configurable prompt message on event creation dialogue.
+
+* Configurable list of highlighted properties and services on event
+  creation dialogue.
+
+* Improved menus for event approval and requirement specification.
+
+  The old "Approvals" menu has been replaced by a heirarchy of menus
+  whereby a user can see events for which he is responsible, and
+  resource approvers can see lists of all events requesting their
+  resources.  Approvals can be done from the event dialogue as before,
+  or directly from the event listing.  Forms can be viewed and filled
+  in from the event listing.
+
+* Active counts of things requiring action for all users.
+
+  All users now get a count of things requiring their attention in their
+  top level menu.  As they work down through the menu, the location of
+  each item is highlighted by a count on each individual one.  At each
+  level, the count on the sub-menus will add up to the count on the
+  parent menu.
+
+  Counts are updated automatically when the user does something which
+  affects them, or after 10 minutes if someone else does something which
+  affects that user.
+
+
 v0.24.8 2017-10-02
 
 Two small bug fixes relating to the creation of repeating events.
