@@ -260,7 +260,7 @@ class Event < ActiveRecord::Base
   #
   #  For pagination.
   #
-  self.per_page = 15
+  self.per_page = 12
 
   def all_day_field
     self.all_day

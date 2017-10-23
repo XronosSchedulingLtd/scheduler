@@ -11,7 +11,11 @@
     %>
   </td>
   <td><%= event.duration_text %></td>
-  <td title="<%= event.body %>"><%= event.trimmed_body(40) %></td>
+  <td><%= link_to(event.trimmed_body(40),
+                  event_path(event, from_listing: true),
+                  title: event.body,
+                  "data-reveal-id" => "eventModal",
+                  "data-reveal-ajax" => true) %></td>
   <% if @show_owner %>
     <td title="Owner"><%= event.owners_initials %></td>
   <% end %>

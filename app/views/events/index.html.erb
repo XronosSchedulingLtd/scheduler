@@ -9,12 +9,12 @@
   <%= will_paginate @events %>
 </div>
 
-<table class="zftable">
+<table class="zftable" id="<%= @listing_id %>">
   <thead>
     <tr>
       <th>Start</th>
       <th>Duration</th>
-      <th>Body</th>
+      <th>Title</th>
       <% if @show_owner %>
         <th title="Owner">Own</th>
       <% end %>

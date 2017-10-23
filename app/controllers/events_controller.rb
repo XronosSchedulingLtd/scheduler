@@ -61,6 +61,7 @@ class EventsController < ApplicationController
       @show_owner     = false
       @show_organiser = false
       @show_actions   = true
+      @listing_id     = "user-events"
     elsif current_user.admin?
       #
       #  The user is asking for all events.  Allow this only for
@@ -69,6 +70,7 @@ class EventsController < ApplicationController
       selector = Event.all
       @title = "All events"
       @flip_button = false
+      @listing_id     = "all-events"
     else
       #
       #  If we get here then either the user has tried for all events
@@ -125,7 +127,8 @@ class EventsController < ApplicationController
     else
       @resourcewarning = false
       if current_user &&
-        current_user.can_complete_forms_for?(@event)
+        current_user.can_complete_forms_for?(@event) &&
+        !params.has_key?(:from_listing)
         @form_count = @event.pending_form_count
       end
     end
