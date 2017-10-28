@@ -61,7 +61,7 @@ class UserFormResponsesController < ApplicationController
       if parent.instance_of?(Commitment)
         @event = parent.event
         @resource = parent.element
-        if parent.rejected
+        if parent.rejected?
           @extra_text = "Previously rejected#{ parent.by_whom ? " by: #{parent.by_whom.name}" : ""}"
           if parent.reason
             @extra_text << "\nReason: #{parent.reason}"
@@ -111,8 +111,8 @@ class UserFormResponsesController < ApplicationController
       if @user_form_response.update(my_params)
         if parent = @user_form_response.parent
           if parent.instance_of?(Commitment)
-            if parent.rejected
-              parent.rejected = false
+            if parent.rejected? || parent.noted?
+              parent.status = :requested
               parent.save
             end
             parent.event.journal_form_completed(@user_form_response,

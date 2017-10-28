@@ -1,4 +1,4 @@
-<tr class='approval-item' data-commitment-id=<%= commitment.id %>>
+<tr class='approval-item' data-commitment-id=<%= commitment.id %> data-commitment-status=<%= commitment.status %>>
   <td>
     <%=
       link_to(commitment.event.starts_at_text,
@@ -14,7 +14,7 @@
   <td title="Organiser"><%= commitment.event.organisers_initials %></td>
   <td>
     <span class="approval-status <%= commitment_status_class(commitment) %>"
-      <% if commitment.rejected %>
+      <% if commitment.rejected? %>
             title="<%= commitment.reason %>"
       <% end %> >
       <%= commitment_status(commitment) %>

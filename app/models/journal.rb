@@ -176,6 +176,16 @@ class Journal < ActiveRecord::Base
     })
   end
 
+  def commitment_noted(commitment, by_user)
+    self.journal_entries.create({
+      event:      self.event,
+      user:       by_user,
+      entry_type: :commitment_noted,
+      element:    commitment.element,
+      details:    commitment_description(:commitment_noted, commitment)
+    })
+  end
+
   def commitment_reset(commitment, by_user)
     self.journal_entries.create({
       event:      self.event,
@@ -223,7 +233,7 @@ class Journal < ActiveRecord::Base
   private
 
   def commitment_description(entry_type, commitment)
-    if entry_type == :resource_added && commitment.tentative
+    if entry_type == :resource_added && commitment.tentative?
       "Needs approval"
     elsif entry_type == :commitment_rejected
       "Reason: #{commitment.reason}"

@@ -124,6 +124,7 @@ Rails.application.routes.draw do
       put :reject
       put :ajaxapprove
       put :ajaxreject
+      put :ajaxnoted
     end
   end
 

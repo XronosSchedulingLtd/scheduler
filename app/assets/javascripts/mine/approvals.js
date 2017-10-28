@@ -15,10 +15,11 @@ window.approvalsHandler = function () {
 
   var approveSucceeded = function(data, textStatus, jqXHR) {
     if (data['status']) {
-      this['statusElement'].removeClass('tentative-commitment rejected-commitment').addClass('constraining-commitment').text('OK');
-      this['buttons'].html('<span><a class="approval-no" href="#">Reject</a></span>')
+      this['statusElement'].removeClass('tentative-commitment rejected-commitment noted-commitment').addClass('constraining-commitment').text('OK');
+      this['buttons'].html(that.confirmed_template);
       this['yesButton']     = this['buttons'].find('.approval-yes');
       this['noButton']      = this['buttons'].find('.approval-no');
+      this['notedButton']   = this['buttons'].find('.approval-noted');
       this['noButton'].click(this, noClicked);
       window.triggerCountsUpdate();
     } else {
@@ -46,17 +47,19 @@ window.approvalsHandler = function () {
       //
       //  If we have successfully rejected a request then we need to
       //  turn its status to red, change the text, and make sure it has
-      //  only an "Approve" link.
+      //  only "Approve" and "Noted" links.
       //
-      this['statusElement'].removeClass('tentative-commitment constraining-commitment').addClass('rejected-commitment').text('Rejected');
-      this['buttons'].html('<span><a class="approval-yes" href="#">Approve</a></span>')
+      this['statusElement'].removeClass('tentative-commitment constraining-commitment noted-commitment').addClass('rejected-commitment').text('Rejected');
+      this['buttons'].html(that.rejected_template);
       this['yesButton']     = this['buttons'].find('.approval-yes');
       //
       //  Yes, I know there is no "No" button, but I want to update
       //  the data structure to reflect this.
       //
       this['noButton']      = this['buttons'].find('.approval-no');
+      this['notedButton']   = this['buttons'].find('.approval-noted');
       this['yesButton'].click(this, yesClicked);
+      this['notedButton'].click(this, notedClicked);
       window.triggerCountsUpdate();
     } else {
       alert("Rejection request rejected.");
@@ -82,9 +85,47 @@ window.approvalsHandler = function () {
     return false;
   }
 
+  var notedSucceeded = function(data, textStatus, jqXHR) {
+    if (data['status']) {
+      this['statusElement'].removeClass('tentative-commitment rejected-commitment constraining-commitment').addClass('noted-commitment').text('Noted');
+      this['buttons'].html(that.noted_template);
+      this['yesButton']     = this['buttons'].find('.approval-yes');
+      this['noButton']      = this['buttons'].find('.approval-no');
+      this['notedButton']   = this['buttons'].find('.approval-noted');
+      this['yesButton'].click(this, yesClicked);
+      this['noButton'].click(this, noClicked);
+      window.triggerCountsUpdate();
+    } else {
+      alert("Noted request rejected.");
+    }
+  }
+
+  var notedFailed = function(jqXHR, textStatus, errorThrown) {
+    alert("Noted failed - " + textStatus);
+  }
+
+  var notedClicked = function(event) {
+    $.ajax({
+      url: baseURL + event.data['commitmentId'] + '/ajaxnoted',
+      type: 'PUT',
+      context: event.data,
+      contentType: 'application/json'
+    }).done(notedSucceeded).fail(notedFailed);
+    return false;
+  }
+
   that.init = function() {
     that.ourRegion = $('.approvals-region');
     if (that.ourRegion.length) {
+      //
+      //  Need some templates (although they're not really templates,
+      //  just chunks of html).
+      //
+      that.uncontrolled_template = $('#uncontrolled-template').html();
+      that.confirmed_template    = $('#confirmed-template').html();
+      that.requested_template    = $('#requested-template').html();
+      that.rejected_template     = $('#rejected-template').html();
+      that.noted_template        = $('#noted-template').html();
       //
       //  At this point, we arguably should check whether that.items
       //  already exists, and if it does then go through explicitly
@@ -92,15 +133,44 @@ window.approvalsHandler = function () {
       //
       that.items = [];
       that.ourRegion.find('.approval-item').each(function(index, element) {
-        var thisOne = {}
-        thisOne['commitmentId'] = $(element).data('commitment-id');
+        var thisOne = {}, template = null;
+        thisOne['commitmentId']  = $(element).data('commitment-id');
+        thisOne['initialStatus'] = $(element).data('commitment-status');
         thisOne['statusElement'] = $(element).find('.approval-status');
         thisOne['buttons']       = $(element).find('.approval-buttons');
+        if (thisOne['initialStatus']) {
+          switch (thisOne['initialStatus']) {
+            case 'uncontrolled':
+              template = that.uncontrolled_template;
+              break;
+
+            case 'confirmed':
+              template = that.confirmed_template;
+              break;
+
+            case 'requested':
+              template = that.requested_template;
+              break;
+
+            case 'rejected':
+              template = that.rejected_template;
+              break;
+
+            case 'noted':
+              template = that.noted_template;
+              break;
+
+          }
+          if (template) {
+            thisOne['buttons'].html(template);
+          }
+        }
         thisOne['yesButton']     = $(element).find('.approval-yes');
         thisOne['noButton']      = $(element).find('.approval-no');
-//        $(element).find('.approval-status').removeClass('constraining-commitment').addClass('tentative-commitment');
+        thisOne['notedButton']   = $(element).find('.approval-noted');
         thisOne['yesButton'].click(thisOne, yesClicked);
         thisOne['noButton'].click(thisOne, noClicked);
+        thisOne['notedButton'].click(thisOne, notedClicked);
         that.items.push(thisOne);
       })
     }

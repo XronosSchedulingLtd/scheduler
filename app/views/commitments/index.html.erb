@@ -32,3 +32,22 @@
 
 <br>
 
+<script type="text/template" id="uncontrolled-template">
+</script>
+
+<script type="text/template" id="confirmed-template">
+<%= approve_icon(false) %> <%= noted_icon(false) %> <%= reject_icon(true) %>
+</script>
+
+<script type="text/template" id="requested-template">
+<%= approve_icon(true) %> <%= noted_icon(true) %> <%= reject_icon(true) %>
+</script>
+
+<script type="text/template" id="rejected-template">
+<%= approve_icon(true) %> <%= noted_icon(true) %> <%= reject_icon(false) %>
+</script>
+
+<script type="text/template" id="noted-template">
+<%= approve_icon(true) %> <%= noted_icon(false) %> <%= reject_icon(true) %> 
+</script>
+

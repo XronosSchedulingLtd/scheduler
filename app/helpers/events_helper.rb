@@ -9,11 +9,11 @@ module EventsHelper
   end
 
   def colour_wrap(commitment, text)
-    if commitment.rejected
+    if commitment.rejected?
       "<span class='rejected-commitment' title='#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : ""}'>#{text}</span>"
-    elsif commitment.tentative
+    elsif commitment.tentative?
       "<span class='tentative-commitment'>#{text}</span>"
-    elsif commitment.constraining
+    elsif commitment.constraining?
       "<span class='constraining-commitment'>#{text}</span>"
     else
       text
@@ -58,9 +58,9 @@ module EventsHelper
 
   def approval_links(commitment, show_clashes = false, user = nil)
     text = highlighted_name(commitment, show_clashes, user)
-    if commitment.rejected
+    if commitment.rejected?
       text = "#{text} #{approve_link(commitment, "Confirm")}"
-    elsif commitment.tentative
+    elsif commitment.tentative?
       text = "#{text} #{approve_link(commitment, "Confirm")} / #{reject_link(commitment, "Raise issue")}"
     else
       text = "#{text} #{reject_link(commitment, "Raise issue")}"
@@ -152,7 +152,7 @@ module EventsHelper
     event.commitments.
           select {|c| c.in_approvals?}.
           collect do |c|
-            if c.rejected || c.form_status == "To fill in"
+            if c.rejected? || c.form_status == "To fill in"
               "<" 
             else
               "&nbsp;"

@@ -3,6 +3,7 @@ class CommitmentsController < ApplicationController
                                         :approve,
                                         :ajaxreject,
                                         :reject,
+                                        :ajaxnoted,
                                         :destroy,
                                         :view]
 
@@ -17,7 +18,7 @@ class CommitmentsController < ApplicationController
     end
 
     def note(commitment)
-      if commitment.rejected
+      if commitment.rejected?
         @rejected_commitments << commitment
       else
         @pending_commitments << commitment
@@ -43,7 +44,7 @@ class CommitmentsController < ApplicationController
       @allow_buttons = current_user.owns?(@element)
       if params.has_key?(:pending)
         @pending = true
-        selector = selector.tentative
+        selector = selector.tentative.future
         @flip_target = element_commitments_path(@element)
         @flip_text = "See All"
       else
@@ -85,10 +86,13 @@ class CommitmentsController < ApplicationController
     #  haven't got an element.
     #
     if @commitment.element
-      @commitment.tentative =
-        current_user.needs_permission_for?(@commitment.element)
+      if current_user.needs_permission_for?(@commitment.element)
+        @commitment.status = :requested
+      else
+        @commitment.status = :uncontrolled
+      end
     else
-      @commitment.tentative = false
+      @commitment.status = :uncontrolled
     end
     #
     #  Not currently checking the result of this, because regardless
@@ -148,7 +152,7 @@ class CommitmentsController < ApplicationController
   #
   def do_approve
     @event = @commitment.event
-    if current_user.can_approve?(@commitment) && @commitment.tentative
+    if current_user.can_approve?(@commitment) && @commitment.tentative?
       @commitment.approve_and_save!(current_user)
       @event.reload
       @event.journal_commitment_approved(@commitment, current_user)
@@ -193,7 +197,7 @@ class CommitmentsController < ApplicationController
   def do_reject
     @event = @commitment.event
     if current_user.can_approve?(@commitment) &&
-      (@commitment.tentative || @commitment.constraining)
+      (@commitment.confirmed? || @commitment.requested? || @commitment.noted?)
       @commitment.reject_and_save!(current_user, params[:reason])
       @event.reload
       @event.journal_commitment_rejected(@commitment, current_user)
@@ -229,6 +233,32 @@ class CommitmentsController < ApplicationController
   #
   def ajaxreject
     @status = do_reject
+    respond_to do |format|
+      format.json
+    end
+  end
+
+  def do_noted
+    @event = @commitment.event
+    if current_user.can_approve?(@commitment) &&
+      (@commitment.requested? || @commitment.rejected?)
+      @commitment.noted_and_save!(current_user)
+      @event.reload
+      @event.journal_commitment_noted(@commitment, current_user)
+      @commitment.user_form_responses.each do |ufr|
+        if ufr.complete
+          ufr.complete = false
+          ufr.save
+        end
+      end
+      true
+    else
+      false
+    end
+  end
+
+  def ajaxnoted
+    @status = do_noted
     respond_to do |format|
       format.json
     end

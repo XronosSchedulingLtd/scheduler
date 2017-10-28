@@ -481,7 +481,7 @@ class User < ActiveRecord::Base
   #
   #  This should be a count of the events which *this user* can do
   #  something about.  Being incomplete is not enough - they need to
-  #  be rejected, or have pending forms.
+  #  be rejected or "noted", or have pending forms.
   #
   #  Not really interested in ones in the past.
   #
@@ -513,7 +513,7 @@ class User < ActiveRecord::Base
           #  be because the action of rejecting the event causes
           #  the form to be marked as pending) would get counted as 2.
           #
-          if c.rejected
+          if c.rejected? || c.noted?
             count += 1
           else
             #
@@ -549,7 +549,7 @@ class User < ActiveRecord::Base
              inject(0) do |total, event|
         count = 0
         event.commitments.each do |c|
-          if !c.rejected
+          if !c.rejected?
             #
             #  Are all forms complete?
             #

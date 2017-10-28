@@ -5,6 +5,14 @@
 
 class Commitment < ActiveRecord::Base
 
+  enum status: [
+    :uncontrolled,
+    :confirmed,
+    :requested,
+    :rejected,
+    :noted
+  ]
+
   belongs_to :event
   belongs_to :element
   belongs_to :proto_commitment
@@ -51,9 +59,12 @@ class Commitment < ActiveRecord::Base
   scope :uncovered_commitment, -> { joins("left outer join `commitments` `covereds_commitments` ON `covereds_commitments`.`covering_id` = `commitments`.`id`").where("covereds_commitments.id IS NULL") }
   scope :firm, -> { where(:tentative => false) }
   scope :tentative, -> { where(:tentative => true) }
-  scope :rejected, -> { where(:rejected => true) }
-  scope :not_rejected, -> { where(:rejected => false) }
-  scope :constraining, -> { where(:constraining => true) }
+#  scope :rejected, -> { where(status: :rejected) }
+#  scope :not_rejected, -> { where.not(status: :rejected) }
+  scope :not_rejected, -> { where.not("commitments.status = ?",
+                                      Commitment.statuses[:rejected]) }
+  scope :constraining, -> { where("commitments.status = ?",
+                                  Commitment.statuses[:confirmed]) }
   scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}
 
   scope :until, lambda { |datetime| joins(:event).merge(Event.until(datetime)) }
@@ -78,17 +89,28 @@ class Commitment < ActiveRecord::Base
     @element_name = en
   end
 
-  #
-  #  Override the default setter.
-  #
+  def constraining?
+    self.confirmed?
+  end
+
   def tentative=(new_value)
-    if self.tentative && !new_value
-      self.constraining = true
-      self.rejected = false
-    elsif !self.tentative && new_value
-      self.constraining = false
+    Rails.logger.debug("Attempt to set tentative= #{new_value} in commitment.")
+  end
+
+  #
+  #  We use the value of new_status to set tentative ourselves.
+  #
+  #  Note that this method expects a symbol.  The underlying Rails
+  #  method expects an integer.
+  #
+  def status=(new_status)
+    if new_status == :uncontrolled ||
+       new_status == :confirmed
+      self[:tentative] = false
+    else
+      self[:tentative] = true
     end
-    super(new_value)
+    self[:status] = Commitment.statuses[new_status]
   end
 
   #
@@ -96,23 +118,27 @@ class Commitment < ActiveRecord::Base
   #  the d/b.
   #
   def approve_and_save!(user)
-    self.tentative = false
+    self.status = :confirmed
     self.by_whom = user
     self.reason = ""
     self.save!
   end
 
   def reject_and_save!(user, reason)
-    self.tentative = true
-    self.rejected  = true
+    self.status = :rejected
     self.by_whom = user
     self.reason = reason
     self.save!
   end
 
+  def noted_and_save!(user)
+    self.status = :noted
+    self.by_whom = user
+    self.save!
+  end
+
   def revert_and_save!
-    self.tentative = true
-    self.rejected  = false
+    self.status = :requested
     self.save!
   end
 
@@ -121,11 +147,11 @@ class Commitment < ActiveRecord::Base
   #  process?  None of the flags set.
   #
   def approvals_free?
-    !self.tentative && !self.rejected && !self.constraining
+    self.uncontrolled?
   end
 
   def in_approvals?
-    self.tentative || self.rejected || self.constraining
+    !self.uncontrolled?
   end
 
   #
@@ -141,12 +167,8 @@ class Commitment < ActiveRecord::Base
     #
     #  Existing approvals don't get carried over.
     #
-    if new_self.constraining
-      #
-      #  Note that we have a custom setter for "tentative=" which also
-      #  adjusts the constraining field to match.
-      #
-      new_self.tentative = true
+    if new_self.confirmed?
+      new_self.status = :requested
     end
     new_self.save!
     new_self
@@ -604,11 +626,13 @@ class Commitment < ActiveRecord::Base
   #
   #  Returns a textual status, suitable for creating CSS classes.
   #
-  def status
-    if self.rejected
+  def status_class
+    if self.rejected?
       "rejected-commitment"
-    elsif self.tentative
+    elsif self.requested?
       "tentative-commitment"
+    elsif self.noted?
+      "noted-commitment"
     else
       "constraining-commitment"
     end
@@ -641,11 +665,58 @@ class Commitment < ActiveRecord::Base
     self.user_form_responses[0]
   end
 
+  #
+  #  A couple of maintenance methods to populate the new status
+  #  fields.
+  #
+  def populate_status
+    #
+    #  The default value for the new status field is 0, which corresponds
+    #  to "uncontrolled".  For those cases (the vast majority) no action
+    #  is required.
+    #
+    #  Note that the rejected and constraining fields have already
+    #  been renamed as "was_rejected" and "was_constraining" in preparation
+    #  for them being retired.  This is the only method which should
+    #  ever reference them.
+    #
+    #  No legacy commitments get the status of :noted - that's a new one.
+    #
+    if (self.tentative || self.was_rejected || self.was_constraining) &&
+       self.uncontrolled?
+      if self.was_constraining
+        self.status = :confirmed
+      elsif self.was_rejected
+        self.status = :rejected
+      else
+        #
+        #  That leaves just tentative.
+        #
+        self.status = :requested
+      end
+      self.save!
+      true
+    else
+      false
+    end
+  end
+
+  def self.populate_statuses
+    count = 0
+    Commitment.find_each do |c|
+      if c.populate_status
+        count += 1
+      end
+    end
+    puts "#{count} commitments updated."
+    nil
+  end
+
   protected
 
   def update_event_after_save
     if self.event
-      self.event.update_from_commitments(self.tentative, self.constraining)
+      self.event.update_from_commitments(self.tentative, self.constraining?)
     end
   end
 

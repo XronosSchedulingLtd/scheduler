@@ -598,7 +598,7 @@ class Element < ActiveRecord::Base
   def permissions_pending
     unless @permissions_pending
       @permissions_pending = 
-        self.commitments.future.tentative.not_rejected.count
+        self.commitments.future.requested.count
     end
     @permissions_pending
   end

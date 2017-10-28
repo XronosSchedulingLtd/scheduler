@@ -97,7 +97,7 @@ class Event < ActiveRecord::Base
   belongs_to :eventsource
   has_many :commitments, :dependent => :destroy
   has_many :requests, :dependent => :destroy
-  has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
+    has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
   has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
   has_many :covering_commitments, -> { where("covering_id IS NOT NULL") }, class_name: "Commitment"
   has_many :non_covering_commitments, -> { where("covering_id IS NULL") }, class_name: "Commitment"
@@ -519,7 +519,7 @@ class Event < ActiveRecord::Base
   #
   def pending_count
     unless @pending_count
-      @pending_count = self.commitments.tentative.not_rejected.count
+      @pending_count = self.commitments.requested.count
     end
     @pending_count
   end
@@ -541,14 +541,14 @@ class Event < ActiveRecord::Base
   def pending_count_no_db
     unless @pending_count_no_db
       @pending_count_no_db =
-        self.commitments.select {|c| c.tentative && !c.rejected }.count
+        self.commitments.select {|c| c.requested? }.count
     end
     @pending_count_no_db
   end
 
   def rejected_count_no_db
     unless @rejected_count_no_db
-      @rejected_count_no_db = self.commitments.select {|c| c.rejected}.count
+      @rejected_count_no_db = self.commitments.select {|c| c.rejected? }.count
     end
     @rejected_count_no_db
   end
@@ -632,8 +632,7 @@ class Event < ActiveRecord::Base
       #  when requests start being used for other purposes too.
       #
       unless user && user.exams? && c.request_id
-        if user && user.can_approve?(c) &&
-           (c.tentative || c.rejected || c.constraining)
+        if user && user.can_approve?(c) && !c.uncontrolled?
           approvables << c
         else
           by_type[c.element.entity_type] ||=
@@ -1284,6 +1283,11 @@ class Event < ActiveRecord::Base
   def journal_commitment_rejected(commitment, by_user)
     ensure_journal
     self.journal.commitment_rejected(commitment, by_user)
+  end
+
+  def journal_commitment_noted(commitment, by_user)
+    ensure_journal
+    self.journal.commitment_noted(commitment, by_user)
   end
 
   #

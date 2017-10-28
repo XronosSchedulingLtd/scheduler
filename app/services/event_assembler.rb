@@ -136,8 +136,8 @@ class EventAssembler
                 c = Commitment.find_by(element_id: via_element.id,
                                        event_id: event.id)
                 if c
-                  if c.tentative
-                    if c.rejected
+                  if c.tentative?
+                    if c.rejected?
                       @colour = redden(@colour)
                     else
                       @colour = washed_out(@colour)
@@ -536,7 +536,7 @@ class EventAssembler
                       selector.
                       select {|c| concern.owns ||
                                   @current_user.admin ||
-                                  !c.tentative ||
+                                  !c.tentative? ||
                                   c.event.owner_id == @current_user.id }.
                       collect {|c| c.event}.
                       uniq.

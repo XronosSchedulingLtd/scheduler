@@ -17,15 +17,18 @@ module CommitmentsHelper
   #  This one is for use in the commitment listing.
   #
   def commitment_approval_links(commitment)
-    if commitment.tentative || commitment.constraining
-      if commitment.rejected
-        text = approve_link(commitment, "Approve", true)
-      elsif commitment.tentative
-        text = "#{approve_link(commitment, "Approve", true)} / #{reject_link(commitment, "Reject", true)}"
-      else
-        text = reject_link(commitment, "Reject", true)
-      end
+    if commitment.confirmed?
+      text = reject_link(commitment, "Reject", true)
+    elsif commitment.requested?
+      text = "#{approve_link(commitment, "Approve", true)} / #{reject_link(commitment, "Reject", true)} / #{noted_link(commitment, "Noted")}"
+    elsif commitment.rejected?
+      text = "#{approve_link(commitment, "Approve", true)} / #{noted_link(commitment, "Noted")}"
+    elsif commitment.noted?
+      text = "#{approve_link(commitment, "Approve", true)} / #{reject_link(commitment, "Reject", true)}"
     else
+      #
+      #  Should be just "uncontrolled", but allow for anything.
+      #
       text = ""
     end
     text.html_safe
@@ -83,6 +86,12 @@ module CommitmentsHelper
     end
   end
 
+  def noted_link(commitment, text)
+    "<span class=\"commitment-noted\">#{
+      link_to(text, "#", class: "approval-noted")
+     }</span>"
+  end
+
   def header_menu_text(user)
     if user.create_events?
       "Menu (<span id='pending-grand-total' data-auto-poll=#{user.start_auto_polling}>#{user.pending_grand_total}</span>)".html_safe
@@ -121,11 +130,11 @@ module CommitmentsHelper
         #
         #  Does it need any embellishment?
         #
-        if commitment.rejected
+        if commitment.rejected?
           body = "<span class=\"rejected-commitment\" title=\"#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : "" }\">#{body}</span>"
-        elsif commitment.tentative
+        elsif commitment.tentative?
           body = "<span class=\"tentative-commitment\">#{body}</span>"
-        elsif commitment.constraining
+        elsif commitment.constraining?
           body = "<span class=\"constraining-commitment\">#{body}</span>"
         end
         #
@@ -154,7 +163,7 @@ module CommitmentsHelper
         #  Non logged-in users just get to see firm commitments, and
         #  don't get any colours or buttons.
         #
-        unless commitment.tentative || commitment.rejected
+        unless commitment.tentative? || commitment.rejected?
           result << "<li>#{body}</li>"
         end
       end
@@ -164,10 +173,12 @@ module CommitmentsHelper
   end
 
   def commitment_status(commitment)
-    if commitment.rejected
+    if commitment.rejected?
       "Rejected"
-    elsif commitment.tentative
+    elsif commitment.requested?
       "Pending"
+    elsif commitment.noted?
+      "Noted"
     else
       "OK"
     end
@@ -177,7 +188,7 @@ module CommitmentsHelper
     #
     #  The model actually does the work.
     #
-    commitment.status
+    commitment.status_class
   end
 
   def commitment_form_status(commitment)
@@ -192,5 +203,30 @@ module CommitmentsHelper
       "None"
     end
   end
+
+  def approve_icon(enabled)
+    if enabled
+      '<span class="approval-yes" title="Approve"><img src="/images/accept1.png"/></span>'.html_safe
+    else
+      '<span><img class="approval-disabled-button" src="/images/accept1.png"/></span>'.html_safe
+    end
+  end
+
+  def reject_icon(enabled)
+    if enabled
+      '<span class="approval-no" title="Reject"><img src="/images/remove.png"/></span>'.html_safe
+    else
+      '<span><img class="approval-disabled-button" src="/images/remove.png"/></span>'.html_safe
+    end
+  end
+
+  def noted_icon(enabled)
+    if enabled
+      '<span class="approval-noted" title="Noted - held pending more information"><img src="/images/pause.png"/></span>'.html_safe
+    else
+      '<span><img class="approval-disabled-button" src="/images/pause.png"/></span>'.html_safe
+    end
+  end
+
 end
 
