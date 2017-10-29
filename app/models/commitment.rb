@@ -75,7 +75,7 @@ class Commitment < ActiveRecord::Base
   after_destroy :update_event_after_destroy
   after_create  :check_for_promptnotes
 
-  self.per_page = 15
+  self.per_page = 12
 
   #
   #  This isn't a real field in the d/b.  It exists to allow a name

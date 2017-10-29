@@ -1,4 +1,4 @@
-<tr class='approval-item' data-commitment-id=<%= commitment.id %> data-commitment-status=<%= commitment.status %>>
+<tr class='approval-item' data-commitment-id=<%= commitment.id %> data-commitment-status="<%= commitment.status %>" data-commitment-reason="<%= commitment.reason %>">
   <td>
     <%=
       link_to(commitment.event.starts_at_text,
@@ -12,17 +12,18 @@
   </td>
   <td title="Owner"><%= commitment.event.owners_initials %></td>
   <td title="Organiser"><%= commitment.event.organisers_initials %></td>
-  <td>
-    <span class="approval-status <%= commitment_status_class(commitment) %>"
-      <% if commitment.rejected? %>
-            title="<%= commitment.reason %>"
-      <% end %> >
-      <%= commitment_status(commitment) %>
-    </span>
-  </td>
+  <td class="approval-status"></td>
   <% if @allow_buttons %>
     <td class="approval-buttons">
-      <%= commitment_approval_links(commitment) %>
+      <% if commitment.uncontrolled? %>
+        <%= blank_icon(false) %>
+        <%= blank_icon(false) %>
+        <%= blank_icon(false) %>
+      <% else %>
+        <%= approve_icon(false) %>
+        <%= note_icon(false) %>
+        <%= reject_icon(false) %>
+      <% end %>
     </td>
   <% else %>
     <td></td>

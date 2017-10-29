@@ -15,11 +15,11 @@ window.approvalsHandler = function () {
 
   var approveSucceeded = function(data, textStatus, jqXHR) {
     if (data['status']) {
-      this['statusElement'].removeClass('tentative-commitment rejected-commitment noted-commitment').addClass('constraining-commitment').text('OK');
-      this['buttons'].html(that.confirmed_template);
-      this['yesButton']     = this['buttons'].find('.approval-yes');
-      this['noButton']      = this['buttons'].find('.approval-no');
-      this['notedButton']   = this['buttons'].find('.approval-noted');
+      this['statusElement'].html(that.status_confirmed);
+      this['buttons'].html(that.buttons_confirmed);
+      this['yesButton']     = this['buttons'].find('.approval-approve');
+      this['noButton']      = this['buttons'].find('.approval-reject');
+      this['notedButton']   = this['buttons'].find('.approval-hold');
       this['noButton'].click(this, noClicked);
       window.triggerCountsUpdate();
     } else {
@@ -49,15 +49,17 @@ window.approvalsHandler = function () {
       //  turn its status to red, change the text, and make sure it has
       //  only "Approve" and "Noted" links.
       //
-      this['statusElement'].removeClass('tentative-commitment constraining-commitment noted-commitment').addClass('rejected-commitment').text('Rejected');
-      this['buttons'].html(that.rejected_template);
-      this['yesButton']     = this['buttons'].find('.approval-yes');
+      this['statusElement'].html(that.status_rejected);
+      console.log("Setting title to " + this['reason']);
+      this['statusElement'].prop('title', this['reason']);
+      this['buttons'].html(that.buttons_rejected);
+      this['yesButton']     = this['buttons'].find('.approval-approve');
       //
       //  Yes, I know there is no "No" button, but I want to update
       //  the data structure to reflect this.
       //
-      this['noButton']      = this['buttons'].find('.approval-no');
-      this['notedButton']   = this['buttons'].find('.approval-noted');
+      this['noButton']      = this['buttons'].find('.approval-reject');
+      this['notedButton']   = this['buttons'].find('.approval-hold');
       this['yesButton'].click(this, yesClicked);
       this['notedButton'].click(this, notedClicked);
       window.triggerCountsUpdate();
@@ -74,6 +76,7 @@ window.approvalsHandler = function () {
 //    alert("No clicked for commitment " + event.data['commitmentId']);
     var response = prompt("Please state the problem briefly:");
     if (response != null) {
+      event.data['reason'] = response;
       $.ajax({
         url: baseURL + event.data['commitmentId'] + '/ajaxreject?reason=' + response,
         type: 'PUT',
@@ -87,11 +90,11 @@ window.approvalsHandler = function () {
 
   var notedSucceeded = function(data, textStatus, jqXHR) {
     if (data['status']) {
-      this['statusElement'].removeClass('tentative-commitment rejected-commitment constraining-commitment').addClass('noted-commitment').text('Noted');
-      this['buttons'].html(that.noted_template);
-      this['yesButton']     = this['buttons'].find('.approval-yes');
-      this['noButton']      = this['buttons'].find('.approval-no');
-      this['notedButton']   = this['buttons'].find('.approval-noted');
+      this['statusElement'].html(that.status_noted);
+      this['buttons'].html(that.buttons_noted);
+      this['yesButton']     = this['buttons'].find('.approval-approve');
+      this['noButton']      = this['buttons'].find('.approval-reject');
+      this['notedButton']   = this['buttons'].find('.approval-hold');
       this['yesButton'].click(this, yesClicked);
       this['noButton'].click(this, noClicked);
       window.triggerCountsUpdate();
@@ -121,11 +124,17 @@ window.approvalsHandler = function () {
       //  Need some templates (although they're not really templates,
       //  just chunks of html).
       //
-      that.uncontrolled_template = $('#uncontrolled-template').html();
-      that.confirmed_template    = $('#confirmed-template').html();
-      that.requested_template    = $('#requested-template').html();
-      that.rejected_template     = $('#rejected-template').html();
-      that.noted_template        = $('#noted-template').html();
+      that.buttons_uncontrolled = $('#template-buttons-uncontrolled').html();
+      that.buttons_confirmed    = $('#template-buttons-confirmed').html();
+      that.buttons_requested    = $('#template-buttons-requested').html();
+      that.buttons_rejected     = $('#template-buttons-rejected').html();
+      that.buttons_noted        = $('#template-buttons-noted').html();
+      //
+      that.status_uncontrolled = $('#template-status-uncontrolled').html();
+      that.status_confirmed    = $('#template-status-confirmed').html();
+      that.status_requested    = $('#template-status-requested').html();
+      that.status_rejected     = $('#template-status-rejected').html();
+      that.status_noted        = $('#template-status-noted').html();
       //
       //  At this point, we arguably should check whether that.items
       //  already exists, and if it does then go through explicitly
@@ -133,41 +142,53 @@ window.approvalsHandler = function () {
       //
       that.items = [];
       that.ourRegion.find('.approval-item').each(function(index, element) {
-        var thisOne = {}, template = null;
+        var thisOne = {}, buttons = null, statustext = null;
         thisOne['commitmentId']  = $(element).data('commitment-id');
         thisOne['initialStatus'] = $(element).data('commitment-status');
+        thisOne['reason']        = $(element).data('commitment-reason');
         thisOne['statusElement'] = $(element).find('.approval-status');
         thisOne['buttons']       = $(element).find('.approval-buttons');
         if (thisOne['initialStatus']) {
           switch (thisOne['initialStatus']) {
             case 'uncontrolled':
-              template = that.uncontrolled_template;
+              buttons = that.buttons_uncontrolled;
+              statustext = that.status_uncontrolled;
               break;
 
             case 'confirmed':
-              template = that.confirmed_template;
+              buttons = that.buttons_confirmed;
+              statustext = that.status_confirmed;
               break;
 
             case 'requested':
-              template = that.requested_template;
+              buttons = that.buttons_requested;
+              statustext = that.status_requested;
               break;
 
             case 'rejected':
-              template = that.rejected_template;
+              buttons = that.buttons_rejected;
+              statustext = that.status_rejected;
               break;
 
             case 'noted':
-              template = that.noted_template;
+              buttons = that.buttons_noted;
+              statustext = that.status_noted;
               break;
 
           }
-          if (template) {
-            thisOne['buttons'].html(template);
+          if (buttons) {
+            thisOne['buttons'].html(buttons);
+          }
+          if (statustext) {
+            thisOne['statusElement'].html(statustext);
+            if (thisOne['reason']) {
+              thisOne['statusElement'].prop('title', thisOne['reason']);
+            }
           }
         }
-        thisOne['yesButton']     = $(element).find('.approval-yes');
-        thisOne['noButton']      = $(element).find('.approval-no');
-        thisOne['notedButton']   = $(element).find('.approval-noted');
+        thisOne['yesButton']     = $(element).find('.approval-approve');
+        thisOne['noButton']      = $(element).find('.approval-reject');
+        thisOne['notedButton']   = $(element).find('.approval-hold');
         thisOne['yesButton'].click(thisOne, yesClicked);
         thisOne['noButton'].click(thisOne, noClicked);
         thisOne['notedButton'].click(thisOne, notedClicked);

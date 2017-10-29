@@ -15,7 +15,7 @@
       <th>Body</th>
       <th title="Owner">Own</th>
       <th title="Organiser">Org</th>
-      <th>Approval</th>
+      <th>Status</th>
       <th></th>
       <th>Form</th>
     </tr>
@@ -32,22 +32,41 @@
 
 <br>
 
-<script type="text/template" id="uncontrolled-template">
+<script type="text/template" id="template-buttons-uncontrolled">
+<%= blank_icon(false) %> <%= blank_icon(false) %> <%= blank_icon(false) %>
 </script>
 
-<script type="text/template" id="confirmed-template">
-<%= approve_icon(false) %> <%= noted_icon(false) %> <%= reject_icon(true) %>
+<script type="text/template" id="template-buttons-confirmed">
+<%= three_icons(false, false, true) %>
 </script>
 
-<script type="text/template" id="requested-template">
-<%= approve_icon(true) %> <%= noted_icon(true) %> <%= reject_icon(true) %>
+<script type="text/template" id="template-buttons-requested">
+<%= three_icons(true, true, true) %>
 </script>
 
-<script type="text/template" id="rejected-template">
-<%= approve_icon(true) %> <%= noted_icon(true) %> <%= reject_icon(false) %>
+<script type="text/template" id="template-buttons-rejected">
+<%= three_icons(true, true, false) %>
 </script>
 
-<script type="text/template" id="noted-template">
-<%= approve_icon(true) %> <%= noted_icon(false) %> <%= reject_icon(true) %> 
+<script type="text/template" id="template-buttons-noted">
+<%= three_icons(true, false, true) %>
 </script>
 
+<script type="text/template" id="template-status-uncontrolled">
+</script>
+
+<script type="text/template" id="template-status-confirmed">
+<%= approved_icon %> Approved
+</script>
+
+<script type="text/template" id="template-status-requested">
+<%= requested_icon %> Requested
+</script>
+
+<script type="text/template" id="template-status-rejected">
+<%= rejected_icon %> Rejected
+</script>
+
+<script type="text/template" id="template-status-noted">
+<%= noted_icon %> Noted
+</script>

@@ -204,28 +204,56 @@ module CommitmentsHelper
     end
   end
 
+  def approvals_image(
+    action:,
+    size:     32,
+    enabled:  true,
+    title:    nil)
+
+    "<img #{
+      enabled ? "class=\"approval-#{action}\"" : "class=\"approval-disabled-button\""
+    } #{
+      enabled && title ? "title=\"#{title}\"" : ""
+    } src=\"/images/#{action}#{size}.png\">"
+  end
+
   def approve_icon(enabled)
-    if enabled
-      '<span class="approval-yes" title="Approve"><img src="/images/accept1.png"/></span>'.html_safe
-    else
-      '<span><img class="approval-disabled-button" src="/images/accept1.png"/></span>'.html_safe
-    end
+    approvals_image(action: "approve", enabled: enabled, title: "Approve").html_safe
+  end
+
+  def approved_icon
+    approvals_image(action: "approve", size: 16, enabled: true).html_safe
   end
 
   def reject_icon(enabled)
-    if enabled
-      '<span class="approval-no" title="Reject"><img src="/images/remove.png"/></span>'.html_safe
-    else
-      '<span><img class="approval-disabled-button" src="/images/remove.png"/></span>'.html_safe
-    end
+    approvals_image(action: "reject", enabled: enabled, title: "Reject").html_safe
   end
 
-  def noted_icon(enabled)
-    if enabled
-      '<span class="approval-noted" title="Noted - held pending more information"><img src="/images/pause.png"/></span>'.html_safe
-    else
-      '<span><img class="approval-disabled-button" src="/images/pause.png"/></span>'.html_safe
-    end
+  def rejected_icon
+    approvals_image(action: "reject", size: 16, enabled: true).html_safe
+  end
+
+  def note_icon(enabled)
+    approvals_image(action: "hold",
+                    enabled: enabled,
+                    title: "Noted - hold pending more information").html_safe
+  end
+
+  def noted_icon
+    approvals_image(action: "hold", size: 16, enabled: true).html_safe
+  end
+
+  def requested_icon
+    approvals_image(action: "request", size: 16, enabled: true).html_safe
+  end
+
+  def three_icons(approve, noted, reject)
+    "#{approve_icon(approve)} #{note_icon(noted)} #{reject_icon(reject)}".html_safe
+  end
+
+  def blank_icon(enabled)
+    approvals_image(action: "blank",
+                    enabled: enabled).html_safe
   end
 
 end
