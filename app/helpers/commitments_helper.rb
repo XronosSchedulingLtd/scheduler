@@ -194,7 +194,7 @@ module CommitmentsHelper
   def commitment_form_status(commitment)
     response = commitment.user_form_responses[0]
     if response
-      if response.complete
+      if response.complete?
         link_to("Complete", user_form_response_path(response))
       else
         "To fill in"
