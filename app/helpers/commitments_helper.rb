@@ -196,8 +196,10 @@ module CommitmentsHelper
     if response
       if response.complete?
         link_to("Complete", user_form_response_path(response))
+      elsif response.partial?
+        link_to("Partial", user_form_response_path(response))
       else
-        "To fill in"
+        "Empty"
       end
     else
       "None"

@@ -126,7 +126,9 @@ module EventsHelper
           select {|c| c.in_approvals? }.
           collect do |c|
             status = c.form_status
-            if status == "To fill in" || status == "Complete"
+            if status == "To fill in" ||
+               status == "Complete" ||
+               status == "Partial"
               #
               #  Link to edit the form.
               #
@@ -152,7 +154,7 @@ module EventsHelper
     event.commitments.
           select {|c| c.in_approvals?}.
           collect do |c|
-            if c.rejected? || c.form_status == "To fill in"
+            if c.rejected? || c.noted? || c.form_status == "To fill in"
               "<" 
             else
               "&nbsp;"

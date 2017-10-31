@@ -80,7 +80,7 @@ class UserFormResponsesController < ApplicationController
   def create
     local_params = user_form_response_params
     local_params[:user] = current_user
-    local_params[:complete] = true
+    local_params[:status] = :complete
     @user_form_response =
       @user_form.user_form_responses.new(local_params)
 
@@ -106,7 +106,7 @@ class UserFormResponsesController < ApplicationController
     #  permission to fill in this form.
     #
     my_params = user_form_response_params
-    my_params[:complete] = true
+    my_params[:status] = :complete
     respond_to do |format|
       if @user_form_response.update(my_params)
         if parent = @user_form_response.parent

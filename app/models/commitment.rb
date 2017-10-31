@@ -59,8 +59,6 @@ class Commitment < ActiveRecord::Base
   scope :uncovered_commitment, -> { joins("left outer join `commitments` `covereds_commitments` ON `covereds_commitments`.`covering_id` = `commitments`.`id`").where("covereds_commitments.id IS NULL") }
   scope :firm, -> { where(:tentative => false) }
   scope :tentative, -> { where(:tentative => true) }
-#  scope :rejected, -> { where(status: :rejected) }
-#  scope :not_rejected, -> { where.not(status: :rejected) }
   scope :not_rejected, -> { where.not("commitments.status = ?",
                                       Commitment.statuses[:rejected]) }
   scope :constraining, -> { where("commitments.status = ?",
@@ -652,6 +650,8 @@ class Commitment < ActiveRecord::Base
       else
         if ufr.complete?
           "Complete"
+        elsif ufr.partial?
+          "Partial"
         else
           "To fill in"
         end
