@@ -64,6 +64,11 @@ class Commitment < ActiveRecord::Base
   scope :constraining, -> { where("commitments.status = ?",
                                   Commitment.statuses[:confirmed]) }
   scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}
+  #
+  #  The next one is for the overnight notification code.
+  #
+  scope :notifiable, -> {where(status: [Commitment.statuses[:requested],
+                                        Commitment.statuses[:rejected]])}
 
   scope :until, lambda { |datetime| joins(:event).merge(Event.until(datetime)) }
   #

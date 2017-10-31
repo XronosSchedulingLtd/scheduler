@@ -5,15 +5,15 @@ namespace :daily do
   desc "Check for pending approvals."
   task :check_approvals => :environment do
 #    puts "Checking pending approvals."
-    Element.owned.each do |element|
-      set = PendingSet.new(element)
-      UserNotificationSet.note_pending(set)
+    ApprovalNotifier.new.scan_elements.send_emails
+#      set = PendingSet.new(element)
+#      UserNotificationSet.note_pending(set)
 #      unless set.empty?
 #        set.report
 #      end
-    end
+#    end
 #    UserNotificationSet.dump
-    UserNotificationSet.send_emails
+#    UserNotificationSet.send_emails
   end
 
   desc "Adjust group currency flags."
