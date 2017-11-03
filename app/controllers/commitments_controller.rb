@@ -156,7 +156,7 @@ class CommitmentsController < ApplicationController
       @commitment.approve_and_save!(current_user)
       @event.reload
       @event.journal_commitment_approved(@commitment, current_user)
-      if @event.complete
+      if @event.complete?
         #
         #  Given that our commitment was previously tentative, this
         #  event must now be newly complete.
@@ -242,9 +242,10 @@ class CommitmentsController < ApplicationController
     @event = @commitment.event
     if current_user.can_approve?(@commitment) &&
       (@commitment.requested? || @commitment.rejected?)
-      @commitment.noted_and_save!(current_user)
+      @commitment.noted_and_save!(current_user, params[:reason])
       @event.reload
       @event.journal_commitment_noted(@commitment, current_user)
+      UserMailer.commitment_noted_email(@commitment).deliver
       @commitment.user_form_responses.each do |ufr|
         if ufr.complete?
           ufr.status = :partial

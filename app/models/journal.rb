@@ -235,7 +235,8 @@ class Journal < ActiveRecord::Base
   def commitment_description(entry_type, commitment)
     if entry_type == :resource_added && commitment.tentative?
       "Needs approval"
-    elsif entry_type == :commitment_rejected
+    elsif entry_type == :commitment_rejected ||
+          entry_type == :commitment_noted
       "Reason: #{commitment.reason}"
     else
       ""

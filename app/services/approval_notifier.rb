@@ -6,35 +6,27 @@ class ApprovalNotifier
   #
   class Recipient
 
-    class ElementQueue
+    class ElementQueue < Array
       attr_reader :element
 
       def initialize(element)
         @element = element
-        @commitments = Array.new
-      end
-
-      def <<(commitment)
-        @commitments << commitment
+        super()
       end
 
       def dump
         puts "      #{@element.name}"
-        puts "        #{@commitments.size} commitments"
+        puts "        #{self.size} commitments"
       end
     end
 
-    attr_reader :pending_sets, :email
+    attr_reader :email
 
     def initialize(email)
       @email = email
       @rejections = Array.new
       @forms = Array.new
       @my_queues = Hash.new
-    end
-
-    def send_email
-      UserMailer.pending_approvals_email(@user.email, self).deliver
     end
 
     def note_request(element, commitment)
@@ -61,10 +53,22 @@ class ApprovalNotifier
       end
     end
 
-    def self.send_emails
-      @@user_sets.each do |key, us|
-        us.send_email
+    #
+    #  Send the e-mails for this recipient.
+    #
+    def send_emails
+      puts "Sending e-mails for #{self.email}"
+      @rejections.each do |r|
+        UserMailer.commitment_rejected_email(r).deliver
       end
+      if @my_queues.size > 0
+        puts "Has #{@my_queues.size} queues."
+        UserMailer.pending_approvals_email(@email,
+                                           @my_queues.values).deliver
+      end
+
+#      UserMailer.pending_approvals_email(@user.email, self).deliver
+
     end
 
   end
@@ -72,28 +76,26 @@ class ApprovalNotifier
   #
   #  Responsible for storing and finding Recipient records.
   #
-  class RecipientSet
-
-    def initialize
-      @recipients = Hash.new
-    end
+  class RecipientSet < Hash
 
     #
     #  Find the recipient record for a given e-mail address, creating
     #  it if it does not already exist.
     #
     def recipient(email)
-      @recipients[email] ||= Recipient.new(email)
-    end
-
-    def count
-      @recipients.count
+      self[email] ||= Recipient.new(email)
     end
 
     def dump
       puts "  Dumping RecipientSet"
-      @recipients.each do |key, r|
+      self.each do |key, r|
         r.dump
+      end
+    end
+
+    def send_emails
+      self.each do |key, r|
+        r.send_emails
       end
     end
 
@@ -195,9 +197,13 @@ class ApprovalNotifier
     Element.owned.each do |element|
       self.process_element(element)
     end
+    self
   end
 
   def send_emails
+    puts "Asked to send e-mails."
+    @rs.send_emails
+    nil
   end
 
   def dump

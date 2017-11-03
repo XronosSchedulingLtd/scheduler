@@ -553,7 +553,7 @@ class User < ActiveRecord::Base
             #
             #  Are all forms complete?
             #
-            if c.user_form_responses.select {|ufr| !ufr.complete} == 0
+            if c.user_form_responses.select {|ufr| !ufr.complete?} == 0
               count += 1
             end
           end

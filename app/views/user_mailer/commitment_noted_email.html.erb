@@ -7,35 +7,38 @@
   <body>
     <%= render partial: "header" %>
     <p>
-      Unfortunately, <%=
-        @rejecter
-        %> has identified a problem with your request for:
-    </p>
-    <p class="indented">
-    <%= @element.name %>
-    </p>
-    <p>
-    for your event "<%=
+      For your event "<%=
         @event.body
       %>" on <%=
         @event.starts_at.strftime("%d/%m/%Y")
       %> at <%=
         @event.starts_at.strftime("%H:%M")
-      %> giving the following reason:
+      %> you have requested:
     </p>
     <p class="indented">
-      <%= @reason %>
+    <%= @element.name %>
     </p>
     <p>
-      Please adjust or cancel your request.
+      <%= @noter %> has acknowledged your request and is waiting
+      for more information in order to be able to approve it.
+    </p>
+    <% if @reason %>
+      <p>Additional information:</p>
+      <p class="indented">
+      <%= @reason %>
+      </p>
+    <% end %>
+    <p>
+    You can provide the additional information either by filling
+    in the appropriate form, or by e-mailing <%= @noter %> directly.
     </p>
     <p>
     <% if @user %>
       <%= mailer_user_events_link(@user) %>
       <%= mailer_scheduler_link(@event) %>
-      <% if @rejecter_email %>
-        <%= mailer_mail_to_link(@rejecter_email,
-                                @rejecter,
+      <% if @noter_email %>
+        <%= mailer_mail_to_link(@noter_email,
+                                @noter,
                                 mailer_subject(@event)) %>
       <% end %>
     <% end %>

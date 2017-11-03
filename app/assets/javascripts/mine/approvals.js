@@ -110,7 +110,7 @@ window.approvalsHandler = function () {
     if (data['status']) {
       chunks = that.htmlChunks.noted;
       this.statusElement.html(chunks.statusText);
-      this.statusElement.removeAttr('title');
+      this.statusElement.prop('title', this['reason']);
       this.buttons.html(chunks.buttons);
       this.yesButton     = this.buttons.find('.approval-approve');
       this.noButton      = this.buttons.find('.approval-reject');
@@ -131,12 +131,16 @@ window.approvalsHandler = function () {
   }
 
   var notedClicked = function(event) {
-    $.ajax({
-      url: baseURL + event.data.commitmentId + '/ajaxnoted',
-      type: 'PUT',
-      context: event.data,
-      contentType: 'application/json'
-    }).done(notedSucceeded).fail(notedFailed);
+    var response = prompt("Additional information for requester - (optional):");
+    if (response != null) {
+      event.data['reason'] = response;
+      $.ajax({
+        url: baseURL + event.data.commitmentId + '/ajaxnoted?reason=' + response,
+        type: 'PUT',
+        context: event.data,
+        contentType: 'application/json'
+      }).done(notedSucceeded).fail(notedFailed);
+    }
     return false;
   }
 

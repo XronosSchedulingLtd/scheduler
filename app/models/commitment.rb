@@ -101,6 +101,26 @@ class Commitment < ActiveRecord::Base
   end
 
   #
+  #  If you're going to make use of this, then it will help a lot if you
+  #  pre-load the events.
+  #
+  def <=>(other)
+    if self.event
+      if other.event
+        self.event <=> other.event
+      else
+        1
+      end
+    else
+      if other.event
+        -1
+      else
+        0
+      end
+    end
+  end
+
+  #
   #  We use the value of new_status to set tentative ourselves.
   #
   #  Note that this method expects a symbol.  The underlying Rails
@@ -134,14 +154,16 @@ class Commitment < ActiveRecord::Base
     self.save!
   end
 
-  def noted_and_save!(user)
+  def noted_and_save!(user, reason)
     self.status = :noted
     self.by_whom = user
+    self.reason = reason
     self.save!
   end
 
   def revert_and_save!
     self.status = :requested
+    self.reason = ""
     self.save!
   end
 

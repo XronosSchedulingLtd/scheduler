@@ -487,6 +487,15 @@ class Event < ActiveRecord::Base
       "SYS"
     end
   end
+
+  def owners_name
+    if self.owner
+      self.owner.name
+    else
+      ""
+    end
+  end
+
   #
   #  What resources are directly involved in this event?
   #

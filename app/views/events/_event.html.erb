@@ -22,7 +22,7 @@
   <% if @show_organiser %>
     <td title="Organiser"><%= event.organisers_initials %></td>
   <% end %>
-  <% if event.complete %>
+  <% if event.complete? %>
     <td></td>
   <% else %>
     <td class="incomplete-event" title="Incomplete">No</td>

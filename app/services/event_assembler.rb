@@ -116,7 +116,7 @@ class EventAssembler
       if event.non_existent
         @colour = washed_out(@colour)
       else
-        unless event.complete
+        unless event.complete?
           #
           #  Users who aren't logged in don't get to know nuances
           #  about whether events are complete or not.

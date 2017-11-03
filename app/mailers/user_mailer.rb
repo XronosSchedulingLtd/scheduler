@@ -34,6 +34,7 @@ class UserMailer < ActionMailer::Base
     if commitment.by_whom
       @rejecter = commitment.by_whom.name
       parameters[:reply_to] = commitment.by_whom.email
+      @rejecter_email = commitment.by_whom.email
     else
       @rejecter = "the system"
     end
@@ -51,6 +52,41 @@ class UserMailer < ActionMailer::Base
         mail(parameters)
       else
         Rails.logger.info("Unable to send request rejected e-mail.  No-one to send to.")
+      end
+    end
+  end
+
+  def commitment_noted_email(commitment)
+    parameters = Hash.new
+    @event = commitment.event
+    @element = commitment.element
+    @commitment = commitment
+    if commitment.reason.blank?
+      @reason = nil
+    else
+      @reason = commitment.reason
+    end
+    if commitment.by_whom
+      @noter = commitment.by_whom.name
+      parameters[:reply_to] = commitment.by_whom.email
+      @noter_email = commitment.by_whom.email
+    else
+      @noter = "the system"
+    end
+    if @event && @element
+      #
+      #  Who the e-mail goes to depends on what information is in the
+      #  event.
+      #
+      email = appropriate_email(@event)
+      if email
+        @user = User.find_by(email: email)
+        parameters[:to] = email
+        parameters[:subject] = "Resource request noted"
+        parameters[:from] = Setting.from_email_address
+        mail(parameters)
+      else
+        Rails.logger.info("Unable to send request noted e-mail.  No-one to send to.")
       end
     end
   end
@@ -101,8 +137,9 @@ class UserMailer < ActionMailer::Base
          subject: "Request for #{resource.name} cancelled")
   end
 
-  def pending_approvals_email(email, user_set)
-    @user_set = user_set
+  def pending_approvals_email(email, queues)
+    puts "In pending_approvals_email for #{email} with #{queues.size} queues."
+    @queues = queues
     mail(to: email,
          from: Setting.from_email_address,
          subject: "Pending event approvals")
