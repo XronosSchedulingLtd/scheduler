@@ -145,14 +145,6 @@ class Commitment < ActiveRecord::Base
     self.save!
   end
 
-  #
-  #  Does this commitment seem to be completely outside the approvals
-  #  process?  None of the flags set.
-  #
-  def approvals_free?
-    self.uncontrolled?
-  end
-
   def in_approvals?
     !self.uncontrolled?
   end

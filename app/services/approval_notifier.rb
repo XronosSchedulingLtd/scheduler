@@ -51,7 +51,6 @@ class ApprovalNotifier
     end
 
     def dump
-  #    puts @@user_sets.inspect
       puts "    Dumping Recipient"
       puts "    Email #{@email}"
       puts "    #{@rejections.size} rejections"

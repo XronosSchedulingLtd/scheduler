@@ -26,7 +26,7 @@ class RequestNotifier
     #  but it can't be rejected.  No-one has had time to reject
     #  it yet.
     #
-    if commitment.tentative
+    if commitment.tentative?
       #
       #  We are keeping track of net change, so we record that
       #  the resource has been added, unless it was earlier
@@ -42,7 +42,7 @@ class RequestNotifier
   end
 
   def commitment_removed(commitment)
-    if commitment.tentative && !commitment.rejected
+    if commitment.tentative? && !commitment.rejected?
       if @elements_added.include?(commitment.element_id)
         @elements_added -= [commitment.element_id]
       else

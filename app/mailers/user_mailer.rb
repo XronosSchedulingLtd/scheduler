@@ -1,4 +1,5 @@
 class UserMailer < ActionMailer::Base
+  add_template_helper(UserMailerHelper)
   default from: "abingdon@scheduler.org.uk"
 
   def cover_clash_email(user, clashes, oddities)
@@ -24,6 +25,7 @@ class UserMailer < ActionMailer::Base
     parameters = Hash.new
     @event = commitment.event
     @element = commitment.element
+    @commitment = commitment
     if commitment.reason.blank?
       @reason = "no reason was given"
     else
@@ -42,6 +44,7 @@ class UserMailer < ActionMailer::Base
       #
       email = appropriate_email(@event)
       if email
+        @user = User.find_by(email: email)
         parameters[:to] = email
         parameters[:subject] = "Resource request declined"
         parameters[:from] = Setting.from_email_address

@@ -365,8 +365,8 @@ class User < ActiveRecord::Base
       if event && element
         self.can_edit?(event) ||
           (self.can_subedit?(event) &&
-           !item.constraining &&
-           !(element.owned? && item.approvals_free?))
+           !item.constraining? &&
+           !(element.owned? && item.uncontrolled?))
       else
         #
         #  Doesn't seem to be a real commitment yet.

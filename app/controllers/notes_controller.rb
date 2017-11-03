@@ -69,7 +69,7 @@ class NotesController < ApplicationController
         #  between user and approver.
         #
         @event.journal_note_updated(@note, @note.parent, current_user)
-        if @note.parent.rejected || @note.parent.constraining
+        if @note.parent.rejected? || @note.parent.constraining?
           @note.parent.revert_and_save!
           @event.journal_commitment_reset(@note.parent, current_user)
           @visible_commitments, @approvable_commitments =

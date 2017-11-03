@@ -22,46 +22,59 @@ class EventsController < ApplicationController
     @show_organiser          = true
     @show_actions            = false
 
-    if params[:user_id] && 
-      params[:user_id].to_i == current_user.id
-      #
-      #  Being asked for events related to this user.  Note, not
-      #  events *involving* this user - events which he owns or
-      #  organises.
-      #
-      #  Just give this user's own events.  He or she is either
-      #  the owner or the organiser.  Since we are currently on
-      #  Rails 4.x we can't use ActiveRecord's "or" constructor.
-      #
-      #  All users can *ask* for them, but those who don't have
-      #  any will get an empty list.
-      #
-      staff = current_user.corresponding_staff
-      if staff
+    if params[:user_id]
+      if (params[:user_id].to_i == current_user.id) || current_user.admin?
         #
-        #  Events are owned by users, but organised by elements.
+        #  Explicit adjustment to allow admin users to view events
+        #  for other users.
         #
-        selector = Event.where("owner_id = ? OR organiser_id = ?",
-                               current_user.id,
-                               staff.element.id)
+        if params[:user_id].to_i != current_user.id
+          target_user = User.find_by(id: params[:user_id]) || current_user
+        end
+        #
+        #  Being asked for events related to this user.  Note, not
+        #  events *involving* this user - events which he owns or
+        #  organises.
+        #
+        #  Just give this user's own events.  He or she is either
+        #  the owner or the organiser.  Since we are currently on
+        #  Rails 4.x we can't use ActiveRecord's "or" constructor.
+        #
+        #  All users can *ask* for them, but those who don't have
+        #  any will get an empty list.
+        #
+        staff = target_user.corresponding_staff
+        if staff
+          #
+          #  Events are owned by users, but organised by elements.
+          #
+          selector = Event.where("owner_id = ? OR organiser_id = ?",
+                                 target_user.id,
+                                 staff.element.id)
+        else
+          selector = target_user.events
+        end
+        if params.has_key?(:pending)
+          selector = selector.future.in_approvals
+          @title = "#{target_user.name}'s pending events"
+          @flip_target = user_events_path(target_user)
+          @flip_text = "See All"
+        else
+          @title = "#{target_user.name}'s events"
+          @flip_target = user_events_path(target_user, pending: true)
+          @flip_text = "See Pending"
+        end
+        @flip_button    = true
+        @show_owner     = false
+        @show_organiser = false
+        @show_actions   = true
+        @listing_id     = "user-events"
       else
-        selector = current_user.events
+        #
+        #  Asked to see someone else's events and isn't an admin.
+        #
+        selector = nil
       end
-      if params.has_key?(:pending)
-        selector = selector.future.in_approvals
-        @title = "#{current_user.name}'s pending events"
-        @flip_target = user_events_path(current_user)
-        @flip_text = "See All"
-      else
-        @title = "#{current_user.name}'s events"
-        @flip_target = user_events_path(current_user, pending: true)
-        @flip_text = "See Pending"
-      end
-      @flip_button    = true
-      @show_owner     = false
-      @show_organiser = false
-      @show_actions   = true
-      @listing_id     = "user-events"
     elsif current_user.admin?
       #
       #  The user is asking for all events.  Allow this only for
