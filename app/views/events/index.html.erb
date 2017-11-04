@@ -1,3 +1,4 @@
+<div id="event-index" data-dorefresh="0" class="flag-refreshes">
 <% if @flip_button %>
   <div class="flip-button">
     <%= link_to @flip_text, @flip_target, class: "zfbutton tiny radius" %>
@@ -38,6 +39,6 @@
 <div class="digg_pagination">
   <%= will_paginate @events %>
 </div>
-
+</div>
 <br>
 

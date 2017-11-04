@@ -11,7 +11,7 @@
     %>
   </td>
   <td><%= event.duration_text %></td>
-  <td><%= link_to(event.trimmed_body(40),
+  <td><%= link_to(event.trimmed_body(35),
                   event_path(event, from_listing: true),
                   title: event.body,
                   "data-reveal-id" => "eventModal",

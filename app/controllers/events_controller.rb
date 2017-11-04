@@ -28,8 +28,13 @@ class EventsController < ApplicationController
         #  Explicit adjustment to allow admin users to view events
         #  for other users.
         #
+        #  Note that the only way we can get here with the following
+        #  two items not equal is if current_user is an admin.
+        #
         if params[:user_id].to_i != current_user.id
           target_user = User.find_by(id: params[:user_id]) || current_user
+        else
+          target_user = current_user
         end
         #
         #  Being asked for events related to this user.  Note, not

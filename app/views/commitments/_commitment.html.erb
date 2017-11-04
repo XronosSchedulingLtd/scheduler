@@ -7,9 +7,11 @@
     %>
   </td>
   <td><%= commitment.event.duration_text %></td>
-  <td title="<%= commitment.event.body %>">
-    <%= commitment.event.trimmed_body(40) %>
-  </td>
+  <td><%= link_to(commitment.event.trimmed_body(35),
+                  event_path(commitment.event, from_listing: true),
+                  title: commitment.event.body,
+                  "data-reveal-id" => "eventModal",
+                  "data-reveal-ajax" => true) %></td>
   <td title="<%=
     commitment.event.owners_name
   %>"><%=

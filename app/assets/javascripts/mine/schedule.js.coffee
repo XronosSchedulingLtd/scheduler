@@ -56,6 +56,14 @@ $(document).ready ->
   )
 
   $(document).on('closed', '[data-reveal]', ->
+    #
+    #  The dorefresh flag is set using a class selector, so a single bit
+    #  of setting code can set it anywhere in the whole application.
+    #
+    #  However, it's checked using a specific ID, because we want to
+    #  check our very own instance.  We also reset it by ID, so we affect
+    #  only ours.
+    #
     flag = $('#fullcalendar').data("dorefresh")
     if flag == "1"
       $('#fullcalendar').data("dorefresh", "0")
@@ -423,11 +431,11 @@ window.updateUserColumn = (newContents, added, removed, doReload) ->
 window.replaceShownCommitments = (new_html) ->
   $('#show-all-commitments').html(new_html)
   $('.rejection-link').click(noClicked)
-  $('#fullcalendar').data("dorefresh", "1")
+  window.refreshNeeded()
 
 window.replaceEditingCommitments = (new_html) ->
   $('#event_resources').html(new_html)
-  $('#fullcalendar').data("dorefresh", "1")
+  window.refreshNeeded()
 
 window.beginNoteEditing = (body_text) ->
   $('#event-notes').html(body_text)
@@ -446,7 +454,7 @@ window.finishEditingEvent = (event_summary, do_refresh) ->
   if typeof window.activateRelocateLink == 'function'
     window.activateRelocateLink()
   if do_refresh
-    $('#fullcalendar').data('dorefresh', '1')
+    window.refreshNeeded()
     window.triggerCountsUpdate()
 
 window.closeModal = (full_reload, just_events, filter_state) ->
@@ -462,3 +470,8 @@ window.closeModal = (full_reload, just_events, filter_state) ->
         el.removeClass('filter-off')
         el.addClass("filter-#{filter_state}")
         el.text(filter_state)
+
+window.refreshNeeded = ->
+  console.log("To refresh " + $('.flag-refreshes').length)
+  $('.flag-refreshes').data("dorefresh", "1")
+
