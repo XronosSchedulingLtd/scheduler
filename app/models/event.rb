@@ -480,11 +480,27 @@ class Event < ActiveRecord::Base
     end
   end
 
+  def organisers_email
+    if self.organiser && self.organiser.entity_type == "Staff"
+      self.organiser.entity.email
+    else
+      nil
+    end
+  end
+
   def owners_initials
     if self.owner
       self.owner.initials
     else
       "SYS"
+    end
+  end
+
+  def owners_email
+    if self.owner
+      self.owner.email
+    else
+      nil
     end
   end
 

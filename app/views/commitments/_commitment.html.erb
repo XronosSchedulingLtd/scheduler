@@ -10,8 +10,16 @@
   <td title="<%= commitment.event.body %>">
     <%= commitment.event.trimmed_body(40) %>
   </td>
-  <td title="<%= commitment.event.owners_name %>"><%= commitment.event.owners_initials %></td>
-  <td title="<%= commitment.event.organiser_name %>"><%= commitment.event.organisers_initials %></td>
+  <td title="<%=
+    commitment.event.owners_name
+  %>"><%=
+    commitment_owner_mailto(commitment)
+  %></td>
+  <td title="<%=
+  commitment.event.organiser_name
+  %>"><%=
+    commitment_organiser_mailto(commitment)
+  %></td>
   <td class="approval-status"></td>
   <% if @allow_buttons %>
     <td class="approval-buttons">

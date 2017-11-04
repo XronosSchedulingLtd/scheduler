@@ -206,6 +206,28 @@ module CommitmentsHelper
     end
   end
 
+  def commitment_owner_mailto(commitment)
+    email = commitment.event.owners_email
+    if email
+      mail_to(email,
+              commitment.event.owners_initials,
+              target: "_blank").html_safe
+    else
+      commitment.event.owners_initials
+    end
+  end
+
+  def commitment_organiser_mailto(commitment)
+    email = commitment.event.organisers_email
+    if email
+      mail_to(email,
+              commitment.event.organisers_initials,
+              target: "_blank").html_safe
+    else
+      commitment.event.organisers_initials
+    end
+  end
+
   def approvals_image(
     action:,
     size:     32,
