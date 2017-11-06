@@ -1449,7 +1449,8 @@ class Event < ActiveRecord::Base
       all_firm         = true
       any_constraining = false
       self.commitments.each do |c|
-        commitment_tentative, commitment_constraining = c.event_timing_changed
+        commitment_tentative, commitment_constraining =
+          c.event_timing_changed
         if commitment_tentative
           all_firm = false
         end
@@ -1469,7 +1470,7 @@ class Event < ActiveRecord::Base
         do_save = true
       end
       if self.constrained != any_constraining
-        self.constrained = any_constraing
+        self.constrained = any_constraining
         do_save = true
       end
       if do_save

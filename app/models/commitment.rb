@@ -180,7 +180,14 @@ class Commitment < ActiveRecord::Base
   #
   def event_timing_changed
     unless self.uncontrolled? || self.requested?
-      self.revert_and_save!
+      #
+      #  It looks like we are going to revert this, but there is
+      #  one exception.  If the current user has the ability
+      #  to grant permission for this resource, then we don't.
+      #
+      unless self.confirmed?
+        self.revert_and_save!
+      end
     end
     return [self.tentative?, self.constraining?]
   end
