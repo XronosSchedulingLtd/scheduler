@@ -13,11 +13,9 @@
     </div>
     <div class="large-12 columns fillup">
   <% end %>
-      <div id="fullcalendar" class="flag-refreshes"<%
-        if @with_edit
-          %> class="withedit"<%
-        end
-          %> data-firstday="<%= @first_day %>" data-defaultdate="<%= @default_date %>" data-dorefresh="0"></div>
+    <div id="fullcalendar" class="flag-refreshes<%=
+      @with_edit ? " withedit" : ""
+    %>" data-firstday="<%= @first_day %>" data-defaultdate="<%= @default_date %>" data-dorefresh="0"></div>
     </div>
   </div>
   <div class="bottomtext">
