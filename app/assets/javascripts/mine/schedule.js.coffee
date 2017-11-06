@@ -370,16 +370,13 @@ prOwnForm = null
 prTargetForm = null
 
 submittingCreate = ->
-  console.log("Creation form being submitted.")
   targetField = prTargetForm.find('#event_precommit_element_id')
   if targetField.length
-    console.log("Found target field.")
     sources = prOwnForm.find('.pr-checkbox')
     result = targetField.val()
     sources.each (index, source) =>
       if source.checked
         result = result + ',' + $(source).val()
-    console.log("Setting targetField to " + result)
     targetField.val(result)
 
 primePreRequisites = ->
