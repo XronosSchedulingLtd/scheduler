@@ -472,6 +472,5 @@ window.closeModal = (full_reload, just_events, filter_state) ->
         el.text(filter_state)
 
 window.refreshNeeded = ->
-  console.log("To refresh " + $('.flag-refreshes').length)
   $('.flag-refreshes').data("dorefresh", "1")
 
