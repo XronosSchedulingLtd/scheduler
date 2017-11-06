@@ -194,7 +194,6 @@ class Event < ActiveRecord::Base
   scope :has_clashes, lambda { where(has_clashes: true) }
 
   before_destroy :being_destroyed
-  after_save :check_time_changes
 
   #
   #  We are being asked to check whether we are complete or not.  The
@@ -1378,6 +1377,49 @@ class Event < ActiveRecord::Base
     format_timings(self.starts_at, self.ends_at, self.all_day)
   end
 
+  def check_timing_changes(as_user)
+    if @timing_changed
+      @timing_changed = false
+      #
+      #  We are going to inform our commitments about our timing change,
+      #  which may in turn cause them to call back into us.  Rather
+      #  than processing each of these callbacks individually, which
+      #  is inefficient and could lead to infinite recursion, we'll do
+      #  it all at the end.
+      #
+      @informing_commitments = true
+      all_firm         = true
+      any_constraining = false
+      self.commitments.each do |c|
+        commitment_tentative, commitment_constraining =
+          c.event_timing_changed(as_user)
+        if commitment_tentative
+          all_firm = false
+        end
+        if commitment_constraining
+          any_constraining = true
+        end
+      end
+      @informing_commitments = false
+      #
+      #  And now we need to decide again whether we are complete.
+      #  Probably not.
+      #
+      do_save = false
+      if self.complete != all_firm
+        self.complete = all_firm
+        do_save = true
+      end
+      if self.constrained != any_constraining
+        self.constrained = any_constraining
+        do_save = true
+      end
+      if do_save
+        self.save!
+      end
+    end
+  end
+
   private
 
   def become_all_day
@@ -1435,48 +1477,5 @@ class Event < ActiveRecord::Base
     @being_destroyed = true
   end
 
-  def check_time_changes
-    if @timing_changed
-      @timing_changed = false
-      #
-      #  We are going to inform our commitments about our timing change,
-      #  which may in turn cause them to call back into us.  Rather
-      #  than processing each of these callbacks individually, which
-      #  is inefficient and could lead to infinite recursion, we'll do
-      #  it all at the end.
-      #
-      @informing_commitments = true
-      all_firm         = true
-      any_constraining = false
-      self.commitments.each do |c|
-        commitment_tentative, commitment_constraining =
-          c.event_timing_changed
-        if commitment_tentative
-          all_firm = false
-        end
-        if commitment_constraining
-          any_constraining = true
-        end
-      end
-      @informing_commitments = false
-      #
-      #  And now we need to decide again whether we are complete.
-      #  Probably not.  Note that we have already set @timing_changed
-      #  to false, so we won't end up getting here recursively.
-      #
-      do_save = false
-      if self.complete != all_firm
-        self.complete = all_firm
-        do_save = true
-      end
-      if self.constrained != any_constraining
-        self.constrained = any_constraining
-        do_save = true
-      end
-      if do_save
-        self.save!
-      end
-    end
-  end
 
 end

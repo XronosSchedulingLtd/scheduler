@@ -428,6 +428,7 @@ class EventsController < ApplicationController
         @event.ensure_journal
         if @event.update(event_params)
           @event.journal_event_updated(current_user)
+          @event.check_timing_changes(current_user)
           if session[:request_notifier]
             session[:request_notifier].
               send_notifications_for(current_user, @event)
@@ -476,6 +477,7 @@ class EventsController < ApplicationController
       respond_to do |format|
         if @event.save
           @event.journal_event_updated(current_user)
+          @event.check_timing_changes(current_user)
           format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
           format.json { render :show, status: :ok, location: @event }
         else

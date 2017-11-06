@@ -172,21 +172,22 @@ class Commitment < ActiveRecord::Base
   end
 
   #
-  #  Handle a notification from our parent event that it's timing has
+  #  Handle a notification from our parent event that its timing has
   #  changed.  If we are in the approvals process, this will cause us
   #  to leap back to being in a "Requested" state.
   #
   #  We also save ourselves back to the d/b if we have changed.
   #
-  def event_timing_changed
+  def event_timing_changed(as_user = nil)
     unless self.uncontrolled? || self.requested?
       #
       #  It looks like we are going to revert this, but there is
       #  one exception.  If the current user has the ability
       #  to grant permission for this resource, then we don't.
       #
-      unless self.confirmed?
+      unless self.confirmed? && as_user && as_user.can_approve?(self)
         self.revert_and_save!
+        self.event.journal_commitment_reset(self, as_user)
       end
     end
     return [self.tentative?, self.constraining?]
