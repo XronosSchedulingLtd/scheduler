@@ -346,7 +346,11 @@ class EventsController < ApplicationController
         #
         current_user.concerns.auto_add.each do |concern|
           c = @event.commitments.new
-          c.tentative = current_user.needs_permission_for?(concern.element)
+          if current_user.needs_permission_for?(concern.element)
+            c.status = :requested
+          else
+            c.status = :uncontrolled
+          end
           c.element = concern.element
           c.save
           if session[:request_notifier]
@@ -377,7 +381,11 @@ class EventsController < ApplicationController
               #
               unless current_user.concerns.auto_add.detect {|c| c.element == element}
                 c = @event.commitments.new
-                c.tentative = current_user.needs_permission_for?(element)
+                if current_user.needs_permission_for?(element)
+                  c.status = :requested
+                else
+                  c.status = :uncontrolled
+                end
                 c.element = element
                 c.save
                 if session[:request_notifier]
