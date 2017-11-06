@@ -194,6 +194,7 @@ class Event < ActiveRecord::Base
   scope :has_clashes, lambda { where(has_clashes: true) }
 
   before_destroy :being_destroyed
+  after_save :check_time_changes
 
   #
   #  We are being asked to check whether we are complete or not.  The
@@ -202,7 +203,7 @@ class Event < ActiveRecord::Base
   #  tentative, then we might be complete.
   #
   def update_from_commitments(commitment_tentative, commitment_constraining)
-    unless @being_destroyed || self.destroyed?
+    unless @being_destroyed || self.destroyed? || @informing_commitments
       do_save = false
       if commitment_tentative
         if self.complete
@@ -297,7 +298,14 @@ class Event < ActiveRecord::Base
   end
 
   def starts_at_text=(value)
+    old_starts_at = self.starts_at
     self.starts_at = value
+    if (self.starts_at != old_starts_at) && !self.new_record?
+      #
+      #  A genuine change.
+      #
+      @timing_changed = true
+    end
   end
 
   def duration_text
@@ -362,6 +370,7 @@ class Event < ActiveRecord::Base
 
   def ends_at_text=(value)
 #    Rails.logger.debug("Setting ends_at to #{value}")
+    old_ends_at = self.ends_at
     self.ends_at = value
     #
     #  May need this again later.
@@ -374,6 +383,12 @@ class Event < ActiveRecord::Base
       #  the following day.
       #
       self.ends_at = self.ends_at.to_date + 1.day
+    end
+    if (self.ends_at != old_ends_at) && !self.new_record?
+      #
+      #  A genuine change.
+      #
+      @timing_changed = true
     end
   end
 
@@ -398,6 +413,8 @@ class Event < ActiveRecord::Base
   end
 
   def set_timing(new_start, new_all_day)
+    old_starts_at = self.starts_at
+    old_ends_at   = self.ends_at
     current_duration = ends_at - starts_at
     current_days = ends_at.to_date - starts_at.to_date
     new_starts_at = Time.zone.parse(new_start)
@@ -447,6 +464,13 @@ class Event < ActiveRecord::Base
         self.ends_at   = starts_at + current_duration
       end
     end
+    if (self.starts_at != old_starts_at ||
+        self.ends_at   != old_ends_at) && !self.new_record?
+      #
+      #  A genuine change.
+      #
+      @timing_changed = true
+    end
   end
 
   #
@@ -457,7 +481,14 @@ class Event < ActiveRecord::Base
   #  Actually, now no different from writing to ends_at
   #
   def new_end=(new_value)
+    old_ends_at = self.ends_at
     self.ends_at = Time.zone.parse(new_value)
+    if (self.ends_at != old_ends_at) && !self.new_record?
+      #
+      #  A genuine change.
+      #
+      @timing_changed = true
+    end
   end
 
   #
@@ -1402,6 +1433,49 @@ class Event < ActiveRecord::Base
 
   def being_destroyed
     @being_destroyed = true
+  end
+
+  def check_time_changes
+    if @timing_changed
+      @timing_changed = false
+      #
+      #  We are going to inform our commitments about our timing change,
+      #  which may in turn cause them to call back into us.  Rather
+      #  than processing each of these callbacks individually, which
+      #  is inefficient and could lead to infinite recursion, we'll do
+      #  it all at the end.
+      #
+      @informing_commitments = true
+      all_firm         = true
+      any_constraining = false
+      self.commitments.each do |c|
+        commitment_tentative, commitment_constraining = c.event_timing_changed
+        if commitment_tentative
+          all_firm = false
+        end
+        if commitment_constraining
+          any_constraining = true
+        end
+      end
+      @informing_commitments = false
+      #
+      #  And now we need to decide again whether we are complete.
+      #  Probably not.  Note that we have already set @timing_changed
+      #  to false, so we won't end up getting here recursively.
+      #
+      do_save = false
+      if self.complete != all_firm
+        self.complete = all_firm
+        do_save = true
+      end
+      if self.constrained != any_constraining
+        self.constrained = any_constraing
+        do_save = true
+      end
+      if do_save
+        self.save!
+      end
+    end
   end
 
 end

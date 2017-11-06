@@ -172,6 +172,20 @@ class Commitment < ActiveRecord::Base
   end
 
   #
+  #  Handle a notification from our parent event that it's timing has
+  #  changed.  If we are in the approvals process, this will cause us
+  #  to leap back to being in a "Requested" state.
+  #
+  #  We also save ourselves back to the d/b if we have changed.
+  #
+  def event_timing_changed
+    unless self.uncontrolled? || self.requested?
+      self.revert_and_save!
+    end
+    return [self.tentative?, self.constraining?]
+  end
+
+  #
   #  Clone an existing commitment and save to d/b.
   #  Note that you *must* provide at least one modifier or the save
   #  will fail.  Commitments must be unique.
