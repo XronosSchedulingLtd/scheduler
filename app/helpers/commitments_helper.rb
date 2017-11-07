@@ -132,8 +132,10 @@ module CommitmentsHelper
         #
         if commitment.rejected?
           body = "<span class=\"rejected-commitment\" title=\"#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : "" }\">#{body}</span>"
-        elsif commitment.tentative?
+        elsif commitment.requested?
           body = "<span class=\"tentative-commitment\">#{body}</span>"
+        elsif commitment.noted?
+          body = "<span class=\"noted-commitment\">#{body}</span>"
         elsif commitment.constraining?
           body = "<span class=\"constraining-commitment\">#{body}</span>"
         end
@@ -192,7 +194,7 @@ module CommitmentsHelper
   end
 
   def commitment_form_status(commitment)
-    response = commitment.user_form_responses[0]
+    response = commitment.user_form_response
     if response
       if response.complete?
         link_to("Complete", user_form_response_path(response))

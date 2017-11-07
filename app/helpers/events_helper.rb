@@ -11,13 +11,18 @@ module EventsHelper
   def colour_wrap(commitment, text)
     if commitment.rejected?
       "<span class='rejected-commitment' title='#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : ""}'>#{text}</span>"
-    elsif commitment.tentative?
+    elsif commitment.requested?
       "<span class='tentative-commitment'>#{text}</span>"
+    elsif commitment.noted?
+      "<span class='noted-commitment'>#{text}</span>"
     elsif commitment.constraining?
       "<span class='constraining-commitment'>#{text}</span>"
     else
       text
     end
+  end
+
+  def icon_prefix(commitment, text)
   end
 
   def highlighted_name(commitment, show_clashes, user)
