@@ -471,13 +471,6 @@ class User < ActiveRecord::Base
     @permissions_pending
   end
 
-#  def forms_pending
-#    unless @forms_pending
-#      @forms_pending = self.user_form_responses.incomplete.count
-#    end
-#    @forms_pending
-#  end
-
   #
   #  This should be a count of the events which *this user* can do
   #  something about.  Being incomplete is not enough - they need to
@@ -501,7 +494,7 @@ class User < ActiveRecord::Base
       @events_pending =
         selector.future.
                  incomplete.
-                 includes(commitments: :user_form_responses).
+                 includes(commitments: :user_form_response).
                  inject(0) do |total, event|
         count = 0
         event.commitments.each do |c|
@@ -517,15 +510,9 @@ class User < ActiveRecord::Base
             count += 1
           else
             #
-            #  As we've already loaded these into memory, it's
-            #  quicker to count them ourselves rather than hitting
-            #  the d/b again.
+            #  Still count this if it has an incomplete form.
             #
-            c.user_form_responses.each do |ufr|
-              unless ufr.complete?
-                count += 1
-              end
-            end
+            count += c.incomplete_ufr_count
           end
         end
         total + count
@@ -545,7 +532,7 @@ class User < ActiveRecord::Base
         self.events.
              future.
              incomplete.
-             includes(commitments: :user_form_responses).
+             includes(commitments: :user_form_response).
              inject(0) do |total, event|
         count = 0
         event.commitments.each do |c|
@@ -553,7 +540,8 @@ class User < ActiveRecord::Base
             #
             #  Are all forms complete?
             #
-            if c.user_form_responses.select {|ufr| !ufr.complete?} == 0
+            if c.user_form_response == nil ||
+               c.user_form_response.complete?
               count += 1
             end
           end

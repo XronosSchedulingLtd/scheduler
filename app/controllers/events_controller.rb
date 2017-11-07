@@ -111,7 +111,7 @@ class EventsController < ApplicationController
         Rails.logger.debug("Previous event count = #{previous_event_count}")
         page_no = (previous_event_count / Event.per_page) + 1
       end
-      @events = selector.includes(commitments: :user_form_responses).page(page_no).order('starts_at')
+      @events = selector.includes(commitments: :user_form_response).page(page_no).order('starts_at')
     else
       if params.has_key?(:pending)
         redirect_to user_events_path(current_user, pending: true)

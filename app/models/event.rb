@@ -618,22 +618,11 @@ class Event < ActiveRecord::Base
   #
   def pending_form_count
     unless @pending_form_count
-      @pending_form_count =
-        self.commitments.inject(0) do |total, commitment|
-        total + commitment.user_form_responses.incomplete.count
+      @pending_form_count = self.commitments.inject(0) do |total, commitment|
+        total + commitment.incomplete_ufr_count
       end
     end
     @pending_form_count
-  end
-
-  def pending_form_count_no_db
-    unless @pending_form_count_no_db
-      @pending_form_count_no_db =
-        self.commitments.inject(0) do |total, commitment|
-        total + commitment.user_form_responses.select {|ufr| !ufr.complete}.count
-      end
-    end
-    @pending_form_count_no_db
   end
 
   def all_atomic_resources

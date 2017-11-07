@@ -202,11 +202,10 @@ class CommitmentsController < ApplicationController
       @event.reload
       @event.journal_commitment_rejected(@commitment, current_user)
       UserMailer.commitment_rejected_email(@commitment).deliver
-      @commitment.user_form_responses.each do |ufr|
-        if ufr.complete?
-          ufr.status = :partial
-          ufr.save
-        end
+      if @commitment.user_form_response &&
+         @commitment.user_form_response.complete?
+        @commitment.user_form_response.status = :partial
+        @commitment.user_form_response.save
       end
       return true
     else
@@ -246,11 +245,10 @@ class CommitmentsController < ApplicationController
       @event.reload
       @event.journal_commitment_noted(@commitment, current_user)
       UserMailer.commitment_noted_email(@commitment).deliver
-      @commitment.user_form_responses.each do |ufr|
-        if ufr.complete?
-          ufr.status = :partial
-          ufr.save
-        end
+      if @commitment.user_form_response &&
+         @commitment.user_form_response.complete?
+        @commitment.user_form_response.status = :partial
+        @commitment.user_form_response.save
       end
       true
     else

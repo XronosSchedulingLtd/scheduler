@@ -172,13 +172,13 @@ class ApprovalNotifier
     element.commitments.
             future.
             notifiable.
-            includes([:event, :user_form_responses]).each do |c|
+            includes([:event, :user_form_response]).each do |c|
       if c.requested?
-        if c.user_form_responses.size == 0 || c.user_form_responses[0].complete?
+        if c.user_form_response == nil || c.user_form_response.complete?
           approver_emails.each do |ae|
             @rs.recipient(ae).note_request(element, c)
           end
-        elsif c.user_form_responses.size > 0 && c.user_form_responses[0].empty?
+        elsif c.user_form_response && c.user_form_response.empty?
           email = requester_email(c)
           if email
             @rs.recipient(email).note_form(c)

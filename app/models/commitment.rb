@@ -19,7 +19,7 @@ class Commitment < ActiveRecord::Base
   belongs_to :request
   belongs_to :by_whom, class_name: "User"
   has_many :notes, as: :parent, dependent: :destroy
-  has_many :user_form_responses, as: :parent, dependent: :destroy
+  has_one :user_form_response, as: :parent, dependent: :destroy
 
   validates_presence_of :event, :element
 
@@ -681,11 +681,11 @@ class Commitment < ActiveRecord::Base
   #  Textual indication of what we have in the way of a form.
   #
   def form_status
-    if self.user_form_responses.size > 0
+    if self.user_form_response
       #
       #  Currently cope with only one.
       #
-      ufr = self.user_form_responses[0]
+      ufr = self.user_form_response
       if self.constraining?
         "Locked"
       else
@@ -703,7 +703,15 @@ class Commitment < ActiveRecord::Base
   end
 
   def corresponding_form
-    self.user_form_responses[0]
+    self.user_form_response
+  end
+
+  def incomplete_ufr_count
+    if self.user_form_response && !self.user_form_response.complete?
+      1
+    else
+      0
+    end
   end
 
   #
@@ -778,7 +786,7 @@ class Commitment < ActiveRecord::Base
         })
       end
       if self.element.user_form
-        self.user_form_responses.create({
+        self.create_user_form_response({
           user_form: self.element.user_form,
           user:      self.event.owner
         })
