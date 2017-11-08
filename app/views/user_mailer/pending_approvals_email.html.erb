@@ -11,8 +11,8 @@
       awaiting your approval.
     </p>
 <% @queues.each do |queue| %>
-    <div>
-      <div class="flip-button">
+    <div class='resource-chunk'>
+      <div class='flip-button'>
         <%= mailer_resource_link("View requests", queue.element) %>
       </div>
     <h3>
