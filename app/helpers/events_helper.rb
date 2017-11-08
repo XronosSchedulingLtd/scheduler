@@ -14,7 +14,7 @@ module EventsHelper
     elsif commitment.requested?
       "<span class='tentative-commitment'>#{text}</span>"
     elsif commitment.noted?
-      "<span class='noted-commitment'>#{text}</span>"
+      "<span class='noted-commitment' title='#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : ""}'>#{text}</span>"
     elsif commitment.constraining?
       "<span class='constraining-commitment'>#{text}</span>"
     else
@@ -22,12 +22,26 @@ module EventsHelper
     end
   end
 
+  #
+  #  Like a colour wrap, but instead prefix with an icon.
+  #
   def icon_prefix(commitment, text)
+    if commitment.rejected?
+      "<span class='keep-together' title='#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : ""}'><img src=\"/images/reject16.png\"/> #{text}</span>"
+    elsif commitment.requested?
+      "<span class='keep-together' title='Awaiting approval'><img src=\"/images/request16.png\"/> #{text}</span>"
+    elsif commitment.noted?
+      "<span class='keep-together' title='#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : ""}'><img src=\"/images/hold16.png\"/> #{text}</span>"
+    elsif commitment.constraining?
+      "<span class='keep-together' title='Approved'><img src=\"/images/approve16.png\"/> #{text}</span>"
+    else
+      text
+    end
   end
 
   def highlighted_name(commitment, show_clashes, user)
     text = be_linken(commitment.element.name, commitment.element)
-    text = colour_wrap(commitment, text)
+    text = icon_prefix(commitment, text)
     if show_clashes && commitment.has_simple_clash? && user
       text = "<span class='double-booked' title='Double booked'>#{text}</span>"
     end
@@ -117,7 +131,7 @@ module EventsHelper
   def approvals_table_list(event)
     event.commitments.
           select {|c| c.in_approvals?}.
-          collect {|c| colour_wrap(c, h(c.element.short_name))}.
+          collect {|c| icon_prefix(c, h(c.element.short_name))}.
           join("<br/>").html_safe
   end
 
