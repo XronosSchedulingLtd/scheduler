@@ -1,3 +1,19 @@
+v0.25-pre3 2017-11-08
+
+A couple of tweaks to the CSS on the re-worked e-mails to try to
+cope with Gmail.  (Gmail does not pass things through unadulterated,
+with the result that things look different inside Gmail from outside.)
+
+* The header has a link to Scheduler.  This is meant to have white text
+  and no underline, but in Gmail it gets blue text and an underline.
+  Made the selector more specific to try to override Gmail's amendments.
+
+* In the listing of pending approvals, the buttons over on the right
+  hand side cascade inwards if their is a short list of individual
+  requests for a resource.  Added a "clear" specifier to the parent
+  div to try to prevent this.
+
+
 v0.25-pre2 2017-11-07
 
 Further polishing of the new features.
@@ -68,8 +84,6 @@ Further polishing of the new features.
   of an event in this way, all the other approvals which it might have
   automatically revert to a "Requested" state, and need to go through
   the approvals process again.  As always, this event is journalled.
-
-
 
 
 v0.25-pre1 2017-10-23
