@@ -1,3 +1,9 @@
+v0.25-pre4 2017-11-10
+
+* This time, it really does seem to manage to get the e-mail header
+  to look right when viewed in Gmail.
+
+
 v0.25-pre3 2017-11-08
 
 A couple of tweaks to the CSS on the re-worked e-mails to try to
