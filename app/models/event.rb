@@ -87,6 +87,7 @@ class CommitmentSet < Array
       self.commitment_type.pluralize
     end
   end
+
 end
 
 class Event < ActiveRecord::Base
@@ -675,17 +676,20 @@ class Event < ActiveRecord::Base
       #  Currently works only for exam invigilations.  Will need refining
       #  when requests start being used for other purposes too.
       #
+      #  We display commitments only if they are firm, or this is a known
+      #  user.  Tentative commitments are not shown to visitors.
+      #
       unless user && user.exams? && c.request_id
         if user && user.can_approve?(c) && !c.uncontrolled?
           approvables << c
-        else
+        elsif !c.tentative? || (user && user.known?)
           by_type[c.element.entity_type] ||=
             CommitmentSet.new(c.element.entity_type)
           by_type[c.element.entity_type] << c
         end
       end
     end
-    if user
+    if user && user.known?
       #
       #  Not yet separating out the ones which this user can approve.
       #
@@ -698,7 +702,8 @@ class Event < ActiveRecord::Base
         by_type["Property"]].compact, approvables]
     else
       #
-      #  The general public get to see just Staff, Locations and Groups.
+      #  The general public get to see just Staff, Locations and Groups,
+      #  and then only *firm* commitments.
       #
       [[by_type["Staff"],
         by_type["Group"],
