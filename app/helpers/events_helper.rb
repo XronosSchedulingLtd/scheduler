@@ -32,18 +32,22 @@ module EventsHelper
   end
 
   def highlighted_name(commitment, show_clashes, user)
-    text = be_linken(commitment.element.name, commitment.element)
-    text = icon_prefix(commitment, text)
-    if show_clashes && commitment.has_simple_clash? && user
-      text = "<span class='double-booked' title='Double booked'>#{text}</span>"
-    end
-    if commitment.covering
-      if commitment.element.entity_type == "Location"
-        word = "normally"
-      else
-        word = "covering"
+    if user && user.known?
+      text = be_linken(commitment.element.name, commitment.element)
+      text = icon_prefix(commitment, text)
+      if show_clashes && commitment.has_simple_clash? && user
+        text = "<span class='double-booked' title='Double booked'>#{text}</span>"
       end
-      text = "#{text} (#{word} <span title='#{h(commitment.covering.element.name)}'>#{be_linken(commitment.covering.element.short_name, commitment.covering.element)}</span>)"
+      if commitment.covering
+        if commitment.element.entity_type == "Location"
+          word = "normally"
+        else
+          word = "covering"
+        end
+        text = "#{text} (#{word} <span title='#{h(commitment.covering.element.name)}'>#{be_linken(commitment.covering.element.short_name, commitment.covering.element)}</span>)"
+      end
+    else
+      text = commitment.element.name
     end
     text
   end
