@@ -313,9 +313,9 @@ class ConcernsController < ApplicationController
   end
 
   def authorized?(action = action_name, resource = nil)
-    (logged_in? && current_user.known?) ||
-      action == 'sidebar' ||
-      action == 'flipped'
+    known_user? ||
+    action == 'sidebar' ||
+    action == 'flipped'
   end
 
   private

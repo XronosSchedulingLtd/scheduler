@@ -8,7 +8,11 @@ class ApplicationController < ActionController::Base
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
 
-  helper_method :current_user, :can_roam?, :admin?
+  helper_method :current_user,
+                :user_can_roam?,
+                :admin_user?,
+                :known_user?,
+                :public_groups_user?
 
   before_filter :login_required
 
@@ -59,6 +63,15 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def current_user
+    @current_user ||=
+      User.includes(:concerns).find_by(id: session[:user_id]) if session[:user_id]
+  end
+
+  def logged_in?
+    !!current_user
+  end
+
   #
   #  All actions required admin privilege by default.  Override this method
   #  in the individual controller to lower the privilege requirements.
@@ -67,21 +80,25 @@ class ApplicationController < ActionController::Base
     logged_in? && current_user.admin
   end
 
-  def can_roam?
+  #
+  #  These are for quickly checking particular privileges of the current
+  #  user, taking account of the fact that there might not be a currently
+  #  logged on user.
+  #
+  def user_can_roam?
     current_user && current_user.can_roam
   end
 
-  def logged_in?
-    !!current_user
+  def admin_user?
+    current_user && current_user.admin?
   end
 
-  def admin?
-    logged_in? && current_user.admin
+  def known_user?
+    current_user && current_user.known?
   end
 
-  def current_user
-    @current_user ||=
-      User.includes(:concerns).find_by(id: session[:user_id]) if session[:user_id]
+  def public_groups_user?
+    current_user && current_user.public_groups?
   end
 
 end

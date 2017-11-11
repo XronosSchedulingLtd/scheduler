@@ -1,7 +1,7 @@
 module EventsHelper
 
   def be_linken(text, element)
-    if can_roam? && element
+    if user_can_roam? && element
       link_to(h(text), element)
     else
       h(text)

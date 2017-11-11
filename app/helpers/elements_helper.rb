@@ -23,7 +23,7 @@ module ElementsHelper
     #  because some things are linked in without being active.  E.g.
     #  OTL uses non-existent staff for some Private Study periods.
     #
-    if can_roam? && element
+    if user_can_roam? && element
       link_to(h(name), element_path(element))
     else
       h(name)

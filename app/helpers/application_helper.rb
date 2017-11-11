@@ -8,18 +8,6 @@ module ApplicationHelper
     end
   end
 
-  def known_user?
-    current_user && current_user.known?
-  end
-
-  def admin_user?
-    current_user && current_user.admin?
-  end
-
-  def public_groups_user?
-    current_user && current_user.public_groups?
-  end
-
   def single_flag(f, content)
     if content[:annotation]
       #
