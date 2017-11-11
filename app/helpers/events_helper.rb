@@ -1,13 +1,5 @@
 module EventsHelper
 
-  def be_linken(text, element)
-    if user_can_roam? && element
-      link_to(h(text), element)
-    else
-      h(text)
-    end
-  end
-
   def colour_wrap(commitment, text)
     if commitment.rejected?
       "<span class='rejected-commitment' title='#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : ""}'>#{text}</span>"

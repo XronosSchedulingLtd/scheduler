@@ -13,32 +13,6 @@ module ElementsHelper
   end
 
   #
-  #  Called every time we want to display something, perhaps with a
-  #  link.  Some users get links, others don't.  This handles that
-  #  decision and returns appropriate text.
-  #
-  def be_linken(name, element)
-    #
-    #  It's just possible that we will get passed null as the element
-    #  because some things are linked in without being active.  E.g.
-    #  OTL uses non-existent staff for some Private Study periods.
-    #
-    if user_can_roam? && element
-      link_to(h(name), element_path(element))
-    else
-      h(name)
-    end
-  end
-
-  def be_hover_linken(title, name, element)
-    if title
-      "<span title=\"#{title}\">#{be_linken(name, element)}</span>"
-    else
-      be_linken(name, element)
-    end
-  end
-
-  #
   #  I'd really like to get the object itself to do this, but the
   #  way Rails structures dependencies it isn't really possible.
   #
