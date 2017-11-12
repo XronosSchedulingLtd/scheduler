@@ -2,8 +2,10 @@
 <html>
   <head>
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+    <%= render partial: "styling" %>
   </head>
   <body>
+    <%= render partial: "header" %>
     <p>
     <%= @name %> requests <%= @resource.name %> at <%= @event.starts_at_text %>
     </p>

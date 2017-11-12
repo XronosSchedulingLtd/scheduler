@@ -103,42 +103,44 @@ class UserMailer < ActionMailer::Base
     end
   end
 
-  def resource_requested_email(owner, resource, event, user = nil)
+  def do_resource_email(owner, resource, event, user)
     @resource = resource
     @event = event
+    parameters = {
+      to:      owner.email,
+      from:    Setting.from_email_address,
+      subject: "Request for #{resource.name}"
+    }
     if @event.organiser
       @name = @event.organiser.entity.name
+      parameters[:reply_to] = @event.organiser.entity.email
     elsif @event.owner
       @name = @event.owner.name
+      parameters[:reply_to] = @event.owner.email
     elsif user
       @name = user.name
+      parameters[:reply_to] = user.email
     else
       @name = "System"
     end
-    mail(to: owner.email,
-         from: Setting.from_email_address,
-         subject: "Request for #{resource.name}")
+    mail(parameters)
+  end
+
+  #
+  #  These next two look absolutely identical (and they are) but
+  #  because they are different actions the recipient ends up
+  #  getting different e-mails.  The names of these actions dictate
+  #  the names of the view templates to use.
+  #
+  def resource_requested_email(owner, resource, event, user = nil)
+    do_resource_email(owner, resource, event, user)
   end
 
   def resource_request_cancelled_email(owner, resource, event, user = nil)
-    @resource = resource
-    @event = event
-    if @event.organiser
-      @name = @event.organiser.entity.name
-    elsif @event.owner
-      @name = @event.owner.name
-    elsif user
-      @name = user.name
-    else
-      @name = "System"
-    end
-    mail(to: owner.email,
-         from: Setting.from_email_address,
-         subject: "Request for #{resource.name} cancelled")
+    do_resource_email(owner, resource, event, user)
   end
 
   def pending_approvals_email(email, queues)
-    puts "In pending_approvals_email for #{email} with #{queues.size} queues."
     @queues = queues
     mail(to: email,
          from: Setting.from_email_address,
