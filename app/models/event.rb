@@ -620,7 +620,11 @@ class Event < ActiveRecord::Base
   def pending_form_count
     unless @pending_form_count
       @pending_form_count = self.commitments.inject(0) do |total, commitment|
-        total + commitment.incomplete_ufr_count
+        if commitment.tentative?
+          total + commitment.incomplete_ufr_count
+        else
+          total
+        end
       end
     end
     @pending_form_count

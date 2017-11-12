@@ -63,6 +63,13 @@ New in this release:
   controlled resources (rooms which need approval) skipped the approvals
   process.  This has been fixed in this release.
 
+* Fix count of actions where user has approval without completing form.
+
+  It's just possible that an approver will approve a request even though
+  the requester hasn't filled in the form.  In this case, the form should
+  not be included in the requester's count of "things to do" because
+  he or she no longer has access to it.
+
 
 v0.25-pre4 2017-11-10
 
