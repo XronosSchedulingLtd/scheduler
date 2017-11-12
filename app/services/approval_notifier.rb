@@ -57,18 +57,13 @@ class ApprovalNotifier
     #  Send the e-mails for this recipient.
     #
     def send_emails
-      puts "Sending e-mails for #{self.email}"
       @rejections.each do |r|
         UserMailer.commitment_rejected_email(r).deliver
       end
       if @my_queues.size > 0
-        puts "Has #{@my_queues.size} queues."
         UserMailer.pending_approvals_email(@email,
                                            @my_queues.values).deliver
       end
-
-#      UserMailer.pending_approvals_email(@user.email, self).deliver
-
     end
 
   end
@@ -201,7 +196,6 @@ class ApprovalNotifier
   end
 
   def send_emails
-    puts "Asked to send e-mails."
     @rs.send_emails
     nil
   end
