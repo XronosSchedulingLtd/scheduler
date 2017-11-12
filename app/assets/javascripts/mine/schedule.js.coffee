@@ -37,6 +37,7 @@ $(document).ready ->
       dateFormat: "dd/mm/yy"
       stepMinute: 5
     $('.rejection-link').click(noClicked)
+    $('.noted-link').click(notedClicked)
     activateColourPicker('#dynamic_colour_picker', '#dynamic_colour_sample')
     $('#event_starts_at').change( (event) ->
       starts_at = new Date($('#event_starts_at').val())
@@ -217,6 +218,22 @@ refreshConcerns = ->
 
 noClicked = (event) ->
   response = prompt("Please state the problem briefly:")
+  if response == null
+    #
+    #  User clicked cancel.
+    #
+    return false
+  else
+    #
+    #  It shouldn't happen, but it's just possible we might get called
+    #  twice.  Make sure we don't add the modifier to the string twice.
+    #
+    base_url = event.target.href.split("?")[0]
+    new_url = base_url + "?reason=" + encodeURIComponent(response)
+    $(this).attr('href', new_url)
+
+notedClicked = (event) ->
+  response = prompt("Additional information for requester - (optional):")
   if response == null
     #
     #  User clicked cancel.
@@ -428,6 +445,7 @@ window.updateUserColumn = (newContents, added, removed, doReload) ->
 window.replaceShownCommitments = (new_html) ->
   $('#show-all-commitments').html(new_html)
   $('.rejection-link').click(noClicked)
+  $('.noted-link').click(notedClicked)
   window.refreshNeeded()
 
 window.replaceEditingCommitments = (new_html) ->

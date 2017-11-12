@@ -20,9 +20,9 @@ module CommitmentsHelper
     if commitment.confirmed?
       text = reject_link(commitment, "Reject", true)
     elsif commitment.requested?
-      text = "#{approve_link(commitment, "Approve", true)} / #{reject_link(commitment, "Reject", true)} / #{noted_link(commitment, "Noted")}"
+      text = "#{approve_link(commitment, "Approve", true)} / #{reject_link(commitment, "Reject", true)} / #{noted_link(commitment, "Noted", true)}"
     elsif commitment.rejected?
-      text = "#{approve_link(commitment, "Approve", true)} / #{noted_link(commitment, "Noted")}"
+      text = "#{approve_link(commitment, "Approve", true)} / #{noted_link(commitment, "Noted", true)}"
     elsif commitment.noted?
       text = "#{approve_link(commitment, "Approve", true)} / #{reject_link(commitment, "Reject", true)}"
     else
@@ -86,10 +86,19 @@ module CommitmentsHelper
     end
   end
 
-  def noted_link(commitment, text)
-    "<span class=\"commitment-noted\">#{
-      link_to(text, "#", class: "approval-noted")
-     }</span>"
+  def noted_link(commitment, text, singleton = false)
+    if singleton
+      "<span class=\"commitment-noted\">#{
+        link_to(text, "#", class: "approval-noted")
+       }</span>"
+    else
+      "<span class=\"commitment-noted\">#{
+        link_to(text, noted_commitment_path(commitment),
+                :method => :put,
+                :remote => true,
+                :class => "noted-link")
+       }</span>"
+    end
   end
 
   def header_menu_text(user)
@@ -130,15 +139,7 @@ module CommitmentsHelper
         #
         #  Does it need any embellishment?
         #
-        if commitment.rejected?
-          body = "<span class=\"rejected-commitment\" title=\"#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : "" }\">#{body}</span>"
-        elsif commitment.requested?
-          body = "<span class=\"tentative-commitment\">#{body}</span>"
-        elsif commitment.noted?
-          body = "<span class=\"noted-commitment\">#{body}</span>"
-        elsif commitment.constraining?
-          body = "<span class=\"constraining-commitment\">#{body}</span>"
-        end
+        body = icon_prefix(commitment, body)
         #
         #  And any buttons?
         #

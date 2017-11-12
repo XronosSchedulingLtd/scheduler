@@ -4,6 +4,7 @@ class CommitmentsController < ApplicationController
                                         :ajaxreject,
                                         :reject,
                                         :ajaxnoted,
+                                        :noted,
                                         :destroy,
                                         :view]
 
@@ -260,6 +261,16 @@ class CommitmentsController < ApplicationController
     @status = do_noted
     respond_to do |format|
       format.json
+    end
+  end
+
+  def noted
+    do_noted
+    respond_to do |format|
+      format.js do
+        @visible_commitments, @approvable_commitments =
+          @event.commitments_for(current_user)
+      end
     end
   end
 

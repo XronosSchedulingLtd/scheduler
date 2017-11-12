@@ -122,6 +122,7 @@ Rails.application.routes.draw do
     member do
       put :approve
       put :reject
+      put :noted
       put :ajaxapprove
       put :ajaxreject
       put :ajaxnoted

@@ -74,8 +74,10 @@ module EventsHelper
   def approval_links(commitment, show_clashes = false, user = nil)
     text = highlighted_name(commitment, show_clashes, user)
     if commitment.rejected?
-      text = "#{text} #{approve_link(commitment, "Confirm")}"
-    elsif commitment.tentative?
+      text = "#{text} #{approve_link(commitment, "Confirm")} / #{noted_link(commitment, "Noted")}"
+    elsif commitment.requested?
+      text = "#{text} #{approve_link(commitment, "Confirm")} / #{noted_link(commitment, "Noted")} / #{reject_link(commitment, "Raise issue")}"
+    elsif commitment.noted?
       text = "#{text} #{approve_link(commitment, "Confirm")} / #{reject_link(commitment, "Raise issue")}"
     else
       text = "#{text} #{reject_link(commitment, "Raise issue")}"
