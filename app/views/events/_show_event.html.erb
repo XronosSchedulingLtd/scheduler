@@ -87,6 +87,9 @@
         <div id="meta_data">
           Created: <%= @event.created_at_text %><br/>
           Updated: <%= @event.updated_at_text %>
+        <% if @event.journal && current_user.can_view_journal_for?(@event) %>
+          <br/><%= link_to "Journal", @event.journal %>
+        <% end %>
         </div>
       </small>
       </p>
@@ -96,6 +99,8 @@
   <div class="small-12 medium-9 columns">
     <% if @resourcewarning %>
       <%= render partial: "events/warning" %>
+    <% elsif @form_count && (@form_count > 0) %>
+      <%= render partial: "events/pending_count" %>
     <% end %>
     <div id="show-all-commitments">
       <%= render partial: "show_all_commitments" %>

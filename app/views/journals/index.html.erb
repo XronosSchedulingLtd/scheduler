@@ -1,0 +1,34 @@
+<h1>Listing journals</h1>
+
+<div class="row collapse">
+  <div class="small-12 columns">
+    <div class="digg_pagination">
+      <%= will_paginate @journals %>
+    </div>
+
+    <table class="zftable">
+      <thead>
+        <tr>
+          <th>Event</th>
+          <th>On</th>
+          <th>Entries</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @journals.each do |journal| %>
+          <tr>
+            <td><%= journal.event_body %></td>
+            <td><%= journal.event_starts_at.strftime("%d/%m/%Y") %></td>
+            <td><%= link_to journal.journal_entries.count, journal %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <div class="digg_pagination">
+      <%= will_paginate @journals %>
+    </div>
+  </div>
+</div>
+

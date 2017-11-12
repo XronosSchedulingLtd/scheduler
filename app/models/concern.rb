@@ -107,11 +107,14 @@ class Concern < ActiveRecord::Base
   #  this concern?
   #
   def permissions_pending
-    if self.owns
-      self.element.commitments.future.tentative.not_rejected.count
-    else
-      0
+    unless @permissions_pending
+      if self.owns
+        @permissions_pending = self.element.permissions_pending
+      else
+        @permissions_pending = 0
+      end
     end
+    @permissions_pending
   end
 
   #

@@ -53,6 +53,7 @@ class SettingsController < ApplicationController
                     :prefer_https,
                     :require_uuid,
                     :room_cover_group_element_name,
-                    :room_cover_group_element_id)
+                    :room_cover_group_element_id,
+                    :event_creation_markup)
     end
 end

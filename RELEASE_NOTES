@@ -1,3 +1,137 @@
+v0.25-pre4 2017-11-10
+
+* This time, it really does seem to manage to get the e-mail header
+  to look right when viewed in Gmail.
+
+
+v0.25-pre3 2017-11-08
+
+A couple of tweaks to the CSS on the re-worked e-mails to try to
+cope with Gmail.  (Gmail does not pass things through unadulterated,
+with the result that things look different inside Gmail from outside.)
+
+* The header has a link to Scheduler.  This is meant to have white text
+  and no underline, but in Gmail it gets blue text and an underline.
+  Made the selector more specific to try to override Gmail's amendments.
+
+* In the listing of pending approvals, the buttons over on the right
+  hand side cascade inwards if their is a short list of individual
+  requests for a resource.  Added a "clear" specifier to the parent
+  div to try to prevent this.
+
+
+v0.25-pre2 2017-11-07
+
+Further polishing of the new features.
+
+* Use icons on the event approvals listing.  These will be retro-fitted
+  to all the other places where the status of a resource request is listed.
+
+* Addition of "Noted" or "Hold" option for requests.
+
+  It has become apparent that there are circumstances where resource
+  administrators need to say, "Noted, tell me more" in relation to a request.
+  This can be something as simple as a request for a visitor badge when
+  the name of the visitor isn't yet known, or it can be a proposed
+  dinner, where approximate details are known, but not yet the final
+  version.  It is nonetheless good for catering to receive an initial
+  request as early as possible.
+
+  It is now possible for resource administrators to click a "Noted"
+  button on a request (along with the existing "Approve" and "Reject")
+  which puts responsibility for it back in the requester's court (the
+  approver stops getting e-mails).  It is then expected that the
+  requester will finish off the details, at which point the request
+  will move back to a "Requested" state and the approver will once again
+  be prompted to accept or reject it.
+
+  This process can be repeated as often as necessary.  The approver can
+  include a message with each "Hold".
+
+  Hold events are journalled as normal, including any reason given.
+
+* The underlying implementation of request statuses has been changed from
+  a collection of flags to an enum.  This makes the processing clearer.
+
+* The form responses gain a status field, so it can be seen when the
+  form has been partly filled in and the approver is waiting for more
+  information.
+
+* E-mails have been re-worked to use a certain amount of formatting,
+  and to add buttons allowing users direct access to Scheduler to take
+  action on the points being raised.  Not all e-mails have been done yet -
+  only those relating to event approval - but they are being pushed out
+  to get user feedback.
+
+* Requesters whose requests have been rejected will now get a nightly
+  e-mail to prompt them to do something about them.  This is to prevent
+  them just sitting in the system for ever.
+
+* The listing of requests for a resource now has additional links.
+
+  * Owner's and Organiser's initials have hover text giving the full name,
+    and if clicked on allow the sending of a direct e-mail.
+
+  * Clicking on the name of an event will open the event modal dialogue.
+
+* If a user amends an event from the pop-up dialogue over an event listing
+  (either the requester's listing or the approver's listing) then the
+  listing will refresh when the dialogue is closed.
+
+* If an event has approved commitments, the normal requester loses the
+  ability to re-time the event.  This is to prevent ordinary users making
+  casual changes to, for instance, the public calendar.
+
+  Privileged users (e.g. DJD) can still change the timing of the event,
+  the idea being that if one wants to change the date/time of a calendar
+  event, one e-mails DJD and he does it (if he approves the change).
+
+  The new feature in this release is that should DJD change the timing
+  of an event in this way, all the other approvals which it might have
+  automatically revert to a "Requested" state, and need to go through
+  the approvals process again.  As always, this event is journalled.
+
+
+v0.25-pre1 2017-10-23
+
+This is a preparatory release to be installed at Abingdon to allow final
+polishing of some new features, which are:
+
+* Forms to enable requirements to be specified when requesting resources
+  for events.
+
+* Journalling of edits to events.
+
+  All manual edits to events are now journalled.  The journal can be
+  viewed by system administrators.
+
+* Configurable prompt message on event creation dialogue.
+
+* Configurable list of highlighted properties and services on event
+  creation dialogue.
+
+* Improved menus for event approval and requirement specification.
+
+  The old "Approvals" menu has been replaced by a heirarchy of menus
+  whereby a user can see events for which he is responsible, and
+  resource approvers can see lists of all events requesting their
+  resources.  Approvals can be done from the event dialogue as before,
+  or directly from the event listing.  Forms can be viewed and filled
+  in from the event listing.
+
+* Active counts of things requiring action for all users.
+
+  All users now get a count of things requiring their attention in their
+  top level menu.  As they work down through the menu, the location of
+  each item is highlighted by a count on each individual one.  At each
+  level, the count on the sub-menus will add up to the count on the
+  parent menu.
+
+  Counts are updated automatically when the user does something which
+  affects them, or after 10 minutes if someone else does something which
+  affects that user.
+
+
 v0.24.8 2017-10-02
 
 Two small bug fixes relating to the creation of repeating events.

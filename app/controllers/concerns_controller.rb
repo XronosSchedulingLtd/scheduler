@@ -1,6 +1,8 @@
 class ConcernsController < ApplicationController
   include DisplaySettings
 
+  JOURNAL_ENTRIES_TO_SHOW = 10
+
   class IcalUrl
     attr_reader :title, :url, :linkid
 
@@ -206,6 +208,30 @@ class ConcernsController < ApplicationController
         @urls = construct_urls
       end
       @proforma = @concern.owns && !@concern.equality
+      @message = ""
+      #
+      #  Can we show the journal?
+      #
+      if current_user.can_view_journal_for?(@element)
+        @journal_entries =
+          @element.journal_entries.order('created_at').
+                   last(JOURNAL_ENTRIES_TO_SHOW).to_a
+        if @journal_entries.empty?
+          #
+          #  No point in showing an empty journal.
+          #
+          @journal_entries = nil
+        else
+          @journal_link_text = "Full journal"
+          total_entries = @element.journal_entries.count
+          if total_entries > JOURNAL_ENTRIES_TO_SHOW
+            @journal_link_text +=
+              " (#{total_entries - JOURNAL_ENTRIES_TO_SHOW} more entries)"
+          end
+        end
+      else
+        @journal_entries = nil
+      end
     else
       redirect_to :root
     end
@@ -287,9 +313,9 @@ class ConcernsController < ApplicationController
   end
 
   def authorized?(action = action_name, resource = nil)
-    (logged_in? && current_user.known?) ||
-      action == 'sidebar' ||
-      action == 'flipped'
+    known_user? ||
+    action == 'sidebar' ||
+    action == 'flipped'
   end
 
   private

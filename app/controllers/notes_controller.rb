@@ -19,6 +19,10 @@ class NotesController < ApplicationController
     @note = Note.new(note_params)
     respond_to do |format|
       if @note.save
+        @note.reload
+        if @note.parent.instance_of?(Commitment)
+          @event.journal_note_created(@note, @note.parent, current_user)
+        end
         @notes = @event.all_notes_for(current_user)
         format.js
       else
@@ -59,12 +63,19 @@ class NotesController < ApplicationController
     #
     if current_user.can_edit?(@note)
       @note.update(note_params)
-      if @note.parent.instance_of?(Commitment) &&
-         (@note.parent.rejected || @note.parent.constraining)
-        @note.parent.revert_and_save!
-        @visible_commitments, @approvable_commitments =
-          @event.commitments_for(current_user)
-        @commitment_updated = true
+      if @note.parent.instance_of?(Commitment)
+        #
+        #  Notes attached to commitments are part of the contract
+        #  between user and approver.
+        #
+        @event.journal_note_updated(@note, @note.parent, current_user)
+        if @note.parent.rejected? || @note.parent.constraining?
+          @note.parent.revert_and_save!
+          @event.journal_commitment_reset(@note.parent, current_user)
+          @visible_commitments, @approvable_commitments =
+            @event.commitments_for(current_user)
+          @commitment_updated = true
+        end
       end
     end
     @notes = @event.all_notes_for(current_user)

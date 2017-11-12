@@ -69,6 +69,13 @@
   padding-right: 3px;
 }
 
+.noted-commitment {
+  background: #78e1fc;      // Pale blue
+  border-radius: 2px;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
 .commitment-yes {
   padding-left: 3px;
   padding-right: 3px;
@@ -136,6 +143,10 @@
   float: left;
 }
 
+table.zftable td.incomplete-event {
+  color: red;
+}
+
 #events-dialogue {
   position: relative;
 }
@@ -168,4 +179,17 @@
 
 .bottom-spacer {
   height: 50px;
+}
+
+.flip-button {
+  float: right;
+  margin-top: 10px;
+}
+
+p.indented {
+  text-indent: 50px;
+}
+
+.keep-together {
+  white-space: nowrap;
 }

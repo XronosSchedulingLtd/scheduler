@@ -1,4 +1,5 @@
 class UserMailer < ActionMailer::Base
+  add_template_helper(UserMailerHelper)
   default from: "abingdon@scheduler.org.uk"
 
   def cover_clash_email(user, clashes, oddities)
@@ -24,6 +25,7 @@ class UserMailer < ActionMailer::Base
     parameters = Hash.new
     @event = commitment.event
     @element = commitment.element
+    @commitment = commitment
     if commitment.reason.blank?
       @reason = "no reason was given"
     else
@@ -32,6 +34,7 @@ class UserMailer < ActionMailer::Base
     if commitment.by_whom
       @rejecter = commitment.by_whom.name
       parameters[:reply_to] = commitment.by_whom.email
+      @rejecter_email = commitment.by_whom.email
     else
       @rejecter = "the system"
     end
@@ -42,12 +45,48 @@ class UserMailer < ActionMailer::Base
       #
       email = appropriate_email(@event)
       if email
+        @user = User.find_by(email: email)
         parameters[:to] = email
         parameters[:subject] = "Resource request declined"
         parameters[:from] = Setting.from_email_address
         mail(parameters)
       else
         Rails.logger.info("Unable to send request rejected e-mail.  No-one to send to.")
+      end
+    end
+  end
+
+  def commitment_noted_email(commitment)
+    parameters = Hash.new
+    @event = commitment.event
+    @element = commitment.element
+    @commitment = commitment
+    if commitment.reason.blank?
+      @reason = nil
+    else
+      @reason = commitment.reason
+    end
+    if commitment.by_whom
+      @noter = commitment.by_whom.name
+      parameters[:reply_to] = commitment.by_whom.email
+      @noter_email = commitment.by_whom.email
+    else
+      @noter = "the system"
+    end
+    if @event && @element
+      #
+      #  Who the e-mail goes to depends on what information is in the
+      #  event.
+      #
+      email = appropriate_email(@event)
+      if email
+        @user = User.find_by(email: email)
+        parameters[:to] = email
+        parameters[:subject] = "Resource request noted"
+        parameters[:from] = Setting.from_email_address
+        mail(parameters)
+      else
+        Rails.logger.info("Unable to send request noted e-mail.  No-one to send to.")
       end
     end
   end
@@ -64,42 +103,45 @@ class UserMailer < ActionMailer::Base
     end
   end
 
-  def resource_requested_email(owner, resource, event, user = nil)
+  def do_resource_email(owner, resource, event, user)
     @resource = resource
     @event = event
+    parameters = {
+      to:      owner.email,
+      from:    Setting.from_email_address,
+      subject: "Request for #{resource.name}"
+    }
     if @event.organiser
       @name = @event.organiser.entity.name
+      parameters[:reply_to] = @event.organiser.entity.email
     elsif @event.owner
       @name = @event.owner.name
+      parameters[:reply_to] = @event.owner.email
     elsif user
       @name = user.name
+      parameters[:reply_to] = user.email
     else
       @name = "System"
     end
-    mail(to: owner.email,
-         from: Setting.from_email_address,
-         subject: "Request for #{resource.name}")
+    mail(parameters)
+  end
+
+  #
+  #  These next two look absolutely identical (and they are) but
+  #  because they are different actions the recipient ends up
+  #  getting different e-mails.  The names of these actions dictate
+  #  the names of the view templates to use.
+  #
+  def resource_requested_email(owner, resource, event, user = nil)
+    do_resource_email(owner, resource, event, user)
   end
 
   def resource_request_cancelled_email(owner, resource, event, user = nil)
-    @resource = resource
-    @event = event
-    if @event.organiser
-      @name = @event.organiser.entity.name
-    elsif @event.owner
-      @name = @event.owner.name
-    elsif user
-      @name = user.name
-    else
-      @name = "System"
-    end
-    mail(to: owner.email,
-         from: Setting.from_email_address,
-         subject: "Request for #{resource.name} cancelled")
+    do_resource_email(owner, resource, event, user)
   end
 
-  def pending_approvals_email(email, user_set)
-    @user_set = user_set
+  def pending_approvals_email(email, queues)
+    @queues = queues
     mail(to: email,
          from: Setting.from_email_address,
          subject: "Pending event approvals")

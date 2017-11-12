@@ -1,0 +1,9 @@
+<div class="row collapse">
+  <div class="small-4 columns">
+    <%= check_box_tag pre_requisite.field_id, pre_requisite.element_id, false, class: 'pr-checkbox' %>
+    <%= label_tag pre_requisite.field_id, pre_requisite.label_text %><br/>
+  </div>
+  <div class="small-8 columns">
+    <%= pre_requisite.description %>
+  </div>
+</div>

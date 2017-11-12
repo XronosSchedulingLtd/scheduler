@@ -37,6 +37,7 @@ $(document).ready ->
       dateFormat: "dd/mm/yy"
       stepMinute: 5
     $('.rejection-link').click(noClicked)
+    $('.noted-link').click(notedClicked)
     activateColourPicker('#dynamic_colour_picker', '#dynamic_colour_sample')
     $('#event_starts_at').change( (event) ->
       starts_at = new Date($('#event_starts_at').val())
@@ -51,9 +52,19 @@ $(document).ready ->
     filter_dialogue = $('#filter-dialogue')
     if filter_dialogue.length > 0
       filter_dialogue.find('#all').click(wantsAll)
-      filter_dialogue.find('#none').click(wantsNone))
+      filter_dialogue.find('#none').click(wantsNone)
+    primePreRequisites()
+  )
 
   $(document).on('closed', '[data-reveal]', ->
+    #
+    #  The dorefresh flag is set using a class selector, so a single bit
+    #  of setting code can set it anywhere in the whole application.
+    #
+    #  However, it's checked using a specific ID, because we want to
+    #  check our very own instance.  We also reset it by ID, so we affect
+    #  only ours.
+    #
     flag = $('#fullcalendar').data("dorefresh")
     if flag == "1"
       $('#fullcalendar').data("dorefresh", "0")
@@ -221,6 +232,22 @@ noClicked = (event) ->
     new_url = base_url + "?reason=" + encodeURIComponent(response)
     $(this).attr('href', new_url)
 
+notedClicked = (event) ->
+  response = prompt("Additional information for requester - (optional):")
+  if response == null
+    #
+    #  User clicked cancel.
+    #
+    return false
+  else
+    #
+    #  It shouldn't happen, but it's just possible we might get called
+    #  twice.  Make sure we don't add the modifier to the string twice.
+    #
+    base_url = event.target.href.split("?")[0]
+    new_url = base_url + "?reason=" + encodeURIComponent(response)
+    $(this).attr('href', new_url)
+
 concernClicked = (event) ->
   if $(this).hasClass('noclick')
     $(this).removeClass('noclick')
@@ -352,6 +379,30 @@ primeCloser = ->
   $('.closer').click ->
     $('#eventModal').foundation('reveal', 'close')
 
+#
+#  I want to share a couple of variables between the next two functions,
+#  so I think I need to put them here.
+#
+prOwnForm = null
+prTargetForm = null
+
+submittingCreate = ->
+  targetField = prTargetForm.find('#event_precommit_element_id')
+  if targetField.length
+    sources = prOwnForm.find('.pr-checkbox')
+    result = targetField.val()
+    sources.each (index, source) =>
+      if source.checked
+        result = result + ',' + $(source).val()
+    targetField.val(result)
+
+primePreRequisites = ->
+  prOwnForm = $('form#event-pre-requisites')
+  prTargetForm = $('form#new_event')
+  if prOwnForm.length && prTargetForm.length
+    prTargetForm.submit(submittingCreate)
+
+
 hideCloser = ->
   $('#event-done-button').hide()
 
@@ -394,11 +445,12 @@ window.updateUserColumn = (newContents, added, removed, doReload) ->
 window.replaceShownCommitments = (new_html) ->
   $('#show-all-commitments').html(new_html)
   $('.rejection-link').click(noClicked)
-  $('#fullcalendar').data("dorefresh", "1")
+  $('.noted-link').click(notedClicked)
+  window.refreshNeeded()
 
 window.replaceEditingCommitments = (new_html) ->
   $('#event_resources').html(new_html)
-  $('#fullcalendar').data("dorefresh", "1")
+  window.refreshNeeded()
 
 window.beginNoteEditing = (body_text) ->
   $('#event-notes').html(body_text)
@@ -417,7 +469,8 @@ window.finishEditingEvent = (event_summary, do_refresh) ->
   if typeof window.activateRelocateLink == 'function'
     window.activateRelocateLink()
   if do_refresh
-    $('#fullcalendar').data('dorefresh', '1')
+    window.refreshNeeded()
+    window.triggerCountsUpdate()
 
 window.closeModal = (full_reload, just_events, filter_state) ->
   $('#eventModal').foundation('reveal', 'close')
@@ -432,3 +485,7 @@ window.closeModal = (full_reload, just_events, filter_state) ->
         el.removeClass('filter-off')
         el.addClass("filter-#{filter_state}")
         el.text(filter_state)
+
+window.refreshNeeded = ->
+  $('.flag-refreshes').data("dorefresh", "1")
+

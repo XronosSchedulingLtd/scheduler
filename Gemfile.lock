@@ -100,6 +100,8 @@ GEM
       omniauth (~> 1.2)
     pkg-config (1.1.7)
     polyglot (0.3.4)
+    quiet_assets (1.1.0)
+      railties (>= 3.1, < 5.0)
     rack (1.5.2)
     rack-test (0.6.2)
       rack (>= 1.0)
@@ -125,6 +127,7 @@ GEM
     rake (10.3.1)
     rdoc (4.1.1)
       json (~> 1.4)
+    redcarpet (3.4.0)
     ri_cal (0.8.8)
     ruby-prof (0.15.1)
     sass (3.3.14)
@@ -162,9 +165,8 @@ GEM
       coffee-rails
     tzinfo (1.1.0)
       thread_safe (~> 0.1)
-    uglifier (2.5.0)
-      execjs (>= 0.3.0)
-      json (>= 1.8.0)
+    uglifier (3.2.0)
+      execjs (>= 0.3.0, < 3)
     will_paginate (3.0.5)
 
 PLATFORMS
@@ -184,9 +186,11 @@ DEPENDENCIES
   mysql2
   nokogiri
   omniauth-google-oauth2
+  quiet_assets
   rails (= 4.1.0)
   rails-jquery-autocomplete
   rails-observers
+  redcarpet
   ri_cal
   ruby-prof
   sass (~> 3.3.0)
@@ -197,7 +201,7 @@ DEPENDENCIES
   tiny_tds
   tod
   turbolinks
-  uglifier (>= 1.3.0)
+  uglifier (>= 3.2.0)
   will_paginate (~> 3.0)
 
 BUNDLED WITH

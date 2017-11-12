@@ -15,7 +15,10 @@
   <% end %>
   <li class="tab-title"><a href="#concern-report">Report</a></li>
   <% if @proforma %>
-    <li class="tab-title"><a href="#concern-proforma">Pro-forma</a></li>
+    <li class="tab-title"><a href="#concern-proforma">Forms</a></li>
+  <% end %>
+  <% if @journal_entries %>
+    <li class="tab-title"><a href="#concern-journal">Journal</a></li>
   <% end %>
 </ul>
 
@@ -36,17 +39,26 @@
   </div>
 <% if @proforma %>
   <div class="content" id="concern-proforma">
-    <h3>Requirements pro-forma</h3>
-    <p>
-    This is what will be shown to users who request this item for their events.
-    </p>
-    <div id="pro-forma-space">
-      <% if @concern.element.promptnote %>
-        <%= render @concern.element.promptnote %>
-      <% else %>
-        <%= render "promptnotes/no_promptnote.html.erb" %>
-      <% end %>
-    </div>
+    <%= render "proforma" %>
+  </div>
+<% end %>
+<% if @journal_entries %>
+  <div class="content" id="concern-journal">
+    <h3>Journal entries</h3>
+    <table class="zftable">
+      <thead>
+        <th>Action</th>
+        <th>By</th>
+        <th>At</th>
+        <th>Details</th>
+        <th>Event</th>
+        <th>On</th>
+      </thead>
+      <tbody>
+        <%= render partial: "journal_entries/element_journal_entry", collection: @journal_entries %>
+      </tbody>
+    </table>
+    <%= link_to @journal_link_text, element_journal_entries_path(@element) %>
   </div>
 <% end %>
 <hr/>

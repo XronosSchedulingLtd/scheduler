@@ -15,6 +15,11 @@ class Element < ActiveRecord::Base
            :dependent => :nullify
   has_many :concerns,    :dependent => :destroy
   has_many :freefinders, :dependent => :destroy
+  #
+  #  Interesting question about what happens to journal entries if
+  #  the element goes away.  Elements aren't meant to go away
+  #
+  has_many :journal_entries, :dependent => :nullify
   has_many :organised_events,
            :class_name => "Event",
            :foreign_key => :organiser_id,
@@ -25,6 +30,7 @@ class Element < ActiveRecord::Base
            :dependent => :nullify
   has_one :promptnote, :dependent => :destroy
   belongs_to :owner, :class_name => :User
+  belongs_to :user_form
 
   #
   #  This is actually a constraint in the database too, but by specifying
@@ -587,6 +593,27 @@ class Element < ActiveRecord::Base
       generate_uuid
       @dont_rename = true
     end
+  end
+
+  def permissions_pending
+    unless @permissions_pending
+      @permissions_pending = 
+        self.commitments.future.requested.count
+    end
+    @permissions_pending
+  end
+
+  #
+  #  Dummy methods for user form editing.
+  #
+  def user_form_name
+    user_form ? user_form.name : ""
+  end
+
+  def user_form_name=(name)
+    #
+    #  Do nothing
+    #
   end
 
   protected

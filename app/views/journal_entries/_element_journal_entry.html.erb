@@ -1,0 +1,19 @@
+<tr>
+<td><%= element_journal_entry.element_entry_type_text %></td>
+<td><%= element_journal_entry.user.name %></td>
+<td><%= element_journal_entry.when %></td>
+<td><%= element_journal_entry.details %></td>
+<td><%=
+if current_user && current_user.can_view_journal_for?(:events)
+  link_to(element_journal_entry.journal.event_body, element_journal_entry.journal)
+else
+  element_journal_entry.journal.event_body
+end %><%=
+if element_journal_entry.journal.event
+  ""
+else
+  "<br/>(since deleted)".html_safe
+end
+%></td>
+<td><%= element_journal_entry.journal.event_starts_at.strftime("%d/%m/%Y") %></td>
+</tr>

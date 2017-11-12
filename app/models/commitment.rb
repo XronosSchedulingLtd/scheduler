@@ -5,12 +5,21 @@
 
 class Commitment < ActiveRecord::Base
 
+  enum status: [
+    :uncontrolled,
+    :confirmed,
+    :requested,
+    :rejected,
+    :noted
+  ]
+
   belongs_to :event
   belongs_to :element
   belongs_to :proto_commitment
   belongs_to :request
   belongs_to :by_whom, class_name: "User"
-  has_many :notes, as: :parent, :dependent => :destroy
+  has_many :notes, as: :parent, dependent: :destroy
+  has_one :user_form_response, as: :parent, dependent: :destroy
 
   validates_presence_of :event, :element
 
@@ -50,17 +59,26 @@ class Commitment < ActiveRecord::Base
   scope :uncovered_commitment, -> { joins("left outer join `commitments` `covereds_commitments` ON `covereds_commitments`.`covering_id` = `commitments`.`id`").where("covereds_commitments.id IS NULL") }
   scope :firm, -> { where(:tentative => false) }
   scope :tentative, -> { where(:tentative => true) }
-  scope :rejected, -> { where(:rejected => true) }
-  scope :not_rejected, -> { where(:rejected => false) }
-  scope :constraining, -> { where(:constraining => true) }
+  scope :not_rejected, -> { where.not("commitments.status = ?",
+                                      Commitment.statuses[:rejected]) }
+  scope :constraining, -> { where("commitments.status = ?",
+                                  Commitment.statuses[:confirmed]) }
   scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}
+  #
+  #  The next one is for the overnight notification code.
+  #
+  scope :notifiable, -> {where(status: [Commitment.statuses[:requested],
+                                        Commitment.statuses[:rejected]])}
 
+  scope :until, lambda { |datetime| joins(:event).merge(Event.until(datetime)) }
   #
   #  Call-backs.
   #
   after_save    :update_event_after_save
   after_destroy :update_event_after_destroy
   after_create  :check_for_promptnotes
+
+  self.per_page = 12
 
   #
   #  This isn't a real field in the d/b.  It exists to allow a name
@@ -74,17 +92,48 @@ class Commitment < ActiveRecord::Base
     @element_name = en
   end
 
-  #
-  #  Override the default setter.
-  #
+  def constraining?
+    self.confirmed?
+  end
+
   def tentative=(new_value)
-    if self.tentative && !new_value
-      self.constraining = true
-      self.rejected = false
-    elsif !self.tentative && new_value
-      self.constraining = false
+    Rails.logger.debug("Attempt to set tentative= #{new_value} in commitment.")
+  end
+
+  #
+  #  If you're going to make use of this, then it will help a lot if you
+  #  pre-load the events.
+  #
+  def <=>(other)
+    if self.event
+      if other.event
+        self.event <=> other.event
+      else
+        1
+      end
+    else
+      if other.event
+        -1
+      else
+        0
+      end
     end
-    super(new_value)
+  end
+
+  #
+  #  We use the value of new_status to set tentative ourselves.
+  #
+  #  Note that this method expects a symbol.  The underlying Rails
+  #  method expects an integer.
+  #
+  def status=(new_status)
+    if new_status == :uncontrolled ||
+       new_status == :confirmed
+      self[:tentative] = false
+    else
+      self[:tentative] = true
+    end
+    self[:status] = Commitment.statuses[new_status]
   end
 
   #
@@ -92,32 +141,56 @@ class Commitment < ActiveRecord::Base
   #  the d/b.
   #
   def approve_and_save!(user)
-    self.tentative = false
+    self.status = :confirmed
     self.by_whom = user
     self.reason = ""
     self.save!
   end
 
   def reject_and_save!(user, reason)
-    self.tentative = true
-    self.rejected  = true
+    self.status = :rejected
+    self.by_whom = user
+    self.reason = reason
+    self.save!
+  end
+
+  def noted_and_save!(user, reason)
+    self.status = :noted
     self.by_whom = user
     self.reason = reason
     self.save!
   end
 
   def revert_and_save!
-    self.tentative = true
-    self.rejected  = false
+    self.status = :requested
+    self.reason = ""
     self.save!
   end
 
+  def in_approvals?
+    !self.uncontrolled?
+  end
+
   #
-  #  Does this commitment seem to be completely outside the approvals
-  #  process?  None of the flags set.
+  #  Handle a notification from our parent event that its timing has
+  #  changed.  If we are in the approvals process, this will cause us
+  #  to leap back to being in a "Requested" state.
   #
-  def approvals_free?
-    !self.tentative && !self.rejected && !self.constraining
+  #  We also save ourselves back to the d/b if we have changed.
+  #
+  def event_timing_changed(as_user = nil)
+    unless self.uncontrolled? || self.requested?
+      #
+      #  It looks like we are going to revert this, but there is
+      #  one exception.  If the current user has the ability
+      #  to grant permission for this resource, then we don't.
+      #
+      unless self.confirmed? && as_user && as_user.can_approve?(self)
+        self.revert_and_save!
+        self.event.journal_commitment_reset(self, as_user)
+      end
+    end
+    return [self.tentative?, self.constraining?]
   end
 
   #
@@ -133,8 +206,8 @@ class Commitment < ActiveRecord::Base
     #
     #  Existing approvals don't get carried over.
     #
-    if new_self.constraining
-      new_self.tentative = true
+    if new_self.confirmed?
+      new_self.status = :requested
     end
     new_self.save!
     new_self
@@ -589,11 +662,110 @@ class Commitment < ActiveRecord::Base
     end
   end
 
+  #
+  #  Returns a textual status, suitable for creating CSS classes.
+  #
+  def status_class
+    if self.rejected?
+      "rejected-commitment"
+    elsif self.requested?
+      "tentative-commitment"
+    elsif self.noted?
+      "noted-commitment"
+    else
+      "constraining-commitment"
+    end
+  end
+
+  #
+  #  Textual indication of what we have in the way of a form.
+  #
+  def form_status
+    if self.user_form_response
+      #
+      #  Currently cope with only one.
+      #
+      ufr = self.user_form_response
+      if self.constraining?
+        "Locked"
+      else
+        if ufr.complete?
+          "Complete"
+        elsif ufr.partial?
+          "Partial"
+        else
+          "To fill in"
+        end
+      end
+    else
+      "None"
+    end
+  end
+
+  def corresponding_form
+    self.user_form_response
+  end
+
+  def incomplete_ufr_count
+    if self.user_form_response && !self.user_form_response.complete?
+      1
+    else
+      0
+    end
+  end
+
+  #
+  #  A couple of maintenance methods to populate the new status
+  #  fields.
+  #
+  def populate_status
+    #
+    #  The default value for the new status field is 0, which corresponds
+    #  to "uncontrolled".  For those cases (the vast majority) no action
+    #  is required.
+    #
+    #  Note that the rejected and constraining fields have already
+    #  been renamed as "was_rejected" and "was_constraining" in preparation
+    #  for them being retired.  This is the only method which should
+    #  ever reference them.
+    #
+    #  No legacy commitments get the status of :noted - that's a new one.
+    #
+    if (self.tentative || self.was_rejected || self.was_constraining) &&
+       self.uncontrolled?
+      if self.was_constraining
+        self.status = :confirmed
+      elsif self.was_rejected
+        self.status = :rejected
+      else
+        #
+        #  That leaves just tentative.
+        #
+        self.status = :requested
+      end
+      self.save!
+      true
+    else
+      false
+    end
+  end
+
+  def self.populate_statuses
+    count = 0
+    Commitment.find_each do |c|
+      if c.populate_status
+        count += 1
+      end
+    end
+    puts "#{count} commitments updated."
+    nil
+  end
+
   protected
 
   def update_event_after_save
     if self.event
-      self.event.update_from_commitments(self.tentative, self.constraining)
+      self.event.update_from_commitments(self.tentative, self.constraining?)
     end
   end
 
@@ -604,13 +776,21 @@ class Commitment < ActiveRecord::Base
   end
 
   def check_for_promptnotes
-    if self.element.promptnote && self.event.owner && self.event.owner != 0
-      self.notes.create({
-        title:         self.element.name,
-        visible_staff: false,
-        promptnote:    self.element.promptnote,
-        owner:         self.event.owner
-      })
+    if self.event.owner && self.event.owner != 0
+      if self.element.promptnote
+        self.notes.create({
+          title:         self.element.name,
+          visible_staff: false,
+          promptnote:    self.element.promptnote,
+          owner:         self.event.owner
+        })
+      end
+      if self.element.user_form
+        self.create_user_form_response({
+          user_form: self.element.user_form,
+          user:      self.event.owner
+        })
+      end
     end
   end
 

@@ -1,5 +1,73 @@
-<% if @requests.size > 0 %>
-<%= render @requests %>
-<% else %>
-<h3>No outstanding requests for approval.</h3>
-<% end %>
+<div id="commitment-index" data-dorefresh="0" class="flag-refreshes">
+<div class="flip-button">
+  <%= link_to @flip_text, @flip_target, class: "zfbutton tiny radius" %>
+</div>
+<h1>Events requesting <%= @element.short_name %></h1>
+
+<div class="digg_pagination">
+  <%= will_paginate @commitments %>
+</div>
+
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>Start</th>
+      <th>Duration</th>
+      <th>Body</th>
+      <th title="Owner">Own</th>
+      <th title="Organiser">Org</th>
+      <th>Status</th>
+      <th></th>
+      <th>Form</th>
+    </tr>
+  </thead>
+
+  <tbody class='approvals-region'>
+    <%= render @commitments %>
+  </tbody>
+</table>
+
+<div class="digg_pagination">
+  <%= will_paginate @commitments %>
+</div>
+</div>
+<br>
+
+<script type="text/template" id="template-buttons-uncontrolled">
+<%= blank_icon(false) %> <%= blank_icon(false) %> <%= blank_icon(false) %>
+</script>
+
+<script type="text/template" id="template-buttons-confirmed">
+<%= three_icons(false, false, true) %>
+</script>
+
+<script type="text/template" id="template-buttons-requested">
+<%= three_icons(true, true, true) %>
+</script>
+
+<script type="text/template" id="template-buttons-rejected">
+<%= three_icons(true, true, false) %>
+</script>
+
+<script type="text/template" id="template-buttons-noted">
+<%= three_icons(true, false, true) %>
+</script>
+
+<script type="text/template" id="template-status-uncontrolled">
+</script>
+
+<script type="text/template" id="template-status-confirmed">
+<%= approved_icon %> Approved
+</script>
+
+<script type="text/template" id="template-status-requested">
+<%= requested_icon %> Requested
+</script>
+
+<script type="text/template" id="template-status-rejected">
+<%= rejected_icon %> Rejected
+</script>
+
+<script type="text/template" id="template-status-noted">
+<%= noted_icon %> Noted
+</script>

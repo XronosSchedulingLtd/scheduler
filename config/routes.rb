@@ -1,5 +1,16 @@
 Rails.application.routes.draw do
 
+  resources :pre_requisites
+
+  resources :journals, only: [:index, :show]
+
+  resources :user_forms, shallow: true do
+    resources :user_form_responses
+    get :autocomplete_user_form_name, :on => :collection
+  end
+
+  resources :user_form_responses
+
   resources :periods, only: [:index]
 
   resources :notifiers
@@ -104,12 +115,17 @@ Rails.application.routes.draw do
     get :autocomplete_user_name, :on => :collection
     get :pp, :on => :collection
     resources :filters, only: [:edit, :update]
+    resources :events, only: [:index]
   end
 
   resources :commitments do
     member do
       put :approve
       put :reject
+      put :noted
+      put :ajaxapprove
+      put :ajaxreject
+      put :ajaxnoted
     end
   end
 
@@ -160,6 +176,8 @@ Rails.application.routes.draw do
 
   resources :elements do
     resources :promptnotes, shallow: true
+    resources :journal_entries, only: [:index]
+    resources :commitments, only: [:index]
     get :autocomplete_element_name, :on => :collection
     get :autocomplete_unowned_element_name, :on => :collection
     get :autocomplete_staff_element_name, :on => :collection

@@ -1,0 +1,24 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Label:</strong>
+  <%= @pre_requisite.label %>
+</p>
+
+<p>
+  <strong>Description:</strong>
+  <%= @pre_requisite.description %>
+</p>
+
+<p>
+  <strong>Element:</strong>
+  <%= @pre_requisite.element_id %>
+</p>
+
+<p>
+  <strong>Priority:</strong>
+  <%= @pre_requisite.priority %>
+</p>
+
+<%= link_to 'Edit', edit_pre_requisite_path(@pre_requisite) %> |
+<%= link_to 'Back', pre_requisites_path %>

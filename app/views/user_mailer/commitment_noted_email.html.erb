@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+    <%= render partial: "styling" %>
+  </head>
+  <body>
+    <%= render partial: "header" %>
+    <p>
+      For your event "<%=
+        @event.body
+      %>" on <%=
+        @event.starts_at.strftime("%d/%m/%Y")
+      %> at <%=
+        @event.starts_at.strftime("%H:%M")
+      %> you have requested:
+    </p>
+    <p class="indented">
+    <%= @element.name %>
+    </p>
+    <p>
+      <%= @noter %> has acknowledged your request and is waiting
+      for more information in order to be able to approve it.
+    </p>
+    <% if @reason %>
+      <p>Additional information:</p>
+      <p class="indented">
+      <%= @reason %>
+      </p>
+    <% end %>
+    <p>
+    You can provide the additional information either by filling
+    in the appropriate form, or by e-mailing <%= @noter %> directly.
+    </p>
+    <p>
+    <% if @user %>
+      <%= mailer_user_events_link(@user) %>
+      <%= mailer_scheduler_link(@event) %>
+      <% if @noter_email %>
+        <%= mailer_mail_to_link(@noter_email,
+                                @noter,
+                                mailer_subject(@event)) %>
+      <% end %>
+    <% end %>
+    </p>
+  </body>
+</html>

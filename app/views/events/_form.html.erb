@@ -136,8 +136,18 @@
     <span id="clone_button"><%= link_to "Clone event", clone_event_path(@event), remote: @minimal, method: :post %></span>
     <span id="cloned_message" style="display: none; color: red;">Cloned</span>
   </div>
-<% else %>
+<% elsif Setting.event_creation_prompt.blank? ||
+         !current_user.show_pre_requisites? %>
   <p>Create the event first in order to allow resources to be added.</p>
+<% else %>
+  <%= Setting.event_creation_prompt %>
+  <% if @pre_requisites %>
+    <form id='event-pre-requisites'>
+      <div class="row collapse">
+        <%= render partial: "pr_column", collection: @pr_columns %>
+      </div>
+    </form>
+  <% end %>
 <% end %>
     </div>
   </div>

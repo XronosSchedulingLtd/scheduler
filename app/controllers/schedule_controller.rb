@@ -39,6 +39,50 @@ class ScheduleController < ApplicationController
             concern.save
           end
         end
+      else
+        #
+        #  Or alternatively, it is possible to specify an element
+        #  id.  This allows users who can add concerns to get one
+        #  intelligently added directly through a link.
+        #
+        element_id = params[:element_id]
+        if current_user && current_user.can_add_concerns? && element_id
+          element = Element.find_by(id: element_id)
+          if element
+            #
+            #  He or she may already have one.
+            #
+            existing_concern = current_user.concern_with(element)
+            if existing_concern
+              unless existing_concern.visible
+                existing_concern.visible = true
+                existing_concern.save
+              end
+            else
+              #
+              #  Need to add one.
+              #
+              current_user.concerns.create({
+                element:       element,
+                list_teachers: current_user.list_teachers,
+                colour:        element.preferred_colour ?
+                               element.preferred_colour :
+                               current_user.free_colour,
+                visible:       true
+              })
+            end
+          end
+        end
+      end
+      #
+      #  And it's possible that the URL specifies that we should
+      #  turn on the user's own events.
+      #
+      if params.has_key?(:my_events) && current_user && current_user.known?
+        unless current_user.show_owned
+          current_user.show_owned = true
+          current_user.save
+        end
       end
       redirect_to :root
     else
@@ -88,9 +132,26 @@ class ScheduleController < ApplicationController
   #  but list them explicitly in order to fail safe in the case of future
   #  expansion.
   #
+  #  Non logged in users can specify a date on a show, but nothing else.
+  #
+  #  If you're not logged in and you specify any of the others then you
+  #  will be asked to log in.  If you are logged in, but don't have
+  #  permissions, then they don't do much.
+  #
   def authorized?(action = action_name, resource = nil)
-    (logged_in? && current_user.admin) ||
-    action == 'show' || action == 'events'
+    if logged_in?
+      if current_user.admin?
+        true
+      else
+        action == 'show' || action == 'events'
+      end
+    else
+      (action == 'show' &&
+       !(params.has_key?(:concern_id) ||
+         params.has_key?(:element_id) ||
+         params.has_key?(:my_events))) ||
+      (action == 'events')
+    end
   end
 
 end

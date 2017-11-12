@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170806103706) do
+ActiveRecord::Schema.define(version: 20171030103646) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -34,23 +34,25 @@ ActiveRecord::Schema.define(version: 20170806103706) do
     t.boolean  "names_event",         default: false
     t.integer  "source_id"
     t.boolean  "tentative",           default: false
-    t.boolean  "rejected",            default: false
-    t.boolean  "constraining",        default: false
+    t.boolean  "was_rejected",        default: false
+    t.boolean  "was_constraining",    default: false
     t.string   "reason",              default: ""
     t.integer  "by_whom_id"
     t.integer  "proto_commitment_id"
     t.integer  "request_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "status",              default: 0
   end
 
-  add_index "commitments", ["constraining"], name: "index_commitments_on_constraining", using: :btree
   add_index "commitments", ["covering_id"], name: "index_commitments_on_covering_id", using: :btree
   add_index "commitments", ["element_id"], name: "index_commitments_on_element_id", using: :btree
   add_index "commitments", ["event_id"], name: "index_commitments_on_event_id", using: :btree
   add_index "commitments", ["proto_commitment_id"], name: "index_commitments_on_proto_commitment_id", using: :btree
   add_index "commitments", ["request_id"], name: "index_commitments_on_request_id", using: :btree
+  add_index "commitments", ["status"], name: "index_commitments_on_status", using: :btree
   add_index "commitments", ["tentative"], name: "index_commitments_on_tentative", using: :btree
+  add_index "commitments", ["was_constraining"], name: "index_commitments_on_was_constraining", using: :btree
 
   create_table "concerns", force: true do |t|
     t.integer  "user_id"
@@ -104,6 +106,7 @@ ActiveRecord::Schema.define(version: 20170806103706) do
     t.string   "preferred_colour"
     t.boolean  "owned",            default: false
     t.string   "uuid"
+    t.integer  "user_form_id"
   end
 
   add_index "elements", ["entity_id"], name: "index_elements_on_entity_id", using: :btree
@@ -259,6 +262,39 @@ ActiveRecord::Schema.define(version: 20170806103706) do
 
   add_index "itemreports", ["concern_id"], name: "index_itemreports_on_concern_id", using: :btree
 
+  create_table "journal_entries", force: true do |t|
+    t.integer  "journal_id"
+    t.integer  "user_id"
+    t.integer  "entry_type"
+    t.text     "details"
+    t.integer  "element_id"
+    t.datetime "event_starts_at"
+    t.datetime "event_ends_at"
+    t.boolean  "event_all_day"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "journal_entries", ["element_id"], name: "index_journal_entries_on_element_id", using: :btree
+  add_index "journal_entries", ["journal_id"], name: "index_journal_entries_on_journal_id", using: :btree
+  add_index "journal_entries", ["user_id"], name: "index_journal_entries_on_user_id", using: :btree
+
+  create_table "journals", force: true do |t|
+    t.integer  "event_id"
+    t.text     "event_body"
+    t.integer  "event_eventcategory_id"
+    t.integer  "event_owner_id"
+    t.datetime "event_starts_at"
+    t.datetime "event_ends_at"
+    t.boolean  "event_all_day"
+    t.integer  "event_organiser_id"
+    t.text     "event_organiser_ref"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "journals", ["event_id"], name: "index_journals_on_event_id", using: :btree
+
   create_table "locationaliases", force: true do |t|
     t.string   "name"
     t.integer  "source_id"
@@ -320,6 +356,15 @@ ActiveRecord::Schema.define(version: 20170806103706) do
   end
 
   add_index "otherhalfgrouppersonae", ["source_id"], name: "index_otherhalfgrouppersonae_on_source_id", using: :btree
+
+  create_table "pre_requisites", force: true do |t|
+    t.string   "label"
+    t.text     "description"
+    t.integer  "element_id"
+    t.integer  "priority"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "promptnotes", force: true do |t|
     t.string   "title",            default: ""
@@ -460,6 +505,8 @@ ActiveRecord::Schema.define(version: 20170806103706) do
     t.boolean  "prefer_https",                default: true
     t.boolean  "require_uuid",                default: false
     t.integer  "room_cover_group_element_id"
+    t.text     "event_creation_markup"
+    t.text     "event_creation_html"
   end
 
   create_table "staffs", force: true do |t|
@@ -535,6 +582,27 @@ ActiveRecord::Schema.define(version: 20170806103706) do
     t.datetime "updated_at"
   end
 
+  create_table "user_form_responses", force: true do |t|
+    t.integer  "user_form_id"
+    t.integer  "parent_id"
+    t.string   "parent_type"
+    t.integer  "user_id"
+    t.text     "form_data"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.boolean  "was_complete", default: false
+    t.integer  "status",       default: 0
+  end
+
+  create_table "user_forms", force: true do |t|
+    t.string   "name"
+    t.integer  "created_by_user_id"
+    t.integer  "edited_by_user_id"
+    t.text     "definition"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "users", force: true do |t|
     t.string   "provider"
     t.string   "uid"
@@ -577,6 +645,9 @@ ActiveRecord::Schema.define(version: 20170806103706) do
     t.boolean  "list_teachers",               default: false
     t.boolean  "warn_no_resources",           default: true
     t.boolean  "can_relocate_lessons",        default: false
+    t.boolean  "can_has_forms",               default: false
+    t.boolean  "show_pre_requisites",         default: true
+    t.integer  "corresponding_staff_id"
   end
 
 end

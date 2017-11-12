@@ -1,0 +1,25 @@
+<h3>Journal entries for "<%= @journal.event_body %>"</h3>
+
+<div class="row collapse">
+  <div class="small-12 columns">
+    <div class="digg_pagination">
+      <%= will_paginate @journal_entries %>
+    </div>
+
+    <table class="zftable">
+      <thead>
+        <th>Type</th>
+        <th>By</th>
+        <th>When</th>
+        <th>Details</th>
+        <th>What</th>
+      </thead>
+      <tbody>
+        <%= render @journal_entries %>
+      </tbody>
+    </table>
+    <div class="digg_pagination">
+      <%= will_paginate @journal_entries %>
+    </div>
+  </div>
+</div>

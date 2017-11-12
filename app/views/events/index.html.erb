@@ -1,19 +1,33 @@
-<h1>Listing events</h1>
-<p id="notice"><%= notice %></p>
+<div id="event-index" data-dorefresh="0" class="flag-refreshes">
+<% if @flip_button %>
+  <div class="flip-button">
+    <%= link_to @flip_text, @flip_target, class: "zfbutton tiny radius" %>
+  </div>
+<% end %>
+<h1><%= @title %></h1>
 
 <div class="digg_pagination">
   <%= will_paginate @events %>
 </div>
-<table class="zftable">
+
+<table class="zftable" id="<%= @listing_id %>">
   <thead>
     <tr>
-      <th>Body</th>
-      <th>Eventcategory</th>
-      <th>Eventsource</th>
-      <th>Starts at</th>
-      <th>Ends at</th>
-      <th>All day</th>
-      <th colspan="3"></th>
+      <th>Start</th>
+      <th>Duration</th>
+      <th>Title</th>
+      <% if @show_owner %>
+        <th title="Owner">Own</th>
+      <% end %>
+      <% if @show_organiser %>
+        <th title="Organiser">Org</th>
+      <% end %>
+      <th title="Complete?">Complete</th>
+      <th title="Resources requiring approval">Approvals</th>
+      <th title="Forms to complete">Forms</th>
+      <% if @show_actions %>
+        <th>Action</th>
+      <% end %>
     </tr>
   </thead>
 
@@ -21,10 +35,10 @@
     <%= render @events %>
   </tbody>
 </table>
+
 <div class="digg_pagination">
   <%= will_paginate @events %>
 </div>
-
+</div>
 <br>
 
-<%= link_to 'New Event', new_event_path, class: "zfbutton tiny radius" %>

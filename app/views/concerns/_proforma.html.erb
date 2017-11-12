@@ -1,0 +1,18 @@
+<h3>Requirements form</h3>
+<p>You can specify a form to be filled in when users request this resource.</p>
+<div id="requirements-form-choice-space">
+  <%= render "requirements_form_choice" %>
+</div>
+<hr/>
+<h3>Requirements pro-forma</h3>
+<p>
+Or your can have a simple single field form with a prompt.
+</p>
+<div id="pro-forma-space">
+  <% if @concern.element.promptnote %>
+    <%= render @concern.element.promptnote %>
+  <% else %>
+    <%= render "promptnotes/no_promptnote.html.erb" %>
+  <% end %>
+</div>
+

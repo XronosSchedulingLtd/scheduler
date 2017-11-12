@@ -1,5 +1,12 @@
 class CommitmentsController < ApplicationController
-  before_action :set_commitment, only: [:approve, :reject, :destroy, :view]
+  before_action :set_commitment, only: [:ajaxapprove,
+                                        :approve,
+                                        :ajaxreject,
+                                        :reject,
+                                        :ajaxnoted,
+                                        :noted,
+                                        :destroy,
+                                        :view]
 
   class ConcernWithRequests
 
@@ -12,7 +19,7 @@ class CommitmentsController < ApplicationController
     end
 
     def note(commitment)
-      if commitment.rejected
+      if commitment.rejected?
         @rejected_commitments << commitment
       else
         @pending_commitments << commitment
@@ -30,33 +37,41 @@ class CommitmentsController < ApplicationController
 
   end
 
-  #
-  #  Slightly unusually, doesn't give a list of all the commitments
-  #  (which would be vast), but lists those in the future over which
-  #  we have approval authority.
-  #
   def index
-    if current_user.element_owner
-      @requests = Array.new
-      current_user.concerns.owned.each do |concern|
-#        Rails.logger.debug("Processing concern with #{concern.element.name}")
-        requests = ConcernWithRequests.new(concern)
-        concern.element.commitments.tentative.each do |commitment|
-#          Rails.logger.debug("Event ends at #{commitment.event.ends_at}")
-#          Rails.logger.debug("Currently #{Date.today}")
-          if commitment.event.ends_at >= Date.today
-            requests.note(commitment)
-          end
-        end
-        @requests << requests
+    if current_user.can_add_concerns? &&
+          params[:element_id] &&
+          @element = Element.find_by(id: params[:element_id])
+      selector = @element.commitments
+      @allow_buttons = current_user.owns?(@element)
+      if params.has_key?(:pending)
+        @pending = true
+        selector = selector.tentative.future
+        @flip_target = element_commitments_path(@element)
+        @flip_text = "See All"
+      else
+        @pending = false
+        @flip_target = element_commitments_path(@element, pending: true)
+        @flip_text = "See Pending"
       end
-#      Rails.logger.debug("Got #{@requests.size} owned elements.")
+      #
+      #  If there are lots of commitments, then it makes sense to start
+      #  on the page for today.  The user can page forward or backward
+      #  as required.  Do this only if the user has not specified an
+      #  explicit page.
+      #
+      page_no = params[:page]
+      unless page_no
+        previous_commitment_count = selector.until(Time.zone.now.midnight).count
+        Rails.logger.debug("Previous commitment count = #{previous_commitment_count}")
+        page_no = (previous_commitment_count / Commitment.per_page) + 1
+      end
+      @commitments =
+        selector.includes(:event).page(page_no).order('events.starts_at')
     else
       #
-      #  Shouldn't be able to get here, but if someone is playing at
-      #  silly buggers then kick them out.
+      #  Send him off to look at his own events.
       #
-      redirect_to '/'
+      redirect_to user_events_path(current_user)
     end
   end
 
@@ -72,10 +87,13 @@ class CommitmentsController < ApplicationController
     #  haven't got an element.
     #
     if @commitment.element
-      @commitment.tentative =
-        current_user.needs_permission_for?(@commitment.element)
+      if current_user.needs_permission_for?(@commitment.element)
+        @commitment.status = :requested
+      else
+        @commitment.status = :uncontrolled
+      end
     else
-      @commitment.tentative = false
+      @commitment.status = :uncontrolled
     end
     #
     #  Not currently checking the result of this, because regardless
@@ -84,6 +102,7 @@ class CommitmentsController < ApplicationController
     #
     if @commitment.save
       @commitment.reload
+      @commitment.event.journal_commitment_added(@commitment, current_user)
       if session[:request_notifier]
         session[:request_notifier].commitment_added(@commitment)
       end
@@ -102,6 +121,7 @@ class CommitmentsController < ApplicationController
       if session[:request_notifier]
         session[:request_notifier].commitment_removed(@commitment)
       end
+      @commitment.event.journal_commitment_removed(@commitment, current_user)
       @commitment.destroy
       @event.reload
       @resourcewarning = false
@@ -131,19 +151,27 @@ class CommitmentsController < ApplicationController
   #  that he should lost any hand-crafted approve button which he
   #  previously created.
   #
-  def approve
+  def do_approve
     @event = @commitment.event
-    if current_user.can_approve?(@commitment) && @commitment.tentative
+    if current_user.can_approve?(@commitment) && @commitment.tentative?
       @commitment.approve_and_save!(current_user)
       @event.reload
-      if @event.complete
+      @event.journal_commitment_approved(@commitment, current_user)
+      if @event.complete?
         #
         #  Given that our commitment was previously tentative, this
         #  event must now be newly complete.
         #
         UserMailer.event_complete_email(@event).deliver
       end
+      true
+    else
+      false
     end
+  end
+
+  def approve
+    do_approve
     @visible_commitments, @approvable_commitments =
       @event.commitments_for(current_user)
     respond_to do |format|
@@ -151,19 +179,98 @@ class CommitmentsController < ApplicationController
     end
   end
 
-  # PUT /commitments/1/reject.js
-  def reject
+  def ajaxapprove
+    @status = do_approve
+    respond_to do |format|
+      format.json
+    end
+  end
+  #
+  #  It would be really nice to have a single method for approve and
+  #  reject, handling both Rails's remote: links (format.js) and ordinary
+  #  AJAX requests (format.json), but unfortunately the former makes
+  #  use of the latter under the skin.  If both exist in the same action
+  #  and templates then Rails always assumes it's format.js.
+  #
+  #  I therefore need to put the actual work in a helper method, and
+  #  have two actions being invoked.
+  #
+  def do_reject
     @event = @commitment.event
     if current_user.can_approve?(@commitment) &&
-      (@commitment.tentative || @commitment.constraining)
+      (@commitment.confirmed? || @commitment.requested? || @commitment.noted?)
       @commitment.reject_and_save!(current_user, params[:reason])
       @event.reload
+      @event.journal_commitment_rejected(@commitment, current_user)
       UserMailer.commitment_rejected_email(@commitment).deliver
+      if @commitment.user_form_response &&
+         @commitment.user_form_response.complete?
+        @commitment.user_form_response.status = :partial
+        @commitment.user_form_response.save
+      end
+      return true
+    else
+      return false
     end
-    @visible_commitments, @approvable_commitments =
-      @event.commitments_for(current_user)
+  end
+
+  #
+  #  This one handles remote links, and sends back some JavaScript
+  #  to be executed in the client.
+  #
+  def reject
+    do_reject
     respond_to do |format|
-      format.js
+      format.js do
+        @visible_commitments, @approvable_commitments =
+          @event.commitments_for(current_user)
+      end
+    end
+  end
+
+  #
+  #  And this one handles genuine AJAX requests.
+  #
+  def ajaxreject
+    @status = do_reject
+    respond_to do |format|
+      format.json
+    end
+  end
+
+  def do_noted
+    @event = @commitment.event
+    if current_user.can_approve?(@commitment) &&
+      (@commitment.requested? || @commitment.rejected?)
+      @commitment.noted_and_save!(current_user, params[:reason])
+      @event.reload
+      @event.journal_commitment_noted(@commitment, current_user)
+      UserMailer.commitment_noted_email(@commitment).deliver
+      if @commitment.user_form_response &&
+         @commitment.user_form_response.complete?
+        @commitment.user_form_response.status = :partial
+        @commitment.user_form_response.save
+      end
+      true
+    else
+      false
+    end
+  end
+
+  def ajaxnoted
+    @status = do_noted
+    respond_to do |format|
+      format.json
+    end
+  end
+
+  def noted
+    do_noted
+    respond_to do |format|
+      format.js do
+        @visible_commitments, @approvable_commitments =
+          @event.commitments_for(current_user)
+      end
     end
   end
 
