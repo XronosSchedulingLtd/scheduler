@@ -1,0 +1,16 @@
+
+<h1>Form: <%= @user_form.name %></h1>
+
+<hr/>
+
+<div class="fb-render">
+  <textarea id="user_form_definition" style="display:none">
+    <%= @user_form.definition %>
+  </textarea>
+</div>
+
+
+<br/>
+
+<%= link_to 'Edit', edit_user_form_path(@user_form) %> |
+<%= link_to 'Back', user_forms_path %>

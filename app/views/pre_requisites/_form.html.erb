@@ -1,0 +1,66 @@
+<%= form_for(@pre_requisite) do |f| %>
+  <% if @pre_requisite.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@pre_requisite.errors.count, "error") %> prohibited this pre_requisite from being saved:</h2>
+
+      <ul>
+      <% @pre_requisite.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :label, class: "right inline" %>
+    </div>
+    <div class="small-10 columns">
+      <%= f.text_field :label %>
+    </div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :description, class: "right inline" %>
+    </div>
+    <div class="small-10 columns">
+      <%= f.text_area :description %>
+    </div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :element_name, class: "right inline" %>
+    </div>
+    <div class="small-10 columns">
+      <%= f.autocomplete_field :element_name,
+                               autocomplete_element_name_elements_path,
+                               :id_element => '#pre_requisite_element_id',
+                               :placeholder => "Name of service",
+                               "data-auto-focus" => true %>
+        <%= f.text_field :element_id, :type => :hidden %>
+    </div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :priority, class: "right inline" %>
+    </div>
+    <div class="small-10 columns">
+      <%= f.number_field :priority %>
+    </div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-2 columns">&nbsp;</div>
+    <div class="small-3 columns">
+      <div class="actions">
+        <%= f.submit @pre_requisite.id ? "Update" : "Create", :class => "zfbutton tiny radius"  %>
+        <%= link_to "Cancel", pre_requisites_url, :class => "zfbutton tiny radius" %>
+      </div>
+    </div>
+    <div class="small-7 columns">
+    </div>
+  </div>
+<% end %>

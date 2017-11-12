@@ -6,7 +6,7 @@
 
     <title><%= title_text %></title>
 
-    <%= stylesheet_link_tag    "application" %>
+    <%= stylesheet_link_tag    "application", media: "all" %>
     <%= javascript_include_tag "vendor/modernizr" %>
     <%= csrf_meta_tags %>
   </head>
@@ -17,7 +17,6 @@
       <li class="name">
         <h1><%= link_to title_text, root_path %></h1>
       </li>
-      <li class="toggle-topbar menu-icon"><a href=""><span>Menu</span></a></li>
     </ul>
     <section class="top-bar-section">
 <% if @show_jump %>
@@ -33,26 +32,64 @@
 
 <% if current_user %>
 <%   if current_user.sees_menu? %>
-        <li class="has-dropdown">
-          <a href="#"><%= header_menu_text(current_user) %></a>
-          <ul class="dropdown">
+  <li class="has-dropdown">
+    <a href="#"><%= header_menu_text(current_user) %></a>
+    <ul class="dropdown">
 <%     if current_user.admin %>
-            <li class="has-dropdown">
-              <%= link_to "Groups", groups_path %>
-              <ul class="dropdown">
-                <li><%= link_to "All", groups_path %></li>
-                <li><%= link_to "Mine", groups_path(:mine => true) %></li>
-                <li><%= link_to "Tutor", tutorgroups_path %></li>
-              </ul>
-            </li>
+      <li class="has-dropdown">
+        <%= link_to "Groups", groups_path %>
+        <ul class="dropdown">
+          <li><%= link_to "All", groups_path %></li>
+          <li><%= link_to "Mine", groups_path(:mine => true) %></li>
+          <li><%= link_to "Tutor", tutorgroups_path %></li>
+        </ul>
+      </li>
 <%     elsif current_user.can_has_groups %>
-            <li><%= link_to "Groups", groups_path %></li>
+      <li><%= link_to "Groups", groups_path %></li>
+<%     end %>
+<%     if current_user.create_events? %>
+      <li class="has-dropdown">
+        <%= link_to(events_menu_text(current_user),
+                    user_events_path(current_user)) %>
+        <ul class="dropdown">
+          <li class="has-dropdown">
+            <%= link_to(my_events_menu_text(current_user),
+                        user_events_path(current_user, pending: true)) %>
+            <ul class="dropdown">
+              <li><%= link_to "All",
+                user_events_path(current_user) %></li>
+            </ul>
+          </li>
+<%         if current_user.admin %>
+          <li><%= link_to "All", events_path %></li>
+<%         end %>
+<%         current_user.owned_elements.each do |ce| %>
+          <li class="has-dropdown">
+            <%= link_to(controlled_element_menu_text(ce),
+                        element_commitments_path(ce, pending: true)) %>
+            <ul class="dropdown">
+              <li><%= link_to "All",
+                element_commitments_path(ce) %></li>
+            </ul>
+          </li>
+<%         end %>
+        </ul>
+      </li>
 <%     end %>
 <%     if current_user.can_find_free %>
-            <li><%= link_to "Find free", new_freefinder_path %></li>
+      <li><%= link_to "Find free", new_freefinder_path %></li>
 <%     end %>
-<%     if current_user.element_owner %>
-            <li><%= link_to "Approvals", commitments_path %></li>
+<%     if current_user.can_has_forms %>
+        <li><%= link_to "Forms", user_forms_path %></li>
+<%     end %>
+<%     if current_user.can_view_journal_for?(:events) %>
+            <li class = "has-dropdown">
+              <%= link_to "Journals", journals_path %>
+              <ul class="dropdown">
+                <li><%= link_to "Current", journals_path(:current => true) %></li>
+                <li><%= link_to "Deleted events", journals_path(:deleted => true) %></li>
+              </ul>
+            </li>
 <%     end %>
 <%     if current_user.exams? %>
             <li class="has-dropdown">
@@ -100,7 +137,12 @@
                 <li><%= link_to "Users", users_path %></li>
               </ul>
             </li>
-            <li><%= link_to "Settings", settings_path %></li>
+            <li class="has-dropdown">
+              <%= link_to "Settings", settings_path %>
+              <ul class="dropdown">
+                <li><%= link_to "Pre-requisites", pre_requisites_path %></li>
+              </ul>
+            </li>
             <li><%= link_to "Imports", imports_index_path %></li>
 <%     end %>
             <li><%= link_to "Day shape", 

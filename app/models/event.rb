@@ -87,6 +87,7 @@ class CommitmentSet < Array
       self.commitment_type.pluralize
     end
   end
+
 end
 
 class Event < ActiveRecord::Base
@@ -97,7 +98,7 @@ class Event < ActiveRecord::Base
   belongs_to :eventsource
   has_many :commitments, :dependent => :destroy
   has_many :requests, :dependent => :destroy
-  has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
+    has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
   has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
   has_many :covering_commitments, -> { where("covering_id IS NOT NULL") }, class_name: "Commitment"
   has_many :non_covering_commitments, -> { where("covering_id IS NULL") }, class_name: "Commitment"
@@ -118,6 +119,7 @@ class Event < ActiveRecord::Base
   has_many :direct_locations, -> { where(elements: {entity_type: "Location"}) }, class_name: "Element", :source => :element, :through => :non_covering_commitments
   has_many :cover_locations, -> { where(elements: {entity_type: "Location"}) }, class_name: "Element", :source => :element, :through => :covering_commitments
 
+  has_one :journal, :dependent => :nullify
   belongs_to :owner, :class_name => :User
 
   belongs_to :organiser, :class_name => :Element
@@ -157,6 +159,17 @@ class Event < ActiveRecord::Base
   #
   scope :before, lambda {|date| where("ends_at < ?", date) }
   scope :after, lambda {|date| where("starts_at > ?", date + 1.day) }
+
+  #
+  #  Events in the future.  Today or later.
+  #
+  scope :future, lambda { where("starts_at > ?", Time.zone.now.midnight) }
+
+  #
+  #  Events subject to the approvals process.
+  #
+  scope :in_approvals, lambda { where("constrained OR NOT complete") }
+
   scope :eventcategory_id, lambda {|id| where("eventcategory_id = ?", id) }
   scope :eventsource_id, lambda {|id| where("eventsource_id = ?", id) }
   scope :on, lambda {|date| where("starts_at >= ? and ends_at < ?",
@@ -190,7 +203,7 @@ class Event < ActiveRecord::Base
   #  tentative, then we might be complete.
   #
   def update_from_commitments(commitment_tentative, commitment_constraining)
-    unless @being_destroyed || self.destroyed?
+    unless @being_destroyed || self.destroyed? || @informing_commitments
       do_save = false
       if commitment_tentative
         if self.complete
@@ -248,7 +261,7 @@ class Event < ActiveRecord::Base
   #
   #  For pagination.
   #
-  self.per_page = 15
+  self.per_page = 12
 
   def all_day_field
     self.all_day
@@ -285,7 +298,46 @@ class Event < ActiveRecord::Base
   end
 
   def starts_at_text=(value)
+    old_starts_at = self.starts_at
     self.starts_at = value
+    if (self.starts_at != old_starts_at) && !self.new_record?
+      #
+      #  A genuine change.
+      #
+      @timing_changed = true
+    end
+  end
+
+  def duration_text
+    #
+    #  This seems to give me a float indicating the number of seconds.
+    #  Not interested in partial seconds, so co-erce to being an integer.
+    #
+    duration = (self.ends_at - self.starts_at).to_i
+    if duration > 0
+      days = duration / 86400
+      duration = duration % 86400
+      hours = duration / 3600
+      duration = duration % 3600
+      mins = duration / 60
+      result = []
+      if days > 0
+        result << ActionController::Base.helpers.pluralize(days, "day")
+      end
+      if hours > 0
+        result << ActionController::Base.helpers.pluralize(hours, "hr")
+      end
+      if mins > 0
+#        if hours > 0
+          result << "#{mins} m"
+#        else
+#          result << ActionController::Base.helpers.pluralize(mins, "mn")
+#        end
+      end
+      result.join(", ")
+    else
+      ""
+    end
   end
 
   def start_date_text
@@ -318,6 +370,7 @@ class Event < ActiveRecord::Base
 
   def ends_at_text=(value)
 #    Rails.logger.debug("Setting ends_at to #{value}")
+    old_ends_at = self.ends_at
     self.ends_at = value
     #
     #  May need this again later.
@@ -330,6 +383,12 @@ class Event < ActiveRecord::Base
       #  the following day.
       #
       self.ends_at = self.ends_at.to_date + 1.day
+    end
+    if (self.ends_at != old_ends_at) && !self.new_record?
+      #
+      #  A genuine change.
+      #
+      @timing_changed = true
     end
   end
 
@@ -354,6 +413,8 @@ class Event < ActiveRecord::Base
   end
 
   def set_timing(new_start, new_all_day)
+    old_starts_at = self.starts_at
+    old_ends_at   = self.ends_at
     current_duration = ends_at - starts_at
     current_days = ends_at.to_date - starts_at.to_date
     new_starts_at = Time.zone.parse(new_start)
@@ -403,6 +464,13 @@ class Event < ActiveRecord::Base
         self.ends_at   = starts_at + current_duration
       end
     end
+    if (self.starts_at != old_starts_at ||
+        self.ends_at   != old_ends_at) && !self.new_record?
+      #
+      #  A genuine change.
+      #
+      @timing_changed = true
+    end
   end
 
   #
@@ -413,7 +481,14 @@ class Event < ActiveRecord::Base
   #  Actually, now no different from writing to ends_at
   #
   def new_end=(new_value)
+    old_ends_at = self.ends_at
     self.ends_at = Time.zone.parse(new_value)
+    if (self.ends_at != old_ends_at) && !self.new_record?
+      #
+      #  A genuine change.
+      #
+      @timing_changed = true
+    end
   end
 
   #
@@ -427,7 +502,23 @@ class Event < ActiveRecord::Base
   def organiser_name=(on)
     @organiser_name = on
   end
- 
+
+  def organisers_initials
+    if self.organiser && self.organiser.entity_type == "Staff"
+      self.organiser.entity.initials
+    else
+      ""
+    end
+  end
+
+  def organisers_email
+    if self.organiser && self.organiser.entity_type == "Staff"
+      self.organiser.entity.email
+    else
+      nil
+    end
+  end
+
   def owners_initials
     if self.owner
       self.owner.initials
@@ -435,6 +526,23 @@ class Event < ActiveRecord::Base
       "SYS"
     end
   end
+
+  def owners_email
+    if self.owner
+      self.owner.email
+    else
+      nil
+    end
+  end
+
+  def owners_name
+    if self.owner
+      self.owner.name
+    else
+      ""
+    end
+  end
+
   #
   #  What resources are directly involved in this event?
   #
@@ -460,6 +568,66 @@ class Event < ActiveRecord::Base
   #
   def resourceless?
     self.commitments.count == 0
+  end
+
+  #
+  #  How many pending commitments do we have?
+  #
+  def pending_count
+    unless @pending_count
+      @pending_count = self.commitments.requested.count
+    end
+    @pending_count
+  end
+
+  def rejected_count
+    unless @rejected_count
+      @rejected_count = self.commitments.rejected.count
+    end
+    @rejected_count
+  end
+
+  #
+  #  If the client has already explicitly loaded the commitments for
+  #  the event into memory, then these methods can be more efficient than
+  #  their predecessors.
+  #
+  #  Of course, if they're not pre-loaded then they will be less efficient.
+  #
+  def pending_count_no_db
+    unless @pending_count_no_db
+      @pending_count_no_db =
+        self.commitments.select {|c| c.requested? }.count
+    end
+    @pending_count_no_db
+  end
+
+  def rejected_count_no_db
+    unless @rejected_count_no_db
+      @rejected_count_no_db = self.commitments.select {|c| c.rejected? }.count
+    end
+    @rejected_count_no_db
+  end
+
+  #
+  #  And how many forms are waiting to be filled in.  This is slightly
+  #  more interesting because the forms themselves are attached to
+  #  our commitments, not directly to the event.
+  #
+  #  This should also include a count of any pro-formae which haven't
+  #  been done.
+  #
+  def pending_form_count
+    unless @pending_form_count
+      @pending_form_count = self.commitments.inject(0) do |total, commitment|
+        if commitment.tentative?
+          total + commitment.incomplete_ufr_count
+        else
+          total
+        end
+      end
+    end
+    @pending_form_count
   end
 
   def all_atomic_resources
@@ -512,18 +680,20 @@ class Event < ActiveRecord::Base
       #  Currently works only for exam invigilations.  Will need refining
       #  when requests start being used for other purposes too.
       #
+      #  We display commitments only if they are firm, or this is a known
+      #  user.  Tentative commitments are not shown to visitors.
+      #
       unless user && user.exams? && c.request_id
-        if user && user.can_approve?(c) &&
-           (c.tentative || c.rejected || c.constraining)
+        if user && user.can_approve?(c) && !c.uncontrolled?
           approvables << c
-        else
+        elsif !c.tentative? || (user && user.known?)
           by_type[c.element.entity_type] ||=
             CommitmentSet.new(c.element.entity_type)
           by_type[c.element.entity_type] << c
         end
       end
     end
-    if user
+    if user && user.known?
       #
       #  Not yet separating out the ones which this user can approve.
       #
@@ -536,7 +706,8 @@ class Event < ActiveRecord::Base
         by_type["Property"]].compact, approvables]
     else
       #
-      #  The general public get to see just Staff, Locations and Groups.
+      #  The general public get to see just Staff, Locations and Groups,
+      #  and then only *firm* commitments.
       #
       [[by_type["Staff"],
         by_type["Group"],
@@ -895,6 +1066,10 @@ class Event < ActiveRecord::Base
     end
   end
 
+  def commitment_to(element)
+    self.commitments.detect {|c| c.element_id == element.id}
+  end
+
   #
   #  Produce a string for the event's duration.  With just a start time we
   #  get:
@@ -941,6 +1116,14 @@ class Event < ActiveRecord::Base
     "#{self.body.chomp(" ").chomp(".").chomp(" ")}#{with_dot ? "." : ""}"
   end
 
+  def trimmed_body(max = 30)
+    if self.body.length > max
+      "#{self.body[0,max - 3]}..."
+    else
+      self.body
+    end
+  end
+
   def short_end_date_str
     if self.all_day
       ends_at = self.ends_at - 1.day
@@ -979,6 +1162,7 @@ class Event < ActiveRecord::Base
       new_self.send("#{key}=", value)
     end
     new_self.save!
+    new_self.journal_event_created(modifiers[:owner], true)
     #
     #  Commitments don't get copied by dup.
     #
@@ -987,7 +1171,8 @@ class Event < ActiveRecord::Base
       #  And we don't want to clone cover commitments.
       #
       unless commitment.covering
-        commitment.clone_and_save(event: new_self)
+        c = commitment.clone_and_save(event: new_self)
+        new_self.journal_commitment_added(c, modifiers[:owner])
       end
     end
     new_self
@@ -1103,6 +1288,136 @@ class Event < ActiveRecord::Base
     nil
   end
 
+  #
+  #  Journal stuff
+  #
+
+  def ensure_journal
+    unless self.journal
+      self.journal = Journal.new.populate_from_event(self)
+    end
+  end
+
+  def journal_event_created(by_user, cloned = false)
+    #
+    #  Since we are meant to be called just after the creation of
+    #  the event, the journal should not already exist, but just
+    #  to be safe, and for consistency...
+    #
+    ensure_journal
+    self.journal.event_created(by_user, cloned)
+  end
+
+  def journal_event_updated(by_user)
+    ensure_journal
+    self.journal.event_updated(by_user)
+  end
+
+  def journal_event_destroyed(by_user)
+    ensure_journal
+    self.journal.event_destroyed(by_user)
+  end
+
+  def journal_commitment_added(commitment, by_user)
+    ensure_journal
+    self.journal.commitment_added(commitment, by_user)
+  end
+
+  def journal_commitment_removed(commitment, by_user)
+    ensure_journal
+    self.journal.commitment_removed(commitment, by_user)
+  end
+
+  def journal_commitment_approved(commitment, by_user)
+    ensure_journal
+    self.journal.commitment_approved(commitment, by_user)
+  end
+
+  def journal_commitment_rejected(commitment, by_user)
+    ensure_journal
+    self.journal.commitment_rejected(commitment, by_user)
+  end
+
+  def journal_commitment_noted(commitment, by_user)
+    ensure_journal
+    self.journal.commitment_noted(commitment, by_user)
+  end
+
+  #
+  #  If a commitment goes back from either "approved" or "rejected"
+  #  to a "pending" state.
+  #
+  def journal_commitment_reset(commitment, by_user)
+    ensure_journal
+    self.journal.commitment_reset(commitment, by_user)
+  end
+
+  #
+  #  We don't generally journal ordinary notes, since they aren't
+  #  significant.  We do journal commitment notes, since those affect
+  #  whether the 
+  def journal_note_added(note, commitment, by_user)
+    ensure_journal
+    self.journal.note_added(note, commitment, by_user)
+  end
+
+  def journal_note_updated(note, commitment, by_user)
+    ensure_journal
+    self.journal.note_updated(note, commitment, by_user)
+  end
+
+  def journal_form_completed(ufr, commitment, by_user)
+    ensure_journal
+    self.journal.form_completed(ufr, commitment, by_user)
+  end
+
+  def format_timing
+    format_timings(self.starts_at, self.ends_at, self.all_day)
+  end
+
+  def check_timing_changes(as_user)
+    if @timing_changed
+      @timing_changed = false
+      #
+      #  We are going to inform our commitments about our timing change,
+      #  which may in turn cause them to call back into us.  Rather
+      #  than processing each of these callbacks individually, which
+      #  is inefficient and could lead to infinite recursion, we'll do
+      #  it all at the end.
+      #
+      @informing_commitments = true
+      all_firm         = true
+      any_constraining = false
+      self.commitments.each do |c|
+        commitment_tentative, commitment_constraining =
+          c.event_timing_changed(as_user)
+        if commitment_tentative
+          all_firm = false
+        end
+        if commitment_constraining
+          any_constraining = true
+        end
+      end
+      @informing_commitments = false
+      #
+      #  And now we need to decide again whether we are complete.
+      #  Probably not.
+      #
+      do_save = false
+      if self.complete != all_firm
+        self.complete = all_firm
+        do_save = true
+      end
+      if self.constrained != any_constraining
+        self.constrained = any_constraining
+        do_save = true
+      end
+      if do_save
+        self.save!
+      end
+    end
+  end
+
   private
 
   def become_all_day
@@ -1159,5 +1474,6 @@ class Event < ActiveRecord::Base
   def being_destroyed
     @being_destroyed = true
   end
+
 
 end

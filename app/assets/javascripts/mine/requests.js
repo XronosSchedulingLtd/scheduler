@@ -217,7 +217,7 @@ if ($('#fullcalendar').length) {
         if (value !== null && value !== current_value) {
           this.model.set("quantity", value);
           this.model.save();
-          $('#fullcalendar').data("dorefresh", "1")
+          window.refreshNeeded();
         }
       }
     });
@@ -249,7 +249,7 @@ if ($('#fullcalendar').length) {
       },
       fulfillSucceeded: function(data, textStatus, jqXHR) {
         this.set(data);
-        $('#fullcalendar').data("dorefresh", "1")
+        window.refreshNeeded();
       },
       fulfillFailed: function(jqXHR, textStatus, errorThrown) {
         alert("Failed");

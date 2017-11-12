@@ -29,10 +29,16 @@ class UsersController < ApplicationController
   #
   def pp
     @pph = Hash.new
-    if current_user && current_user.element_owner
-      @pph[:pp] = current_user.permissions_pending
-    else
-      @pph[:pp] = 0
+    if current_user
+      @pph["pending-grand-total"]  = current_user.pending_grand_total
+      @pph["pending-events-total"] = current_user.events_pending_total
+      @pph["pending-my-events"]    = current_user.events_pending
+      if current_user.element_owner
+        current_user.concerns.owned.each do |concern|
+          @pph["pending-element-#{concern.element_id}".to_sym] =
+          concern.permissions_pending
+        end
+      end
     end
     respond_to do |format|
       format.json
@@ -198,6 +204,7 @@ class UsersController < ApplicationController
                       :invig_weekly,
                       :invig_daily,
                       :can_has_groups,
+                      :can_has_forms,
                       :can_find_free,
                       :can_add_concerns,
                       :can_su,
@@ -205,6 +212,7 @@ class UsersController < ApplicationController
                       :firstday,
                       :list_teachers,
                       :warn_no_resources,
+                      :show_pre_requisites,
                       :preferred_event_category_id,
                       :colour_not_involved,
                       :default_event_text,
@@ -215,6 +223,7 @@ class UsersController < ApplicationController
                permit(:firstday,
                       :list_teachers,
                       :warn_no_resources,
+                      :show_pre_requisites,
                       :email_notification,
                       :immediate_notification,
                       :clash_weekly,
@@ -231,6 +240,7 @@ class UsersController < ApplicationController
                permit(:firstday,
                       :list_teachers,
                       :warn_no_resources,
+                      :show_pre_requisites,
                       :colour_not_involved,
                       :email_notification,
                       :immediate_notification,

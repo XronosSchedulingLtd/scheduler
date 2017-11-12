@@ -26,6 +26,11 @@ class Staff < ActiveRecord::Base
   has_many :groupstaught, through: :teachinggrouppersonae, source: :group 
   has_many :tutorgroups, through: :tutorgrouppersonae, source: :group
 
+  has_many :corresponding_users,
+           class_name: "User",
+           foreign_key: "corresponding_staff_id",
+           dependent: :nullify
+
   after_destroy :delete_tutorgroups
 
   self.per_page = 15

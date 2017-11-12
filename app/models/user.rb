@@ -39,13 +39,15 @@ class User < ActiveRecord::Base
     subedit_all_events: "Can this user sub-edit all events within the system?",
     privileged: "Can this user enter events into the privileged event categories?",
     can_has_groups: "Can this user create and edit groups within the system?",
+    can_has_forms: "Can this user create and edit forms within the system?",
     public_groups: "Can this user create publicly visible groups?",
     can_find_free: "Can this user do searches for free resources?",
     can_add_concerns: "Can this user dynamically choose which schedules to look at?",
     can_roam: "Can this user follow links from one displayed element to another?",
     can_su: "Can this user become another user?",
     exams: "Does this user administer exams or invigilation?",
-    can_relocate_lessons: "Can this user relocate lessons - not just his or her own?"
+    can_relocate_lessons: "Can this user relocate lessons - not just his or her own?",
+    show_pre_requisites: "Do you want to be prompted for likely requirements when creating new events?"
   }
   FIELD_TITLE_TEXTS.default = ""
 
@@ -53,6 +55,7 @@ class User < ActiveRecord::Base
   serialize :extra_eventcategories,      Array
 
   has_many :concerns,   :dependent => :destroy
+  has_many :user_form_responses, :dependent => :destroy
 
   has_many :events, foreign_key: :owner_id, dependent: :nullify
 
@@ -63,6 +66,7 @@ class User < ActiveRecord::Base
 
   belongs_to :preferred_event_category, class_name: Eventcategory
   belongs_to :day_shape, class_name: RotaTemplate
+  belongs_to :corresponding_staff, class_name: "Staff"
 
   #
   #  The only elements we can actually own currently are groups.  By creating
@@ -94,8 +98,7 @@ class User < ActiveRecord::Base
   end
 
   def staff?
-    @staff ||= (self.own_element != nil &&
-                self.own_element.entity.class == Staff)
+    self.corresponding_staff != nil
   end
 
   def pupil?
@@ -231,11 +234,29 @@ class User < ActiveRecord::Base
   #  What elements do we control?  This information is cached because
   #  we may need it many times during the course of rendering one page.
   #
+  #  "Control" here means we can edit all events which involve this
+  #  element.
+  #
   def controlled_elements
     unless @controlled_elements
-      @controlled_elements = self.concerns.controlling.collect {|c| c.element}
+      @controlled_elements =
+        self.concerns.includes(:element).controlling.collect {|c| c.element}
     end
     @controlled_elements
+  end
+
+  #
+  #  Similarly, what elements do we own.
+  #
+  #  Owning means we approve requests to use it.  Confusingly, this appears
+  #  as "controls" in the user interface.
+  #
+  def owned_elements
+    unless @owned_elements
+      @owned_elements =
+        self.concerns.includes(:element).owned.collect {|c| c.element}
+    end
+    @owned_elements
   end
 
   #
@@ -344,8 +365,8 @@ class User < ActiveRecord::Base
       if event && element
         self.can_edit?(event) ||
           (self.can_subedit?(event) &&
-           !item.constraining &&
-           !(element.owned? && item.approvals_free?))
+           !item.constraining? &&
+           !(element.owned? && item.uncontrolled?))
       else
         #
         #  Doesn't seem to be a real commitment yet.
@@ -396,17 +417,171 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Can this user complete forms for the indicated event?  Basically,
+  #  is he either the owner or the organiser?
+  #
+  def can_complete_forms_for?(event)
+    event.owner_id == self.id ||
+      (self.corresponding_staff &&
+       self.corresponding_staff.element == event.organiser)
+  end
+
+  def can_view_journal_for?(object)
+    #
+    #  For now it's just the admin users, but we may add more fine-grained
+    #  control later.
+    #
+    if object.instance_of?(Element)
+      self.admin
+    elsif object.instance_of?(Event)
+      self.admin
+    elsif object == :elements
+      self.admin
+    elsif object == :events
+      self.admin
+    else
+      false
+    end
+  end
+
+  #
   #  Does this user need permission to create a commitment for this
   #  element?
   #
+  #  Are permissions switched on globally?
+  #  Is there an owner for this resource?
+  #  Does this particular user need permission OR is there a form to
+  #  fill in?
+  #
+  #  Even users with permission need to go through the process if there
+  #  is a form.
+  #
   def needs_permission_for?(element)
-    Setting.enforce_permissions? && element.owned && !self.can_commit?(element)
+    Setting.enforce_permissions? && element.owned &&
+    (!self.can_commit?(element) || element.user_form)
   end
 
+  #
+  #  Another one to cache because it is needed a lot.
+  #
   def permissions_pending
-    self.concerns.owned.inject(0) do |total, concern|
-      total + concern.permissions_pending
+    unless @permissions_pending
+      #
+      #  Don't bother calculating if we know the answer would be 0.
+      #
+      if self.element_owner
+        @permissions_pending = self.concerns.owned.inject(0) do |total, concern|
+          total + concern.permissions_pending
+        end
+      else
+        @permissions_pending = 0
+      end
     end
+    @permissions_pending
+  end
+
+  #
+  #  This should be a count of the events which *this user* can do
+  #  something about.  Being incomplete is not enough - they need to
+  #  be rejected or "noted", or have pending forms.
+  #
+  #  Not really interested in ones in the past.
+  #
+  #  We are also interested in pending forms for events where we are
+  #  the organiser, but not the owner.
+  #
+  def events_pending
+    unless @events_pending
+      staff = self.corresponding_staff
+      if staff && staff.active
+        selector = Event.where("owner_id = ? OR organiser_id = ?",
+                               self.id,
+                               staff.element.id)
+      else
+        selector = self.events
+      end
+      @events_pending =
+        selector.future.
+                 incomplete.
+                 includes(commitments: :user_form_response).
+                 inject(0) do |total, event|
+        count = 0
+        event.commitments.each do |c|
+          #
+          #  If the event has been rejected, then we count that
+          #  as 1, but we don't go on and count the corresponding
+          #  forms as well.  If we do then it gets confusing.
+          #  A rejected event, with a pending form (which it will
+          #  be because the action of rejecting the event causes
+          #  the form to be marked as pending) would get counted as 2.
+          #
+          if c.rejected? || c.noted?
+            count += 1
+          else
+            #
+            #  Count incomplete forms *unless* the commitment has
+            #  been approved.  It's possible that a commitment
+            #  with an incomplete form gets approved, in which case
+            #  the requester can no longer edit it.
+            #
+            if c.tentative?
+              count += c.incomplete_ufr_count
+            end
+          end
+        end
+        total + count
+      end
+    end
+    @events_pending
+  end
+
+  #
+  #  How many future events does this user have waiting for approval(s).
+  #  I.e. not something this user can do anything about, but where
+  #  he or she is waiting on someone else.
+  #
+  def events_waiting
+    unless @events_waiting
+      @events_waiting =
+        self.events.
+             future.
+             incomplete.
+             includes(commitments: :user_form_response).
+             inject(0) do |total, event|
+        count = 0
+        event.commitments.each do |c|
+          if !c.rejected?
+            #
+            #  Are all forms complete?
+            #
+            if c.user_form_response == nil ||
+               c.user_form_response.complete?
+              count += 1
+            end
+          end
+        end
+        total + count
+      end
+    end
+    @events_waiting
+  end
+
+  def events_pending_total
+    unless @events_pending_total
+      @events_pending_total = permissions_pending + events_pending
+    end
+    @events_pending_total
+  end
+
+  def pending_grand_total
+    unless @pending_grand_total
+      @pending_grand_total = events_pending_total
+    end
+    @pending_grand_total
+  end
+
+  def start_auto_polling
+    self.element_owner || self.events_waiting > 0
   end
 
   def events_on(start_date = nil,
@@ -443,10 +618,16 @@ class User < ActiveRecord::Base
       if Setting.auth_type == "google_demo_auth"
         staff = Staff.first
       else
-        staff = Staff.active.find_by_email(self.email)
+        staff = Staff.active.current.find_by_email(self.email)
       end
       if staff
         got_something = true
+        #
+        #  We set the corresponding staff here, and rely on
+        #  set_initial_permissions to save our record, which it will
+        #  because we are a member of staff.
+        #
+        self.corresponding_staff = staff
         concern = self.concern_with(staff.element)
         if concern
           unless concern.equality
@@ -520,14 +701,6 @@ class User < ActiveRecord::Base
         end
         set_initial_permissions
       end
-    end
-  end
-
-  def corresponding_staff
-    if self.email
-      Staff.find_by_email(self.email)
-    else
-      nil
     end
   end
 
@@ -700,6 +873,58 @@ class User < ActiveRecord::Base
     end
     results.each do |text|
       puts text
+    end
+    nil
+  end
+
+  #
+  #  Maintenance methods to populate the newly created "corresponding_staff"
+  #  field.
+  #
+  #
+  def set_corresponding_staff
+    unless self.corresponding_staff
+      self.concerns.me.each do |concern|
+        if concern.element.entity_type == "Staff"
+          self.corresponding_staff = concern.element.entity
+          self.save!
+        end
+      end
+    end
+  end
+
+  #
+  #  Maintenance method to fix a user who is linked to the wrong member
+  #  of staff record.
+  #
+  def set_right_staff
+    own_concern = self.concerns.me[0]
+    if own_concern
+      if own_concern.element.current
+        puts "#{self.name} already linked to current element."
+      else
+        staff = Staff.active.current.find_by(email: self.email)
+        if staff
+          puts "Found a current staff member for #{self.email}"
+          own_concern.element = staff.element
+          own_concern.save!
+          self.corresponding_staff = staff
+          self.save!
+          puts "Updated user record."
+        else
+          puts "No current staff member for #{self.email}"
+        end
+      end
+    else
+      "#{self.email} has no \"me\" concern."
+    end
+    nil
+  end
+
+
+  def self.populate_corresponding_staff
+    User.all.each do |u|
+      u.set_corresponding_staff
     end
     nil
   end

@@ -1,23 +1,37 @@
 module ApplicationHelper
 
+  #
+  #  Called every time we want to display something, perhaps with a
+  #  link.  Some users get links, others don't.  This handles that
+  #  decision and returns appropriate text.
+  #
+  def be_linken(name, element)
+    #
+    #  It's just possible that we will get passed null as the element
+    #  because some things are linked in without being active.  E.g.
+    #  OTL uses non-existent staff for some Private Study periods.
+    #
+    if user_can_roam? && element
+      link_to(h(name), element_path(element))
+    else
+      h(name)
+    end
+  end
+
+  def be_hover_linken(title, name, element)
+    if title
+      "<span title=\"#{title}\">#{be_linken(name, element)}</span>"
+    else
+      be_linken(name, element)
+    end
+  end
+
   def title_text
     if known_user?
       @logged_in_title_text ||= (ENV["SCHEDULER_TITLE_TEXT"] || "Scheduler")
     else
       @public_title_text ||= (ENV["PUBLIC_TITLE_TEXT"] || "Scheduler")
     end
-  end
-
-  def known_user?
-    current_user && current_user.known?
-  end
-
-  def admin_user?
-    current_user && current_user.admin?
-  end
-
-  def public_groups_user?
-    current_user && current_user.public_groups?
   end
 
   def single_flag(f, content)
@@ -67,4 +81,14 @@ module ApplicationHelper
     result << "</div>"
     result.join("\n").html_safe
   end
+
+  #
+  #  Take a piece of plain text, with line breaks, and convert it to
+  #  the equivalent HTML with <br/> characters.  Escape any dangerous
+  #  input, and flag the result as html_safe.
+  #
+  def preserve_line_breaks(text)
+    h(text).gsub("\n", '<br/>').html_safe
+  end
+
 end

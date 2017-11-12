@@ -21,6 +21,6 @@
 <% if @full_details %>
   <td><%= found_event.organiser ? found_event.organiser.short_name : "" %></td>
   <td><%= found_event.owners_initials %></td>
-  <td><%= found_event.complete ? "Yes" : "No" %></td>
+  <td><%= found_event.complete? ? "Yes" : "No" %></td>
 <% end %>
 </tr>

@@ -1,3 +1,15 @@
+    <div id="eventModal" class="reveal-modal" data-reveal>
+      <h2>You clicked on an event.</h2>
+      <p>If you have permission to edit this event, then this will take you
+      into an edit dialogue.</p>
+      
+      <p>If you don't then it will simply show you full
+      details of the event.</p>
+
+    </div>
     <%= javascript_include_tag "application" %>
+<% if @include_formbuilder %>
+    <%= javascript_include_tag "formbuilder" %>
+<% end %>
   </body>
 </html>

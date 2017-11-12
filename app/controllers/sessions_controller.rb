@@ -1,5 +1,22 @@
 class SessionsController < ApplicationController
   def new
+#    Rails.logger.debug("Full path is #{request.fullpath}")
+    #
+    #  Want to guard agains left-over deep linking stuff.  If the user
+    #  previously tried to access a page which triggered a login attempt,
+    #  but they didn't complete the login, and have now chosen to do
+    #  an explicit login, then they will be surprised if we go on to send
+    #  them to the page they asked for earlier.  Guard against that
+    #  case.
+    #
+    if /signin$/ =~ request.fullpath
+      #
+      #  This is an explicit login attempt.  Scrub any previous
+      #  redireciton information.
+      #
+#      Rails.logger.debug("Explicit login")
+      session.delete(:url_requested)
+    end
     redirect_to '/auth/google_oauth2'
   end
 
@@ -23,10 +40,11 @@ class SessionsController < ApplicationController
     end
 #    user = User.find_by_provider_and_uid(auth["provider"], auth["uid"]) ||
 #           User.create_from_omniauth(auth)
+    url_requested = session[:url_requested]
     reset_session
     session[:user_id] = user.id
     Rails.logger.info("User #{user.email} signed in.")
-    redirect_to root_url, :notice => "Signed in"
+    redirect_to url_requested || root_url, :notice => "Signed in"
   end
 
   def destroy

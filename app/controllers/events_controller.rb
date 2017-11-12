@@ -18,7 +18,107 @@ class EventsController < ApplicationController
   # GET /events
   # GET /events.json
   def index
-    @events = Event.page(params[:page]).order('starts_at')
+    @show_owner              = true
+    @show_organiser          = true
+    @show_actions            = false
+
+    if params[:user_id]
+      if (params[:user_id].to_i == current_user.id) || current_user.admin?
+        #
+        #  Explicit adjustment to allow admin users to view events
+        #  for other users.
+        #
+        #  Note that the only way we can get here with the following
+        #  two items not equal is if current_user is an admin.
+        #
+        if params[:user_id].to_i != current_user.id
+          target_user = User.find_by(id: params[:user_id]) || current_user
+        else
+          target_user = current_user
+        end
+        #
+        #  Being asked for events related to this user.  Note, not
+        #  events *involving* this user - events which he owns or
+        #  organises.
+        #
+        #  Just give this user's own events.  He or she is either
+        #  the owner or the organiser.  Since we are currently on
+        #  Rails 4.x we can't use ActiveRecord's "or" constructor.
+        #
+        #  All users can *ask* for them, but those who don't have
+        #  any will get an empty list.
+        #
+        staff = target_user.corresponding_staff
+        if staff
+          #
+          #  Events are owned by users, but organised by elements.
+          #
+          selector = Event.where("owner_id = ? OR organiser_id = ?",
+                                 target_user.id,
+                                 staff.element.id)
+        else
+          selector = target_user.events
+        end
+        if params.has_key?(:pending)
+          selector = selector.future.in_approvals
+          @title = "#{target_user.name}'s pending events"
+          @flip_target = user_events_path(target_user)
+          @flip_text = "See All"
+        else
+          @title = "#{target_user.name}'s events"
+          @flip_target = user_events_path(target_user, pending: true)
+          @flip_text = "See Pending"
+        end
+        @flip_button    = true
+        @show_owner     = false
+        @show_organiser = false
+        @show_actions   = true
+        @listing_id     = "user-events"
+      else
+        #
+        #  Asked to see someone else's events and isn't an admin.
+        #
+        selector = nil
+      end
+    elsif current_user.admin?
+      #
+      #  The user is asking for all events.  Allow this only for
+      #  a system administrator.
+      #
+      selector = Event.all
+      @title = "All events"
+      @flip_button = false
+      @listing_id     = "all-events"
+    else
+      #
+      #  If we get here then either the user has tried for all events
+      #  and isn't an admin, or for events for an element and isn't
+      #  allowed free browsing.  Either way, send him or her back to
+      #  his or her own events.
+      #
+      selector = nil
+    end
+    if selector
+      #
+      #  If there are lots of events, then it makes sense to start
+      #  on the page for today.  The user can page forward or backward
+      #  as required.  Do this only if the user has not specified an
+      #  explicit page.
+      #
+      page_no = params[:page]
+      unless page_no
+        previous_event_count = selector.until(Time.zone.now.midnight).count
+        Rails.logger.debug("Previous event count = #{previous_event_count}")
+        page_no = (previous_event_count / Event.per_page) + 1
+      end
+      @events = selector.includes(commitments: :user_form_response).page(page_no).order('starts_at')
+    else
+      if params.has_key?(:pending)
+        redirect_to user_events_path(current_user, pending: true)
+      else
+        redirect_to user_events_path(current_user)
+      end
+    end
   end
 
   def assemble_event_info
@@ -44,6 +144,11 @@ class EventsController < ApplicationController
       @resourcewarning = true
     else
       @resourcewarning = false
+      if current_user &&
+        current_user.can_complete_forms_for?(@event) &&
+        !params.has_key?(:from_listing)
+        @form_count = @event.pending_form_count
+      end
     end
     if current_user && current_user.can_relocate?(@event)
       @relocate_link = true
@@ -165,6 +270,14 @@ class EventsController < ApplicationController
         end
       end
     end
+    @pre_requisites = PreRequisite.order(:priority).to_a
+    #
+    #  Split into two columns.
+    #
+    per_column = (@pre_requisites.size + 1) / 2
+    @pr_columns = Array.new
+    @pr_columns << @pre_requisites[0,per_column]
+    @pr_columns << @pre_requisites[per_column..-1]
     session[:request_notifier] = RequestNotifier.new
     if request.xhr?
       @minimal = true
@@ -227,38 +340,62 @@ class EventsController < ApplicationController
     respond_to do |format|
       if @event.save
         @event.reload
+        @event.journal_event_created(current_user)
         #
         #  Does this user have any Concerns with the auto_add flag set?
         #
         current_user.concerns.auto_add.each do |concern|
           c = @event.commitments.new
-          c.tentative = current_user.needs_permission_for?(concern.element)
+          if current_user.needs_permission_for?(concern.element)
+            c.status = :requested
+          else
+            c.status = :uncontrolled
+          end
           c.element = concern.element
           c.save
           if session[:request_notifier]
             session[:request_notifier].commitment_added(c)
           end
+          @event.journal_commitment_added(c, current_user)
         end
         #
         #  And was anything specified in the request?
         #
         unless @event.precommit_element_id.blank?
-          element = Element.find_by(id: @event.precommit_element_id)
-          if element
-            #
-            #  Guard against double commitment.
-            #
-            unless current_user.concerns.auto_add.detect {|c| c.element == element}
-              c = @event.commitments.new
-              c.tentative = current_user.needs_permission_for?(element)
-              c.element = element
-              c.save
-              if session[:request_notifier]
-                session[:request_notifier].commitment_added(c)
+          #
+          #  It's just *possible* that the same ID might appear
+          #  more than once due to mis-configuration by a system
+          #  admin.  Convert to integers to be really sure we've
+          #  found any duplicates.
+          #
+          element_ids =
+            @event.precommit_element_id.
+                   split(",").
+                   collect {|e| e.to_i}.
+                   uniq
+          element_ids.each do |eid|
+            element = Element.find_by(id: eid)
+            if element
+              #
+              #  Guard against double commitment.
+              #
+              unless current_user.concerns.auto_add.detect {|c| c.element == element}
+                c = @event.commitments.new
+                if current_user.needs_permission_for?(element)
+                  c.status = :requested
+                else
+                  c.status = :uncontrolled
+                end
+                c.element = element
+                c.save
+                if session[:request_notifier]
+                  session[:request_notifier].commitment_added(c)
+                end
+                @event.journal_commitment_added(c, current_user)
               end
+            else
+              Rails.logger.debug("Couldn't find element with id #{eid}")
             end
-          else
-            Rails.logger.debug("Couldn't find element with id #{@event.precommit_element_id}")
           end
         end
         @success = true
@@ -284,7 +421,14 @@ class EventsController < ApplicationController
   def update
     if current_user.can_subedit?(@event)
       respond_to do |format|
+        #
+        #  Want to make sure the journal exists before we do the
+        #  update so that we can tell what if anything has changed.
+        #
+        @event.ensure_journal
         if @event.update(event_params)
+          @event.journal_event_updated(current_user)
+          @event.check_timing_changes(current_user)
           if session[:request_notifier]
             session[:request_notifier].
               send_notifications_for(current_user, @event)
@@ -326,11 +470,14 @@ class EventsController < ApplicationController
   #
   def moved
     if current_user.can_retime?(@event)
+      @event.ensure_journal
       new_start = params[:event][:new_start]
       new_all_day = (params[:event][:all_day] == "true")
       @event.set_timing(new_start, new_all_day)
       respond_to do |format|
         if @event.save
+          @event.journal_event_updated(current_user)
+          @event.check_timing_changes(current_user)
           format.html { redirect_to events_path, notice: 'Event was successfully updated.' }
           format.json { render :show, status: :ok, location: @event }
         else
@@ -372,6 +519,7 @@ class EventsController < ApplicationController
   def destroy
     if current_user.can_edit?(@event)
       RequestNotifier.new.send_notifications_for(current_user, @event, true)
+      @event.journal_event_destroyed(current_user)
       @event.destroy
     end
     respond_to do |format|

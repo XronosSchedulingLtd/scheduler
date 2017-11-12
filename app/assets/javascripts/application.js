@@ -21,6 +21,7 @@
 //= require fullcalendar.min
 //= require jquery-ui-timepicker-addon
 //= require spectrum
-//= require_tree .
+//= require_tree ./goodvendors
+//= require_tree ./mine
 
 $(function(){ $(document).foundation(); });

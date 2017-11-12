@@ -1,0 +1,30 @@
+<% if @event %>
+  <h3>Request form for <%= @resource.name %></h3>
+  Event: <%= @event.body %><br/>
+  Starts: <%= @event.starts_at_text %><br/>
+  Duration: <%= @event.duration_text %>
+<% if @extra_text %>
+  <br/>
+  <%= preserve_line_breaks(@extra_text) %>
+<% end %>
+  <hr/>
+<% end %>
+<div style='display:none'>
+  <%= form_for([@user_form, @user_form_response]) do |f| %>
+    <%= f.text_field :definition, disabled: true %>
+    <%= f.text_field :form_data %>
+  <% end %>
+</div>
+<form id='user-form'>
+  <div class='user-form-response-area'
+       data-readonly=<%= @read_only ? "true" : "false" %>></div>
+  <input type='submit' style='display:none'/>
+</form>
+
+<% if @save_button %>
+  <button class='zfbutton tiny radius' id='save-button'>Save</button>
+<% end %>
+<% if @cancel_button %>
+  <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius' %>
+<% end %>
+

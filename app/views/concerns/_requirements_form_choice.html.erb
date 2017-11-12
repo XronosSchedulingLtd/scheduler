@@ -1,0 +1,24 @@
+<%= form_for(@element, remote: true) do |f| %>
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label "Form to use", class: "right inline" %>
+    </div>
+    <div class="small-10 columns">
+      <%= f.autocomplete_field :user_form_name,
+                               autocomplete_user_form_name_user_forms_path,
+                               :id_element => '#element_user_form_id',
+                               :placeholder => "<enter name>",
+                               "data-auto-focus" => true %>
+        <%= f.text_field :user_form_id, :type => :hidden %>
+    </div>
+    <div class="small-2 offset-2 columns">
+      <div class="actions">
+        <%= f.submit "Set", :class => "zfbutton tiny radius"  %>
+      </div>
+    </div>
+    <div class="small-8 columns">
+      <%= @message %>
+    </div>
+  </div>
+<% end %>
+

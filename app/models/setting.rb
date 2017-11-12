@@ -15,6 +15,7 @@ class Setting < ActiveRecord::Base
   belongs_to :perpetual_era, class_name: :Era
   belongs_to :room_cover_group_element, class_name: :Element
 
+  before_save :update_html
   after_save :flush_cache
 
   validates :current_era, :presence => true
@@ -34,6 +35,13 @@ class Setting < ActiveRecord::Base
   #
   def flush_cache
     @@setting = Setting.first
+  end
+
+  def update_html
+    self.event_creation_html =
+      Redcarpet::Markdown.new(Redcarpet::Render::HTML,
+                              fenced_code_blocks: true).
+                          render(self.event_creation_markup)
   end
 
   def room_cover_group_element_name
@@ -158,6 +166,19 @@ class Setting < ActiveRecord::Base
     @@setting ||= Setting.first
     if @@setting
       @@setting.room_cover_group_element
+    else
+      nil
+    end
+  end
+
+  def self.event_creation_prompt
+    @@setting ||= Setting.first
+    if @@setting
+      if @@setting.event_creation_html.blank?
+        ""
+      else
+        @@setting.event_creation_html.html_safe
+      end
     else
       nil
     end

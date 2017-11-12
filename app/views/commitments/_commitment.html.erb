@@ -1,27 +1,42 @@
-<tr>
-  <td>
-    <%= commitment.event.body %>
-  </td>
-  <td>
-    <%= commitment.event.owner ? commitment.event.owner.name : "" %>
-  </td>
-  <td>
-    <%= commitment.event.organiser ? commitment.event.organiser.name : "" %>
-  </td>
-  <td>
-    <%= commitment.event.starts_at_text %>
-  </td>
-  <td>
-    <%= commitment.event.ends_at_text %>
-  </td>
-  <td>
-    <%= commitment.event.commitments.tentative.count == 1 ? "Yes" : "No" %>
-  </td>
+<tr class='approval-item' data-commitment-id=<%= commitment.id %> data-commitment-status="<%= commitment.status %>" data-commitment-reason="<%= commitment.reason %>">
   <td>
     <%=
-      link_to "View",
-              schedule_show_path +
-              "?date=#{commitment.event.jump_date_text}&concern_id=#{concern_id}"
-     %>
+      link_to(commitment.event.starts_at_text,
+              schedule_show_path(date: commitment.event.jump_date_text,
+                                 element_id: commitment.element_id))
+    %>
   </td>
+  <td><%= commitment.event.duration_text %></td>
+  <td><%= link_to(commitment.event.trimmed_body(35),
+                  event_path(commitment.event, from_listing: true),
+                  title: commitment.event.body,
+                  "data-reveal-id" => "eventModal",
+                  "data-reveal-ajax" => true) %></td>
+  <td title="<%=
+    commitment.event.owners_name
+  %>"><%=
+    commitment_owner_mailto(commitment)
+  %></td>
+  <td title="<%=
+  commitment.event.organiser_name
+  %>"><%=
+    commitment_organiser_mailto(commitment)
+  %></td>
+  <td class="approval-status"></td>
+  <% if @allow_buttons %>
+    <td class="approval-buttons">
+      <% if commitment.uncontrolled? %>
+        <%= blank_icon(false) %>
+        <%= blank_icon(false) %>
+        <%= blank_icon(false) %>
+      <% else %>
+        <%= approve_icon(false) %>
+        <%= note_icon(false) %>
+        <%= reject_icon(false) %>
+      <% end %>
+    </td>
+  <% else %>
+    <td></td>
+  <% end %>
+  <td class="form-status"><%= commitment_form_status(commitment) %></td>
 </tr>

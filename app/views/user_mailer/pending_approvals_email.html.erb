@@ -2,21 +2,28 @@
 <html>
   <head>
     <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+    <%= render partial: "styling" %>
   </head>
   <body>
+    <%= render partial: "header" %>
     <p>
       The following resources in Scheduler currently have requests
       awaiting your approval.
     </p>
-<% @user_set.pending_sets.each do |ps| %>
+<% @queues.each do |queue| %>
+    <div class='resource-chunk'>
+      <div class='flip-button'>
+        <%= mailer_resource_link("View requests", queue.element) %>
+      </div>
     <h3>
-      <%= ps.element.name %>
+      <%= queue.element.name %>
     </h3>
-<%   ps.pending.each do |commitment| %>
+<%   queue.sort.each do |commitment| %>
     <p>
       <%= commitment.event.owners_initials %> proposes "<%= commitment.event.body %>" on <%= commitment.event.starts_at_text %>
     </p>
 <%   end %>
+    </div>
 <% end %>
   </body>
 </html>

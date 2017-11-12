@@ -1,5 +1,5 @@
 <% if @event %>
 window.replaceShownCommitments(
-  "<%=j render partial: "events/show_all_commitments" %>")
-$('#pending_count').html("<%= current_user.permissions_pending %>")
+    "<%=j render partial: "events/show_all_commitments" %>");
+window.triggerCountsUpdate();
 <% end %>
