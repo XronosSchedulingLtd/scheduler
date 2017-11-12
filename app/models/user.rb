@@ -448,8 +448,17 @@ class User < ActiveRecord::Base
   #  Does this user need permission to create a commitment for this
   #  element?
   #
+  #  Are permissions switched on globally?
+  #  Is there an owner for this resource?
+  #  Does this particular user need permission OR is there a form to
+  #  fill in?
+  #
+  #  Even users with permission need to go through the process if there
+  #  is a form.
+  #
   def needs_permission_for?(element)
-    Setting.enforce_permissions? && element.owned && !self.can_commit?(element)
+    Setting.enforce_permissions? && element.owned &&
+    (!self.can_commit?(element) || element.user_form)
   end
 
   #
