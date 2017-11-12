@@ -99,11 +99,16 @@ class CoversController < ApplicationController
           @commitment.covered.destroy
           @commitment.reload
         end
+        if current_user.needs_permission_for?(@element)
+          commitment_status = :requested
+        else
+          commitment_status = :uncontrolled
+        end
         c = Commitment.create!({
           element:   @element,
           event:     @commitment.event,
           covering:  @commitment,
-          tentative: current_user.needs_permission_for?(@element)
+          status:    commitment_status
         })
         if property
           @commitment.event.ensure_property(property)

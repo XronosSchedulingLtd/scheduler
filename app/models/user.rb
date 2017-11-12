@@ -519,9 +519,14 @@ class User < ActiveRecord::Base
             count += 1
           else
             #
-            #  Still count this if it has an incomplete form.
+            #  Count incomplete forms *unless* the commitment has
+            #  been approved.  It's possible that a commitment
+            #  with an incomplete form gets approved, in which case
+            #  the requester can no longer edit it.
             #
-            count += c.incomplete_ufr_count
+            if c.tentative?
+              count += c.incomplete_ufr_count
+            end
           end
         end
         total + count
