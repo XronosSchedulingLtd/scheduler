@@ -133,6 +133,16 @@ module ProtoEventInvigilationPersona
     end
   end
 
+  def persona_specific_ensure(event)
+    pr = proto_requests[0]
+    if pr
+      if pr.element != self.generator.default_group_element
+        pr.element = self.generator.default_group_element
+        pr.save!
+      end
+    end
+  end
+
   def self.extended(proto_event)
     proto_event.prepare
   end
@@ -261,6 +271,10 @@ class ProtoEvent < ActiveRecord::Base
         end
       end
     end
+    #
+    #  Allow for persona-specific tweaking.
+    #
+    self.persona_specific_ensure(event)
     #
     #  And now make sure it has the right commitments and requests.
     #  Note that it may well have required other commitments over
@@ -446,6 +460,9 @@ class ProtoEvent < ActiveRecord::Base
     #  This method does nothing, but may well be over-ridden by
     #  a persona.
     #
+  end
+
+  def persona_specific_ensure(event)
   end
 
   def have_persona
