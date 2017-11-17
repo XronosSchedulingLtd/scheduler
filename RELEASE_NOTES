@@ -1,3 +1,16 @@
+v0.25.1 2017-11-17
+
+* Hotfix for exam invigilation modification
+
+  It was discovered that if you set up an exam invigilation cycle with
+  the wrong group of invigilators, then changed the default group
+  it was not enough to re-generate the events to get the group changed.
+  You had to delete all the room records and start again.
+
+  This hotfix ensures that the "regenerate" code does now notice the
+  new default group and applies it to all the events.
+
+
 v0.25 2017-11-12
 
 This release pulls together four separate pre-releases (pre1 to pre4)
