@@ -139,6 +139,9 @@ class ClashChecker
   #  Carry out the indicated checks.
   #
   def perform
+    clashing_categories = Eventcategory.where.not(id: 40).to_a
+    puts "Got #{clashing_categories.size} clashing categories, out of #{Eventcategory.count}"
+    non_clashing_category = Eventcategory.find(40)
     @start_date.upto(@end_date) do |date|
       #
       #  Given the way we are working, we throw away our cache and start
@@ -189,6 +192,7 @@ class ClashChecker
                 start_time:   event.starts_at,
                 end_time:     event.ends_at,
                 and_by_group: true,
+                excluded_category: non_clashing_category,
                 cache:        mwds_cache).preload(:event).collect {|c| c.event}
           end
           clashing_events.uniq!

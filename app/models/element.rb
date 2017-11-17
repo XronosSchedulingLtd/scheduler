@@ -349,6 +349,7 @@ class Element < ActiveRecord::Base
   def commitments_during(start_time:,
                          end_time:,
                          eventcategory:       nil,
+                         excluded_category:   nil,
                          eventsource:         nil,
                          owned_by:            nil,
                          include_nonexistent: false,
@@ -380,6 +381,7 @@ class Element < ActiveRecord::Base
         ending:              end_time,
         mwd_set:             mwd_set,
         eventcategory:       eventcategory,
+        excluded_category:   excluded_category,
         eventsource:         eventsource,
         owned_by:            owned_by,
         include_nonexistent: include_nonexistent)
