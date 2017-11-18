@@ -242,11 +242,20 @@ class Commitment < ActiveRecord::Base
   #  That is, does its element have another direct commitment (not
   #  by group) in the same time period.
   #
+  #  Note that if our own event is flagged as being a non-busy one,
+  #  then we can't clash regardless.
+  #
   def has_simple_clash?
-    self.element.commitments_during(
-      start_time:   self.event.starts_at,
-      end_time:     self.event.ends_at,
-      and_by_group: false).size > 1
+    non_busy_categories = Eventcategory.non_busy_categories
+    if non_busy_categories.collect {|ec| ec.id}.include?(self.event.eventcategory_id)
+      false
+    else
+      self.element.commitments_during(
+        start_time:        self.event.starts_at,
+        end_time:          self.event.ends_at,
+        and_by_group:      false,
+        excluded_category: non_busy_categories).size > 1
+    end
   end
 
   #
