@@ -468,6 +468,7 @@ class Commitment < ActiveRecord::Base
   def self.commitments_on(startdate:           nil,
                           enddate:             nil,
                           eventcategory:       nil,
+                          excluded_category:   nil,
                           eventsource:         nil,
                           resource:            nil,
                           owned_by:            nil,
@@ -502,6 +503,7 @@ class Commitment < ActiveRecord::Base
     self.commitments_during(start_time:          start_time,
                             end_time:            end_time,
                             eventcategory:       eventcategory,
+                            excluded_category:   excluded_category,
                             eventsource:         eventsource,
                             resource:            resource,
                             owned_by:            owned_by,
@@ -514,6 +516,7 @@ class Commitment < ActiveRecord::Base
     start_time:          nil,
     end_time:            nil,
     eventcategory:       nil,
+    excluded_category:   nil,
     eventsource:         nil,
     resource:            nil,
     owned_by:            nil,
@@ -543,6 +546,33 @@ class Commitment < ActiveRecord::Base
         end
         if ec.instance_of?(Eventcategory)
           ecs << ec
+        else
+          duffparameter = true
+        end
+      end
+    end
+    #
+    #  We also allow event categories to be explicitly excluded.
+    #  If you include and exclude the same one, you get to accept
+    #  the consequences.
+    #
+    ex_ecs = []
+    if excluded_category
+      #
+      #  We allow a single eventcategory, or an array.
+      #  (Or something that behaves like an array.)
+      #
+      if excluded_category.respond_to?(:each)
+        ex_eca = excluded_category
+      else
+        ex_eca = [excluded_category]
+      end
+      ex_eca.each do |ex_ec|
+        if ex_ec.instance_of?(String)
+          ex_ec = Eventcategory.find_by_name(ex_ec)
+        end
+        if ex_ec.instance_of?(Eventcategory)
+          ex_ecs << ex_ec
         else
           duffparameter = true
         end
@@ -637,6 +667,12 @@ class Commitment < ActiveRecord::Base
           ecs.each do |ec|
             query_hash[:"ec#{ec.id}"] = ec.id
           end
+        end
+      end
+      if ex_ecs.size > 0
+        ex_ecs.each do |ex_ec|
+          query_string_parts << "events.eventcategory_id <> :ex_ec#{ex_ec.id}"
+          query_hash[:"ex_ec#{ex_ec.id}"] = ex_ec.id
         end
       end
       if ess.size > 0

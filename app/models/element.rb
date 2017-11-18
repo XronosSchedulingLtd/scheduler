@@ -393,6 +393,7 @@ class Element < ActiveRecord::Base
         start_time:          start_time,
         end_time:            end_time,
         eventcategory:       eventcategory,
+        excluded_category:   excluded_category,
         eventsource:         eventsource,
         resource:            self,
         owned_by:            owned_by,
