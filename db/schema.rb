@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171030103646) do
+ActiveRecord::Schema.define(version: 20171118132649) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -140,6 +140,7 @@ ActiveRecord::Schema.define(version: 20171030103646) do
     t.boolean  "privileged",    default: false
     t.boolean  "visible",       default: true
     t.boolean  "clashcheck",    default: false
+    t.boolean  "busy",          default: true
   end
 
   create_table "events", force: true do |t|
