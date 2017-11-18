@@ -38,8 +38,6 @@ class MIS_Cover
   #
   class Clash
 
-    @@non_busy_categories = nil
-
     attr_reader :cover_commitment, :clashing_commitment
 
     require_relative '../school/permitted_overloads'
@@ -111,14 +109,11 @@ class MIS_Cover
         #  won't pick up commitments to events which are flagged as
         #  non-existent.
         #
-        unless @@non_busy_categories
-          @@non_busy_categories = Eventcategory.where(busy: false).to_a
-        end
         all_commitments =
           cover_commitment.element.commitments_during(
             start_time:        cover_commitment.event.starts_at,
             end_time:          cover_commitment.event.ends_at,
-            excluded_category: @@non_busy_categories)
+            excluded_category: Eventcategory.non_busy_categories)
         if all_commitments.size > 1
           #
           #  Possibly a problem.

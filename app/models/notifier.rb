@@ -117,7 +117,6 @@ class Notifier < FakeActiveRecord
   def execute
     if self.valid?
       property = Property.find_by(name: "Invigilation")
-      excluded_categories = Eventcategory.where(busy: false).to_a
       @staff_entry_hash = Hash.new
       @clashes = Array.new
       commitments = Commitment.commitments_on(
@@ -154,7 +153,7 @@ class Notifier < FakeActiveRecord
                 c.element.commitments_during(
                   start_time:   event.starts_at,
                   end_time:     event.ends_at,
-                  excluded_category: excluded_categories,
+                  excluded_category: Eventcategory.non_busy_categories,
                   and_by_group: false).preload(:event) - [c]
               if clashing_commitments.size > 0
                 clashing_commitments.each do |cc|

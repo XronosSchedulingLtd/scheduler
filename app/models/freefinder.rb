@@ -114,7 +114,7 @@ class Freefinder < ActiveRecord::Base
         Commitment.commitments_during(
           start_time: starts_at,
           end_time: ends_at,
-          excluded_category: Eventcategory.where(busy: false).to_a)
+          excluded_category: Eventcategory.non_busy_categories)
       if except_event
         overlapping_commitments =
           overlapping_commitments.where.not(event_id: except_event.id)
