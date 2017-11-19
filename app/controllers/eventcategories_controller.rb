@@ -89,6 +89,7 @@ class EventcategoriesController < ApplicationController
                                             :deprecated,
                                             :privileged,
                                             :visible,
+                                            :busy,
                                             :clashcheck)
     end
 end

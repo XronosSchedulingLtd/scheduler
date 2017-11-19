@@ -33,6 +33,7 @@ class Eventcategory < ActiveRecord::Base
   scope :exclude, lambda { |ids| where.not(id: ids) }
 
   @@category_cache = {}
+  @@non_busy_categories = nil
 
   TO_DEPRECATE = ["Calendar",
                   "Admissions Event",
@@ -86,6 +87,7 @@ class Eventcategory < ActiveRecord::Base
 
   def flush_cache
     @@category_cache = {}
+    @@non_busy_categories = nil
   end
 
   def categories_for(user)
@@ -110,6 +112,15 @@ class Eventcategory < ActiveRecord::Base
     else
       Eventcategory.available.unprivileged
     end
+  end
+
+  #
+  #  Provide a potentially cached list of non-busy
+  #  categories.  Only cached very briefly, but
+  #  potentially useful if we are doing multiple lookups.
+  #
+  def self.non_busy_categories
+    @@non_busy_categories ||= Eventcategory.where(busy: false).to_a
   end
 
   def can_destroy?
