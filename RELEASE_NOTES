@@ -1,3 +1,40 @@
+v0.26   2017011-19
+
+This release implements the concept of Busy and Non-busy event categories.
+
+These are needed so that people can have events in their schedules without
+the said events causing them to appear busy.  The obvious example is
+the standard "Date - other" event category.  It may well be desired to
+push such a date into the schedule of various pupils as being noteworthy,
+but without it meaning that said pupils are going to miss lessons on that
+day.
+
+* Add a busy flag to the Eventcategory record - defaults to true.
+
+* Add code to the Eventcategory editing stuff to allow the flag to
+  be edited.
+
+* Enhance Commitment#commitments_during to allow the specification of
+  eventcategories to exclude from a search.
+
+* Propagate the previous change up through the call tree.
+
+* Enhance the general clash checking code (the code which puts red dots
+  onto lessons) to take account of non-busy events and ignore them.
+
+* Likewise with the code for checking cover clashes.
+
+* Likewise with the code for checking invigilation clashes.
+
+* Make the Freefinder module (used for finding free resources of a given
+  type) aware of the flag.  This affects both explicit use of the Freefinder
+  (from the top menu) and the allocation of invigilation slots.
+
+* Make the "double booked" code (which puts red boxes around double-booked
+  resources) observe the flag.  Non-busy events never cause the red box
+  to appear.
+
+
 v0.25.1 2017-11-17
 
 * Hotfix for exam invigilation modification
