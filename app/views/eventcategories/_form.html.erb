@@ -151,6 +151,21 @@
     </div>
   </div>
   <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :busy, class: "right" %><br>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :busy %>
+    </div>
+    <div class="small-8 columns annotation">
+      The opposite side of the above comparison.  Should events in
+      this category be regarded as rendering their resources busy?
+      If this flag is unset, then the corresponding events will not
+      be regarded as clashing with events which are being checked for
+      clashes.
+    </div>
+  </div>
+  <div class="row collapse">
     <div class="small-9 small-offset-3 columns">
       <%= f.submit %>
     </div>

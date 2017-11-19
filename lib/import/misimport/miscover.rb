@@ -111,8 +111,9 @@ class MIS_Cover
         #
         all_commitments =
           cover_commitment.element.commitments_during(
-            start_time: cover_commitment.event.starts_at,
-            end_time:   cover_commitment.event.ends_at)
+            start_time:        cover_commitment.event.starts_at,
+            end_time:          cover_commitment.event.ends_at,
+            excluded_category: Eventcategory.non_busy_categories)
         if all_commitments.size > 1
           #
           #  Possibly a problem.

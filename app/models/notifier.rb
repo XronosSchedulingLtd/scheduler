@@ -124,7 +124,6 @@ class Notifier < FakeActiveRecord
         enddate: self.end_date ? self.end_date : :never,
         resource:  property
       ).preload(:element)
-      Rails.logger.debug("Got #{commitments.count} commitments.")
       commitments.collect {|c| c.event }.sort.each do |event|
         #
         #  Need to iterate through the actual commitments to the event
@@ -154,6 +153,7 @@ class Notifier < FakeActiveRecord
                 c.element.commitments_during(
                   start_time:   event.starts_at,
                   end_time:     event.ends_at,
+                  excluded_category: Eventcategory.non_busy_categories,
                   and_by_group: false).preload(:event) - [c]
               if clashing_commitments.size > 0
                 clashing_commitments.each do |cc|

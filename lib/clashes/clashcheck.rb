@@ -186,10 +186,12 @@ class ClashChecker
             #
             clashing_events +=
               resource.element.commitments_during(
-                start_time:   event.starts_at,
-                end_time:     event.ends_at,
-                and_by_group: true,
-                cache:        mwds_cache).preload(:event).collect {|c| c.event}
+                start_time:        event.starts_at,
+                end_time:          event.ends_at,
+                and_by_group:      true,
+                excluded_category: Eventcategory.non_busy_categories,
+                cache:             mwds_cache
+              ).preload(:event).collect {|c| c.event}
           end
           clashing_events.uniq!
           clashing_events = clashing_events - [event]
