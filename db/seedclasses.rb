@@ -37,7 +37,13 @@ class Seeder
     def initialize(name, make_public = false)
       @dbrecord = Property.create!({
         name:        name,
-        make_public: make_public
+        make_public: make_public,
+        #
+        #  For now we assume that if it is to be public, then it should
+        #  also be shown by default to both staff and pupils.
+        #
+        auto_staff:  make_public,
+        auto_pupils: make_public
       })
       @dbrecord.reload
     end
@@ -74,7 +80,7 @@ class Seeder
     def initialize(title, forename, surname, initials, email = nil)
       @initials = initials
       unless email
-        email = "#{forename.downcase}.#{surname.downcase}@xronos.org"
+        email = "#{forename.downcase}.#{surname.downcase}@xronos.uk"
       end
       @dbrecord = Staff.create!({
         name:     "#{forename} #{surname}",
@@ -941,5 +947,13 @@ class Seeder
         add_to(group, newpupil)
       end
     end
+  end
+
+  #
+  #  Method to set the room cover group in the system settings.
+  #
+  def set_room_cover_group(group)
+    @settings.room_cover_group_element = group.dbrecord.element
+    @settings.save!
   end
 end

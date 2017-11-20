@@ -38,10 +38,12 @@ class Setting < ActiveRecord::Base
   end
 
   def update_html
-    self.event_creation_html =
-      Redcarpet::Markdown.new(Redcarpet::Render::HTML,
-                              fenced_code_blocks: true).
-                          render(self.event_creation_markup)
+    if self.event_creation_markup
+      self.event_creation_html =
+        Redcarpet::Markdown.new(Redcarpet::Render::HTML,
+                                fenced_code_blocks: true).
+                            render(self.event_creation_markup)
+    end
   end
 
   def room_cover_group_element_name

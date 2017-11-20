@@ -31,7 +31,7 @@ Eventcategory.destroy_all
 #  The act of creating a seeder will ensure the necessary basic
 #  settings records and eras exist within the system.
 #
-seeder = Seeder.new(1, "xronos.uk")
+seeder = Seeder.new(1, "schedulerdemo.xronos.uk")
 
 #
 #  First, some which are intrinsic to the functioning of the system.
@@ -65,7 +65,8 @@ seeder.subject(:pe,        "Physical Education")
 seeder.subject(:spanish,   "Spanish")
 seeder.subject(:sport,     "Sport")
 
-sjp = seeder.new_staff("Mr",  "Simon",    "Philpotts", "SJP", [:maths, :fm])
+sjp = seeder.new_staff("Mr",  "Simon",    "Philpotts", "SJP", [:maths, :fm],
+                       "sjrphilpotts@gmail.com")
 ced = seeder.new_staff("Mrs", "Claire",   "Dunwoody",  "CED", [:french])
 catering = seeder.new_service("Catering")
 medical = seeder.new_service("Medical")
@@ -126,18 +127,41 @@ sptpupils = seeder.new_group(:sptpupils, "Sport pupils", :current_era)
 
 seeder.location(:mainhall, "MH", "Main Hall")
 seeder.location(:gks, "GKS", "Genghis Khan Suite")
-seeder.location(:l101, "L101")
-seeder.location(:l102, "L102")
-seeder.location(:l103, "L103")
-seeder.location(:l104, "L104")
-seeder.location(:l105, "L105")
-seeder.location(:l106, "L106")
-seeder.location(:l107, "L107")
-seeder.location(:l108, "L108")
-seeder.location(:l109, "L109")
-seeder.location(:l110, "L110")
-seeder.location(:l111, "L111")
+
+lb = Seeder::SeedGroup.new("Lincoln Building", seeder.eras[:current_era])
+
+lb << seeder.location(:l101, "L101")
+lb << seeder.location(:l102, "L102")
+lb << seeder.location(:l103, "L103")
+lb << seeder.location(:l104, "L104")
+lb << seeder.location(:l105, "L105")
+lb << seeder.location(:l106, "L106")
+lb << seeder.location(:l107, "L107")
+lb << seeder.location(:l108, "L108")
+lb << seeder.location(:l109, "L109")
+lb << seeder.location(:l110, "L110")
+lb << seeder.location(:l111, "L111")
+
 seeder.location(:sh,   "Sports Hall")
+
+gb = Seeder::SeedGroup.new("Grace Building", seeder.eras[:current_era])
+
+gb << seeder.location(:g21, "G21")
+gb << seeder.location(:g22, "G22")
+gb << seeder.location(:g23, "G23")
+gb << seeder.location(:g24, "G24")
+
+its = Seeder::SeedGroup.new("ICT Rooms", seeder.eras[:current_era])
+
+its << seeder.location(:icta, "ICT suite A")
+its << seeder.location(:ictb, "ICT suite B")
+
+cr = Seeder::SeedGroup.new("Cover rooms", seeder.eras[:current_era])
+cr << its
+cr << lb
+cr << gb
+
+seeder.set_room_cover_group(cr)
 
 calendarproperty = seeder.properties[:calendarproperty]
 suspensionproperty = seeder.properties[:suspensionproperty]
