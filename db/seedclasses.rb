@@ -28,6 +28,11 @@ class Seeder
       SeedPromptNote.new(self, prompt, default_contents, read_only)
     end
 
+    def add_form(form)
+      @dbrecord.element.user_form = form.dbrecord
+      @dbrecord.element.save!
+    end
+
   end
 
   class SeedProperty
@@ -142,6 +147,10 @@ class Seeder
         SeedConcern.new(self, entity, false, true, "#123456")
       end
       self
+    end
+
+    def user_id
+      @dbrecord.id
     end
 
   end
@@ -527,6 +536,18 @@ class Seeder
 
   end
 
+  class SeedUserForm
+    attr_reader :dbrecord
+
+    def initialize(name, user, definition)
+      @dbrecord = UserForm.create!({
+        name:            name,
+        created_by_user: user.dbrecord,
+        definition:      definition
+      })
+    end
+  end
+
   #
   #  And here is the code for the seeder itself.
   #
@@ -543,7 +564,8 @@ class Seeder
               :subjects,
               :weekdates
 
-  def initialize(auth_type = 1, dns_domain_name = "example.org")
+  def initialize(dns_domain_name = "example.org",
+                 auth_type = Setting.auth_types[:google_auth])
     #
     #  Always set everything to the current week.
     #
@@ -619,6 +641,7 @@ class Seeder
     @eventsources = Hash.new
     @subjects = Hash.new
     @staff = Hash.new
+    @users = Hash.new
     @periods = Array.new
     @locations = Hash.new
   end
@@ -751,11 +774,12 @@ class Seeder
   #
   #  Anything else will result in undefined behaviour.
   #
-  def event(
+  def add_event(
     eventcategory,      # Either an actual event category, or an id.
     title,
     day,
     timing,
+    owner = nil,
     organiser = nil,
     modifiers = {})
 
@@ -770,12 +794,22 @@ class Seeder
       end
     end
     extra = Hash.new
+    if owner
+      unless owner.instance_of?(SeedUser)
+        key = owner
+        owner = @users[key]
+        unless owner
+          raise "Can't find owner user with id #{key}"
+        end
+      end
+      extra[:owner_id] = owner.user_id
+    end
     if organiser
       unless organiser.instance_of?(SeedStaff)
         key = organiser
         organiser = @staff[key]
         unless organiser
-          "Can't find organiser staff with id #{key}"
+          raise "Can't find organiser staff with id #{key}"
         end
       end
       extra[:organiser_id] = organiser.element_id
@@ -834,11 +868,18 @@ class Seeder
   #  Create a new user record to match an existing member of staff.
   #
   def new_user(existing_staff)
-    SeedUser.new(existing_staff)
+    key = existing_staff.initials.downcase.to_sym
+    rec = SeedUser.new(existing_staff)
+    @users[key] = rec
+    rec
   end
 
   def new_service(name)
     SeedService.new(name)
+  end
+
+  def new_form(name, user, definition)
+    SeedUserForm.new(name, user, definition)
   end
 
   #
@@ -959,4 +1000,10 @@ class Seeder
     @settings.room_cover_group_element = group.dbrecord.element
     @settings.save!
   end
+
+  def demo_mode
+    @settings.auth_type = Setting.auth_types[:google_demo_auth]
+    @settings.save!
+  end
+
 end
