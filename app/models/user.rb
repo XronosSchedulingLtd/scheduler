@@ -346,10 +346,13 @@ class User < ActiveRecord::Base
     elsif item.instance_of?(Note)
       #
       #  You can delete the ones you own, provided they're attached
-      #  to events.  If they're attached to commitments, you have to
+      #  to events and you have note creation permission.
+      #  If they're attached to commitments, you have to
       #  delete the commitment instead.
       #
-      item.owner_id == self.id && item.parent_type == "Event"
+      item.owner_id == self.id &&
+      item.parent_type == "Event" &&
+      self.can_add_notes?
     elsif item.instance_of?(Commitment)
       #
       #  With edit permission you can always delete a commitment,
@@ -847,12 +850,14 @@ class User < ActiveRecord::Base
   #
   def set_initial_permissions
     if self.staff?
-      self.editor           = true
-      self.can_has_groups   = true
-      self.public_groups    = true
-      self.can_find_free    = true
-      self.can_add_concerns = true
-      self.can_roam         = true
+      self.editor            = true
+      self.can_add_resources = true
+      self.can_add_notes     = true
+      self.can_has_groups    = true
+      self.public_groups     = true
+      self.can_find_free     = true
+      self.can_add_concerns  = true
+      self.can_roam          = true
       if Setting.auth_type == "google_demo_auth" &&
          self.email == "jhwinters@gmail.com"
         self.admin = true
