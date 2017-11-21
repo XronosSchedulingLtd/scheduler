@@ -189,6 +189,8 @@ class UsersController < ApplicationController
                       :email,
                       :admin,
                       :editor,
+                      :can_add_resources,
+                      :can_add_notes,
                       :exams,
                       :edit_all_events,
                       :subedit_all_events,

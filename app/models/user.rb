@@ -47,7 +47,9 @@ class User < ActiveRecord::Base
     can_su: "Can this user become another user?",
     exams: "Does this user administer exams or invigilation?",
     can_relocate_lessons: "Can this user relocate lessons - not just his or her own?",
-    show_pre_requisites: "Do you want to be prompted for likely requirements when creating new events?"
+    show_pre_requisites: "Do you want to be prompted for likely requirements when creating new events?",
+    can_add_resources: "Can this user add resources to events?",
+    can_add_notes: "Can this user add notes to events?"
   }
   FIELD_TITLE_TEXTS.default = ""
 
