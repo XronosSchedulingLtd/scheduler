@@ -1,4 +1,23 @@
-v0.26   2017011-19
+v0.26.1 2017-11-21
+
+Mainly updating the seed data used for new installations and the demo
+system, but two very small functional changes for running systems.
+
+* Being a resource administrator and being able to edit forms are two
+  separate permission bits.  However, before this release it was
+  necessary to have the "form editing" permission bit in order to
+  attach a form to a resource.  It is now possible to do it merely
+  by being the owner of the resource.  It is thus possible to give
+  people permission to use a form, without also letting them edit it.
+
+* A very small bug which couldn't actually arise in a running system,
+  but could when setting a system up.  If the prompt text for the
+  event creation dialogue was left as nil, then the code for saving
+  the system settings raised an unintended exception.  Not a validation
+  error - an error in the logic.  Fixed.
+
+
+v0.26   2017-11-19
 
 This release implements the concept of Busy and Non-busy event categories.
 
@@ -48,7 +67,7 @@ v0.25.1 2017-11-17
   new default group and applies it to all the events.
 
 
-v0.25 2017-11-12
+v0.25   2017-11-12
 
 This release pulls together four separate pre-releases (pre1 to pre4)
 plus some final extra changes.
