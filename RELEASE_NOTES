@@ -1,3 +1,14 @@
+v0.26.2 2017-11-21
+
+* Adds more detail to the page used for printing request forms.
+
+  Once a user has filled in a form requesting a service it is useful
+  for the service provider to be able to print a page for the records.
+
+  This release adds a bit more detail to that page, so they can have
+  all the necessary information about the event in one go.
+
+
 v0.26.1 2017-11-21
 
 Mainly updating the seed data used for new installations and the demo
