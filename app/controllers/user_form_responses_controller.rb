@@ -24,6 +24,7 @@ class UserFormResponsesController < ApplicationController
       if parent.instance_of?(Commitment)
         @event = parent.event
         @resource = parent.element
+        @status = parent.status
       else
         @event = nil
       end
