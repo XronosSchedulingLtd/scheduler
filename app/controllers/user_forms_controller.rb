@@ -71,7 +71,10 @@ class UserFormsController < ApplicationController
 
   private
     def authorized?(action = action_name, resource = nil)
-      logged_in? && (current_user.admin || current_user.can_has_forms)
+      logged_in? &&
+      (current_user.admin ||
+       current_user.can_has_forms ||
+       action == 'autocomplete_user_form_name')
     end
 
     # Use callbacks to share common setup or constraints between actions.

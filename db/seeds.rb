@@ -31,7 +31,7 @@ Eventcategory.destroy_all
 #  The act of creating a seeder will ensure the necessary basic
 #  settings records and eras exist within the system.
 #
-seeder = Seeder.new(1, "xronos.uk")
+seeder = Seeder.new("schedulerdemo.xronos.uk")
 
 #
 #  First, some which are intrinsic to the functioning of the system.
@@ -65,16 +65,20 @@ seeder.subject(:pe,        "Physical Education")
 seeder.subject(:spanish,   "Spanish")
 seeder.subject(:sport,     "Sport")
 
-sjp = seeder.new_staff("Mr",  "Simon",    "Philpotts", "SJP", [:maths, :fm])
+sjp = seeder.new_staff("Mr",  "Simon",    "Philpotts", "SJP", [:maths, :fm],
+                       "sjrphilpotts@gmail.com")
 ced = seeder.new_staff("Mrs", "Claire",   "Dunwoody",  "CED", [:french])
-catering = seeder.new_service("Catering")
 medical = seeder.new_service("Medical")
-seeder.new_user(ced).
+catering = seeder.new_service("Catering")
+ced_user = seeder.new_user(ced).
        controls(seeder.properties[:calendarproperty]).
        controls(catering).
        controls(medical)
-catering.add_prompt("Please specify in detail what you need from the catering department.\r\n\r\n* How many people?\r\n* What kind of food/drink?\r\n* Any special requirements - e.g. vegetarian?\r\n* When and where to deliver?\r\n* Do you require staff to serve food or drink?\r\n* When will you need equipment taking away?\r\n\r\nYou may also want to consider putting in a request for cleaning\r\nservices if you are having significant catering.",
-                    "Edit this note to specify your catering requirements")
+catering.add_form(
+  seeder.new_form("Catering request",
+                  ced_user,
+                  "[{\"type\":\"header\",\"subtype\":\"h3\",\"label\":\"Catering request\"},{\"type\":\"paragraph\",\"subtype\":\"p\",\"label\":\"Please try to give as much information as possible to enable us to fulfil your request quickly.\"},{\"type\":\"number\",\"required\":true,\"label\":\"How many people do you want to cater for?\",\"name\":\"number-1511170652475\"},{\"type\":\"number\",\"label\":\"And how many vegetarians?\",\"name\":\"number-1511170685039\",\"value\":\"0\"},{\"type\":\"select\",\"label\":\"Style of catering required\",\"name\":\"select-1511170709620\",\"values\":[{\"label\":\"Pupils' packed lunches\",\"value\":\"option-1\",\"selected\":true},{\"label\":\"Buffet for staff\",\"value\":\"option-2\"},{\"label\":\"Buffet for parents\",\"value\":\"option-3\"},{\"label\":\"Sit down meal\",\"value\":\"option-4\"}]},{\"type\":\"radio-group\",\"label\":\"Will you require staff to serve and clear away?\",\"name\":\"radio-group-1511170791585\",\"values\":[{\"label\":\"Yes\",\"value\":\"option-1\"},{\"label\":\"No\",\"value\":\"option-2\",\"selected\":true}]},{\"type\":\"text\",\"required\":true,\"label\":\"Account code\",\"description\":\"Please specify the account code for the account to be charged.\",\"name\":\"text-1511170991337\",\"subtype\":\"text\"}]"))
+
 medical.add_prompt("",
                    "For medical centre services, please phone X273 or e-mail\r\nmedical@school to give your detailed requirements.",
                   true)
@@ -126,61 +130,87 @@ sptpupils = seeder.new_group(:sptpupils, "Sport pupils", :current_era)
 
 seeder.location(:mainhall, "MH", "Main Hall")
 seeder.location(:gks, "GKS", "Genghis Khan Suite")
-seeder.location(:l101, "L101")
-seeder.location(:l102, "L102")
-seeder.location(:l103, "L103")
-seeder.location(:l104, "L104")
-seeder.location(:l105, "L105")
-seeder.location(:l106, "L106")
-seeder.location(:l107, "L107")
-seeder.location(:l108, "L108")
-seeder.location(:l109, "L109")
-seeder.location(:l110, "L110")
-seeder.location(:l111, "L111")
+
+lb = Seeder::SeedGroup.new("Lincoln Building", seeder.eras[:current_era])
+
+lb << seeder.location(:l101, "L101")
+lb << seeder.location(:l102, "L102")
+lb << seeder.location(:l103, "L103")
+lb << seeder.location(:l104, "L104")
+lb << seeder.location(:l105, "L105")
+lb << seeder.location(:l106, "L106")
+lb << seeder.location(:l107, "L107")
+lb << seeder.location(:l108, "L108")
+lb << seeder.location(:l109, "L109")
+lb << seeder.location(:l110, "L110")
+lb << seeder.location(:l111, "L111")
+
 seeder.location(:sh,   "Sports Hall")
+
+gb = Seeder::SeedGroup.new("Grace Building", seeder.eras[:current_era])
+
+gb << seeder.location(:g21, "G21")
+gb << seeder.location(:g22, "G22")
+gb << seeder.location(:g23, "G23")
+gb << seeder.location(:g24, "G24")
+
+its = Seeder::SeedGroup.new("ICT Rooms", seeder.eras[:current_era])
+
+its << seeder.location(:icta, "ICT suite A")
+its << seeder.location(:ictb, "ICT suite B")
+
+cr = Seeder::SeedGroup.new("Cover rooms", seeder.eras[:current_era])
+cr << its
+cr << lb
+cr << gb
+
+seeder.set_room_cover_group(cr)
 
 calendarproperty = seeder.properties[:calendarproperty]
 suspensionproperty = seeder.properties[:suspensionproperty]
 
-seeder.event(:sportsfixture,
+seeder.add_event(:sportsfixture,
                  "3rd XV away - St Asaph's",
                  :wednesday,
                  ["14:00", "17:00"],
                  :ced).
        involving(calendarproperty)
-seeder.event(:sportsfixture,
+seeder.add_event(:sportsfixture,
                  "2nd XV home - St Asaph's",
                  :wednesday,
                  ["14:00", "17:00"],
                  :ced).
        involving(calendarproperty)
-seeder.event(:trip,
+seeder.add_event(:trip,
                  "Geography field trip",
                  :thursday,
                  ["09:00", "17:00"],
                  :ced,
+                 nil,
                  {involving: [calendarproperty, geopupils]})
-seeder.event(:parentsevening,
+seeder.add_event(:parentsevening,
                  "Year 9 parents' evening",
                  :tuesday,
                  ["17:30", "21:00"],
                  :ced).
           involving(calendarproperty, year9teachers)
-seeder.event(:sportsfixture,
+seeder.add_event(:sportsfixture,
                  "Rowing at Eton Dorney",
                  :saturday,
                  ["10:30", "15:00"],
-                 :ced).
+                 :ced,
+                 :sjp).
        involving(calendarproperty, sjp).
        add_note(
          "",
          "Please could parents not attempt to take rowers away\nbefore the end of the last event.\n\nRefreshments will be provided in the school marquee.",
          {visible_guest: true}
        )
-seeder.event(:assembly,
+seeder.add_event(:assembly,
                 "Founder's Assembly",
                 :monday,
-                ["11:15", "12:10"]).
+                ["11:15", "12:10"],
+                :ced).
        involving(calendarproperty,
                  suspensionproperty,
                  allstaff,
@@ -188,7 +218,7 @@ seeder.event(:assembly,
                  seeder.locations[:mainhall])
 
 [:monday, :tuesday, :wednesday, :thursday, :friday].each do |day|
-  seeder.event(:assembly,
+  seeder.add_event(:assembly,
                    "Assembly",
                    day,
                    ["09:00", "09:20"]).
@@ -196,17 +226,19 @@ seeder.event(:assembly,
 end
 
 
-seeder.event(:datecrucial,
+seeder.add_event(:datecrucial,
                  "Founder's Day",
                  :monday,
                  :all_day,
                  nil,
+                 nil,
                  {involving: calendarproperty})
 
-seeder.event(:dateother,
+seeder.add_event(:dateother,
                  "Year 11 exams",
                  :nextmonday,
                  :all_day,
+                 nil,
                  nil,
                  {involving: calendarproperty})
 
@@ -454,10 +486,11 @@ seeder.lesson(:dlj, :g11dra1,   :l102, :tuesday, 6)
 seeder.lesson(:dpr, :g11ger2,   :l102, :wednesday, 1)
 seeder.lesson(:afg, :g11eng3,   :l103, :wednesday, 2)
 seeder.lesson(:dpr, :g11ita1,   :l102, :wednesday, 4)
-seeder.event(:lesson,
+seeder.add_event(:lesson,
              "Year 11 sport",
              :wednesday,
              ["14:00", "17:00"],
+             nil,
              :efl).
        involving(seeder.groups[:g11sport])
 
@@ -492,3 +525,8 @@ seeder.lesson(:dpr, :g11ger2,   :l105, :nextmonday, 4, {non_existent: true})
 seeder.lesson(:prw, :g11his4,   :l106, :nextmonday, 6, {non_existent: true})
 
 
+#
+#  Switch our new system into demo mode.  Definitely don't do this on
+#  a live installation.
+#
+seeder.demo_mode
