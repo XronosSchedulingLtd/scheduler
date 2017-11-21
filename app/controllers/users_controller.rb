@@ -218,7 +218,7 @@ class UsersController < ApplicationController
                       :default_event_text,
                       :day_shape_id,
                       :can_relocate_lessons)
-      elsif current_user.editor
+      elsif current_user.editor?
         params.require(:user).
                permit(:firstday,
                       :list_teachers,
