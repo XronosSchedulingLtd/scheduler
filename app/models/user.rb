@@ -929,6 +929,23 @@ class User < ActiveRecord::Base
     nil
   end
 
+  #
+  #  For populating the new resource and note flags from existing
+  #  fields.
+  #
+  def populate_resource_and_note_flags
+    self.can_add_resources = self.editor?
+    self.can_add_notes     = self.staff?
+    self.save!
+  end
+
+  def self.populate_resource_and_note_flags
+    User.all.each do |u|
+      u.populate_resource_and_note_flags
+    end
+    nil
+  end
+
   protected
 
   def being_destroyed
