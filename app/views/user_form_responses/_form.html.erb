@@ -1,8 +1,29 @@
 <% if @event %>
   <h3>Request form for <%= @resource.name %></h3>
+  <% if @status %>
+    Status: <%= @status %><br/>
+  <% end %>
   Event: <%= @event.body %><br/>
   Starts: <%= @event.starts_at_text %><br/>
-  Duration: <%= @event.duration_text %>
+  Duration: <%= @event.duration_text %><br/>
+  Owner: <%= @event.owner ? @event.owner.name : "System" %>
+  <% if @event.organiser %>
+    <br/>Organiser: <%= @event.organiser.name %>
+  <% end %>
+  <% unless (staff = @event.staff).empty? %>
+    <br/>Staff: <%= staff.collect {|s| s.name }.join(", ") %>
+  <% end %>
+  <% unless (locations = @event.locations).empty? %>
+    <br/>Locations: <%= locations.collect {|l| l.short_name }.join(", ") %>
+  <% end %>
+  <% unless (services = @event.services).empty? %>
+    <br/>Services: <%= services.collect {|s| s.name }.join(", ") %>
+  <% end %>
+  <% unless (properties = @event.properties).empty? %>
+    <br/>Properties: <%= properties.collect {|p| p.name }.join(", ") %>
+  <% end %>
+
+
 <% if @extra_text %>
   <br/>
   <%= preserve_line_breaks(@extra_text) %>

@@ -762,6 +762,22 @@ class Event < ActiveRecord::Base
     end
   end
 
+  def properties(and_by_group = false)
+    if and_by_group
+      self.all_atomic_resources.select {|r| r.instance_of?(Property)}
+    else
+      self.resources.select {|r| r.instance_of?(Property)}
+    end
+  end
+
+  def services(and_by_group = false)
+    if and_by_group
+      self.all_atomic_resources.select {|r| r.instance_of?(Service)}
+    else
+      self.resources.select {|r| r.instance_of?(Service)}
+    end
+  end
+
   #
   #  Try for a potentially optimised way of doing it.
   #  If the client does a preload() on staff_elements and the
@@ -777,10 +793,6 @@ class Event < ActiveRecord::Base
 
   def groups
     self.resources.select {|r| r.instance_of?(Group)}
-  end
-
-  def properties
-    self.resources.select {|r| r.instance_of?(Property)}
   end
 
   def all_notes_for(user)
