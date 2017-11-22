@@ -10,6 +10,7 @@ class ApplicationController < ActionController::Base
 
   helper_method :current_user,
                 :user_can_roam?,
+                :user_can_drag?,
                 :admin_user?,
                 :known_user?,
                 :public_groups_user?
@@ -99,6 +100,10 @@ class ApplicationController < ActionController::Base
 
   def public_groups_user?
     current_user && current_user.public_groups?
+  end
+
+  def user_can_drag?(concern)
+    current_user && current_user.can_drag?(concern)
   end
 
 end

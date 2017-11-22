@@ -450,6 +450,13 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Can this user drag this concern onto the schedule?
+  #
+  def can_drag?(concern)
+    self.can_add_resources? || self.own_element == concern.element
+  end
+
+  #
   #  Does this user need permission to create a commitment for this
   #  element?
   #
@@ -640,14 +647,14 @@ class User < ActiveRecord::Base
             concern.save!
           end
         else
-          Concern.create! do |concern|
-            concern.user_id    = self.id
-            concern.element_id = staff.element.id
-            concern.equality   = true
-            concern.owns       = false
-            concern.visible    = true
-            concern.colour     = "#225599"
-          end
+          self.concerns.create!({
+            element:  staff.element,
+            equality: true,
+            owns:     false,
+            visible:  true,
+            auto_add: true,
+            colour:   "#225599"
+          })
         end
       end
       pupil = Pupil.find_by_email(self.email)
@@ -660,14 +667,14 @@ class User < ActiveRecord::Base
             concern.save!
           end
         else
-          Concern.create! do |concern|
-            concern.user_id    = self.id
-            concern.element_id = pupil.element.id
-            concern.equality   = true
-            concern.owns       = false
-            concern.visible    = true
-            concern.colour     = "#225599"
-          end
+          self.concerns.create!({
+            element:  pupil.element,
+            equality: true,
+            owns:     false,
+            visible:  true,
+            auto_add: true,
+            colour:   "#225599"
+          })
         end
       end
       if got_something
@@ -942,6 +949,17 @@ class User < ActiveRecord::Base
   #
   def populate_resource_and_note_flags
     self.can_add_resources = self.editor?
+    unless self.can_add_resources?
+      #
+      #  If this user can't add resources, then he'd better auto-add
+      #  himself.
+      #
+      own_concern = self.concerns.me[0]
+      if own_concern
+        own_concern.auto_add = true
+        own_concern.save!
+      end
+    end
     self.can_add_notes     = self.staff?
     self.save!
   end

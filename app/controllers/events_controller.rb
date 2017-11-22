@@ -138,7 +138,8 @@ class EventsController < ApplicationController
     #  to do anything about it.
     #
     if current_user &&
-       current_user.warn_no_resources &&
+       current_user.warn_no_resources? &&
+       current_user.can_add_resources? &&
        current_user.can_subedit?(@event) &&
        @event.resourceless?
       @resourcewarning = true
@@ -398,12 +399,19 @@ class EventsController < ApplicationController
             end
           end
         end
+        #
+        #  If the user does not have permission to add resources, then
+        #  he will be thrown straight out to the event display.
+        #  Prepare the necessary data.
+        #
+        unless current_user.can_add_resources?
+          assemble_event_info
+        end
         @success = true
         @minimal = true
         @commitment = Commitment.new
         @commitment.event = @event
         @resourcewarning = false
-#          current_user.warn_no_resources && @event.resourceless?
         format.html { redirect_to events_path, notice: 'Event was successfully created.' }
         format.json { render :show, status: :created, location: @event }
         format.js
