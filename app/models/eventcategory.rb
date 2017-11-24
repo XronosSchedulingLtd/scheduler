@@ -35,28 +35,35 @@ class Eventcategory < ActiveRecord::Base
   @@category_cache = {}
   @@non_busy_categories = nil
 
-  TO_DEPRECATE = ["Calendar",
-                  "Admissions Event",
-                  "Gap (invisible)",
-                  "Gap (visible)",
-                  "Key date (external)",
-                  "Key date (internal)",
-                  "Public event"]
-  TO_MAKE_PRIVILEGED = ["Assembly",
-                        "Duty",
-                        "Invigilation",
-                        "Other Half",
-                        "Registration",
-                        "Reporting deadline",
-                        "Study leave",
-                        "Supervised study",
-                        "Tutor period",
-                        "Week letter"]
-  NewCategory = Struct.new(:name, :schoolwide, :privileged)
-  TO_CREATE = [NewCategory.new("Hospitality",      false, false),
-               NewCategory.new("Parents' evening", false, true),
-               NewCategory.new("Date - crucial",   true,  true),
-               NewCategory.new("Date - other",     false, false)]
+  FIELD_TITLE_TEXTS = {
+      pecking_order:
+        "Controls the order in which events will appear in the Days controller.  Smaller values first.",
+      schoolwide:
+        "Appears on the schedule for all logged-in users.",
+      publish:
+        "Included in ical exports - e.g. to Google Calendar.",
+      visible:
+        "Shown on the web display in association with attached resources. Events which are not visible will be seen only by their owners.",
+      unimportant:
+        "Not important enough to prevent use for cover - e.g. assemblies.",
+      can_merge:
+        "Two events of the same category can be merged for cover purposes.",
+      can_borrow:
+        "If the event boasts more than one resource of the same type, then individuals can be borrowed for cover.",
+      compactable:
+        "When exporting calendar data, can multi-day events be compacted to reduce their number of appearances?  For timed events, can the end time be suppressed?",
+      privileged:
+        "This event category can be selected only by users who have the corresponding bit set in their user records.",
+      clashcheck:
+        "Events in this category are to be checked for clashes and annotated.  All events are included in the check, but only these will be annotated.",
+      busy:
+        "The opposite side of the previous flag.  Should events in this category be regarded as rendering their resources busy?  If this flag is unset, then the corresponding events will not be regarded as clashing with events which are being checked for clashes.",
+      deprecated:
+        "This event category no longer appears in the pull-down and events cannot be saved with this category.  Old events may still exist."
+  }
+  FIELD_TITLE_TEXTS.default = "Unknown"
+
+  self.per_page = 20
 
   def <=>(other)
     self.name <=> other.name
@@ -127,4 +134,7 @@ class Eventcategory < ActiveRecord::Base
     self.events.count == 0
   end
 
+  def self.title_of(key)
+    FIELD_TITLE_TEXTS[key]
+  end
 end

@@ -1,0 +1,16 @@
+th.rotated {
+  height: 140px;
+  white-space: nowrap;
+}
+
+th.rotated > div {
+  transform:
+    translate(10px, 51px)
+    rotate(315deg);
+  width: 30px;
+}
+
+th.rotated > div > span {
+  border-bottom: 1px solid #ccc;
+  padding: 5px 10px;
+}

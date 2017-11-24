@@ -108,8 +108,11 @@
     <% end %>
   </div>
 <% end %>
-</div>
+</div><!--  End of the event-editing-upper div -->
+
 <br/>
+
+<% if current_user.can_add_resources? %>
   <div class="row">
     <% if @event.id %>
   <%= form_for(@commitment, remote: true) do |f| %>
@@ -149,6 +152,5 @@
     </form>
   <% end %>
 <% end %>
-    </div>
   </div>
-
+<% end %>

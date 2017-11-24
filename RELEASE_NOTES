@@ -1,3 +1,61 @@
+v0.26.3 2017-11-24
+
+* Split "editor" permission flag in three.
+
+  Previously there has been a single flag on the user record indicating
+  whether a user has been allowed to create and edit events.
+
+  There are now two more - can_add_resources, and can_add_notes.
+
+  A user with simply the "editor" permission bit can create events, but
+  can't choose to add resources to them.  Having created the event, he or
+  she is thrown straight back to the event display.  It is assumed that
+  the user will be configured with some auto_add resources, typically
+  his or her own staff or pupil record (usually pupil).
+
+  The can_add_notes flag controls whether a user can add notes to existing
+  events.
+
+  Existing user records which previously had the "editor" bit set will
+  be converted to have all three of these set as part of the automated
+  upgrade process.
+
+  For new user records, staff will get all three set, whilst pupils will
+  by default get none set.
+
+  All new users will now have the auto_add flag set on their own record,
+  setting them up to use this mechanism.  This might also help with new
+  staff users who tend otherwise to create events with no resources at all
+  attached.
+
+* Re-designed listing of event categories.
+
+  The Eventcategories listing page had grown over the years to the point
+  where it didn't convey useful information.
+
+  A completely new design has been implemented, which renders the
+  information much easier to see.  It's a bit experimental, but as it's
+  visible only to administrators it seems a good place to try it out.
+
+  Pagination has been added to cope with having lots of them.
+
+* Selective listing of event categories.
+
+  It is now possible to choose to list only current event categories,
+  or only deprecated event categories.
+
+* Corrected count of permissions pending for resource approvers.
+
+  The count shown at the top of the screen for resource approvers included
+  all pending requests for the resource, even those where the requester
+  had yet to fill in a form.  The count now excludes requests which
+  still need a form to be completed, making it more meaningful for the
+  resource approver.
+
+  Requests where a form needs to be filled in still appear in the
+  requesters count of things which need doing.
+
+  
 v0.26.2 2017-11-21
 
 * Adds more detail to the page used for printing request forms.

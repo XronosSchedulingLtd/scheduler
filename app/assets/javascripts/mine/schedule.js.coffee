@@ -350,7 +350,7 @@ activateDragging = ->
   $('.dynamic-element').each (index) ->
     $(this).click(concernClicked)
   if ($('.withedit').length)
-    $('.dynamic-element').each (index) ->
+    $('.draggable-element').each (index) ->
       $(this).draggable
         revert: true
         revertDuration: 0

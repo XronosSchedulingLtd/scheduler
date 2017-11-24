@@ -330,7 +330,8 @@ class ConcernsController < ApplicationController
        annotation: "Should this resource's events be visible currently?"},
       {field: :list_teachers,
        annotation: "Do you want teachers' initials listed with the event title?"}]
-    if current_user.editor || current_user.admin
+    if (current_user.editor? && current_user.can_add_resources?) ||
+       current_user.admin
       options_flags <<
         {field: :auto_add,
          annotation: "When creating a new event, should this resource be added automatically?"}

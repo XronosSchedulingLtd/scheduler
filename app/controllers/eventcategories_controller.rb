@@ -9,7 +9,14 @@ class EventcategoriesController < ApplicationController
   # GET /eventcategories
   # GET /eventcategories.json
   def index
-    @eventcategories = Eventcategory.all.order("name")
+    if params[:current]
+      selector = Eventcategory.available
+    elsif params[:deprecated]
+      selector = Eventcategory.deprecated
+    else
+      selector = Eventcategory.all
+    end
+    @eventcategories = selector.order("name").page(params[:page])
   end
 
   # GET /eventcategories/1
@@ -20,10 +27,12 @@ class EventcategoriesController < ApplicationController
   # GET /eventcategories/new
   def new
     @eventcategory = Eventcategory.new
+    session[:return_to] = request.referer
   end
 
   # GET /eventcategories/1/edit
   def edit
+    session[:return_to] = request.referer
   end
 
   # POST /eventcategories
@@ -33,7 +42,7 @@ class EventcategoriesController < ApplicationController
 
     respond_to do |format|
       if @eventcategory.save
-        format.html { redirect_to eventcategories_path, notice: 'Eventcategory was successfully created.' }
+        format.html { redirect_to session[:return_to] || eventcategories_path, notice: 'Eventcategory was successfully created.' }
         format.json { render :show, status: :created, location: @eventcategory }
       else
         format.html { render :new }
@@ -47,7 +56,7 @@ class EventcategoriesController < ApplicationController
   def update
     respond_to do |format|
       if @eventcategory.update(eventcategory_params)
-        format.html { redirect_to eventcategories_path, notice: 'Eventcategory was successfully updated.' }
+        format.html { redirect_to session[:return_to] || eventcategories_path, notice: 'Eventcategory was successfully updated.' }
         format.json { render :show, status: :ok, location: @eventcategory }
       else
         format.html { render :edit }

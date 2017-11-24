@@ -112,7 +112,15 @@
                 <li class="has-dropdown">
                   <%= link_to "Events", events_path %>
                   <ul class="dropdown">
-                    <li><%= link_to "Categories", eventcategories_path %></li>
+                    <li class="has-dropdown">
+                      <%= link_to "Categories", eventcategories_path %>
+                      <ul class="dropdown">
+                        <li><%= link_to "Current",
+                          eventcategories_path(current: true) %></li>
+                        <li><%= link_to "Deprecated",
+                          eventcategories_path(deprecated: true) %></li>
+                      </ul>
+                    </li>
                     <li><%= link_to "Sources", eventsources_path %></li>
                   </ul>
                 </li>

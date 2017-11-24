@@ -1,6 +1,8 @@
 <tr>
 <td style="background-color:<%= concern.colour %>;"
-    class="concern-cell dynamic-element rounded-corners concern-link"
+    class="concern-cell dynamic-element rounded-corners concern-link<%=
+      user_can_drag?(concern) ? " draggable-element" : ""
+    %>"
     data-cid="<%= concern.id_or_fake %>"
     data-eid="<%= concern.element_id %>"
     <% if concern.id %>

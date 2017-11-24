@@ -104,7 +104,14 @@ class NotesController < ApplicationController
   private
 
   def authorized?(action = action_name, resource = nil)
-    (logged_in? && current_user.staff?)
+    #
+    #  Any logged in user can have a go at updating a note (although
+    #  the update method will apply further more detailed checks).
+    #
+    logged_in? &&
+    (action == "update" ||
+     action == "edit" ||
+     current_user.can_add_notes?)
   end
 
   def note_params

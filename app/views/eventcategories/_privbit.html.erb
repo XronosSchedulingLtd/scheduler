@@ -1,0 +1,12 @@
+<div class="row collapse">
+  <div class="small-3 columns">
+    <%= f.label key, class: "right" %><br>
+  </div>
+  <div class="small-1 columns">
+    <%= f.check_box key %>
+  </div>
+  <div class="small-8 columns annotation">
+    <%= Eventcategory.title_of(key) %>
+  </div>
+</div>
+

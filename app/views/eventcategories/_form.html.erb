@@ -28,146 +28,23 @@
     </div>
     <div class="small-1 columns"> </div>
     <div class="small-6 columns annotation">
-      Controls the order in which events will appear in the Days controller.
-      Smaller values first.
+      <%= Eventcategory.title_of(:pecking_order) %>
     </div>
   </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :schoolwide, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :schoolwide %>
-    </div>
-    <div class="small-8 columns annotation">
-      Appears on the schedule for all logged-in users.
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :publish, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :publish %>
-    </div>
-    <div class="small-8 columns annotation">
-      Included in ical exports - e.g. to Google Calendar.
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :visible, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :visible %>
-    </div>
-    <div class="small-8 columns annotation">
-      Shown on the web display in association with attached resources. Events
-      which are not visible will be seen only by their owners.
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :unimportant, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :unimportant %>
-    </div>
-    <div class="small-8 columns annotation">
-      Not important enough to prevent use for cover - e.g. assemblies.
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :can_merge, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :can_merge %>
-    </div>
-    <div class="small-8 columns annotation">
-      Two events of the same category can be merged for cover purposes.
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :can_borrow, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :can_borrow %>
-    </div>
-    <div class="small-8 columns annotation">
-      If the event boasts more than one resource of the same type, then
-      individuals can be borrowed for cover.
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :compactable, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :compactable %>
-    </div>
-    <div class="small-8 columns annotation">
-      When exporting calendar data, can multi-day events be compacted
-      to reduce their number of appearances?  For timed events, can
-      the end time be suppressed?
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :deprecated, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :deprecated %>
-    </div>
-    <div class="small-8 columns annotation">
-      This event category no longer appears in the pull-down and events
-      cannot be saved with this category.  Old events may still exist.
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :privileged, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :privileged %>
-    </div>
-    <div class="small-8 columns annotation">
-      This event category can be selected only by users who have the
-      corresponding bit set in their user records.
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :clashcheck, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :clashcheck %>
-    </div>
-    <div class="small-8 columns annotation">
-      Events in this category are to be checked for clashes and annotated.
-      All events are included in the check, but only these will be
-      annotated.
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 columns">
-      <%= f.label :busy, class: "right" %><br>
-    </div>
-    <div class="small-1 columns">
-      <%= f.check_box :busy %>
-    </div>
-    <div class="small-8 columns annotation">
-      The opposite side of the above comparison.  Should events in
-      this category be regarded as rendering their resources busy?
-      If this flag is unset, then the corresponding events will not
-      be regarded as clashing with events which are being checked for
-      clashes.
-    </div>
-  </div>
+  <%= render partial: "privbit", locals: {f: f, key: :schoolwide} %>
+  <%= render partial: "privbit", locals: {f: f, key: :publish} %>
+  <%= render partial: "privbit", locals: {f: f, key: :visible} %>
+  <%= render partial: "privbit", locals: {f: f, key: :unimportant} %>
+  <%= render partial: "privbit", locals: {f: f, key: :can_merge} %>
+  <%= render partial: "privbit", locals: {f: f, key: :can_borrow} %>
+  <%= render partial: "privbit", locals: {f: f, key: :compactable} %>
+  <%= render partial: "privbit", locals: {f: f, key: :privileged} %>
+  <%= render partial: "privbit", locals: {f: f, key: :clashcheck} %>
+  <%= render partial: "privbit", locals: {f: f, key: :busy} %>
+  <%= render partial: "privbit", locals: {f: f, key: :deprecated} %>
   <div class="row collapse">
     <div class="small-9 small-offset-3 columns">
-      <%= f.submit %>
+      <%= f.submit @eventcategory.id ? "Update" : "Create", class: "zfbutton tiny radius" %>
     </div>
   </div>
 <% end %>
