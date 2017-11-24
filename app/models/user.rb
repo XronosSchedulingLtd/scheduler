@@ -47,7 +47,9 @@ class User < ActiveRecord::Base
     can_su: "Can this user become another user?",
     exams: "Does this user administer exams or invigilation?",
     can_relocate_lessons: "Can this user relocate lessons - not just his or her own?",
-    show_pre_requisites: "Do you want to be prompted for likely requirements when creating new events?"
+    show_pre_requisites: "Do you want to be prompted for likely requirements when creating new events?",
+    can_add_resources: "Can this user add resources to events?",
+    can_add_notes: "Can this user add notes to events?"
   }
   FIELD_TITLE_TEXTS.default = ""
 
@@ -346,10 +348,13 @@ class User < ActiveRecord::Base
     elsif item.instance_of?(Note)
       #
       #  You can delete the ones you own, provided they're attached
-      #  to events.  If they're attached to commitments, you have to
+      #  to events and you have note creation permission.
+      #  If they're attached to commitments, you have to
       #  delete the commitment instead.
       #
-      item.owner_id == self.id && item.parent_type == "Event"
+      item.owner_id == self.id &&
+      item.parent_type == "Event" &&
+      self.can_add_notes?
     elsif item.instance_of?(Commitment)
       #
       #  With edit permission you can always delete a commitment,
@@ -445,6 +450,13 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Can this user drag this concern onto the schedule?
+  #
+  def can_drag?(concern)
+    self.can_add_resources? || self.own_element == concern.element
+  end
+
+  #
   #  Does this user need permission to create a commitment for this
   #  element?
   #
@@ -470,7 +482,7 @@ class User < ActiveRecord::Base
       #  Don't bother calculating if we know the answer would be 0.
       #
       if self.element_owner
-        @permissions_pending = self.concerns.owned.inject(0) do |total, concern|
+        @permissions_pending = self.concerns.preload(:element).owned.inject(0) do |total, concern|
           total + concern.permissions_pending
         end
       else
@@ -635,14 +647,14 @@ class User < ActiveRecord::Base
             concern.save!
           end
         else
-          Concern.create! do |concern|
-            concern.user_id    = self.id
-            concern.element_id = staff.element.id
-            concern.equality   = true
-            concern.owns       = false
-            concern.visible    = true
-            concern.colour     = "#225599"
-          end
+          self.concerns.create!({
+            element:  staff.element,
+            equality: true,
+            owns:     false,
+            visible:  true,
+            auto_add: true,
+            colour:   "#225599"
+          })
         end
       end
       pupil = Pupil.find_by_email(self.email)
@@ -655,14 +667,14 @@ class User < ActiveRecord::Base
             concern.save!
           end
         else
-          Concern.create! do |concern|
-            concern.user_id    = self.id
-            concern.element_id = pupil.element.id
-            concern.equality   = true
-            concern.owns       = false
-            concern.visible    = true
-            concern.colour     = "#225599"
-          end
+          self.concerns.create!({
+            element:  pupil.element,
+            equality: true,
+            owns:     false,
+            visible:  true,
+            auto_add: true,
+            colour:   "#225599"
+          })
         end
       end
       if got_something
@@ -847,12 +859,14 @@ class User < ActiveRecord::Base
   #
   def set_initial_permissions
     if self.staff?
-      self.editor           = true
-      self.can_has_groups   = true
-      self.public_groups    = true
-      self.can_find_free    = true
-      self.can_add_concerns = true
-      self.can_roam         = true
+      self.editor            = true
+      self.can_add_resources = true
+      self.can_add_notes     = true
+      self.can_has_groups    = true
+      self.public_groups     = true
+      self.can_find_free     = true
+      self.can_add_concerns  = true
+      self.can_roam          = true
       if Setting.auth_type == "google_demo_auth" &&
          self.email == "jhwinters@gmail.com"
         self.admin = true
@@ -925,6 +939,34 @@ class User < ActiveRecord::Base
   def self.populate_corresponding_staff
     User.all.each do |u|
       u.set_corresponding_staff
+    end
+    nil
+  end
+
+  #
+  #  For populating the new resource and note flags from existing
+  #  fields.
+  #
+  def populate_resource_and_note_flags
+    self.can_add_resources = self.editor?
+    unless self.can_add_resources?
+      #
+      #  If this user can't add resources, then he'd better auto-add
+      #  himself.
+      #
+      own_concern = self.concerns.me[0]
+      if own_concern
+        own_concern.auto_add = true
+        own_concern.save!
+      end
+    end
+    self.can_add_notes     = self.staff?
+    self.save!
+  end
+
+  def self.populate_resource_and_note_flags
+    User.all.each do |u|
+      u.populate_resource_and_note_flags
     end
     nil
   end

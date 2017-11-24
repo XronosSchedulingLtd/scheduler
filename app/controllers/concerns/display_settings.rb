@@ -13,7 +13,7 @@ module DisplaySettings
       @userid       = user.id
       @filter_state = user.filter_state
 
-      @my_events    = user.editor
+      @my_events    = user.editor?
       #
       #  If they can't add them, then they can't delete them.
       #

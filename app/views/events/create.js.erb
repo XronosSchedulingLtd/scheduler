@@ -1,8 +1,12 @@
 <% if @success %>
+  <% if current_user.can_add_resources? %>
 $('#events-dialogue').html("<%=j render "form" %>")
 $('.datetimepicker').datetimepicker( { dateFormat: "dd/mm/yy", stepMinute: 5 })
 $('#commitment_element_name').focus();
 window.triggerCountsUpdate();
+  <% else %>
+window.finishEditingEvent("<%=j render 'show_event' %>", true)
+  <% end %>
 <% else %>
 $('#for_errors').html("<%=j render "error_msgs" %>")
 <% end %>
