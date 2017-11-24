@@ -482,7 +482,7 @@ class User < ActiveRecord::Base
       #  Don't bother calculating if we know the answer would be 0.
       #
       if self.element_owner
-        @permissions_pending = self.concerns.owned.inject(0) do |total, concern|
+        @permissions_pending = self.concerns.preload(:element).owned.inject(0) do |total, concern|
           total + concern.permissions_pending
         end
       else
