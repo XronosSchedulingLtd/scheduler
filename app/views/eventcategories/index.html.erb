@@ -1,19 +1,65 @@
 <h1>Listing eventcategories</h1>
 
-<table class="zftable">
+<div class="apple_pagination">
+  <%= will_paginate @eventcategories %>
+</div>
+<table>
   <thead>
     <tr>
-      <th>Name</th>
-      <th>Precedence</th>
-      <th>Events</th>
-      <th>Schoolwide</th>
-      <th>Publish</th>
-      <th>Visible</th>
-      <th>Unimportant</th>
-      <th>Can merge</th>
-      <th>Deprecated</th>
-      <th>Privileged</th>
-      <th colspan="3"></th>
+      <th><div><span>Name</span></div></th>
+      <th><div><span>Precedence</span></div></th>
+      <th><div><span>Events</span></div></th>
+      <th class="rotated">
+        <div title="<%= Eventcategory.title_of(:schoolwide) %>">
+          <span>Schoolwide</span>
+        </div>
+      </th>
+      <th class="rotated">
+        <div title="<%= Eventcategory.title_of(:publish) %>">
+          <span>Publish</span>
+        </div>
+      </th>
+      <th class="rotated">
+        <div title="<%= Eventcategory.title_of(:visible) %>">
+          <span>Visible</span>
+        </div>
+      </th>
+      <th class="rotated">
+        <div title="<%= Eventcategory.title_of(:unimportant) %>">
+          <span>Unimportant</span>
+        </div>
+      </th>
+      <th class="rotated">
+        <div title="<%= Eventcategory.title_of(:can_merge) %>">
+          <span>Can merge</span>
+        </div>
+      </th>
+      <th class="rotated">
+        <div title="<%= Eventcategory.title_of(:can_borrow) %>">
+          <span>Can borrow</span>
+        </div>
+      </th>
+      <th class="rotated">
+        <div title="<%= Eventcategory.title_of(:compactable) %>">
+          <span>Compactable</span>
+        </div>
+      </th>
+      <th class="rotated">
+        <div title="<%= Eventcategory.title_of(:privileged) %>">
+          <span>Privileged</span>
+        </div>
+      </th>
+      <th class="rotated">
+        <div title="<%= Eventcategory.title_of(:clashcheck) %>">
+          <span>Clash check</span>
+        </div>
+      </th>
+      <th class="rotated">
+        <div title="<%= Eventcategory.title_of(:busy) %>">
+          <span>Busy</span>
+        </div>
+      </th>
+      <th colspan="2"></th>
     </tr>
   </thead>
 
@@ -23,14 +69,16 @@
         <td><%= eventcategory.name %></td>
         <td><%= eventcategory.pecking_order %></td>
         <td><%= eventcategory.events.count %></td>
-        <td><%= eventcategory.schoolwide %></td>
-        <td><%= eventcategory.publish %></td>
-        <td><%= eventcategory.visible %></td>
-        <td><%= eventcategory.unimportant %></td>
-        <td><%= eventcategory.can_merge %></td>
-        <td><%= eventcategory.deprecated %></td>
-        <td><%= eventcategory.privileged %></td>
-        <td><%= link_to 'Show', eventcategory %></td>
+        <td><%= boolean_icon(eventcategory.schoolwide?) %></td>
+        <td><%= boolean_icon(eventcategory.publish?) %></td>
+        <td><%= boolean_icon(eventcategory.visible?) %></td>
+        <td><%= boolean_icon(eventcategory.unimportant?) %></td>
+        <td><%= boolean_icon(eventcategory.can_merge?) %></td>
+        <td><%= boolean_icon(eventcategory.can_borrow?) %></td>
+        <td><%= boolean_icon(eventcategory.compactable?) %></td>
+        <td><%= boolean_icon(eventcategory.privileged?) %></td>
+        <td><%= boolean_icon(eventcategory.clashcheck?) %></td>
+        <td><%= boolean_icon(eventcategory.busy?) %></td>
         <td><%= link_to 'Edit', edit_eventcategory_path(eventcategory) %></td>
         <td>
           <% if eventcategory.can_destroy? %>
@@ -41,6 +89,10 @@
     <% end %>
   </tbody>
 </table>
+<p></p>
+<div class="apple_pagination">
+  <%= will_paginate @eventcategories %>
+</div>
 
 <br>
 
