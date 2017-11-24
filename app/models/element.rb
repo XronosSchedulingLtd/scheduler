@@ -598,10 +598,31 @@ class Element < ActiveRecord::Base
     end
   end
 
+  #
+  #  We count pending commitments only if:
+  #
+  #  They have no user form
+  #
+  #    OR
+  #
+  #  The form is complete.
+  #
+  #  (Not Form) OR (Complete)
+  #
+  #  is the same as:
+  #
+  #  !(Form AND !Complete)
+  #
   def permissions_pending
     unless @permissions_pending
       @permissions_pending = 
-        self.commitments.future.requested.count
+        self.commitments.
+             preload(:user_form_response).
+             future.
+             requested.
+             select {|c|
+          !(c.user_form_response && !c.user_form_response.complete?)
+        }.count
     end
     @permissions_pending
   end
