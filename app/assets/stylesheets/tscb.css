@@ -6,3 +6,8 @@ img.default-value {
   display: inline;
 }
 
+span.spaced-tscb {
+  padding: 10px;
+  line-height: 30px;
+}
+

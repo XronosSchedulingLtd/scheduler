@@ -15,19 +15,7 @@
     <%= f.label :name %><br>
     <%= f.text_field :name %>
   </div>
-  <div class='tscb-zone'>
-    <% UserProfile::Permissions.permitted_keys.each do |key| %>
-      <div class="field">
-        <span class='tscb' title='<%= User.field_title_text(key) %>'>
-          <%= hidden_field_tag("user_profile[permissions][#{key.to_s}]",
-                               @user_profile.permissions[key],
-                               size: 2,
-                               class: 'tscb-field') %>
-          <%= f.label key %>
-        </span>
-      </div>
-    <% end %>
-  </div>
+  <%= tscb_group(f, @user_profile, :permissions, 12, 6, "Permissions", UserProfile::Permissions.permitted_keys) %>
   <div class="actions">
     <%= f.submit nil, class: "zfbutton tiny radius" %>
   </div>

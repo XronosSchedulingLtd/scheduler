@@ -68,12 +68,41 @@ module ApplicationHelper
     result.join("\n").html_safe
   end
 
+  #
+  #  Note - currently works properly only for user permission bits.
+  #
+  def single_tscb(f, parent, field, key)
+    result = Array.new
+    result << "<span class='tscb spaced-tscb' title='#{User.field_title_text(key)}'>"
+    result << hidden_field_tag("#{parent.class.to_s.underscore}[#{field.to_s}][#{key.to_s}]",
+                               parent[field][key],
+                               size: 2,
+                               class: 'tscb-field')
+    result << "#{ f.label(UserProfile::Permissions.nicer_text(key))}"
+    result << "</span>"
+    result.join("\n").html_safe
+  end
+
   def flag_group(f, small_cols, med_cols, label, contents)
     result = Array.new
     result << "<div class='small-#{small_cols} medium-#{med_cols} columns'>"
     result << "  <label>#{label}</label>"
     contents.each_with_index do |content, i|
       result << single_flag(f, content)
+      if (i + 1) % 3 == 0
+        result << "<br/>"
+      end
+    end
+    result << "</div>"
+    result.join("\n").html_safe
+  end
+
+  def tscb_group(f, parent, field, small_cols, med_cols, label, keys)
+    result = Array.new
+    result << "<div class='small-#{small_cols} medium-#{med_cols} columns tscb-zone'>"
+    result << "  <label>#{label}</label>"
+    keys.each_with_index do |key, i|
+      result << single_tscb(f, parent, field, key)
       if (i + 1) % 3 == 0
         result << "<br/>"
       end
