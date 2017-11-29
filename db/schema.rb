@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171121124158) do
+ActiveRecord::Schema.define(version: 20171124122128) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -600,6 +600,13 @@ ActiveRecord::Schema.define(version: 20171121124158) do
     t.integer  "created_by_user_id"
     t.integer  "edited_by_user_id"
     t.text     "definition"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "user_profiles", force: true do |t|
+    t.string   "name"
+    t.text     "permissions"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

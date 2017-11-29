@@ -1,0 +1,45 @@
+<h1>Listing user profiles</h1>
+
+<div class="apple_pagination">
+  <%= will_paginate @user_profiles %>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <% UserProfile::Permissions.permitted_keys.each do |pk| %>
+        <th class="rotated">
+          <div title="<%= User.field_title_text(pk) %>">
+            <span><%= UserProfile::Permissions.nicer_text(pk) %></span>
+          </div>
+        </th>
+      <% end %>
+      <th colspan="2"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @user_profiles.each do |user_profile| %>
+      <tr>
+        <td><%= user_profile.name %></td>
+        <% UserProfile::Permissions.permitted_keys.each do |pk| %>
+          <td><img src='<%= icon_for(user_profile, pk) %>'/></td>
+        <% end %>
+        <td><%= link_to 'Edit', edit_user_profile_path(user_profile) %></td>
+        <td>
+          <% if user_profile.can_destroy? %>
+            <%= link_to 'Destroy', user_profile, method: :delete, data: { confirm: 'Are you sure?' } %>
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<p></p>
+<div class="apple_pagination">
+  <%= will_paginate @user_profiles %>
+</div>
+
+<br>
+
+<%= link_to 'New User profile', new_user_profile_path, class: "zfbutton tiny radius" %>

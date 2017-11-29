@@ -46,7 +46,7 @@ class User < ActiveRecord::Base
     can_roam: "Can this user follow links from one displayed element to another?",
     can_su: "Can this user become another user?",
     exams: "Does this user administer exams or invigilation?",
-    can_relocate_lessons: "Can this user relocate lessons - not just his or her own?",
+    can_relocate_lessons: "Can this user relocate lessons in general - not just his or her own?",
     show_pre_requisites: "Do you want to be prompted for likely requirements when creating new events?",
     can_add_resources: "Can this user add resources to events?",
     can_add_notes: "Can this user add notes to events?"
@@ -212,7 +212,14 @@ class User < ActiveRecord::Base
     #  Note that the keys are exactly the names of the columns within
     #  the d/b record.
     #
+    FIELD_TITLE_TEXTS[field]
+  end
 
+  def self.field_title_text(field)
+    #
+    #  Note that the keys are exactly the names of the columns within
+    #  the d/b record.
+    #
     FIELD_TITLE_TEXTS[field]
   end
 

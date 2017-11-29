@@ -1,0 +1,34 @@
+<%= form_for(@user_profile) do |f| %>
+  <% if @user_profile.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@user_profile.errors.count, "error") %> prohibited this user_profile from being saved:</h2>
+
+      <ul>
+      <% @user_profile.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :name %><br>
+    <%= f.text_field :name %>
+  </div>
+  <div class='tscb-zone'>
+    <% UserProfile::Permissions.permitted_keys.each do |key| %>
+      <div class="field">
+        <span class='tscb' title='<%= User.field_title_text(key) %>'>
+          <%= hidden_field_tag("user_profile[permissions][#{key.to_s}]",
+                               @user_profile.permissions[key],
+                               size: 2,
+                               class: 'tscb-field') %>
+          <%= f.label key %>
+        </span>
+      </div>
+    <% end %>
+  </div>
+  <div class="actions">
+    <%= f.submit nil, class: "zfbutton tiny radius" %>
+  </div>
+<% end %>

@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  resources :user_profiles
+
   resources :pre_requisites
 
   resources :journals, only: [:index, :show]
