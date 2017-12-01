@@ -16,6 +16,7 @@ class UserProfile < ActiveRecord::Base
   end
 
   def update_users
+    self.class.purge_cache
     self.users.each do |u|
       u.user_profile_updated
     end
@@ -31,6 +32,12 @@ class UserProfile < ActiveRecord::Base
 
   def self.guest_profile
     @guest_profile ||= UserProfile.find_by(name: "Guest")
+  end
+
+  def self.purge_cache
+    @staff_profile = nil
+    @pupil_profile = nil
+    @guest_profile = nil
   end
 
   def self.ensure_basic_profiles
