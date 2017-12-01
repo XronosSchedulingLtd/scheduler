@@ -635,6 +635,7 @@ class User < ActiveRecord::Base
       user.uid      = auth["uid"]
       user.name     = auth["info"]["name"]
       user.email    = auth["info"]["email"].downcase
+      user.user_profile = UserProfile.guest_profile
     end
   end
 
@@ -648,12 +649,8 @@ class User < ActiveRecord::Base
       end
       if staff
         got_something = true
-        #
-        #  We set the corresponding staff here, and rely on
-        #  set_initial_permissions to save our record, which it will
-        #  because we are a member of staff.
-        #
         self.corresponding_staff = staff
+        self.user_profile = UserProfile.staff_profile
         concern = self.concern_with(staff.element)
         if concern
           unless concern.equality
@@ -674,6 +671,7 @@ class User < ActiveRecord::Base
       pupil = Pupil.find_by_email(self.email)
       if pupil
         got_something = true
+        self.user_profile = UserProfile.pupil_profile
         concern = self.concern_with(pupil.element)
         if concern
           unless concern.equality
@@ -722,10 +720,16 @@ class User < ActiveRecord::Base
           rt = rtt.rota_templates.first
           if rt
             self.day_shape = rt
-            self.save!
           end
         end
-        set_initial_permissions
+        #
+        #  Small frig for the demo system only.
+        #
+        if Setting.auth_type == "google_demo_auth" &&
+           self.email == "jhwinters@gmail.com"
+          self.admin = true
+        end
+        self.save!
       end
     end
   end
@@ -860,44 +864,6 @@ class User < ActiveRecord::Base
       end
     else
       results << "Unable to find Calendar element."
-    end
-    results.each do |text|
-      puts text
-    end
-    nil
-  end
-
-  #
-  #  After the addition of finer-grained permission flags, give them
-  #  some initial values.
-  #
-  def set_initial_permissions
-    if self.staff?
-      self.editor            = true
-      self.can_add_resources = true
-      self.can_add_notes     = true
-      self.can_has_groups    = true
-      self.public_groups     = true
-      self.can_find_free     = true
-      self.can_add_concerns  = true
-      self.can_roam          = true
-      if Setting.auth_type == "google_demo_auth" &&
-         self.email == "jhwinters@gmail.com"
-        self.admin = true
-      end
-      self.save!
-      "#{self.name} with email #{self.email} gets staff permissions."
-    elsif self.pupil?
-      "#{self.name} is a pupil."
-    else
-      "#{self.name} with email #{self.email} is unknown."
-    end
-  end
-
-  def self.set_initial_permissions
-    results = Array.new
-    User.all.each do |u|
-      results << u.set_initial_permissions
     end
     results.each do |text|
       puts text
