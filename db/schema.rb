@@ -658,6 +658,8 @@ ActiveRecord::Schema.define(version: 20171124122128) do
     t.integer  "corresponding_staff_id"
     t.boolean  "can_add_resources",           default: false
     t.boolean  "can_add_notes",               default: false
+    t.integer  "user_profile_id"
+    t.text     "permissions"
   end
 
 end

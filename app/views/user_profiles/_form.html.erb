@@ -15,7 +15,7 @@
     <%= f.label :name %><br>
     <%= f.text_field :name %>
   </div>
-  <%= tscb_group(f, @user_profile, :permissions, 12, 6, "Permissions", UserProfile::Permissions.permitted_keys) %>
+  <%= tscb_group(f, @user_profile, :permissions, 12, 6, "Permissions", PermissionFlags.permitted_keys) %>
   <div class="actions">
     <%= f.submit nil, class: "zfbutton tiny radius" %>
   </div>

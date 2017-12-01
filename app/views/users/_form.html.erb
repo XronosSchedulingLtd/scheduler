@@ -56,6 +56,20 @@
       <%= f.text_field(:default_event_text) %>
     </div>
 <% end %>
+<% if current_user.admin && !@minimal %>
+  <div class="small-12 medium-6 large-4 columns">
+    <label>User profile</label>
+    <%= f.collection_select(:user_profile_id,
+                            UserProfile.all,
+                            :id,
+                            :name) %>
+  </div>
+  <div class="small-2 medium-2 large-2 columns">
+    <label>&nbsp;</label>
+    <%= f.submit "Apply", name: "apply", class: "zfbutton tiny radius" %>
+  </div>
+
+<% end %>
 <% if @day_shapes && !@day_shapes.empty? %>
     <div class="small-12 medium-6 large-4 columns">
       <label>Background events</label>
@@ -70,28 +84,10 @@
   </div>
 
 <div class="row">
-<% if current_user.admin %>
+<% if current_user.admin && !@minimal %>
 
-  <%= flag_group(f, 12, 6, "Permissions",
-                 [
-                   {field: :admin,
-                    disabled: current_user == @user },
-                   {field: :editor, prompt: "Events"},
-                   {field: :can_add_resources, prompt: "Add resources"},
-                   {field: :can_add_notes, prompt: "Add notes"},
-                   {field: :edit_all_events, prompt: "Edit all"},
-                   {field: :subedit_all_events, prompt: "Subedit all"},
-                   {field: :privileged},
-                   {field: :can_has_groups, prompt: "Groups"},
-                   {field: :can_has_forms, prompt: "Forms"},
-                   {field: :public_groups, prompt: "Public"},
-                   {field: :can_find_free, prompt: "Find free"},
-                   {field: :can_add_concerns, prompt: "Adjust view"},
-                   {field: :can_su},
-                   {field: :can_roam},
-                   {field: :exams},
-                   {field: :can_relocate_lessons}
-                 ]) %>
+  <%= tscb_group(f, @user, :permissions, 12, 6, "Permissions", PermissionFlags.permitted_keys, @user.user_profile.permissions) %>
+
   <%= flag_group(f, 12, 6, "Information",
                  [
                    {field: :arranges_cover,

@@ -7,10 +7,10 @@
   <thead>
     <tr>
       <th>Name</th>
-      <% UserProfile::Permissions.permitted_keys.each do |pk| %>
+      <% PermissionFlags.permitted_keys.each do |pk| %>
         <th class="rotated">
           <div title="<%= User.field_title_text(pk) %>">
-            <span><%= UserProfile::Permissions.nicer_text(pk) %></span>
+            <span><%= PermissionFlags.nicer_text(pk) %></span>
           </div>
         </th>
       <% end %>
@@ -22,7 +22,7 @@
     <% @user_profiles.each do |user_profile| %>
       <tr>
         <td><%= user_profile.name %></td>
-        <% UserProfile::Permissions.permitted_keys.each do |pk| %>
+        <% PermissionFlags.permitted_keys.each do |pk| %>
           <td><img src='<%= icon_for(user_profile, pk) %>'/></td>
         <% end %>
         <td><%= link_to 'Edit', edit_user_profile_path(user_profile) %></td>

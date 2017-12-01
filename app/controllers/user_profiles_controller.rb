@@ -73,6 +73,6 @@ class UserProfilesController < ApplicationController
     def user_profile_params
       params.require(:user_profile).
              permit(:name,
-                    permissions: UserProfile::Permissions.permitted_keys)
+                    permissions: PermissionFlags.permitted_keys)
     end
 end
