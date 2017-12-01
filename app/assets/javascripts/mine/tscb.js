@@ -168,10 +168,6 @@ var tscbHandler = function() {
     }
   });
 
-  that.initZone = function(element, selector = '.tscb') {
-    new TSCBZoneView({el: element, selector: selector});
-  }
-
   var initElement = function(index, element) {
     new TSCBZoneView({el: element});
   }
