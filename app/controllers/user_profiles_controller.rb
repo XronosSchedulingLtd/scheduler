@@ -1,5 +1,5 @@
 class UserProfilesController < ApplicationController
-  before_action :set_user_profile, only: [:show, :edit, :update, :destroy]
+  before_action :set_user_profile, only: [:show, :edit, :update, :destroy, :do_clone]
 
   # GET /user_profiles
   # GET /user_profiles.json
@@ -35,6 +35,15 @@ class UserProfilesController < ApplicationController
         format.json { render json: @user_profile.errors, status: :unprocessable_entity }
       end
     end
+  end
+
+  # POST /user_profiles/1/do_clone
+  def do_clone
+    @new_user_profile = @user_profile.do_clone
+    #
+    #  And round to edit it.
+    #
+    redirect_to edit_user_profile_path(@new_user_profile)
   end
 
   # PATCH/PUT /user_profiles/1

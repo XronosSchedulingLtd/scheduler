@@ -11,8 +11,29 @@ class UserProfile < ActiveRecord::Base
 
   self.per_page = 20
 
+  #
+  #  You can't delete the three fundamental ones, and you can't
+  #  delete any which are in use.
+  #
   def can_destroy?
-    false
+    !(self.name == "Staff" ||
+      self.name == "Pupil" ||
+      self.name == "Guest" ||
+      self.users.count > 0)
+  end
+
+  def can_rename?
+    !(self.name == "Staff" ||
+      self.name == "Pupil" ||
+      self.name == "Guest")
+  end
+
+  def do_clone
+    new_user_profile = self.dup
+    new_user_profile.name = "Copy of #{self.name}"
+    new_user_profile.save!
+    new_user_profile.reload
+    new_user_profile
   end
 
   def update_users
@@ -64,11 +85,7 @@ class UserProfile < ActiveRecord::Base
       }
     })
     self.create!({
-      name: "Pupil",
-      permissions: {
-        editor:            "1",
-        can_find_free:     "1"
-      }
+      name: "Pupil"
     })
     self.create!({
       name: "Guest"

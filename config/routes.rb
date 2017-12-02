@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
 
-  resources :user_profiles
+  resources :user_profiles do
+    member do
+      post :do_clone
+    end
+  end
 
   resources :pre_requisites
 

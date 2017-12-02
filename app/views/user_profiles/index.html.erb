@@ -14,7 +14,7 @@
           </div>
         </th>
       <% end %>
-      <th colspan="2"></th>
+      <th colspan="3"></th>
     </tr>
   </thead>
 
@@ -26,6 +26,7 @@
           <td><img src='<%= icon_for(user_profile, pk) %>'/></td>
         <% end %>
         <td><%= link_to 'Edit', edit_user_profile_path(user_profile) %></td>
+        <td><%= link_to 'Clone', do_clone_user_profile_path(user_profile), method: :post %></td>
         <td>
           <% if user_profile.can_destroy? %>
             <%= link_to 'Destroy', user_profile, method: :delete, data: { confirm: 'Are you sure?' } %>

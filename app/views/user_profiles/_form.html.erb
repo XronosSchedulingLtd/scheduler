@@ -13,7 +13,11 @@
 
   <div class="field">
     <%= f.label :name %><br>
-    <%= f.text_field :name %>
+    <% if @user_profile.can_rename? %>
+      <%= f.text_field :name %>
+    <% else %>
+      <%= f.text_field :name, disabled: true %>
+    <% end %>
   </div>
   <%= tscb_group(f, @user_profile, :permissions, 12, 6, "Permissions", PermissionFlags.permitted_keys) %>
   <div class="actions">
