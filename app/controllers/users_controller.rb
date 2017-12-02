@@ -49,7 +49,12 @@ class UsersController < ApplicationController
   # GET /users.json
   def index
     @user = User.new
-    selector = User.order(:name)
+    @user_profile = UserProfile.find_by(id: params[:user_profile_id])
+    if @user_profile
+      selector = @user_profile.users.order(:name)
+    else
+      selector = User.order(:name)
+    end
     #
     #  If an explicit page has been requested then go to it.
     #  Otherwise check for other criteria.

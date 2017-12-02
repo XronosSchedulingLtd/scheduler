@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
 
   resources :user_profiles do
+    resources :users
     member do
       post :do_clone
     end
