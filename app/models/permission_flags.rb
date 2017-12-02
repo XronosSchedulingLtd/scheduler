@@ -45,12 +45,24 @@ class PermissionFlags < Hash
 
   @DEFAULT_VALUE = PERMISSION_NO
 
+  #
+  #  We store values 0, 1 or 2, but for convenenience interfacing
+  #  with the front end, we will also accept "0", "1" or "2" and
+  #  do the appropriate conversion.  For convenience of command
+  #  line usage, accept true and false as well.
+  #
   def []=(key, value)
     if KNOWN_PERMISSIONS.include?(key)
       unless value.is_a?(Numeric)
-        value = value.to_i
+        if value.class == TrueClass
+          value = PERMISSION_YES
+        elsif value.class == FalseClass
+          value = PERMISSION_NO
+        else
+          value = value.to_i
+        end
       end
-      if value > 2 || value < 0
+      if value > PERMISSION_DONT_CARE || value < PERMISSION_NO
         Rails.logger.debug("Attempt to assign out of range value (#{value}) to permission bit.")
       else
         super(key, value)
