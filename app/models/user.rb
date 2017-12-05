@@ -727,7 +727,7 @@ class User < ActiveRecord::Base
         #
         if Setting.auth_type == "google_demo_auth" &&
            self.email == "jhwinters@gmail.com"
-          self.admin = true
+          self.permissions[:admin] = true
         end
         self.save!
       end

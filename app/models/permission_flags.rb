@@ -52,6 +52,7 @@ class PermissionFlags < Hash
   #  line usage, accept true and false as well.
   #
   def []=(key, value)
+    puts "Asked to assign #{value} (class #{value.class}) to #{key}"
     if KNOWN_PERMISSIONS.include?(key)
       unless value.is_a?(Numeric)
         if value.class == TrueClass
@@ -65,6 +66,7 @@ class PermissionFlags < Hash
       if value > PERMISSION_DONT_CARE || value < PERMISSION_NO
         Rails.logger.debug("Attempt to assign out of range value (#{value}) to permission bit.")
       else
+        puts "Assigning #{value} to #{key}"
         super(key, value)
       end
     else

@@ -16,7 +16,12 @@ module Permissions
         #  The PermissionFlags model will convert them to integers
         #  for storage.
         #
-        if value == "0" || value == "1" || value == "2"
+        #  For convenience, allow through stuff which is already
+        #  an integer too.  The hash assignment copes with either.
+        #
+        if value == "0" || value == "1" || value == "2" ||
+           value == 0 || value == 1 || value == 2 ||
+           value == true || value == false
           self.permissions[key] = value
         else
           self.permissions[key] = "2"

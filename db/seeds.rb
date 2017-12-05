@@ -21,6 +21,8 @@ Property.destroy_all
 Eventsource.destroy_all
 Datasource.destroy_all
 Eventcategory.destroy_all
+User.destroy_all
+UserProfile.destroy_all
 
 #
 #  It's not quite a clean slate, because the IDs carry on incrementing
