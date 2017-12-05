@@ -228,6 +228,7 @@ class Seeder
       }
       params.merge!(more)
       @event.notes.create!(params)
+      self
     end
   end
 
