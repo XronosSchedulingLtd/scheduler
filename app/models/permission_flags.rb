@@ -72,15 +72,15 @@ class PermissionFlags < Hash
     end
   end
 
+  def self.default_value
+    @DEFAULT_VALUE
+  end
+
   #
   #  We will get attempts to access values before they are first
   #  defined.  Default to "0" (No) for bits which we understand,
   #  and to nil otherwise.
   #
-  def self.default_value
-    @DEFAULT_VALUE
-  end
-
   def [](key)
     if KNOWN_PERMISSIONS.include?(key)
       super || self.class.default_value

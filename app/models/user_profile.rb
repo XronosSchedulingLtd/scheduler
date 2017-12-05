@@ -66,22 +66,20 @@ class UserProfile < ActiveRecord::Base
     #  The system requires a minimum of 3 user profiles.
     #  Staff, Pupil and Guest.
     #
-    #  Because we send these down to the browser as strings,
-    #  we store them as strings too.  "0" means no, "1" means yes.
-    #
-    #  Anything which we don't set will default to "0".
+    #  Anything which we don't set will default to 0,
+    #  or PermissionFlags::PERMISSION_NO.
     #
     self.create!({
       name: "Staff",
       permissions: {
-        editor:            "1",
-        can_add_resources: "1",
-        can_add_notes:     "1",
-        can_has_groups:    "1",
-        public_groups:     "1",
-        can_find_free:     "1",
-        can_add_concerns:  "1",
-        can_roam:          "1"
+        editor:            PermissionFlags::PERMISSION_YES,
+        can_add_resources: PermissionFlags::PERMISSION_YES,
+        can_add_notes:     PermissionFlags::PERMISSION_YES,
+        can_has_groups:    PermissionFlags::PERMISSION_YES,
+        public_groups:     PermissionFlags::PERMISSION_YES,
+        can_find_free:     PermissionFlags::PERMISSION_YES,
+        can_add_concerns:  PermissionFlags::PERMISSION_YES,
+        can_roam:          PermissionFlags::PERMISSION_YES
       }
     })
     self.create!({
