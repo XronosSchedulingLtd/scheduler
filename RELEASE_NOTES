@@ -16,6 +16,12 @@ v0.27   2017-12-05
   set in addition.  Overrides can work either way - adding or removing
   a permission bit.
 
+  On upgrading to this release, all user records will be upgraded
+  automatically to the new method of working.  All users will have the
+  same permissions which they had before, achieved where possible
+  by inheriting from their user profile, and otherwise by explicit
+  settings on the user record.
+
   Three User Profiles are created by default:
 
   Staff - for users who match a Staff record
@@ -36,12 +42,7 @@ v0.27   2017-12-05
   which are the same permission bits which staff were given before.
   The Pupil and Guest User Profiles have no permission bits set.
 
-  As part of the conversion process, existing user records are linked
-  to the appropriate User Profile, and then the individual permission
-  bits are set on the user record to ensure each user has the same
-  final permissions as before.
-
-  Thus, a member of staff who previously had "admin" and "editor" set
+  A member of staff who previously had "admin" and "editor" set
   would now get the editor permission by dint of being linked to the
   Staff User Profile, but would get the "admin" bit set on the individual
   user record, because the profile does not confer that.
@@ -57,6 +58,12 @@ v0.27   2017-12-05
   More User Profiles can be created, amended and deleted as required by
   a system administrator and the original three can have their permission
   bits amended, but these three can't be renamed or deleted.
+
+* New users link to User Profile records
+
+  As well as existing users being converted as described above, all
+  new users logging on to the system will have their user records
+  linked to appropriate user profile records.
 
 * Seed data updated to match
 
