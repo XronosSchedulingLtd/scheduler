@@ -1,4 +1,10 @@
-<h1>Listing users</h1>
+<h1>Listing<%=
+  if @user_profile
+    " \"#{@user_profile.name}\""
+  else
+    ""
+  end
+%> users</h1>
 <p id="notice"><%= notice %></p>
 
 <div class="row collapse">

@@ -143,7 +143,12 @@
                   </ul>
                 </li>
                 <li><%= link_to "Subjects", subjects_path %></li>
-                <li><%= link_to "Users", users_path %></li>
+                <li class="has-dropdown">
+                  <%= link_to "Users", users_path %>
+                  <ul class="dropdown">
+                    <li><%= link_to "Profiles", user_profiles_path %></li>
+                  </ul>
+                </li>
               </ul>
             </li>
             <li class="has-dropdown">
@@ -153,9 +158,9 @@
               </ul>
             </li>
             <li><%= link_to "Imports", imports_index_path %></li>
-<%     end %>
             <li><%= link_to "Day shape", 
                             rota_template_type_rota_templates_path(DayShapeManager.template_type) %></li>
+<%     end %>
           </ul>
         </li>
         <li class="divider">
@@ -170,7 +175,20 @@
         <li class="divider"></li>
         <li><%= link_to "Sign out", signout_path %></li>
 <% else %>
-        <li><%= link_to "Sign in", signin_path %></li>
+  <% if Setting.demo_system? && User.demo_user.count > 0 %>
+    <li class="has-dropdown">
+      <a href="#">Sign in</a>
+      <ul class="dropdown">
+        <% User.demo_user.each do |du| %>
+          <li><%= link_to du.initials,
+                          sessions_demo_login_path(user_id: du.id) %></li>
+        <% end %>
+        <li><%= link_to "Other", signin_path %></li>
+      </ul>
+    </li>
+  <% else %>
+    <li><%= link_to "Sign in", signin_path %></li>
+  <% end %>
 <% end %>
       </ul>
     </section>

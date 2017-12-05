@@ -1,0 +1,26 @@
+<%= form_for(@user_profile) do |f| %>
+  <% if @user_profile.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@user_profile.errors.count, "error") %> prohibited this user_profile from being saved:</h2>
+
+      <ul>
+      <% @user_profile.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :name %><br>
+    <% if @user_profile.can_rename? %>
+      <%= f.text_field :name %>
+    <% else %>
+      <%= f.text_field :name, disabled: true %>
+    <% end %>
+  </div>
+  <%= tscb_group(f, @user_profile, :permissions, 12, 6, "Permissions", PermissionFlags.permitted_keys) %>
+  <div class="actions">
+    <%= f.submit nil, class: "zfbutton tiny radius" %>
+  </div>
+<% end %>
