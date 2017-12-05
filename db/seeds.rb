@@ -338,7 +338,7 @@ seeder.lesson(:ced, :g12fre,   :l108, :tuesday,  3)
 seeder.lesson(:ced, :g11fre1a, :l108, :tuesday,  5)
 seeder.lesson(:ced, :g8fre2,   :l108, :tuesday, 7).
        covered_by(sjp).
-       add_note("", "Simon\n\nSorry you've been hit with this cover.\n\nThere are some worksheets on the desk at the front of the room.\nPlease collect in their books at the end of the lesson.\n\nThanks - Claire")
+       add_note("", "Simon\n\nSorry you've been hit with this cover.\n\nThere are some worksheets on the desk at the front of the room.\nPlease collect in their books at the end of the lesson.\n\nThanks - Claire") << seeder.properties[:coveredproperty]
 
 seeder.lesson(:ced, :g7fre1,   :l108, :wednesday, 1)
 seeder.lesson(:ced, :g10fre3,  :l108, :wednesday, 2)
