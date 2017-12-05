@@ -21,6 +21,8 @@ Property.destroy_all
 Eventsource.destroy_all
 Datasource.destroy_all
 Eventcategory.destroy_all
+User.destroy_all
+UserProfile.destroy_all
 
 #
 #  It's not quite a clean slate, because the IDs carry on incrementing
@@ -70,6 +72,7 @@ sjp = seeder.new_staff("Mr",  "Simon",    "Philpotts", "SJP", [:maths, :fm],
 ced = seeder.new_staff("Mrs", "Claire",   "Dunwoody",  "CED", [:french])
 medical = seeder.new_service("Medical")
 catering = seeder.new_service("Catering")
+sjp_user = seeder.new_user(sjp)
 ced_user = seeder.new_user(ced).
        controls(seeder.properties[:calendarproperty]).
        controls(catering).

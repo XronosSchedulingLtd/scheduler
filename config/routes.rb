@@ -1,5 +1,12 @@
 Rails.application.routes.draw do
 
+  resources :user_profiles do
+    resources :users
+    member do
+      post :do_clone
+    end
+  end
+
   resources :pre_requisites
 
   resources :journals, only: [:index, :show]
@@ -81,6 +88,8 @@ Rails.application.routes.draw do
   get 'sessions/create'
 
   get 'sessions/destroy'
+
+  get 'sessions/demo_login'
  
   put 'sessions/become/:user_id' => 'sessions#become', as: :become
 

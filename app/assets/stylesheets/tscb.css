@@ -1,0 +1,13 @@
+img.default-value {
+  opacity: 0.5;
+}
+
+.tscb label {
+  display: inline;
+}
+
+span.spaced-tscb {
+  padding: 10px;
+  line-height: 30px;
+}
+

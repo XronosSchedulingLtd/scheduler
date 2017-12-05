@@ -5,6 +5,8 @@
 
 class User < ActiveRecord::Base
 
+  include Permissions
+
   DWI = Struct.new(:id, :name)
   DaysOfWeek = [DWI.new(0, "Sunday"),
                 DWI.new(1, "Monday"),
@@ -46,7 +48,7 @@ class User < ActiveRecord::Base
     can_roam: "Can this user follow links from one displayed element to another?",
     can_su: "Can this user become another user?",
     exams: "Does this user administer exams or invigilation?",
-    can_relocate_lessons: "Can this user relocate lessons - not just his or her own?",
+    can_relocate_lessons: "Can this user relocate lessons in general - not just his or her own?",
     show_pre_requisites: "Do you want to be prompted for likely requirements when creating new events?",
     can_add_resources: "Can this user add resources to events?",
     can_add_notes: "Can this user add notes to events?"
@@ -55,6 +57,7 @@ class User < ActiveRecord::Base
 
   serialize :suppressed_eventcategories, Array
   serialize :extra_eventcategories,      Array
+  serialize :permissions,                ShadowPermissionFlags
 
   has_many :concerns,   :dependent => :destroy
   has_many :user_form_responses, :dependent => :destroy
@@ -69,6 +72,7 @@ class User < ActiveRecord::Base
   belongs_to :preferred_event_category, class_name: Eventcategory
   belongs_to :day_shape, class_name: RotaTemplate
   belongs_to :corresponding_staff, class_name: "Staff"
+  belongs_to :user_profile
 
   #
   #  The only elements we can actually own currently are groups.  By creating
@@ -84,13 +88,17 @@ class User < ActiveRecord::Base
   validates :firstday, :presence => true
   validates :firstday, :numericality => true
 
+  validates :user_profile, :presence => true
+
   scope :arranges_cover, lambda { where("arranges_cover = true") }
   scope :element_owner, lambda { where(:element_owner => true) }
   scope :editors, lambda { where(editor: true) }
   scope :exams, lambda { where(exams: true) }
   scope :administrators, lambda { where(admin: true) }
+  scope :demo_user, lambda { where(demo_user: true) }
 
   before_destroy :being_destroyed
+  before_save :update_legacy_permission_flags
   after_save :find_matching_resources
 
   self.per_page = 15
@@ -212,7 +220,14 @@ class User < ActiveRecord::Base
     #  Note that the keys are exactly the names of the columns within
     #  the d/b record.
     #
+    FIELD_TITLE_TEXTS[field]
+  end
 
+  def self.field_title_text(field)
+    #
+    #  Note that the keys are exactly the names of the columns within
+    #  the d/b record.
+    #
     FIELD_TITLE_TEXTS[field]
   end
 
@@ -621,6 +636,7 @@ class User < ActiveRecord::Base
       user.uid      = auth["uid"]
       user.name     = auth["info"]["name"]
       user.email    = auth["info"]["email"].downcase
+      user.user_profile = UserProfile.guest_profile
     end
   end
 
@@ -634,12 +650,8 @@ class User < ActiveRecord::Base
       end
       if staff
         got_something = true
-        #
-        #  We set the corresponding staff here, and rely on
-        #  set_initial_permissions to save our record, which it will
-        #  because we are a member of staff.
-        #
         self.corresponding_staff = staff
+        self.user_profile = UserProfile.staff_profile
         concern = self.concern_with(staff.element)
         if concern
           unless concern.equality
@@ -660,6 +672,7 @@ class User < ActiveRecord::Base
       pupil = Pupil.find_by_email(self.email)
       if pupil
         got_something = true
+        self.user_profile = UserProfile.pupil_profile
         concern = self.concern_with(pupil.element)
         if concern
           unless concern.equality
@@ -708,10 +721,15 @@ class User < ActiveRecord::Base
           rt = rtt.rota_templates.first
           if rt
             self.day_shape = rt
-            self.save!
           end
         end
-        set_initial_permissions
+        #
+        #  Small frig for the demo system only.
+        #
+        if Setting.demo_system? && self.email == "jhwinters@gmail.com"
+          self.permissions[:admin] = true
+        end
+        self.save!
       end
     end
   end
@@ -854,44 +872,6 @@ class User < ActiveRecord::Base
   end
 
   #
-  #  After the addition of finer-grained permission flags, give them
-  #  some initial values.
-  #
-  def set_initial_permissions
-    if self.staff?
-      self.editor            = true
-      self.can_add_resources = true
-      self.can_add_notes     = true
-      self.can_has_groups    = true
-      self.public_groups     = true
-      self.can_find_free     = true
-      self.can_add_concerns  = true
-      self.can_roam          = true
-      if Setting.auth_type == "google_demo_auth" &&
-         self.email == "jhwinters@gmail.com"
-        self.admin = true
-      end
-      self.save!
-      "#{self.name} with email #{self.email} gets staff permissions."
-    elsif self.pupil?
-      "#{self.name} is a pupil."
-    else
-      "#{self.name} with email #{self.email} is unknown."
-    end
-  end
-
-  def self.set_initial_permissions
-    results = Array.new
-    User.all.each do |u|
-      results << u.set_initial_permissions
-    end
-    results.each do |text|
-      puts text
-    end
-    nil
-  end
-
-  #
   #  Maintenance methods to populate the newly created "corresponding_staff"
   #  field.
   #
@@ -967,6 +947,79 @@ class User < ActiveRecord::Base
   def self.populate_resource_and_note_flags
     User.all.each do |u|
       u.populate_resource_and_note_flags
+    end
+    nil
+  end
+
+  #
+  #  Each time the user record is saved we update the legacy permission
+  #  flags (those used at run-time to decide permissions) with a calculated
+  #  value from the profile and new permission flags.
+  #
+  def update_legacy_permission_flags
+    PermissionFlags.permitted_keys.each do |pk|
+      if self.permissions[pk] == PermissionFlags::PERMISSION_DONT_CARE
+        value = self.user_profile.permissions[pk]
+      else
+        value = self.permissions[pk]
+      end
+      if value == PermissionFlags::PERMISSION_NO
+        if self[pk]
+          self[pk] = false
+        end
+      elsif value == PermissionFlags::PERMISSION_YES
+        unless self[pk]
+          self[pk] = true
+        end
+      else
+        Rails.logger.debug("Calculated permission value for #{pk} for #{self.name} is #{value}")
+      end
+    end
+  end
+
+  #
+  #  Called to tell us that our user profile has been updated.
+  #  A dummy save should be enough to get our flags updated.
+  #
+  def user_profile_updated
+    self.save
+  end
+
+  #
+  #  These next two are intended solely for use when migrating an existing
+  #  system to having user profiles.  They will convert existing users.
+  #
+  #  TODO: Take account of any extra privilege bits the user might
+  #  already have.
+  #
+  def link_to_profile
+    if self.staff?
+      self.user_profile = UserProfile.staff_profile
+    elsif self.pupil?
+      self.user_profile = UserProfile.pupil_profile
+    else
+      self.user_profile = UserProfile.guest_profile
+    end
+    PermissionFlags.permitted_keys.each do |pk|
+      current_flag_value = self[pk]
+      profile_value = self.user_profile.permissions[pk]
+      if current_flag_value &&
+         profile_value != PermissionFlags::PERMISSION_YES
+        self.permissions[pk] = PermissionFlags::PERMISSION_YES
+      elsif !current_flag_value &&
+            profile_value != PermissionFlags::PERMISSION_NO
+        self.permissions[pk] = PermissionFlags::PERMISSION_NO
+      else
+        self.permissions[pk] = PermissionFlags::PERMISSION_DONT_CARE
+      end
+    end
+    self.save!
+  end
+
+  def self.link_to_profiles
+    UserProfile.ensure_basic_profiles
+    User.all.each do |u|
+      u.link_to_profile
     end
     nil
   end

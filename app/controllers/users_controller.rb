@@ -49,7 +49,12 @@ class UsersController < ApplicationController
   # GET /users.json
   def index
     @user = User.new
-    selector = User.order(:name)
+    @user_profile = UserProfile.find_by(id: params[:user_profile_id])
+    if @user_profile
+      selector = @user_profile.users.order(:name)
+    else
+      selector = User.order(:name)
+    end
     #
     #  If an explicit page has been requested then go to it.
     #  Otherwise check for other criteria.
@@ -134,6 +139,7 @@ class UsersController < ApplicationController
   # PATCH/PUT /users/1
   # PATCH/PUT /users/1.json
   def update
+    do_apply = params.has_key?(:apply)
     original_firstday = @user.firstday
     original_colour = @user.colour_not_involved
     original_day_shape_id = @user.day_shape_id
@@ -144,7 +150,14 @@ class UsersController < ApplicationController
           (@user.firstday != original_firstday) ||
           (@user.colour_not_involved != original_colour) ||
           (@user.day_shape_id != original_day_shape_id)
-        format.html { redirect_to users_path({user_id: @user.id}), notice: 'User was successfully updated.' }
+        format.html do
+          if do_apply
+            redirect_to edit_user_path(@user)
+          else
+            redirect_to users_path({user_id: @user.id}),
+                      notice: 'User was successfully updated.' 
+          end
+        end
         format.json { render :show, status: :ok, location: @user }
         format.js
       else
@@ -219,7 +232,9 @@ class UsersController < ApplicationController
                       :colour_not_involved,
                       :default_event_text,
                       :day_shape_id,
-                      :can_relocate_lessons)
+                      :can_relocate_lessons,
+                      :user_profile_id,
+                      permissions: PermissionFlags.permitted_keys)
       elsif current_user.editor?
         params.require(:user).
                permit(:firstday,

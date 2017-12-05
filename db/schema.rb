@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171121124158) do
+ActiveRecord::Schema.define(version: 20171205093036) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -604,6 +604,13 @@ ActiveRecord::Schema.define(version: 20171121124158) do
     t.datetime "updated_at"
   end
 
+  create_table "user_profiles", force: true do |t|
+    t.string   "name"
+    t.text     "permissions"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "users", force: true do |t|
     t.string   "provider"
     t.string   "uid"
@@ -651,6 +658,9 @@ ActiveRecord::Schema.define(version: 20171121124158) do
     t.integer  "corresponding_staff_id"
     t.boolean  "can_add_resources",           default: false
     t.boolean  "can_add_notes",               default: false
+    t.integer  "user_profile_id"
+    t.text     "permissions"
+    t.boolean  "demo_user",                   default: false
   end
 
 end

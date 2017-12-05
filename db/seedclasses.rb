@@ -118,8 +118,10 @@ class Seeder
 
     def initialize(corresponding_staff)
       @dbrecord = User.create!({
-        name:  corresponding_staff.dbrecord.name,
-        email: corresponding_staff.dbrecord.email
+        name:         corresponding_staff.dbrecord.name,
+        email:        corresponding_staff.dbrecord.email,
+        user_profile: UserProfile.staff_profile,
+        demo_user:    true
       })
       #
       #  The user model will automatically have linked this new
@@ -688,6 +690,10 @@ class Seeder
     #
     RotaTemplateType.create!({ name: "Invigilation" })
     RotaTemplateType.create!({ name: "Day shape" })
+    #
+    #  User profiles
+    #
+    UserProfile.ensure_basic_profiles
   end
 
   Usefuls = [
