@@ -1,3 +1,80 @@
+v0.27   2017-12-05
+
+* Addition of user profiles
+
+  The major new feature in this release is the addition of User Profiles.
+  Previously each user has had an individual set of permission bits
+  and a change in policy for permissions would have required each user
+  record to be edited individually.
+
+  The system now has new records called User Profiles, which serve to
+  carry a set of permission bits.  Each user is linked to one User Profile
+  and inherits the permissions specified there.  In addition, user records
+  have their own sets of permission bits which can be used to override
+  those in the corresponding profile.  Thus, for instance, a user can be
+  linked to the "Staff" User Profile, but have the Admin permission bit
+  set in addition.  Overrides can work either way - adding or removing
+  a permission bit.
+
+  Three User Profiles are created by default:
+
+  Staff - for users who match a Staff record
+  Pupil - for users who match a Pupil record
+  Guest - for users who don't match any record
+
+  The Staff User Profile has the following permission bits set:
+
+    * Editor (can create events)
+    * Add resources
+    * Add notes
+    * Groups
+    * Public groups
+    * Find free
+    * Add concerns
+    * Roam
+
+  which are the same permission bits which staff were given before.
+  The Pupil and Guest User Profiles have no permission bits set.
+
+  As part of the conversion process, existing user records are linked
+  to the appropriate User Profile, and then the individual permission
+  bits are set on the user record to ensure each user has the same
+  final permissions as before.
+
+  Thus, a member of staff who previously had "admin" and "editor" set
+  would now get the editor permission by dint of being linked to the
+  Staff User Profile, but would get the "admin" bit set on the individual
+  user record, because the profile does not confer that.
+
+  Similarly, a pupil who previously had the "editor" bit set on his
+  individual user record would still have it set after the conversion
+  process, because otherwise he would not have that permission.
+
+  Changing the permissions on a User Profile will affect all its
+  linked users immediately, except those who have an override set
+  for the corresponding permission bit.
+
+  More User Profiles can be created, amended and deleted as required by
+  a system administrator and the original three can have their permission
+  bits amended, but these three can't be renamed or deleted.
+
+* Seed data updated to match
+
+  The seed data for new installations have been updated to match the
+  new records.
+
+* New demo login method
+
+  A system in demonstration mode now allows direct login by suitably
+  configured users, removing the need for a Google login.
+
+* Remove spurious menu item
+
+  Ordinary users were getting an item on their menu called "Day shape".
+  It didn't do anything because they didn't have the necessary permissions,
+  but it just shouldn't have been there at all.  Removed.
+
+
 v0.26.4 2017-12-04
 
 * Fix loss of menu on mobile devices.
