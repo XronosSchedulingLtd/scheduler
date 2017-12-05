@@ -120,7 +120,8 @@ class Seeder
       @dbrecord = User.create!({
         name:         corresponding_staff.dbrecord.name,
         email:        corresponding_staff.dbrecord.email,
-        user_profile: UserProfile.staff_profile
+        user_profile: UserProfile.staff_profile,
+        demo_user:    true
       })
       #
       #  The user model will automatically have linked this new

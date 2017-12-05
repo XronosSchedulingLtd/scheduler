@@ -95,6 +95,7 @@ class User < ActiveRecord::Base
   scope :editors, lambda { where(editor: true) }
   scope :exams, lambda { where(exams: true) }
   scope :administrators, lambda { where(admin: true) }
+  scope :demo_user, lambda { where(demo_user: true) }
 
   before_destroy :being_destroyed
   before_save :update_legacy_permission_flags
@@ -725,8 +726,7 @@ class User < ActiveRecord::Base
         #
         #  Small frig for the demo system only.
         #
-        if Setting.auth_type == "google_demo_auth" &&
-           self.email == "jhwinters@gmail.com"
+        if Setting.demo_system? && self.email == "jhwinters@gmail.com"
           self.permissions[:admin] = true
         end
         self.save!

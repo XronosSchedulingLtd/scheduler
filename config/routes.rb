@@ -88,6 +88,8 @@ Rails.application.routes.draw do
   get 'sessions/create'
 
   get 'sessions/destroy'
+
+  get 'sessions/demo_login'
  
   put 'sessions/become/:user_id' => 'sessions#become', as: :become
 

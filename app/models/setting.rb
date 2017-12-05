@@ -230,6 +230,10 @@ class Setting < ActiveRecord::Base
     @@hostname
   end
 
+  def self.demo_system?
+    self.auth_type == "google_demo_auth"
+  end
+
   protected
 
   def no_more_than_one

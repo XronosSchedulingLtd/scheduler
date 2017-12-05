@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171124122128) do
+ActiveRecord::Schema.define(version: 20171205093036) do
 
   create_table "attachments", force: true do |t|
     t.string   "description"
@@ -660,6 +660,7 @@ ActiveRecord::Schema.define(version: 20171124122128) do
     t.boolean  "can_add_notes",               default: false
     t.integer  "user_profile_id"
     t.text     "permissions"
+    t.boolean  "demo_user",                   default: false
   end
 
 end

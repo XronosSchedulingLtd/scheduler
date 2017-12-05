@@ -12,7 +12,7 @@ class SessionsController < ApplicationController
     if /signin$/ =~ request.fullpath
       #
       #  This is an explicit login attempt.  Scrub any previous
-      #  redireciton information.
+      #  redirection information.
       #
 #      Rails.logger.debug("Explicit login")
       session.delete(:url_requested)
@@ -45,6 +45,25 @@ class SessionsController < ApplicationController
     session[:user_id] = user.id
     Rails.logger.info("User #{user.email} signed in.")
     redirect_to url_requested || root_url, :notice => "Signed in"
+  end
+
+  #
+  #  Allow direct login on demo systems.  For this to work:
+  #
+  #  1. System must be configured in demo mode.
+  #  2. A user id must be specified.
+  #  3. The user must exist.
+  #  4. The user must be flagged as a demo user.
+  #
+  def demo_login
+    if Setting.demo_system? && params[:user_id] &&
+      (user = User.find_by(id: params[:user_id])) &&
+      (user.demo_user?)
+      reset_session
+      session[:user_id] = user.id
+      Rails.logger.info("User #{user.email} signed in (demo mode).")
+    end
+    redirect_to root_url
   end
 
   def destroy
@@ -83,7 +102,10 @@ class SessionsController < ApplicationController
   private
 
   def authorized?(action = action_name, resource = nil)
-    logged_in? || action == 'new' || action == 'create'
+    logged_in? ||
+      action == 'new' ||
+      action == 'create' ||
+      action == 'demo_login'
   end
 
 end
