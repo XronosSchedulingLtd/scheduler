@@ -1,3 +1,18 @@
+v0.27.3 2017-12-07
+
+* Sort locations attached to event in ical feed.
+
+  The application has never made any guarantees about the order in
+  which locations will be listed for an event.  However, it became
+  apparent that events in the ical feed were having their locations
+  listed in a completely different order from how they were being displayed
+  on screen, which caused confusion.
+
+  This release adds a sort to the ical feed generation so that multiple
+  locations attached to an event will now be listed in the order in
+  which they were attached to that event.
+
+
 v0.27.2 2017-12-05
 
 * Simply add a version number to the bottom right of the main screen.

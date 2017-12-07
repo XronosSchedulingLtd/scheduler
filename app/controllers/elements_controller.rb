@@ -657,7 +657,7 @@ class ElementsController < ApplicationController
               event.dtstart = dbevent.starts_at
               event.dtend   = dbevent.ends_at
             end
-            locations = dbevent.locations
+            locations = dbevent.sorted_locations
             if locations.size > 0
               event.location = locations.collect {|l| l.friendly_name}.join(",")
             end

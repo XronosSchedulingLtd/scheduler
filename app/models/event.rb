@@ -98,7 +98,7 @@ class Event < ActiveRecord::Base
   belongs_to :eventsource
   has_many :commitments, :dependent => :destroy
   has_many :requests, :dependent => :destroy
-    has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
+  has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
   has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
   has_many :covering_commitments, -> { where("covering_id IS NOT NULL") }, class_name: "Commitment"
   has_many :non_covering_commitments, -> { where("covering_id IS NULL") }, class_name: "Commitment"
@@ -728,6 +728,18 @@ class Event < ActiveRecord::Base
     else
       self.resources.select {|r| r.instance_of?(Location)}
     end
+  end
+
+  #
+  #  Provide a list of the locations explicitly attached to this
+  #  event, in the order in which they were attached.
+  #
+  def sorted_locations
+    self.firm_commitments.
+         sort_by {|c| c.id}.
+         collect {|c| c.element}.
+         select {|e| e.entity_type == "Location"}.
+         collect {|e| e.entity}
   end
 
   #
