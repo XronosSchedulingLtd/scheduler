@@ -14,8 +14,3 @@
 # ActiveSupport::Inflector.inflections(:en) do |inflect|
 #   inflect.acronym 'RESTful'
 # end
-
-ActiveSupport::Inflector.inflections(:en) do |inflect|
-  inflect.plural /(persona)$/i, '\1e'
-  inflect.singular /(persona)e$/i, '\1'
-end
