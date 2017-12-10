@@ -3,6 +3,7 @@ require 'test_helper'
 class UserFormsControllerTest < ActionController::TestCase
   setup do
     @user_form = user_forms(:one)
+    session[:user_id] = users(:admin).id
   end
 
   test "should get index" do
@@ -21,7 +22,7 @@ class UserFormsControllerTest < ActionController::TestCase
       post :create, user_form: { definition: @user_form.definition, name: @user_form.name }
     end
 
-    assert_redirected_to user_form_path(assigns(:user_form))
+    assert_redirected_to user_forms_path
   end
 
   test "should show user_form" do
@@ -36,7 +37,7 @@ class UserFormsControllerTest < ActionController::TestCase
 
   test "should update user_form" do
     patch :update, id: @user_form, user_form: { definition: @user_form.definition, name: @user_form.name }
-    assert_redirected_to user_form_path(assigns(:user_form))
+    assert_redirected_to user_forms_path
   end
 
   test "should destroy user_form" do
