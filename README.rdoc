@@ -1,28 +1,12 @@
 == README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Xronos Scheduler is a calendaring application intended primarily
+for schools, but potentially useful for other organisations.
 
-Things you may want to cover:
+For a general introduction, see {the user manual}[https://xronos.uk/]
 
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+{Installation instructions}[https://xronos.uk/install/] are also available.
 
 
-Please feel free to use a different markup language if you do not plan to run
-<tt>rake doc:app</tt>.
+Xronos Scheduler is licensed under the GNU General Public Licence, version 2.
+
