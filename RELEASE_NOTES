@@ -1,3 +1,31 @@
+v0.28   2017-12-11
+
+* Upgrade to latest point release of Rails 4.1
+
+  Pushing the software to GitHub highlighted the fact that the version
+  of Rails in use was a little out of date.  The main change in this
+  release is to update to the latest point release of Rails 4.1
+
+* Update tests for new data structures.
+
+  The last couple of releases have added new data structures.  The automated
+  tests have now been updated to take account of these.
+
+* Remove spurious log messages.
+
+  A couple of unnecessary log messages had been left in the UserProfile
+  code.  Removed.
+
+* Tidy repository
+
+  Some unnecessary files had been left in the repository.  These have
+  been removed.
+
+* Add README.rdoc
+
+  The application now has a very basic README.rdoc in its root directory.
+
+
 v0.27.3 2017-12-07
 
 * Sort locations attached to event in ical feed.
