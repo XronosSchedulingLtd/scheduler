@@ -45,10 +45,10 @@ GEM
     coffee-rails (4.0.1)
       coffee-script (>= 2.2.0)
       railties (>= 4.0.0, < 5.0)
-    coffee-script (2.2.0)
+    coffee-script (2.4.1)
       coffee-script-source
       execjs
-    coffee-script-source (1.7.0)
+    coffee-script-source (1.12.2)
     concurrent-ruby (1.0.5)
     crass (1.0.3)
     daemons (1.1.9)
@@ -60,7 +60,7 @@ GEM
       activerecord (>= 3.0, < 5.2)
       delayed_job (>= 3.0, < 5)
     erubis (2.7.0)
-    execjs (2.0.2)
+    execjs (2.7.0)
     faraday (0.9.0)
       multipart-post (>= 1.2, < 3)
     foundation-rails (5.5.0.0)
@@ -88,15 +88,14 @@ GEM
       mini_mime (>= 0.1.1)
     mini_mime (1.0.0)
     mini_portile (0.6.2)
-    mini_portile2 (2.1.0)
+    mini_portile2 (2.3.0)
     minitest (5.10.3)
     multi_json (1.12.2)
     multi_xml (0.5.5)
     multipart-post (2.0.0)
     mysql2 (0.3.16)
-    nokogiri (1.6.8)
-      mini_portile2 (~> 2.1.0)
-      pkg-config (~> 1.1.7)
+    nokogiri (1.8.1)
+      mini_portile2 (~> 2.3.0)
     numerizer (0.1.1)
     oauth2 (0.9.4)
       faraday (>= 0.8, < 0.10)
@@ -115,7 +114,6 @@ GEM
       multi_json (~> 1.3)
       oauth2 (~> 0.9.3)
       omniauth (~> 1.2)
-    pkg-config (1.1.7)
     quiet_assets (1.1.0)
       railties (>= 3.1, < 5.0)
     rack (1.6.8)
@@ -181,7 +179,7 @@ GEM
     tiny_tds (0.7.0)
       mini_portile (= 0.6.2)
     tod (2.1.0)
-    turbolinks (2.2.2)
+    turbolinks (2.5.4)
       coffee-rails
     tzinfo (1.2.4)
       thread_safe (~> 0.1)
@@ -225,7 +223,7 @@ DEPENDENCIES
   spring
   tiny_tds
   tod
-  turbolinks
+  turbolinks (~> 2.5)
   uglifier (>= 3.2.0)
   web-console (~> 2.0)
   will_paginate (~> 3.0)
