@@ -36,4 +36,11 @@ Rails.application.configure do
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
+  #
+
+  #
+  #  Random test ordering, as for Rails 5.0
+  #
+  config.active_support.test_order = :random
+
 end

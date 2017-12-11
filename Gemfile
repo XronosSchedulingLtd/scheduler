@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.1.16'
+gem 'rails', '4.2.10'
 # Use sqlite3 as the database for Active Record
 #gem 'sqlite3'
 gem 'mysql2'
@@ -62,5 +62,6 @@ group :production do
 end
 
 group :development do
+  gem 'web-console', '~> 2.0'
   gem 'quiet_assets'
 end
