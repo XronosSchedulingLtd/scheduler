@@ -2,8 +2,18 @@
 
 one:
   name: MyString
-  permissions: MyString
+  permissions: <%=
+    pf = PermissionFlags.new
+    pf[:editor] = 1
+    pf[:groups] = 1
+    pf.to_yaml.inspect
+    %>
 
 two:
   name: MyString
-  permissions: MyString
+  permissions: <%=
+    pf = PermissionFlags.new
+    pf[:editor] = 1
+    pf[:groups] = 1
+    pf.to_yaml.inspect
+    %>

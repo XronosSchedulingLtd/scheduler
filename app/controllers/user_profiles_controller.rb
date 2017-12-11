@@ -50,8 +50,6 @@ class UserProfilesController < ApplicationController
   # PATCH/PUT /user_profiles/1.json
   def update
     respond_to do |format|
-      puts "user_profile_params returns"
-      puts user_profile_params.inspect
       if @user_profile.update(user_profile_params)
         format.html { redirect_to user_profiles_url, notice: 'User profile was successfully updated.' }
         format.json { render :show, status: :ok, location: @user_profile }
