@@ -3,6 +3,10 @@ require 'test_helper'
 class UserProfilesControllerTest < ActionController::TestCase
   setup do
     @user_profile = user_profiles(:one)
+    session[:user_id] = users(:admin).id
+    @permission_flags = PermissionFlags.new
+    @permission_flags[:editor] = true
+    @permission_flags[:groups] = true
   end
 
   test "should get index" do
@@ -18,10 +22,13 @@ class UserProfilesControllerTest < ActionController::TestCase
 
   test "should create user_profile" do
     assert_difference('UserProfile.count') do
-      post :create, user_profile: { name: @user_profile.name, permissions: @user_profile.permissions }
+      post :create, user_profile: {
+        name: @user_profile.name,
+        permissions: @permission_flags
+      }
     end
 
-    assert_redirected_to user_profile_path(assigns(:user_profile))
+    assert_redirected_to user_profiles_path
   end
 
   test "should show user_profile" do
@@ -35,8 +42,11 @@ class UserProfilesControllerTest < ActionController::TestCase
   end
 
   test "should update user_profile" do
-    patch :update, id: @user_profile, user_profile: { name: @user_profile.name, permissions: @user_profile.permissions }
-    assert_redirected_to user_profile_path(assigns(:user_profile))
+    patch :update, id: @user_profile, user_profile: {
+      name: @user_profile.name,
+      permissions: @permission_flags
+    }
+    assert_redirected_to user_profiles_path
   end
 
   test "should destroy user_profile" do

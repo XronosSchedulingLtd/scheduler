@@ -2,14 +2,10 @@
 
 one:
   user_form_id: 1
-  parent_id: 1
-  parent_type: MyString
   user_id: 1
   form_data: MyText
 
 two:
   user_form_id: 1
-  parent_id: 1
-  parent_type: MyString
   user_id: 1
   form_data: MyText
