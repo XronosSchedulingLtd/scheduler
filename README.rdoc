@@ -5,8 +5,8 @@ for schools, but potentially useful for other organisations.
 
 It stores and displays not just the school's timetable (or timetables)
 but also everything else which is happening within the school, enabling
-easy retrieval of scheduling information for any entity (person, place
-service, activity) within the school.
+easy retrieval of a tailored schedule for any individual member of staff,
+pupil, location, service, activity etc. within the school.
 
 The data held within Scheduler can be fed out to external calendaring
 programs, and to hand-held devices.  It updates automatically from
