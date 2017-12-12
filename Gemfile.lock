@@ -179,8 +179,6 @@ GEM
     tiny_tds (0.7.0)
       mini_portile (= 0.6.2)
     tod (2.1.0)
-    turbolinks (2.5.4)
-      coffee-rails
     tzinfo (1.2.4)
       thread_safe (~> 0.1)
     uglifier (3.2.0)
@@ -223,7 +221,6 @@ DEPENDENCIES
   spring
   tiny_tds
   tod
-  turbolinks (~> 2.5)
   uglifier (>= 3.2.0)
   web-console (~> 2.0)
   will_paginate (~> 3.0)
