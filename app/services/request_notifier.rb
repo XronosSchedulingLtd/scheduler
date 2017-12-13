@@ -72,7 +72,7 @@ class RequestNotifier
             UserMailer.resource_request_cancelled_email(owner,
                                                         resource,
                                                         event,
-                                                        user).deliver
+                                                        user).deliver_now
           end
         end
       end
@@ -89,7 +89,7 @@ class RequestNotifier
               UserMailer.resource_request_cancelled_email(owner,
                                                           resource,
                                                           event,
-                                                          user).deliver
+                                                          user).deliver_now
             end
           end
         end
@@ -105,7 +105,7 @@ class RequestNotifier
               UserMailer.resource_requested_email(owner,
                                                   resource,
                                                   event,
-                                                  user).deliver
+                                                  user).deliver_now
             end
           end
         end

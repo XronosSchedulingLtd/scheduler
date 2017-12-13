@@ -1397,7 +1397,7 @@ class MIS_Loader
         User.arranges_cover.each do |user|
           UserMailer.cover_clash_email(user,
                                        cover_clashes,
-                                       cover_oddities).deliver
+                                       cover_oddities).deliver_now
         end
       end
     else

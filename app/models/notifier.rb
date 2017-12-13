@@ -1,14 +1,23 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2017 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 class NotifierValidator < ActiveModel::Validator
   def validate(record)
-    if record[:start_date] && record[:end_date]
-      if record[:end_date] < record[:start_date]
+    if record.start_date && record.end_date
+      if record.end_date < record.start_date
         record.errors[:end_date] << "can't be before the start date"
       end
     end
   end
 end
 
-class Notifier < FakeActiveRecord
+class Notifier
+
+  include ActiveModel::Model
+  include ActiveModel::Validations
 
   class ClashEntry
     attr_reader :cover_commitment, :clashing_commitment
@@ -62,22 +71,26 @@ class Notifier < FakeActiveRecord
 
   end
 
-  column :start_date,         :date
-  column :end_date,           :date
-  column :modified_since,     :date
-  column :extra_text,         :text
-  column :check_clashes,      :boolean, false
-  #
-  #  This next one exists in the model purely to allow there to be
-  #  a field in the form.  It's still up to the client code to check
-  #  this flag and trigger e-mails if it wants them.
-  #
-  column :send_notifications, :boolean, true
+  attr_accessor :start_date,
+                :end_date,
+                :modified_since,
+                :extra_text
+  attr_reader   :check_clashes,
+                :send_notifications
 
   validates :start_date, :presence => true
   validates_with NotifierValidator
 
   attr_reader :clashes
+
+  def initialize(attributes = {})
+    super
+    #
+    #  Note that the usual ||= trick is not good enough here.
+    #
+    @check_clashes      = false if @check_clashes.nil?
+    @send_notifications = true if @send_notifications.nil?
+  end
 
   def staff_entries
     if @staff_entry_hash
@@ -112,6 +125,21 @@ class Notifier < FakeActiveRecord
 
   def modified_since_text=(new_value)
     self.modified_since = Date.safe_parse(new_value)
+  end
+
+  def check_clashes=(new_value)
+    #
+    #  I want this to be a boolean, but I might be passed a string.
+    #
+    @check_clashes = to_bool(new_value)
+  end
+
+  def send_notifications=(new_value)
+    @send_notifications = to_bool(new_value)
+  end
+
+  def save
+    self.valid?
   end
 
   def execute
@@ -185,7 +213,7 @@ class Notifier < FakeActiveRecord
           StaffMailer.upcoming_invigilation_email(record.staff,
                                                   record.instances,
                                                   self.extra_text,
-                                                  user).deliver
+                                                  user).deliver_now
         end
       end
     else
@@ -197,11 +225,25 @@ class Notifier < FakeActiveRecord
     if @executed
       if @clashes.size > 0
         User.exams.each do |u|
-          UserMailer.invigilation_clash_email(u, @clashes).deliver
+          UserMailer.invigilation_clash_email(u, @clashes).deliver_now
         end
       end
     else
       raise "Must execute the notifier first."
+    end
+  end
+
+  private
+
+  def to_bool(value)
+    if value.instance_of?(String)
+      if value == "0"
+        false
+      else
+        true
+      end
+    else
+      value
     end
   end
 

@@ -58,11 +58,11 @@ class ApprovalNotifier
     #
     def send_emails
       @rejections.each do |r|
-        UserMailer.commitment_rejected_email(r).deliver
+        UserMailer.commitment_rejected_email(r).deliver_now
       end
       if @my_queues.size > 0
         UserMailer.pending_approvals_email(@email,
-                                           @my_queues.values).deliver
+                                           @my_queues.values).deliver_now
       end
     end
 
