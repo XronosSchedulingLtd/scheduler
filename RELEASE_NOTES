@@ -1,3 +1,35 @@
+v0.28.1 2017-12-13
+
+* Upgrade to the latest point release of Rails 4.2
+
+  Continuing on the theme of upgrading the packages on which Scheduler
+  depends, this release takes us up to the latest point release of
+  the 4.2 series - 4.2.10
+
+* Upgrade jquery-rails to 3.1.4
+
+  Likewise, brought up to latest version.
+
+* Re-work Notifier model.
+
+  The Notifier model was going behind the scenes a bit in ActiveRecord
+  with the result that it failed testing after upgrade to Rails 4.2
+  Updated to work again.
+
+* Upgrade rails-autocomplete
+
+  An intermittent slightly odd bit of behaviour has been noticed
+  in rails-jquery-autocomplete.  It doesn't stop it working, but it
+  just looks slightly odd.  Updated to latest version (1.0.3) in
+  case that helps.
+
+* Change mailers to use deliver_now
+
+  The Rails ActiveMailer has a function called deliver() which is
+  deprecated.  It is replaced by deliver_now() which does the same
+  thing.
+
+
 v0.28   2017-12-11
 
 * Upgrade to latest point release of Rails 4.1
