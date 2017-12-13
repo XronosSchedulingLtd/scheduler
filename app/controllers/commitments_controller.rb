@@ -162,7 +162,7 @@ class CommitmentsController < ApplicationController
         #  Given that our commitment was previously tentative, this
         #  event must now be newly complete.
         #
-        UserMailer.event_complete_email(@event).deliver
+        UserMailer.event_complete_email(@event).deliver_now
       end
       true
     else
@@ -202,7 +202,7 @@ class CommitmentsController < ApplicationController
       @commitment.reject_and_save!(current_user, params[:reason])
       @event.reload
       @event.journal_commitment_rejected(@commitment, current_user)
-      UserMailer.commitment_rejected_email(@commitment).deliver
+      UserMailer.commitment_rejected_email(@commitment).deliver_now
       if @commitment.user_form_response &&
          @commitment.user_form_response.complete?
         @commitment.user_form_response.status = :partial
@@ -245,7 +245,7 @@ class CommitmentsController < ApplicationController
       @commitment.noted_and_save!(current_user, params[:reason])
       @event.reload
       @event.journal_commitment_noted(@commitment, current_user)
-      UserMailer.commitment_noted_email(@commitment).deliver
+      UserMailer.commitment_noted_email(@commitment).deliver_now
       if @commitment.user_form_response &&
          @commitment.user_form_response.complete?
         @commitment.user_form_response.status = :partial

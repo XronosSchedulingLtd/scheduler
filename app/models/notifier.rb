@@ -213,7 +213,7 @@ class Notifier
           StaffMailer.upcoming_invigilation_email(record.staff,
                                                   record.instances,
                                                   self.extra_text,
-                                                  user).deliver
+                                                  user).deliver_now
         end
       end
     else
@@ -225,7 +225,7 @@ class Notifier
     if @executed
       if @clashes.size > 0
         User.exams.each do |u|
-          UserMailer.invigilation_clash_email(u, @clashes).deliver
+          UserMailer.invigilation_clash_email(u, @clashes).deliver_now
         end
       end
     else
