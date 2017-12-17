@@ -1,25 +1,5 @@
 require 'yaml'
 
-#
-#  A basic set of event category properties, from which we will do
-#  some modifications.  It's the modifications which are interesting.
-#
-class ECH < Hash
-  def initialize(values)
-    super()
-    self[:schoolwide]  = false
-    self[:publish]     = true
-    self[:unimportant] = false
-    self[:can_merge]   = false
-    self[:can_borrow]  = false
-    self[:compactable] = true
-    self[:deprecated]  = false
-    self[:privileged]  = false
-    self[:visible]     = true
-    self.merge!(values)
-  end
-end
-
 class Seeder
 
   module HasElement
@@ -33,6 +13,29 @@ class Seeder
       @dbrecord.element.save!
     end
 
+  end
+
+  #
+  #  A basic set of event category properties, from which we will do
+  #  some modifications.  It's the modifications which are interesting.
+  #
+  class ECH
+
+    attr_reader :hash
+
+    def initialize(values = nil)
+      @hash = Hash.new
+      @hash[:schoolwide]  = false
+      @hash[:publish]     = true
+      @hash[:unimportant] = false
+      @hash[:can_merge]   = false
+      @hash[:can_borrow]  = false
+      @hash[:compactable] = true
+      @hash[:deprecated]  = false
+      @hash[:privileged]  = false
+      @hash[:visible]     = true
+      @hash.merge!(values) if values
+    end
   end
 
   class SeedProperty
@@ -655,15 +658,15 @@ class Seeder
     #
     @eventcategories[:lesson] =
       Eventcategory.create!(ECH.new({name: "Lesson",
-                                     clashcheck: true}))
+                                     clashcheck: true}).hash)
     @eventcategories[:weekletter] =
       Eventcategory.create!(ECH.new({name: "Week letter",
                                      schoolwide: true,
-                                     privileged: true }))
+                                     privileged: true }).hash)
     @eventcategories[:duty] =
-      Eventcategory.create!(ECH.new({name: "Duty", privileged: true}))
+      Eventcategory.create!(ECH.new({name: "Duty", privileged: true}).hash)
     @eventcategories[:weekletter] =
-      Eventcategory.create!(ECH.new({name: "Invigilation", privileged: true}))
+      Eventcategory.create!(ECH.new({name: "Invigilation", privileged: true}).hash)
 
     #
     #  Properties
@@ -701,45 +704,45 @@ class Seeder
     {id: :datecrucial,
      ech: ECH.new({name: "Date - crucial",
                    schoolwide: true,
-                   privileged: true })},
+                   privileged: true }).hash},
     {id: :hidden,
      ech: ECH.new({name: "Hidden",
                    publish: false,
                    visible: false,
                    privileged: true,
-                   busy: false})},
+                   busy: false}).hash},
     {id: :parentsevening,
-     ech: ECH.new({name: "Parents' evening", privileged: true})},
+     ech: ECH.new({name: "Parents' evening", privileged: true}).hash},
     {id: :reportdeadline,
-     ech: ECH.new({name: "Reporting deadline", privileged: true})},
+     ech: ECH.new({name: "Reporting deadline", privileged: true}).hash},
     {id: :tutorperiod,
-     ech: ECH.new({name: "Tutor period", privileged: true})},
+     ech: ECH.new({name: "Tutor period", privileged: true}).hash},
     {id: :assembly,
-     ech: ECH.new({name: "Assembly", privileged: true})},
+     ech: ECH.new({name: "Assembly", privileged: true}).hash},
     {id: :sportsfixture,
-     ech: ECH.new({name: "Sports fixture"})},
+     ech: ECH.new({name: "Sports fixture"}).hash},
     {id: :trip,
-     ech: ECH.new({name: "Trip"})},
+     ech: ECH.new({name: "Trip"}).hash},
     {id: :inset,
-     ech: ECH.new({name: "INSET / Training"})},
+     ech: ECH.new({name: "INSET / Training"}).hash},
     {id: :interview,
-     ech: ECH.new({name: "Interview / Audition"})},
+     ech: ECH.new({name: "Interview / Audition"}).hash},
     {id: :practice,
-     ech: ECH.new({name: "Practice / Rehearsal"})},
+     ech: ECH.new({name: "Practice / Rehearsal"}).hash},
     {id: :performance,
-     ech: ECH.new({name: "Performance"})},
+     ech: ECH.new({name: "Performance"}).hash},
     {id: :service,
-     ech: ECH.new({name: "Religious service"})},
+     ech: ECH.new({name: "Religious service"}).hash},
     {id: :dateother,
      ech: ECH.new({name: "Date - other",
                    unimportant: true,
-                   busy: false})},
+                   busy: false}).hash},
     {id: :setup,
-     ech: ECH.new({name: "Event set-up"})},
+     ech: ECH.new({name: "Event set-up"}).hash},
     {id: :meeting,
-     ech: ECH.new({name: "Meeting"})},
+     ech: ECH.new({name: "Meeting"}).hash},
     {id: :hospitality,
-     ech: ECH.new({name: "Hospitality"})}
+     ech: ECH.new({name: "Hospitality"}).hash}
   ]
 
 
