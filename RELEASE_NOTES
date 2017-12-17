@@ -1,3 +1,14 @@
+v0.28.2 2017-12-17
+
+* Fix problem with seeding demonstration database.
+
+  The code for seeding a demonstration database was using a sub-class
+  of a Hash to hold default event category settings.  This turned out
+  to be incompatible with the way Rails 4.2 handled them.
+
+  Now uses a real Hash.
+
+
 v0.28.1 2017-12-13
 
 * Upgrade to the latest point release of Rails 4.2
