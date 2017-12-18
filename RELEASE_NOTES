@@ -1,3 +1,76 @@
+v0.28.3 2017-12-18
+
+* Upgrade to Ruby 2.3.6
+
+  In the spirit of moving on to later versions of things, this release
+  updates the application to use Ruby 2.3.6.
+
+  There are no actual code changes - just an environment change
+  followed by a lot of testing - but it is slightly more complicated
+  to install.
+
+  The usual upgrade process (in the application directory) is:
+
+    * export RAILS_ENV=production
+    * Checkout release
+    * bundle install
+    * rake db:migrate
+    * rake assets:precompile
+    * touch tmp/restart.txt
+
+  For this one though, we are changing Ruby version, which means a new
+  gemset and thus some extra steps.  It's probably best to shut down your
+  web server (and the application) entirely for the duration of the
+  upgrade.
+
+  The first step is to install the new version of Ruby, and whilst this
+  takes a little while, you can do it before shutting down your web
+  server.  Log in as you scheduler user and type:
+
+  $ rvm install 2.3.6
+
+  It will probably need to compile from scratch, but it should need
+  no further intervention from you.  Once that has completed, stop
+  nginx:
+
+  $ sudo systemctl stop nginx
+
+  Then move into your scheduler application directory and do the following:
+
+  $ export RAILS_ENV=production
+  $ git pull
+  $ cd ..                   \ Important step
+  $ cd scheduler            /
+  $ gem install bundler
+  $ bundle install
+  $ rake assets:precompile
+
+  That gets the application basically ready to run, but you need to tell
+  various other bits about the new version of Ruby.
+
+  Under ~/.rvm/environments and ~/.rvm/wrappers you will find two
+  symbolic links (set up at installation) which point to the right version
+  of Ruby to use.  Remove them and set them up again with:
+
+  $ cd ~/.rvm/environments
+  $ rm scheduler
+  $ ln -s ruby-2.3.6@scheduler scheduler
+  $ cd ~/.rvm/wrappers
+  $ rm scheduler
+  $ ln -s ruby-2.3.6@scheduler scheduler
+
+  Finally you need to tell Passenger (the component which runs Scheduler on
+  behalf of Nginx) to use the new Ruby version.
+
+  In your nginx configuration files for the Scheduler installation, change
+  the definition of "passenger_ruby" to point to 2.3.6 instead of 2.1.10.
+
+  You should now be in a position to restart Nginx and access your
+  installation of Scheduler again.
+
+  $ sudo systemctl start nginx
+
+
 v0.28.2 2017-12-17
 
 * Fix problem with seeding demonstration database.
