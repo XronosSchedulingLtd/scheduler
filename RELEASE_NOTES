@@ -1,3 +1,37 @@
+v0.28.4 2017-12-19
+
+Further tidying up of installation and demo system.
+
+* Upgrade mysql2 gem to version 0.4.10
+
+  Testing showed that the old version (0.3.16) was incompatible with
+  the latest MySQL, as used on Debian 9 systems.  The new one works
+  fine with Debian 8.
+
+* Add a pupil to the demo users
+
+  Users of the demo system can now log on as a pupil too.
+
+* Pupil user profile allows event creation
+
+  The default pupil user profile now allows event creation.  This will
+  not affect existing systems, only new installations.
+
+* ical feeds require UUIDs by default
+
+  Earlier versions of Scheduler did their ical feeds by element
+  number - e.g. /ical/21.  These are small and predictable which
+  is potentially insecure.
+
+  The current version expects them to be done by UUID, so things
+  like /ical/UUE-937a658f-0ed8-4b44-a78d-faf30f4d520a.  Much harder
+  to guess.
+
+  A configuration setting controls whether the old version will still
+  work.  This setting now defaults to allowing UUID access only.
+  Again, existing systems will not be affected - only new installations.
+
+ 
 v0.28.3 2017-12-18
 
 * Upgrade to Ruby 2.3.6
