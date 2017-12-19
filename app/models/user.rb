@@ -737,6 +737,8 @@ class User < ActiveRecord::Base
   def initials
     if self.corresponding_staff
       self.corresponding_staff.initials
+    elsif self.pupil?
+      "Pupil"
     else
       "UNK"
     end

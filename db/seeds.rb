@@ -390,6 +390,7 @@ tg13 = [
 #  else will get the same name.
 #
 sp = seeder.pupil(11, "James", "Greenwood")
+seeder.new_user(sp)
 
 #
 #  4 pupils to go in both 11Mat4 and the Geography group
