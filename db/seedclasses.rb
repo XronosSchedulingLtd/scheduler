@@ -119,25 +119,18 @@ class Seeder
   class SeedUser
     attr_reader :dbrecord
 
-    def initialize(corresponding_staff)
+    def initialize(corresponding_staff_or_pupil)
+      if corresponding_staff_or_pupil.instance_of?(SeedStaff)
+        profile = UserProfile.staff_profile
+      else
+        profile = UserProfile.pupil_profile
+      end
       @dbrecord = User.create!({
-        name:         corresponding_staff.dbrecord.name,
-        email:        corresponding_staff.dbrecord.email,
-        user_profile: UserProfile.staff_profile,
+        name:         corresponding_staff_or_pupil.dbrecord.name,
+        email:        corresponding_staff_or_pupil.dbrecord.email,
+        user_profile: profile,
         demo_user:    true
       })
-      #
-      #  The user model will automatically have linked this new
-      #  user record to the first member of staff (because we
-      #  are in demo mode) which isn't actually what we want.
-      #
-      @dbrecord.reload
-      #
-      concern = @dbrecord.concerns.me[0]
-      if concern
-        concern.element = corresponding_staff.dbrecord.element
-        concern.save!
-      end
     end
 
     def controls(entity)
@@ -635,7 +628,8 @@ class Seeder
         enforce_permissions: true,
         auth_type:           auth_type,
         dns_domain_name:     dns_domain_name,
-        from_email_address:  "scheduler@#{dns_domain_name}"
+        from_email_address:  "scheduler@#{dns_domain_name}",
+        require_uuid:        true
       })
     end
     #
@@ -877,10 +871,12 @@ class Seeder
   #
   #  Create a new user record to match an existing member of staff.
   #
-  def new_user(existing_staff)
-    key = existing_staff.initials.downcase.to_sym
-    rec = SeedUser.new(existing_staff)
-    @users[key] = rec
+  def new_user(existing_staff_or_pupil)
+    rec = SeedUser.new(existing_staff_or_pupil)
+    if existing_staff_or_pupil.instance_of?(SeedStaff)
+      key = existing_staff_or_pupil.initials.downcase.to_sym
+      @users[key] = rec
+    end
     rec
   end
 

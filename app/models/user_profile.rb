@@ -83,7 +83,10 @@ class UserProfile < ActiveRecord::Base
       }
     })
     self.create!({
-      name: "Pupil"
+      name: "Pupil",
+      permissions: {
+        editor:            PermissionFlags::PERMISSION_YES
+      }
     })
     self.create!({
       name: "Guest"
