@@ -1,3 +1,17 @@
+v0.28.5 2017-12-21
+
+Add more directories to facilitate new installations.
+
+* Previously, users were expected to manually create directories
+  under import/isams.  There was a README there saying what was needed
+  but the directories weren't.  This release includes these empty
+  (except for a .keep file) directories.
+
+* Likewise the directory import/ForMarkbook is created automatically.
+
+* Files whichsystem and isauth in the support directory updated.
+
+
 v0.28.4 2017-12-19
 
 Further tidying up of installation and demo system.
