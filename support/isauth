@@ -1,3 +1,9 @@
+#
+#  This file should be installed as ~/etc/isauth under your Scheduler user.
+#
+#  It contains your iSAMS authentication details.
+#
+
 ISAMS_API_URL='https://whatever...'
 APIKEY='whatever...'
 PASSWORD='whatever...'

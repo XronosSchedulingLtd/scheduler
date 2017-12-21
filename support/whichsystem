@@ -1,7 +1,26 @@
-DATA_YEAR="2016"
-MARKBOOK_DIR=/home/john/Work/Coding/markbook
-SCHEDULER_DIR=/home/john/Work/Coding/scheduler
+#
+#  This file should be installed as ~/etc/whichsystem under your
+#  chosen Scheduler user - by default "scheduler".
+#
+#  It is included by various scripts to find out what the system
+#  configuration is.
+#
+
+#
+#  Where is the scheduler code located?
+#
+SCHEDULER_DIR=/home/scheduler/Work/Coding/scheduler
+
+#
+#  Production mode or development mode?
+#
 RAILS_ENV=development
+
+#
+#  When fetching from isams, should we use the API and/or direct d/b
+#  access.
+#
 USE_ISAMS_API=true
-USE_ISAMS_DB=false
-export DATA_YEAR MARKBOOK_DIR RAILS_ENV SCHEDULER_DIR USE_ISAMS_API USE_ISAMS_DB
+USE_ISAMS_DB=true
+
+export RAILS_ENV SCHEDULER_DIR USE_ISAMS_API USE_ISAMS_DB
