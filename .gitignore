@@ -33,6 +33,32 @@
 !/import/recurring
 /import/recurring/*
 !/import/recurring/README
+#
+#  And I want the basic Markbook directory structure
+#
+!/import/ForMarkbook
+/import/ForMarkbook/*
+!/import/ForMarkbook/README
+#
+#  And the basic iSAMS directory structure
+#  There must be a simpler way of doing this.  What I want to do
+#  is have the directory structure under git, but none of the
+#  files which it contains.
+#
+!/import/isams
+/import/isams/*
+!/import/isams/Current
+/import/isams/Current/*
+!/import/isams/Current/.keep
+!/import/isams/PreFetched
+/import/isams/PreFetched/*
+!/import/isams/PreFetched/.keep
+!/import/isams/Archive
+/import/isams/Archive/*
+!/import/isams/Archive/.keep
+!/import/isams/Incoming
+/import/isams/Incoming/*
+!/import/isams/Incoming/.keep
 
 #
 #  School-specific bits of the import process get quite interesting.
