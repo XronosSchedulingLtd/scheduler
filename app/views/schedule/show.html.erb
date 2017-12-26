@@ -19,7 +19,11 @@
     </div>
   </div>
   <div class="bottomrighttext">
-    <%= SOFTWARE_VERSION %>
+    <% if admin_user? %>
+      <span title="<%= Setting.rr_versions %>"><%= SOFTWARE_VERSION %></span>
+    <% else %>
+      <%= SOFTWARE_VERSION %>
+    <% end %>
   </div>
   <div class="bottomtext">
     <a href="https://xronos.uk/" target="_blank">Xronos Scheduler</a>
