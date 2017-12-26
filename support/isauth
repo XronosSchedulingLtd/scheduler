@@ -1,10 +1,22 @@
 #
-#  This file should be installed as ~/etc/isauth under your Scheduler user.
+#  Stuff for accessing the iSAMS API
 #
-#  It contains your iSAMS authentication details.
+export ISAMS_API_URL='https://<your host name>:443/api/batch/1.0/xml.ashx'
+export APIKEY='<fill in here>'
 #
+#  And stuff for accessing the iSAMS database directly
+#
+export ISAMS_DB_USER=''
+export ISAMS_DB_PASSWORD=''
 
-ISAMS_API_URL='https://whatever...'
-APIKEY='whatever...'
-PASSWORD='whatever...'
-export APIKEY ISAMS_API_URL PASSWORD
+#
+#  You can specify *either* ISAMS_DATA_SERVER, (which should in turn
+#  be defined in /etc/freetds/freetds.conf) or ISAMS_DB_HOST and ISAMS_DB_PORT.
+#  If you specify both then the ISAMS_DATA_SERVER one will be used.
+#
+#export ISAMS_DATA_SERVER=''
+export ISAMS_DB_HOST=''
+export ISAMS_DB_PORT=29347
+
+export ISAMS_DB_NAME=''
+
