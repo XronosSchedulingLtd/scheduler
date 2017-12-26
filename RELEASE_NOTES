@@ -1,3 +1,43 @@
+v0.28.6 2017-12-26
+
+Still tidying up.
+
+* Remove LetsEncrypt directory
+
+  This contained various support files for getting HTTPS certificates
+  from Let's Encrypt set up.  The standard tools for Let's Encrypt
+  are now much more mature and the use of them is documented in
+  the Scheduler Installation Guide at https://xronos.uk/install
+  so these are now redundant.
+
+* Make iSAMS database extractor tool fully environment driven.
+
+  The iSAMS database extractor tool has always got some of its settings
+  from the program environment, but now it gets all of them this way.
+
+  This has the advantage that neither the program source, nor the
+  script for invoking it, needs to be edited to suit a particular site.
+  The only configuration needed goes in ~/etc/isauth.
+
+  A new sample isauth file is provided in the support directory.  It
+  will need editing before installation as ~/etc/isauth.
+
+  Make sure you install it with no read access for other users
+  on your system - "chmod 600 ~/etc/isauth".
+
+* Show Ruby and Rails versions to administrator.
+
+  To provide an easy means for the administrator to check that a
+  live installation is running in the right environment with the
+  correct versions of Ruby and Rails, the main application screen now
+  includes this information for anyone logged in as an administrator.
+
+  Hover your mouse over the software version number at bottom right to
+  see the Ruby and Rails versions as well.
+
+  This information is available only to administrators.
+
+  
 v0.28.5 2017-12-21
 
 Add more directories to facilitate new installations.

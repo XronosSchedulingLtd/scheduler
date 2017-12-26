@@ -8,6 +8,7 @@ class Setting < ActiveRecord::Base
   @@setting = nil
   @@got_hostname = false
   @@hostname = ""
+  @@rr_versions = nil
 
   belongs_to :current_era, class_name: :Era
   belongs_to :next_era, class_name: :Era
@@ -194,6 +195,12 @@ class Setting < ActiveRecord::Base
     end
   end
 
+  def self.rr_versions
+    unless @@rr_versions
+      @@rr_versions = "Ruby #{RUBY_VERSION}, Rails #{Rails::VERSION::STRING}"
+    end
+    @@rr_versions
+  end
   #
   #  End-of-year processing.  Move us on into the next era.
   #
