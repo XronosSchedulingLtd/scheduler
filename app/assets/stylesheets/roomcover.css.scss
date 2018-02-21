@@ -6,3 +6,7 @@
   display: none;
 }
 
+option.location-unavailable, optgroup.location-unavailable {
+  color: darkred;
+}
+

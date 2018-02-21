@@ -593,7 +593,7 @@ class EventsController < ApplicationController
   # GET /events/1/coverrooms.json
   def coverrooms
     crf = CoverRoomFinder.new(@event)
-    @coverrooms = crf.find_rooms
+    @coverrooms = crf.find_rooms(relocating_user?)
     locations = @event.direct_locations.to_a
     if locations.size > 0
       @orgroom = locations[0].short_name

@@ -102,6 +102,10 @@ class ApplicationController < ActionController::Base
     current_user && current_user.public_groups?
   end
 
+  def relocating_user?
+    current_user && current_user.can_relocate_lessons?
+  end
+
   def user_can_drag?(concern)
     current_user && current_user.can_drag?(concern)
   end
