@@ -78,13 +78,15 @@ if ($('#fullcalendar').length) {
       },
       render: function() {
         this.$el.empty();
+        var available = this.model.get("available");
         if (this.model.rooms.length > 0) {
           this.model.rooms.each(function(model) {
+            model.set({available: available});
             var roomView = new RoomView({ model: model });
             this.$el.append(roomView.render().$el);
           }, this);
         } else {
-          if (this.model.get("available")) {
+          if (available) {
             this.$el.append('<option value="disabled" disabled>None available</option');
           }
         }
