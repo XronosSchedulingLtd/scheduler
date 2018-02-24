@@ -82,6 +82,14 @@ module EventsHelper
     else
       text = "#{text} #{reject_link(commitment, "Raise issue")}"
     end
+    if commitment.user_form_response
+      text = "#{text} #{
+        link_to("View form",
+                user_form_response_path(commitment.user_form_response,
+                                        close_after: true),
+                target: :_blank)
+      }"
+    end
     text.html_safe
   end
 
