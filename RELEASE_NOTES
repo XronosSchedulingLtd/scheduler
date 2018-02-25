@@ -1,3 +1,59 @@
+v0.28.7 2018-02-25
+
+An interim release with a few requested enhancements.
+
+* Re-locate lessons to rooms which appear busy
+
+  It is sometimes necessary for an administrator to effect a lesson
+  re-location even though the target room seems to be occupied already.
+  E.g. in order to do a round-robin of swaps, or to merge two lessons.
+
+  As of this release, anyone with the "relocate lessons" permission bit
+  set will get two lists of rooms in the pop-down menu - first the free
+  rooms, then the non-free rooms, clearly highlighted as such.
+
+  Ordinary users re-locating their own lessons will continue to be offered
+  only rooms recorded as being free.
+
+* More colours for the concerns down the LHS.
+
+  Each time a user adds a new concern in the column down the left
+  hand side of the screen, it is allocated a colour.  Users can change
+  the colour but they usually don't.
+
+  The program had a limited list of available colours (14) and once all
+  those were in use it created all further concerns with a colour of grey.
+
+  This release adds more colours to the fixed lists, plus a random colour
+  generator so that all new concerns will now be allocated distinct colours.
+
+  Some users have a surprising number of concerns (49 in one case!) meaning
+  the column extends right off the bottom of their screens, and a large
+  number of them are grey.  These can be tidied with the following commands.
+
+  $ cd Work/Coding/scheduler
+  $ export RAILS_ENV=production
+  $ rake improve_colours:all_users
+
+  This task will go through all the user records, changing any grey concerns
+  to a distinct colour.
+
+  It might be worth checking that users know that they can delete concerns.
+
+* Resource administrators to view forms from event dialogue
+
+  A new link has been added to the "show event" pop-up window, allowing
+  administrators of resources to jump straight from there to the corresponding
+  form.
+
+  To preserve the user's state, the form will open in a new tab.  Clicking
+  the "Back" button in the form will close that tab and return the user
+  to the previous dialogue.
+
+  This is one of several possible ways of doing it.  Deploying it to see
+  how users react.
+
+
 v0.28.6 2017-12-26
 
 Still tidying up.
