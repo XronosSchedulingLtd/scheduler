@@ -46,6 +46,10 @@
   <button class='zfbutton tiny radius' id='save-button'>Save</button>
 <% end %>
 <% if @cancel_button %>
-  <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius' %>
+  <% if @close_after %>
+    <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius', onclick: "window.close();" %>
+  <% else %>
+    <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius' %>
+  <% end %>
 <% end %>
 

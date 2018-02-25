@@ -55,6 +55,9 @@ if ($('#fullcalendar').length) {
         if (this.model.get("selected")) {
           result["selected"] = "selected";
         }
+        if (!this.model.get("available")) {
+          result["class"] = "location-unavailable";
+        }
         return result;
       },
       render: function() {
@@ -68,17 +71,24 @@ if ($('#fullcalendar').length) {
       attributes: function() {
         var result = {}
         result["label"] = this.model.get("name");
+        if (!this.model.get("available")) {
+          result["class"] = "location-unavailable";
+        }
         return result;
       },
       render: function() {
         this.$el.empty();
+        var available = this.model.get("available");
         if (this.model.rooms.length > 0) {
           this.model.rooms.each(function(model) {
+            model.set({available: available});
             var roomView = new RoomView({ model: model });
             this.$el.append(roomView.render().$el);
           }, this);
         } else {
-          this.$el.append('<option value="disabled" disabled>None available</option');
+          if (available) {
+            this.$el.append('<option value="disabled" disabled>None available</option');
+          }
         }
         return this;
       }

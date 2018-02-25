@@ -17,16 +17,21 @@ class CoverRoomFinder
   end
 
   class CandidateRoomGroup
-    attr_reader :name, :rooms
+    attr_reader :name, :rooms, :available
 
-    def initialize(name)
-      @name = name
-      @rooms = Array.new
+    def initialize(name, available = true)
+      @name      = name
+      @rooms     = Array.new
+      @available = available
     end
 
     def add(location, covering = false)
       @rooms <<
         CandidateRoom.new(location.element_name, location.element.id, covering)
+    end
+
+    def empty?
+      @rooms.empty?
     end
   end
 
@@ -57,7 +62,7 @@ class CoverRoomFinder
     end
   end
 
-  def find_rooms
+  def find_rooms(and_unavailable = false)
     if @ff
       @ff.do_find
       #
@@ -85,26 +90,64 @@ class CoverRoomFinder
       sub_groups =
         @group.members(@event.starts_at.to_date,
                        false).select {|e| e.instance_of?(Group)}
-      result = Array.new
+      availables = Array.new
+      unavailables = Array.new
       sub_groups.each do |sg|
-        crg = CandidateRoomGroup.new(sg.name)
+        available_ones   = CandidateRoomGroup.new(sg.name)
+        unavailable_ones = CandidateRoomGroup.new(sg.name, false)
         sg.members(@event.starts_at.to_date, false).
            select{|e| e.instance_of?(Location)}.each do |l|
           if free_room_ids.include?(l.id)
-            crg.add(l)
+            available_ones.add(l)
           elsif l.id == @cover_location_id
             #
             #  This is the location currently set as providing cover.
+            #  If it has just the one commitment then it's us and the
+            #  room counts as available.  If it has more then it is
+            #  technically unavailable.
             #
-            crg.add(l, true)
+            if count_commitments(l) > 1
+              unavailable_ones.add(l, true)
+            else
+              available_ones.add(l, true)
+            end
+          else
+            unavailable_ones.add(l)
           end
         end
-        result << crg
+        #
+        #  "Available" groups get displayed even if empty.
+        #
+        availables << available_ones
+        #
+        #  "Unavailable" ones do not.
+        #
+        unavailables << unavailable_ones unless unavailable_ones.empty?
       end
-      result
+      if and_unavailable && !unavailables.empty?
+        availables + [CandidateRoomGroup.new("---All below here are in use---", false)] + unavailables
+      else
+        availables
+      end
     else
       []
     end
   end
+
+  private
+
+  #
+  #  How many commitments does the indicated location have during our
+  #  target time period?
+  #
+  def count_commitments(location)
+    non_busy_categories = Eventcategory.non_busy_categories
+    location.element.commitments_during(
+      start_time:        @event.starts_at,
+      end_time:          @event.ends_at,
+      and_by_group:      false,
+      excluded_category: non_busy_categories).size
+  end
+
 end
 
