@@ -30,7 +30,15 @@ class User < ActiveRecord::Base
                     "#3CB371",      # MediumSeaGreen
                     "#2F4F4F",      # DarkSlateGray
                     "#556B2F",      # DarkOliveGreen
-                    "#FF6347"]      # Tomato
+                    "#FF6347",      # Tomato
+                    "#BF1A5B",      # Purpley purple
+                    "#126787",      # Slatey dark blue
+                    "#112146",      # Really dark blue
+                    "#013B05",      # Really dark green
+                    "#558068",      # Medium grey green
+                    "#B34608",      # Dark terracota
+                    "#5F1731"       # Dark magenta
+  ]
 
   FIELD_TITLE_TEXTS = {
     admin:  "Does this user have full control of the system?",
@@ -207,10 +215,24 @@ class User < ActiveRecord::Base
   end
 
   def free_colour
-    available = DECENT_COLOURS - self.concerns.collect {|i| i.colour}
+    #
+    #  I always specify colours in upper case, but it's possible that
+    #  the user has entered one through the front end in lower case.
+    #
+    in_use = self.concerns.collect {|i| i.colour.upcase}
+    available = DECENT_COLOURS - in_use
     if available.size > 0
       available[0]
     else
+      #
+      #  Try and generate one.  Take care not to try forever.
+      #
+      100.times do |n|
+        attempt = random_colour
+        if !in_use.include?(attempt)
+          return attempt
+        end
+      end
       "Gray"
     end
   end
@@ -1026,10 +1048,44 @@ class User < ActiveRecord::Base
     nil
   end
 
+  def improve_colours
+    changed_count = 0
+    self.concerns.each do |c|
+      if c.colour == "Gray"
+        c.colour = free_colour
+        c.save
+        changed_count += 1
+      end
+    end
+    if changed_count > 0
+      return "Modified #{changed_count} colours for #{self.name}."
+    else
+      return nil
+    end
+  end
+
   protected
 
   def being_destroyed
     @being_destroyed = true
+  end
+
+  #
+  #  Generate a random colour, reasonably dark.
+  #
+  def random_colour
+    loop do
+      red_bit = rand(256)
+      green_bit = rand(256)
+      blue_bit = rand(256)
+      #
+      #  Keep it reasonably dark.  Note that even our randomly generated
+      #  colours are upper case.
+      #
+      if (red_bit + green_bit + blue_bit < 512)
+        return sprintf("#%02X%02X%02X", red_bit, green_bit, blue_bit)
+      end
+    end
   end
 
 end
