@@ -18,7 +18,8 @@ class UserFormResponsesController < ApplicationController
   # GET /user_form_responses/1
   # GET /user_form_responses/1.json
   def show
-    Rails.logger.debug("request.referer = #{request.referer}")
+#    Rails.logger.debug("request.referer = #{request.referer}")
+#    raise params.inspect
     parent = @user_form_response.parent
     if parent
       if parent.instance_of?(Commitment)
@@ -34,7 +35,12 @@ class UserFormResponsesController < ApplicationController
     @read_only = true
     @save_button = false
     @cancel_button = true
-    @cancel_url = request.referer || root_path
+    if params[:close_after]
+      @cancel_url = "#"
+      @close_after = true
+    else
+      @cancel_url = request.referer || root_path
+    end
     @cancel_text = "Back"
   end
 
