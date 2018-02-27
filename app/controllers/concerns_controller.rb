@@ -1,3 +1,8 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2018 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+
 class ConcernsController < ApplicationController
   include DisplaySettings
 
@@ -354,8 +359,8 @@ class ConcernsController < ApplicationController
     #
     #  And now some more which only an administrator can change.
     #  This incidentally is where an admin gets access to the "owns" flag.
-    #  Note the slightly confusing names of the underlying flags.
-    #  The "controls" flag, gives the owner additional control - the
+    #  Note the now slightly less confusing names of the underlying flags.
+    #  The "edit_any" flag, gives the owner additional control - the
     #  means to edit any event involving the resource.
     #
     #  Note that the @reduced flag is set only if the user is an admin,
@@ -371,9 +376,13 @@ class ConcernsController < ApplicationController
          prompt: "Controls",
          annotation: "Does this user control this element and approve requests for its use?"}
       options_flags <<
-        {field: :controls,
+        {field: :edit_any,
          prompt: "Edit any",
          annotation: "Should this user be able to edit any event which uses this resource?"}
+      options_flags <<
+        {field: :subedit_any,
+         prompt: "Sub-edit any",
+         annotation: "Should this user be able to sub-edit any event which uses this resource?"}
       options_flags <<
         {field: :skip_permissions,
          annotation: "Should this user be able to skip the permissions process when adding this resource to an event?"}
@@ -446,7 +455,8 @@ class ConcernsController < ApplicationController
                     :owns,
                     :seek_permission,
                     :equality,
-                    :controls,
+                    :edit_any,
+                    :subedit_any,
                     :skip_permissions,
                     :list_teachers)
     else

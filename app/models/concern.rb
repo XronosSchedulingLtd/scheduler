@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2015 John Winters
+# Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -18,8 +18,13 @@ class Concern < ActiveRecord::Base
   scope :not_owned, -> {where.not(owns: true)}
   scope :skip_permissions, -> {where(skip_permissions: true)}
   scope :seek_permission, -> {where(seek_permission: true)}
-  scope :controlling, -> {where(controls: true)}
-  scope :not_controlling, -> {where.not(controls: true)}
+  scope :edit_any, -> {where(edit_any: true)}
+  scope :subedit_any, -> {where(subedit_any: true)}
+  #
+  #  If we were on Rails 5 then we could combine the above two with an OR
+  #  but for now we need to do it manually.
+  #
+  scope :either_edit_flag, -> {where("edit_any = ? OR subedit_any = ?", true, true)}
   #
   #  ActiveRecord scopes are not good at OR conditions, so resort to SQL.
   #
@@ -99,7 +104,7 @@ class Concern < ActiveRecord::Base
   #  Can the relevant user delete this concern?
   #
   def user_can_delete?
-    !(self.equality || self.owns || self.controls || self.skip_permissions)
+    !(self.equality? || self.owns? || self.edit_any? || self.skip_permissions?)
   end
 
   #
@@ -116,119 +121,6 @@ class Concern < ActiveRecord::Base
     end
     @permissions_pending
   end
-
-  #
-  #  A maintenance method to clear up some unwanted ownership bits.
-  #
-  def self.tidy_ownerships
-    messages = Array.new
-    Concern.all.each do |concern|
-      if concern.owns
-        if concern.element.entity_type == "Staff" ||
-           concern.element.entity_type == "Pupil"
-          messages << "Removing ownership of #{concern.element.name} by #{concern.user.name}."
-          concern.owns = false
-          concern.save
-        end
-      end
-    end
-    #
-    # Need to take the calendar away from Nick
-    #
-    u = User.find_by(name: "Nick Lloyd")
-    e = Element.find_by(name: "Calendar")
-    if u && e
-      c = Concern.where(user_id: u.id).where(element_id: e.id).take
-      if c
-        if c.owns || c.controls
-          c.owns = false
-          c.controls = false
-          c.save
-          messages << "Removed Nick's control of the Calendar."
-        else
-          messages << "Already removed Nick's connection to the Calendar."
-        end
-      else
-        messages << "Couldn't find concern connecting Nick to the Calendar."
-      end
-    else
-      messages << "Couldn't find Nick Lloyd and/or Calendar."
-    end
-    Concern.owned.each do |concern|
-      #
-      #  Do a dummy save to cause the element and user to be updated
-      #  as being owned/owners.
-      #
-      concern.save
-    end
-    Concern.owned.controlling.each do |concern|
-      messages << "#{concern.user.name} owns and controls #{concern.element.name}."
-    end
-    Concern.owned.not_controlling.each do |concern|
-      messages << "#{concern.user.name} owns #{concern.element.name}."
-    end
-    Concern.not_owned.controlling.each do |concern|
-      messages << "#{concern.user.name} controls #{concern.element.name}."
-    end
-    messages.each do |message|
-      puts message
-    end
-    nil
-  end
-
-  #
-  #  Copy all the existing interest and ownership records as new
-  #  concern records.
-  #
-#  def self.initial_creation
-#    ownerships_copied = 0
-#    ownerships_not_copied = 0
-#    Ownership.all.each do |o|
-#      existing = Concern.find_by(user_id: o.user_id, element_id: o.element_id)
-#      if existing
-#        puts "Not copying Ownership of #{o.user.name} in #{o.element.name}"
-#        if o.equality && !existing.equality
-#          existing.equality = true
-#          existing.save!
-#        end
-#        ownerships_not_copied += 1
-#      else
-#        puts "Copying Ownership of #{o.user.name} in #{o.element.name}"
-#        c = Concern.new
-#        c.user     = o.user
-#        c.element  = o.element
-#        c.equality = o.equality
-#        c.owns     = true
-#        c.colour   = o.colour
-#        c.visible  = true
-#        c.save!
-#        ownerships_copied += 1
-#      end
-#    end
-#    interests_copied = 0
-#    interests_not_copied = 0
-#    Interest.all.each do |i|
-#      existing = Concern.find_by(user_id: i.user_id, element_id: i.element_id)
-#      if existing
-#        puts "Not copying Interest of #{i.user.name} in #{i.element.name}"
-#        interests_not_copied += 1
-#      else
-#        puts "Copying Interest of #{i.user.name} in #{i.element.name}"
-#        c = Concern.new
-#        c.user     = i.user
-#        c.element  = i.element
-#        c.equality = false
-#        c.owns     = false
-#        c.colour   = i.colour
-#        c.visible  = i.visible
-#        c.save!
-#        interests_copied += 1
-#      end
-#    end
-#    puts "Copied #{interests_copied} interests and #{ownerships_copied} ownerships."
-#    puts "Didn't copy #{interests_not_copied} interests and #{ownerships_not_copied} ownerships."
-#    nil
-#  end
 
   protected
 

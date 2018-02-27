@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -270,18 +270,33 @@ class User < ActiveRecord::Base
   end
 
   #
-  #  What elements do we control?  This information is cached because
-  #  we may need it many times during the course of rendering one page.
+  #  What elements give us additional edit permissions?  This can
+  #  be either full edit or sub-edit permission, but we cache them
+  #  both at the same time because if we're being asked about one
+  #  then we will almost certainly be asked about the other.
   #
-  #  "Control" here means we can edit all events which involve this
-  #  element.
+  #  If both bits are set for an element, then put it in the more
+  #  privileged set.
   #
-  def controlled_elements
-    unless @controlled_elements
-      @controlled_elements =
-        self.concerns.includes(:element).controlling.collect {|c| c.element}
+  def ensure_elements_cache
+    unless @elements_giving_edit && @elements_giving_subedit
+      with_edit, with_subedit = self.concerns.
+                                     includes(:element).
+                                     either_edit_flag.
+                                     partition {|c| c.edit_any}
+      @elements_giving_edit = with_edit.collect {|c| c.element}
+      @elements_giving_subedit = with_subedit.collect {|c| c.element}
     end
-    @controlled_elements
+  end
+
+  def elements_giving_edit
+    ensure_elements_cache
+    @elements_giving_edit
+  end
+
+  def elements_giving_subedit
+    ensure_elements_cache
+    @elements_giving_subedit
   end
 
   #
@@ -307,7 +322,7 @@ class User < ActiveRecord::Base
       self.edit_all_events? ||
       item.id == nil ||
       (self.create_events? && item.owner_id == self.id) ||
-      (self.create_events? && item.involves_any?(self.controlled_elements, true))
+      (self.create_events? && item.involves_any?(self.elements_giving_edit, true))
     elsif item.instance_of?(Group)
       self.admin ||
       (self.create_groups? &&
@@ -334,7 +349,9 @@ class User < ActiveRecord::Base
     if item.instance_of?(Event)
       self.can_edit?(item) ||
         self.subedit_all_events? ||
-        self.organiser_of?(item)
+        self.organiser_of?(item) ||
+        (self.create_events? &&
+         item.involves_any?(self.elements_giving_subedit, true))
     else
       false
     end
@@ -424,13 +441,17 @@ class User < ActiveRecord::Base
   #  And specifically for events, can the user re-time the event?
   #  Sometimes users can edit, but not re-time.
   #
+  #  Note that can_retime? is relatively expensive and used to
+  #  enable/disable the dialogue box fields.  can_drag_timing? is
+  #  cheaper, but will sometimes disallow it when can_retime? will
+  #  allow it.  This is intentional.
+  #
   def can_retime?(event)
     if event.id == nil
       can_retime = true
     elsif self.admin || self.edit_all_events? ||
-       (self.element_owner &&
-        self.create_events? &&
-        event.involves_any?(self.controlled_elements, true))
+       (self.create_events? &&
+        event.involves_any?(self.elements_giving_edit, true))
       can_retime = true
     elsif self.create_events? && event.owner_id == self.id
       can_retime = !event.constrained
@@ -438,6 +459,17 @@ class User < ActiveRecord::Base
       can_retime = false
     end
     can_retime
+  end
+
+  def can_drag_timing?(event)
+    if self.admin || self.edit_all_events?
+      can_drag_timing = true
+    elsif self.create_events? && event.owner_id == self.id
+      can_drag_timing = !event.constrained
+    else
+      can_drag_timing = false
+    end
+    can_drag_timing
   end
 
   #
@@ -778,48 +810,6 @@ class User < ActiveRecord::Base
   end
 
   #
-  #  Maintenance method.  Set up a new concern record giving this user
-  #  control of the indicated element.
-  #
-  def to_control(element_or_name, auto_add = false)
-    if element_or_name.instance_of?(Element)
-      element = element_or_name
-    else
-      element = Element.find_by(name: element_or_name)
-    end
-    if element
-      concern = self.concern_with(element)
-      if concern
-        if concern.owns &&
-           concern.controls &&
-           concern.auto_add == auto_add
-          "User #{self.name} already controlling #{element.name}."
-        else
-          concern.owns     = true
-          concern.controls = true
-          concern.auto_add = auto_add
-          concern.save!
-          "User #{self.name} promoted to controlling #{element.name}."
-        end
-      else
-        concern = Concern.new
-        concern.user    = self
-        concern.element = element
-        concern.equality = false
-        concern.owns     = true
-        concern.visible  = true
-        concern.colour   = element.preferred_colour || self.free_colour
-        concern.auto_add = auto_add
-        concern.controls = true
-        concern.save!
-        "User #{self.name} now controlling #{element.name}."
-      end
-    else
-      "Can't find element #{element_or_name} for #{self.name} to control."
-    end
-  end
-
-  #
   #  Similar, but only a general interest.
   #
   def to_view(element_or_name, visible = false)
@@ -851,7 +841,7 @@ class User < ActiveRecord::Base
         concern.visible  = visible
         concern.colour   = element.preferred_colour || self.free_colour
         concern.auto_add = false
-        concern.controls = false
+        concern.edit_any = false
         concern.save!
         "User #{self.name} now viewing #{element.name}."
       end
