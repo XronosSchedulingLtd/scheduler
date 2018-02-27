@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -101,20 +101,33 @@ class UsersController < ApplicationController
   end
 
   # GET /users/1/edit
+  #
+  #   Three ways this can be accessed.
+  #
+  #   1. As a modal.  Regardless of whether or not you are an admin
+  #      you get only minimal fields.
+  #   2. As a full page.  You are meant to be an admin (in which
+  #      case you get to set permission bits, and manipulate
+  #      concerns), but if you are not an admin then...
+  #   3. An ordinary user can access it as a full page, but only
+  #      for his or her own user record.  The fields are the same
+  #      as if it was a modal.
+  #
   def edit
     if current_user.known? &&
-       (current_user.admin || current_user.id == @user.id)
+       (current_user.admin? || current_user.id == @user.id)
       tt = DayShapeManager.template_type
       if tt
         @day_shapes = tt.rota_templates
       end
       if request.xhr?
-        @minimal = true
-        render :layout => false
+        @modal = true
+        @full_details = false
       else
-        @minimal = false
-        render
+        @modal = false
+        @full_details = current_user.admin?
       end
+      render layout: !@modal
     else
       render :forbidden
     end

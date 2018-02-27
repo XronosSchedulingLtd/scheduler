@@ -1,0 +1,20 @@
+<div class="row collapse">
+  <div class="small-12 columns">
+    <table class="zftable">
+      <tr>
+        <th>Concerns</th>
+        <th></th>
+        <% Concern::FLAGS.each do |flag| %>
+          <th class="rotated">
+            <div title="<%= Concern::EXPLANATIONS[flag] %>">
+              <span><%= Concern::TITLES[flag] %></span>
+            </div>
+          </th>
+        <% end %>
+        <th></th>
+        <th></th>
+      </tr>
+      <%= render partial: "concern", collection: @user.concerns.sort %>
+    </table>
+  </div>
+</div>

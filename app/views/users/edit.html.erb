@@ -1,4 +1,4 @@
-<% if @minimal %>
+<% if @modal %>
 <a class="close-reveal-modal">&#215;</a>
 <% end %>
 <h1>Editing user<%=
@@ -8,27 +8,22 @@
     ""
   end %></h1>
 
-<%= render 'form' %>
-
-<% if !@minimal %>
-<% if current_user.admin? %>
-  <div class="row collapse">
-    <div class="small-12 columns">
-      <hr/>
-      <table class="zftable">
-        <tr>
-          <th>Concerns</th>
-          <th></th>
-          <th>Equality</th>
-          <th>Controller</th>
-          <th>Edit all</th>
-          <th></th>
-        </tr>
-        <%= render partial: "concern", collection: @user.concerns.sort %>
-      </table>
-    </div>
-  </div>
-
+<% if @full_details %>
+  <ul class="tabs" data-tab>
+    <li class="tab-title active"><a href="#user-general">General</a></li>
+    <li class="tab-title"><a href="#user-concerns">Concerns</a></li>
+  </ul>
+  
+  <div class="tabs-content">
+    <div class="content active" id="user-general">
 <% end %>
 
+<%= render 'general' %>
+
+<% if @full_details %>
+    </div>
+    <div class="content" id="user-concerns">
+      <%= render 'concerns' %>
+    </div>
+  </div>
 <% end %>

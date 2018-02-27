@@ -1,8 +1,9 @@
 <tr>
   <td><%= concern.element.name %></td>
   <td style="width: 50px; color: white; border-radius: 5px; background-color: <%= concern.colour %>"><%= concern.colour %></td>
-  <td><%= concern.equality %></td>
-  <td><%= concern.owns %></td>
-  <td><%= concern.edit_any %></td>
+  <% Concern::FLAGS.each do |flag| %>
+    <td><%= boolean_image_tag(concern.send(flag)) %></td>
+  <% end %>
   <td><%= link_to "Edit", edit_concern_path(concern, {reduced: true}) %></td>
+  <td>Delete</td>
 </tr>

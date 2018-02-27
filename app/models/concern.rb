@@ -4,6 +4,40 @@
 # for more information.
 
 class Concern < ActiveRecord::Base
+
+  FLAGS = [
+    :equality,
+    :owns,
+    :visible,
+    :auto_add,
+    :edit_any,
+    :subedit_any,
+    :skip_permissions,
+    :seek_permission,
+    :list_teachers
+  ]
+  TITLES = {
+    equality:         "Equality",
+    owns:             "Controller",
+    visible:          "Currently visible",
+    auto_add:         "Auto add",
+    edit_any:         "Edit any",
+    subedit_any:      "Sub-edit any",
+    skip_permissions: "Skip permissions",
+    seek_permission:  "Seek permission",
+    list_teachers:    "List teachers"
+  }
+  EXPLANATIONS = {
+    equality:         "Is this user identical with the resource?",
+    owns:             "Does this user approve use of the resource?",
+    visible:          "Are events for this resource currently visible?",
+    auto_add:         "Should this resource be auto-added to new events?",
+    edit_any:         "Can this user edit any event involving this resource?",
+    subedit_any:      "Can this user sub-edit any event involving this resource?",
+    skip_permissions: "Can this user skip the permissions process for this resource?",
+    seek_permission:  "Set to put requests through the permissions process regardless.",
+    list_teachers:    "When viewing events for this resource, should teachers be listed?"
+  }
   belongs_to :user
   belongs_to :element
   has_one    :itemreport, :dependent => :destroy
