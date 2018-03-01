@@ -47,9 +47,9 @@
 <% end %>
 <% if @cancel_button %>
   <% if @close_after %>
-    <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius', onclick: "window.close();" %>
+    <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius button-link', onclick: "window.close();" %>
   <% else %>
-    <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius' %>
+    <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius button-link' %>
   <% end %>
 <% end %>
 
