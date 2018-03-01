@@ -10,20 +10,37 @@
 
 <% if @full_details %>
   <ul class="tabs" data-tab>
-    <li class="tab-title active"><a href="#user-general">General</a></li>
-    <li class="tab-title"><a href="#user-concerns">Concerns</a></li>
+    <li class="tab-title<%= @activator.test("user-general") %>"><a href="#user-general">General</a></li>
+    <li class="tab-title<%= @activator.test("user-concerns") %>"><a href="#user-concerns">Concerns</a></li>
   </ul>
   
   <div class="tabs-content">
-    <div class="content active" id="user-general">
+    <div class="content<%= @activator.test("user-general") %>" id="user-general">
 <% end %>
 
 <%= render 'general' %>
 
 <% if @full_details %>
     </div>
-    <div class="content" id="user-concerns">
-      <%= render 'concerns' %>
+    <div class="content<%= @activator.test("user-concerns") %>" id="user-concerns">
+      <div id="user-concerns-list">
+        <%= render 'concerns' %>
+      </div>
+      <div class="row collapse">
+        <div class="small-12 columns">
+          <%= form_for([@user, @concern], remote: true) do |f| %>
+            <%= f.autocomplete_field :name,
+                                     autocomplete_element_name_elements_path,
+                                     :id_element => '#concern_element_id',
+                                     :placeholder => "Add concern",
+                                     "data-auto-focus" => true %>
+            <%= f.text_field :element_id, type: :hidden %>
+          <% end %>
+        </div>
+      </div>
+      <%=  link_to "Back to list",
+          users_path({user_id: @user.id}),
+          class: "zfbutton tiny radius" %>
     </div>
   </div>
 <% end %>

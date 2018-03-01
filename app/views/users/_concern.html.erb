@@ -4,6 +4,20 @@
   <% Concern::FLAGS.each do |flag| %>
     <td><%= boolean_image_tag(concern.send(flag)) %></td>
   <% end %>
-  <td><%= link_to "Edit", edit_concern_path(concern, {reduced: true}) %></td>
-  <td>Delete</td>
+  <td><%=
+  link_to "Edit",
+    edit_user_concern_path(@user, concern, {reduced: true})
+    %></td>
+  <td><%=
+    html_options = {
+      method: :delete,
+      remote: true
+    }
+    unless concern.user_can_delete?
+      html_options[:data] = {
+        confirm: "This concern confers privileges - delete anyway?"
+      }
+    end
+    link_to "Delete", user_concern_path(@user, concern), html_options
+      %></td>
 </tr>

@@ -219,7 +219,7 @@ class User < ActiveRecord::Base
     #  I always specify colours in upper case, but it's possible that
     #  the user has entered one through the front end in lower case.
     #
-    in_use = self.concerns.collect {|i| i.colour.upcase}
+    in_use = self.concerns.collect {|i| i.colour ? i.colour.upcase : "dummy"}
     available = DECENT_COLOURS - in_use
     if available.size > 0
       available[0]
@@ -398,7 +398,15 @@ class User < ActiveRecord::Base
       #  If you can't add concerns, then you can't delete them either.
       #  You get what you're given.
       #
-      item.user_id == self.id && self.can_add_concerns && item.user_can_delete?
+      #  Admins can do what they like to other people's concerns.
+      #  (As a possible slight oddity, when dealing with his own concerns
+      #  the admin is as constrained as a non-admin.  This is intentional.)
+      #
+      if item.user_id == self.id
+        self.can_add_concerns && item.user_can_delete?
+      else
+        self.admin?
+      end
     elsif item.instance_of?(Note)
       #
       #  You can delete the ones you own, provided they're attached

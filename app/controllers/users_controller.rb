@@ -4,6 +4,24 @@
 # for more information.
 
 class UsersController < ApplicationController
+
+  #
+  #  A class whose sole job is to produce either "" or " active".
+  #
+  class Activator
+
+    #
+    #  "seek" should be a regex
+    #
+    def initialize(seek)
+      @seek = seek
+    end
+
+    def test(string)
+      @seek =~ string ? " active " : ""
+    end
+  end
+
   before_action :set_user, only: [:show, :edit, :update, :destroy]
 
   #
@@ -126,6 +144,12 @@ class UsersController < ApplicationController
       else
         @modal = false
         @full_details = current_user.admin?
+        if params[:edited_concern]
+          @activator = Activator.new(/concerns/)
+        else
+          @activator = Activator.new(/general/)
+        end
+        @concern = Concern.new
       end
       render layout: !@modal
     else

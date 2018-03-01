@@ -6,9 +6,9 @@
 class Concern < ActiveRecord::Base
 
   FLAGS = [
+    :visible,
     :equality,
     :owns,
-    :visible,
     :auto_add,
     :edit_any,
     :subedit_any,
@@ -17,9 +17,9 @@ class Concern < ActiveRecord::Base
     :list_teachers
   ]
   TITLES = {
+    visible:          "Currently visible",
     equality:         "Equality",
     owns:             "Controller",
-    visible:          "Currently visible",
     auto_add:         "Auto add",
     edit_any:         "Edit any",
     subedit_any:      "Sub-edit any",
@@ -28,9 +28,9 @@ class Concern < ActiveRecord::Base
     list_teachers:    "List teachers"
   }
   EXPLANATIONS = {
+    visible:          "Are events for this resource currently visible?",
     equality:         "Is this user identical with the resource?",
     owns:             "Does this user approve use of the resource?",
-    visible:          "Are events for this resource currently visible?",
     auto_add:         "Should this resource be auto-added to new events?",
     edit_any:         "Can this user edit any event involving this resource?",
     subedit_any:      "Can this user sub-edit any event involving this resource?",
@@ -135,10 +135,14 @@ class Concern < ActiveRecord::Base
   end
 
   #
-  #  Can the relevant user delete this concern?
+  #  Can the relevant user (as opposed to an admin) delete this concern?
   #
   def user_can_delete?
-    !(self.equality? || self.owns? || self.edit_any? || self.skip_permissions?)
+    !(self.equality? ||
+      self.owns? ||
+      self.edit_any? ||
+      self.subedit_any? ||
+      self.skip_permissions?)
   end
 
   #

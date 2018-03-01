@@ -88,7 +88,7 @@ var tscbHandler = function() {
         this.direction = 1;
       }
       this.value = parseInt(this.field.val());
-      console.log("this.value = " + this.value);
+//      console.log("this.value = " + this.value);
       //
       //  Check it's valid.
       //
