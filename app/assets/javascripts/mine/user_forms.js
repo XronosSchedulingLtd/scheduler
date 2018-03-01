@@ -17,11 +17,11 @@ var user_form_edit = function() {
     //
     //  Shove the generated JSON into our field.
     //
-    console.log("Saving");
-    console.log("getData yields:");
-    console.log(that.form_builder.actions.getData('json'));
-    console.log("formData yields:");
-    console.log(that.form_builder.formData);
+//    console.log("Saving");
+//    console.log("getData yields:");
+//    console.log(that.form_builder.actions.getData('json'));
+//    console.log("formData yields:");
+//    console.log(that.form_builder.formData);
     that.definition_field.val(that.form_builder.actions.getData('json'));
     //
     //  And submit our form.

@@ -95,7 +95,7 @@ var tscbHandler = function() {
       if (isNaN(this.value) ||
           this.value < 0 ||
           this.value >= this.numImages) {
-        console.log("Setting to 0");
+//        console.log("Setting to 0");
         this.value = 0;
       }
       this.attributes.imagename = '/images/' + this.images[this.value];
