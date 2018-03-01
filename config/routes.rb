@@ -125,6 +125,13 @@ Rails.application.routes.draw do
     get :pp, :on => :collection
     resources :filters, only: [:edit, :update]
     resources :events, only: [:index]
+    #
+    #  One would not normally make :destroy and :edit for concerns
+    #  subsidiary to users, but we do it to distinguish such
+    #  requests from those for the current user.  It's a completely
+    #  different area of dialogues.
+    #
+    resources :concerns, only: [:create, :destroy, :edit]
   end
 
   resources :commitments do

@@ -62,7 +62,7 @@ class CommitmentsController < ApplicationController
       page_no = params[:page]
       unless page_no
         previous_commitment_count = selector.until(Time.zone.now.midnight).count
-        Rails.logger.debug("Previous commitment count = #{previous_commitment_count}")
+#        Rails.logger.debug("Previous commitment count = #{previous_commitment_count}")
         page_no = (previous_commitment_count / Commitment.per_page) + 1
       end
       @commitments =

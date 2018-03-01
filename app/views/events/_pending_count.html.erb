@@ -1,7 +1,7 @@
 <div class="forms-to-fill">
 <a href="<%=
   user_events_path(current_user, pending: true)
-  %>" class="zfbutton tiny radius flip-button">Do form<%= @form_count == 1 ? "" : "s" %></a>
+  %>" class="zfbutton tiny radius flip-button button-link">Do form<%= @form_count == 1 ? "" : "s" %></a>
 <p>There <%= @form_count == 1 ? "is" : "are" %> currently
 <%= pluralize(@form_count, "form") %> which you will
 need to fill in order to get your event approved.<br/>

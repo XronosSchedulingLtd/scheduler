@@ -88,14 +88,14 @@ var tscbHandler = function() {
         this.direction = 1;
       }
       this.value = parseInt(this.field.val());
-      console.log("this.value = " + this.value);
+//      console.log("this.value = " + this.value);
       //
       //  Check it's valid.
       //
       if (isNaN(this.value) ||
           this.value < 0 ||
           this.value >= this.numImages) {
-        console.log("Setting to 0");
+//        console.log("Setting to 0");
         this.value = 0;
       }
       this.attributes.imagename = '/images/' + this.images[this.value];

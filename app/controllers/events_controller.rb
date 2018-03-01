@@ -108,7 +108,7 @@ class EventsController < ApplicationController
       page_no = params[:page]
       unless page_no
         previous_event_count = selector.until(Time.zone.now.midnight).count
-        Rails.logger.debug("Previous event count = #{previous_event_count}")
+#        Rails.logger.debug("Previous event count = #{previous_event_count}")
         page_no = (previous_event_count / Event.per_page) + 1
       end
       @events = selector.includes(commitments: :user_form_response).page(page_no).order('starts_at')

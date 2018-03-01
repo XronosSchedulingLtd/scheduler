@@ -1,3 +1,49 @@
+v0.28.8 2018-03-01
+
+* Greatly improve concern editing by system admin.
+
+  The process for the system administrator to edit users' concerns
+  has always been a bit basic.  This release adds proper facilities
+  for that.  A system admin can now add, edit and remove concerns
+  for users all in one place.
+ 
+* Better listing of concerns when viewing a user.
+
+  In the display of a user, the concerns listing moves to a separate
+  tab of its own to facilitate the above change.  The listing now includes
+  all the flags from each concern, not just a select few.
+
+* New privilege bit on concerns.
+
+  To reflect usage elsewhere in the system, a new "subedit_any"
+  privilege flag has been added to the concern record, matching the
+  existing "edit_any" flag.  Users with this bit set on a corresponding
+  concern will be able to sub-edit any event involving the corresponding
+  resource.
+
+* Correction to ability to change times.
+
+  In a rather odd mis-feature, users with the edit_any flag set for a
+  resource could mostly edit the events, but they could change the times
+  only if the user was also the owner of a resource (any resource -
+  not just the target one).  Just plain wrong - the test has been
+  corrected.
+
+* Tidy up appearance of cancel buttons.
+
+  Often a screen will have a "Save" button and a "Cancel" button, and
+  behind the scenes the "Cancel" button is really just a link taking
+  you back to the page which you were on before.  These looked nearly
+  the same, but not quite - the text of the button went white only
+  when you hovered over it, whilst the "Save" button had white text
+  all the time.  Fixed.
+
+* Spurious debug messages remove.
+
+  Quite a few debug messages - at both the client and server end - have
+  been removed.
+
+
 v0.28.7 2018-02-25
 
 An interim release with a few requested enhancements.

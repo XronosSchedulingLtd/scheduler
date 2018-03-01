@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2017 John Winters
+# Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -231,7 +231,7 @@ class EventAssembler
       #  This corresponds to our idea of being retimeable.
       #
       @editable = current_user ?
-                  current_user.can_retime?(event) && !@multi_day_timed :
+                  current_user.can_drag_timing?(event) && !@multi_day_timed :
                   false
       #
       #  We are slightly coy about displaying clash information.  Only
@@ -338,7 +338,6 @@ class EventAssembler
           events << BackgroundEvent.new(starts_at, ends_at)
         end
       end
-      Rails.logger.debug("Returning #{events.count} background events.")
       events
     end
 

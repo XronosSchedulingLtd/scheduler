@@ -778,30 +778,30 @@ class ImportsController < ApplicationController
               currentweekstart  = nil
               currentweekend    = nil
               weekletterentries.sort.each do |wle|
-                Rails.logger.debug "WL: Processing WEEK #{
-                                    wle.week_letter
-                                  } from #{
-                                    wle.starts_at.to_formatted_s(:dmy)
-                                  } to #{
-                                    wle.ends_at.to_formatted_s(:dmy)
-                                  }"
+#                Rails.logger.debug "WL: Processing WEEK #{
+#                                    wle.week_letter
+#                                  } from #{
+#                                    wle.starts_at.to_formatted_s(:dmy)
+#                                  } to #{
+#                                    wle.ends_at.to_formatted_s(:dmy)
+#                                  }"
                 if wle.week_letter == currentweekletter
-                  Rails.logger.debug("WL: Continuation")
+#                  Rails.logger.debug("WL: Continuation")
                   #
                   #  The week continues
                   #
                   currentweekend = wle.ends_at
                 else
-                  Rails.logger.debug("WL: Change of week letter")
+#                  Rails.logger.debug("WL: Change of week letter")
                   if currentweekletter
                     #
                     #  Need to flush this one to the d/b.
                     #
-                    Rails.logger.debug "WL: Trying to save #{
-                            currentweekstart.to_formatted_s(:dmy)
-                          } to #{
-                            currentweekend.to_formatted_s(:dmy)
-                          }"
+#                    Rails.logger.debug "WL: Trying to save #{
+#                            currentweekstart.to_formatted_s(:dmy)
+#                          } to #{
+#                            currentweekend.to_formatted_s(:dmy)
+#                          }"
                     unless add_event(currentweekstart,
                                      currentweekend,
                                      true,
@@ -820,7 +820,7 @@ class ImportsController < ApplicationController
                 #
                 #  Need to flush this final one to the d/b.
                 #
-                Rails.logger.debug("WL: Flushing final one")
+#                Rails.logger.debug("WL: Flushing final one")
                 unless add_event(currentweekstart,
                                  currentweekend,
                                  true,
