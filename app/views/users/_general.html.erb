@@ -159,7 +159,7 @@
       if @full_details
         link_to "Back to list",
           users_path({user_id: @user.id}),
-          class: "zfbutton tiny radius"
+          class: "zfbutton tiny radius button-link"
       else
         ""
       end
@@ -168,7 +168,7 @@
   <div class="small-4 columns">
     <% if current_user.can_su && !@modal && current_user.id != @user.id %>
       <div align="center">
-         <%= link_to 'su', become_path(@user), :method => :put, class: "tiny zfbutton radius" %>
+         <%= link_to 'su', become_path(@user), :method => :put, class: "tiny zfbutton radius button-link" %>
       </div>
     <% end %>
   </div>
