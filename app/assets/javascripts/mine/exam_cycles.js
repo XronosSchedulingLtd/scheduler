@@ -377,7 +377,7 @@ var examcycles = function() {
       this.listenTo(this.newPE, 'addRequested', this.processAdd);
     },
     render: function() {
-      console.log("Rendering collection.");
+//      console.log("Rendering collection.");
       var $list = this.$el.empty();
       $list.html(this.headerTemplate());
       this.collection.each(function(model) {

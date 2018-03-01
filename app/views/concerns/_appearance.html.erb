@@ -33,6 +33,7 @@
   <%= flag_group(f, 12, 6, "Options", @options_flags) %>
   <div class="small-12 medium-6 large-4 columns">
     <%= f.submit "Save changes", :class => "zfbutton tiny radius" %>
+    <a class='zfbutton tiny radius button-link' href='<%= session[:return_to] %>'>Cancel</a>
   </div>
 </div>
 <% end %>

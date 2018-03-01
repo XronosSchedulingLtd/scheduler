@@ -39,7 +39,7 @@ var rotatemplates = function() {
       return this;
     },
     editTitle: function() {
-      console.log("Editing");
+//      console.log("Editing");
       var titleBox = this.$('#title-box')
       titleBox.val(this.model.get('name'));
       this.$el.addClass('editing');
@@ -140,7 +140,7 @@ var rotatemplates = function() {
       'keypress #new-ends-at'   : 'mightSubmit'
     },
     render: function() {
-      console.log("Asked to render " + this.collection.length + " slots");
+//      console.log("Asked to render " + this.collection.length + " slots");
       var $list = this.$tbody.empty();
       this.collection.each(function(model) {
         var slotView = new RotaSlotView({model: model});
@@ -210,7 +210,7 @@ var rotatemplates = function() {
       }).on('error', this.creationError, this);
     },
     creationOK: function() {
-      console.log("Created successfully.");
+//      console.log("Created successfully.");
       this.saInput.val('');
       this.eaInput.val('');
     },

@@ -1,3 +1,8 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2018 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+
 class ConcernsController < ApplicationController
   include DisplaySettings
 
@@ -59,76 +64,111 @@ class ConcernsController < ApplicationController
 
   # POST /concerns
   # POST /concerns.json
+  #
+  #   This method can create concerns in two different circumstances.
+  #
+  #   1. The user adds it to his or her current display
+  #   2. An admin adds it to a user
+  #
+  # TODO  This method is currently horrible and needs re-factoring.
+  #
   def create
-    @reload_concerns = false
-    @concern = Concern.new(concern_params)
-    @concern.user = current_user
-    @concern.list_teachers = current_user.list_teachers
-    if @concern.element &&
-       @concern.element.preferred_colour
-      @concern.colour = @concern.element.preferred_colour
-    else
-      @concern.colour = current_user.free_colour
-    end
-
-    #
-    #  Does the user already have a concern for this element?
-    #  If so, then don't attempt to create a new one.  Just turn
-    #  this one on and reload.
-    #
-    #  If it's already on, then do nothing but prepare for more input.
-    #
-    existing_concern = Concern.find_by(user_id: @concern.user_id,
-                                       element_id: @concern.element_id)
-    if existing_concern
-      @concern = Concern.new
-      @element_id = nil
-      unless existing_concern.visible
-        existing_concern.visible = true
-        existing_concern.save
-        @reload_concerns = true
-      end
-      setvars_for_lhs(current_user)
-      respond_to do |format|
-        format.js
-      end
-    else
-      unless @concern.valid?
-        #
-        #  We work on the principle that if it isn't valid then the one
-        #  and only parameter which we processed (element_id) wasn't good.
-        #  This can happen if the user hits return without selecting an
-        #  entry from the list presented.
-        #
-        #  See if we can find a unique element using the contents of
-        #  the name field.
-        #
-        unless @concern.name.blank?
-          @elements = Element.current.where("name like ?", "%#{@concern.name}%")
-          if @elements.size == 1
-            @concern.element = @elements[0]
-          end
+    user_id = params[:user_id]
+    if user_id
+      #
+      #  A request to create a concern on behalf of a user, rather
+      #  than for the current user.  Requires admin privilege.
+      #
+      @user = User.find_by(id: user_id)
+      if admin_user? && @user
+        @concern = @user.concerns.new(concern_params)
+        @concern.list_teachers = @user.list_teachers
+        if @concern.element && @concern.element.preferred_colour
+          @concern.colour = @concern.element.preferred_colour
+        else
+          @concern.colour = @user.free_colour
         end
       end
-
+      #
+      #  If we fail to save it then it must be a duplicate
+      #  In either case, we're just going to render the list again.
+      #
+      @concern.save
+      @user.reload
       respond_to do |format|
-        if @concern.save
-          current_user.reload
-          #
-          #  Need a new concern record in order to render the user's
-          #  side panel again, but also need the new concern_id
-          #  so save that first.
-          #
-          @concern_id = @concern.id
-        else
-          #
-          #  Failure to save indicates it wasn't a valid thing to add.
-          #
-          @element_id = nil
+        format.js { render "create_for_user" }
+      end
+    else
+      @reload_concerns = false
+      @concern = Concern.new(concern_params)
+      @concern.user = current_user
+      @concern.list_teachers = current_user.list_teachers
+      if @concern.element &&
+         @concern.element.preferred_colour
+        @concern.colour = @concern.element.preferred_colour
+      else
+        @concern.colour = current_user.free_colour
+      end
+
+      #
+      #  Does the user already have a concern for this element?
+      #  If so, then don't attempt to create a new one.  Just turn
+      #  this one on and reload.
+      #
+      #  If it's already on, then do nothing but prepare for more input.
+      #
+      existing_concern = Concern.find_by(user_id: @concern.user_id,
+                                         element_id: @concern.element_id)
+      if existing_concern
+        @concern = Concern.new
+        @element_id = nil
+        unless existing_concern.visible
+          existing_concern.visible = true
+          existing_concern.save
+          @reload_concerns = true
         end
         setvars_for_lhs(current_user)
-        @concern = Concern.new
-        format.js
+        respond_to do |format|
+          format.js
+        end
+      else
+        unless @concern.valid?
+          #
+          #  We work on the principle that if it isn't valid then the one
+          #  and only parameter which we processed (element_id) wasn't good.
+          #  This can happen if the user hits return without selecting an
+          #  entry from the list presented.
+          #
+          #  See if we can find a unique element using the contents of
+          #  the name field.
+          #
+          unless @concern.name.blank?
+            @elements = Element.current.where("name like ?", "%#{@concern.name}%")
+            if @elements.size == 1
+              @concern.element = @elements[0]
+            end
+          end
+        end
+
+        respond_to do |format|
+          if @concern.save
+            current_user.reload
+            #
+            #  Need a new concern record in order to render the user's
+            #  side panel again, but also need the new concern_id
+            #  so save that first.
+            #
+            @concern_id = @concern.id
+          else
+            #
+            #  Failure to save indicates it wasn't a valid thing to add.
+            #
+            @element_id = nil
+          end
+          setvars_for_lhs(current_user)
+          @concern = Concern.new
+          format.js
+        end
       end
     end
   end
@@ -146,26 +186,54 @@ class ConcernsController < ApplicationController
     #  it to update itself.
     #
     @concern = Concern.find_by(id: params[:id])
-    if @concern && current_user.can_delete?(@concern)
-      @concern_id = @concern.id
-      @concern.destroy
+    user_id = params[:user_id]
+    if user_id
+      #
+      #  Only an admin is allowed to do this.
+      #
+      if admin_user? && @user = User.find_by(id: user_id)
+        if @concern.user_id == @user.id
+          @concern.destroy
+        end
+        @user.reload
+      end
+      respond_to do |format|
+        format.js { render 'destroy_for_user' }
+      end
     else
+      if @concern && current_user.can_delete?(@concern)
+        @concern_id = @concern.id
+        @concern.destroy
+      else
+        #
+        #  So that the front end can destroy its erroneous record.
+        #
+        @concern_id = params[:id]
+      end
+      @concern = Concern.new
       #
-      #  So that the front end can destroy its erroneous record.
+      #  We're now going to re-render the user's column, so need to
+      #  set up some parameters.
       #
-      @concern_id = params[:id]
+      setvars_for_lhs(current_user)
+      respond_to do |format|
+        format.js
+      end
     end
-    @concern = Concern.new
-    #
-    #  We're now going to re-render the user's column, so need to
-    #  set up some parameters.
-    #
-    setvars_for_lhs(current_user)
   end
 
   def edit
     if current_user.can_edit?(@concern)
-      session[:return_to] = request.referer
+      #
+      #  If we are editing in the context of a user, then we go back
+      #  to the user edit page, otherwise back to where we came from.
+      #
+      @user = User.find_by(id: params[:user_id])
+      if @user
+        session[:return_to] = edit_user_path(@user, edited_concern: true)
+      else
+        session[:return_to] = request.referer
+      end
       #
       #  If the user has generated a report for this concern's element
       #  before then we will have saved the options used on that occasion.
@@ -294,7 +362,6 @@ class ConcernsController < ApplicationController
         #  in the session.  N.B.  If the relevant value is not already there
         #  then it counts as true.
         #
-        Rails.logger.debug("Setting flag for #{id_param} to #{new_state}.")
         session[id_param] = new_state
       end
     end
@@ -354,8 +421,8 @@ class ConcernsController < ApplicationController
     #
     #  And now some more which only an administrator can change.
     #  This incidentally is where an admin gets access to the "owns" flag.
-    #  Note the slightly confusing names of the underlying flags.
-    #  The "controls" flag, gives the owner additional control - the
+    #  Note the now slightly less confusing names of the underlying flags.
+    #  The "edit_any" flag, gives the owner additional control - the
     #  means to edit any event involving the resource.
     #
     #  Note that the @reduced flag is set only if the user is an admin,
@@ -371,9 +438,13 @@ class ConcernsController < ApplicationController
          prompt: "Controls",
          annotation: "Does this user control this element and approve requests for its use?"}
       options_flags <<
-        {field: :controls,
+        {field: :edit_any,
          prompt: "Edit any",
          annotation: "Should this user be able to edit any event which uses this resource?"}
+      options_flags <<
+        {field: :subedit_any,
+         prompt: "Sub-edit any",
+         annotation: "Should this user be able to sub-edit any event which uses this resource?"}
       options_flags <<
         {field: :skip_permissions,
          annotation: "Should this user be able to skip the permissions process when adding this resource to an event?"}
@@ -446,7 +517,8 @@ class ConcernsController < ApplicationController
                     :owns,
                     :seek_permission,
                     :equality,
-                    :controls,
+                    :edit_any,
+                    :subedit_any,
                     :skip_permissions,
                     :list_teachers)
     else

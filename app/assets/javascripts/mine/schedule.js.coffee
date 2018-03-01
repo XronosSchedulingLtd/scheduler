@@ -442,6 +442,10 @@ window.updateUserColumn = (newContents, added, removed, doReload) ->
   activateUserColumn()
   $('#concern_name').focus()
 
+window.updateConcernListing = (newContents) ->
+  $('#user-concerns-list').html(newContents)
+  $('#concern_name').val('')
+
 window.replaceShownCommitments = (new_html) ->
   $('#show-all-commitments').html(new_html)
   $('.rejection-link').click(noClicked)
