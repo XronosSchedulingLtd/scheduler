@@ -1474,19 +1474,19 @@ class Event < ActiveRecord::Base
     #  events are displayed differently.
     #
     if @ends_at_text_value
-      Rails.logger.debug("@ends_at_text_value = #{@ends_at_text_value}")
+#      Rails.logger.debug("@ends_at_text_value = #{@ends_at_text_value}")
       #
       #  We have earlier adjusted our ends_at value on the basis that this
       #  is an all day event.  Undo that adjustment, because we now know
       #  it isn't.
       #
       self.ends_at = @ends_at_text_value
-      Rails.logger.debug("self.ends_at is now #{self.ends_at}")
+#      Rails.logger.debug("self.ends_at is now #{self.ends_at}")
       #
       #  Adjust this as if we were still un-timed.
       #
       if self.ends_at.midnight?
-        Rails.logger.debug("Adjusting")
+#        Rails.logger.debug("Adjusting")
         self.ends_at = self.ends_at + 1.day
       end
     end

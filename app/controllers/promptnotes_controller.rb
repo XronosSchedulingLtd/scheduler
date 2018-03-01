@@ -41,11 +41,11 @@ class PromptnotesController < ApplicationController
   end
 
   def destroy
-    Rails.logger.debug("Asked to delete promptnote")
+#    Rails.logger.debug("Asked to delete promptnote")
     @promptnote = Promptnote.find(params[:id])
     @element = @promptnote.element
     if current_user.can_edit?(@promptnote)
-      Rails.logger.debug("Doing the actual delete")
+#      Rails.logger.debug("Doing the actual delete")
       @promptnote.destroy
     end
     respond_to do |format|

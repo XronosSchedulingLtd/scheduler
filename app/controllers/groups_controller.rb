@@ -64,22 +64,22 @@ class GroupsController < ApplicationController
   # POST /groups.json
   def create
     @group = Vanillagroup.new(group_params)
-    Rails.logger.debug("Just newed")
-    Rails.logger.debug("new_record? #{@group.new_record?}, persisted? #{@group.persisted?}")
+#    Rails.logger.debug("Just newed")
+#    Rails.logger.debug("new_record? #{@group.new_record?}, persisted? #{@group.persisted?}")
     @group.starts_on ||= Date.today
     @group.owner = current_user
 
     respond_to do |format|
       if @group.save
-        Rails.logger.debug("Created group")
-        Rails.logger.debug("new_record? #{@group.new_record?}, persisted? #{@group.persisted?}")
+#        Rails.logger.debug("Created group")
+#        Rails.logger.debug("new_record? #{@group.new_record?}, persisted? #{@group.persisted?}")
         format.html { redirect_to edit_group_path(@group), notice: 'Group was successfully created.' }
         format.json { render :show, status: :created, location: @group }
       else
-        Rails.logger.debug("Failed to create group. id = #{@group.id}")
-        Rails.logger.debug("new_record? #{@group.new_record?}, persisted? #{@group.persisted?}")
+#        Rails.logger.debug("Failed to create group. id = #{@group.id}")
+#        Rails.logger.debug("new_record? #{@group.new_record?}, persisted? #{@group.persisted?}")
         @membership = @group.memberships.new
-        Rails.logger.debug("And failed membership.") unless @membership
+#        Rails.logger.debug("And failed membership.") unless @membership
         format.html { render :new }
         format.json { render json: @group.errors, status: :unprocessable_entity }
       end

@@ -338,7 +338,6 @@ class EventAssembler
           events << BackgroundEvent.new(starts_at, ends_at)
         end
       end
-      Rails.logger.debug("Returning #{events.count} background events.")
       events
     end
 
