@@ -188,12 +188,10 @@ class ConcernsController < ApplicationController
     @concern = Concern.find_by(id: params[:id])
     user_id = params[:user_id]
     if user_id
-      Rails.logger.debug("Got a user id.")
       #
       #  Only an admin is allowed to do this.
       #
       if admin_user? && @user = User.find_by(id: user_id)
-        Rails.logger.debug("And a user")
         if @concern.user_id == @user.id
           @concern.destroy
         end
@@ -364,7 +362,6 @@ class ConcernsController < ApplicationController
         #  in the session.  N.B.  If the relevant value is not already there
         #  then it counts as true.
         #
-        Rails.logger.debug("Setting flag for #{id_param} to #{new_state}.")
         session[id_param] = new_state
       end
     end
