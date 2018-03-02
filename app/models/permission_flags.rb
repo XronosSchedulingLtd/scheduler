@@ -16,7 +16,8 @@ class PermissionFlags < Hash
     :can_roam,
     :can_su,
     :exams,
-    :can_relocate_lessons
+    :can_relocate_lessons,
+    :can_view_forms
   ]
 
   NICER_TEXT = {
@@ -35,7 +36,8 @@ class PermissionFlags < Hash
     can_roam:             "Can roam",
     can_su:               "Can su",
     exams:                "Exams",
-    can_relocate_lessons: "Relocate lessons"
+    can_relocate_lessons: "Relocate lessons",
+    can_view_forms:       "Can view forms"
   }
   NICER_TEXT.default = "Pass"
 

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180226140932) do
+ActiveRecord::Schema.define(version: 20180301155732) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -662,6 +662,7 @@ ActiveRecord::Schema.define(version: 20180226140932) do
     t.integer  "user_profile_id",             limit: 4
     t.text     "permissions",                 limit: 65535
     t.boolean  "demo_user",                                 default: false
+    t.boolean  "can_view_forms",                            default: false
   end
 
 end

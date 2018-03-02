@@ -59,7 +59,8 @@ class User < ActiveRecord::Base
     can_relocate_lessons: "Can this user relocate lessons in general - not just his or her own?",
     show_pre_requisites: "Do you want to be prompted for likely requirements when creating new events?",
     can_add_resources: "Can this user add resources to events?",
-    can_add_notes: "Can this user add notes to events?"
+    can_add_notes: "Can this user add notes to events?",
+    can_view_forms: "Can this user view all the forms attached to an event?"
   }
   FIELD_TITLE_TEXTS.default = ""
 
@@ -176,7 +177,7 @@ class User < ActiveRecord::Base
   end
 
   #
-  #  Can this user meaninfully see the menu in the top bar?
+  #  Can this user meaningfully see the menu in the top bar?
   #
   def sees_menu?
     self.admin ||
