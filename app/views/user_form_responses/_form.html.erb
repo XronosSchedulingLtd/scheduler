@@ -1,4 +1,7 @@
 <% if @event %>
+  <% if @cancel_button && @close_after %>
+    <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius flip-button button-link', onclick: "window.close();" %>
+  <% end %>
   <h3>Request form for <%= @resource.name %></h3>
   <% if @status %>
     Status: <%= @status %><br/>
