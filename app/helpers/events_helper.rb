@@ -82,7 +82,11 @@ module EventsHelper
     else
       text = "#{text} #{reject_link(commitment, "Raise issue")}"
     end
-    if commitment.user_form_response
+    #
+    #  If the user doesn't get to see all forms (permissions bit) then
+    #  give him a link for this specific one.
+    #
+    if !user_can_view_forms? && commitment.user_form_response
       text = "#{text} #{
         link_to("View form",
                 user_form_response_path(commitment.user_form_response,
@@ -91,6 +95,18 @@ module EventsHelper
       }"
     end
     text.html_safe
+  end
+
+  #
+  #  Provide viewing links for an array of forms.
+  #
+  def form_viewing_links(form_commitments)
+    form_commitments.collect { |fc| 
+      link_to(fc.element.name,
+              user_form_response_path(fc.user_form_response,
+                                      close_after: true),
+              target: :_blank)
+    }.join(", ").html_safe
   end
 
   #

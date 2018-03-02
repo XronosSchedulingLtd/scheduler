@@ -105,6 +105,14 @@
     <div id="show-all-commitments">
       <%= render partial: "show_all_commitments" %>
     </div>
+    <% if @form_commitments %>
+      <div class="row">
+        <div class="small-12 columns">
+          <hr/>
+          Forms: <%= form_viewing_links(@form_commitments) %>
+        </div>
+      </div>
+    <% end %>
     <div id="event-notes">
       <%= render partial: "notes", object: @notes %>
     </div>

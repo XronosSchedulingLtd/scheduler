@@ -166,6 +166,17 @@ class EventsController < ApplicationController
     else
       @relocate_link = false
     end
+    #
+    #  Technically, what he can see are user_form_responses.
+    #
+    if user_can_view_forms?
+      @form_commitments = @event.commitments.select {|c| c.user_form_response}
+      if @form_commitments.empty?
+        @form_commitments = nil
+      end
+    else
+      @form_commitments = nil
+    end
   end
 
   # GET /events/1
