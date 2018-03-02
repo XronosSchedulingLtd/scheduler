@@ -1,3 +1,27 @@
+v0.28.9 2018-03-02
+
+* Allow more users to view forms.
+
+  Prior to this release, only users involved in the approvals
+  process (requester or approver) could view each corresponding
+  form.
+
+  This release adds a new user permission bit - can_view_forms.
+  If this bit is set - either in the user's profile or in the user's
+  own user record - then the user can view any form from the event
+  display dialogue.  (Click on an event in the calendar view, then
+  click on the form which you want to view.)
+
+* Add extra "Back" button to form view.
+
+  Some of the forms in use are quite long, and the existing "Back" button
+  was at the bottom meaning that the user had to scroll down each time
+  in order to exit the form.
+
+  An extra "Back" button has been added at top right, to allow forms
+  to be viewed and then closed more swiftly.
+
+
 v0.28.8 2018-03-01
 
 * Greatly improve concern editing by system admin.
