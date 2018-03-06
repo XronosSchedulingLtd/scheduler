@@ -1,6 +1,14 @@
 module ApplicationHelper
 
   #
+  #  Passed true or false, will return an <img> tag for
+  #  the appropriate icon, already wrapped up as html_safe.
+  #
+  def boolean_icon(value)
+    "<img src=\"/images/#{ value ? "true16.png" : "false16.png" }\"/>".html_safe
+  end
+
+  #
   #  Called every time we want to display something, perhaps with a
   #  link.  Some users get links, others don't.  This handles that
   #  decision and returns appropriate text.
