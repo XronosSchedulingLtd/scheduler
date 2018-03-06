@@ -1,3 +1,16 @@
+v0.28.11 2018-03-06
+
+* Fix listing of event categories.
+
+  Version 0.28.8 added the editing of user concerns, but inadvertantly
+  broke the listing of event categories.  Two view helper methods
+  with the same name, but marginally different signatures.
+
+  (Incidentally, Rails helpers used to be private to a controller.
+   It seems that now they're not - all helpers are shared between
+   all controllers.)
+
+
 v0.28.10 2018-03-02
 
 * No actual code changes - just the README.

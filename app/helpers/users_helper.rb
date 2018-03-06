@@ -17,15 +17,4 @@ module UsersHelper
     result.join.html_safe
   end
 
-  def boolean_icon(val)
-    if val
-      "/images/true16.png"
-    else
-      "/images/false16.png"
-    end
-  end
-
-  def boolean_image_tag(val)
-    "<img src='#{boolean_icon(val)}'/>".html_safe
-  end
 end
