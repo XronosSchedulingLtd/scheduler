@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -317,13 +317,27 @@ class EventsController < ApplicationController
     #  Admin can edit anything.  Other editors can only edit their
     #  own events.
     #
+    #  The three different options for a response here can get a
+    #  bit confusing.
+    #
+    #  In order:
+    #
+    #  HTML and request.xhr?
+    #  Dialogue box opening to edit (not currently used)
+    #
+    #  HTML and !request.xhr?
+    #  Full page edit.  Not publicised, but works.
+    #
+    #  JS
+    #  Starting an edit in an already open dialogue box.  The edit
+    #  form replaces the current contents in the dialogue.
+    #
     if current_user.can_subedit?(@event)
       @resourcewarning = false
       @quick_buttons = QuickButtons.new(@event)
-#        current_user.warn_no_resources && @event.resourceless?
       respond_to do |format|
         format.html do
-          if request.xml_http_request?
+          if request.xhr?
             @minimal = true
             render :layout => false
           else

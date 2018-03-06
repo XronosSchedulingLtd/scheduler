@@ -154,12 +154,14 @@ Rails.application.routes.draw do
   resources :events do
     resources :notes, shallow: true
     resources :requests
+    resources :wrappers, only: [:new, :create]
     member do
       get :shownotes
       get :canceledit
       get :coverrooms
       put 'moved'
       post :clone
+      post :do_wrap
       post :upload
     end
     get :search, :on => :collection
