@@ -108,6 +108,7 @@ class CommitmentsController < ApplicationController
       end
     end
     @event = @commitment.event
+    @quick_buttons = QuickButtons.new(@event)
     @resourcewarning = false # current_user.warn_no_resources && @event.resourceless?
     respond_to do |format|
       format.js
@@ -127,6 +128,7 @@ class CommitmentsController < ApplicationController
       @resourcewarning = false
 #        current_user.warn_no_resources && @event.resourceless?
     end
+    @quick_buttons = QuickButtons.new(@event)
     respond_to do |format|
       format.js
     end

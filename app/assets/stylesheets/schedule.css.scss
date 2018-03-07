@@ -148,3 +148,20 @@ ul.filter-list {
 .lhs-filler {
   min-height: 35px;
 }
+
+.quick-add-button {
+  border: 1px solid rgb(0,112,149);
+  padding: 1px 5px 1px 3px;
+  border-radius: 4px;
+  color: white;
+  background-color: rgb(0,140,186);
+  font-family: "Helvetica Neue", Helvetica;
+  font-size: 12px;
+  transition: background-color 300ms ease-out;
+}
+.quick-add-button:hover {
+  background-color: #007095;
+}
+.quick-buttons {
+  margin-bottom: 12px;
+}

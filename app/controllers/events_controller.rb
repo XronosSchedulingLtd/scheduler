@@ -316,6 +316,7 @@ class EventsController < ApplicationController
     #
     if current_user.can_subedit?(@event)
       @resourcewarning = false
+      @quick_buttons = QuickButtons.new(@event)
 #        current_user.warn_no_resources && @event.resourceless?
       respond_to do |format|
         format.html do
@@ -353,6 +354,7 @@ class EventsController < ApplicationController
       if @event.save
         @event.reload
         @event.journal_event_created(current_user)
+        @quick_buttons = QuickButtons.new(@event)
         #
         #  Does this user have any Concerns with the auto_add flag set?
         #

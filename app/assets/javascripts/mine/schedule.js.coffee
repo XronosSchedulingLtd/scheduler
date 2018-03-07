@@ -402,6 +402,25 @@ primePreRequisites = ->
   if prOwnForm.length && prTargetForm.length
     prTargetForm.submit(submittingCreate)
 
+handleQuickAdd = (event) ->
+  console.log("Clicked")
+  element_id = $(event.target).data('element-id')
+  console.log("Element id = " + element_id)
+  #
+  #  All we do is put this element id in the relevant field of the form,
+  #  then submit the form.
+  #
+  form = $('#new_commitment')
+  if form
+    console.log("Found form")
+    $('#commitment_element_id').val(element_id)
+    form.submit()
+  else
+    console.log("Can't find form")
+
+
+primeQuickAddButtons = ->
+  $('.quick-add-button').click(handleQuickAdd)
 
 hideCloser = ->
   $('#event-done-button').hide()
@@ -452,8 +471,15 @@ window.replaceShownCommitments = (new_html) ->
   $('.noted-link').click(notedClicked)
   window.refreshNeeded()
 
+window.beginEditingEvent = (contents) ->
+  $('#events-dialogue').html(contents)
+  $('.datetimepicker').datetimepicker( { dateFormat: "dd/mm/yy", stepMinute: 5 })
+  primeQuickAddButtons()
+  $('#commitment_element_name').focus()
+
 window.replaceEditingCommitments = (new_html) ->
   $('#event_resources').html(new_html)
+  primeQuickAddButtons()
   window.refreshNeeded()
 
 window.beginNoteEditing = (body_text) ->
@@ -466,6 +492,13 @@ window.endNoteEditing = (new_note_text, new_shown_commitments) ->
   if new_shown_commitments
     window.replaceShownCommitments(new_shown_commitments)
   showCloser()
+
+window.switchToEditingEvent = (contents) ->
+  $('#events-dialogue').html(contents)
+  $('.datetimepicker').datetimepicker( { dateFormat: "dd/mm/yy", stepMinute: 5 })
+  primeQuickAddButtons()
+  $('#commitment_element_name').focus()
+  window.triggerCountsUpdate()
 
 window.finishEditingEvent = (event_summary, do_refresh) ->
   $('#events-dialogue').html(event_summary)
