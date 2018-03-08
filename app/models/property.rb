@@ -17,10 +17,6 @@ class Property < ActiveRecord::Base
     true
   end
 
-  def current
-    true
-  end
-
   def element_name
     name
   end

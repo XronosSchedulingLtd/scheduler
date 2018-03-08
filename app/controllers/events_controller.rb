@@ -170,7 +170,10 @@ class EventsController < ApplicationController
     #  Technically, what he can see are user_form_responses.
     #
     if user_can_view_forms?
-      @form_commitments = @event.commitments.select {|c| c.user_form_response}
+      @form_commitments =
+        @event.commitments.select do |c|
+          c.user_form_response && !c.user_form_response.empty?
+        end
       if @form_commitments.empty?
         @form_commitments = nil
       end
@@ -316,6 +319,7 @@ class EventsController < ApplicationController
     #
     if current_user.can_subedit?(@event)
       @resourcewarning = false
+      @quick_buttons = QuickButtons.new(@event)
 #        current_user.warn_no_resources && @event.resourceless?
       respond_to do |format|
         format.html do
@@ -418,6 +422,7 @@ class EventsController < ApplicationController
         unless current_user.can_add_resources?
           assemble_event_info
         end
+        @quick_buttons = QuickButtons.new(@event)
         @success = true
         @minimal = true
         @commitment = Commitment.new

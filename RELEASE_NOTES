@@ -1,3 +1,53 @@
+v0.28.12 2018-03-08
+
+* Adds quick-add buttons
+
+  When a user first starts creating an event, he or she may be presented
+  with a list (administrator configurable) of things to think about adding
+  to it - things like parking requirements, or the public calendar.
+
+  Once the event has been created, this list was no longer accessible, because
+  it was a check-box list and that doesn't make sense in the context of
+  general event editing.
+
+  This release adds a new feature - Quick Add Buttons.  The same list
+  of preferred items is used to generate some buttons below the usual
+  "Add resource" field.  Clicking on one of these will immediately add
+  that resource to the event, without the user having to type its name.
+
+  The list of buttons auto-updates, so if a resource is already attached
+  to the event, there is no button to add it again.
+
+* The icon for approving/approved events has been changed from a plus
+  sign on a green background to a tick on a green background.  This has
+  been done simply by replacing the icon file, so it may take a little
+  while to become evident on some browsers due to caching.  A shift-refresh
+  will speed the process if desired.
+
+* The feature added in v0.28.9 to allow suitable users to view forms
+  let them see all forms - even blank ones.  They are now shown only
+  forms which have had some data entered.
+
+* The event editing form has been tightened up slightly (fields moved
+  closer together) to make it easier to use on a small screen.  Note that
+  on a very small screen, the quick-add buttons mentioned above will
+  disappear to save space.
+
+* A real "current" flag has been added to the Property and Service models.
+  Previously these had a fake flag which was always set to true.
+
+  This flag controls whether the item is in current use - can be added
+  to new events and viewed in the main screen.  Items which pass out of
+  use (e.g. staff who have left) stay in the system for the historical
+  record, but don't appear in pop-down lists etc.
+
+  The addition of this flag means it is now possible to deprecate old
+  properties and/or services if they are no longer needed.  E.g.
+  if the Parking service has been merged into Porters, then the current
+  flag on Parking can be set to false to prevent anyone adding it to an
+  event in future.
+
+
 v0.28.11 2018-03-06
 
 * Fix listing of event categories.
