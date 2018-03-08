@@ -403,20 +403,15 @@ primePreRequisites = ->
     prTargetForm.submit(submittingCreate)
 
 handleQuickAdd = (event) ->
-  console.log("Clicked")
   element_id = $(event.target).data('element-id')
-  console.log("Element id = " + element_id)
   #
   #  All we do is put this element id in the relevant field of the form,
   #  then submit the form.
   #
   form = $('#new_commitment')
-  if form
-    console.log("Found form")
+  if form && element_id
     $('#commitment_element_id').val(element_id)
     form.submit()
-  else
-    console.log("Can't find form")
 
 
 primeQuickAddButtons = ->

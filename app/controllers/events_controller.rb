@@ -354,7 +354,6 @@ class EventsController < ApplicationController
       if @event.save
         @event.reload
         @event.journal_event_created(current_user)
-        @quick_buttons = QuickButtons.new(@event)
         #
         #  Does this user have any Concerns with the auto_add flag set?
         #
@@ -420,6 +419,7 @@ class EventsController < ApplicationController
         unless current_user.can_add_resources?
           assemble_event_info
         end
+        @quick_buttons = QuickButtons.new(@event)
         @success = true
         @minimal = true
         @commitment = Commitment.new
