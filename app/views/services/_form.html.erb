@@ -15,6 +15,10 @@
     <%= f.label :name %><br>
     <%= f.text_field :name, :class => "focus_please" %>
   </div>
+  <div class="field">
+    <%= f.label :current %><br>
+    <%= f.check_box :current %>
+  </div>
   <div class="actions">
     <%= f.submit @service.id ? "Update" : "Create", :class => "zfbutton small radius" %>
   </div>

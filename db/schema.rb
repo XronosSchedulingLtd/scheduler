@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180301155732) do
+ActiveRecord::Schema.define(version: 20180308105227) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -387,6 +387,7 @@ ActiveRecord::Schema.define(version: 20180301155732) do
     t.boolean  "make_public",             default: false
     t.boolean  "auto_staff",              default: false
     t.boolean  "auto_pupils",             default: false
+    t.boolean  "current",                 default: true
   end
 
   create_table "proto_commitments", force: :cascade do |t|
@@ -489,6 +490,7 @@ ActiveRecord::Schema.define(version: 20180301155732) do
     t.string   "name",       limit: 255
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "current",                default: true
   end
 
   create_table "settings", force: :cascade do |t|
