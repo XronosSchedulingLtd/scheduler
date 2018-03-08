@@ -319,6 +319,7 @@ class EventsController < ApplicationController
     #
     if current_user.can_subedit?(@event)
       @resourcewarning = false
+      @quick_buttons = QuickButtons.new(@event)
 #        current_user.warn_no_resources && @event.resourceless?
       respond_to do |format|
         format.html do
@@ -421,6 +422,7 @@ class EventsController < ApplicationController
         unless current_user.can_add_resources?
           assemble_event_info
         end
+        @quick_buttons = QuickButtons.new(@event)
         @success = true
         @minimal = true
         @commitment = Commitment.new

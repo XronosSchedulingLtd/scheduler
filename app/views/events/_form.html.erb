@@ -21,7 +21,8 @@
       <% if current_user.can_edit?(@event) %>
         <%= f.text_field :body,
                          :id => "first_field",
-                         :placeholder => "Please describe what is happening" %>
+                         :placeholder => "Please describe what is happening",
+                         :class => 'compressed' %>
       <% else %>
         <%= f.text_field :body, :disabled => true %>
       <% end %>
@@ -33,14 +34,15 @@
                                 @event.suitable_categories(current_user).sort,
                                 :id,
                                 :name,
-                                { :prompt => true }) %>
+                                { prompt: true },
+                                { class: 'compressed' }) %>
       <% else %>
         <%= f.collection_select(:eventcategory_id,
                                 @event.suitable_categories(current_user).sort,
                                 :id,
                                 :name,
-                                { :prompt => true },
-                                { :disabled => "disabled" }) %>
+                                { prompt: true },
+                                { disabled: 'disabled', class: 'compressed' }) %>
       <% end %>
     </div>
   </div>
@@ -49,20 +51,26 @@
       <label>Starts</label>
       <% if current_user.can_retime?(@event) %>
         <%= f.text_field :starts_at_text,
-                         :class => :datetimepicker %>
+                         class: 'datetimepicker compressed' %>
       <% else %>
-        <%= f.text_field :starts_at_text,
-                         :disabled => true %>
+        <%=
+          f.text_field :starts_at_text,
+            disabled: true,
+            class: 'compressed'
+        %>
       <% end %>
     </div>
     <div class="small-3 columns">
       <label>Ends</label>
       <% if current_user.can_retime?(@event) %>
         <%= f.text_field :ends_at_text,
-                         :class => :datetimepicker %>
+                         class: 'datetimepicker compressed' %>
       <% else %>
-        <%= f.text_field :ends_at_text,
-                         :disabled => true %>
+        <%=
+          f.text_field :ends_at_text,
+            disabled: true,
+            class: 'compressed'
+          %>
       <% end %>
     </div>
     <% if current_user.can_retime?(@event) %>
@@ -85,6 +93,7 @@
                                :id_element => '#event_organiser_id',
                                :append_to => '#eventModal',
                                :placeholder => "Name of organiser (optional)",
+                               class: 'compressed',
                                "data-auto-focus" => true %>
         <%= f.text_field :organiser_id, :type => :hidden %>
       <% else %>
@@ -94,7 +103,9 @@
     <div class="small-5 columns">
       <label>Reference</label>
       <%= f.text_field :organiser_ref,
-                       :placeholder => "additional information (optional)" %>
+        :placeholder => "additional information (optional)",
+        class: 'compressed'
+      %>
     </div>
     <div class="small-4 columns">
     </div>
@@ -122,7 +133,8 @@
                              'data-auto-focus' => true,
                              :id_element => '#commitment_element_id',
                              :append_to => '#eventModal',
-                             :placeholder => "Type the name of a resource to add" %>
+                             :placeholder => "Type the name of a resource to add",
+                             :class => 'compressed' %>
     <%= f.text_field :element_id, :type => :hidden %>
     <%= f.text_field :event_id, :type => :hidden %>
     </div>
