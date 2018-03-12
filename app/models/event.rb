@@ -103,6 +103,7 @@ class Event < ActiveRecord::Base
   has_many :covering_commitments, -> { where("covering_id IS NOT NULL") }, class_name: "Commitment"
   has_many :non_covering_commitments, -> { where("covering_id IS NULL") }, class_name: "Commitment"
   has_many :elements, :through => :firm_commitments
+  has_many :elements_even_tentative, through: :commitments, source: :element
   #
   #  This next one took a bit of crafting.  It is used to optimize
   #  fetching the directly associated staff elements on events when
@@ -1177,7 +1178,11 @@ class Event < ActiveRecord::Base
   #  Note that because we want to add commitments to this event during
   #  the cloning process, we have to save it to the database.
   #
-  def clone_and_save(modifiers)
+  #  We can if we wish restrict the elements which are brought across
+  #  by passing an element_id_list.  Without that, we bring over
+  #  all the ones which are there.
+  #
+  def clone_and_save(modifiers, element_id_list = nil)
     new_self = self.dup
     #
     #  Any modifiers to apply?
@@ -1194,7 +1199,9 @@ class Event < ActiveRecord::Base
       #
       #  And we don't want to clone cover commitments.
       #
-      unless commitment.covering
+      unless (element_id_list &&
+              element_id_list.include?(commitment.element_id)) ||
+             commitment.covering
         c = commitment.clone_and_save(event: new_self)
         new_self.journal_commitment_added(c, modifiers[:owner])
       end

@@ -42,6 +42,27 @@ class WrappersController < ApplicationController
   end
 
   def create
+    full_params = {
+      event: @event
+    }
+    @event_wrapper = EventWrapper.new(full_params.merge(wrapper_params))
+    base_params = {
+      owner:     current_user,
+      eventsource: Eventsource.find_by(name: "Manual")
+    }
+    Rails.logger.debug("Wrapping.  Enabled IDs are: #{@event_wrapper.enabled_ids.join(", ")}")
+    if @event_wrapper.wrap_before?
+      @event_wrapper.event.clone_and_save(
+        base_params.merge(@event_wrapper.before_timing),
+        @event_wrapper.enabled_ids
+      )
+    end
+    if @event_wrapper.wrap_after?
+      @event_wrapper.event.clone_and_save(
+        base_params.merge(@event_wrapper.after_timing),
+        @event_wrapper.enabled_ids
+      )
+    end
   end
 
   private
@@ -57,6 +78,6 @@ class WrappersController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def wrapper_params
-    params.require(:wrapper).permit(:body)
+    params.require(:event_wrapper).permit(:wrap_before, :before_duration, :wrap_after, :after_duration, enabled_ids: [])
   end
 end
