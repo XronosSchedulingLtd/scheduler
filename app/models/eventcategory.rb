@@ -13,6 +13,8 @@ class Eventcategory < ActiveRecord::Base
   has_many :events, dependent: :destroy
   has_many :proto_events, dependent: :destroy
 
+  has_one :setting, foreign_key: :wrapping_eventcategory_id, dependent: :nullify
+
   has_many :users, foreign_key: :preferred_event_category_id, :dependent => :nullify
   after_save :flush_cache
 

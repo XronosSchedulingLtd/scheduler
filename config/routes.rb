@@ -174,7 +174,9 @@ Rails.application.routes.draw do
 
   resources :eventsources
 
-  resources :eventcategories
+  resources :eventcategories do
+    get :autocomplete_eventcategory_name, :on => :collection
+  end
 
   resources :interests
 

@@ -82,50 +82,52 @@ class EventWrapper
     @wrap_after
   end
 
-  def initialize(attributes={})
+  def initialize(event, attributes={})
     #
     #  Set default values first.
     #
-    self.wrap_before     = true
-    self.before_duration = 60           # Minutes
-    self.wrap_after      = true
-    self.after_duration  = 30           # Minutes
+    @event           = event
+    @wrap_before     = true
+    @before_duration = Setting.wrapping_before_mins
+    @wrap_after      = true
+    @after_duration  = Setting.wrapping_after_mins
+    @eventcategory   = Setting.wrapping_eventcategory
     @resources = []
-    super
-    if self.event
-      #
-      #  Need to see what resources the indicated event has, and
-      #  set them up for a check-box listing.  Note that we are
-      #  going to look at the element for each resource, not the
-      #  resource itself.
-      #
-      self.event.elements_even_tentative.sort.each do |element|
-        @resources << EventResource.new(element)
-      end
-    else
-      raise "Can't have an event wrapper without an event."
+    #
+    #  Need to see what resources the indicated event has, and
+    #  set them up for a check-box listing.  Note that we are
+    #  going to look at the element for each resource, not the
+    #  resource itself.
+    #
+    @event.elements_even_tentative.sort.each do |element|
+      @resources << EventResource.new(element)
     end
+    super(attributes)
   end
 
   #
   #  Generate a hash suitable for passing to Event#clone_and_save
   #  to set the timing for the set-up event.
   #
-  def before_timing
-    starts_at = @event.starts_at - @before_duration.minutes
-    ends_at   = @event.starts_at
-    return {
-      starts_at: starts_at,
-      ends_at: ends_at
-    }
+  def before_params
+    params = {}
+    params[:starts_at] = @event.starts_at - @before_duration.minutes
+    params[:ends_at]   = @event.starts_at
+    params[:body]      = "Set-up for \"#{@event.body}\""
+    if @eventcategory
+      params[:eventcategory] = @eventcategory
+    end
+    params
   end
 
-  def after_timing
-    starts_at = @event.ends_at
-    ends_at   = @event.ends_at + @after_duration.minutes
-    return {
-      starts_at: starts_at,
-      ends_at: ends_at
-    }
+  def after_params
+    params = {}
+    params[:starts_at] = @event.ends_at
+    params[:ends_at]   = @event.ends_at + @after_duration.minutes
+    params[:body]      = "Clear-up for \"#{@event.body}\""
+    if @eventcategory
+      params[:eventcategory] = @eventcategory
+    end
+    params
   end
 end

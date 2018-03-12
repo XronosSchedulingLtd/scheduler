@@ -1184,6 +1184,7 @@ class Event < ActiveRecord::Base
   #
   def clone_and_save(modifiers, element_id_list = nil)
     new_self = self.dup
+    new_self.has_clashes = false
     #
     #  Any modifiers to apply?
     #
@@ -1200,7 +1201,7 @@ class Event < ActiveRecord::Base
       #  And we don't want to clone cover commitments.
       #
       unless (element_id_list &&
-              element_id_list.include?(commitment.element_id)) ||
+              !element_id_list.include?(commitment.element_id)) ||
              commitment.covering
         c = commitment.clone_and_save(event: new_self)
         new_self.journal_commitment_added(c, modifiers[:owner])

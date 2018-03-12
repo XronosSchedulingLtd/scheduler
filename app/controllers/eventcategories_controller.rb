@@ -6,6 +6,8 @@
 class EventcategoriesController < ApplicationController
   before_action :set_eventcategory, only: [:show, :edit, :update, :destroy]
 
+  autocomplete :eventcategory, :name, :full => true
+
   # GET /eventcategories
   # GET /eventcategories.json
   def index

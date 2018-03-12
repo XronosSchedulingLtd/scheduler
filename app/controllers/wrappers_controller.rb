@@ -15,9 +15,7 @@ class WrappersController < ApplicationController
   def new
     if current_user.can_subedit?(@event)
       session[:request_notifier] = RequestNotifier.new
-      @event_wrapper = EventWrapper.new({
-        event: @event
-      })
+      @event_wrapper = EventWrapper.new(@event)
       respond_to do |format|
         format.html do
           if request.xhr?
@@ -42,10 +40,7 @@ class WrappersController < ApplicationController
   end
 
   def create
-    full_params = {
-      event: @event
-    }
-    @event_wrapper = EventWrapper.new(full_params.merge(wrapper_params))
+    @event_wrapper = EventWrapper.new(@event, wrapper_params)
     base_params = {
       owner:     current_user,
       eventsource: Eventsource.find_by(name: "Manual")
@@ -53,13 +48,13 @@ class WrappersController < ApplicationController
     Rails.logger.debug("Wrapping.  Enabled IDs are: #{@event_wrapper.enabled_ids.join(", ")}")
     if @event_wrapper.wrap_before?
       @event_wrapper.event.clone_and_save(
-        base_params.merge(@event_wrapper.before_timing),
+        base_params.merge(@event_wrapper.before_params),
         @event_wrapper.enabled_ids
       )
     end
     if @event_wrapper.wrap_after?
       @event_wrapper.event.clone_and_save(
-        base_params.merge(@event_wrapper.after_timing),
+        base_params.merge(@event_wrapper.after_params),
         @event_wrapper.enabled_ids
       )
     end
