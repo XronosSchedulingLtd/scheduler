@@ -161,7 +161,6 @@ Rails.application.routes.draw do
       get :coverrooms
       put 'moved'
       post :clone
-      post :do_wrap
       post :upload
     end
     get :search, :on => :collection
