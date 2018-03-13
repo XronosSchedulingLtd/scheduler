@@ -1182,6 +1182,9 @@ class Event < ActiveRecord::Base
   #  by passing an element_id_list.  Without that, we bring over
   #  all the ones which are there.
   #
+  #  If passed a block, then we will pass back each proposed new
+  #  commitment in term for any necessary adjustment.
+  #
   def clone_and_save(modifiers, element_id_list = nil)
     new_self = self.dup
     new_self.has_clashes = false
@@ -1203,7 +1206,11 @@ class Event < ActiveRecord::Base
       unless (element_id_list &&
               !element_id_list.include?(commitment.element_id)) ||
              commitment.covering
-        c = commitment.clone_and_save(event: new_self)
+        c = commitment.clone_and_save(event: new_self) do |c|
+          if block_given?
+            yield c
+          end
+        end
         new_self.journal_commitment_added(c, modifiers[:owner])
       end
     end

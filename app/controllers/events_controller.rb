@@ -375,14 +375,11 @@ class EventsController < ApplicationController
         #  Does this user have any Concerns with the auto_add flag set?
         #
         current_user.concerns.auto_add.each do |concern|
-          c = @event.commitments.new
-          if current_user.needs_permission_for?(concern.element)
-            c.status = :requested
-          else
-            c.status = :uncontrolled
+          c = @event.commitments.create({
+            element: concern.element
+          }) do |c|
+            set_appropriate_approval_status(c)
           end
-          c.element = concern.element
-          c.save
           if session[:request_notifier]
             session[:request_notifier].commitment_added(c)
           end
@@ -410,14 +407,11 @@ class EventsController < ApplicationController
               #  Guard against double commitment.
               #
               unless current_user.concerns.auto_add.detect {|c| c.element == element}
-                c = @event.commitments.new
-                if current_user.needs_permission_for?(element)
-                  c.status = :requested
-                else
-                  c.status = :uncontrolled
+                c = @event.commitments.create({
+                  element: element
+                }) do |c|
+                  set_appropriate_approval_status(c)
                 end
-                c.element = element
-                c.save
                 if session[:request_notifier]
                   session[:request_notifier].commitment_added(c)
                 end
@@ -540,7 +534,16 @@ class EventsController < ApplicationController
     @event =
       @event.clone_and_save(
         owner:       current_user,
-        eventsource: Eventsource.find_by(name: "Manual"))
+        eventsource: Eventsource.find_by(name: "Manual")) do |item|
+          #
+          #  For now we expect only commitments to be passed back for
+          #  adjustment, but we may want to extend this in the future.
+          #
+          if item.instance_of?(Commitment)
+            Rails.logger.debug("Adjusting commitment to #{item.element.name}")
+            set_appropriate_approval_status(item)
+          end
+        end
     #
     #  And throw the user straight into editing it.
     #

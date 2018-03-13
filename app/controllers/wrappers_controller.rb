@@ -50,13 +50,21 @@ class WrappersController < ApplicationController
       @event_wrapper.event.clone_and_save(
         base_params.merge(@event_wrapper.before_params),
         @event_wrapper.enabled_ids
-      )
+      ) do |item|
+        if item.instance_of?(Commitment)
+          set_appropriate_approval_status(item)
+        end
+      end
     end
     if @event_wrapper.wrap_after?
       @event_wrapper.event.clone_and_save(
         base_params.merge(@event_wrapper.after_params),
         @event_wrapper.enabled_ids
-      )
+      ) do |item|
+        if item.instance_of?(Commitment)
+          set_appropriate_approval_status(item)
+        end
+      end
     end
   end
 
