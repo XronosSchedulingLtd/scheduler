@@ -1185,7 +1185,7 @@ class Event < ActiveRecord::Base
   #  If passed a block, then we will pass back each proposed new
   #  commitment in term for any necessary adjustment.
   #
-  def clone_and_save(modifiers, element_id_list = nil)
+  def clone_and_save(modifiers, element_id_list = nil, more = :cloned)
     new_self = self.dup
     new_self.has_clashes = false
     #
@@ -1195,7 +1195,7 @@ class Event < ActiveRecord::Base
       new_self.send("#{key}=", value)
     end
     new_self.save!
-    new_self.journal_event_created(modifiers[:owner], true)
+    new_self.journal_event_created(modifiers[:owner], more)
     #
     #  Commitments don't get copied by dup.
     #
@@ -1337,14 +1337,14 @@ class Event < ActiveRecord::Base
     end
   end
 
-  def journal_event_created(by_user, cloned = false)
+  def journal_event_created(by_user, more = nil)
     #
     #  Since we are meant to be called just after the creation of
     #  the event, the journal should not already exist, but just
     #  to be safe, and for consistency...
     #
     ensure_journal
-    self.journal.event_created(by_user, cloned)
+    self.journal.event_created(by_user, more)
   end
 
   def journal_event_updated(by_user)

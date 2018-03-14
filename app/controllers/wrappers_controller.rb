@@ -49,7 +49,8 @@ class WrappersController < ApplicationController
       request_notifier = RequestNotifier.new
       before_event = @event_wrapper.event.clone_and_save(
         base_params.merge(@event_wrapper.before_params),
-        @event_wrapper.enabled_ids
+        @event_wrapper.enabled_ids,
+        :wrapped
       ) do |item|
         if item.instance_of?(Commitment)
           set_appropriate_approval_status(item)
@@ -62,7 +63,8 @@ class WrappersController < ApplicationController
       request_notifier = RequestNotifier.new
       after_event = @event_wrapper.event.clone_and_save(
         base_params.merge(@event_wrapper.after_params),
-        @event_wrapper.enabled_ids
+        @event_wrapper.enabled_ids,
+        :wrapped
       ) do |item|
         if item.instance_of?(Commitment)
           set_appropriate_approval_status(item)

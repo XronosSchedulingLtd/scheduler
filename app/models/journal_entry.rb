@@ -22,7 +22,8 @@ class JournalEntry < ActiveRecord::Base
     :event_relocated,
     :organiser_reference_changed,
     :form_completed,
-    :commitment_noted
+    :commitment_noted,
+    :wrapper_created
   ]
   NEATER_TEXTS = [
     "Event created",
@@ -42,7 +43,8 @@ class JournalEntry < ActiveRecord::Base
     "Event re-located",
     "Reference changed",
     "Form completed",
-    "Request noted"
+    "Request noted",
+    "Created as wrapper"
   ]
   ELEMENT_TEXTS = {
     resource_added:      "Added",
