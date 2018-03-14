@@ -14,7 +14,6 @@ class WrappersController < ApplicationController
   #
   def new
     if current_user.can_subedit?(@event)
-      session[:request_notifier] = RequestNotifier.new
       @event_wrapper = EventWrapper.new(@event)
       respond_to do |format|
         format.html do
@@ -45,26 +44,32 @@ class WrappersController < ApplicationController
       owner:     current_user,
       eventsource: Eventsource.find_by(name: "Manual")
     }
-    Rails.logger.debug("Wrapping.  Enabled IDs are: #{@event_wrapper.enabled_ids.join(", ")}")
+#    Rails.logger.debug("Wrapping.  Enabled IDs are: #{@event_wrapper.enabled_ids.join(", ")}")
     if @event_wrapper.wrap_before?
-      @event_wrapper.event.clone_and_save(
+      request_notifier = RequestNotifier.new
+      before_event = @event_wrapper.event.clone_and_save(
         base_params.merge(@event_wrapper.before_params),
         @event_wrapper.enabled_ids
       ) do |item|
         if item.instance_of?(Commitment)
           set_appropriate_approval_status(item)
+          request_notifier.commitment_added(item)
         end
       end
+      request_notifier.send_notifications_for(current_user, before_event)
     end
     if @event_wrapper.wrap_after?
-      @event_wrapper.event.clone_and_save(
+      request_notifier = RequestNotifier.new
+      after_event = @event_wrapper.event.clone_and_save(
         base_params.merge(@event_wrapper.after_params),
         @event_wrapper.enabled_ids
       ) do |item|
         if item.instance_of?(Commitment)
           set_appropriate_approval_status(item)
+          request_notifier.commitment_added(item)
         end
       end
+      request_notifier.send_notifications_for(current_user, after_event)
     end
   end
 
