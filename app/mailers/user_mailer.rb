@@ -1,6 +1,5 @@
 class UserMailer < ActionMailer::Base
   add_template_helper(UserMailerHelper)
-  default from: "abingdon@scheduler.org.uk"
 
   def cover_clash_email(user, clashes, oddities)
     @clashes = clashes.sort
@@ -103,41 +102,39 @@ class UserMailer < ActionMailer::Base
     end
   end
 
-  def do_resource_email(owner, resource, event, user)
+  def do_resource_email(owner, resource, event, user, cancelled)
     @resource = resource
     @event = event
     parameters = {
       to:      owner.email,
       from:    Setting.from_email_address,
-      subject: "Request for #{resource.name}"
+      subject: "Request for #{resource.name}#{cancelled ? " CANCELLED" : ""}"
     }
     if @event.organiser
-      @name = @event.organiser.entity.name
       parameters[:reply_to] = @event.organiser.entity.email
     elsif @event.owner
-      @name = @event.owner.name
       parameters[:reply_to] = @event.owner.email
     elsif user
-      @name = user.name
       parameters[:reply_to] = user.email
-    else
-      @name = "System"
     end
+    @owner_name = @event.owner ? @event.owner.name : "<System>"
+    @organiser_name = @event.organiser ? @event.organiser.name : "<None>"
+    @user_name = user ? user.name : "<None>"
     mail(parameters)
   end
 
   #
-  #  These next two look absolutely identical (and they are) but
+  #  These next two look almost identical (and they are) but
   #  because they are different actions the recipient ends up
   #  getting different e-mails.  The names of these actions dictate
   #  the names of the view templates to use.
   #
   def resource_requested_email(owner, resource, event, user = nil)
-    do_resource_email(owner, resource, event, user)
+    do_resource_email(owner, resource, event, user, false)
   end
 
   def resource_request_cancelled_email(owner, resource, event, user = nil)
-    do_resource_email(owner, resource, event, user)
+    do_resource_email(owner, resource, event, user, true)
   end
 
   def pending_approvals_email(email, queues)

@@ -1,1 +1,9 @@
-<%= @name %> requests <%= @resource.name %> at <%= @event.starts_at_text %>
+Request for <%= @resource.name %>
+
+    Event: <%= @event.body %>
+    Starting: <%= @event.starts_at_text %>
+    Duration: <%= @event.duration_text %>
+    Originator: <%= @user_name %>
+    Event owner: <%= @owner_name %>
+    Event organiser: <%= @organiser_name %>
+
