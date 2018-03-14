@@ -9,7 +9,7 @@
   <div class="row">
     <div class="small-12 columns">
       <p>Event:
-      <%= @event_wrapper.event.body %>,
+      "<%= @event_wrapper.event.body %>",
       starting
       <%= @event_wrapper.event.starts_at_text %>,
       for
@@ -28,7 +28,13 @@
         </div>
         <div class="small-8 columns">
           <label>Duration (mins)</label>
-          <%= f.number_field :before_duration %>
+          <%= f.number_field :before_duration, class: 'compressed' %>
+        </div>
+      </div>
+      <div class="row">
+        <div class="small-12 columns">
+          <label>Description</label>
+          <%= f.text_field :before_title, class: 'compressed' %>
         </div>
       </div>
     </div>
@@ -40,9 +46,25 @@
         </div>
         <div class="small-8 columns">
           <label>Duration (mins)</label>
-          <%= f.number_field :after_duration %>
+          <%= f.number_field :after_duration, class: 'compressed' %>
         </div>
       </div>
+      <div class="row">
+        <div class="small-12 columns">
+          <label>Description</label>
+          <%= f.text_field :after_title, class: 'compressed' %>
+        </div>
+      </div>
+    </div>
+    <div class="small-12 columns">
+      <label>Organiser</label>
+      <%= f.autocomplete_field :organiser_name,
+                               autocomplete_staff_element_name_elements_path,
+                               :id_element => '#event_wrapper_organiser_id',
+                               :append_to => '#eventModal',
+                               :placeholder => "Name of organiser (optional)",
+                               "data-auto-focus" => true %>
+        <%= f.text_field :organiser_id, :type => :hidden %>
     </div>
     <hr/>
     <div class="small-12 columns">
@@ -55,12 +77,8 @@
     </div>
     <div class="small-12 columns">
       <%= f.submit "Create", class: "zfbutton tiny radius" %>
+      <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => "zfbutton tiny radius" %>
     </div>
 <% end %>
-  </div>
-  <div class="row">
-    <div class="small-12 columns">
-      <%= render 'events/done_button' %>
-    </div>
   </div>
 </div>

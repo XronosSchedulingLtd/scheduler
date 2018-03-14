@@ -86,6 +86,14 @@ class WrappersController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def wrapper_params
-    params.require(:event_wrapper).permit(:wrap_before, :before_duration, :wrap_after, :after_duration, enabled_ids: [])
+    params.require(:event_wrapper).permit(:wrap_before,
+                                          :before_duration,
+                                          :before_title,
+                                          :wrap_after,
+                                          :after_duration,
+                                          :after_title,
+                                          :organiser_id,
+                                          :organiser_name,
+                                          enabled_ids: [])
   end
 end

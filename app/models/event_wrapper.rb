@@ -26,15 +26,15 @@ class EventWrapper
   attr_reader :wrap_before,
               :before_duration,
               :wrap_after,
-              :after_duration
-
-  attr_reader :resources
+              :after_duration,
+              :resources,
+              :before_title,
+              :after_title
 
   #
   #  We are passed an array of strings, the last of which is empty.
   #
   def enabled_ids=(id_list)
-    Rails.logger.debug("enabled_ids= called with #{id_list.inspect}")
     @resources.each do |r|
       r.enabled = false
     end
@@ -66,6 +66,14 @@ class EventWrapper
     @after_duration = val.to_i
   end
 
+  def before_title=(new_title)
+    @before_title = new_title unless new_title.empty?
+  end
+
+  def after_title=(new_title)
+    @after_title = new_title unless new_title.empty?
+  end
+
   def wrap_before=(val)
     @wrap_before = (val == "1")
   end
@@ -82,6 +90,25 @@ class EventWrapper
     @wrap_after
   end
 
+  def organiser_id
+    @organiser ? @organiser.id : nil
+  end
+
+  def organiser_name
+    @organiser ? @organiser.name : nil
+  end
+
+  def organiser_id=(val)
+    new_organiser = Element.find_by(id: val)
+    if new_organiser
+      @organiser = new_organiser
+    end
+  end
+
+  def organiser_name=(name)
+    # Ignore
+  end
+
   def initialize(event, attributes={})
     #
     #  Set default values first.
@@ -89,9 +116,12 @@ class EventWrapper
     @event           = event
     @wrap_before     = true
     @before_duration = Setting.wrapping_before_mins
+    @before_title    = "Set-up for \"#{@event.body}\""
     @wrap_after      = true
+    @after_title    = "Clear-up for \"#{@event.body}\""
     @after_duration  = Setting.wrapping_after_mins
     @eventcategory   = Setting.wrapping_eventcategory
+    @organiser       = @event.organiser
     @resources = []
     #
     #  Need to see what resources the indicated event has, and
@@ -111,23 +141,21 @@ class EventWrapper
   #
   def before_params
     params = {}
-    params[:starts_at] = @event.starts_at - @before_duration.minutes
-    params[:ends_at]   = @event.starts_at
-    params[:body]      = "Set-up for \"#{@event.body}\""
-    if @eventcategory
-      params[:eventcategory] = @eventcategory
-    end
+    params[:starts_at]     = @event.starts_at - @before_duration.minutes
+    params[:ends_at]       = @event.starts_at
+    params[:body]          = @before_title
+    params[:eventcategory] = @eventcategory if @eventcategory
+    params[:organiser]     = @organiser if @organiser
     params
   end
 
   def after_params
     params = {}
-    params[:starts_at] = @event.ends_at
-    params[:ends_at]   = @event.ends_at + @after_duration.minutes
-    params[:body]      = "Clear-up for \"#{@event.body}\""
-    if @eventcategory
-      params[:eventcategory] = @eventcategory
-    end
+    params[:starts_at]     = @event.ends_at
+    params[:ends_at]       = @event.ends_at + @after_duration.minutes
+    params[:body]          = @after_title
+    params[:eventcategory] = @eventcategory if @eventcategory
+    params[:organiser]     = @organiser if @organiser
     params
   end
 end
