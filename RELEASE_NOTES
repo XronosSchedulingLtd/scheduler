@@ -1,3 +1,83 @@
+v0.29    2018-03-15
+
+* Add the ability to wrap events.
+
+  It is sometimes necessary to put additional time round an event to
+  allow for setting up and clearing away.  This is not part of the actual
+  event (as would be listed for instance in a public calendar), but is
+  necessary behind the scenes.
+
+  It has always been possible to put in extra events for this purpose,
+  but this release adds a new feature to speed the process.  Anyone with
+  (at least) permission to sub-edit an event will find an extra link on
+  the "Show event" dialogue - "Wrap".
+
+  Clicking this link will produce a fresh dialogue offering the means to
+  create two new events - one before and one after.  The new events will
+  have descriptive names derived from the original event, and default
+  durations which can be set in the system configuration.  Each of
+  these can be adjusted and the events can be turned on and off individually.
+
+  The user will also be presented with a list of the resources attached
+  to the original event, with tick-boxes to select which should be
+  attached also to the wrapping events.  By default, staff and locations
+  are carried over, but properties, services, pupils and groups are not.
+
+  Having made appropriate choices, the events are created when the
+  user clicks the "Create" button.  Clicking the "Cancel" button will restore
+  the previous dialogue.
+
+* Correct processing of approval of cloned events.
+
+  The new facility above makes use of cloning code which was already in
+  the system.  In the course of development, it was noticed that the
+  existing way of bringing over approvals wasn't quite right.  The
+  code simply assumed that any approval previously granted would be
+  needed again on the cloned event.
+
+  This isn't quite right, because it might not be the same person doing
+  the cloning as the one who originally created the event.  If the
+  person doing the cloning is an administrator of a resource then
+  permission is not needed, even though the original creator might
+  have needed it.  Likewise, if the original event was created by someone
+  who didn't need permission, then the code would assume the clone
+  didn't need permission either.
+
+  The cloning code now goes through the full evaluation of whether
+  permission is needed or not - relative to the user doing the cloning.
+
+* Send immediate e-mails where configured.
+
+  Likewise, the cloning code did not send immediate e-mails about
+  resource requests to administrators who had asked for them.  It now
+  does.
+
+* Add new journal entry type.
+
+  Cloning an event has always been included in the event's journal.
+  This release adds a new journal entry type, identifying events which
+  have been created as part of the wrapping process.
+
+* New system settings.
+
+  To support the wrapping process, three new fields have been added
+  to the system settings.
+
+    Default set-up duration
+    Default clear-up duration
+    Default eventcategory for wrapping events
+
+* Improved immediate resource request e-mails.
+
+  The e-mails which are sent to resource administrators who have
+  requested immediate e-mail notification (rather than using Scheduler's
+  own interface) have been improved with more information about
+  the event.
+
+  A button has also been added to the HTML version of the e-mail
+  allowing direct navigation to the appropriate approvals page.
+
+
 v0.28.12 2018-03-08
 
 * Adds quick-add buttons
