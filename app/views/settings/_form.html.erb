@@ -180,6 +180,41 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= f.label :wrapping_before_mins, "Default set-up time (mins)", class: "right inline" %>
+    </div>
+    <div class="small-3 columns">
+      <%= f.number_field :wrapping_before_mins %>
+    </div>
+    <div class="small-6 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :wrapping_after_mins, "Default clear-up time (mins)", class: "right inline" %>
+    </div>
+    <div class="small-3 columns">
+      <%= f.number_field :wrapping_after_mins %>
+    </div>
+    <div class="small-6 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :wrapping_eventcategory_name, "Event category for set-up", class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.autocomplete_field :wrapping_eventcategory_name,
+                               autocomplete_eventcategory_name_eventcategories_path,
+                               :id_element => '#setting_wrapping_eventcategory_id',
+                               :placeholder => "Event category for set-up events",
+                               "data-auto-focus" => true %>
+      <%= f.text_field :wrapping_eventcategory_id, :type => :hidden %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       &nbsp;
     </div>
     <div class="small-6 columns">

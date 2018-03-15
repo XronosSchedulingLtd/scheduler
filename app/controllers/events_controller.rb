@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -317,13 +317,27 @@ class EventsController < ApplicationController
     #  Admin can edit anything.  Other editors can only edit their
     #  own events.
     #
+    #  The three different options for a response here can get a
+    #  bit confusing.
+    #
+    #  In order:
+    #
+    #  HTML and request.xhr?
+    #  Dialogue box opening to edit (not currently used)
+    #
+    #  HTML and !request.xhr?
+    #  Full page edit.  Not publicised, but works.
+    #
+    #  JS
+    #  Starting an edit in an already open dialogue box.  The edit
+    #  form replaces the current contents in the dialogue.
+    #
     if current_user.can_subedit?(@event)
       @resourcewarning = false
       @quick_buttons = QuickButtons.new(@event)
-#        current_user.warn_no_resources && @event.resourceless?
       respond_to do |format|
         format.html do
-          if request.xml_http_request?
+          if request.xhr?
             @minimal = true
             render :layout => false
           else
@@ -361,14 +375,11 @@ class EventsController < ApplicationController
         #  Does this user have any Concerns with the auto_add flag set?
         #
         current_user.concerns.auto_add.each do |concern|
-          c = @event.commitments.new
-          if current_user.needs_permission_for?(concern.element)
-            c.status = :requested
-          else
-            c.status = :uncontrolled
+          c = @event.commitments.create({
+            element: concern.element
+          }) do |c|
+            set_appropriate_approval_status(c)
           end
-          c.element = concern.element
-          c.save
           if session[:request_notifier]
             session[:request_notifier].commitment_added(c)
           end
@@ -396,14 +407,11 @@ class EventsController < ApplicationController
               #  Guard against double commitment.
               #
               unless current_user.concerns.auto_add.detect {|c| c.element == element}
-                c = @event.commitments.new
-                if current_user.needs_permission_for?(element)
-                  c.status = :requested
-                else
-                  c.status = :uncontrolled
+                c = @event.commitments.create({
+                  element: element
+                }) do |c|
+                  set_appropriate_approval_status(c)
                 end
-                c.element = element
-                c.save
                 if session[:request_notifier]
                   session[:request_notifier].commitment_added(c)
                 end
@@ -523,10 +531,22 @@ class EventsController < ApplicationController
     #
     #  We enter this method with @event giving the event to be cloned.
     #
+    request_notifier = RequestNotifier.new
     @event =
       @event.clone_and_save(
         owner:       current_user,
-        eventsource: Eventsource.find_by(name: "Manual"))
+        eventsource: Eventsource.find_by(name: "Manual")) do |item|
+          #
+          #  For now we expect only commitments to be passed back for
+          #  adjustment, but we may want to extend this in the future.
+          #
+          if item.instance_of?(Commitment)
+            Rails.logger.debug("Adjusting commitment to #{item.element.name}")
+            set_appropriate_approval_status(item)
+            request_notifier.commitment_added(item)
+          end
+        end
+    request_notifier.send_notifications_for(current_user, @event)
     #
     #  And throw the user straight into editing it.
     #

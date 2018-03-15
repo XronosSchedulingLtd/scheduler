@@ -115,4 +115,27 @@ class ApplicationController < ActionController::Base
     current_user && current_user.can_view_forms?
   end
 
+  #
+  #  To calculate the appropriate permissions status for a new
+  #  commitment being created by the current user.
+  #
+  def set_appropriate_approval_status(commitment)
+    #
+    #  It's just possible that we will be passed nil for the element
+    #  (if someone is trying to create a gash commitment).  Rather
+    #  than raising an exception, return uncontrolled.
+    #
+    #  The saving of the commitment will fail due to the
+    #  lack of an element.
+    #
+    if commitment.element
+      if current_user.needs_permission_for?(commitment.element)
+        commitment.status = :requested
+      else
+        commitment.status = :uncontrolled
+      end
+    else
+      commitment.status = :uncontrolled
+    end
+  end
 end

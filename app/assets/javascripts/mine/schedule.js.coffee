@@ -521,3 +521,7 @@ window.closeModal = (full_reload, just_events, filter_state) ->
 window.refreshNeeded = ->
   $('.flag-refreshes').data("dorefresh", "1")
 
+window.beginWrapping = (contents) ->
+  $('#events-dialogue').html(contents)
+  primeCloser()
+

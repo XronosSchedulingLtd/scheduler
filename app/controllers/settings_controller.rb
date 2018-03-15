@@ -54,6 +54,10 @@ class SettingsController < ApplicationController
                     :require_uuid,
                     :room_cover_group_element_name,
                     :room_cover_group_element_id,
-                    :event_creation_markup)
+                    :event_creation_markup,
+                    :wrapping_before_mins,
+                    :wrapping_after_mins,
+                    :wrapping_eventcategory_name,
+                    :wrapping_eventcategory_id)
     end
 end

@@ -103,6 +103,7 @@ class Event < ActiveRecord::Base
   has_many :covering_commitments, -> { where("covering_id IS NOT NULL") }, class_name: "Commitment"
   has_many :non_covering_commitments, -> { where("covering_id IS NULL") }, class_name: "Commitment"
   has_many :elements, :through => :firm_commitments
+  has_many :elements_even_tentative, through: :commitments, source: :element
   #
   #  This next one took a bit of crafting.  It is used to optimize
   #  fetching the directly associated staff elements on events when
@@ -1177,8 +1178,16 @@ class Event < ActiveRecord::Base
   #  Note that because we want to add commitments to this event during
   #  the cloning process, we have to save it to the database.
   #
-  def clone_and_save(modifiers)
+  #  We can if we wish restrict the elements which are brought across
+  #  by passing an element_id_list.  Without that, we bring over
+  #  all the ones which are there.
+  #
+  #  If passed a block, then we will pass back each proposed new
+  #  commitment in term for any necessary adjustment.
+  #
+  def clone_and_save(modifiers, element_id_list = nil, more = :cloned)
     new_self = self.dup
+    new_self.has_clashes = false
     #
     #  Any modifiers to apply?
     #
@@ -1186,7 +1195,7 @@ class Event < ActiveRecord::Base
       new_self.send("#{key}=", value)
     end
     new_self.save!
-    new_self.journal_event_created(modifiers[:owner], true)
+    new_self.journal_event_created(modifiers[:owner], more)
     #
     #  Commitments don't get copied by dup.
     #
@@ -1194,8 +1203,14 @@ class Event < ActiveRecord::Base
       #
       #  And we don't want to clone cover commitments.
       #
-      unless commitment.covering
-        c = commitment.clone_and_save(event: new_self)
+      unless (element_id_list &&
+              !element_id_list.include?(commitment.element_id)) ||
+             commitment.covering
+        c = commitment.clone_and_save(event: new_self) do |c|
+          if block_given?
+            yield c
+          end
+        end
         new_self.journal_commitment_added(c, modifiers[:owner])
       end
     end
@@ -1322,14 +1337,14 @@ class Event < ActiveRecord::Base
     end
   end
 
-  def journal_event_created(by_user, cloned = false)
+  def journal_event_created(by_user, more = nil)
     #
     #  Since we are meant to be called just after the creation of
     #  the event, the journal should not already exist, but just
     #  to be safe, and for consistency...
     #
     ensure_journal
-    self.journal.event_created(by_user, cloned)
+    self.journal.event_created(by_user, more)
   end
 
   def journal_event_updated(by_user)
