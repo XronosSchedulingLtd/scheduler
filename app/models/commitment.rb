@@ -204,10 +204,13 @@ class Commitment < ActiveRecord::Base
       new_self.send("#{key}=", value)
     end
     #
-    #  Existing approvals don't get carried over.
+    #  Give the calling code the chance to make further adjustments.
     #
-    if new_self.confirmed?
-      new_self.status = :requested
+    #  In particular, the approvals status will almost certainly need
+    #  adjustment.
+    #
+    if block_given?
+      yield new_self
     end
     new_self.save!
     new_self

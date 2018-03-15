@@ -36,11 +36,19 @@ class Journal < ActiveRecord::Base
     self
   end
 
-  def event_created(by_user, cloned)
+  def event_created(by_user, more = nil)
+    case more
+    when :cloned
+      entry_type = :clone_created
+    when :wrapped
+      entry_type = :wrapper_created
+    else
+      entry_type = :event_created
+    end
     self.journal_entries.create({
       event:      self.event,
       user:       by_user,
-      entry_type: cloned ? :clone_created : :event_created,
+      entry_type: entry_type,
       details:    "\"#{
                       self.event_body
                     }\"\n#{

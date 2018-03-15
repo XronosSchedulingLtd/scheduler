@@ -1,0 +1,84 @@
+<h2>Wrapping event</h2>
+<div id="event-wrapping-upper">
+  <div id="for_errors">
+    <% if @event_wrapper.errors.any? %>
+      <%= render "error_msgs" %>
+    <% end %>
+  </div>
+
+  <div class="row">
+    <div class="small-12 columns">
+      <p>Event:
+      "<%= @event_wrapper.event.body %>",
+      starting
+      <%= @event_wrapper.event.starts_at_text %>,
+      for
+      <%= @event_wrapper.event.duration_text %></p>
+      <p>This dialogue allows the creation of events before and after
+      the indicated event to provide time for setting up and clearing
+      away.</p>
+    </div>
+    <hr/>
+<%= form_for(@event_wrapper, remote: @minimal) do |f| %>
+    <div class="small-6 columns">
+      <div class="row">
+        <div class="small-4 columns">
+          <label>Set-up time</label>
+          <%= f.check_box :wrap_before %>
+        </div>
+        <div class="small-8 columns">
+          <label>Duration (mins)</label>
+          <%= f.number_field :before_duration, class: 'compressed' %>
+        </div>
+      </div>
+      <div class="row">
+        <div class="small-12 columns">
+          <label>Description</label>
+          <%= f.text_field :before_title, class: 'compressed' %>
+        </div>
+      </div>
+    </div>
+    <div class="small-6 columns">
+      <div class="row">
+        <div class="small-4 columns">
+          <label>Clear-up time</label>
+          <%= f.check_box :wrap_after %>
+        </div>
+        <div class="small-8 columns">
+          <label>Duration (mins)</label>
+          <%= f.number_field :after_duration, class: 'compressed' %>
+        </div>
+      </div>
+      <div class="row">
+        <div class="small-12 columns">
+          <label>Description</label>
+          <%= f.text_field :after_title, class: 'compressed' %>
+        </div>
+      </div>
+    </div>
+    <div class="small-12 columns">
+      <label>Organiser</label>
+      <%= f.autocomplete_field :organiser_name,
+                               autocomplete_staff_element_name_elements_path,
+                               :id_element => '#event_wrapper_organiser_id',
+                               :append_to => '#eventModal',
+                               :placeholder => "Name of organiser (optional)",
+                               "data-auto-focus" => true %>
+        <%= f.text_field :organiser_id, :type => :hidden %>
+    </div>
+    <hr/>
+    <div class="small-12 columns">
+      <h4>Resources to include</h4>
+      <ul class='wrapping-resource-list'>
+        <%= f.collection_check_boxes(:enabled_ids, @event_wrapper.resources, :element_id, :name) do |b| %>
+          <li><%= b.check_box + b.label %></li>
+        <% end %>
+      </ul>
+    </div>
+    <div class="small-12 columns">
+      <%= f.submit "Create", class: "zfbutton tiny radius" %>
+      <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => "zfbutton tiny radius" %>
+    </div>
+<% end %>
+  </div>
+</div>

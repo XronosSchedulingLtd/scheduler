@@ -154,6 +154,7 @@ Rails.application.routes.draw do
   resources :events do
     resources :notes, shallow: true
     resources :requests
+    resources :wrappers, only: [:new, :create]
     member do
       get :shownotes
       get :canceledit
@@ -173,7 +174,9 @@ Rails.application.routes.draw do
 
   resources :eventsources
 
-  resources :eventcategories
+  resources :eventcategories do
+    get :autocomplete_eventcategory_name, :on => :collection
+  end
 
   resources :interests
 

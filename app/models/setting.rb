@@ -15,6 +15,7 @@ class Setting < ActiveRecord::Base
   belongs_to :previous_era, class_name: :Era
   belongs_to :perpetual_era, class_name: :Era
   belongs_to :room_cover_group_element, class_name: :Element
+  belongs_to :wrapping_eventcategory, class_name: :Eventcategory
 
   before_save :update_html
   after_save :flush_cache
@@ -55,6 +56,14 @@ class Setting < ActiveRecord::Base
     #
     #  Do nothing with it.
     #
+  end
+
+  def wrapping_eventcategory_name
+    wrapping_eventcategory ? wrapping_eventcategory.name : ""
+  end
+
+  def wrapping_eventcategory_name=(newname)
+    # Ignore
   end
 
   def self.current_era
@@ -201,6 +210,34 @@ class Setting < ActiveRecord::Base
     end
     @@rr_versions
   end
+
+  def self.wrapping_before_mins
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.wrapping_before_mins
+    else
+      60
+    end
+  end
+
+  def self.wrapping_after_mins
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.wrapping_after_mins
+    else
+      30
+    end
+  end
+
+  def self.wrapping_eventcategory
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.wrapping_eventcategory
+    else
+      nil
+    end
+  end
+
   #
   #  End-of-year processing.  Move us on into the next era.
   #
