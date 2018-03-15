@@ -531,6 +531,7 @@ class EventsController < ApplicationController
     #
     #  We enter this method with @event giving the event to be cloned.
     #
+    request_notifier = RequestNotifier.new
     @event =
       @event.clone_and_save(
         owner:       current_user,
@@ -542,8 +543,10 @@ class EventsController < ApplicationController
           if item.instance_of?(Commitment)
             Rails.logger.debug("Adjusting commitment to #{item.element.name}")
             set_appropriate_approval_status(item)
+            request_notifier.commitment_added(item)
           end
         end
+    request_notifier.send_notifications_for(current_user, @event)
     #
     #  And throw the user straight into editing it.
     #
