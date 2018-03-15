@@ -48,7 +48,12 @@
                all                       Restrict the event to happening on
                                          that/those days within a month.
                                          First Wednesday, last Tuesday etc.
-  
+   organiser:  JHW                       Initials of the staff member to
+                                         be recorded as the organiser.
+   note:       "This is a note\nattached to an event."
+                                         Text string to be included in
+                                         a note attached to the event.
+
    All the above will give you just one recurring event.  You can specify
    more than one by putting them in a YAML array, like this.
   
