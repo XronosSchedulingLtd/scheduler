@@ -1,3 +1,16 @@
+v0.29.2  2018-03-15
+
+* Really stupid reason for a release - to change the version
+  number.
+
+  In preparing the previous release, I failed to commit the
+  updated version number file to the release, resulting in
+  it still being the old one.  Because the release has been
+  pushed out, I need to do a fresh release just correct the
+  version number, but of course that then means I need to update
+  the version number again!
+
+
 v0.29.1  2018-03-15
 
 No changes to the Scheduler core code, but...
