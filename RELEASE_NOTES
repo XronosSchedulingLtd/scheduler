@@ -1,3 +1,11 @@
+v0.29.1  2018-03-15
+
+No changes to the Scheduler core code, but...
+
+* Allow notes and organisers to be specified on events loaded through
+  the YAML recurring events mechanism.
+
+
 v0.29    2018-03-15
 
 * Add the ability to wrap events.
