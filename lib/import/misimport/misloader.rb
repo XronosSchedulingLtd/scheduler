@@ -1101,13 +1101,22 @@ class MIS_Loader
           #  at the end.
           #
           existing_events = existing_events - [existing_event]
+          save_needed = false
           #
           #  Check its greyed-ness is right.
           #
           if existing_event.non_existent != event.greyed
             existing_event.non_existent = event.greyed
-            existing_event.save!
+            save_needed = true
           end
+          #
+          #  And organiser?
+          #
+          if existing_event.organiser != event.organiser_element
+            existing_event.organiser = event.organiser_element
+            save_needed = true
+          end
+          existing_event.save! if save_needed
         else
           #
           #  Event needs creating in the database.
@@ -1119,6 +1128,7 @@ class MIS_Loader
           existing_event.starts_at     = starts_at
           existing_event.ends_at       = ends_at
           existing_event.non_existent  = event.greyed
+          existing_event.organiser     = event.organiser_element
           existing_event.save!
           existing_event.reload
           events_added_count += 1
@@ -1144,6 +1154,46 @@ class MIS_Loader
               c.destroy
               resources_removed_count += 1
             end
+          end
+        end
+        #
+        #  And what about notes, if any?
+        #  It is possible that someone else has attached a note to
+        #  one of our events.  Leave those alone.
+        #
+        existing_note = existing_event.notes.where(owner: nil).take
+        new_note = event.note
+        #
+        #  These are different kinds of things, but they both use
+        #  nil to indicate that they don't exist.
+        #
+        if existing_note
+          if new_note
+            #
+            #  Just need to make sure the text is the same.
+            #
+            unless existing_note.contents == new_note
+              existing_note.contents = new_note
+              existing_note.save!
+            end
+          else
+            #
+            #  Get rid of the existing note.
+            #
+            existing_note.destroy
+          end
+        else
+          if new_note
+            #
+            #  Create a note with this text.
+            #
+            existing_event.notes.create!({
+              contents: new_note
+            })
+          else
+            #
+            #  Neither exists - nothing to do.
+            #
           end
         end
       end

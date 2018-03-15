@@ -17,7 +17,9 @@ class RecurringEvent
     "end_date",
     "week",
     "greyed",
-    "occurrence"
+    "occurrence",
+    "note",
+    "organiser"
   ]
 
   KNOWN_OCCURRENCES = [
@@ -45,7 +47,9 @@ class RecurringEvent
                   :end_date,
                   :week,
                   :greyed,
-                  :occurrence
+                  :occurrence,
+                  :note,
+                  :organiser
     #
     #  These can be specified more than once.
     #
@@ -56,6 +60,11 @@ class RecurringEvent
                   :properties,
                   :eventcategory,
                   :resource_ids
+
+    #
+    #  This is a calculated one.
+    #
+    attr_reader   :organiser_element
 
     def initialize
       @staff       = Array.new
@@ -253,6 +262,15 @@ class RecurringEvent
           @resource_ids << rec.element.id
         else
           puts "Can't find property #{p} for #{@title}."
+          success = false
+        end
+      end
+      if @organiser
+        staff = Staff.current.find_by(initials: @organiser)
+        if staff
+          @organiser_element = staff.element
+        else
+          puts "Can't find staff record #{s} as organiser for #{@title}."
           success = false
         end
       end
