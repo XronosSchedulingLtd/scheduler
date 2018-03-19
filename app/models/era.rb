@@ -6,6 +6,7 @@
 class Era < ActiveRecord::Base
 
   has_many :groups, dependent: :destroy
+  has_many :event_collections, dependent: :destroy
   has_one  :setting,
            :foreign_key => :current_era_id,
            :dependent => :nullify

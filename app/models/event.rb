@@ -96,6 +96,7 @@ class Event < ActiveRecord::Base
 
   belongs_to :eventcategory
   belongs_to :eventsource
+  belongs_to :event_collection
   has_many :commitments, :dependent => :destroy
   has_many :requests, :dependent => :destroy
   has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"

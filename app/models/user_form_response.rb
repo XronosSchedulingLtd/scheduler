@@ -78,6 +78,33 @@ class UserFormResponse < ActiveRecord::Base
   #  Note that this method expects a symbol.  The underlying Rails
   #  method expects an integer.
   #
+  #  Note to self - I think this method is completely redundant.  It's
+  #  here because I copied what was done in the Commitment model, but
+  #  there the method is doing an extra bit of work.  Here it isn't.
+  #
+  #  The reality is that if you do:
+  #
+  #  object.status = 
+  #
+  #  then you can pass the symbol as you would expect.
+  #
+  #  object.status = :complete
+  #
+  #  It's only if you use
+  #
+  #  object[:status] =
+  #
+  #  that you have to make it an integer.
+  #
+  #  If you write your own custom "def status=(value)" method on
+  #  the object (as is done in the Commitment model in order to
+  #  implement some side effects) then you need to do the conversion
+  #  from symbol to integer before finally saving it.  If OTOH you
+  #  don't write this method at all, then symbols work fine.
+  #
+  #  In other words, if this method were deleted from here, I think
+  #  it would all work just as before.
+  #
   def status=(new_status)
     self[:status] = UserFormResponse.statuses[new_status]
   end

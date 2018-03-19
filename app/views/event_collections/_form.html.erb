@@ -1,0 +1,41 @@
+<h2>Repeating event</h2>
+<div id="event-wrapping-upper">
+  <div id="for_errors">
+    <% if @event_collection.errors.any? %>
+      <%= render "error_msgs" %>
+    <% end %>
+  </div>
+
+  <div class="row">
+    <div class="small-12 columns">
+      <p>Event:
+      "<%= @event.body %>",
+      starting
+      <%= @event.starts_at_text %>,
+      for
+      <%= @event.duration_text %></p>
+    </div>
+    <hr/>
+<%= form_for([@event, @event_collection], remote: @minimal) do |f| %>
+    <%= f.hidden_field :era_id %>
+    <div class="small-6 columns">
+      <label>Repetition start date</label>
+      <%= f.date_field :repetition_start_date %>
+    </div>
+    <div class="small-6 columns">
+      <label>Repetition end date</label>
+      <%= f.date_field :repetition_end_date %>
+    </div>
+    <div class="small-12 columns">
+      <label>Days of the week</label>
+      <%= f.collection_check_boxes(:enabled_days, @event_collection.days_of_week, :symbol, :name) %>
+      </ul>
+    </div>
+    <hr/>
+    <div class="small-12 columns">
+      <%= f.submit "Create", class: "zfbutton tiny radius" %>
+      <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => "zfbutton tiny radius" %>
+    </div>
+<% end %>
+  </div>
+</div>
