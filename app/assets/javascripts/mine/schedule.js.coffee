@@ -523,5 +523,6 @@ window.refreshNeeded = ->
 
 window.beginWrapping = (contents) ->
   $('#events-dialogue').html(contents)
+  $('.datepicker').datepicker( { dateFormat: "dd/mm/yy", stepMinute: 5 })
   primeCloser()
 

@@ -21,6 +21,7 @@ class EventCollectionsController < ApplicationController
         pre_select:             @event.starts_at.to_date.wday,
         weeks:                  ["A", "B"]
       })
+      @action_button_text = "Create"
       respond_to do |format|
         format.html do
           if request.xhr?
@@ -54,6 +55,48 @@ class EventCollectionsController < ApplicationController
           @minimal = true
           render :new
         end
+      end
+    end
+  end
+
+  def edit
+    if current_user.can_subedit?(@event) &&
+      @event.event_collection
+      @event_collection = @event.event_collection
+      @action_button_text = "Update"
+      respond_to do |format|
+        format.html do
+          if request.xhr?
+            @minimal = true
+            render :layout => false
+          else
+            @minimal = false
+            render
+          end
+        end
+        format.js do
+          @minimal = true
+          render
+        end
+      end
+
+    else
+      respond_to do |format|
+        format.html { redirect_to root_path }
+        format.js { render 'not_permitted' }
+      end
+    end
+  end
+
+  def update
+    if current_user.can_subedit?(@event)
+      @event_collection = EventCollection.find(params[:id])
+      if @event_collection.update(event_collection_params)
+      end
+    else
+      respond_to do |format|
+        format.html { redirect_to root_path }
+        format.js { render 'not_permitted' }
       end
     end
   end

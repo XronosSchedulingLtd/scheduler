@@ -67,7 +67,7 @@
             <%=
               if @event.event_collection
                 link_to "Repeat",
-                  edit_event_event_collection_path([@event, @event.event_collection]),
+                  edit_event_event_collection_path(@event, @event.event_collection),
                   remote: @minimal
               else
                 link_to "Repeat",

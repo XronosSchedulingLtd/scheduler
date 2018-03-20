@@ -3,14 +3,14 @@ module EventCollectionsHelper
   MonthOption = Struct.new(:key, :text)
   MonthOptions = [
     MonthOption.new(:every_time,           "All"),
-    MonthOption.new(:first_time,           "First occurrence"),
-    MonthOption.new(:second_time,          "Second occurrence"),
-    MonthOption.new(:third_time,           "Third occurrence"),
-    MonthOption.new(:fourth_time,          "Forth occurrence"),
-    MonthOption.new(:fifth_time,           "Fifth occurrence"),
-    MonthOption.new(:last_time,            "Last occurrence"),
-    MonthOption.new(:penultimate_time,     "Penultimate occurrence"),
-    MonthOption.new(:antepenultimate_time, "Ante-penultimate occurrence")
+    MonthOption.new(:first_time,           "First"),
+    MonthOption.new(:second_time,          "Second"),
+    MonthOption.new(:third_time,           "Third"),
+    MonthOption.new(:fourth_time,          "Forth"),
+    MonthOption.new(:fifth_time,           "Fifth"),
+    MonthOption.new(:last_time,            "Last"),
+    MonthOption.new(:penultimate_time,     "Penultimate"),
+    MonthOption.new(:antepenultimate_time, "Ante-penultimate")
   ]
   
   #
