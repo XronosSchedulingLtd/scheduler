@@ -1,82 +1,23 @@
 class EventCollection < ActiveRecord::Base
-  class DaysOfWeek < Array
-    class DayOfWeek
-      attr_accessor :enabled, :symbol
 
-      def initialize(symbol, ordinal, enabled)
-        @symbol  = symbol
-        @ordinal = ordinal
-        @enabled = enabled
-      end
+  class DaynameWithIndex
+    attr_reader :name, :index
 
-      def name
-        @symbol.to_s.capitalize
-      end
+    def initialize(name, index)
+      @name = name
+      @index = index
     end
 
-    def initialize(make_enabled = nil)
-      super()
-      self << DayOfWeek.new(:sun, 0, false)
-      self << DayOfWeek.new(:mon, 1, false)
-      self << DayOfWeek.new(:tue, 2, false)
-      self << DayOfWeek.new(:wed, 3, false)
-      self << DayOfWeek.new(:thu, 4, false)
-      self << DayOfWeek.new(:fri, 5, false)
-      self << DayOfWeek.new(:sat, 6, false)
-      @by_sym = Hash.new
-      self.each do |dow|
-        @by_sym[dow.symbol] = dow
-      end
-      if make_enabled
-        #
-        #  Can be either one symbol, or an array.
-        #
-        if make_enabled.respond_to?(:each)
-          make_enabled.each do |sym|
-            self.turn_on(sym)
-          end
-        else
-          self.turn_on(make_enabled)
-        end
-      end
+  end
+
+  class WeekWithKey
+    attr_reader :label, :key
+
+    def initialize(label, key)
+      @label = label
+      @key = key
     end
 
-    def by_sym(symbol)
-      @by_sym[symbol]
-    end
-
-    def turn_on(symbol)
-      entry = @by_sym[symbol]
-      if entry
-        entry.enabled = true
-      end
-    end
-
-    def turn_off(symbol)
-      entry = @by_sym[symbol]
-      if entry
-        entry.enabled = false
-      end
-    end
-
-    #
-    #  Return an array of the days currently turned on.
-    #
-    def enabled_days
-      self.select {|d| d.enabled}.collect {|d| d.symbol}
-    end
-
-    #
-    #  We expect a list of strings, the last one being a blank.
-    #
-    def enabled_days=(list)
-      self.each do |d|
-        d.enabled = false
-      end
-      list.each do |le|
-        turn_on(le.to_sym)
-      end
-    end
   end
 
   belongs_to :era
@@ -102,17 +43,88 @@ class EventCollection < ActiveRecord::Base
     :antepenultimate_time
   ]
 
-  serialize :days_of_week, DaysOfWeek
+  #
+  #  Days of week is an array of integers - 0 to 7
+  #
+  serialize :days_of_week
+  #
+  #  Weeks is an array of single character strings - "A", "B", " "
+  #
+  serialize :weeks
 
-  after_initialize :set_up_days_of_week
+  after_initialize :set_up_days_and_weeks
 
-  delegate :enabled_days, :enabled_days=, to: :days_of_week
+  attr_reader :daynames_with_index, :weeks_with_keys
+
+  #
+  #  This will be passed an array of strings, but we want values.
+  #  The last string is always empty.
+  #
+  def days_of_week=(strings)
+    self[:days_of_week] = []
+    strings.each do |string|
+      unless string.empty?
+        value = string.to_i
+        enable_day(value)
+      end
+    end
+  end
+
+  def weeks=(strings)
+    self[:weeks] = []
+    strings.each do |string|
+      unless string.empty?
+        self.weeks << string
+      end
+    end
+  end
+
+  def enable_day(value)
+    if value >=0 && value < Date::ABBR_DAYNAMES.size
+      Rails.logger.debug("days_of_week = #{self.days_of_week.inspect}")
+      Rails.logger.debug("value = #{value} (#{value.class})")
+      unless self.days_of_week.include?(value)
+        self.days_of_week << value
+      end
+    end
+  end
+
+  def pre_select=(value)
+    unless self.days_of_week
+      self[:days_of_week] = []
+    end
+    enable_day(value)
+  end
 
   private
 
-  def set_up_days_of_week
+  #
+  #  Days of week should be an array of integers.
+  #  Note that this method is called only *after* any values which
+  #  were passed into the EventCollection.new have been assigned
+  #  to their variables.  We therefore need to make sure that all
+  #  which is necessary for assignment is already there.
+  #
+  #  The default value in the database for days_of_week is nil,
+  #  but it may already have been set up by an assignment.  We
+  #  set it up only if it hasn't been.
+  #
+  def set_up_days_and_weeks
+    @daynames_with_index = []
+    Date::ABBR_DAYNAMES.each_with_index do |dn, i|
+      @daynames_with_index << DaynameWithIndex.new(dn, i)
+    end
+    @weeks_with_keys = [
+      WeekWithKey.new("Week A", "A"),
+      WeekWithKey.new("Week B", "B"),
+      WeekWithKey.new("Holiday weeks", " ")
+    ]
+
     unless self.days_of_week
-      @days_of_week = DaysOfWeek.new
+      self[:days_of_week] = []
+    end
+    unless self.weeks
+      self[:weeks] = []
     end
   end
 end

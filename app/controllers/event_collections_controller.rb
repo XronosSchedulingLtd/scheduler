@@ -17,7 +17,9 @@ class EventCollectionsController < ApplicationController
       @event_collection = EventCollection.new({
         era:                    Setting.current_era,
         repetition_start_date:  @event.starts_at.to_date,
-        repetition_end_date:    Setting.current_era.ends_on
+        repetition_end_date:    Setting.current_era.ends_on,
+        pre_select:             @event.starts_at.to_date.wday,
+        weeks:                  ["A", "B"]
       })
       respond_to do |format|
         format.html do
@@ -72,8 +74,8 @@ class EventCollectionsController < ApplicationController
            permit(:era_id,
                   :repetition_start_date,
                   :repetition_end_date,
-                  :weeks,
                   :when_in_month,
-                  enabled_days: [])
+                  weeks: [],
+                  days_of_week: [])
   end
 end

@@ -28,9 +28,28 @@
     </div>
     <div class="small-12 columns">
       <label>Days of the week</label>
-      <%= f.collection_check_boxes(:enabled_days, @event_collection.days_of_week, :symbol, :name) %>
+      <%= f.collection_check_boxes(:days_of_week,
+                                   @event_collection.daynames_with_index,
+                                   :index,
+                                   :name) %>
       </ul>
     </div>
+    <div class="small-12 columns">
+      <label>Which weeks</label>
+      <%= f.collection_check_boxes(:weeks,
+                                   @event_collection.weeks_with_keys,
+                                   :key,
+                                   :label) %>
+      </ul>
+    </div>
+    <div class="small-12 columns">
+      <label>Occurences in month</label>
+      <%=
+        f.collection_select(:when_in_month,
+                            when_in_month_options,
+                            :key,
+                            :text)
+      %>
     <hr/>
     <div class="small-12 columns">
       <%= f.submit "Create", class: "zfbutton tiny radius" %>

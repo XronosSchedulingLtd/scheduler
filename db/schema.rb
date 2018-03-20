@@ -128,9 +128,9 @@ ActiveRecord::Schema.define(version: 20180316122224) do
     t.integer  "era_id",                limit: 4
     t.date     "repetition_start_date"
     t.date     "repetition_end_date"
-    t.text     "days_of_week",          limit: 65535
-    t.string   "weeks",                 limit: 255,   default: "AB"
-    t.integer  "when_in_month",         limit: 4,     default: 0
+    t.string   "days_of_week",          limit: 255
+    t.string   "weeks",                 limit: 255
+    t.integer  "when_in_month",         limit: 4,   default: 0
     t.datetime "created_at"
     t.datetime "updated_at"
   end
