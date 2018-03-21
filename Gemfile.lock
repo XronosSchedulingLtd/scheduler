@@ -68,7 +68,7 @@ GEM
       sass (>= 3.2.0, < 3.4)
     globalid (0.4.1)
       activesupport (>= 4.2.0)
-    hashie (2.1.2)
+    hashie (3.5.7)
     i18n (0.9.1)
       concurrent-ruby (~> 1.0)
     jbuilder (2.0.6)
@@ -103,9 +103,9 @@ GEM
       multi_json (~> 1.3)
       multi_xml (~> 0.5)
       rack (~> 1.2)
-    omniauth (1.2.1)
-      hashie (>= 1.2, < 3)
-      rack (~> 1.0)
+    omniauth (1.3.2)
+      hashie (>= 1.2, < 4)
+      rack (>= 1.0, < 3)
     omniauth-google-oauth2 (0.2.4)
       omniauth (~> 1.0)
       omniauth-oauth2 (~> 1.1)
@@ -116,7 +116,7 @@ GEM
       omniauth (~> 1.2)
     quiet_assets (1.1.0)
       railties (>= 3.1, < 5.0)
-    rack (1.6.8)
+    rack (1.6.9)
     rack-test (0.6.3)
       rack (>= 1.0)
     rails (4.2.10)
@@ -206,6 +206,7 @@ DEPENDENCIES
   jquery-ui-rails
   mysql2
   nokogiri
+  omniauth (~> 1.3.2)
   omniauth-google-oauth2
   quiet_assets
   rails (= 4.2.10)
@@ -226,4 +227,4 @@ DEPENDENCIES
   will_paginate (~> 3.0)
 
 BUNDLED WITH
-   1.16.0
+   1.16.1
