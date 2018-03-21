@@ -1,3 +1,13 @@
+v0.29.5  2018-03-21
+
+* Upgrade omniauth to version 1.8.1
+
+  On doing final testing of the previous release after packaging it,
+  it became apparent that although omniauth was working fine, it
+  produced a warning message on the console.  Upgraded to the latest
+  version to get rid of this.
+
+
 v0.29.4  2018-03-21
 
 No changes to the Scheduler software itself but...
