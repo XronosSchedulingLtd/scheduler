@@ -149,7 +149,7 @@ class EventCollection < ActiveRecord::Base
     @weeks_with_keys = [
       WeekWithKey.new("Week A", "A"),
       WeekWithKey.new("Week B", "B"),
-      WeekWithKey.new("Holiday weeks", " ")
+      WeekWithKey.new("Holidays", " ")
     ]
 
     unless self.days_of_week
