@@ -103,9 +103,9 @@ GEM
       multi_json (~> 1.3)
       multi_xml (~> 0.5)
       rack (~> 1.2)
-    omniauth (1.3.2)
-      hashie (>= 1.2, < 4)
-      rack (>= 1.0, < 3)
+    omniauth (1.8.1)
+      hashie (>= 3.4.6, < 3.6.0)
+      rack (>= 1.6.2, < 3)
     omniauth-google-oauth2 (0.2.4)
       omniauth (~> 1.0)
       omniauth-oauth2 (~> 1.1)
@@ -206,7 +206,7 @@ DEPENDENCIES
   jquery-ui-rails
   mysql2
   nokogiri
-  omniauth (~> 1.3.2)
+  omniauth (~> 1.8.1)
   omniauth-google-oauth2
   quiet_assets
   rails (= 4.2.10)
