@@ -1,3 +1,24 @@
+class RepeatDatesValidator < ActiveModel::Validator
+
+  def validate(event_collection)
+    #
+    #  Check that the two dates exist first.  If they don't the
+    #  record will already have failed validation and we don't
+    #  need to do more.
+    #
+    if event_collection.repetition_start_date &&
+       event_collection.repetition_end_date
+      if event_collection.repetition_end_date < event_collection.repetition_start_date
+        event_collection.errors[:repetition_end_date] << "can't be before start date"
+      elsif event_collection.repetition_end_date > event_collection.repetition_start_date + 1.year
+        event_collection.errors[:repetition_end_date] << "can't be more than a year after start date"
+
+      end
+    end
+  end
+
+end
+
 class EventCollection < ActiveRecord::Base
 
   class DaynameWithIndex
@@ -26,6 +47,7 @@ class EventCollection < ActiveRecord::Base
   validates :repetition_start_date, presence: true
   validates :repetition_end_date, presence: true
   validates :era, presence: true
+  validates_with RepeatDatesValidator
 
   #
   #  These names may look excessively long, but they're like this

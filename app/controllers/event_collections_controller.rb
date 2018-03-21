@@ -115,8 +115,8 @@ class EventCollectionsController < ApplicationController
   def event_collection_params
     params.require(:event_collection).
            permit(:era_id,
-                  :repetition_start_date,
-                  :repetition_end_date,
+                  :starts_on_text,
+                  :ends_on_text,
                   :when_in_month,
                   weeks: [],
                   days_of_week: [])

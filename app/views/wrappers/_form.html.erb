@@ -2,7 +2,7 @@
 <div id="event-wrapping-upper">
   <div id="for_errors">
     <% if @event_wrapper.errors.any? %>
-      <%= render "error_msgs" %>
+      <%= render partial: "error_msgs", object: @event_collection.errors %>
     <% end %>
   </div>
 
