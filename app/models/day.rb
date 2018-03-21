@@ -111,7 +111,7 @@ class Day
           cover = location_covers[r.id]
           if cover
             location_strings <<
-              "#{cover.friendly_name} (normally #{r.friendly_name})"
+              "#{cover.display_name} (normally #{r.display_name})"
           else
             location_strings << r.friendly_name
           end
