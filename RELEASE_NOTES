@@ -1,3 +1,14 @@
+v0.29.3  2018-03-21
+
+* Use longer name in relocation report.
+
+  In a printed report, locations were being identified solely by
+  their friendly_name, which could potentially be confusing.
+
+  The report now uses each location's display_name (which includes
+  the friendly_name) for added clarity.
+
+
 v0.29.2  2018-03-15
 
 * Really stupid reason for a release - to change the version
