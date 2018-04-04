@@ -13,7 +13,7 @@ class EventCollectionsController < ApplicationController
   # event.
   #
   def new
-    if current_user.can_subedit?(@event)
+    if current_user.can_repeat?(@event)
       @event_collection = EventCollection.new({
         era:                    Setting.current_era,
         repetition_start_date:  @event.starts_at.to_date,
@@ -60,7 +60,7 @@ class EventCollectionsController < ApplicationController
   end
 
   def edit
-    if current_user.can_subedit?(@event) &&
+    if current_user.can_repeat?(@event) &&
       @event.event_collection
       @event_collection = @event.event_collection
       @action_button_text = "Update"
@@ -89,7 +89,7 @@ class EventCollectionsController < ApplicationController
   end
 
   def update
-    if current_user.can_subedit?(@event)
+    if current_user.can_repeat?(@event)
       @event_collection = EventCollection.find(params[:id])
       if @event_collection.update(event_collection_params)
       end

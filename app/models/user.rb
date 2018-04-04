@@ -43,6 +43,7 @@ class User < ActiveRecord::Base
   FIELD_TITLE_TEXTS = {
     admin:  "Does this user have full control of the system?",
     editor: "Can this user create and edit events within the system?",
+    can_repeat_events: "Can this user create repeating events within the system?",
     arranges_cover: "Is this user responsible for arranging cover?",
     secretary: "Does this user enter events on behalf of other people?  Causes the Organizer field on new events to be left blank, rather than being pre-filled with the user's name.",
     edit_all_events: "Can this user edit all events within the system?",
@@ -356,6 +357,15 @@ class User < ActiveRecord::Base
     else
       false
     end
+  end
+
+  #
+  #  Can this user set up a repeat for the event.
+  #  Currently just needs (at least) sub-edit permission, plus
+  #  the general repeat privilege bit.
+  #
+  def can_repeat?(event)
+    self.can_repeat_events? && self.can_subedit?(event)
   end
 
   #

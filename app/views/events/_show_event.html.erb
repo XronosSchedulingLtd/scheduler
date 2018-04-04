@@ -63,18 +63,20 @@
         <div class="small-12 columns">
           <div class="wrap_link">
             <%= link_to "Wrap", new_event_wrapper_path(@event), remote: @minimal %>
-            /
-            <%=
-              if @event.event_collection
-                link_to "Repeat",
-                  edit_event_event_collection_path(@event, @event.event_collection),
-                  remote: @minimal
-              else
-                link_to "Repeat",
-                  new_event_event_collection_path(@event),
-                  remote: @minimal
-              end
+            <% if current_user.can_repeat?(@event) %>
+              /
+              <%=
+                if @event.event_collection
+                  link_to "Repeat",
+                    edit_event_event_collection_path(@event, @event.event_collection),
+                    remote: @minimal
+                else
+                  link_to "Repeat",
+                    new_event_event_collection_path(@event),
+                    remote: @minimal
+                end
               %>
+            <% end %>
           </div>
           <div class="edit_link">
             <%= link_to "Edit", edit_event_path(@event), remote: @minimal %>
