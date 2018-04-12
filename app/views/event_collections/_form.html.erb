@@ -53,19 +53,25 @@
                                    :label) %>
     </div>
     <hr/>
-    <div class="small-12 columns">
-      <% if @event_collection.persisted? %>
-      <%=
-        link_to "Delete",
-          [@event, @event_collection],
-          method: :delete,
-          class: "zfbutton tiny radius flip-button",
-          title: "Delete all the repeating events in this series.",
-          data: { confirm: "Are you sure you want to delete this whole set of repeating events?" }
-        %>
-      <% end %>
-      <%= f.submit @action_button_text, class: "zfbutton tiny radius" %>
-      <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => "zfbutton tiny radius" %>
+    <div class="small-12 columns event-collection-buttons">
+      <div class="pw-the-buttons">
+        <% if @event_collection.persisted? %>
+        <%=
+          link_to "Delete",
+            [@event, @event_collection],
+            method: :delete,
+            remote: true,
+            class: "zfbutton tiny radius flip-button",
+            title: "Delete all the repeating events in this series.",
+            data: { confirm: "Are you sure you want to delete this whole set of repeating events?" }
+          %>
+        <% end %>
+        <%= f.submit @action_button_text, class: "zfbutton tiny radius pw-action" %>
+        <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => "zfbutton tiny radius" %>
+      </div>
+      <div class="pw-the-message pw-hidden">
+        <p>Please wait...</p>
+      </div>
     </div>
 <% end %>
   </div>

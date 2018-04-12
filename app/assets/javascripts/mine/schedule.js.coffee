@@ -432,6 +432,10 @@ wantsAll = ->
 wantsNone = ->
   $('#filter-dialogue #exclusions input:checkbox').prop('checked', false)
 
+pwActionClicked = ->
+  $('.pw-the-buttons').addClass('pw-hidden')
+  $('.pw-the-message').removeClass('pw-hidden')
+
 #
 #  All entrypoints - functions which can be called from outside this
 #  module - are now below here.  Trying to cut them down.
@@ -525,4 +529,5 @@ window.beginWrapping = (contents) ->
   $('#events-dialogue').html(contents)
   $('.datepicker').datepicker( { dateFormat: "dd/mm/yy", stepMinute: 5 })
   primeCloser()
+  $('.pw-action').click(pwActionClicked)
 

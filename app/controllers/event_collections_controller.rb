@@ -5,7 +5,7 @@
 #
 
 class EventCollectionsController < ApplicationController
-  before_action :set_event
+  before_action :set_event, except: [:index, :destroy, :show]
 
   # GET /events/1/repeats/new
   #
@@ -49,10 +49,12 @@ class EventCollectionsController < ApplicationController
     @event_collection = EventCollection.new(event_collection_params)
     if @event_collection.save
       @event_collection.events << @event
+      EventRepeater.effect_repetition(current_user, @event_collection, @event)
     else
       respond_to do |format|
         format.js do
-          @minimal = true
+          @minimal            = true
+          @action_button_text = "Create"
           render :new
         end
       end
@@ -91,13 +93,60 @@ class EventCollectionsController < ApplicationController
   def update
     if current_user.can_repeat?(@event)
       @event_collection = EventCollection.find(params[:id])
-      if @event_collection.update(event_collection_params)
+      if @event_collection.safe_update(event_collection_params)
+        EventRepeater.effect_repetition(current_user, @event_collection, @event)
+      else
+        respond_to do |format|
+          format.js do
+            @minimal            = true
+            @action_button_text = "Update"
+            render :edit
+          end
+        end
       end
     else
       respond_to do |format|
         format.html { redirect_to root_path }
         format.js { render 'not_permitted' }
       end
+    end
+  end
+
+  def destroy
+    #
+    #  Use find_by, because this is optional.
+    #
+    @event = Event.find_by(id: params[:event_id])
+    if admin_user? || (@event && current_user.can_repeat?(@event))
+      @event_collection = EventCollection.find(params[:id])
+      if @event_collection
+        @event_collection.destroy
+      end
+    end
+    respond_to do |format|
+      format.html { redirect_to :back }
+      format.js
+    end
+  end
+
+  #
+  #  Provide a listing of repeating events for the benefit of a system
+  #  admin.
+  #
+  def index
+    if admin_user?
+      @event_collections =
+        EventCollection.order(updated_at: :desc).page(params[:page])
+    else
+      redirect_to :root
+    end
+  end
+
+  def show
+    if admin_user?
+      @event_collection = EventCollection.find(params[:id])
+    else
+      redirect_to :root
     end
   end
 

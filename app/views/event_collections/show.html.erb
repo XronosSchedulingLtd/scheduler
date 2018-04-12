@@ -1,0 +1,101 @@
+<h3>Repeating event</h3>
+
+<div class="row">
+  <div class="small-12 medium-3 columns right_border">
+    <h4>Base event</h4>
+    <% if @event_collection.have_base_event? %>
+      <div class="small-12 columns">
+        <label>Description</label>
+        <p><%= @event_collection.body_text %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Starts</label>
+        <p><%= @event_collection.base_event_starts_at_text %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Ends</label>
+        <p><%= @event_collection.base_event_ends_at_text %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Event category</label>
+        <p><%= @event_collection.base_event_category_text %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Event source</label>
+        <p><%= @event_collection.base_event_source_text %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Owner</label>
+        <p><%= @event_collection.base_event_owner_text %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Organiser</label>
+        <p><%= @event_collection.base_event_organiser_text %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Created</label>
+        <p><%= @event_collection.base_event_created_text %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Updated</label>
+        <p><%= @event_collection.base_event_updated_text %></p>
+      </div>
+      <div class="small-12 columns">
+        <label>Resources</label>
+        <p><%= @event_collection.base_event_resource_list %></p>
+      </div>
+    <% else %>
+      <p>None!</p>
+    <% end %>
+  </div>
+  <div class="small-12 medium-9 columns">
+    <h4>Repeat criteria</h4>
+    <div class="small-12 columns">
+      <label>Era</label>
+      <p><%= @event_collection.era.name %></p>
+    </div>
+    <div class="small-6 columns">
+      <label>Repetition start date</label>
+      <p><%= @event_collection.start_date_text %></p>
+    </div>
+    <div class="small-6 columns">
+      <label>Repetition end date</label>
+      <p><%= @event_collection.end_date_text %></p>
+    </div>
+    <div class="small-12 columns">
+      <label>Days in week</label>
+      <p><%= @event_collection.week_days_text %></p>
+    </div>
+    <div class="small-12 columns">
+      <label>Which weeks</label>
+      <p><%= @event_collection.which_weeks_text %></p>
+    </div>
+    <div class="small-12 columns">
+      <label>When in month</label>
+      <p><%= when_in_month_text(@event_collection.when_in_month) %></p>
+    </div>
+    <hr/>
+    <h4>Propagation</h4>
+    <div class="small-12 columns">
+      <label>Status</label>
+      <p><%= @event_collection.status_text %></p>
+    </div>
+    <div class="small-12 columns">
+      <label>Update requested at</label>
+      <p><%= @event_collection.update_requested_at_text %></p>
+    </div>
+    <div class="small-6 columns">
+      <label>Update started at</label>
+      <p><%= @event_collection.update_started_at_text %></p>
+    </div>
+    <div class="small-6 columns">
+      <label>Update finished at</label>
+      <p><%= @event_collection.update_finished_at_text %></p>
+    </div>
+    <div class="small-12 columns">
+      <label>Number of event instances</label>
+      <p><%= @event_collection.events.size %></p>
+    </div>
+
+  </div>
+</div>

@@ -346,6 +346,14 @@ class Event < ActiveRecord::Base
     self.starts_at.strftime("%a #{self.starts_at.day.ordinalize} %b")
   end
 
+  def start_time_text
+    self.starts_at.strftime("%H:%M:%S")
+  end
+
+  def end_time_text
+    self.ends_at.strftime("%H:%M:%S")
+  end
+
   def jump_date_text
     self.starts_at.to_date.strftime("%Y-%m-%d")
   end

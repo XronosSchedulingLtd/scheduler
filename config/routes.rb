@@ -11,6 +11,8 @@ Rails.application.routes.draw do
 
   resources :journals, only: [:index, :show]
 
+  resources :event_collections, only: [:index, :destroy, :show]
+
   resources :user_forms, shallow: true do
     resources :user_form_responses
     get :autocomplete_user_form_name, :on => :collection

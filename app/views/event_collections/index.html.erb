@@ -1,0 +1,46 @@
+<h1>Listing repeating events</h1>
+
+<div class="apple_pagination">
+  <%= will_paginate @event_collections %>
+</div>
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>User</th>
+      <th>Status</th>
+      <th>Events</th>
+      <th title="Start of the repetition period">Start</th>
+      <th title="End of the repetition period">End</th>
+      <th>First instance</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @event_collections.each do |event_collection| %>
+      <tr>
+        <td><%= event_collection.body_text %></td>
+        <td><%= event_collection.requesting_user_name %></td>
+        <td><%= event_collection.status_text %></td>
+        <td><%= event_collection.events.size %></td>
+        <td><%= event_collection.start_date_text %></td>
+        <td><%= event_collection.end_date_text %></td>
+        <td><%= event_collection.first_event_date_text %></td>
+        <td><%= link_to "Details", event_collection %></td>
+        <td><%=
+          link_to "Delete",
+                  event_collection,
+                  method: :delete,
+                  data: { confirm: "Are you sure you want to delete this entire collection of repeating events?" }
+        %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<p></p>
+<div class="apple_pagination">
+  <%= will_paginate @event_collections %>
+</div>
+

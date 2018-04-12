@@ -1,17 +1,26 @@
 module EventCollectionsHelper
 
+  MonthOptionTexts = {
+    every_time:           "All",
+    first_time:           "First",
+    second_time:          "Second",
+    third_time:           "Third",
+    fourth_time:          "Forth",
+    fifth_time:           "Fifth",
+    last_time:            "Last",
+    penultimate_time:     "Penultimate",
+    antepenultimate_time: "Ante-penultimate"
+  }
+  MonthOptionTexts.default = "<unknown>"
+
+  #
+  #  The collection_select code needs an array of items which respond
+  #  to two keys.
+  #
   MonthOption = Struct.new(:key, :text)
-  MonthOptions = [
-    MonthOption.new(:every_time,           "All"),
-    MonthOption.new(:first_time,           "First"),
-    MonthOption.new(:second_time,          "Second"),
-    MonthOption.new(:third_time,           "Third"),
-    MonthOption.new(:fourth_time,          "Forth"),
-    MonthOption.new(:fifth_time,           "Fifth"),
-    MonthOption.new(:last_time,            "Last"),
-    MonthOption.new(:penultimate_time,     "Penultimate"),
-    MonthOption.new(:antepenultimate_time, "Ante-penultimate")
-  ]
+  MonthOptions = MonthOptionTexts.collect {|key, text|
+    MonthOption.new(key, text)
+  }
   
   #
   #  Provides an array of objects suitable for creating the pop
@@ -20,4 +29,9 @@ module EventCollectionsHelper
   def when_in_month_options
     MonthOptions
   end
+
+  def when_in_month_text(when_in_month)
+    MonthOptionTexts[when_in_month.to_sym]
+  end
+
 end
