@@ -485,7 +485,9 @@ class User < ActiveRecord::Base
   def can_drag_timing?(event)
     if self.admin || self.edit_all_events?
       can_drag_timing = true
-    elsif self.create_events? && event.owner_id == self.id
+    elsif self.create_events? &&
+          event.owner_id == self.id &&
+          !event.event_collection
       can_drag_timing = !event.constrained
     else
       can_drag_timing = false

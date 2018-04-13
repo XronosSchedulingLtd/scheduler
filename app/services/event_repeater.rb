@@ -51,6 +51,7 @@ class EventRepeater
                 #  Take it and make sure it is right.
                 #
                 candidate = candidates.shift
+                candidate.make_to_match(current_user, event)
               else
                 #
                 #  Need to create a new event on this date.

@@ -1227,6 +1227,92 @@ class Event < ActiveRecord::Base
   end
 
   #
+  #  Vaguely similar to the clone_and_save method above, this one
+  #  acts on an existing event and updates it to be like a donor
+  #  event - same timing and same resources.  It does not affect
+  #  the existing date of the event.  It is used when we have
+  #  a repeating event on the right date, but not necessarily with
+  #  the right timing or resources.
+  #
+  #  If we change any of our resources, then we save ourselves to
+  #  the database.
+  #
+  #  Note - works only for single day events.  Can get interesting if
+  #  one of them is all-day and the other is not.
+  #
+  def make_to_match(by_user, donor_event)
+    #
+    #  Timing first.
+    #
+    if donor_event.all_day
+      unless self.all_day
+        #
+        #  Make ourselves into a one-day all-day event on our current
+        #  start date.
+        #
+        self.starts_at =
+          Time.zone.parse("00:00:00", self.starts_at.to_date)
+        self.ends_at = self.starts_at + 1.day
+        self.all_day = true
+        self.save
+        self.journal_event_updated(by_user)
+      end
+    else
+      should_start_at =
+        Time.zone.parse(donor_event.start_time_text,
+                        self.starts_at.to_date)
+      should_end_at =
+        Time.zone.parse(donor_event.end_time_text,
+                        self.starts_at.to_date)
+      if should_start_at != self.starts_at ||
+         should_end_at   != self.ends_at ||
+         self.all_day
+        self.starts_at = should_start_at
+        self.ends_at   = should_end_at
+        self.all_day   = false
+        self.save
+        self.journal_event_updated(by_user)
+      end
+    end
+    #
+    #  And now make sure the list of commitments matches.  Preserve
+    #  existing ones.  Delete superfluous ones.  Add missing ones.
+    #
+    #  We ignore covering commitments on both sides.
+    #
+    our_commitments = self.non_covering_commitments.to_a
+    donor_event.non_covering_commitments.each do |dc|
+      #
+      #  Do we have a matching one?  If yes, remove from array.
+      #  If no, create it.
+      #
+      existing = our_commitments.detect {|c| c.element_id == dc.element_id}
+      if existing
+        our_commitments.delete(existing)
+      else
+      end
+    end
+    #
+    #  Any left must be superfluous.
+    #
+    our_commitments.each do |oc|
+      #
+      #  Delete and journal (and possibly e-mail).
+      #
+    end
+  end
+
+  #
+  #  A helper method for the above method, which caches the list of
+  #  element ids in a donor event.  This is because it will typically
+  #  be used sequentially by a lot of other events.
+  #
+  def donor_element_ids
+    @donor_element_ids ||=
+      self.non_covering_commitments.collect {|c| c.element_id}
+  end
+
+  #
   #  A bit of a helper method for forms.  Usually we only allow the selection
   #  of categories which are not marked as deprecated, but that really
   #  confuses end users if this event already is in a deprecated category.
