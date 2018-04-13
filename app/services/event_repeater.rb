@@ -22,13 +22,13 @@
 #
 class EventRepeater
 
-  def self.effect_repetition(current_user, ec, event, asynchronous = false)
+  def self.effect_repetition(by_user, ec, event, asynchronous = false)
     result = false
     if asynchronous
       Rails.logger.error("Asynchronous event repetition not implemented yet.")
     else
       if ec.valid? && event.valid?
-        if ec.note_update_requested(current_user, true)
+        if ec.note_update_requested(by_user, true)
           candidates = ec.events.sort
           to_go = []
           week_identifier =
@@ -51,18 +51,18 @@ class EventRepeater
                 #  Take it and make sure it is right.
                 #
                 candidate = candidates.shift
-                candidate.make_to_match(current_user, event)
+                candidate.make_to_match(by_user, event)
               else
                 #
                 #  Need to create a new event on this date.
                 #
                 modifiers = {
-                  owner: current_user,
+                  owner: by_user,
                   eventsource: eventsource,
                   starts_at: Time.zone.parse(event.start_time_text, date),
                   ends_at: Time.zone.parse(event.end_time_text, date)
                 }
-                event.clone_and_save(modifiers)
+                event.clone_and_save(by_user, modifiers)
               end
             end
           end
@@ -70,7 +70,7 @@ class EventRepeater
           #  Any left which we haven't dealt with should be destroyed.
           #
           (to_go + candidates).each do |event|
-            event.journal_event_destroyed(current_user)
+            event.journal_event_destroyed(by_user)
             event.destroy
           end
           ec.note_finished_update

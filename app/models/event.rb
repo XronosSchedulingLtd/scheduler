@@ -1194,7 +1194,7 @@ class Event < ActiveRecord::Base
   #  If passed a block, then we will pass back each proposed new
   #  commitment in term for any necessary adjustment.
   #
-  def clone_and_save(modifiers, element_id_list = nil, more = :cloned)
+  def clone_and_save(by_user, modifiers, element_id_list = nil, more = :cloned)
     new_self = self.dup
     new_self.has_clashes = false
     #
@@ -1204,7 +1204,7 @@ class Event < ActiveRecord::Base
       new_self.send("#{key}=", value)
     end
     new_self.save!
-    new_self.journal_event_created(modifiers[:owner], more)
+    new_self.journal_event_created(by_user, more)
     #
     #  Commitments don't get copied by dup.
     #
@@ -1220,7 +1220,7 @@ class Event < ActiveRecord::Base
             yield c
           end
         end
-        new_self.journal_commitment_added(c, modifiers[:owner])
+        new_self.journal_commitment_added(c, by_user)
       end
     end
     new_self
@@ -1275,6 +1275,14 @@ class Event < ActiveRecord::Base
       end
     end
     #
+    #  And the event title?
+    #
+    if donor_event.body != self.body
+      self.body = donor_event.body
+      self.save
+      self.journal_event_updated(by_user)
+    end
+    #
     #  And now make sure the list of commitments matches.  Preserve
     #  existing ones.  Delete superfluous ones.  Add missing ones.
     #
@@ -1288,8 +1296,19 @@ class Event < ActiveRecord::Base
       #
       existing = our_commitments.detect {|c| c.element_id == dc.element_id}
       if existing
+        #
+        #  Not deleting the commitment - just removing it from our
+        #  list of un-matched ones and thus preventing its deletion
+        #  later.
+        #
         our_commitments.delete(existing)
       else
+        c = dc.clone_and_save(event: self) do |c|
+          if block_given?
+            yield c
+          end
+        end
+        self.journal_commitment_added(c, by_user)
       end
     end
     #
@@ -1299,6 +1318,8 @@ class Event < ActiveRecord::Base
       #
       #  Delete and journal (and possibly e-mail).
       #
+      self.journal_commitment_removed(oc, by_user)
+      oc.destroy
     end
   end
 

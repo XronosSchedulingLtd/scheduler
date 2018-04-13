@@ -534,8 +534,11 @@ class EventsController < ApplicationController
     request_notifier = RequestNotifier.new
     @event =
       @event.clone_and_save(
-        owner:       current_user,
-        eventsource: Eventsource.find_by(name: "Manual")) do |item|
+        current_user,
+        {
+          owner:       current_user,
+          eventsource: Eventsource.find_by(name: "Manual")
+        }) do |item|
           #
           #  For now we expect only commitments to be passed back for
           #  adjustment, but we may want to extend this in the future.
