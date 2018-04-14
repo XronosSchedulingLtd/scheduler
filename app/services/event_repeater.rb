@@ -22,6 +22,13 @@
 #
 class EventRepeater
 
+  #
+  #  If a block is given, then call it each time a commitment is
+  #  added or removed, with two parameters:
+  #
+  #    :added or :removed
+  #    the commitment
+  #
   def self.effect_repetition(by_user, ec, event, asynchronous = false)
     result = false
     if asynchronous
@@ -51,9 +58,9 @@ class EventRepeater
                 #  Take it and make sure it is right.
                 #
                 candidate = candidates.shift
-                candidate.make_to_match(by_user, event) do |item|
+                candidate.make_to_match(by_user, event) do |action, item|
                   if block_given?
-                    yield item
+                    yield action, item
                   end
                 end
               else
@@ -72,7 +79,7 @@ class EventRepeater
                                      :repeated,
                                      true) do |item|
                   if block_given?
-                    yield item
+                    yield :added, item
                   end
                 end
               end

@@ -1194,6 +1194,9 @@ class Event < ActiveRecord::Base
   #  If passed a block, then we will pass back each proposed new
   #  commitment in term for any necessary adjustment.
   #
+  #  If a block is passed, then it will be called each time a commitment
+  #  is added, passing a single parameter - the new commitment.
+  #
   def clone_and_save(
     by_user,
     modifiers,
@@ -1245,6 +1248,13 @@ class Event < ActiveRecord::Base
   #
   #  Note - works only for single day events.  Can get interesting if
   #  one of them is all-day and the other is not.
+  #
+  #  If a block is supplied, then it will be called each time a
+  #  commitment is added or removed, passing two parameters:
+  #
+  #    :added or :removed
+  #    The commitment
+  #
   #
   def make_to_match(by_user, donor_event)
     do_save = false
@@ -1313,7 +1323,7 @@ class Event < ActiveRecord::Base
       else
         c = dc.clone_and_save(event: self) do |c|
           if block_given?
-            yield c
+            yield :added, c
           end
         end
         self.journal_commitment_added(c, by_user, true)
@@ -1327,6 +1337,9 @@ class Event < ActiveRecord::Base
       #  Delete and journal (and possibly e-mail).
       #
       self.journal_commitment_removed(oc, by_user, true)
+      if block_given?
+        yield :removed, oc
+      end
       oc.destroy
     end
   end

@@ -137,6 +137,19 @@ class UserMailer < ActionMailer::Base
     do_resource_email(owner, resource, event, user, true)
   end
 
+  def resource_batch_email(owner, resource, record, user)
+    @resource = resource
+    @record   = record
+    parameters = {
+      to:      owner.email,
+      from:    Setting.from_email_address,
+      subject: "Request(s) for #{resource.name}"
+    }
+    parameters[:reply_to] = user.email
+    @user_name = user.name
+    mail(parameters)
+  end
+
   def pending_approvals_email(email, queues)
     @queues = queues
     mail(to: email,

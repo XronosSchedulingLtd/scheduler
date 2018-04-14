@@ -49,13 +49,19 @@ class EventCollectionsController < ApplicationController
     @event_collection = EventCollection.new(event_collection_params)
     if @event_collection.save
       @event_collection.events << @event
+      request_notifier = RequestNotifier.new
       EventRepeater.effect_repetition(current_user,
                                       @event_collection,
-                                      @event) do |item|
-        if item.instance_of?(Commitment)
+                                      @event) do |action, item|
+        #
+        #  The only action which makes any sense here is :added.
+        #
+        if action == :added && item.instance_of?(Commitment)
           set_appropriate_approval_status(item)
+          request_notifier.batch_commitment_added(item)
         end
       end
+      request_notifier.send_batch_notifications(current_user)
     else
       respond_to do |format|
         format.js do
@@ -100,13 +106,29 @@ class EventCollectionsController < ApplicationController
     if current_user.can_repeat?(@event)
       @event_collection = EventCollection.find(params[:id])
       if @event_collection.safe_update(event_collection_params)
+        request_notifier = RequestNotifier.new
         EventRepeater.effect_repetition(current_user,
                                         @event_collection,
-                                        @event) do |item|
-          if item.instance_of?(Commitment)
-            set_appropriate_approval_status(item)
+                                        @event) do |action, item|
+          #
+          #  As we're updating, we may get both adds and removes.
+          #
+          case action
+
+          when :added
+            if item.instance_of?(Commitment)
+              set_appropriate_approval_status(item)
+              request_notifier.batch_commitment_added(item)
+            end
+
+          when :removed
+            if item.instance_of?(Commitment)
+              request_notifier.batch_commitment_removed(item)
+            end
           end
+
         end
+        request_notifier.send_batch_notifications(current_user)
       else
         respond_to do |format|
           format.js do
