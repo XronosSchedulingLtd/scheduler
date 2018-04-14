@@ -51,7 +51,11 @@ class EventRepeater
                 #  Take it and make sure it is right.
                 #
                 candidate = candidates.shift
-                candidate.make_to_match(by_user, event)
+                candidate.make_to_match(by_user, event) do |item|
+                  if block_given?
+                    yield item
+                  end
+                end
               else
                 #
                 #  Need to create a new event on this date.
@@ -62,7 +66,15 @@ class EventRepeater
                   starts_at: Time.zone.parse(event.start_time_text, date),
                   ends_at: Time.zone.parse(event.end_time_text, date)
                 }
-                event.clone_and_save(by_user, modifiers, nil, :repeated, true)
+                event.clone_and_save(by_user,
+                                     modifiers,
+                                     nil,
+                                     :repeated,
+                                     true) do |item|
+                  if block_given?
+                    yield item
+                  end
+                end
               end
             end
           end

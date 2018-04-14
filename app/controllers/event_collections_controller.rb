@@ -49,7 +49,13 @@ class EventCollectionsController < ApplicationController
     @event_collection = EventCollection.new(event_collection_params)
     if @event_collection.save
       @event_collection.events << @event
-      EventRepeater.effect_repetition(current_user, @event_collection, @event)
+      EventRepeater.effect_repetition(current_user,
+                                      @event_collection,
+                                      @event) do |item|
+        if item.instance_of?(Commitment)
+          set_appropriate_approval_status(item)
+        end
+      end
     else
       respond_to do |format|
         format.js do
@@ -94,7 +100,13 @@ class EventCollectionsController < ApplicationController
     if current_user.can_repeat?(@event)
       @event_collection = EventCollection.find(params[:id])
       if @event_collection.safe_update(event_collection_params)
-        EventRepeater.effect_repetition(current_user, @event_collection, @event)
+        EventRepeater.effect_repetition(current_user,
+                                        @event_collection,
+                                        @event) do |item|
+          if item.instance_of?(Commitment)
+            set_appropriate_approval_status(item)
+          end
+        end
       else
         respond_to do |format|
           format.js do
