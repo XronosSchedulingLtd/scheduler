@@ -1194,7 +1194,13 @@ class Event < ActiveRecord::Base
   #  If passed a block, then we will pass back each proposed new
   #  commitment in term for any necessary adjustment.
   #
-  def clone_and_save(by_user, modifiers, element_id_list = nil, more = :cloned)
+  def clone_and_save(
+    by_user,
+    modifiers,
+    element_id_list = nil,
+    more            = :cloned,
+    repeating       = false)
+
     new_self = self.dup
     new_self.has_clashes = false
     #
@@ -1204,7 +1210,7 @@ class Event < ActiveRecord::Base
       new_self.send("#{key}=", value)
     end
     new_self.save!
-    new_self.journal_event_created(by_user, more)
+    new_self.journal_event_created(by_user, more, repeating)
     #
     #  Commitments don't get copied by dup.
     #
@@ -1220,7 +1226,7 @@ class Event < ActiveRecord::Base
             yield c
           end
         end
-        new_self.journal_commitment_added(c, by_user)
+        new_self.journal_commitment_added(c, by_user, repeating)
       end
     end
     new_self
@@ -1241,6 +1247,7 @@ class Event < ActiveRecord::Base
   #  one of them is all-day and the other is not.
   #
   def make_to_match(by_user, donor_event)
+    do_save = false
     #
     #  Timing first.
     #
@@ -1254,8 +1261,7 @@ class Event < ActiveRecord::Base
           Time.zone.parse("00:00:00", self.starts_at.to_date)
         self.ends_at = self.starts_at + 1.day
         self.all_day = true
-        self.save
-        self.journal_event_updated(by_user)
+        do_save = true
       end
     else
       should_start_at =
@@ -1270,8 +1276,7 @@ class Event < ActiveRecord::Base
         self.starts_at = should_start_at
         self.ends_at   = should_end_at
         self.all_day   = false
-        self.save
-        self.journal_event_updated(by_user)
+        do_save = true
       end
     end
     #
@@ -1279,8 +1284,11 @@ class Event < ActiveRecord::Base
     #
     if donor_event.body != self.body
       self.body = donor_event.body
+      do_save = true
+    end
+    if do_save
       self.save
-      self.journal_event_updated(by_user)
+      self.journal_event_updated(by_user, true)
     end
     #
     #  And now make sure the list of commitments matches.  Preserve
@@ -1308,7 +1316,7 @@ class Event < ActiveRecord::Base
             yield c
           end
         end
-        self.journal_commitment_added(c, by_user)
+        self.journal_commitment_added(c, by_user, true)
       end
     end
     #
@@ -1318,7 +1326,7 @@ class Event < ActiveRecord::Base
       #
       #  Delete and journal (and possibly e-mail).
       #
-      self.journal_commitment_removed(oc, by_user)
+      self.journal_commitment_removed(oc, by_user, true)
       oc.destroy
     end
   end
@@ -1453,77 +1461,82 @@ class Event < ActiveRecord::Base
     end
   end
 
-  def journal_event_created(by_user, more = nil)
+  def journal_event_created(by_user, more = nil, repeating = false)
     #
     #  Since we are meant to be called just after the creation of
     #  the event, the journal should not already exist, but just
     #  to be safe, and for consistency...
     #
     ensure_journal
-    self.journal.event_created(by_user, more)
+    self.journal.event_created(by_user, more, repeating)
   end
 
-  def journal_event_updated(by_user)
+  def journal_event_updated(by_user, repeating = false)
     ensure_journal
-    self.journal.event_updated(by_user)
+    self.journal.event_updated(by_user, repeating)
   end
 
-  def journal_event_destroyed(by_user)
+  def journal_event_destroyed(by_user, repeating = false)
     ensure_journal
-    self.journal.event_destroyed(by_user)
+    self.journal.event_destroyed(by_user, repeating)
   end
 
-  def journal_commitment_added(commitment, by_user)
+  def journal_commitment_added(commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.commitment_added(commitment, by_user)
+    self.journal.commitment_added(commitment, by_user, repeating)
   end
 
-  def journal_commitment_removed(commitment, by_user)
+  def journal_commitment_removed(commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.commitment_removed(commitment, by_user)
+    self.journal.commitment_removed(commitment, by_user, repeating)
   end
 
-  def journal_commitment_approved(commitment, by_user)
+  def journal_commitment_approved(commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.commitment_approved(commitment, by_user)
+    self.journal.commitment_approved(commitment, by_user, repeating)
   end
 
-  def journal_commitment_rejected(commitment, by_user)
+  def journal_commitment_rejected(commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.commitment_rejected(commitment, by_user)
+    self.journal.commitment_rejected(commitment, by_user, repeating)
   end
 
-  def journal_commitment_noted(commitment, by_user)
+  def journal_commitment_noted(commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.commitment_noted(commitment, by_user)
+    self.journal.commitment_noted(commitment, by_user, repeating)
   end
 
   #
   #  If a commitment goes back from either "approved" or "rejected"
   #  to a "pending" state.
   #
-  def journal_commitment_reset(commitment, by_user)
+  def journal_commitment_reset(commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.commitment_reset(commitment, by_user)
+    self.journal.commitment_reset(commitment, by_user, repeating)
   end
 
   #
   #  We don't generally journal ordinary notes, since they aren't
   #  significant.  We do journal commitment notes, since those affect
   #  whether the 
-  def journal_note_added(note, commitment, by_user)
+  def journal_note_added(note, commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.note_added(note, commitment, by_user)
+    self.journal.note_added(note, commitment, by_user, repeating)
   end
 
-  def journal_note_updated(note, commitment, by_user)
+  def journal_note_updated(note, commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.note_updated(note, commitment, by_user)
+    self.journal.note_updated(note, commitment, by_user, repeating)
   end
 
-  def journal_form_completed(ufr, commitment, by_user)
+  def journal_form_completed(ufr, commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.form_completed(ufr, commitment, by_user)
+    self.journal.form_completed(ufr, commitment, by_user, repeating)
+  end
+
+  def journal_repeated_from(by_user)
+    ensure_journal
+    self.journal.repeated_from(by_user)
   end
 
   def format_timing

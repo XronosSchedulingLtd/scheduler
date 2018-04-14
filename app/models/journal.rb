@@ -36,12 +36,14 @@ class Journal < ActiveRecord::Base
     self
   end
 
-  def event_created(by_user, more = nil)
+  def event_created(by_user, more = nil, repeating)
     case more
     when :cloned
       entry_type = :clone_created
     when :wrapped
       entry_type = :wrapper_created
+    when :repeated
+      entry_type = :repeat_created
     else
       entry_type = :event_created
     end
@@ -49,6 +51,7 @@ class Journal < ActiveRecord::Base
       event:      self.event,
       user:       by_user,
       entry_type: entry_type,
+      repeating:  repeating,
       details:    "\"#{
                       self.event_body
                     }\"\n#{
@@ -69,7 +72,7 @@ class Journal < ActiveRecord::Base
     })
   end
 
-  def event_updated(by_user)
+  def event_updated(by_user, repeating)
     #
     #  Here we need to establish what has changed and perhaps log
     #  more than one thing.
@@ -80,6 +83,7 @@ class Journal < ActiveRecord::Base
         event:      self.event,
         user:       by_user,
         entry_type: :body_text_changed,
+        repeating:  repeating,
         details:    "From: \"#{self.event_body}\"\nTo: \"#{self.event.body}\""
       })
       anything_changed = true
@@ -91,6 +95,7 @@ class Journal < ActiveRecord::Base
         event:      self.event,
         user:       by_user,
         entry_type: :timing_changed,
+        repeating:  repeating,
         details:    "From: \"#{
           self.format_timing
         }\"\nTo: \"#{
@@ -104,6 +109,7 @@ class Journal < ActiveRecord::Base
         event:      self.event,
         user:       by_user,
         entry_type: :category_changed,
+        repeating:  repeating,
         details:    "From: #{self.event_eventcategory.name}\nTo: #{self.event.eventcategory.name}"
       })
       anything_changed = true
@@ -113,6 +119,7 @@ class Journal < ActiveRecord::Base
         event:      self.event,
         user:       by_user,
         entry_type: :organiser_changed,
+        repeating:  repeating,
         details:    "From: #{
           self.event_organiser ?  self.event_organiser.name : "<none>"
         }\nTo: #{
@@ -126,6 +133,7 @@ class Journal < ActiveRecord::Base
         event:      self.event,
         user:       by_user,
         entry_type: :organiser_reference_changed,
+        repeating:  repeating,
         details:    "From: #{self.event_organiser_ref}\nTo: #{self.event.organiser_ref}"
       })
       anything_changed = true
@@ -136,88 +144,97 @@ class Journal < ActiveRecord::Base
     end
   end
 
-  def event_destroyed(by_user)
+  def event_destroyed(by_user, repeating)
     self.journal_entries.create({
       event:      self.event,
       user:       by_user,
-      entry_type: :event_destroyed
+      entry_type: :event_destroyed,
+      repeating:  repeating
     })
   end
 
-  def commitment_added(commitment, by_user)
+  def commitment_added(commitment, by_user, repeating)
     self.journal_entries.create({
       event:      self.event,
       user:       by_user,
       entry_type: :resource_added,
+      repeating:  repeating,
       element:    commitment.element,
       details:    commitment_description(:resource_added, commitment)
     })
   end
 
-  def commitment_removed(commitment, by_user)
+  def commitment_removed(commitment, by_user, repeating)
     self.journal_entries.create({
       event:      self.event,
       user:       by_user,
       entry_type: :resource_removed,
+      repeating:  repeating,
       element:    commitment.element,
       details:    commitment_description(:resource_removed, commitment)
     })
   end
 
-  def commitment_approved(commitment, by_user)
+  def commitment_approved(commitment, by_user, repeating)
     self.journal_entries.create({
       event:      self.event,
       user:       by_user,
       entry_type: :commitment_approved,
+      repeating:  repeating,
       element:    commitment.element,
       details:    commitment_description(:commitment_approved, commitment)
     })
   end
 
-  def commitment_rejected(commitment, by_user)
+  def commitment_rejected(commitment, by_user, repeating)
     self.journal_entries.create({
       event:      self.event,
       user:       by_user,
       entry_type: :commitment_rejected,
+      repeating:  repeating,
       element:    commitment.element,
       details:    commitment_description(:commitment_rejected, commitment)
     })
   end
 
-  def commitment_noted(commitment, by_user)
+  def commitment_noted(commitment, by_user, repeating)
     self.journal_entries.create({
       event:      self.event,
       user:       by_user,
       entry_type: :commitment_noted,
+      repeating:  repeating,
       element:    commitment.element,
       details:    commitment_description(:commitment_noted, commitment)
     })
   end
 
-  def commitment_reset(commitment, by_user)
+  def commitment_reset(commitment, by_user, repeating)
     self.journal_entries.create({
       event:      self.event,
       user:       by_user,
       entry_type: :commitment_reset,
+      repeating:  repeating,
       element:    commitment.element,
       details:    commitment_description(:commitment_reset, commitment)
     })
   end
 
-  def note_added(note, commitment, by_user)
+  def note_added(note, commitment, by_user, repeating)
     self.journal_entries.create({
       event:      self.event,
       user:       by_user,
       entry_type: :note_added,
+      repeating:  repeating,
       element:    commitment ? commitment.element : nil
     })
   end
 
-  def note_updated(note, commitment, by_user)
+  def note_updated(note, commitment, by_user, repeating)
     self.journal_entries.create({
       event:      self.event,
       user:       by_user,
       entry_type: :note_updated,
+      repeating:  repeating,
       element:    commitment ? commitment.element : nil,
       details:    commitment ?
                   "Relating to #{commitment.element.name}" :
@@ -225,12 +242,21 @@ class Journal < ActiveRecord::Base
     })
   end
 
-  def form_completed(ufr, commitment, by_user)
+  def form_completed(ufr, commitment, by_user, repeating)
     self.journal_entries.create({
       event:      self.event,
       user:       by_user,
       entry_type: :form_completed,
+      repeating:  repeating,
       element:    commitment ? commitment.element : nil
+    })
+  end
+
+  def repeated_from(by_user)
+    self.journal_entries.create({
+      event:      self.event,
+      user:       by_user,
+      entry_type: :repeated_from
     })
   end
 

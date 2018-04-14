@@ -23,7 +23,9 @@ class JournalEntry < ActiveRecord::Base
     :organiser_reference_changed,
     :form_completed,
     :commitment_noted,
-    :wrapper_created
+    :wrapper_created,
+    :repeat_created,
+    :repeated_from
   ]
   NEATER_TEXTS = [
     "Event created",
@@ -44,7 +46,9 @@ class JournalEntry < ActiveRecord::Base
     "Reference changed",
     "Form completed",
     "Request noted",
-    "Created as wrapper"
+    "Created as wrapper",
+    "Created as repeat",
+    "Used as model for repeating events"
   ]
   ELEMENT_TEXTS = {
     resource_added:      "Added",

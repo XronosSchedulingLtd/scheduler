@@ -120,6 +120,24 @@ class EventCollectionsController < ApplicationController
     if admin_user? || (@event && current_user.can_repeat?(@event))
       @event_collection = EventCollection.find(params[:id])
       if @event_collection
+        #
+        #  The relationship between event_collection and events used
+        #  to be :destroy, but it's now :nullify, because we want the
+        #  option to journal the event's destruction, and the possibility
+        #  of dissolving a collection - making each event stand on
+        #  its own.
+        #
+        #  This does mean that we need to make the destruction of the
+        #  child events explicit when we are really intending to get
+        #  rid of them.
+        #
+        @event_collection.events.each do |event|
+          event.journal_event_destroyed(current_user)
+          event.destroy
+        end
+        #
+        #  And now the collection itself.
+        #
         @event_collection.destroy
       end
     end

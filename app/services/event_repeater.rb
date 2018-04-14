@@ -62,7 +62,7 @@ class EventRepeater
                   starts_at: Time.zone.parse(event.start_time_text, date),
                   ends_at: Time.zone.parse(event.end_time_text, date)
                 }
-                event.clone_and_save(by_user, modifiers)
+                event.clone_and_save(by_user, modifiers, nil, :repeated, true)
               end
             end
           end
@@ -70,9 +70,10 @@ class EventRepeater
           #  Any left which we haven't dealt with should be destroyed.
           #
           (to_go + candidates).each do |event|
-            event.journal_event_destroyed(by_user)
+            event.journal_event_destroyed(by_user, true)
             event.destroy
           end
+          event.journal_repeated_from(by_user)
           ec.note_finished_update
           result = true
         else

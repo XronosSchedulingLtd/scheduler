@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180413123225) do
+ActiveRecord::Schema.define(version: 20180414080031) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -293,6 +293,7 @@ ActiveRecord::Schema.define(version: 20180413123225) do
     t.boolean  "event_all_day"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "repeating",                     default: false
   end
 
   add_index "journal_entries", ["element_id"], name: "index_journal_entries_on_element_id", using: :btree
