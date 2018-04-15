@@ -16,4 +16,5 @@ else
 end
 %></td>
 <td><%= element_journal_entry.journal.event_starts_at.strftime("%d/%m/%Y") %></td>
+<td><%= element_journal_entry.repeating ? "R" : "" %></td>
 </tr>

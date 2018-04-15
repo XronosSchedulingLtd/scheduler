@@ -104,7 +104,7 @@
               </ul>
             </li>
 <%     end %>
-<%     if current_user.admin %>
+<%     if admin_user? %>
             <li class="has-dropdown">
               <a href="#">Models</a>
               <ul class="dropdown">
@@ -113,6 +113,7 @@
                 <li class="has-dropdown">
                   <%= link_to "Events", events_path %>
                   <ul class="dropdown">
+                    <li><%= link_to "Repeating", event_collections_path %></li>
                     <li class="has-dropdown">
                       <%= link_to "Categories", eventcategories_path %>
                       <ul class="dropdown">

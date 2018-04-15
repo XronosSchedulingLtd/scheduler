@@ -1,8 +1,8 @@
 class PermissionFlags < Hash
 
   KNOWN_PERMISSIONS = [
-    :admin,
     :editor,
+    :can_repeat_events,
     :can_add_resources,
     :can_add_notes,
     :edit_all_events,
@@ -17,7 +17,8 @@ class PermissionFlags < Hash
     :can_su,
     :exams,
     :can_relocate_lessons,
-    :can_view_forms
+    :can_view_forms,
+    :admin
   ]
 
   NICER_TEXT = {
@@ -37,7 +38,8 @@ class PermissionFlags < Hash
     can_su:               "Can su",
     exams:                "Exams",
     can_relocate_lessons: "Relocate lessons",
-    can_view_forms:       "Can view forms"
+    can_view_forms:       "View forms",
+    can_repeat_events:    "Repeating events"
   }
   NICER_TEXT.default = "Pass"
 

@@ -1,0 +1,78 @@
+<h2>Repeating event</h2>
+<div id="event-wrapping-upper">
+  <div id="for_errors">
+    <% if @event_collection.errors.any? %>
+      <%= render partial: "error_msgs", object: @event_collection.errors %>
+    <% end %>
+  </div>
+
+  <div class="row">
+    <div class="small-12 columns">
+      <p>Event:
+      "<%= @event.body %>",
+      starting
+      <%= @event.starts_at_text %>,
+      for
+      <%= @event.duration_text %></p>
+    </div>
+    <hr/>
+<%= form_for([@event, @event_collection], remote: @minimal) do |f| %>
+    <%= f.hidden_field :era_id %>
+    <div class="small-3 columns">
+      <label>Repetition start date</label>
+      <%= f.text_field :starts_on_text, class: 'datepicker' %>
+    </div>
+    <div class="small-3 columns">
+      <label>Repetition end date</label>
+      <%= f.text_field :ends_on_text, class: 'datepicker' %>
+    </div>
+    <div class="small-4 small-offset-1 columns">
+      <label>Occurences in month</label>
+      <%=
+        f.collection_select(:when_in_month,
+                            when_in_month_options,
+                            :key,
+                            :text)
+                          %>
+    </div>
+    <div class="small-1 columns">
+    </div>
+    <div class="small-7 columns">
+      <label>Days of the week</label>
+      <%= f.collection_check_boxes(:days_of_week,
+                                   @event_collection.daynames_with_index,
+                                   :index,
+                                   :name) %>
+      </ul>
+    </div>
+    <div class="small-5 columns">
+      <label>Which weeks</label>
+      <%= f.collection_check_boxes(:weeks,
+                                   @event_collection.weeks_with_keys,
+                                   :key,
+                                   :label) %>
+    </div>
+    <hr/>
+    <div class="small-12 columns event-collection-buttons">
+      <div class="pw-the-buttons">
+        <% if @event_collection.persisted? %>
+        <%=
+          link_to "Delete",
+            [@event, @event_collection],
+            method: :delete,
+            remote: true,
+            class: "zfbutton tiny radius flip-button pw-action",
+            title: "Delete all the repeating events in this series.",
+            data: { confirm: "Are you sure you want to delete this whole set of repeating events?" }
+          %>
+        <% end %>
+        <%= f.submit @action_button_text, class: "zfbutton tiny radius pw-action" %>
+        <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => "zfbutton tiny radius" %>
+      </div>
+      <div class="pw-the-message pw-hidden">
+        <p>Please wait...</p>
+      </div>
+    </div>
+<% end %>
+  </div>
+</div>

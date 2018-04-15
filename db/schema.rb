@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180312115719) do
+ActiveRecord::Schema.define(version: 20180414080031) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -124,6 +124,22 @@ ActiveRecord::Schema.define(version: 20180312115719) do
     t.string   "short_name", limit: 255, default: ""
   end
 
+  create_table "event_collections", force: :cascade do |t|
+    t.integer  "era_id",                limit: 4
+    t.date     "repetition_start_date"
+    t.date     "repetition_end_date"
+    t.string   "days_of_week",          limit: 255
+    t.string   "weeks",                 limit: 255
+    t.integer  "when_in_month",         limit: 4,   default: 0
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.datetime "update_requested_at"
+    t.datetime "update_started_at"
+    t.datetime "update_finished_at"
+    t.integer  "lock_version",          limit: 4,   default: 0, null: false
+    t.integer  "requesting_user_id",    limit: 4
+  end
+
   create_table "eventcategories", force: :cascade do |t|
     t.string   "name",          limit: 255
     t.integer  "pecking_order", limit: 4,   default: 20
@@ -145,34 +161,36 @@ ActiveRecord::Schema.define(version: 20180312115719) do
   end
 
   create_table "events", force: :cascade do |t|
-    t.text     "body",             limit: 65535
-    t.integer  "eventcategory_id", limit: 4,                     null: false
-    t.integer  "eventsource_id",   limit: 4,                     null: false
-    t.integer  "owner_id",         limit: 4
+    t.text     "body",                limit: 65535
+    t.integer  "eventcategory_id",    limit: 4,                     null: false
+    t.integer  "eventsource_id",      limit: 4,                     null: false
+    t.integer  "owner_id",            limit: 4
     t.datetime "starts_at"
     t.datetime "ends_at"
-    t.boolean  "approximate",                    default: false
-    t.boolean  "non_existent",                   default: false
-    t.boolean  "private",                        default: false
-    t.integer  "reference_id",     limit: 4
-    t.string   "reference_type",   limit: 255
+    t.boolean  "approximate",                       default: false
+    t.boolean  "non_existent",                      default: false
+    t.boolean  "private",                           default: false
+    t.integer  "reference_id",        limit: 4
+    t.string   "reference_type",      limit: 255
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "all_day",                        default: false
-    t.boolean  "compound",                       default: false
-    t.integer  "source_id",        limit: 4,     default: 0
-    t.string   "source_hash",      limit: 255
-    t.integer  "organiser_id",     limit: 4
-    t.text     "organiser_ref",    limit: 65535
-    t.boolean  "complete",                       default: true
-    t.boolean  "constrained",                    default: false
-    t.boolean  "has_clashes",                    default: false
-    t.integer  "proto_event_id",   limit: 4
-    t.string   "flagcolour",       limit: 255
+    t.boolean  "all_day",                           default: false
+    t.boolean  "compound",                          default: false
+    t.integer  "source_id",           limit: 4,     default: 0
+    t.string   "source_hash",         limit: 255
+    t.integer  "organiser_id",        limit: 4
+    t.text     "organiser_ref",       limit: 65535
+    t.boolean  "complete",                          default: true
+    t.boolean  "constrained",                       default: false
+    t.boolean  "has_clashes",                       default: false
+    t.integer  "proto_event_id",      limit: 4
+    t.string   "flagcolour",          limit: 255
+    t.integer  "event_collection_id", limit: 4
   end
 
   add_index "events", ["complete"], name: "index_events_on_complete", using: :btree
   add_index "events", ["ends_at"], name: "index_events_on_ends_at", using: :btree
+  add_index "events", ["event_collection_id"], name: "index_events_on_event_collection_id", using: :btree
   add_index "events", ["eventcategory_id"], name: "index_events_on_eventcategory_id", using: :btree
   add_index "events", ["has_clashes"], name: "index_events_on_has_clashes", using: :btree
   add_index "events", ["organiser_id"], name: "index_events_on_organiser_id", using: :btree
@@ -275,6 +293,7 @@ ActiveRecord::Schema.define(version: 20180312115719) do
     t.boolean  "event_all_day"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "repeating",                     default: false
   end
 
   add_index "journal_entries", ["element_id"], name: "index_journal_entries_on_element_id", using: :btree
@@ -668,6 +687,7 @@ ActiveRecord::Schema.define(version: 20180312115719) do
     t.text     "permissions",                 limit: 65535
     t.boolean  "demo_user",                                 default: false
     t.boolean  "can_view_forms",                            default: false
+    t.boolean  "can_repeat_events",                         default: false
   end
 
 end

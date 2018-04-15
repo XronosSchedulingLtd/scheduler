@@ -48,6 +48,7 @@ class WrappersController < ApplicationController
     if @event_wrapper.wrap_before?
       request_notifier = RequestNotifier.new
       before_event = @event_wrapper.event.clone_and_save(
+        current_user,
         base_params.merge(@event_wrapper.before_params),
         @event_wrapper.enabled_ids,
         :wrapped
@@ -62,6 +63,7 @@ class WrappersController < ApplicationController
     if @event_wrapper.wrap_after?
       request_notifier = RequestNotifier.new
       after_event = @event_wrapper.event.clone_and_save(
+        current_user,
         base_params.merge(@event_wrapper.after_params),
         @event_wrapper.enabled_ids,
         :wrapped

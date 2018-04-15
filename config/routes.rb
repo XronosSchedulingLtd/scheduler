@@ -11,6 +11,12 @@ Rails.application.routes.draw do
 
   resources :journals, only: [:index, :show]
 
+  resources :event_collections, only: [:index, :destroy, :show] do
+    member do
+      put :reset
+    end
+  end
+
   resources :user_forms, shallow: true do
     resources :user_form_responses
     get :autocomplete_user_form_name, :on => :collection
@@ -155,6 +161,7 @@ Rails.application.routes.draw do
     resources :notes, shallow: true
     resources :requests
     resources :wrappers, only: [:new, :create]
+    resources :event_collections
     member do
       get :shownotes
       get :canceledit
