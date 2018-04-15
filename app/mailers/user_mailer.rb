@@ -137,9 +137,10 @@ class UserMailer < ActionMailer::Base
     do_resource_email(owner, resource, event, user, true)
   end
 
-  def resource_batch_email(owner, resource, record, user)
-    @resource = resource
-    @record   = record
+  def resource_batch_email(owner, resource, record, user, general_title)
+    @resource      = resource
+    @record        = record
+    @general_title = general_title
     parameters = {
       to:      owner.email,
       from:    Setting.from_email_address,

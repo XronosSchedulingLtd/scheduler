@@ -90,6 +90,11 @@ class EventRepeater
           #
           (to_go + candidates).each do |event|
             event.journal_event_destroyed(by_user, true)
+            if block_given?
+              event.commitments.each do |c|
+                yield :removed, c
+              end
+            end
             event.destroy
           end
           event.journal_repeated_from(by_user)

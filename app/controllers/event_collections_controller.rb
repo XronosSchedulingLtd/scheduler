@@ -49,7 +49,7 @@ class EventCollectionsController < ApplicationController
     @event_collection = EventCollection.new(event_collection_params)
     if @event_collection.save
       @event_collection.events << @event
-      request_notifier = RequestNotifier.new
+      request_notifier = RequestNotifier.new(@event.body)
       EventRepeater.effect_repetition(current_user,
                                       @event_collection,
                                       @event) do |action, item|
@@ -106,7 +106,7 @@ class EventCollectionsController < ApplicationController
     if current_user.can_repeat?(@event)
       @event_collection = EventCollection.find(params[:id])
       if @event_collection.safe_update(event_collection_params)
-        request_notifier = RequestNotifier.new
+        request_notifier = RequestNotifier.new(@event.body)
         EventRepeater.effect_repetition(current_user,
                                         @event_collection,
                                         @event) do |action, item|
@@ -154,6 +154,17 @@ class EventCollectionsController < ApplicationController
     if admin_user? || (@event && current_user.can_repeat?(@event))
       @event_collection = EventCollection.find(params[:id])
       if @event_collection
+        if @event
+          general_title = @event.body
+        else
+          event = @event_collection.events.first
+          if event
+            general_title = @event.body
+          else
+            general_title = "<No events>"
+          end
+        end
+        request_notifier = RequestNotifier.new(general_title)
         #
         #  The relationship between event_collection and events used
         #  to be :destroy, but it's now :nullify, because we want the
@@ -167,8 +178,12 @@ class EventCollectionsController < ApplicationController
         #
         @event_collection.events.each do |event|
           event.journal_event_destroyed(current_user)
+          event.commitments.each do |c|
+            request_notifier.batch_commitment_removed(c)
+          end
           event.destroy
         end
+        request_notifier.send_batch_notifications(current_user)
         #
         #  And now the collection itself.
         #

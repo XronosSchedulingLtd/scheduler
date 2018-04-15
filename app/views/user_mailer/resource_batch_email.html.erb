@@ -14,9 +14,9 @@
         <%= @resource.name %>
       </h3>
       <p>
-        <%= @user_name %> has entered or updated a repeating event
-        entitled "<%= @record.event_body %>" in
-        Scheduler resulting in the following changes to requests
+      <%= @user_name %> has entered, updated or deleted a repeating
+        event in Scheduler entitled "<%= @general_title %>"
+        resulting in the following changes to requests
         for <%= @resource.name %>.
       </p>
       <% unless @record.events_added_to.empty? %>

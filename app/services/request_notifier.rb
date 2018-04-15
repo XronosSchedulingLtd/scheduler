@@ -58,16 +58,9 @@ class RequestNotifier
   #
   class ElementRecord
 
-    attr_reader :event_body, :events_added_to, :events_removed_from
+    attr_reader :events_added_to, :events_removed_from
 
     def initialize(element, event)
-      #
-      #  Although we are dealing with a lot of events (from the database's
-      #  point of view) the initial use is to deal with a set of repeating
-      #  events, which will all have the same body text.  For now store
-      #  it just once.
-      #
-      @event_body   = event.body
       #
       #  In each of these, we will store simply the starts_at field,
       #  and index by event id.
@@ -94,7 +87,9 @@ class RequestNotifier
 
   end
 
-  def initialize
+  def initialize(general_title = "<none given>")
+
+    @general_title = general_title
     @elements_added   = Array.new
     @elements_removed = Array.new
 
@@ -142,7 +137,8 @@ class RequestNotifier
               UserMailer.resource_batch_email(owner,
                                               resource,
                                               record,
-                                              by_user).deliver_now
+                                              by_user,
+                                              @general_title).deliver_now
             end
           end
         end
