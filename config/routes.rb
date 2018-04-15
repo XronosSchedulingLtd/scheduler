@@ -11,7 +11,11 @@ Rails.application.routes.draw do
 
   resources :journals, only: [:index, :show]
 
-  resources :event_collections, only: [:index, :destroy, :show]
+  resources :event_collections, only: [:index, :destroy, :show] do
+    member do
+      put :reset
+    end
+  end
 
   resources :user_forms, shallow: true do
     resources :user_form_responses

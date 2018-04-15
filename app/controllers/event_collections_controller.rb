@@ -5,7 +5,7 @@
 #
 
 class EventCollectionsController < ApplicationController
-  before_action :set_event, except: [:index, :destroy, :show]
+  before_action :set_event, except: [:index, :destroy, :show, :reset]
 
   # GET /events/1/repeats/new
   #
@@ -212,6 +212,16 @@ class EventCollectionsController < ApplicationController
   def show
     if admin_user?
       @event_collection = EventCollection.find(params[:id])
+    else
+      redirect_to :root
+    end
+  end
+
+  def reset
+    if admin_user?
+      @event_collection = EventCollection.find(params[:id])
+      @event_collection.reset
+      redirect_to :back
     else
       redirect_to :root
     end

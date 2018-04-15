@@ -317,6 +317,19 @@ class EventCollection < ActiveRecord::Base
   end
 
   #
+  #  Allow the system administrator to get our record out of a
+  #  stuck state.
+  #
+  def reset
+    unless ok_to_update?
+      time_now = Time.zone.now
+      self.update_started_at = time_now if self.update_started_at.nil?
+      self.update_finished_at = time_now if self.update_finished_at.nil?
+      self.save
+    end
+  end
+
+  #
   #  Does our collection of events happen on the indicated date in the
   #  indicated week?
   #
@@ -385,7 +398,7 @@ class EventCollection < ActiveRecord::Base
       elsif self.update_started_at.nil?
         "update requested"
       elsif self.update_finished_at.nil?
-        "update in progress"
+        "updating"
       else
         "up to date"
       end

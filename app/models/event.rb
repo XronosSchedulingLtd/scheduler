@@ -1599,6 +1599,33 @@ class Event < ActiveRecord::Base
     end
   end
 
+  #
+  #  For an event to be eligible for repetition it must:
+  #
+  #  1.  Have a real owner.  Not a system event.
+  #  2.  Be entirely contained within one calendar day.  It can
+  #      last the whole day, but just the one.  A 24 hour event spanning
+  #      two days is not eligible.
+  #  3.  Not be currently in the process of being repeated.
+  #
+  def can_be_repeated?
+    self.owner && self.just_one_day? &&
+      (self.event_collection.nil? || self.event_collection.ok_to_update?)
+  end
+
+  def just_one_day?
+    if self.all_day
+      self.starts_at.midnight? &&
+        self.ends_at.midnight? &&
+        self.ends_at == self.starts_at + 1.day
+    else
+      #
+      #  Timed event.  Must start and end on the same day.
+      #
+      self.starts_at.to_date == self.ends_at.to_date
+    end
+  end
+
   private
 
   def become_all_day

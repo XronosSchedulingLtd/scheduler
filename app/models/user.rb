@@ -367,7 +367,9 @@ class User < ActiveRecord::Base
   #  the general repeat privilege bit.
   #
   def can_repeat?(event)
-    self.can_repeat_events? && self.can_subedit?(event)
+    self.can_repeat_events? &&
+      self.can_subedit?(event) &&
+      event.can_be_repeated?
   end
 
   #
