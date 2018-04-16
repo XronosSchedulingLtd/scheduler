@@ -5,7 +5,7 @@ module EventCollectionsHelper
     first_time:           "First",
     second_time:          "Second",
     third_time:           "Third",
-    fourth_time:          "Forth",
+    fourth_time:          "Fourth",
     fifth_time:           "Fifth",
     last_time:            "Last",
     penultimate_time:     "Penultimate",

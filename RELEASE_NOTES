@@ -16,7 +16,7 @@ v1.0.0-pre1  2018-04-15
   The process for setting up a repeating events is as follows:
 
   1) Create an original event in one of the slots where you expect
-     to have the repeating event.  Save it do the database.
+     to have the repeating event.  Save it to the database.
   2) Tell the system how you want it repeated, entering suitable
      criteria:
      
@@ -30,6 +30,11 @@ v1.0.0-pre1  2018-04-15
   Once the events have been repeated they exist as standalone events,
   albeit under an umbrella record (known internally as an EventCollection).
 
+  Note that, if the original event from which the repetition is done does
+  not fit the repetition critera - e.g. because it is on a Tuesday and
+  the criteria specify every Monday, Wednesday and Friday - then as
+  part of the propagation process the original event will be deleted.
+
   The user can edit any of the resulting events independently of the others,
   and that event will then stay slightly different from the others, unless
   and until the repetition process is repeated.  The user can pick any
@@ -41,6 +46,13 @@ v1.0.0-pre1  2018-04-15
   that an extra resource is needed, that resource can be added to any
   one of the individual events, and then the change can be propagated
   automatically to all of the others.
+
+  Events can only be used as a prototype for repetition if they have
+  an owner - events owned by the system (e.g those loaded from an MIS
+  or from YAML files) cannot be repeated.  Similarly, for an event to
+  be repeated across multiple days, it must itself be contained within
+  one calendar day.  Events spanning more than one calendar day can't
+  be used as a prototype for repetition.
 
 * Users can delete individual events in a set, or delete the whole
   repetition.  If an individual event is deleted and then the repetition
