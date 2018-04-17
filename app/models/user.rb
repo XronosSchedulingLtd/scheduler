@@ -373,6 +373,16 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Slightly lesser check.  Could this user repeat the indicated
+  #  event, even if just at this moment he can't.
+  #
+  def could_repeat?(event)
+    self.can_repeat_events? &&
+      self.can_subedit?(event) &&
+      event.could_be_repeated?
+  end
+
+  #
   #  Can this user relocate the indicated event - that is, can he or
   #  she allocate another room to the event in the fashion of allocating
   #  a cover teacher?
