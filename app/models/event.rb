@@ -1613,6 +1613,14 @@ class Event < ActiveRecord::Base
       (self.event_collection.nil? || self.event_collection.ok_to_update?)
   end
 
+  def could_be_repeated?
+    self.owner && self.just_one_day?
+  end
+
+  def repeating_event?
+    !self.event_collection_id.nil?
+  end
+
   def just_one_day?
     if self.all_day
       self.starts_at.midnight? &&
