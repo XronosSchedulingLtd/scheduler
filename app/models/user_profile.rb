@@ -73,6 +73,7 @@ class UserProfile < ActiveRecord::Base
       name: "Staff",
       permissions: {
         editor:            PermissionFlags::PERMISSION_YES,
+        can_repeat_events: PermissionFlags::PERMISSION_YES,
         can_add_resources: PermissionFlags::PERMISSION_YES,
         can_add_notes:     PermissionFlags::PERMISSION_YES,
         can_has_groups:    PermissionFlags::PERMISSION_YES,
