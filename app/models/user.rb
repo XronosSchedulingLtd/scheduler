@@ -43,6 +43,7 @@ class User < ActiveRecord::Base
   FIELD_TITLE_TEXTS = {
     admin:  "Does this user have full control of the system?",
     editor: "Can this user create and edit events within the system?",
+    can_repeat_events: "Can this user create repeating events within the system?",
     arranges_cover: "Is this user responsible for arranging cover?",
     secretary: "Does this user enter events on behalf of other people?  Causes the Organizer field on new events to be left blank, rather than being pre-filled with the user's name.",
     edit_all_events: "Can this user edit all events within the system?",
@@ -72,6 +73,8 @@ class User < ActiveRecord::Base
   has_many :user_form_responses, :dependent => :destroy
 
   has_many :events, foreign_key: :owner_id, dependent: :nullify
+
+  has_many :event_collections, foreign_key: :requesting_user, dependent: :nullify
 
   has_many :controlled_commitments,
            class_name: "Commitment",
@@ -359,6 +362,27 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Can this user set up a repeat for the event.
+  #  Currently just needs (at least) sub-edit permission, plus
+  #  the general repeat privilege bit.
+  #
+  def can_repeat?(event)
+    self.can_repeat_events? &&
+      self.can_subedit?(event) &&
+      event.can_be_repeated?
+  end
+
+  #
+  #  Slightly lesser check.  Could this user repeat the indicated
+  #  event, even if just at this moment he can't.
+  #
+  def could_repeat?(event)
+    self.can_repeat_events? &&
+      self.can_subedit?(event) &&
+      event.could_be_repeated?
+  end
+
+  #
   #  Can this user relocate the indicated event - that is, can he or
   #  she allocate another room to the event in the fashion of allocating
   #  a cover teacher?
@@ -473,7 +497,9 @@ class User < ActiveRecord::Base
   def can_drag_timing?(event)
     if self.admin || self.edit_all_events?
       can_drag_timing = true
-    elsif self.create_events? && event.owner_id == self.id
+    elsif self.create_events? &&
+          event.owner_id == self.id &&
+          !event.event_collection
       can_drag_timing = !event.constrained
     else
       can_drag_timing = false

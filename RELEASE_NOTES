@@ -1,3 +1,92 @@
+v1.0.0  2018-04-19
+
+* Repeating events through the GUI
+
+  The most significant new feature in this release is the addition of
+  the means to add repeating events through the GUI.  The capabilities
+  here are much the same as those provided before by means of YAML
+  files, but instead the criteria can be entered through a dialogue.
+
+  The whole process is significantly more complicated than having
+  repeating events in a normal calendar program because of Scheduler's
+  structuring of events.  It doesn't just have an event with a name -
+  it has a list of associated resources, and each event can be found
+  and displayed through any of its resources.
+
+  The process for setting up a repeating events is as follows:
+
+  1) Create an original event in one of the slots where you expect
+     to have the repeating event.  Save it to the database.
+  2) Tell the system how you want it repeated, entering suitable
+     criteria:
+     
+     * Beginning and end date
+     * Which days of the week
+     * Which weeks (A, B, holidays)
+     * When in the month (first Thursday, penultimate Wednesday, etc.)
+
+  3) Effect the repetition
+
+  Once the events have been repeated they exist as standalone events,
+  albeit under an umbrella record (known internally as an EventCollection).
+
+  Note that, if the original event from which the repetition is done does
+  not fit the repetition critera - e.g. because it is on a Tuesday and
+  the criteria specify every Monday, Wednesday and Friday - then as
+  part of the propagation process the original event will be deleted.
+
+  The user can edit any of the resulting events independently of the others,
+  and that event will then stay slightly different from the others, unless
+  and until the repetition process is repeated.  The user can pick any
+  of the events in the set from which to repeat the repetition, and that
+  event will then be used as a model for all the others.  Any individual
+  edits done to any of the others will be lost at this point.
+
+  Thus, if it is realised after a set of repeating events has been created
+  that an extra resource is needed, that resource can be added to any
+  one of the individual events, and then the change can be propagated
+  automatically to all of the others.
+
+  Events can be used as a prototype for repetition only if they have
+  an owner - events owned by the system (e.g those loaded from an MIS
+  or from YAML files) cannot be repeated.  Similarly, for an event to
+  be repeated across multiple days, it must itself be contained within
+  one calendar day.  Events spanning more than one calendar day can't
+  be used as a prototype for repetition.
+
+  Documentation for this new facility can be found in the User Guide
+  at https://xronos.uk/repeating.html
+
+* Users can delete individual events in a set, or delete the whole
+  repetition.  If an individual event is deleted and then the repetition
+  step is repeated, the deleted event will reappear.
+
+* An extra information page has been added for system administrators
+  to view repeating events - Menu => Models => Events => Repeating.
+
+  From here it is possible to view all repeating event sets along with
+  their statuses.  The admin can also choose to delete a whole set
+  of repeating events.
+
+* Extra code has been added to the request notification logic.  Some users
+  insist on getting an immediate e-mail every time a request for their
+  resource is entered into the system (or cancelled).  The repetition code
+  was in danger of flooding these users with e-mails.
+
+  The relevant code has thus been enhanced to batch up such requests and
+  send them all as one e-mail.  Thus if someone requests the library
+  every day for a year, it will result in one e-mail listing all the
+  requests, rather than 365 e-mails.
+
+* Journalling code has likewise been enhanced so once can see what changes
+  were effected as part of a repetition.
+
+* As this is potentially quite a powerful new feature and open to abuse,
+  an extra user permission bit has been added controlling access to it.
+  Only users with this permission bit set can use it.  As always, the
+  bit can be set by way of a UserProfile.
+
+
 v0.29.5  2018-03-21
 
 * Upgrade omniauth to version 1.8.1

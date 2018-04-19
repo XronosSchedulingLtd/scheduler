@@ -96,6 +96,7 @@ class Event < ActiveRecord::Base
 
   belongs_to :eventcategory
   belongs_to :eventsource
+  belongs_to :event_collection
   has_many :commitments, :dependent => :destroy
   has_many :requests, :dependent => :destroy
   has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
@@ -343,6 +344,14 @@ class Event < ActiveRecord::Base
 
   def start_date_text
     self.starts_at.strftime("%a #{self.starts_at.day.ordinalize} %b")
+  end
+
+  def start_time_text
+    self.starts_at.strftime("%H:%M:%S")
+  end
+
+  def end_time_text
+    self.ends_at.strftime("%H:%M:%S")
   end
 
   def jump_date_text
@@ -1185,7 +1194,16 @@ class Event < ActiveRecord::Base
   #  If passed a block, then we will pass back each proposed new
   #  commitment in term for any necessary adjustment.
   #
-  def clone_and_save(modifiers, element_id_list = nil, more = :cloned)
+  #  If a block is passed, then it will be called each time a commitment
+  #  is added, passing a single parameter - the new commitment.
+  #
+  def clone_and_save(
+    by_user,
+    modifiers,
+    element_id_list = nil,
+    more            = :cloned,
+    repeating       = false)
+
     new_self = self.dup
     new_self.has_clashes = false
     #
@@ -1195,7 +1213,7 @@ class Event < ActiveRecord::Base
       new_self.send("#{key}=", value)
     end
     new_self.save!
-    new_self.journal_event_created(modifiers[:owner], more)
+    new_self.journal_event_created(by_user, more, repeating)
     #
     #  Commitments don't get copied by dup.
     #
@@ -1211,10 +1229,129 @@ class Event < ActiveRecord::Base
             yield c
           end
         end
-        new_self.journal_commitment_added(c, modifiers[:owner])
+        new_self.journal_commitment_added(c, by_user, repeating)
       end
     end
     new_self
+  end
+
+  #
+  #  Vaguely similar to the clone_and_save method above, this one
+  #  acts on an existing event and updates it to be like a donor
+  #  event - same timing and same resources.  It does not affect
+  #  the existing date of the event.  It is used when we have
+  #  a repeating event on the right date, but not necessarily with
+  #  the right timing or resources.
+  #
+  #  If we change any of our resources, then we save ourselves to
+  #  the database.
+  #
+  #  Note - works only for single day events.  Can get interesting if
+  #  one of them is all-day and the other is not.
+  #
+  #  If a block is supplied, then it will be called each time a
+  #  commitment is added or removed, passing two parameters:
+  #
+  #    :added or :removed
+  #    The commitment
+  #
+  #
+  def make_to_match(by_user, donor_event)
+    do_save = false
+    #
+    #  Timing first.
+    #
+    if donor_event.all_day
+      unless self.all_day
+        #
+        #  Make ourselves into a one-day all-day event on our current
+        #  start date.
+        #
+        self.starts_at =
+          Time.zone.parse("00:00:00", self.starts_at.to_date)
+        self.ends_at = self.starts_at + 1.day
+        self.all_day = true
+        do_save = true
+      end
+    else
+      should_start_at =
+        Time.zone.parse(donor_event.start_time_text,
+                        self.starts_at.to_date)
+      should_end_at =
+        Time.zone.parse(donor_event.end_time_text,
+                        self.starts_at.to_date)
+      if should_start_at != self.starts_at ||
+         should_end_at   != self.ends_at ||
+         self.all_day
+        self.starts_at = should_start_at
+        self.ends_at   = should_end_at
+        self.all_day   = false
+        do_save = true
+      end
+    end
+    #
+    #  And the event title?
+    #
+    if donor_event.body != self.body
+      self.body = donor_event.body
+      do_save = true
+    end
+    if do_save
+      self.save
+      self.journal_event_updated(by_user, true)
+    end
+    #
+    #  And now make sure the list of commitments matches.  Preserve
+    #  existing ones.  Delete superfluous ones.  Add missing ones.
+    #
+    #  We ignore covering commitments on both sides.
+    #
+    our_commitments = self.non_covering_commitments.to_a
+    donor_event.non_covering_commitments.each do |dc|
+      #
+      #  Do we have a matching one?  If yes, remove from array.
+      #  If no, create it.
+      #
+      existing = our_commitments.detect {|c| c.element_id == dc.element_id}
+      if existing
+        #
+        #  Not deleting the commitment - just removing it from our
+        #  list of un-matched ones and thus preventing its deletion
+        #  later.
+        #
+        our_commitments.delete(existing)
+      else
+        c = dc.clone_and_save(event: self) do |c|
+          if block_given?
+            yield :added, c
+          end
+        end
+        self.journal_commitment_added(c, by_user, true)
+      end
+    end
+    #
+    #  Any left must be superfluous.
+    #
+    our_commitments.each do |oc|
+      #
+      #  Delete and journal (and possibly e-mail).
+      #
+      self.journal_commitment_removed(oc, by_user, true)
+      if block_given?
+        yield :removed, oc
+      end
+      oc.destroy
+    end
+  end
+
+  #
+  #  A helper method for the above method, which caches the list of
+  #  element ids in a donor event.  This is because it will typically
+  #  be used sequentially by a lot of other events.
+  #
+  def donor_element_ids
+    @donor_element_ids ||=
+      self.non_covering_commitments.collect {|c| c.element_id}
   end
 
   #
@@ -1337,77 +1474,82 @@ class Event < ActiveRecord::Base
     end
   end
 
-  def journal_event_created(by_user, more = nil)
+  def journal_event_created(by_user, more = nil, repeating = false)
     #
     #  Since we are meant to be called just after the creation of
     #  the event, the journal should not already exist, but just
     #  to be safe, and for consistency...
     #
     ensure_journal
-    self.journal.event_created(by_user, more)
+    self.journal.event_created(by_user, more, repeating)
   end
 
-  def journal_event_updated(by_user)
+  def journal_event_updated(by_user, repeating = false)
     ensure_journal
-    self.journal.event_updated(by_user)
+    self.journal.event_updated(by_user, repeating)
   end
 
-  def journal_event_destroyed(by_user)
+  def journal_event_destroyed(by_user, repeating = false)
     ensure_journal
-    self.journal.event_destroyed(by_user)
+    self.journal.event_destroyed(by_user, repeating)
   end
 
-  def journal_commitment_added(commitment, by_user)
+  def journal_commitment_added(commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.commitment_added(commitment, by_user)
+    self.journal.commitment_added(commitment, by_user, repeating)
   end
 
-  def journal_commitment_removed(commitment, by_user)
+  def journal_commitment_removed(commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.commitment_removed(commitment, by_user)
+    self.journal.commitment_removed(commitment, by_user, repeating)
   end
 
-  def journal_commitment_approved(commitment, by_user)
+  def journal_commitment_approved(commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.commitment_approved(commitment, by_user)
+    self.journal.commitment_approved(commitment, by_user, repeating)
   end
 
-  def journal_commitment_rejected(commitment, by_user)
+  def journal_commitment_rejected(commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.commitment_rejected(commitment, by_user)
+    self.journal.commitment_rejected(commitment, by_user, repeating)
   end
 
-  def journal_commitment_noted(commitment, by_user)
+  def journal_commitment_noted(commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.commitment_noted(commitment, by_user)
+    self.journal.commitment_noted(commitment, by_user, repeating)
   end
 
   #
   #  If a commitment goes back from either "approved" or "rejected"
   #  to a "pending" state.
   #
-  def journal_commitment_reset(commitment, by_user)
+  def journal_commitment_reset(commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.commitment_reset(commitment, by_user)
+    self.journal.commitment_reset(commitment, by_user, repeating)
   end
 
   #
   #  We don't generally journal ordinary notes, since they aren't
   #  significant.  We do journal commitment notes, since those affect
   #  whether the 
-  def journal_note_added(note, commitment, by_user)
+  def journal_note_added(note, commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.note_added(note, commitment, by_user)
+    self.journal.note_added(note, commitment, by_user, repeating)
   end
 
-  def journal_note_updated(note, commitment, by_user)
+  def journal_note_updated(note, commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.note_updated(note, commitment, by_user)
+    self.journal.note_updated(note, commitment, by_user, repeating)
   end
 
-  def journal_form_completed(ufr, commitment, by_user)
+  def journal_form_completed(ufr, commitment, by_user, repeating = false)
     ensure_journal
-    self.journal.form_completed(ufr, commitment, by_user)
+    self.journal.form_completed(ufr, commitment, by_user, repeating)
+  end
+
+  def journal_repeated_from(by_user)
+    ensure_journal
+    self.journal.repeated_from(by_user)
   end
 
   def format_timing
@@ -1454,6 +1596,41 @@ class Event < ActiveRecord::Base
       if do_save
         self.save!
       end
+    end
+  end
+
+  #
+  #  For an event to be eligible for repetition it must:
+  #
+  #  1.  Have a real owner.  Not a system event.
+  #  2.  Be entirely contained within one calendar day.  It can
+  #      last the whole day, but just the one.  A 24 hour event spanning
+  #      two days is not eligible.
+  #  3.  Not be currently in the process of being repeated.
+  #
+  def can_be_repeated?
+    self.owner && self.just_one_day? &&
+      (self.event_collection.nil? || self.event_collection.ok_to_update?)
+  end
+
+  def could_be_repeated?
+    self.owner && self.just_one_day?
+  end
+
+  def repeating_event?
+    !self.event_collection_id.nil?
+  end
+
+  def just_one_day?
+    if self.all_day
+      self.starts_at.midnight? &&
+        self.ends_at.midnight? &&
+        self.ends_at == self.starts_at + 1.day
+    else
+      #
+      #  Timed event.  Must start and end on the same day.
+      #
+      self.starts_at.to_date == self.ends_at.to_date
     end
   end
 
