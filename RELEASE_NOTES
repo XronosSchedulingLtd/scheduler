@@ -1,4 +1,4 @@
-v1.0.0-pre2  2018-04-17
+v1.0.0  2018-04-19
 
 * Repeating events through the GUI
 
@@ -47,12 +47,15 @@ v1.0.0-pre2  2018-04-17
   one of the individual events, and then the change can be propagated
   automatically to all of the others.
 
-  Events can only be used as a prototype for repetition if they have
+  Events can be used as a prototype for repetition only if they have
   an owner - events owned by the system (e.g those loaded from an MIS
   or from YAML files) cannot be repeated.  Similarly, for an event to
   be repeated across multiple days, it must itself be contained within
   one calendar day.  Events spanning more than one calendar day can't
   be used as a prototype for repetition.
+
+  Documentation for this new facility can be found in the User Guide
+  at https://xronos.uk/repeating.html
 
 * Users can delete individual events in a set, or delete the whole
   repetition.  If an individual event is deleted and then the repetition
