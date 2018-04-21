@@ -33,6 +33,10 @@
 !/import/recurring
 /import/recurring/*
 !/import/recurring/README
+
+/import/modifiers/*
+!/import/modifiers/.keep
+
 #
 #  And I want the basic Markbook directory structure
 #

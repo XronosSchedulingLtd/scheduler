@@ -25,12 +25,20 @@ class MIS_ScheduleEntry
     end
   end
 
+  def week_just_letter
+    self.week_letter[-1]
+  end
+
   def day_of_week
     if self.period
       self.period.day.name
     else
       ""
     end
+  end
+
+  def short_day_of_week
+    self.day_of_week[0,3]
   end
 
   def period_name
