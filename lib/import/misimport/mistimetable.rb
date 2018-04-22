@@ -16,7 +16,7 @@ class MIS_ScheduleEntry
 
   attr_reader :dbrecord, :groups, :staff, :rooms, :pupils, :period, :subjects, :properties
 
-  @@covered_property_element_id = nil
+  @@prep_property_element_id = nil
 
   def initialize
     #
@@ -220,13 +220,9 @@ class MIS_ScheduleEntry
       resources_added_count += 1
     end
     @dbrecord.reload
-    #
-    #  Never remove the "Covered" property
-    #
-    db_only -= [self.class.covered_property_element_id]
     if db_only.size > 0
       @dbrecord.commitments.each do |c|
-        if db_only.include?(c.element_id) && !c.covering
+        if db_only.include?(c.element_id) && can_remove?(c)
           c.destroy
           resources_removed_count += 1
         end
@@ -235,15 +231,25 @@ class MIS_ScheduleEntry
     [resources_added_count, resources_removed_count]
   end
 
-  def self.covered_property_element_id
-    @@covered_property_element_id ||= self.get_cpei
+  #
+  #  The only Property which we're allowed to remove is the "Prep"
+  #  one, because it's the only one which we add.
+  #
+  def can_remove?(c)
+    !c.covering &&
+     ((c.element.entity_type != 'Property') ||
+      (c.element_id == self.class.prep_property_element_id))
+  end
+
+  def self.prep_property_element_id
+    @@prep_property_element_id ||= self.get_ppei
   end
 
   #
-  #  Get covered property element id.
+  #  Get prep property element id.
   #
-  def self.get_cpei
-    p = Property.find_by(name: "Covered")
+  def self.get_ppei
+    p = Property.find_by(name: "Prep")
     if p
       p.element.id
     else
