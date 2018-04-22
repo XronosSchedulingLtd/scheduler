@@ -14,18 +14,21 @@ end
 
 class MIS_ScheduleEntry
 
-  attr_reader :dbrecord, :groups, :staff, :rooms, :pupils, :period, :subjects
+  attr_reader :dbrecord, :groups, :staff, :rooms, :pupils, :period, :subjects, :properties
+
+  @@prep_property_element_id = nil
 
   def initialize
     #
     #  We create these (assuming the sub-class remembers to call super())
     #  but it's up to sub-classes to populate them.
     #
-    @groups   = Array.new
-    @staff    = Array.new
-    @rooms    = Array.new
-    @pupils   = Array.new
-    @subjects = Array.new
+    @groups     = Array.new
+    @staff      = Array.new
+    @rooms      = Array.new
+    @properties = Array.new
+    @pupils     = Array.new
+    @subjects   = Array.new
   end
 
   def note_hiatuses(loader, hiatuses)
@@ -194,6 +197,7 @@ class MIS_ScheduleEntry
     mis_element_ids =
       (self.groups.collect {|g| g.element_id} +
        self.staff.collect {|s| s.element_id} +
+       self.properties.collect {|p| p.element_id} +
        self.pupils.collect {|p| p.element_id} +
        self.subjects.collect {|s| s.element_id} +
        self.rooms.collect {|r| r.element_id}).compact
@@ -201,6 +205,7 @@ class MIS_ScheduleEntry
       @dbrecord.commitments.select {|c|
         c.element.entity_type == "Group" ||
         c.element.entity_type == "Staff" ||
+        c.element.entity_type == "Property" ||
         c.element.entity_type == "Pupil" ||
         c.element.entity_type == "Subject" ||
         c.element.entity_type == "Location" }.
@@ -217,13 +222,39 @@ class MIS_ScheduleEntry
     @dbrecord.reload
     if db_only.size > 0
       @dbrecord.commitments.each do |c|
-        if db_only.include?(c.element_id) && !c.covering
+        if db_only.include?(c.element_id) && can_remove?(c)
           c.destroy
           resources_removed_count += 1
         end
       end
     end
     [resources_added_count, resources_removed_count]
+  end
+
+  #
+  #  The only Property which we're allowed to remove is the "Prep"
+  #  one, because it's the only one which we add.
+  #
+  def can_remove?(c)
+    !c.covering &&
+     ((c.element.entity_type != 'Property') ||
+      (c.element_id == self.class.prep_property_element_id))
+  end
+
+  def self.prep_property_element_id
+    @@prep_property_element_id ||= self.get_ppei
+  end
+
+  #
+  #  Get prep property element id.
+  #
+  def self.get_ppei
+    p = Property.find_by(name: "Prep")
+    if p
+      p.element.id
+    else
+      nil
+    end
   end
 
 end
