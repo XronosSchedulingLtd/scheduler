@@ -1,3 +1,43 @@
+v1.1.0  2018-04-22
+
+* Incorporpate prep timetable
+
+  This release adds the ability to incorporate the school's entire prep
+  timetable into the data imported from the school's MIS.
+
+  Generally speaking, prep timetables are not produced in a format
+  friendly to the end user.  Each member of staff and pupil needs to
+  analyse the timetable and work out how exactly it affects him or her.
+  This is a terrible waste of time, and can be quite difficult for
+  some pupils.
+
+  Scheduler now does this for you, producing a tailored list of preps
+  for each individual in the school.
+
+  When a lesson is scheduled to be used for setting a prep, Scheduler
+  makes two alterations to it as it is loaded.
+
+  1.  The name of the lesson has " (P)" added to it.
+  2.  The property "Prep" is attached to the lesson.
+
+  The first of these changes is to make clear the existence of the prep
+  immediately the lesson is viewed.  It is done in this way (rather than
+  as a flag) because it will thus feed through to the portable
+  devices (phones etc.) of each individual.  There is no facility
+  in the ical spec to allow the passage of arbitrary separate flags.
+
+  The second change means that it is possible to get reports on what
+  preps are scheduled on any particular day.
+
+  The file defining the prep timetable needs to be prepared in YAML
+  format, and is stored as $SCHEDULER_DIR/import/modifiers/Preps.yml
+
+  As a knock-on from this work, the prep timetable now reappears in
+  Markbook (which has had this facility for a long time) meaning it
+  is possible to print off individual pupil timetables incorporating
+  all the prep information.
+
+
 v1.0.0  2018-04-19
 
 * Repeating events through the GUI
