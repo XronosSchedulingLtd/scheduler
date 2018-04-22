@@ -423,6 +423,22 @@ class MIS_Loader
     SB_Period.dump(@timetable)
     SB_Timetableentry.dump(@timetable)
     @timetable.save_to_csv
+    #
+    #  And now let's apply Abingdon's prep information to the
+    #  lesson records in memory.  Each one which is identified as
+    #  having a prep is modified in two ways.
+    #
+    #  1.  The body text has " (P)" tagged on the end.
+    #  2.  It has the "Prep" property attached to it.
+    #
+#    puts "Parsing preps"
+    prepper =
+      PrepParsing::Prepper.new(Rails.root.join(IMPORT_DIR,
+                                               "modifiers",
+                                               "Preps.yml"))
+#    puts "Processing timetable"
+    prepper.process_timetable(@timetable)
+#    puts "Done with preps"
   end
 
 end
