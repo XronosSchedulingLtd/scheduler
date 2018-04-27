@@ -39,7 +39,7 @@ class MIS_Subject
     end
     subjects = Array.new
     code_hash.each do |code, description|
-      puts "Subject code \"#{code}\", description \"#{description}\"."
+#      puts "Subject code \"#{code}\", description \"#{description}\"."
       subjects << MIS_Subject.new(code, description)
     end
     subjects
