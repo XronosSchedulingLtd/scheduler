@@ -358,5 +358,11 @@ class MIS_Cover
     last_known
   end
 
+  #
+  #  MIS-Specific code should override this.
+  #
+  def self.construct(loader, mis_data)
+    []
+  end
 end
 

@@ -1,3 +1,8 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2018 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+
 class MIS_Pupil < MIS_Record
   #
   #  The data items referenced here must be provided by the MIS-specific
@@ -24,22 +29,19 @@ class MIS_Pupil < MIS_Record
     :email,
     :current
   ]
-  #
-  #  Likewise, the platform-specific code must provide the following
-  #  instance methods.
-  #
-  #  source_id
-  #  effective_start_year
-  #
-  #  And most importantly, a class method called:
-  #
-  #  slurp
-  #
 
   def force_save
     if self.dbrecord
       self.dbrecord.save!
     end
+  end
+
+  #
+  #  Everything below here should be overridden by MIS-specific code.
+  #
+
+  def self.construct(loader, mis_data)
+    []
   end
 
 end

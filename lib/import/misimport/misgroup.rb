@@ -205,6 +205,7 @@ class MIS_Group < MIS_Record
   #
   def self.construct(loader, whatever)
     @@loader = loader
+    []
   end
 
 end

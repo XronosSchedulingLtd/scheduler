@@ -260,6 +260,19 @@ class MIS_ScheduleEntry
 end
 
 class MIS_Schedule
+
+  #
+  #  It is assumed that MIS_Specific code will override this next
+  #  method.
+  #
+
+  def initialize
+    @entries = []
+  end
+
+  #
+  #  These however should not need overriding.
+  #
   def note_hiatuses(loader, hiatuses)
     @entries.each do |entry|
       entry.note_hiatuses(loader, hiatuses)
@@ -299,4 +312,26 @@ class MIS_Timetable
   def note_groups_taught
     @schedule.note_groups_taught
   end
+
+  #
+  #  Everything from here on down should be implemented by the MIS-specific
+  #  code.  Stubs are provided so that the importer will run (but do
+  #  nothing) without, and to document what is needed.
+  #
+
+  def initialize(loader, mis_data)
+  end
+
+  def build_schedule(loader, mis_data)
+    @schedule = MIS_Schedule.new
+  end
+
+  def entry_count
+    0
+  end
+
+  def lessons_on(date)
+    []
+  end
+
 end

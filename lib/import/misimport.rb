@@ -106,6 +106,7 @@ require_relative 'misimport/misrecord.rb'
 require_relative 'misimport/misgroup.rb'
 require_relative 'misimport/misproperty.rb'
 require_relative 'misimport/parserecurring.rb'
+require_relative 'misimport/slurper.rb'
 
 #
 #  Actual identifiable database things.
@@ -141,7 +142,6 @@ if current_mis
   if current_mis == "iSAMS"
     require_relative 'isams/dateextra.rb'
     require_relative 'isams/options.rb'
-    require_relative 'isams/slurper.rb'
     require_relative 'isams/depender.rb'
     require_relative 'isams/activityevent.rb'
     require_relative 'isams/activityeventoccurrence.rb'
@@ -162,9 +162,19 @@ if current_mis
     require_relative 'isams/mishouse.rb'
     require_relative 'isams/missubject.rb'
     require_relative 'isams/miscover.rb'
-  elsif current_mis == "SchoolBase"
+  elsif current_mis == "Pass" || current_mis == "SchoolBase"
+    Dir[File.join(File.dirname(__FILE__),
+                  "#{current_mis.downcase}/*.rb")].each do |file|
+      require File.absolute_path(file)
+    end
+#    require_relative 'pass/mishouse.rb'
+#    require_relative 'pass/misloader.rb'
+#    require_relative 'pass/mislocation.rb'
+#    require_relative 'pass/mispupil.rb'
+#    require_relative 'pass/misstaff.rb'
+#    require_relative 'pass/missubject.rb'
   else
-    raise "Don't know how to handle #{current_mis} as our current MIS."
+    raise "Don't know how to handle \"#{current_mis}\" as our current MIS."
   end
 else
   raise "No current MIS configured - can't import."

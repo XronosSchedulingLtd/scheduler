@@ -1,3 +1,8 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2018 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+
 class MIS_Staff < MIS_Record
   DB_CLASS = Staff
   DB_KEY_FIELD = [:source_id, :datasource_id]
@@ -18,4 +23,13 @@ class MIS_Staff < MIS_Record
                       :email,
                       :active,
                       :current]
+
+  #
+  #  The MIS-specific code should override everything below here.
+  #
+
+  def self.construct(loader, mis_data)
+    []
+  end
+
 end

@@ -69,6 +69,11 @@
 !/import/isams/LastGood/.keep
 
 #
+#  Slightly cleaner for pass?
+#
+!/import/pass
+
+#
 #  School-specific bits of the import process get quite interesting.
 #
 /lib/import/school/*

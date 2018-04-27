@@ -83,7 +83,9 @@ class MIS_Loader
         @oh_groups_hash[ohg.isams_id] = ohg
       end
     end
-    self.mis_specific_preparation
+    if self.respond_to?(:mis_specific_preparation)
+      self.mis_specific_preparation
+    end
     #
     #  And now there should be enough to build the actual timetable
     #  data structures.
