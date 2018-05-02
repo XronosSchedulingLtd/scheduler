@@ -1,0 +1,136 @@
+#!/bin/bash
+#
+#  This is a modified version if the importisdata script designed
+#  to work around bugs in the iSAMS API.  Instead of fetching
+#  the data all in one go, we do it in stages and then combine them.
+#
+. /etc/profile
+#
+#  The next file contains confidential authentication information,
+#  specifically the apikey for the API and the password for direct
+#  d/b access.  In a separate file so we can commit this file
+#  to version control.
+#
+. ~/etc/isauth
+#
+#  Are we on development or live?  Where are our directories etc?
+#
+. ~/etc/whichsystem
+#
+#  And make sure we're using the right ruby.
+#
+. ~/.rvm/environments/scheduler
+#
+#
+#  Now some checks to make sure that at least the part of the
+#  environment which we need has been set.
+#
+if [ "a$SCHEDULER_DIR" == "a" ]; then
+  echo "SCHEDULER_DIR environment variable needs to be set."
+  exit 1
+fi
+if [ ! -d $SCHEDULER_DIR/import/isams ]; then
+  echo "$SCHEDULER_DIR/import/isams does not seem to be a directory."
+  exit 2
+fi
+
+cd $SCHEDULER_DIR/import/isams
+rm -f Incoming/*
+
+#
+#  Are we making use of data from the iSAMS API - either fetching it
+#  now or an old one which we have to hand?
+#
+#  Processing is done in a significantly different order here.  We might
+#  have some files pre-existing, and fetch the rest.
+#
+if [ "$USE_ISAMS_API" = true ]; then
+  if [ "a$ISAMS_API_URL" == "a" ]; then
+    echo "ISAMS_API_URL environment variable needs to be set."
+    exit 3
+  fi
+  if [ "a$APIKEYS" == "a" ]; then
+    echo "APIKEYS environment variable needs to be set."
+    exit 4
+  fi
+  for key in $APIKEYS; do
+    #
+    #  Don't use the key itself as a filename - insecure.  Generate an
+    #  MD5SUM from the number and use that.
+    #
+    filename=`$SCHEDULER_DIR/utils/domd5 $key`
+    if [ -f PreFetched/$filename.xml ]; then
+      echo "Using pre-fetched $filename.xml"
+      cp PreFetched/$filename.xml Incoming
+    else
+      time curl --silent $ISAMS_API_URL?apikey=$key --output Incoming/$filename.xml
+      if [ $? -ne 0 ]; then
+        echo "Failed to fetch iSAMS API data."
+        exit 5
+      fi
+    fi
+  done
+  #
+  #  And now combine all our files to make the data.xml file which
+  #  we wanted in the first place.
+  #
+  $SCHEDULER_DIR/lib/xmlcat/xmlcat.rb --error_element "Message" --nest_at 'iSAMS' Incoming/*.xml >Incoming/data.xml
+  if [ $? -ne 0 ]; then
+    echo "Failed to merge iSAMS XML files."
+    exit 7
+  fi
+else
+  echo "Not using iSAMS API data."
+fi
+
+#
+#  And are we using additional data retrieved directly from the iSAMS
+#  database - again either doing it now or having done it earlier?
+#
+if [ "$USE_ISAMS_DB" = true ]; then
+  if [ -f PreFetched/TblActivityManagerEvent.csv ]; then
+    echo "Using pre-fetched csv files."
+    cp PreFetched/*.csv Incoming
+  else
+    $SCHEDULER_DIR/utils/fetchisdata/extractor.rb --target Incoming --extract
+    if [ $? -ne 0 ]; then
+      echo "Failed to fetch data from iSAMS database."
+      exit 6
+    fi
+  fi
+else
+  echo "Not using iSAMS table data."
+fi
+
+#
+#  We now appear to have a set of data files.  Move them to Current
+#  and then archive them.
+#
+#  Note that we are keeping *all* our XML files - the ones from iSAMS
+#  and the merged one.  This is to aid in problem diagnosis in the future.
+#
+rm -f Current/*
+mv Incoming/* Current
+TARGET_DIR="Archive/`date +%Y/%m/%d`"
+mkdir -p $TARGET_DIR
+cp Current/* $TARGET_DIR
+if [ "$USE_ISAMS_API" = true ]; then
+  bzip2 -f $TARGET_DIR/*.xml
+fi
+if [ "$USE_ISAMS_DB" = true ]; then
+  bzip2 -f $TARGET_DIR/*.csv
+fi
+
+#
+#  And now invoke the import utility to bring the new data into Scheduler.
+#
+$SCHEDULER_DIR/lib/import/misimport.rb --quiet --email | tee import.log
+cp import.log $TARGET_DIR
+bzip2 -f $TARGET_DIR/import.log
+
+#
+#  Feed to markbook if configured.
+#
+if [ "$FEED_MARKBOOK" == "true" ]; then
+  rsync ../ForMarkbook/*.yml markbook:FromScheduler
+fi
