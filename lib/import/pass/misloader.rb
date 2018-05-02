@@ -13,6 +13,7 @@ class PASS_TimetableRecord
     Column["PERIOD_TIME",       :period_time,      :string],
     Column["SET_CODE",          :set_code,         :string],
     Column["ROOM",              :room,             :string],
+    Column["ROOM_DESCRIPTION",  :room_description, :string],
     Column["PUPIL_ID",          :pupil_id,         :integer],
     Column["STAFF_ID",          :staff_id,         :integer],
     Column["TUTOR",             :staff_surname,    :string],
