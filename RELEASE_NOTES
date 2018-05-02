@@ -1,3 +1,55 @@
+v1.1.1  2018-05-02
+
+* Workaround for deficiencies in the iSAMS API
+
+  The iSAMS API has been getting steadily slower and slower, to the point
+  where it is timing itself out.  It seems to have an internal timeout
+  set at 35s, and if the request takes longer than that then it returns
+  an error message and not the requested data.
+
+  To being with, this happened only on Thursdays (!) but incidences have
+  been increasing and iSAMS themselves seem to lack the technical expertise
+  to fix it.
+
+  As a workaround, the request sent to the iSAMS API has been split into
+  several smaller requests.  The output from these is then combined into
+  a single file (data.xml) for processing by Scheduler's import utility.
+
+  To use the workaround, it is necessary to set up several API Keys in
+  iSAMS, which between them contain all the necessary data.  A suggested
+  split is as follows:
+
+  * Everything except PupilManager and TeachingManager
+  * PupilManager
+  * TeachingManager
+
+  although it may be necessary to sub-divide the PupilManager requests
+  further as that's where the very slow processing seems to be.  It
+  would be possible to move some elements of that module into the
+  first batch, which seems to have time to spare.  The Scheduler
+  utilities don't care how many chunks there are, as long as all the
+  data get included eventually.
+
+  To use the workaround, two changes are needed after installing the
+  new software version.
+
+  Edit ~/etc/isauth to add a new line:
+
+  APIKEYS='<key1> <key2> <key3>'
+
+  for however many batches you have set up.
+
+  Then change your Scheduler user's crontab to invoke utils/importisdatamulti
+  instead of utils/importisdata.
+
+  The separate batches of data coming from iSAMS are stored in individual
+  XML files, which for security are not named directly after the API keys.
+  Instead, an md5sum of each key is generated and that is used as the
+  file name.  It is thus possible, knowing the key, to find the right file,
+  but it isn't possible to work from knowing the file name to regenerating
+  the key.
+
+
 v1.1.0  2018-04-22
 
 * Incorporpate prep timetable
