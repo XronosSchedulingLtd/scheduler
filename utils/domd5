@@ -1,0 +1,4 @@
+#!/bin/bash
+md5sum << EOF | awk '{print $1;}'
+$1
+EOF
