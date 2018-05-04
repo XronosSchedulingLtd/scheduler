@@ -75,9 +75,26 @@ if [ "$USE_ISAMS_API" = true ]; then
   #  we wanted in the first place.
   #
   $SCHEDULER_DIR/lib/xmlcat/xmlcat.rb --error_element "Message" --nest_at 'iSAMS' Incoming/*.xml >Incoming/data.xml
-  if [ $? -ne 0 ]; then
+  if [ $? -eq 0 ]; then
+    #
+    #  Keep a copy of this successfully merged file in case of failures
+    #  on future occasions.
+    #
+    cp Incoming/data.xml LastGood
+  else
     echo "Failed to merge iSAMS XML files."
-    exit 7
+    #
+    #  Might be able to revcover if we have an old data file.
+    #
+    if [ -f LastGood/data.xml ]; then
+      cp LastGood/data.xml Incoming
+      mail monitors -s "Scheduler import using old saved data.xml" << EOF
+Merging of XML files from iSAMS has failed.  Using an old copy.
+EOF
+    else
+      echo "No old data file to use."
+      exit 7
+    fi
   fi
 else
   echo "Not using iSAMS API data."

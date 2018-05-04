@@ -86,7 +86,6 @@ if ARGV.size > 0
     if options.min_size > 0
       if File.size(file_name) < options.min_size
         STDERR.puts "File #{file_name} is below the minimum specified size - #{options.min_size}."
-        STDERR.puts "Aborting"
         exit 2
       end
     end
@@ -100,7 +99,6 @@ if ARGV.size > 0
     data_sets.each_with_index do |ds, i|
       ds.xpath("#{options.error_element}").each do |baddie|
         STDERR.puts "File #{ARGV[i]} contains forbidden node \"#{options.error_element}\""
-        STDERR.puts "Aborting"
         exit 3
       end
     end
