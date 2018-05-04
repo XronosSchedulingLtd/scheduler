@@ -64,6 +64,9 @@
 !/import/isams/Incoming
 /import/isams/Incoming/*
 !/import/isams/Incoming/.keep
+!/import/isams/LastGood
+/import/isams/LastGood/*
+!/import/isams/LastGood/.keep
 
 #
 #  School-specific bits of the import process get quite interesting.
