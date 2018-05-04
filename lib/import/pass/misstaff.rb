@@ -16,14 +16,34 @@ class MIS_Staff
     #
     #  TODO: Get a proper extraction of staff information from Pass.
     #
-    @source_id     = record.staff_id
-    @datasource_id = @@primary_datasource_id
-    @forename      = record.staff_forename
-    @surname       = record.staff_surname.capitalize
-    @name          = "#{@forename} #{@surname}"
-    @title         = record.label_salutation.partition(" ").first
-    @initials      = "#{@forename[0].upcase}#{@surname[0].upcase}"
-    @email         = construct_email(forename, surname)
+    @source_id          = record.staff_id
+    @datasource_id      = @@primary_datasource_id
+    @forename, @surname = split_name(record.tutor, record.informal_salutation)
+    @name               = "#{@forename} #{@surname}"
+    @title              = record.label_salutation.partition(" ").first
+    @initials           = "#{@forename[0].upcase}#{@surname[0].upcase}"
+    @email              = construct_email(forename, surname)
+  end
+
+  def split_name(tutor, informal_salutation)
+    #
+    #  We don't get the forename and surname separately, so we try
+    #  to split up the whole name.  Try for the tutor field first.
+    #
+    splut = tutor.split(",")
+    if splut.size == 2
+      surname = splut[0].capitalize
+      forename = splut[1].strip
+    else
+      splut = informal_salutation.split(" ")
+      surname = splut.pop
+      if splut.size > 0
+        forename = splut.join(" ")
+      else
+        forename = "<Unknown>"
+      end
+    end
+    [forename, surname]
   end
 
   def active

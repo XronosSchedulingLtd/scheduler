@@ -7,18 +7,18 @@ class PASS_TimetableRecord
   #
   #  The first two characters should be configurable.
   #
-  FILE_NAME = "ch_ac_timetable.csv"
+  FILE_NAME = "CH_AC_TIMETABLE.csv"
   REQUIRED_COLUMNS = [
-    Column["DAY_NAME",          :day_name,         :string],
-    Column["PERIOD_TIME",       :period_time,      :string],
-    Column["SET_CODE",          :set_code,         :string],
-    Column["ROOM",              :room,             :string],
-    Column["ROOM_DESCRIPTION",  :room_description, :string],
-    Column["PUPIL_ID",          :pupil_id,         :integer],
-    Column["STAFF_ID",          :staff_id,         :integer],
-    Column["TUTOR",             :staff_surname,    :string],
-    Column["LETTER_SALUTATION", :staff_forename,   :string],
-    Column["LABEL_SALUTATION",  :label_salutation, :string]
+    Column["DAY_NAME",            :day_name,            :string],
+    Column["PERIOD_TIME",         :period_time,         :string],
+    Column["SET_CODE",            :set_code,            :string],
+    Column["ROOM",                :room,                :string],
+    Column["ROOM_DESCRIPTION",    :room_description,    :string],
+    Column["PUPIL_ID",            :pupil_id,            :integer],
+    Column["STAFF_ID",            :staff_id,            :integer],
+    Column["TUTOR",               :tutor,               :string],
+    Column["INFORMAL_SALUTATION", :informal_salutation, :string],
+    Column["LABEL_SALUTATION",    :label_salutation,    :string]
   ]
 
   include Slurper
@@ -49,10 +49,16 @@ class PASS_SubjectSetRecord
   #
   #  The first two characters should be configurable.
   #
-  FILE_NAME = "ch_ac_subject_sets.csv"
+  FILE_NAME = "CH_AC_SUBJECT_SETS.csv"
   REQUIRED_COLUMNS = [
+    Column["PUPIL_ID",            :pupil_id,            :integer],
+    Column["SUBJECT_SET_ID",      :subject_set_id,      :string],
     Column["SUBJECT_CODE",        :subject_code,        :string],
-    Column["SUBJECT_DESCRIPTION", :subject_description, :string]
+    Column["SUBJECT_DESCRIPTION", :subject_description, :string],
+    Column["CODEONLY",            :set_short_code,      :string],
+    Column["DESCRIPTION",         :set_long_name,       :string],
+    Column["SET_CODE",            :set_code,            :string],
+    Column["TUTOR_1_NAME",        :teacher_name,        :string]
   ]
 
   include Slurper

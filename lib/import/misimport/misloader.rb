@@ -15,7 +15,8 @@ class MIS_Loader
               :ohgroups,
               :oh_groups_hash,
               :timetable,
-              :event_source
+              :event_source,
+              :week_identifier
 
   def read_mis_data(options)
     @options = options
@@ -147,6 +148,10 @@ class MIS_Loader
       @start_date = Date.today
     end
     @hiatuses = Hiatus.load_hiatuses(self)
+    #
+    #  MIS-specific or school-specific code might find this useful.
+    #
+    @week_identifier = WeekIdentifier.new(@start_date, @era.ends_on)
     read_mis_data(options)
     if self.respond_to?(:local_processing)
       self.local_processing(options)

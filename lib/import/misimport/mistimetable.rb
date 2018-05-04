@@ -10,6 +10,14 @@ class MIS_PeriodTime
   #
   #  etc.  Note that they are always 5 characters long.
   #
+
+  def initialize(starts_at, ends_at)
+    @starts_at    = starts_at
+    @ls_starts_at = starts_at
+    @ends_at      = ends_at
+    @ls_ends_at   = ends_at
+  end
+
 end
 
 class MIS_ScheduleEntry

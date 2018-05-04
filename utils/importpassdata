@@ -37,7 +37,7 @@ rm -f Incoming/*
 #  database - again either doing it now or having done it earlier?
 #
 if [ "$USE_PASS_DB" = true ]; then
-  if [ -f PreFetched/ch_ac_timetable.csv ]; then
+  if [ -f PreFetched/CH_AC_TIMETABLE.csv ]; then
     echo "Using pre-fetched csv files."
     cp PreFetched/*.csv Incoming
   else
@@ -67,7 +67,7 @@ fi
 #
 #  And now invoke the import utility to bring the new data into Scheduler.
 #
-$SCHEDULER_DIR/lib/import/misimport.rb --verbose --email | tee import.log
+$SCHEDULER_DIR/lib/import/misimport.rb --quiet --email | tee import.log
 cp import.log $TARGET_DIR
 bzip2 -f $TARGET_DIR/import.log
 

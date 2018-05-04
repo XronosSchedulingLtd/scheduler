@@ -1,12 +1,7 @@
-class MIS_PeriodTime
-  def initialize(starts_at, ends_at)
-    @starts_at    = starts_at
-    @ls_starts_at = starts_at
-    @ends_at      = ends_at
-    @ls_ends_at   = ends_at
-  end
-
-end
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2018 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
 
 class ISAMS_Period
   SELECTOR = "Periods Period"
