@@ -1,3 +1,29 @@
+v1.1.2  2018-05-04
+
+* Keep last good iSAMS XML file for when the iSAMS API fails.
+
+  The iSAMS API now seems to have ground to a complete halt.  Even making
+  several small requests it times out each of them separately.  Whilst
+  iSAMS try to solve their problem, this release implements an extra
+  workaround.
+
+  Not all the data which we get from iSAMS comes through the API.  We
+  also do some direct database access to get things like cover and
+  activities, which are missing from the API data.  These calls still
+  work, and it's quite important to have up-to-date cover information
+  in Scheduler.
+
+  The importisdatamulti script has been enhanced.  Each time it
+  successfully gets a full XML file through the iSAMS API it saves a
+  copy of it, and then each time it fails it will fall back to using
+  that copy.  This allows the rest of the processing still to run, meaning
+  we can get some useful information out of iSAMS.
+
+  Each time the Scheduler importer uses and old data.xml file, it will
+  send an e-mail to "monitors".  Set up a suitable list of people in
+  the system's /etc/aliases file to receive notifications.
+
+
 v1.1.1  2018-05-02
 
 * Workaround for deficiencies in the iSAMS API
