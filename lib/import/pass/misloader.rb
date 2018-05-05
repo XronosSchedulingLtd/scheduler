@@ -18,7 +18,9 @@ class PASS_TimetableRecord
     Column["STAFF_ID",            :staff_id,            :integer],
     Column["TUTOR",               :tutor,               :string],
     Column["INFORMAL_SALUTATION", :informal_salutation, :string],
-    Column["LABEL_SALUTATION",    :label_salutation,    :string]
+    Column["LABEL_SALUTATION",    :label_salutation,    :string],
+    Column["LESSON_ID",           :lesson_id,           :integer],
+    Column["LESSON_DESC",         :lesson_desc,         :string]
   ]
 
   include Slurper

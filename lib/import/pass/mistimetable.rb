@@ -3,23 +3,36 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class MIS_ScheduleEntry
-  SELECTOR = "Schedules Schedule"
-  REQUIRED_FIELDS = [
-    IsamsField["Id",        :isams_id,   :attribute, :integer],
-    IsamsField["Code",      :code,       :data,      :string],
-    IsamsField["Teacher",   :teacher_id, :data,      :string],
-    IsamsField["PeriodId",  :period_id,  :data,      :integer],
-    IsamsField["RoomId",    :room_id,    :data,      :integer],
-    IsamsField["SetId",     :set_id,     :data,      :integer]
-  ]
+class PASS_PeriodTime < MIS_PeriodTime
+  def initialize(textual_period_time)
+    splut = textual_period_time.split(" ")
+    starts_at = splut[0][0,5]
+    ends_at = splut[2][0,5]
+    super(starts_at, ends_at)
+  end
+end
 
-  include Creator
+class PASS_ScheduleEntry < MIS_ScheduleEntry
 
-  attr_reader :subject, :isams_ids
+  attr_reader :subject, :week_letter, :day_name, :period_time
 
   def initialize(entry)
     super()
+    @lesson_id   = entry.lesson_id
+    @lesson_desc = entry.lesson_desc
+    @staff_id    = entry.staff_id
+    @room        = entry.room
+    #
+    #  This is a bit weird, but the Pass data which we can access has
+    #  been "helpfully" massaged, making it harder to process.
+    #  To match up the sets, we need to use the name of the lesson.
+    #
+    @set_code    = entry.lesson_desc
+    #
+    #  This next line is seriously non-defensive.
+    #
+    @day_name, @week_letter = entry.day_name.split(" ")
+    @period_time = PASS_PeriodTime.new(entry.period_time)
   end
 
   def adjust
@@ -41,69 +54,60 @@ class MIS_ScheduleEntry
   end
 
   def find_resources(loader)
-    #
-    #  iSAMS suffers from the same design flaw as SB, in that each
-    #  lesson can involve at most one teacher, one group and one
-    #  room.  I may need to implement a merging strategy as I did
-    #  for SB.
-    #
-    #  This code also currently suffers from a lack of defensiveness.
-    #  It assumes that the data coming from iSAMS will be correct.
-    #  Needs reinforcing.
-    #
-    group = loader.tegs_by_name_hash[@code]
-    if group
-      @groups << group
-      @subject = group.subject
-      if @subject
-        @subjects << @subject
-      end
-    else
-      @subject = nil
-    end
-    @teacher_ids.each do |teacher_id|
-      staff = loader.secondary_staff_hash[teacher_id]
+    if @staff_id
+      staff = loader.staff_hash[@staff_id]
       if staff
         @staff << staff
       end
     end
-    room = loader.location_hash[@room_id]
-    if room
-      @rooms << room
+    if @room
+      room = loader.location_hash[@room.to_i(36)]
+      if room
+        @rooms << room
+      end
     end
+    if @set_code
+      group = loader.teachinggroup_hash[@set_code]
+      if group
+        @groups << group
+      end
+    end
+#    group = loader.tegs_by_name_hash[@code]
+#    if group
+#      @groups << group
+#      @subject = group.subject
+#      if @subject
+#        @subjects << @subject
+#      end
+#    else
+#      @subject = nil
+#    end
+#    @teacher_ids.each do |teacher_id|
+#      staff = loader.secondary_staff_hash[teacher_id]
+#      if staff
+#        @staff << staff
+#      end
+#    end
+#    room = loader.location_hash[@room_id]
+#    if room
+#      @rooms << room
+#    end
   end
 
   def note_period(period)
     @period = period
   end
 
-  def period_time
-    @period.period_time
-  end
-
   def source_hash
-    if @isams_ids.size == 1
-      "Lesson #{@isams_id}"
-    else
-      #
-      #  It is just possible that the order in which iSAMS provides
-      #  the individual lesson records might change even though
-      #  the lessons haven't.  Sort them into numerical order to
-      #  cope with this.
-      #
-      "Lessons #{@isams_ids.sort.join(",")}"
-    end
+    "Lesson #{@lesson_id}"
   end
 
   def body_text
-    @code
+    @lesson_desc
   end
 
   def eventcategory
-    #
-    #  This needs fixing very quickly.
-    #
-    Eventcategory.find_by(name: "Lesson")
+    Eventcategory.cached_category("Lesson")
   end
 
   #
@@ -125,70 +129,6 @@ class MIS_ScheduleEntry
     end
   end
 
-  #
-  #  We merge lessons provided they have:
-  #
-  #    Same timing
-  #    Same group of pupils
-  #    Same lesson name
-  #    Same room
-  #
-  #  We thus need a hash key which will reflects all of these.
-  #
-  def hash_key
-    "#{self.code}/#{self.period_id}/#{self.room_id}"
-  end
-
-  #
-  #  Merge another lesson into this one, keeping note of crucial data.
-  #
-  def merge(other)
-    #
-    #  Merge another of the same into this one.
-    #
-    @teacher_ids << other.teacher_id
-    @isams_ids << other.isams_id
-    #
-    #  The cover records coming from iSAMS are also deficient.  They
-    #  record who is doing the cover, but not which teacher they are
-    #  covering.  They rely on the fact that iSAMS lessons can manage
-    #  only one teacher per lesson.
-    #
-    #  Since in reality lessons may well have more than one teacher,
-    #  we need to keep track of which teacher belongs to which
-    #  original lesson record.
-    #
-    @lesson_teacher_hash[other.isams_id] = other.teacher_id
-  end
-
-  def original_teacher_id(isams_id)
-    @lesson_teacher_hash[isams_id]
-  end
-
-  def self.construct(loader, inner_data)
-    lessons = self.slurp(inner_data)
-    #
-    #  iSAMS can cope with only one teacher per lesson, but it's perfectly
-    #  feasible to want more than one.  The only way around it within iSAMS
-    #  is to create parallel lessons for each teacher.
-    #
-    #  To tidy things up, we merge such cases into a single lesson.
-    #
-    lesson_hash = Hash.new
-    lessons.each do |lesson|
-      existing = lesson_hash[lesson.hash_key]
-      if existing
-        existing.merge(lesson)
-      else
-        lesson_hash[lesson.hash_key] = lesson
-      end
-    end
-    #
-    #  And return the resulting reduced list.
-    #
-    lesson_hash.values
-  end
-
 end
 
 
@@ -196,56 +136,16 @@ class MIS_Schedule
 
   attr_reader :entries
 
-  def initialize(loader, isams_data, timetable, period_hash)
-    lessons = ISAMS_TimetableEntry.construct(loader, timetable.entry)
+  def initialize(loader, miss_data)
     @lessons_by_id = Hash.new
-    lessons.each do |lesson|
-      #
-      #  Each lesson may consist of more than one original iSAMS lesson.
-      #  Keep track of them all.
-      #
-      lesson.isams_ids.each do |isams_id|
-        @lessons_by_id[isams_id] = lesson
-      end
+    #
+    #  The Pass data file contains one record per student in a lesson.
+    #  We want to consolidate this into unique lessons.
+    #
+    miss_data[:timetable_records].each do |record|
+      @lessons_by_id[record.lesson_id] ||= PASS_ScheduleEntry.new(record)
     end
-    #
-    #  Now get the meetings.
-    #
-    meetings = ISAMS_MeetingEntry.construct(loader, timetable.entry)
-    #
-    #  And full year events.
-    #
-    year_events = ISAMS_YeargroupEntry.construct(loader, timetable.entry)
-    #
-    #  And tutorials.
-    #
-    tutorial_events = ISAMS_TutorialEntry.construct(loader, timetable.entry)
-    #
-    #  And OH events.
-    #
-    if loader.options.activities
-      @oh_events = ISAMS_OtherHalfEntry.construct(isams_data)
-    else
-      @oh_events = []
-    end
-    #
-    @entries = lessons + meetings + year_events + tutorial_events
-    #
-    #  Now each timetable entry needs linking to the relevant day
-    #  so that we given a date subsequently, we can work out what day
-    #  it is and then return all the relevant lessons.
-    #
-    @entries.each do |entry|
-      period = period_hash[entry.period_id]
-      if period
-        entry.note_period(period)
-        period.day.note_lesson(entry)
-      else
-        unless entry.code.blank?
-          puts "Lesson #{entry.code} references period #{entry.period_id} which doesn't seem to exist."
-        end
-      end
-    end
+    @entries = @lessons_by_id.values
     @entries.each do |entry|
       entry.find_resources(loader)
     end
@@ -256,8 +156,8 @@ class MIS_Schedule
     end
   end
 
-  def lesson_by_id(isams_id)
-    @lessons_by_id[isams_id]
+  def lesson_by_id(id)
+    @lessons_by_id[id]
   end
 
   def entry_count
@@ -273,12 +173,6 @@ class MIS_Schedule
     @entries.each do |entry|
       entry.note_hiatuses(loader, hiatuses)
     end
-    #
-    #  This is the extra bit.
-    #
-    @oh_events.each do |ohe|
-      ohe.note_hiatuses(loader, hiatuses)
-    end
   end
 
 
@@ -292,6 +186,7 @@ class MIS_Timetable
     #  We shall want access to the week identifier later.
     #
     @week_identifier = loader.week_identifier
+    @week_hash = Hash.new
   end
 
   #
@@ -299,7 +194,12 @@ class MIS_Timetable
   #  all necessary teaching groups.
   #
   def build_schedule(loader, mis_data)
-    @schedule = MIS_Schedule.new(loader, mis_data, @timetable_data)
+    @schedule = MIS_Schedule.new(loader, mis_data)
+    @schedule.entries.each do |entry|
+      @week_hash[entry.week_letter] ||= Hash.new
+      @week_hash[entry.week_letter][entry.day_name] ||= Array.new
+      @week_hash[entry.week_letter][entry.day_name] << entry
+    end
   end
 
   def entry_count
@@ -310,80 +210,17 @@ class MIS_Timetable
     #
     #  Note that more than one week may be extant on the indicated date.
     #
-    weeks = []
-    week_allocation =
-      @week_allocations_hash["#{date.year}/#{date.loony_isams_cweek}"]
-    if week_allocation
-      week = @week_hash[week_allocation.timetableweek_id]
-      if week
-        weeks << week
-      end
-    elsif
-      #
-      #  It's possible that the week allocations haven't yet been put into
-      #  iSAMS, but we can work them out ourselves.  Relies on someone
-      #  having already put them into Scheduler as events, and them
-      #  conforming to "WEEK A" => 1, "WEEK B" => 2
-      #
-      #  This code is very fragile, and intended just as a stopgap.
-      #
-      ec = Eventcategory.find_by(name: "Week letter")
-      if ec
-        candidate = Event.events_on(date, nil, ec).take
-        if candidate
-          char = candidate.body[-1]
-          if char == 'A'
-            week = @week_hash[1]
-          elsif char == 'B'
-            week = @week_hash[2]
-          else
-            week = nil
-          end
-          if week
-            weeks << week
-          end
-        end
-      end
-    end
-    #
-    #  And now any weeks which are not part-timers.
-    #  Note that these must be flagged as being intended to come through.
-    #
-    weeks += @weeks.select {|week| week.load_regardless && !week.part_time}
+    day_of_week = date.strftime("%A")
+    week_letter = @week_identifier.week_letter(date)
+    right_week = @week_hash[week_letter]
     lessons = []
-    weeks.each do |week|
-#      puts "Week: #{week.name}"
-      #
-      #  iSAMS day numbers are one more than is conventional.
-      #
-      #  Thus Sun = 1, Mon = 2, etc.
-      #
-      day = week.day_hash[date.wday + 1]
-      if day
-        lessons += day.lessons
+    if right_week
+      right_day = right_week[day_of_week]
+      if right_day
+        lessons = right_day
       end
     end
-    if lessons.empty?
-      lessons = nil
-    end
-    if @activities
-      oh = ISAMS_OtherHalfEntry.events_on(date)
-    else
-      oh = nil
-    end
-    if lessons
-      if oh
-        lessons + oh
-      else
-        lessons
-      end
-    else
-      if oh
-        oh
-      else
-        nil
-      end
-    end
+    lessons
   end
 
 end
