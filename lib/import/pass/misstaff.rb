@@ -32,7 +32,19 @@ class MIS_Staff
     #
     splut = tutor.split(",")
     if splut.size == 2
-      surname = splut[0].capitalize
+      #
+      #  We are fairly confident that we have the surname first,
+      #  but it will be all caps.  Try a slightly clever way to get
+      #  it correctly capitalized.
+      #
+      caps_surname = splut[0]
+      regex = Regexp.new(caps_surname, "i")
+      offset = informal_salutation =~ regex
+      if offset
+        surname = informal_salutation[offset, caps_surname.size]
+      else
+        surname = caps_surname.capitalize
+      end
       forename = splut[1].strip
     else
       splut = informal_salutation.split(" ")
