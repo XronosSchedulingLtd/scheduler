@@ -26,6 +26,13 @@ class MIS_Subject
     true
   end
 
+  #
+  #  Adjust name to avoid name clashes.
+  #
+  def bump_name
+    @description = "#{@description} (#{@code})"
+  end
+
   def self.construct(loader, mis_data)
     #
     #  We are going to go through Pass data which has already been
@@ -41,6 +48,17 @@ class MIS_Subject
     code_hash.each do |code, description|
 #      puts "Subject code \"#{code}\", description \"#{description}\"."
       subjects << MIS_Subject.new(code, description)
+    end
+    #
+    #  Deal with any name clashes.
+    #
+    subjects.each do |subject|
+      same_name = subjects.select {|s| s.name == subject.name}
+      if same_name.size > 1
+        same_name.each do |s|
+          s.bump_name
+        end
+      end
     end
     subjects
   end

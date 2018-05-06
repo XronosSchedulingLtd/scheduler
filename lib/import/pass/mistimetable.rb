@@ -70,6 +70,10 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
       group = loader.teachinggroup_hash[@set_code]
       if group
         @groups << group
+        @subject = group.subject
+        if @subject
+          @subjects << @subject
+        end
       end
     end
 #    group = loader.tegs_by_name_hash[@code]

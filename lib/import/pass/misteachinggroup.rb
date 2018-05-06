@@ -23,7 +23,7 @@ class MIS_Teachinggroup
     #
     #  Probably needs improving.
     #
-    name[0].to_i
+    name[/^\d+/].to_i
   end
 
   def source_id

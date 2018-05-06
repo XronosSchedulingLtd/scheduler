@@ -114,7 +114,6 @@ class MIS_Loader
   end
 
   def prepare(options)
-    puts "OK chaps - prepare yourselves!"
     PASS_Data.new(self, options)
   end
 
