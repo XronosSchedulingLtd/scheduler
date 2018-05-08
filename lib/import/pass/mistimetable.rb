@@ -4,24 +4,35 @@
 # for more information.
 
 class PASS_PeriodTime < MIS_PeriodTime
+
   def initialize(textual_period_time)
     splut = textual_period_time.split(" ")
     starts_at = splut[0][0,5]
     ends_at = splut[2][0,5]
     super(starts_at, ends_at)
   end
+
+  def to_s
+    "#{@starts_at} - #{@ends_at}"
+  end
 end
 
 class PASS_ScheduleEntry < MIS_ScheduleEntry
 
-  attr_reader :subject, :week_letter, :day_name, :period_time
+  attr_reader :subject,
+              :week_letter,
+              :day_name,
+              :period_time,
+              :staff_id,
+              :lesson_id,
+              :room_id
 
   def initialize(entry)
     super()
     @lesson_id   = entry.lesson_id
     @lesson_desc = entry.lesson_desc
     @staff_id    = entry.staff_id
-    @room        = entry.room
+    @room_id     = entry.room
     #
     #  This is a bit weird, but the Pass data which we can access has
     #  been "helpfully" massaged, making it harder to process.
@@ -33,35 +44,33 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
     #
     @day_name, @week_letter = entry.day_name.split(" ")
     @period_time = PASS_PeriodTime.new(entry.period_time)
-  end
-
-  def adjust
     #
     #  If we end up merging this lesson, then we will want to keep
-    #  track of all the individual original iSAMS IDs.
+    #  track of all the individual original MIS data.
     #
     #  For consistency, even non-merged lessons will have an array
     #  of size 1.
     #
-    @isams_ids = [@isams_id]
-    @teacher_ids = [@teacher_id]
+    @lesson_ids = [@lesson_id]
+    @staff_ids  = [@staff_id]
+    @room_ids   = [@room_id]
     #
     #  So that later, given a lesson id, we can work out who the
     #  teacher of that particular instance is.
     #
     @lesson_teacher_hash = Hash.new
-    @lesson_teacher_hash[@isams_id] = @teacher_id
+    @lesson_teacher_hash[@lesson_id] = @staff_id
   end
 
   def find_resources(loader)
-    if @staff_id
-      staff = loader.staff_hash[@staff_id]
+    @staff_ids.each do |staff_id|
+      staff = loader.staff_hash[staff_id]
       if staff
         @staff << staff
       end
     end
-    if @room
-      room = loader.location_hash[@room.to_i(36)]
+    @room_ids.each do |room_id|
+      room = loader.location_hash[room_id.to_i(36)]
       if room
         @rooms << room
       end
@@ -76,26 +85,6 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
         end
       end
     end
-#    group = loader.tegs_by_name_hash[@code]
-#    if group
-#      @groups << group
-#      @subject = group.subject
-#      if @subject
-#        @subjects << @subject
-#      end
-#    else
-#      @subject = nil
-#    end
-#    @teacher_ids.each do |teacher_id|
-#      staff = loader.secondary_staff_hash[teacher_id]
-#      if staff
-#        @staff << staff
-#      end
-#    end
-#    room = loader.location_hash[@room_id]
-#    if room
-#      @rooms << room
-#    end
   end
 
   def note_period(period)
@@ -133,6 +122,30 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
     end
   end
 
+  #
+  #  Merging lessons with same name and time.
+  #
+  def hash_key
+    "#{@lesson_desc}/#{@period_time.to_s}/#{@day_name}/#{@week_letter}"
+  end
+
+  #
+  #  Merge another lesson into this one, keeping note of crucial data.
+  #
+  def merge(other)
+    #
+    #  Merge another of the same into this one.
+    #
+    @staff_ids  << other.staff_id
+    @lesson_ids << other.lesson_id
+    @room_ids   << other.room_id
+    #
+    #  Since in reality lessons may well have more than one teacher,
+    #  we need to keep track of which teacher belongs to which
+    #  original lesson record.
+    #
+    @lesson_teacher_hash[other.lesson_id] = other.staff_id
+  end
 end
 
 
@@ -149,7 +162,24 @@ class MIS_Schedule
     miss_data[:timetable_records].each do |record|
       @lessons_by_id[record.lesson_id] ||= PASS_ScheduleEntry.new(record)
     end
-    @entries = @lessons_by_id.values
+    #
+    #  At this point, we see whether we can merge duplicate lessons.
+    #  These happen where two different teachers are taking the same
+    #  lesson (e.g. sport).
+    #
+    lesson_hash = Hash.new
+    @lessons_by_id.values.each do |lesson|
+      existing = lesson_hash[lesson.hash_key]
+      if existing
+        existing.merge(lesson)
+      else
+        lesson_hash[lesson.hash_key] = lesson
+      end
+    end
+    @entries = lesson_hash.values
+    #
+    #  And now find the resources.
+    #
     @entries.each do |entry|
       entry.find_resources(loader)
     end
