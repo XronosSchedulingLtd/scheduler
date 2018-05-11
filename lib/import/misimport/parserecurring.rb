@@ -59,7 +59,8 @@ class RecurringEvent
                   :locations,
                   :properties,
                   :eventcategory,
-                  :resource_ids
+                  :resource_ids,
+                  :all_day
 
     #
     #  This is a calculated one.
@@ -74,6 +75,7 @@ class RecurringEvent
       @week        = "AB"
       @greyed      = false
       @occurrence  = :all
+      @all_day     = false
     end
 
     def deep_clone
@@ -106,16 +108,20 @@ class RecurringEvent
     end
 
     def starts=(starttime)
-      @starts = starttime
-      if @ends == nil
-        @ends = starttime
+      if starttime == :all_day
+        @all_day = true
+      else
+        @starts = starttime
+        if @ends == nil
+          @ends = starttime
+        end
       end
     end
 
     def complete?
       if @category.blank? ||
          @title.blank? ||
-         @starts.blank? ||
+         (@starts.blank? && !@all_day) ||
          @day.blank? ||
          (@staff.size == 0 &&
           @groups.size == 0 &&
@@ -201,7 +207,7 @@ class RecurringEvent
       if @title.blank?
         result << "  No title specified"
       end
-      if @starts.blank?
+      if @starts.blank? && !@all_day
         result << "  No start time specified"
       end
       if @day.blank?
@@ -239,7 +245,7 @@ class RecurringEvent
         end
       end
       @groups.each do |g|
-        rec = Group.find_by(name: g)
+        rec = Group.current.find_by(name: g)
         if rec
           @resource_ids << rec.element.id
         else
@@ -285,9 +291,13 @@ class RecurringEvent
       puts "  Category: #{@category}"
       puts "  Title:    #{@title}"
       puts "  Day:      #{@day}"
-      puts "  Starts:   #{@starts}"
-      if @ends
-        puts "  Ends:     #{@ends}"
+      if @all_day
+        puts "  All day"
+      else
+        puts "  Starts:   #{@starts}"
+        if @ends
+          puts "  Ends:     #{@ends}"
+        end
       end
       puts "  Week:     #{@week}"
       if @start_date
