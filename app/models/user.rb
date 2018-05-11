@@ -74,7 +74,7 @@ class User < ActiveRecord::Base
 
   has_many :events, foreign_key: :owner_id, dependent: :nullify
 
-  has_many :event_collections, foreign_key: :requesting_user, dependent: :nullify
+  has_many :event_collections, foreign_key: :requesting_user_id, dependent: :nullify
 
   has_many :controlled_commitments,
            class_name: "Commitment",
