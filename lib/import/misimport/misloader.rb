@@ -1158,10 +1158,11 @@ class MIS_Loader
         end
         #
         #  And what about notes, if any?
-        #  It is possible that someone else has attached a note to
-        #  one of our events.  Leave those alone.
+        #  There may well be other notes attached to our event - either
+        #  by a user or by the clash checker.  Interest ourselves only
+        #  in notes of type "yaml" - those are ours.
         #
-        existing_note = existing_event.notes.where(owner: nil).take
+        existing_note = existing_event.notes.yaml.take
         new_note = event.note
         #
         #  These are different kinds of things, but they both use
@@ -1188,7 +1189,8 @@ class MIS_Loader
             #  Create a note with this text.
             #
             existing_event.notes.create!({
-              contents: new_note
+              contents:  new_note,
+              note_type: :yaml
             })
           else
             #
