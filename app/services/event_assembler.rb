@@ -501,7 +501,7 @@ class EventAssembler
           #
           #  * The commitment is firm (the usual case)
           #  * The current user owns the element.
-          #  * The current user is an adminstrator
+          #  * The current user has the can_view_unconfirmed? flag set
           #  * The current user owns the event.
           #
           #  Tentative events (those awaiting approval) thus aren't shown
@@ -534,7 +534,7 @@ class EventAssembler
             resulting_events =
                       selector.
                       select {|c| concern.owns ||
-                                  @current_user.admin ||
+                                  @current_user.can_view_unconfirmed? ||
                                   !c.tentative? ||
                                   c.event.owner_id == @current_user.id }.
                       collect {|c| c.event}.

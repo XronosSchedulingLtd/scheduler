@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180414080031) do
+ActiveRecord::Schema.define(version: 20180511105512) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -688,6 +688,7 @@ ActiveRecord::Schema.define(version: 20180414080031) do
     t.boolean  "demo_user",                                 default: false
     t.boolean  "can_view_forms",                            default: false
     t.boolean  "can_repeat_events",                         default: false
+    t.boolean  "can_view_unconfirmed",                      default: false
   end
 
 end
