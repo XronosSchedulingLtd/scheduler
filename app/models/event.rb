@@ -1296,6 +1296,13 @@ class Event < ActiveRecord::Base
       self.body = donor_event.body
       do_save = true
     end
+    #
+    #  And the event category?
+    #
+    if donor_event.eventcategory_id != self.eventcategory_id
+      self.eventcategory = donor_event.eventcategory
+      do_save = true
+    end
     if do_save
       self.save
       self.journal_event_updated(by_user, true)
