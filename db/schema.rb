@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180511105512) do
+ActiveRecord::Schema.define(version: 20180512170216) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -513,26 +513,28 @@ ActiveRecord::Schema.define(version: 20180511105512) do
   end
 
   create_table "settings", force: :cascade do |t|
-    t.integer  "current_era_id",              limit: 4
+    t.integer  "current_era_id",                   limit: 4
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "next_era_id",                 limit: 4
-    t.integer  "previous_era_id",             limit: 4
-    t.integer  "perpetual_era_id",            limit: 4
-    t.boolean  "enforce_permissions",                       default: false
-    t.string   "current_mis",                 limit: 255
-    t.string   "previous_mis",                limit: 255
-    t.integer  "auth_type",                   limit: 4,     default: 0
-    t.string   "dns_domain_name",             limit: 255,   default: ""
-    t.string   "from_email_address",          limit: 255,   default: ""
-    t.boolean  "prefer_https",                              default: true
-    t.boolean  "require_uuid",                              default: false
-    t.integer  "room_cover_group_element_id", limit: 4
-    t.text     "event_creation_markup",       limit: 65535
-    t.text     "event_creation_html",         limit: 65535
-    t.integer  "wrapping_before_mins",        limit: 4,     default: 60
-    t.integer  "wrapping_after_mins",         limit: 4,     default: 30
-    t.integer  "wrapping_eventcategory_id",   limit: 4
+    t.integer  "next_era_id",                      limit: 4
+    t.integer  "previous_era_id",                  limit: 4
+    t.integer  "perpetual_era_id",                 limit: 4
+    t.boolean  "enforce_permissions",                            default: false
+    t.string   "current_mis",                      limit: 255
+    t.string   "previous_mis",                     limit: 255
+    t.integer  "auth_type",                        limit: 4,     default: 0
+    t.string   "dns_domain_name",                  limit: 255,   default: ""
+    t.string   "from_email_address",               limit: 255,   default: ""
+    t.boolean  "prefer_https",                                   default: true
+    t.boolean  "require_uuid",                                   default: false
+    t.integer  "room_cover_group_element_id",      limit: 4
+    t.text     "event_creation_markup",            limit: 65535
+    t.text     "event_creation_html",              limit: 65535
+    t.integer  "wrapping_before_mins",             limit: 4,     default: 60
+    t.integer  "wrapping_after_mins",              limit: 4,     default: 30
+    t.integer  "wrapping_eventcategory_id",        limit: 4
+    t.integer  "default_display_day_shape_id",     limit: 4
+    t.integer  "default_free_finder_day_shape_id", limit: 4
   end
 
   create_table "staffs", force: :cascade do |t|

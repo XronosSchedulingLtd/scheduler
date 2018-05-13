@@ -215,6 +215,34 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= f.label :default_display_day_shape, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.collection_select(:default_display_day_shape_id,
+                              @day_shapes,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :default_free_finder_day_shape, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.collection_select(:default_free_finder_day_shape_id,
+                              @day_shapes,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       &nbsp;
     </div>
     <div class="small-6 columns">

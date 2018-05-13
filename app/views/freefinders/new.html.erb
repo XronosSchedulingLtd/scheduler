@@ -55,12 +55,9 @@
     <div class="small-3 columns">
       <%= f.label "Period", class: "right inline" %>
     </div>
-    <div class="small-8 columns">
+    <div class="small-8 columns" id='ff-buttons-2'>
       <ul class="zfbutton-group round">
-        <li class="zfbutton tiny period-selector" data-period-no="0" title="Tutor period">0</li>
-<% 1.upto(8) do |index| %>
-        <li class="zfbutton tiny period-selector" data-period-no="<%= index %>"><%= index %></li>
-<% end %>
+        <li class="zfbutton tiny">None on this day</li>
       </ul>
     </div>
     <div class="small-1 columns">
@@ -114,3 +111,9 @@ None found.
     &nbsp;
   </div>
 </div>
+
+<% if @periods %>
+  <script type='application/json' id='period-definitions'>
+<%= @periods.to_json.html_safe %>
+  </script>
+<% end %>

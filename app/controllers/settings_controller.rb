@@ -15,6 +15,12 @@ class SettingsController < ApplicationController
 
   # GET /settings/1/edit
   def edit
+    tt = DayShapeManager.template_type
+    if tt
+      @day_shapes = tt.rota_templates
+    else
+      @day_shapes = []
+    end
   end
 
   # PATCH/PUT /settings/1
@@ -58,6 +64,8 @@ class SettingsController < ApplicationController
                     :wrapping_before_mins,
                     :wrapping_after_mins,
                     :wrapping_eventcategory_name,
-                    :wrapping_eventcategory_id)
+                    :wrapping_eventcategory_id,
+                    :default_display_day_shape_id,
+                    :default_free_finder_day_shape_id)
     end
 end

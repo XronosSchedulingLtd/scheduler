@@ -804,15 +804,10 @@ class User < ActiveRecord::Base
           end
         end
         #
-        #  By default, turn on period times.
+        #  Set this user's day shape to the system default.
+        #  He or she might choose to change it later.
         #
-        rtt = DayShapeManager.template_type
-        if rtt
-          rt = rtt.rota_templates.first
-          if rt
-            self.day_shape = rt
-          end
-        end
+        self.day_shape = Setting.default_display_day_shape
         #
         #  Small frig for the demo system only.
         #
