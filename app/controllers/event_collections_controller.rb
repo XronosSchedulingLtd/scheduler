@@ -14,12 +14,21 @@ class EventCollectionsController < ApplicationController
   #
   def new
     if current_user.can_repeat?(@event)
+      week_letter = WeekIdentifier.week_letter(@event.starts_at.to_date)
+      if week_letter == " "
+        #
+        #  A holiday day.
+        #
+        weeks = ["A", "B", " "]
+      else
+        weeks = ["A", "B"]
+      end
       @event_collection = EventCollection.new({
         era:                    Setting.current_era,
         repetition_start_date:  @event.starts_at.to_date,
         repetition_end_date:    Setting.current_era.ends_on,
         pre_select:             @event.starts_at.to_date.wday,
-        weeks:                  ["A", "B"]
+        weeks:                  weeks
       })
       @action_button_text = "Create"
       respond_to do |format|
