@@ -69,6 +69,24 @@ class Setting < ActiveRecord::Base
     # Ignore
   end
 
+  def self.title_text
+    @@setting ||= Setting.first
+    if @@setting && !@@setting.title_text.blank?
+      @@setting.title_text
+    else
+      "Scheduler"
+    end
+  end
+
+  def self.public_title_text
+    @@setting ||= Setting.first
+    if @@setting && !@@setting.public_title_text.blank?
+      @@setting.public_title_text
+    else
+      "Scheduler"
+    end
+  end
+
   def self.current_era
     @@setting ||= Setting.first
     if @@setting
@@ -297,6 +315,22 @@ class Setting < ActiveRecord::Base
 
   def self.demo_system?
     self.auth_type == "google_demo_auth"
+  end
+
+  #
+  #  One off method to move existing titles from the environment.
+  #
+  def self.set_title_texts
+    s = Setting.first
+    title_text = ENV['SCHEDULER_TITLE_TEXT']
+    unless title_text.blank?
+      s.title_text = title_text
+    end
+    public_title_text = ENV['PUBLIC_TITLE_TEXT']
+    unless public_title_text.blank?
+      s.public_title_text = public_title_text
+    end
+    s.save
   end
 
   protected

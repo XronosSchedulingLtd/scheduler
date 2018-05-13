@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180512170216) do
+ActiveRecord::Schema.define(version: 20180513080307) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -535,6 +535,8 @@ ActiveRecord::Schema.define(version: 20180512170216) do
     t.integer  "wrapping_eventcategory_id",        limit: 4
     t.integer  "default_display_day_shape_id",     limit: 4
     t.integer  "default_free_finder_day_shape_id", limit: 4
+    t.string   "title_text",                       limit: 255
+    t.string   "public_title_text",                limit: 255
   end
 
   create_table "staffs", force: :cascade do |t|
