@@ -99,6 +99,18 @@ class RotaSlot < ActiveRecord::Base
     end
   end
 
+  def <=>(other)
+    if other.instance_of?(RotaSlot)
+      if self.starts_at == other.starts_at
+        self.ends_at <=> other.ends_at
+      else
+        self.starts_at <=> other.starts_at
+      end
+    else
+      nil
+    end
+  end
+
   private
 
   def assign_tod_value(field, value)

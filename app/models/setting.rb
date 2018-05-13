@@ -17,6 +17,9 @@ class Setting < ActiveRecord::Base
   belongs_to :room_cover_group_element, class_name: :Element
   belongs_to :wrapping_eventcategory, class_name: :Eventcategory
 
+  belongs_to :default_display_day_shape, class_name: :RotaTemplate
+  belongs_to :default_free_finder_day_shape, class_name: :RotaTemplate
+
   before_save :update_html
   after_save :flush_cache
 
@@ -233,6 +236,24 @@ class Setting < ActiveRecord::Base
     @@setting ||= Setting.first
     if @@setting
       @@setting.wrapping_eventcategory
+    else
+      nil
+    end
+  end
+
+  def self.default_display_day_shape
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.default_display_day_shape
+    else
+      nil
+    end
+  end
+
+  def self.default_free_finder_day_shape
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.default_free_finder_day_shape
     else
       nil
     end
