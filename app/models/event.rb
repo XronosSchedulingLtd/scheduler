@@ -1641,6 +1641,18 @@ class Event < ActiveRecord::Base
     end
   end
 
+  #
+  #  Provide an appropriate text message to be shown to the user thinking
+  #  of deleting this event.
+  #
+  def deletion_warning_message
+    if self.event_collection
+      "This event is one of a set of repeating events.  If you want to delete the whole set, go into the repetition dialogue and delete them there.  Do you want to go ahead and delete just this instance?"
+    else
+      "Are you sure you want to delete \"#{self.body}\"?"
+    end
+  end
+
   private
 
   def become_all_day
