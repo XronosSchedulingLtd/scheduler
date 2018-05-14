@@ -931,125 +931,6 @@ class MIS_Loader
     end
   end
 
-  def do_duties
-    puts "Processing duties" if @verbose
-    duties_added_count = 0
-    duties_deleted_count = 0
-    resources_added_count = 0
-    resources_removed_count = 0
-    file_data =
-      YAML.load(
-        File.open(Rails.root.join(IMPORT_DIR, "Duties.yml")))
-    #raise file_data.inspect
-    @start_date.upto(@era.ends_on) do |date|
-      puts "Processing #{date}" if @verbose
-      week_letter = get_week_letter(date)
-      if week_letter
-        duties = file_data[week_letter][date.strftime("%A")]
-        if duties && duties.size > 0
-          existing_duties = @duty_category.events_on(date, date, @yaml_source)
-          #
-          #  We count duties from our input file and the database as being
-          #  the same one if they have the same title, the same start time
-          #  and the same end time.
-          #
-          duties.each do |duty|
-            unless duty[:title] == "Ignore"
-              starts_at =
-                Time.zone.parse("#{date.to_s} #{duty[:starts]}")
-              ends_at =
-                Time.zone.parse("#{date.to_s} #{duty[:ends]}")
-              existing_duty = existing_duties.detect {|ed|
-                ed.body      == duty[:title] &&
-                ed.starts_at == starts_at &&
-                ed.ends_at   == ends_at
-              }
-              if existing_duty
-                #
-                #  Remove from the array.  We will deal with any leftovers
-                #  at the end.
-                #
-                existing_duties = existing_duties - [existing_duty]
-              else
-                #
-                #  Event needs creating in the database.
-                #
-                existing_duty = Event.new
-                existing_duty.body = duty[:title]
-                existing_duty.eventcategory = @duty_category
-                existing_duty.eventsource   = @yaml_source
-                existing_duty.starts_at     = starts_at
-                existing_duty.ends_at       = ends_at
-                existing_duty.save!
-                existing_duty.reload
-                duties_added_count += 1
-              end
-              #
-              #  Now check that the resources match.
-              #
-              element_id = nil
-              if duty[:staff]
-                staff = Staff.find_by(initials: duty[:staff])
-                if staff
-                  element_id = staff.element.id
-                end
-              elsif duty[:group]
-                group = Group.find_by(name: duty[:group])
-                if group
-                  element_id = group.element.id
-                end
-              end
-              if element_id
-                required_ids = [element_id]
-                existing_ids = existing_duty.elements.collect {|e| e.id}
-                db_only = existing_ids - required_ids
-                input_only = required_ids - existing_ids
-                if db_only.size > 0
-                  existing_duty.commitments.each do |c|
-                    if db_only.include?(c.element_id)
-                      c.destroy
-                      resources_removed_count += 1
-                    end
-                  end
-                end
-                input_only.each do |id|
-                  c = Commitment.new
-                  c.event_id = existing_duty.id
-                  c.element_id = id
-                  c.save!
-                  resources_added_count += 1
-                end
-              else
-                puts "Couldn't find duty resource for #{duty.inspect}"
-              end
-            end
-          end
-          #
-          #  Any of the existing duties left?
-          #
-          existing_duties.each do |ed|
-            ed.destroy
-            duties_deleted_count += 1
-          end
-        else
-          puts "Couldn't find duties for #{date.strftime("%A")} of week #{week_letter}."
-        end
-      end
-    end
-    if duties_added_count > 0 || @verbose
-      puts "Added #{duties_added_count} duty events."
-    end
-    if duties_deleted_count > 0 || @verbose
-      puts "Deleted #{duties_deleted_count} duty events."
-    end
-    if resources_added_count > 0 || @verbose
-      puts "Added #{resources_added_count} resources to duty events."
-    end
-    if resources_removed_count > 0 || @verbose
-      puts "Removed #{resources_removed_count} resources from duty events."
-    end
-  end
-
   def do_recurring_events
     puts "Processing recurring events" if @verbose
     events_added_count = 0
@@ -1085,16 +966,24 @@ class MIS_Loader
       #  the same end time and the same category.
       #
       events.each do |event|
-        starts_at =
-          Time.zone.parse("#{date.to_s} #{event.starts}")
-        ends_at =
-          Time.zone.parse("#{date.to_s} #{event.ends}")
-        existing_event = existing_events.detect {|ed|
-          ed.body      == event.title &&
-          ed.starts_at == starts_at &&
-          ed.ends_at   == ends_at &&
-          ed.eventcategory == event.eventcategory
-        }
+        if event.all_day
+          existing_event = existing_events.detect {|ed|
+            ed.body      == event.title &&
+            ed.all_day? &&
+            ed.eventcategory == event.eventcategory
+          }
+        else
+          starts_at =
+            Time.zone.parse("#{date.to_s} #{event.starts}")
+          ends_at =
+            Time.zone.parse("#{date.to_s} #{event.ends}")
+          existing_event = existing_events.detect {|ed|
+            ed.body      == event.title &&
+            ed.starts_at == starts_at &&
+            ed.ends_at   == ends_at &&
+            ed.eventcategory == event.eventcategory
+          }
+        end
         if existing_event
           #
           #  Remove from the array.  We will deal with any leftovers
@@ -1125,8 +1014,14 @@ class MIS_Loader
           existing_event.body = event.title
           existing_event.eventcategory = event.eventcategory
           existing_event.eventsource   = @yaml_source
-          existing_event.starts_at     = starts_at
-          existing_event.ends_at       = ends_at
+          if event.all_day
+            existing_event.all_day   = true
+            existing_event.starts_at = date
+            existing_event.ends_at   = date + 1.day
+          else
+            existing_event.starts_at     = starts_at
+            existing_event.ends_at       = ends_at
+          end
           existing_event.non_existent  = event.greyed
           existing_event.organiser     = event.organiser_element
           existing_event.save!
@@ -1158,10 +1053,11 @@ class MIS_Loader
         end
         #
         #  And what about notes, if any?
-        #  It is possible that someone else has attached a note to
-        #  one of our events.  Leave those alone.
+        #  There may well be other notes attached to our event - either
+        #  by a user or by the clash checker.  Interest ourselves only
+        #  in notes of type "yaml" - those are ours.
         #
-        existing_note = existing_event.notes.where(owner: nil).take
+        existing_note = existing_event.notes.yaml.take
         new_note = event.note
         #
         #  These are different kinds of things, but they both use
@@ -1188,7 +1084,8 @@ class MIS_Loader
             #  Create a note with this text.
             #
             existing_event.notes.create!({
-              contents: new_note
+              contents:  new_note,
+              note_type: :yaml
             })
           else
             #

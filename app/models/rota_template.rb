@@ -12,6 +12,15 @@ class RotaTemplate < ActiveRecord::Base
            :dependent => :nullify
   has_many :users, foreign_key: :day_shape_id, :dependent => :nullify
 
+  has_one  :setting_for_display,
+           class_name: :Setting,
+           foreign_key: :default_display_day_shape_id,
+           dependent: :nullify
+  has_one  :setting_for_free_finder,
+           class_name: :Setting,
+           foreign_key: :default_free_finder_day_shape_id,
+           dependent: :nullify
+
   validates :name,               :presence => true
   validates :rota_template_type, :presence => true
 

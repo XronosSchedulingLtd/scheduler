@@ -13,6 +13,26 @@
 
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= f.label :title_text, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :title_text %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :public_title_text, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :public_title_text %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       <%= f.label :current_era, class: "right" %>
     </div>
     <div class="small-6 columns">
@@ -135,7 +155,7 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
-      <%= f.label "Required UUID for iCal feed", class: "right" %>
+      <%= f.label "Require UUID for iCal feed", class: "right" %>
     </div>
     <div class="small-6 columns">
       <%= f.check_box :require_uuid %>
@@ -209,6 +229,34 @@
                                :placeholder => "Event category for set-up events",
                                "data-auto-focus" => true %>
       <%= f.text_field :wrapping_eventcategory_id, :type => :hidden %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :default_display_day_shape, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.collection_select(:default_display_day_shape_id,
+                              @day_shapes,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :default_free_finder_day_shape, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.collection_select(:default_free_finder_day_shape_id,
+                              @day_shapes,
+                              :id,
+                              :name,
+                              { :prompt => true }) %>
     </div>
     <div class="small-3 columns">
     </div>
