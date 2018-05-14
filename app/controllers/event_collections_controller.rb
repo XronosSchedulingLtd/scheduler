@@ -55,23 +55,33 @@ class EventCollectionsController < ApplicationController
   end
 
   def create
+    try_again = false
     @event_collection = EventCollection.new(event_collection_params)
-    if @event_collection.save
-      @event_collection.events << @event
-      request_notifier = RequestNotifier.new(@event.body)
-      EventRepeater.effect_repetition(current_user,
-                                      @event_collection,
-                                      @event) do |action, item|
-        #
-        #  The only action which makes any sense here is :added.
-        #
-        if action == :added && item.instance_of?(Commitment)
-          set_appropriate_approval_status(item)
-          request_notifier.batch_commitment_added(item)
+    if EventRepeater.would_have_events?(@event_collection)
+      if @event_collection.save
+        @event_collection.events << @event
+        request_notifier = RequestNotifier.new(@event.body)
+        EventRepeater.effect_repetition(current_user,
+                                        @event_collection,
+                                        @event) do |action, item|
+          #
+          #  The only action which makes any sense here is :added.
+          #
+          if action == :added && item.instance_of?(Commitment)
+            set_appropriate_approval_status(item)
+            request_notifier.batch_commitment_added(item)
+          end
         end
+        request_notifier.send_batch_notifications(current_user)
+      else
+        try_again = true
       end
-      request_notifier.send_batch_notifications(current_user)
     else
+      @event_collection.errors[:base] =
+        "The specified criteria would result in no events at all - not even this one."
+      try_again = true
+    end
+    if try_again
       respond_to do |format|
         format.js do
           @minimal            = true
@@ -114,31 +124,41 @@ class EventCollectionsController < ApplicationController
   def update
     if current_user.can_repeat?(@event)
       @event_collection = EventCollection.find(params[:id])
+      try_again = false
       if @event_collection.safe_update(event_collection_params)
-        request_notifier = RequestNotifier.new(@event.body)
-        EventRepeater.effect_repetition(current_user,
-                                        @event_collection,
-                                        @event) do |action, item|
-          #
-          #  As we're updating, we may get both adds and removes.
-          #
-          case action
+        if EventRepeater.would_have_events?(@event_collection)
+          request_notifier = RequestNotifier.new(@event.body)
+          EventRepeater.effect_repetition(current_user,
+                                          @event_collection,
+                                          @event) do |action, item|
+            #
+            #  As we're updating, we may get both adds and removes.
+            #
+            case action
 
-          when :added
-            if item.instance_of?(Commitment)
-              set_appropriate_approval_status(item)
-              request_notifier.batch_commitment_added(item)
+            when :added
+              if item.instance_of?(Commitment)
+                set_appropriate_approval_status(item)
+                request_notifier.batch_commitment_added(item)
+              end
+
+            when :removed
+              if item.instance_of?(Commitment)
+                request_notifier.batch_commitment_removed(item)
+              end
             end
 
-          when :removed
-            if item.instance_of?(Commitment)
-              request_notifier.batch_commitment_removed(item)
-            end
           end
-
+          request_notifier.send_batch_notifications(current_user)
+        else
+          @event_collection.errors[:base] =
+            "The specified criteria would result in no events at all - not even this one."
+          try_again = true
         end
-        request_notifier.send_batch_notifications(current_user)
       else
+        try_again = true
+      end
+      if try_again
         respond_to do |format|
           format.js do
             @minimal            = true
@@ -168,7 +188,7 @@ class EventCollectionsController < ApplicationController
         else
           event = @event_collection.events.first
           if event
-            general_title = @event.body
+            general_title = event.body
           else
             general_title = "<No events>"
           end
