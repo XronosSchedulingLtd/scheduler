@@ -22,6 +22,7 @@ class FreefindersController < ApplicationController
   #
   def create
     @freefinder = Freefinder.new(freefinder_params)
+    @periods = generate_periods(current_user)
     #
     #  The very minimum which we need in order to do a run is the element
     #  id of a group.
