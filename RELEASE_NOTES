@@ -1,3 +1,150 @@
+v1.2.0  2018-05-14
+
+This was originally intended to be just a minor point release but
+it ended up with some small database changes, so promoted to a
+major point release.
+
+* Fix problem of warning message from clash checker.
+
+  The clash checking code was producing a regular warning message
+  about events flagged as having clashes but having no explanatory
+  note.
+
+  This turned out to be due to the addition of note loading in the
+  recurring events loader.  The nightly data import was stripping
+  off the notes created by the clash checker, and then the clash
+  checker was putting them back.
+
+  The nightly data import of recurring events now removes only notes
+  which it has itself created.
+
+* Return error status for invalid ical requests.
+
+  For a long time, Google has been repeatedly requesting invalid
+  ICAL feeds.  Presumably people have guessed at the URL and got
+  it slightly wrong.  Previously we have returned a small file
+  containing an error message, but now we return an error status
+  (410 - gone) instead.  This is documented as meaning "Do not try
+  this URL again." so perhaps it will stop the requests.
+
+* Permission bit to view unapproved commitments.
+
+  Where someone has requested a resource for an event, but the
+  request has not yet been approved, the event is not generally
+  visible in the context of the resource.  Thus, for instance,
+  events do not appear in the school's public calendar until they
+  have been approved by the relevant person.
+
+  The only people who have been able to see the event have been:
+
+  * The requester
+  * The approver
+  * System administrators
+
+  who see them greyed out.
+
+  A new permission bit has been added to user records so other
+  users can now be granted this permission too.
+  
+  Note that just having the admin flag set no longer gives this
+  visibility.  You need the new bit set.
+
+* All day events in recurring events file.
+
+  Previously there was no way to load all day events from the
+  recurring events file.  Now you can do it by specifying:
+
+    starts: :all_day
+
+  There is then no point in specifying an end time.
+
+* Prevent the entry of 0 recurring events through the GUI.
+
+  Previously it was possible to use the GUI to enter a set of 0
+  recurring events.  Create an event on, say, a Monday.  Set
+  it to recur in a date range which doesn't include a Monday,
+  and hit Create.  The original event would be deleted, and
+  the database would be left with an EventCollection record
+  with 0 attached Events and no way for the user to delete it.
+  (The system admin can delete it through the admin menus.)
+
+  Now the recurring event code checks before attempting the
+  repetition that at least one event will result.  If it won't
+  then it refuses to do the repetition.
+
+* Fix bug in recurring event deletion.
+
+  If the system admin attempted to delete a recurring event set
+  from the admin menu (Menu => Models => Events => Recurring)
+  an error message was produced.  This has been corrected.
+
+* Recurring events in holiday weeks handled better in GUI.
+
+  If a user enters event in a term time week and then sets it to
+  repeat, the repeater defaults to setting it to repeat only
+  in term time weeks (although the user can change this).
+
+  If the user enters an event in a holiday week, the repeater
+  now defaults to having it repeat in term time and holiday
+  weeks, which is probably more what the user is expecting.
+
+* Improve message when deleting one event from a repeating set.
+
+  If a user attempts to delete just one event from a recurring set
+  they will now get a message pointing it out.  They can still go
+  ahead and delete it if they want to.
+
+* Fix error when deleting user.
+
+  A typo in the event collection code led to an error message on
+  attempting to delete a user.  Fixed.
+
+* Find free now uses period times from the database.
+
+  In the Find Free dialogue, the user is offered some short
+  cut buttons to fill the start time and end time fields quickly
+  with actual period times.
+
+  In the original implementation, these times were hard-coded
+  to suit the first school using it.
+
+  The times are now derived dynamically from a database record which
+  can be edited by the system administrator in the usual way.  It is
+  the same kind of record used for the background periods which
+  are displayed on screen.
+
+  It is necessary to create and configure a new set of period
+  definitions when this update is applied.
+
+* Fixed recurring events README to make it clear that the order is important.
+
+  A problem arose where the fields in a recurring events YAML file were
+  sorted into alphabetical order.  This prevented the import working.
+
+  The README has now been updated to make it clear that the order
+  is important.
+
+* Title text is now a system setting.
+
+  Scheduler displays a title at the top left of the main screen.  By
+  default it says just "Scheduler", but it can be changed to suit
+  individual schools.
+
+  To date, the method of setting it has been via environment variables,
+  but this is inconsistent with how everything else is set.
+
+  The relevant texts have now been moved to a database field.
+
+  There are two texts - one for the public view of the system and one
+  for logged on users.
+
+  As part of the update process, any texts currently defined via environment
+  variables will be copied automatically into the new database fields.
+
+* Some dependency packages have been updated in response to
+  security advisories.
+
+
 v1.1.2  2018-05-04
 
 * Keep last good iSAMS XML file for when the iSAMS API fails.
