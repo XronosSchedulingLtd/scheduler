@@ -422,7 +422,7 @@ class ElementsController < ApplicationController
     end
   end
 
-  IcalDataSet = Struct.new(:prefix, :data)
+  IcalDataSet = Struct.new(:prefix, :data, :status)
 
   # GET /elements/:id/ical
   def ical
@@ -631,7 +631,9 @@ class ElementsController < ApplicationController
           end
         end
       end
-      unless got_something
+      if got_something
+        status = 200
+      else
         #
         #  Invalid requests now get a useless file.
         #
@@ -642,6 +644,10 @@ class ElementsController < ApplicationController
         calendar_description = "Request was invalid"
         prefix = "INVALID"
         dbevents = []
+        #
+        #  410 means "Gone - don't ask again".
+        #
+        status = 410
       end
       generated_data = RiCal.Calendar do |cal|
         dtstamp = Time.zone.now
@@ -663,17 +669,27 @@ class ElementsController < ApplicationController
             end
             event.uid = "e#{dbevent.id}@#{Setting.hostname}"
             event.dtstamp = dtstamp
-#            event.created = dbevent.created_at
-#            event.last_modified = dbevent.updated_at
           end
         end
       end.export
       IcalDataSet.new(prefix,
-                      generated_data)
+                      generated_data,
+                      status)
     end
-    send_data(cal_data.data,
-              :filename => "#{cal_data.prefix}.ics",
-              :type => "application/ics")
+    #
+    #  Cope with old cache entries which have no status.
+    #  (This code should become redundant 1 hour after
+    #  it is first installed.)
+    #
+    cal_data.status = 200 unless cal_data.status
+    if cal_data.status == 410
+      render nothing: true, status: 410
+    else
+      send_data(cal_data.data,
+                filename: "#{cal_data.prefix}.ics",
+                type: "application/ics",
+                status: cal_data.status)
+    end
   end
 
   def authorized?(action = action_name, resource = nil)

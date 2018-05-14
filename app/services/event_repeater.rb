@@ -43,7 +43,6 @@ class EventRepeater
                                ec.repetition_end_date)
           eventsource = Eventsource.find_by(name: "Manual")
           ec.repetition_start_date.upto(ec.repetition_end_date) do |date|
-            Rails.logger.debug("Processing #{date}")
             #
             #  Any existing events before this date should be got rid of.
             #
@@ -108,6 +107,30 @@ class EventRepeater
       end
     end
     result
+  end
+
+
+  #
+  #  A much cut down version of the previous method, which simply works
+  #  out whether or not the specified EventCollection and Event would,
+  #  if passed to the previous method, result in any events at all.
+  #
+  #  Intended as a pre-check to make sure we don't delete everything.
+  #
+  def self.would_have_events?(ec)
+    unless ec.days_of_week.empty? ||
+           ec.weeks.empty? ||
+           ec.repetition_end_date < ec.repetition_start_date
+      week_identifier =
+        WeekIdentifier.new(ec.repetition_start_date,
+                           ec.repetition_end_date)
+      ec.repetition_start_date.upto(ec.repetition_end_date) do |date|
+        if ec.happens_on?(date, week_identifier.week_letter(date))
+          return true
+        end
+      end
+    end
+    return false
   end
 
 end

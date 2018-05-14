@@ -13,7 +13,7 @@ class Note < ActiveRecord::Base
 
   scope :visible_guest, -> { where(visible_guest: true) }
 
-  enum note_type: [ :ordinary, :clashes ]
+  enum note_type: [ :ordinary, :clashes, :yaml ]
 
   #
   #  Visibility values

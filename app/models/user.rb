@@ -61,7 +61,8 @@ class User < ActiveRecord::Base
     show_pre_requisites: "Do you want to be prompted for likely requirements when creating new events?",
     can_add_resources: "Can this user add resources to events?",
     can_add_notes: "Can this user add notes to events?",
-    can_view_forms: "Can this user view all the forms attached to an event?"
+    can_view_forms: "Can this user view all the forms attached to an event?",
+    can_view_unconfirmed: "Can this user see events in the context of resources which have not yet been confirmed for the event?"
   }
   FIELD_TITLE_TEXTS.default = ""
 
@@ -74,7 +75,7 @@ class User < ActiveRecord::Base
 
   has_many :events, foreign_key: :owner_id, dependent: :nullify
 
-  has_many :event_collections, foreign_key: :requesting_user, dependent: :nullify
+  has_many :event_collections, foreign_key: :requesting_user_id, dependent: :nullify
 
   has_many :controlled_commitments,
            class_name: "Commitment",
@@ -803,15 +804,10 @@ class User < ActiveRecord::Base
           end
         end
         #
-        #  By default, turn on period times.
+        #  Set this user's day shape to the system default.
+        #  He or she might choose to change it later.
         #
-        rtt = DayShapeManager.template_type
-        if rtt
-          rt = rtt.rota_templates.first
-          if rt
-            self.day_shape = rt
-          end
-        end
+        self.day_shape = Setting.default_display_day_shape
         #
         #  Small frig for the demo system only.
         #

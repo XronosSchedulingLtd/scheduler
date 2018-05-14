@@ -1296,6 +1296,13 @@ class Event < ActiveRecord::Base
       self.body = donor_event.body
       do_save = true
     end
+    #
+    #  And the event category?
+    #
+    if donor_event.eventcategory_id != self.eventcategory_id
+      self.eventcategory = donor_event.eventcategory
+      do_save = true
+    end
     if do_save
       self.save
       self.journal_event_updated(by_user, true)
@@ -1631,6 +1638,18 @@ class Event < ActiveRecord::Base
       #  Timed event.  Must start and end on the same day.
       #
       self.starts_at.to_date == self.ends_at.to_date
+    end
+  end
+
+  #
+  #  Provide an appropriate text message to be shown to the user thinking
+  #  of deleting this event.
+  #
+  def deletion_warning_message
+    if self.event_collection
+      "This event is one of a set of repeating events.  If you want to delete the whole set, go into the repetition dialogue and delete them there.  Do you want to go ahead and delete just this instance?"
+    else
+      "Are you sure you want to delete \"#{self.body}\"?"
     end
   end
 

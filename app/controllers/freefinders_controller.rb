@@ -13,6 +13,7 @@ class FreefindersController < ApplicationController
     @freefinder.on = Date.today
     @freefinder.start_time = Time.now
     @freefinder.end_time = @freefinder.start_time + 1.minute
+    @periods = generate_periods(current_user)
   end
 
   # POST /freefinders
@@ -21,6 +22,7 @@ class FreefindersController < ApplicationController
   #
   def create
     @freefinder = Freefinder.new(freefinder_params)
+    @periods = generate_periods(current_user)
     #
     #  The very minimum which we need in order to do a run is the element
     #  id of a group.
@@ -46,26 +48,61 @@ class FreefindersController < ApplicationController
 
   private
 
-    def send_csv(freefinder)
-      result = freefinder.to_csv
-      send_data(result,
-                :filename => "free.csv",
-                :type => "application/csv")
+  #
+  #  Generate a structure giving the current period definitions
+  #  for the day shape selected by this user.  If the user has
+  #  no day shape selected, return nil.
+  #
+  def generate_periods(user)
+    #
+    #  For now we're actually just going for the system one.
+    #
+    day_shape = Setting.default_free_finder_day_shape
+    if day_shape
+      #
+      #  Not sure whether to make this an array or a hash.
+      #
+      periods = Hash.new
+      0.upto(6) do |wday|
+        periods[wday] = Array.new
+      end
+      #
+      #  Each rota slot corresponds to one time of day, and contains
+      #  a list of days on which it applies.  We want it the other
+      #  way around - a list of days, and for each of them the times
+      #  of its periods.
+      #
+      day_shape.rota_slots.sort.each do |rs|
+        rs.periods do |wday, starts_at, ends_at|
+          periods[wday] << [starts_at, ends_at]
+        end
+      end
+      periods
+    else
+      nil
     end
+  end
 
-    def authorized?(action = action_name, resource = nil)
-      logged_in? && current_user.can_find_free
-    end
+  def send_csv(freefinder)
+    result = freefinder.to_csv
+    send_data(result,
+              :filename => "free.csv",
+              :type => "application/csv")
+  end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def freefinder_params
-      params.require(:freefinder).
-             permit(:element_id,
-                    :element_name,
-                    :name,
-                    :owner_id,
-                    :on,
-                    :start_time_text,
-                    :end_time_text)
-    end
+  def authorized?(action = action_name, resource = nil)
+    logged_in? && current_user.can_find_free
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def freefinder_params
+    params.require(:freefinder).
+           permit(:element_id,
+                  :element_name,
+                  :name,
+                  :owner_id,
+                  :on,
+                  :start_time_text,
+                  :end_time_text)
+  end
 end

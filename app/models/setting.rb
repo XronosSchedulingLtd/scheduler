@@ -17,6 +17,9 @@ class Setting < ActiveRecord::Base
   belongs_to :room_cover_group_element, class_name: :Element
   belongs_to :wrapping_eventcategory, class_name: :Eventcategory
 
+  belongs_to :default_display_day_shape, class_name: :RotaTemplate
+  belongs_to :default_free_finder_day_shape, class_name: :RotaTemplate
+
   before_save :update_html
   after_save :flush_cache
 
@@ -64,6 +67,24 @@ class Setting < ActiveRecord::Base
 
   def wrapping_eventcategory_name=(newname)
     # Ignore
+  end
+
+  def self.title_text
+    @@setting ||= Setting.first
+    if @@setting && !@@setting.title_text.blank?
+      @@setting.title_text
+    else
+      "Scheduler"
+    end
+  end
+
+  def self.public_title_text
+    @@setting ||= Setting.first
+    if @@setting && !@@setting.public_title_text.blank?
+      @@setting.public_title_text
+    else
+      "Scheduler"
+    end
   end
 
   def self.current_era
@@ -238,6 +259,24 @@ class Setting < ActiveRecord::Base
     end
   end
 
+  def self.default_display_day_shape
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.default_display_day_shape
+    else
+      nil
+    end
+  end
+
+  def self.default_free_finder_day_shape
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.default_free_finder_day_shape
+    else
+      nil
+    end
+  end
+
   #
   #  End-of-year processing.  Move us on into the next era.
   #
@@ -276,6 +315,22 @@ class Setting < ActiveRecord::Base
 
   def self.demo_system?
     self.auth_type == "google_demo_auth"
+  end
+
+  #
+  #  One off method to move existing titles from the environment.
+  #
+  def self.set_title_texts
+    s = Setting.first
+    title_text = ENV['SCHEDULER_TITLE_TEXT']
+    unless title_text.blank?
+      s.title_text = title_text
+    end
+    public_title_text = ENV['PUBLIC_TITLE_TEXT']
+    unless public_title_text.blank?
+      s.public_title_text = public_title_text
+    end
+    s.save
   end
 
   protected

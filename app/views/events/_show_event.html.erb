@@ -94,7 +94,7 @@
               remote: @minimal,
               method: :delete,
               data: {
-                confirm: "Are you sure you want to delete \"#{@event.body}\"?"
+                confirm: @event.deletion_warning_message
               }
             %>
           </div>

@@ -4,6 +4,14 @@
   <tbody>
     <% @settings.each do |setting| %>
       <tr>
+        <td>Title text</td>
+        <td><%= setting.title_text %></td>
+      </tr>
+      <tr>
+        <td>Public title text</td>
+        <td><%= setting.public_title_text %></td>
+      </tr>
+      <tr>
         <td>Current era</td>
         <td><%= setting.current_era ? setting.current_era.name : "Era not set" %></td>
       </tr>

@@ -8,8 +8,8 @@
   
    The events are specified using YAML syntax with the ability to nest things
    so that common information does not need to be repeated.  Attributes
-   can be specified in any order, but you need to give a minimal set in
-   order to create a recurring event.
+   at the same level (see below for nesting) can be specified in any order,
+   but you need to give a minimal set in order to create a recurring event.
   
    At its simplest, you could just have:
    (Note the use of quotes around strings which might otherwise be
@@ -17,7 +17,7 @@
   
    category: Duty
    title:    "Coach park"
-   starts:   "08:20"
+   starts:   "08:20"              (or "starts: :all_day")
    day:      Monday
   
    And then at least one of:
@@ -112,6 +112,11 @@
    of the outer hash.  You can go on doing this indefinitely, and it doesn't
    matter in which order you specify the attributes, as long as by the time
    you get to your inner-most hash, you've specified enough.
+
+   Read that last sentence again - you must specify the general attributes
+   *before* the more specific attributes.  The parse works down through
+   the structure and each time it hits a leaf node it expects to have
+   all it needs to create one instance of an event.
   
    The name of the key which you use to identify your inner array doesn't
    matter as long as it isn't one of the keys identified earlier.  Instead

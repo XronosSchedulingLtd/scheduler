@@ -31,4 +31,11 @@ class WeekIdentifier
     @dates[date]
   end
 
+  #
+  #  You can also have a one-off query if you want, which is less
+  #  efficient, but if you need only the one then go ahead.
+  #
+  def self.week_letter(date)
+    self.new(date, date).week_letter(date)
+  end
 end
