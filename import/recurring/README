@@ -17,7 +17,7 @@
   
    category: Duty
    title:    "Coach park"
-   starts:   "08:20"
+   starts:   "08:20"              (or "starts: :all_day")
    day:      Monday
   
    And then at least one of:
