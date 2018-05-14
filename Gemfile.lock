@@ -50,7 +50,7 @@ GEM
       execjs
     coffee-script-source (1.12.2)
     concurrent-ruby (1.0.5)
-    crass (1.0.3)
+    crass (1.0.4)
     daemons (1.1.9)
     dalli (2.7.4)
     debug_inspector (0.0.3)
@@ -81,7 +81,7 @@ GEM
       railties (>= 3.2.16)
     json (1.8.6)
     jwt (1.0.0)
-    loofah (2.1.1)
+    loofah (2.2.2)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.7.0)
@@ -94,7 +94,7 @@ GEM
     multi_xml (0.5.5)
     multipart-post (2.0.0)
     mysql2 (0.4.10)
-    nokogiri (1.8.1)
+    nokogiri (1.8.2)
       mini_portile2 (~> 2.3.0)
     numerizer (0.1.1)
     oauth2 (0.9.4)
@@ -136,8 +136,8 @@ GEM
       activesupport (>= 4.2.0.beta, < 5.0)
       nokogiri (~> 1.6)
       rails-deprecated_sanitizer (>= 1.0.1)
-    rails-html-sanitizer (1.0.3)
-      loofah (~> 2.0)
+    rails-html-sanitizer (1.0.4)
+      loofah (~> 2.2, >= 2.2.2)
     rails-jquery-autocomplete (1.0.3)
       rails (>= 3.2)
     rails-observers (0.1.2)
@@ -204,12 +204,14 @@ DEPENDENCIES
   jbuilder (~> 2.0)
   jquery-rails (~> 3.1.3)
   jquery-ui-rails
+  loofah (~> 2.2.2)
   mysql2
   nokogiri
   omniauth (~> 1.8.1)
   omniauth-google-oauth2
   quiet_assets
   rails (= 4.2.10)
+  rails-html-sanitizer (~> 1.0.4)
   rails-jquery-autocomplete
   rails-observers
   redcarpet
