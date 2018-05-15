@@ -1,3 +1,12 @@
+v1.2.1  2018-05-15
+
+There are no changes to the application or import utilities in this release.
+
+* Tweak the seed data to take account of the changes in the last release.
+  The seed data is used for new installations, and for the Scheduler
+  demonstration system.
+
+
 v1.2.0  2018-05-14
 
 This was originally intended to be just a minor point release but

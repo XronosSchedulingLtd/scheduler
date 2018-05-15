@@ -125,10 +125,13 @@ class Seeder
       else
         profile = UserProfile.pupil_profile
       end
+      day_shape = Setting.default_display_day_shape
+      raise "Ouch!" unless day_shape
       @dbrecord = User.create!({
         name:         corresponding_staff_or_pupil.dbrecord.name,
         email:        corresponding_staff_or_pupil.dbrecord.email,
         user_profile: profile,
+        day_shape:    day_shape,
         demo_user:    true
       })
     end
@@ -563,8 +566,12 @@ class Seeder
               :subjects,
               :weekdates
 
-  def initialize(dns_domain_name = "example.org",
-                 auth_type = Setting.auth_types[:google_auth])
+  def initialize(
+    public_title:    "Scheduler",
+    internal_title:  "Scheduler",
+    dns_domain_name: "example.org",
+    auth_type:       Setting.auth_types[:google_auth]
+  )
     #
     #  Always set everything to the current week.
     #
@@ -629,7 +636,9 @@ class Seeder
         auth_type:           auth_type,
         dns_domain_name:     dns_domain_name,
         from_email_address:  "scheduler@#{dns_domain_name}",
-        require_uuid:        true
+        require_uuid:        true,
+        title_text:          internal_title,
+        public_title_text:   public_title
       })
     end
     #
@@ -914,6 +923,10 @@ class Seeder
         days:      [false, true, true, true, true, true, false]
       })
     end
+    s = Setting.first
+    s.default_display_day_shape = rt
+    s.default_free_finder_day_shape = rt
+    s.save!
   end
 
   def location(id, name, aliasname = nil, display = true, friendly = true)
