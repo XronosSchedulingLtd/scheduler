@@ -668,7 +668,7 @@ class Seeder
                                      privileged: true }).hash)
     @eventcategories[:duty] =
       Eventcategory.create!(ECH.new({name: "Duty", privileged: true}).hash)
-    @eventcategories[:weekletter] =
+    @eventcategories[:invigilation] =
       Eventcategory.create!(ECH.new({name: "Invigilation", privileged: true}).hash)
 
     #
