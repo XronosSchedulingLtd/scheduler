@@ -12,7 +12,18 @@ class MIS_Pupil
       #
       result = 0
     else
-      result = set_code[/^\d+/].to_i
+      prefix = set_code[/^\d+/]
+      if prefix
+        result = prefix.to_i
+      elsif set_code == "NA1"
+        result = -1
+      else
+        #
+        #  We have no idea.
+        #
+#        puts "Set code \"#{set_code}\" gives no year."
+        result = nil
+      end
     end
 #    puts "Guessed #{result}"
     result
