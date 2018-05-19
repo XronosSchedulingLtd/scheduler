@@ -62,7 +62,7 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
     @lesson_teacher_hash[@lesson_id] = @staff_id
   end
 
-  def find_resources(loader)
+  def find_resources(loader, mis_data)
     @staff_ids.each do |staff_id|
       staff = loader.staff_hash[staff_id]
       if staff
@@ -76,12 +76,14 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
       end
     end
     if @set_code
-      group = loader.teachinggroup_hash[@set_code]
-      if group
-        @groups << group
-        @subject = group.subject
-        if @subject
-          @subjects << @subject
+      groups = mis_data[:tgs_hash][@set_code]
+      if groups
+        groups.each do |nc_year, group|
+          @groups << group
+          @subject = group.subject
+          if @subject
+            @subjects << @subject unless @subjects.include?(@subject)
+          end
         end
       end
     end
@@ -153,13 +155,13 @@ class MIS_Schedule
 
   attr_reader :entries
 
-  def initialize(loader, miss_data)
+  def initialize(loader, mis_data)
     @lessons_by_id = Hash.new
     #
     #  The Pass data file contains one record per student in a lesson.
     #  We want to consolidate this into unique lessons.
     #
-    miss_data[:timetable_records].each do |record|
+    mis_data[:timetable_records].each do |record|
       @lessons_by_id[record.lesson_id] ||= PASS_ScheduleEntry.new(record)
     end
     #
@@ -181,7 +183,7 @@ class MIS_Schedule
     #  And now find the resources.
     #
     @entries.each do |entry|
-      entry.find_resources(loader)
+      entry.find_resources(loader, mis_data)
     end
     if loader.options.activities
       @oh_events.each do |entry|

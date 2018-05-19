@@ -1,8 +1,8 @@
 class MIS_Teachinggroup
 
-  attr_reader :datasource_id, :current, :subject, :pupils, :pass_subject_code, :name
+  attr_reader :datasource_id, :current, :subject, :pupils, :pass_subject_code, :name, :source_id_str
 
-  def initialize(entry)
+  def initialize(entry, nc_year)
     @pupils = Array.new
     @teachers = Array.new
     @current = true
@@ -15,22 +15,12 @@ class MIS_Teachinggroup
     #
     #  Nowhere does the Pass data include the year group!
     #
-    @year_id    = guess_year_id(entry.set_short_code)
-    super
-  end
-
-  def guess_year_id(name)
-    #
-    #  Probably needs improving.
-    #
-    name[/^\d+/].to_i
+    @year_id    = nc_year
+    @source_id_str = @set_code
+    super(entry)
   end
 
   def source_id
-    @set_code
-  end
-
-  def source_id_str
     @set_code
   end
 
@@ -39,6 +29,11 @@ class MIS_Teachinggroup
 
   def wanted
     @year_id && local_wanted(@year_id)
+  end
+
+  def adjust_name
+    @name = "#{@name} (#{@year_id})"
+    @source_id_str = "#{@source_id_str}/#{@year_id}"
   end
 
   #
@@ -71,18 +66,51 @@ class MIS_Teachinggroup
 
   def self.construct(loader, mis_data)
     super
+    #
+    #  Pass is slightly unusual in that it feeds us teaching groups
+    #  containing students from more than one year group.  Too much
+    #  of our processing assumes that a teaching group contains
+    #  pupils from just one year group.  (Groups in general have no
+    #  such restriction, and we can have more than one group for
+    #  a lesson.)
+    #
+    #  Cope with the Pass data by splitting any multi-year teaching
+    #  group into several separate groups.
+    #
+    #  We now have a hash of hashes.  The outer hash is keyed by
+    #  set_code, then within that we key by the pupil's nc_year.
+    #
+    #  Thus we create a teaching group for each different year
+    #  group within a Pass teaching group.  We need a little
+    #  extra frig to change the names of these ones.
+    #
     tgs = Array.new
     tgs_hash = Hash.new
     mis_data[:set_records].each do |sr|
-      unless tgs_hash[sr.set_code]
-        tg = MIS_Teachinggroup.new(sr)
-        tgs << tg
-        tgs_hash[sr.set_code] = tg
-        tg.note_subject(loader.subject_hash)
-      end
+      group_set = (tgs_hash[sr.set_code] ||= Hash.new)
       pupil = loader.pupil_hash[sr.pupil_id]
-      tgs_hash[sr.set_code].add_pupil(pupil)
+      unless group_set[pupil.nc_year]
+        tg = MIS_Teachinggroup.new(sr, pupil.nc_year)
+        tg.note_subject(loader.subject_hash)
+        tgs << tg
+        group_set[pupil.nc_year] = tg
+      end
+      group_set[pupil.nc_year].add_pupil(pupil)
     end
+    #
+    #  Groups which have actually been split need to adjust their names.
+    #
+    tgs_hash.each do |key, records|
+      if records.size > 1
+        records.each do |year_id, record|
+          record.adjust_name
+        end
+      end
+    end
+    #
+    #  The timetable code needs access to this later.
+    #
+    mis_data[:tgs_hash] = tgs_hash
     tgs
   end
 end
