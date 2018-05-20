@@ -106,22 +106,19 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
   end
 
   #
-  #  What year group (in Scheduler's terms) are involved in this event.
-  #  Return 0 if we don't know, or have a mixture.
+  #  What year groups (in Scheduler's terms) are involved in this event.
+  #  Return an array containing 0 if we don't know.
   #
-  def yeargroup
+  def yeargroups
     yeargroups = Array.new
     @groups.each do |group|
       yeargroups << group.yeargroup
     end
-    #
-    #  Hoping for exactly one.
-    #
-    if yeargroups.uniq.size == 1
-      yeargroups[0]
-    else
-      0
+    yeargroups.compact!
+    if yeargroups.empty?
+      yeargroups << 0
     end
+    yeargroups
   end
 
   #

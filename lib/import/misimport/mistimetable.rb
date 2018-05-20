@@ -43,12 +43,21 @@ class MIS_ScheduleEntry
     #
     #  Are there any suspensions which might apply to this lesson?
     #
-    @gaps, @suspensions =
-      hiatuses.select { |hiatus|
-        hiatus.applies_to_year?(self.yeargroup)
-      }.partition { |hiatus|
-        hiatus.hard?
-      }
+    if self.respond_to?(:yeargroups)
+      @gaps, @suspensions =
+        hiatuses.select { |hiatus|
+          hiatus.applies_to_years?(self.yeargroups)
+        }.partition { |hiatus|
+          hiatus.hard?
+        }
+    else
+      @gaps, @suspensions =
+        hiatuses.select { |hiatus|
+          hiatus.applies_to_year?(self.yeargroup)
+        }.partition { |hiatus|
+          hiatus.hard?
+        }
+    end
   end
 
   #
