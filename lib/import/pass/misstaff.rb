@@ -7,7 +7,8 @@ class MIS_Staff
               :surname,
               :title,
               :initials,
-              :email
+              :email,
+              :formal_name
 
   def initialize(record)
     #
@@ -18,6 +19,7 @@ class MIS_Staff
     #
     @source_id          = record.staff_id
     @datasource_id      = @@primary_datasource_id
+    @formal_name        = record.tutor
     @forename, @surname = split_name(record.tutor, record.informal_salutation)
     @name               = "#{@forename} #{@surname}"
     @title              = record.label_salutation.partition(" ").first

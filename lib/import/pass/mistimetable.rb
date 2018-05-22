@@ -145,6 +145,11 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
     #
     @lesson_teacher_hash[other.lesson_id] = other.staff_id
   end
+
+  def taught_by?(staff_id)
+    @staff_ids.include?(staff_id)
+  end
+
 end
 
 
