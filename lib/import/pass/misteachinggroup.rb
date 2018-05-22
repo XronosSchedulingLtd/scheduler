@@ -1,6 +1,6 @@
 class MIS_Teachinggroup
 
-  attr_reader :datasource_id, :current, :subject, :pupils, :pass_subject_code, :name, :source_id_str
+  attr_reader :datasource_id, :current, :subject, :pupils, :name, :source_id_str
 
   def initialize(entry, nc_year)
     @pupils = Array.new
@@ -11,7 +11,7 @@ class MIS_Teachinggroup
     @short_code        = entry.set_short_code
     @set_code          = entry.set_code
     @name              = entry.set_long_name
-    @pass_subject_code = entry.subject_code.to_i(36)
+    @pass_subject_code = entry.subject_code
     #
     #  Nowhere does the Pass data include the year group!
     #
@@ -42,7 +42,7 @@ class MIS_Teachinggroup
   #  subject database record.
   #
   def note_subject(subject_hash)
-    @subject = subject_hash[self.pass_subject_code]
+    @subject = subject_hash[@pass_subject_code]
   end
 
   #
@@ -91,7 +91,7 @@ class MIS_Teachinggroup
       pupil = loader.pupil_hash[sr.pupil_id]
       unless group_set[pupil.nc_year]
         tg = MIS_Teachinggroup.new(sr, pupil.nc_year)
-        tg.note_subject(loader.subject_hash)
+        tg.note_subject(mis_data[:subjects_by_code])
         tgs << tg
         group_set[pupil.nc_year] = tg
       end

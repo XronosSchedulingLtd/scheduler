@@ -47,6 +47,39 @@ class PASS_TimetableRecord
   end
 end
 
+class PASS_SubjectRecord
+  FILE_NAME = "CH_AD_CURR_SUBJECTS.csv"
+  REQUIRED_COLUMNS = [
+    Column["CODE",        :code,        :string],
+    Column["DESCRIPTION", :description, :string],
+    Column["SUBJECT_ID",  :id,          :integer],
+    Column["STATUS",      :status,      :string]
+  ]
+
+  include Slurper
+
+  def adjust(accumulator)
+  end
+
+  def wanted?
+    @status == "ACTIVE"
+  end
+
+  def self.construct(accumulator, import_dir)
+    records, message = self.slurp(accumulator, import_dir, true)
+    if records
+      if accumulator.loader.options.verbose
+        puts "Got #{records.count} Pass subject records."
+      end
+      accumulator[:subjects] = records
+      true
+    else
+      puts message
+      false
+    end
+  end
+end
+
 class PASS_SubjectSetRecord
   #
   #  The first two characters should be configurable.
@@ -97,6 +130,7 @@ class MIS_Loader
 
     TO_SLURP = [
       PASS_TimetableRecord,
+      PASS_SubjectRecord,
       PASS_SubjectSetRecord
     ]
 

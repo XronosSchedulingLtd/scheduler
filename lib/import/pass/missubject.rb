@@ -7,15 +7,16 @@ class MIS_Subject
 
   attr_reader :datasource_id
 
-  def initialize(code, description)
+  def initialize(id, code, description)
     initialize_generic_bit
+    @id   = id
     @code = code
     @description = description
     @datasource_id = @@primary_datasource_id
   end
 
   def source_id
-    @code.to_i(36)
+    @id
   end
 
   def name
@@ -30,24 +31,17 @@ class MIS_Subject
   #  Adjust name to avoid name clashes.
   #
   def bump_name
+#    puts "Changing #{@description} to add (#{@code})"
     @description = "#{@description} (#{@code})"
   end
 
   def self.construct(loader, mis_data)
-    #
-    #  We are going to go through Pass data which has already been
-    #  loaded, identifying all our subjects and creating a record for
-    #  each one.
-    #
-    code_hash = Hash.new
-    mis_data[:set_records].each do |sr|
-#      puts "Subject code #{sr.subject_code}, description #{sr.subject_description}"
-      code_hash[sr.subject_code] ||= sr.subject_description
-    end
     subjects = Array.new
-    code_hash.each do |code, description|
-#      puts "Subject code \"#{code}\", description \"#{description}\"."
-      subjects << MIS_Subject.new(code, description)
+    subjects_by_code = Hash.new
+    mis_data[:subjects].each do |subject|
+      record = MIS_Subject.new(subject.id, subject.code, subject.description)
+      subjects << record
+      subjects_by_code[subject.code] = record
     end
     #
     #  Deal with any name clashes.
@@ -60,6 +54,10 @@ class MIS_Subject
         end
       end
     end
+    #
+    #  The teaching group code will need this later.
+    #
+    mis_data[:subjects_by_code] = subjects_by_code
     subjects
   end
 
