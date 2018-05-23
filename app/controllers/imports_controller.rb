@@ -409,32 +409,36 @@ class CalendarEntryICS < CalendarEntry
   def self.array_from_data(ics_data)
     entries = []
     ics_data.events.each do |event|
-      event.occurrences.each do |occurrence|
-        start_time = occurrence.dtstart.strftime("%H:%M:%S")
-        if occurrence.dtend
-          end_time = occurrence.dtend.strftime("%H:%M:%S")
-        else
-          end_time = start_time
-        end
-        all_day = (start_time == "00:00:00" && end_time == "00:00:00")
-        #
-        #  If no dtend has been provided then all day events last one
-        #  day, whilst timed events have zero duration.
-        #
-        if occurrence.dtend
-          dtend = occurrence.dtend
-        else
-          if all_day
-            dtend = occurrence.dtstart + 1.day
+      if event.bounded?
+        event.occurrences.each do |occurrence|
+          start_time = occurrence.dtstart.strftime("%H:%M:%S")
+          if occurrence.dtend
+            end_time = occurrence.dtend.strftime("%H:%M:%S")
           else
-            dtend = occurrence.dtstart
+            end_time = start_time
           end
+          all_day = (start_time == "00:00:00" && end_time == "00:00:00")
+          #
+          #  If no dtend has been provided then all day events last one
+          #  day, whilst timed events have zero duration.
+          #
+          if occurrence.dtend
+            dtend = occurrence.dtend
+          else
+            if all_day
+              dtend = occurrence.dtstart + 1.day
+            else
+              dtend = occurrence.dtstart
+            end
+          end
+          entries <<
+            CalendarEntryICS.new(occurrence.summary,
+                                 occurrence.dtstart,
+                                 dtend,
+                                 all_day)
         end
-        entries <<
-          CalendarEntryICS.new(occurrence.summary,
-                               occurrence.dtstart,
-                               dtend,
-                               all_day)
+      else
+        Rails.logger.info("Unbounded event - #{event.summary}")
       end
     end
     return entries, ""
