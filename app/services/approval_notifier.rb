@@ -127,7 +127,7 @@ class ApprovalNotifier
     else
       staff = event.staff
       if staff.size > 0
-        staff[0].entity.email
+        staff[0].email
       else
         nil
       end

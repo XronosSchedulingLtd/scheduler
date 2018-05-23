@@ -33,7 +33,12 @@ UserProfile.destroy_all
 #  The act of creating a seeder will ensure the necessary basic
 #  settings records and eras exist within the system.
 #
-seeder = Seeder.new("schedulerdemo.xronos.uk")
+#
+seeder = Seeder.new(
+  public_title:    "Xronos Scheduler",
+  internal_title:  "Scheduler - Lorem Ipsum Academy",
+  dns_domain_name: "schedulerdemo.xronos.uk"
+)
 
 #
 #  First, some which are intrinsic to the functioning of the system.
@@ -52,6 +57,19 @@ seeder.create_usefuls
 #  want to load it in a new live system.
 #
 #============================================================================
+
+seeder.configure_periods(
+  [
+    ["09:00", "09:20"],         # 0 - Assembly
+    ["09:25", "10:15"],         # 1
+    ["10:20", "11:10"],         # 2
+    ["11:30", "12:20"],         # 3
+    ["12:25", "13:15"],         # 4
+    ["14:00", "14:45"],         # 5
+    ["14:50", "15:35"],         # 6
+    ["15:40", "16:30"]          # 7
+  ]
+)
 
 seeder.subject(:drama,     "Drama")
 seeder.subject(:english,   "English")
@@ -249,19 +267,6 @@ seeder.add_event(:dateother,
 #
 #  Now some simple timetable stuff.
 #
-
-seeder.configure_periods(
-  [
-    ["09:00", "09:20"],         # 0 - Assembly
-    ["09:25", "10:15"],         # 1
-    ["10:20", "11:10"],         # 2
-    ["11:30", "12:20"],         # 3
-    ["12:25", "13:15"],         # 4
-    ["14:00", "14:45"],         # 5
-    ["14:50", "15:35"],         # 6
-    ["15:40", "16:30"]          # 7
-  ]
-)
 
 #
 #  Pretty much a full timetable for SJP
