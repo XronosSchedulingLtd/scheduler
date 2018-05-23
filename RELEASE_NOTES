@@ -1,3 +1,13 @@
+v1.2.3  2018-05-23
+
+* Fix a typo in the approvals notifier.
+
+  In the exceptional case where an e-mail is needed for an event which
+  has neither owner nor organiser, we go for the first member of staff,
+  but the line for doing this had a typo in it, resulting in the run
+  stopping.
+
+
 v1.2.2  2018-05-17
 
 * One tiny further change to the seed data.  Correct a typo.
