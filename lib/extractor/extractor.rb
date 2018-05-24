@@ -86,7 +86,7 @@ class DatabaseTable
   end
 
   def dump(target_dir)
-    puts "Fetching #{@table_name}"
+#    puts "Fetching #{@table_name}"
     get_password unless @@password
     csv = CSV.open(File.join(target_dir, @table_name + ".csv"), "wb")
     if @@data_server
