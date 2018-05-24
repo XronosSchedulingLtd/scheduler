@@ -41,7 +41,7 @@ if [ "$USE_PASS_DB" = true ]; then
     echo "Using pre-fetched csv files."
     cp PreFetched/*.csv Incoming
   else
-    $SCHEDULER_DIR/utils/fetchpassdata/extractor.rb --target Incoming --extract
+    $SCHEDULER_DIR/lib/extractor/pass_extractor.rb --target Incoming
     if [ $? -ne 0 ]; then
       echo "Failed to fetch data from Pass database."
       exit 6
@@ -67,7 +67,7 @@ fi
 #
 #  And now invoke the import utility to bring the new data into Scheduler.
 #
-$SCHEDULER_DIR/lib/import/misimport.rb --quiet --email | tee import.log
+$SCHEDULER_DIR/lib/import/misimport.rb --email | tee import.log
 cp import.log $TARGET_DIR
 bzip2 -f $TARGET_DIR/import.log
 
