@@ -8,7 +8,7 @@
 #
 #  iSAMS import at 02:30 every day.
 #
-30 2 * * * /home/john/Work/Coding/scheduler/utils/importisdata
+30 2 * * * /home/scheduler/Work/Coding/scheduler/utils/importisdata
 #
 #  Checking for clashes is a long job.  There's no point in running it
 #  on Saturday morning because there is none of the week left.
@@ -18,27 +18,31 @@
 #
 #  Run starts at 03:00
 #
-0 3 * * 0-5 /home/john/Work/Coding/scheduler/utils/checkclashes
+0 3 * * 0-5 /home/scheduler/Work/Coding/scheduler/utils/checkclashes
+#
+#  And check further ahead in the evening
+#
+0 19 * * 1-5 /home/scheduler/Work/Coding/scheduler/utils/checkclashesahead
 #
 #  Weekly notifications are done on Sunday morning.  Note that this
 #  will also notify anyone who has requested daily notification.
 #  Run at 05:30
 #
-30 5 * * 0 /home/john/Work/Coding/scheduler/utils/weeklyclashsummary
+30 5 * * 0 /home/scheduler/Work/Coding/scheduler/utils/weeklyclashsummary
 #
 #  And then daily notifications on Mon-Fri morning.
 #
-30 5 * * 1-5 /home/john/Work/Coding/scheduler/utils/dailyclashsummary
+30 5 * * 1-5 /home/scheduler/Work/Coding/scheduler/utils/dailyclashsummary
 #
 #  And finally, notify about pending resource requests.
 #  Run at 05:45
 #
-45 5 * * * /home/john/Work/Coding/scheduler/utils/daily_report
+45 5 * * * /home/scheduler/Work/Coding/scheduler/utils/daily_report
 #
 #  Tell people about pending invigilations for the week on Sun
 #
-0 6 * * 0 /home/john/Work/Coding/scheduler/utils/weeklyinvig
+0 6 * * 0 /home/scheduler/Work/Coding/scheduler/utils/weeklyinvig
 #
 #  And just the day's worth on each day of the week.
 #
-0 6 * * 1-5 /home/john/Work/Coding/scheduler/utils/dailyinvig
+0 6 * * 1-5 /home/scheduler/Work/Coding/scheduler/utils/dailyinvig
