@@ -1,0 +1,8 @@
+#
+#  Settings needed to access Pass database server.
+#
+export MSSQL_DB_HOST='<Fill in IP address>'
+export MSSQL_DB_PORT=1433
+export MSSQL_DB_NAME=PassMain
+export MSSQL_DB_USER='<Fill in user name>'
+export MSSQL_DB_PASSWORD='<Fill in password>'
