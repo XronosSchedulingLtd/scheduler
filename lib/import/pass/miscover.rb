@@ -24,7 +24,7 @@ class MIS_Cover
   #  is being covered when that happens.
   #
   def initialize(loader, entry, other_entry)
-    @covering_staff_id = entry.covering_staff_id + 4
+    @covering_staff_id = entry.covering_staff_id
     @covered_staff_id  = other_entry.covered_staff_id
     @covering_staff_name = entry.coverer_name
     @covered_staff_name  = other_entry.covered_staff_name
@@ -92,7 +92,7 @@ class MIS_Cover
             puts "Staff member #{@covering_staff_id} not active to do cover."
           end
         else
-          puts "Staff member #{@covering_staff_id} not found to do cover."
+          puts "Staff member #{@covering_staff_name}, ID: #{@covering_staff_id} not found to do cover #{@cover_id}."
         end
       else
         puts "Can't find schedule entry #{@lesson_id} to arrange cover."
