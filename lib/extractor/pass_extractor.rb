@@ -12,6 +12,11 @@ require 'optparse'
 
 require_relative 'extractor'
 
+DB_TABLE_PREFIX = ENV["DB_TABLE_PREFIX"]
+if DB_TABLE_PREFIX.nil?
+  puts "DB_TABLE_PREFIX needs to be defined in ~/etc/whichsystem."
+end
+
 tables = [
   DatabaseTable.new("CH_AC_NEEDING_COVER",      :all),
   DatabaseTable.new("CH_AC_PROVIDING_COVER",    :all),
