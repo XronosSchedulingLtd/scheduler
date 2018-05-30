@@ -13,11 +13,12 @@ require 'optparse'
 require_relative 'extractor'
 
 tables = [
-  DatabaseTable.new("CH_AC_NEEDING_COVER",   :all),
-  DatabaseTable.new("CH_AC_PROVIDING_COVER", :all),
-  DatabaseTable.new("CH_AC_SUBJECT_SETS",    :all),
-  DatabaseTable.new("CH_AC_TIMETABLE",       :all),
-  DatabaseTable.new("CH_AD_CURR_SUBJECTS",   :all)
+  DatabaseTable.new("CH_AC_NEEDING_COVER",      :all),
+  DatabaseTable.new("CH_AC_PROVIDING_COVER",    :all),
+  DatabaseTable.new("CH_AC_SUBJECT_SETS",       :all),
+  DatabaseTable.new("CH_AC_TIMETABLE",          :all),
+  DatabaseTable.new("CH_AD_CURR_SUBJECTS",      :all),
+  DatabaseTable.new("CH_AD_CURR_BASIC_DETAILS", :all)
 ]
 options = Options.new
 

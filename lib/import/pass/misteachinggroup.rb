@@ -89,13 +89,19 @@ class MIS_Teachinggroup
     mis_data[:set_records].each do |sr|
       group_set = (tgs_hash[sr.set_code] ||= Hash.new)
       pupil = loader.pupil_hash[sr.pupil_id]
-      unless group_set[pupil.nc_year]
-        tg = MIS_Teachinggroup.new(sr, pupil.nc_year)
-        tg.note_subject(mis_data[:subjects_by_code])
-        tgs << tg
-        group_set[pupil.nc_year] = tg
+      #
+      #  We occasinally get pupils listed as being in teaching groups
+      #  who have in fact left, and thus aren't in the pupil hash.
+      #
+      if pupil
+        unless group_set[pupil.nc_year]
+          tg = MIS_Teachinggroup.new(sr, pupil.nc_year)
+          tg.note_subject(mis_data[:subjects_by_code])
+          tgs << tg
+          group_set[pupil.nc_year] = tg
+        end
+        group_set[pupil.nc_year].add_pupil(pupil)
       end
-      group_set[pupil.nc_year].add_pupil(pupil)
     end
     #
     #  Groups which have actually been split need to adjust their names.

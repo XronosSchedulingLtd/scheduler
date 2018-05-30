@@ -1,31 +1,18 @@
 class MIS_Pupil
 
-  #
-  #  Don't currently have a way of getting pupils with their NC years,
-  #  so try to guess it.
-  #
-  def guess_nc_year(set_code)
-#    puts "Guessing from #{set_code}"
-    if set_code[0] == "R"
-      #
-      #  Reception
-      #
-      result = 0
-    else
-      prefix = set_code[/^\d+/]
-      if prefix
-        result = prefix.to_i
-      elsif set_code == "NA1"
-        result = -1
-      else
-        #
-        #  We have no idea.
-        #
-#        puts "Set code \"#{set_code}\" gives no year."
-        result = nil
-      end
+  def translate_year_group(pass_year)
+    if pass_year.blank?
+      puts "Pupil #{@name} has no year group in Pass."
     end
-#    puts "Guessed #{result}"
-    result
+    case pass_year
+    when "00N1"
+      @nc_year = -2
+    when "00N2"
+      @nc_year = -1
+    when "00R"
+      @nc_year = 0
+    else
+      @nc_year = pass_year.to_i
+    end
   end
 end

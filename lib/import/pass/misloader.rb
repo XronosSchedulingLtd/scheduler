@@ -3,8 +3,61 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
+DB_TABLE_PREFIX = ENV["DB_TABLE_PREFIX"]
+if DB_TABLE_PREFIX.nil?
+  puts "DB_TABLE_PREFIX needs to be defined in ~/etc/whichsystem."
+  exit 1
+end
+
+class PASS_PupilRecord
+  FILE_NAME = "#{DB_TABLE_PREFIX}_AD_CURR_BASIC_DETAILS.csv"
+
+  REQUIRED_COLUMNS = [
+    Column["PUPIL_ID",                   :pupil_id,                   :integer],
+    Column["FORM",                       :form_code,                  :string],
+    Column["FORM_DESCRIPTION",           :form_description,           :string],
+    Column["FORM_TUTOR_NAME",            :tutor_name,                 :string],
+    Column["FORM_YEAR",                  :form_year,                  :string],
+    Column["SURNAME",                    :surname,                    :string],
+    Column["FIRST_NAMES",                :first_names,                :string],
+    Column["PREFERRED_NAME",             :preferred_name,             :string],
+    Column["ACADEMIC_HOUSE",             :academic_house,             :string],
+    Column["ACADEMIC_HOUSE_DESCRIPTION", :academic_house_description, :string]
+  ]
+
+  include Slurper
+
+  def adjust(accumulator)
+  end
+
+  def wanted?
+    #
+    #  Pupils with no year group are not wanted.
+    #
+    !self.form_year.blank?
+  end
+
+  def self.construct(accumulator, import_dir)
+    records, message = self.slurp(accumulator, import_dir, true)
+    if records
+      if accumulator.loader.options.verbose
+        puts "Got #{records.count} pupil records."
+      end
+      pupils_by_id = Hash.new
+      records.each do |record|
+        pupils_by_id[record.pupil_id] = record
+      end
+      accumulator[:pupils_by_id] = pupils_by_id
+      true
+    else
+      puts message
+      false
+    end
+  end
+end
+
 class PASS_CoverRecord
-  FILE_NAME = "CH_AC_PROVIDING_COVER.csv"
+  FILE_NAME = "#{DB_TABLE_PREFIX}_AC_PROVIDING_COVER.csv"
 
   #
   #  The LESSON_ID field in the Pass cover record is badly mis-named.
@@ -52,7 +105,7 @@ class PASS_CoverRecord
 end
 
 class PASS_CoverNeededRecord
-  FILE_NAME = "CH_AC_NEEDING_COVER.csv"
+  FILE_NAME = "#{DB_TABLE_PREFIX}_AC_NEEDING_COVER.csv"
   REQUIRED_COLUMNS = [
     Column["REQUIRING_COVER_STAFF_ID", :covered_staff_id,   :integer],
     Column["TASK_TEACHER_NAME",        :covered_staff_name, :string],
@@ -100,7 +153,7 @@ class PASS_TimetableRecord
   #
   #  The first two characters should be configurable.
   #
-  FILE_NAME = "CH_AC_TIMETABLE.csv"
+  FILE_NAME = "#{DB_TABLE_PREFIX}_AC_TIMETABLE.csv"
   REQUIRED_COLUMNS = [
     Column["DAY_NAME",            :day_name,            :string],
     Column["PERIOD_TIME",         :period_time,         :string],
@@ -141,7 +194,7 @@ class PASS_TimetableRecord
 end
 
 class PASS_SubjectRecord
-  FILE_NAME = "CH_AD_CURR_SUBJECTS.csv"
+  FILE_NAME = "#{DB_TABLE_PREFIX}_AD_CURR_SUBJECTS.csv"
   REQUIRED_COLUMNS = [
     Column["CODE",        :code,        :string],
     Column["DESCRIPTION", :description, :string],
@@ -177,7 +230,7 @@ class PASS_SubjectSetRecord
   #
   #  The first two characters should be configurable.
   #
-  FILE_NAME = "CH_AC_SUBJECT_SETS.csv"
+  FILE_NAME = "#{DB_TABLE_PREFIX}_AC_SUBJECT_SETS.csv"
   REQUIRED_COLUMNS = [
     Column["PUPIL_ID",            :pupil_id,            :integer],
     Column["SUBJECT_SET_ID",      :subject_set_id,      :string],
@@ -224,6 +277,7 @@ class MIS_Loader
     attr_reader :loader
 
     TO_SLURP = [
+      PASS_PupilRecord,
       PASS_TimetableRecord,
       PASS_SubjectRecord,
       PASS_SubjectSetRecord,
