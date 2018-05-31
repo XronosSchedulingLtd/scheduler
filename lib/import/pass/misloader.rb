@@ -44,10 +44,18 @@ class PASS_PupilRecord
         puts "Got #{records.count} pupil records."
       end
       pupils_by_id = Hash.new
+      pupils_by_form = Hash.new
       records.each do |record|
         pupils_by_id[record.pupil_id] = record
+        unless record.form_code.blank?
+          (pupils_by_form[record.form_code] ||= Array.new) << record
+        end
       end
+#      pupils_by_form.each do |form_code, pupils|
+#        puts "Form #{form_code} has #{pupils.size} pupils."
+#      end
       accumulator[:pupils_by_id] = pupils_by_id
+      accumulator[:pupils_by_form] = pupils_by_id
       true
     else
       puts message
@@ -69,7 +77,9 @@ class PASS_CoverRecord
     Column["COVERER_NAME",        :coverer_name,        :string],
     Column["LESSON_ID",           :cover_id,            :integer],
     Column["TASK_START",          :task_start,          :datetime],
-    Column["TASK_END",            :task_end,            :datetime]
+    Column["TASK_END",            :task_end,            :datetime],
+    Column["TASK_CODE",           :task_code,           :string],
+    Column["TASK_ROOM_CODE",      :room_code,           :string]
   ]
 
   include Slurper
@@ -110,16 +120,24 @@ class PASS_CoverNeededRecord
     Column["REQUIRING_COVER_STAFF_ID", :covered_staff_id,   :integer],
     Column["TASK_TEACHER_NAME",        :covered_staff_name, :string],
     Column["LESSON_ID",                :cover_id,           :integer],
-    Column["TASK_END",                 :task_end,           :datetime]
+    Column["TASK_START",               :task_start,         :datetime],
+    Column["TASK_END",                 :task_end,           :datetime],
+    Column["TASK_CODE",                :task_code,          :string],
+    Column["TASK_ROOM_CODE",           :room_code,          :string],
+    Column["COVERED",                  :covered_flag,       :string]
   ]
 
   include Slurper
 
+  attr_accessor :used
+
   def adjust(accumulator)
     #
-    #  Don't want covers in the past.
+    #  Don't want covers in the past.  Or those with an F in the COVERED
+    #  field.
     #
     @complete = (@task_end >= accumulator.loader.start_date)
+    @used = false
   end
 
   def wanted?
@@ -134,10 +152,12 @@ class PASS_CoverNeededRecord
       end
       #
       #  Do these as a hash for ease of lookup.
+      #  There may be more than one record for a given cover id.
+      #  Put them in an array under the ID, to be searched through later.
       #
       cnr_hash = Hash.new
       records.each do |record|
-        cnr_hash[record.cover_id] = record
+        (cnr_hash[record.cover_id] ||= Array.new) << record
       end
       accumulator[:cover_needed_records] = cnr_hash
       true

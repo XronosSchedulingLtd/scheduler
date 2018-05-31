@@ -18,4 +18,8 @@ PermittedOverload = Struct.new(:cover_event_body, :clash_event_body)
 
 
 PERMITTED_OVERLOADS = [
+  #
+  #  PE lessons for years 1 and 2.
+  #
+  PermittedOverload.new(/^PE1/,   /^PE1/)
 ]

@@ -23,50 +23,78 @@ class MIS_Cover
   #  teaching each original lesson so that we can recognize which teacher
   #  is being covered when that happens.
   #
-  def initialize(loader, entry, other_entry)
-    @covering_staff_id = entry.covering_staff_id
-    @covered_staff_id  = other_entry.covered_staff_id
+  #  Actually, the Pass cover records are a bit broken.  There is
+  #  no absolutely sure way of establishing who is actually being
+  #  covered.  All we can do is make an intelligent guess.
+  #
+  def initialize(loader, entry, other_entries)
+    #
+    #  First assemble data from the "doing cover" record.
+    #
+    @covering_staff_id   = entry.covering_staff_id
     @covering_staff_name = entry.coverer_name
-    @covered_staff_name  = other_entry.covered_staff_name
-    @cover_id          = entry.cover_id
-    @task_start        = entry.task_start
-    @date              = @task_start.to_date
-    @task_end          = entry.task_end
-    @starts_at         = @task_start.strftime("%H:%M")
-    @ends_at           = @task_end.strftime("%H:%M")
+    @staff_covering      = loader.staff_by_name[@covering_staff_name]
+    @cover_id            = entry.cover_id
+    @task_start          = entry.task_start
+    @date                = @task_start.to_date
+    @task_end            = entry.task_end
+    @starts_at           = @task_start.strftime("%H:%M")
+    @ends_at             = @task_end.strftime("%H:%M")
     #
-    #  Incredibly, the pass data export provides no means to link
-    #  the cover instance directly to the relevant lesson.  We
-    #  need to find it for ourselves.
+    #  Now need to look at the "needing cover" records.
+    #  Need one with the right start and end date/times which hasn't
+    #  been used before.
     #
-    #  Our method is not terribly efficient, but we shouldn't have
-    #  vast numbers to deal with.
+    plausible_entries = other_entries.select { |oe|
+      oe.task_start == entry.task_start &&
+      oe.task_end == entry.task_end &&
+      oe.room_code == entry.room_code &&
+      oe.task_code == entry.task_code &&
+      !oe.used}
     #
-    candidate_lessons = loader.timetable.lessons_on(@task_start.to_date)
-    matches = candidate_lessons.select { |l|
-      l.taught_by?(@covered_staff_id) &&
-        l.period_time.starts_at == @starts_at &&
-        l.period_time.ends_at   == @ends_at
-    }
-    if matches.size == 1
-      @schedule_entry = matches[0]
-      @lesson_source_hash = @schedule_entry.source_hash
-      @staff_covering     = loader.staff_by_name[@covering_staff_name]
-      @staff_covered      = loader.staff_by_name[@covered_staff_name]
-    elsif matches.size == 0
-      #
-      #  It transpires that iSAMS is pretty bad at keeping its database
-      #  self-consistent.  It starts off OK, but gradually the errors
-      #  build.  After a timetable change, there can be hundreds of
-      #  orphaned cover records (cover record but no corresponding lesson).
-      #  Don't log them individually if the --quiet option is specified.
-      #
-      #  The slurping code has already dropped all those in the past, so
-      #  the number will gradually decrease.
-      #
-      puts "Unable to find covered lesson with ID #{@cover_id}." unless loader.options.quiet
-    else
-      puts "Too many matches for cover id #{@cover_id}"
+    #  And we may still have more than one.  Very oddly, we get 
+    #  "needing cover" records from Pass for staff who aren't
+    #  actually teaching at the time given.  We need to
+    #  avoid selecting one of those, because we will then fail
+    #  later in trying to find the corresponding lesson.
+    #
+    unless plausible_entries.empty?
+      candidate_lessons = loader.timetable.lessons_on(@task_start.to_date)
+      plausible_entries.each do |pe|
+        #
+        #  A little check.
+        #
+        possible_staff = loader.staff_by_name[pe.covered_staff_name]
+        if possible_staff
+          if possible_staff.source_id != pe.covered_staff_id
+            puts "IDs for #{pe.covered_staff_name} differ in cover needed file."
+            puts "Staff listing: #{possible_staff.source_id}."
+            puts "Cover needed: #{pe.covered_staff_id}."
+          end
+        else
+          puts "Can't find #{pe.covered_staff_name} needing cover."
+        end
+        matches = candidate_lessons.select { |l|
+          l.taught_by?(pe.covered_staff_id) &&
+            l.period_time.starts_at == @starts_at &&
+            l.period_time.ends_at   == @ends_at
+        }
+        if matches.size == 1
+          @covered_staff_id  = pe.covered_staff_id
+          @covered_staff_name  = pe.covered_staff_name
+          @schedule_entry = matches[0]
+          @lesson_source_hash = @schedule_entry.source_hash
+          @staff_covered      = loader.staff_by_name[@covered_staff_name]
+          pe.used = true
+          break;
+        end
+      end
+    end
+    unless @covered_staff_id || loader.options.quiet
+      puts "Unable to find match for cover ID #{@cover_id}."
+      puts "Covering: #{@covering_staff_name} (id #{@covering_staff_id})"
+      puts "Timing: #{@starts_at} - #{@ends_at} on #{@task_start.strftime("%d/%m/%Y")}."
+      puts "#{plausible_entries.count} plausible entries."
     end
   end
 
@@ -121,7 +149,12 @@ class MIS_Cover
     #  Forget that comment.  Pass does provide an ID, it's just badly
     #  mis-named.
     #
-    @cover_id
+    #@cover_id
+    #
+    #  And back again - turns out the ID is not unique.  Can't use
+    #  covering_staff_id though.  Need to use covered_staff_id instead.
+    #
+    ((((@cover_id << 8) + @covered_staff_id) << 8) + (@task_start.seconds_since_midnight / 60).to_i) & 0x7fffffff
   end
 
   def self.construct(loader, mis_data)
@@ -131,9 +164,9 @@ class MIS_Cover
     mis_cover_needs = mis_data[:cover_needed_records]
     if mis_covers && mis_cover_needs
       mis_covers.each do |record|
-        other_record = mis_cover_needs[record.cover_id]
-        if other_record
-          cover = MIS_Cover.new(loader, record, other_record)
+        other_records = mis_cover_needs[record.cover_id]
+        if other_records
+          cover = MIS_Cover.new(loader, record, other_records)
           if cover.complete?(loader.options.quiet)
             covers << cover
           else
@@ -148,6 +181,16 @@ class MIS_Cover
       end
     else
       puts "Can't find Pass covers."
+    end
+    if loader.options.dump_covers
+      puts "Dumping #{covers.count} covers"
+      covers.each do |cover|
+        puts "Cover id #{cover.source_id}"
+        puts "  On: #{cover.date.strftime("%d/%m/%Y")}"
+        puts "  Doing cover: #{cover.staff_covering.name}"
+        puts "  Being covered: #{cover.staff_covered.name}"
+      end
+      exit
     end
     covers
   end

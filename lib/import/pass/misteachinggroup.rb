@@ -90,7 +90,7 @@ class MIS_Teachinggroup
       group_set = (tgs_hash[sr.set_code] ||= Hash.new)
       pupil = loader.pupil_hash[sr.pupil_id]
       #
-      #  We occasinally get pupils listed as being in teaching groups
+      #  We occasionally get pupils listed as being in teaching groups
       #  who have in fact left, and thus aren't in the pupil hash.
       #
       if pupil
