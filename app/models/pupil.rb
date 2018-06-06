@@ -46,10 +46,6 @@ class Pupil < ActiveRecord::Base
     self.tutorgroup ? self.tutorgroup.name : (self.current ? "Pupil" : "Ex pupil")
   end
 
-  def house_name
-    self.tutorgroup ? self.tutorgroup.house : "Unknown"
-  end
-
   def tutor_name
     self.tutorgroup ? self.tutorgroup.staff.name : "Unknown"
   end
@@ -98,7 +94,14 @@ class Pupil < ActiveRecord::Base
   #  A 5th year pupil in Philpott's House - tutor: JHW
   #
   def description_line
-    "A #{year_group.ordinalize} year pupil in #{self.house_name} House.  Tutor: #{self.tutor_name}."
+    if Setting.ordinalize_years?
+      year_bit = "#{year_group.ordinalize} year"
+    else
+      year_bit = "year #{year_group}"
+    end
+    "A #{year_bit} pupil in #{
+      self.house_name.blank? ? "Unknown" : self.house_name
+    } House.  Tutor: #{self.tutor_name}."
   end
 
   def <=>(other)
@@ -139,6 +142,22 @@ class Pupil < ActiveRecord::Base
     end
     puts "Amended #{count} pupil records."
     nil
+  end
+
+  #
+  #  Another one, to move house information into the pupil record.
+  #
+  def import_house
+    if self[:house_name].blank? && !self.tutorgroup.nil?
+      self.house_name = self.tutorgroup.house
+      self.save
+    end
+  end
+
+  def self.import_houses
+    Pupil.find_each do |p|
+      p.import_house
+    end
   end
 
 end

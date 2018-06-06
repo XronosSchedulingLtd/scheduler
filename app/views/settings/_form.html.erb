@@ -263,6 +263,74 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= f.label :tutorgroups_by_house, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.check_box :tutorgroups_by_house %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :ordinalize_years, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.check_box :ordinalize_years %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :tutorgroups_name, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :tutorgroups_name %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :tutor_name, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :tutor_name %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :prep_suffix, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :prep_suffix %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%=
+        f.label :prep_property_element_name,
+                "Prep property",
+                class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.autocomplete_field :prep_property_element_name,
+                               autocomplete_property_element_name_elements_path,
+                               :id_element => '#setting_prep_property_element_id',
+                               :placeholder => "Property indicating prep/homework",
+                               "data-auto-focus" => true %>
+      <%= f.text_field :prep_property_element_id, :type => :hidden %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       &nbsp;
     </div>
     <div class="small-6 columns">
