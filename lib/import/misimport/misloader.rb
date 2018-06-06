@@ -808,6 +808,15 @@ class MIS_Loader
     ensure_membership("All pupils",
                       Pupil.current.to_a,
                       Pupil)
+    pupils_by_year = Hash.new
+    @pupils.each do |pupil|
+      (pupils_by_year[pupil.nc_year] ||= Array.new) << pupil.dbrecord
+    end
+    pupils_by_year.each do |nc_year, pupils|
+      ensure_membership("#{local_yeargroup_text_pupils(nc_year)}",
+                        pupils,
+                        Pupil)
+    end
     if self.respond_to?(:do_local_auto_groups)
       do_local_auto_groups
     end

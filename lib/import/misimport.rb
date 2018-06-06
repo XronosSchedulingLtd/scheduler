@@ -47,6 +47,29 @@ module MIS_Utils
   #  etc.
   #
   #  def local_yeargroup_text(yeargroup)
+  #
+
+  #  This one is subtly different.  It defines how you would refer to
+  #  a complete year group of pupils.  It might want the word "pupils"
+  #  on the end, and it might not.  It's up to the school.  It will
+  #  be used to create groups for entire year groups.
+  #
+  #  The previous one is used in conjunction with other stuff,
+  #  so it might be used to create "Year 9 French teachers".
+  #  There you don't want the word "pupils" sneaking in, but when
+  #  referring to the whole of year 9 it might be confusing if
+  #  you don't have the word "pupils" in there.  Likewise, if you
+  #  have a year referred to as "Reception", then that word on its
+  #  own for the group of pupils might not be clear, where
+  #  "Reception pupils" is.
+  #
+  #    Year 9 pupils
+  #    1st year
+  #    Reception pupils
+  #
+  #  etc.
+  #
+  #  def local_yeargroup_text_pupils(yeargroup)
 
   #
   #  If a pupil is in National Curriculum year nc_year for the era
@@ -81,6 +104,7 @@ module MIS_Utils
   UTILS_NEEDED = [
     :local_yeargroup,
     :local_yeargroup_text,
+    :local_yeargroup_text_pupils,
     :local_effective_start_year,
     :local_wanted,
     :local_week_load_regardless

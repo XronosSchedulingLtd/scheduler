@@ -10,6 +10,8 @@ module MIS_Utils
     "#{yeargroup.ordinalize} year"
   end
 
+  alias local_yeargroup_text_pupils local_yeargroup_text
+
   def local_effective_start_year(era, nc_year, ahead = 0)
     era.starts_on.year + 7 - (nc_year + ahead)
   end

@@ -7,7 +7,20 @@ module MIS_Utils
   end
 
   def local_yeargroup_text(yeargroup)
-    "Year #{yeargroup}"
+    case yeargroup
+    when -2
+      "Nursery 1"
+    when -1
+      "Nursery 2"
+    when 0
+      "Reception"
+    else
+      "Year #{yeargroup}"
+    end
+  end
+
+  def local_yeargroup_text_pupils(yeargroup)
+    "#{local_yeargroup_text(yeargroup)} pupils"
   end
 
   def local_effective_start_year(era, nc_year, ahead = 0)
