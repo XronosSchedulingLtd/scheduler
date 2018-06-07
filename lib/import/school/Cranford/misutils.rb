@@ -35,4 +35,8 @@ module MIS_Utils
     true
   end
 
+  def local_format_house_name(house)
+    "#{house.name} House"
+  end
+
 end

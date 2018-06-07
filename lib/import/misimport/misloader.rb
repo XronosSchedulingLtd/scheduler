@@ -817,6 +817,43 @@ class MIS_Loader
                         pupils,
                         Pupil)
     end
+    @houses.each do |house|
+      #
+      #  Occasionally one gets a house with no name sneaking through,
+      #  typically because there is a student who is not assigned
+      #  to a house.  Don't process these ones.
+      #
+      unless house.name.blank?
+        pupils = house.pupils.collect {|pupil| pupil.dbrecord}
+        ensure_membership("#{local_format_house_name(house)} pupils",
+                          pupils,
+                          Pupil)
+        #
+        #  And by year?
+        #
+        pupils_by_year = Hash.new
+        house.pupils.each do |pupil|
+          (pupils_by_year[pupil.nc_year] ||= Array.new) << pupil.dbrecord
+        end
+        #
+        #  We create per-year groups only if a house has pupils from
+        #  more than one year.  Some houses are intrinsic to a year
+        #  so it doesn't make sense to create a second group.
+        #
+        if pupils_by_year.size > 1
+          pupils_by_year.each do |nc_year, pupils|
+            if Setting.ordinalize_years?
+              year_bit = "#{nc_year.ordinalize} year"
+            else
+              year_bit = "year #{nc_year}"
+            end
+            ensure_membership("#{local_format_house_name(house)} #{year_bit}",
+                              pupils,
+                              Pupil)
+          end
+        end
+      end
+    end
     if self.respond_to?(:do_local_auto_groups)
       do_local_auto_groups
     end

@@ -17,6 +17,7 @@ class MIS_Pupil < MIS_Record
     :forename,
     :known_as,
     :email,
+    :house_name,
     :current,
     :datasource_id
   ]
@@ -27,6 +28,7 @@ class MIS_Pupil < MIS_Record
     :forename,
     :known_as,
     :email,
+    :house_name,
     :current
   ]
 

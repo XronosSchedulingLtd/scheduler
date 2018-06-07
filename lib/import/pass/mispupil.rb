@@ -7,6 +7,7 @@ class MIS_Pupil
               :surname,
               :known_as,
               :email,
+              :house_name,
               :nc_year
 
   def initialize(record)
@@ -20,6 +21,11 @@ class MIS_Pupil
     @surname           = record.surname
     @name              = "#{@forename} #{@surname}"
     @email             = ""
+    @house_name        = record.academic_house_description
+    house = MIS_House.by_name(@house_name)
+    if house
+      house.note_pupil(self)
+    end
     #
     #  How to interpret the year group is school-specific.
     #

@@ -100,6 +100,21 @@ module MIS_Utils
   #  to load any others.
   #
   #  def local_week_load_regardless(week)
+  #
+
+  #
+  #  How should the house name be formatted for group creation?  We don't
+  #  know in advance how it will come from the MIS, and then we don't
+  #  know whether the school will want "House" adding to that.  The
+  #  MIS might contain "Green" or "Green House", and in either case,
+  #  we might want the group to be called "Green pupils" or "Green House
+  #  pupils".  Local code lets us be perfectly flexible.
+  #
+  #  The function will be passed an MIS_House record.
+  #
+  #  def local_format_house_name(house)
+  #
+  #
 
   UTILS_NEEDED = [
     :local_yeargroup,
@@ -107,7 +122,8 @@ module MIS_Utils
     :local_yeargroup_text_pupils,
     :local_effective_start_year,
     :local_wanted,
-    :local_week_load_regardless
+    :local_week_load_regardless,
+    :local_format_house_name
   ]
 
   def utils_ok?

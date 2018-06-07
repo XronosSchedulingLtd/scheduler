@@ -13,7 +13,7 @@ class MIS_House
   #
   #  MIS-specific code is responsible for providing these.
   #
-  attr_reader :name, :housemaster, :tugs
+  attr_reader :name, :housemaster, :tugs, :pupils
 
   #
   #  And should override the definition of this.
