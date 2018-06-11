@@ -107,7 +107,7 @@ class Group < ActiveRecord::Base
         text = text + " - taught by #{self.persona.staffs.collect {|s| s.initials}.join(",")} -"
       end
     when "Tutor"
-      text = "A tutor group - tutor #{self.persona.staff.name} -"
+      text = "A #{Setting.tutorgroups_name.downcase} - #{Setting.tutor_name.downcase}, #{self.persona.staff.name} -"
     when "Otherhalf"
       text = "An Other Half group"
     when "Tag"

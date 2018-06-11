@@ -33,7 +33,7 @@ class MIS_Cover
     #
     @covering_staff_id   = entry.covering_staff_id
     @covering_staff_name = entry.coverer_name
-    @staff_covering      = loader.staff_by_name[@covering_staff_name]
+    @staff_covering      = MIS_Staff.by_name(@covering_staff_name)
     @cover_id            = entry.cover_id
     @task_start          = entry.task_start
     @date                = @task_start.to_date
@@ -64,7 +64,7 @@ class MIS_Cover
         #
         #  A little check.
         #
-        possible_staff = loader.staff_by_name[pe.covered_staff_name]
+        possible_staff = MIS_Staff.by_name(pe.covered_staff_name)
         if possible_staff
           if possible_staff.source_id != pe.covered_staff_id
             puts "IDs for #{pe.covered_staff_name} differ in cover needed file."
@@ -84,7 +84,7 @@ class MIS_Cover
           @covered_staff_name  = pe.covered_staff_name
           @schedule_entry = matches[0]
           @lesson_source_hash = @schedule_entry.source_hash
-          @staff_covered      = loader.staff_by_name[@covered_staff_name]
+          @staff_covered      = MIS_Staff.by_name(@covered_staff_name)
           pe.used = true
           break;
         end

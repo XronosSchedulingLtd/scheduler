@@ -101,7 +101,7 @@ class Pupil < ActiveRecord::Base
     end
     "A #{year_bit} pupil in #{
       self.house_name.blank? ? "Unknown" : self.house_name
-    } House.  Tutor: #{self.tutor_name}."
+    } House.  #{Setting.tutor_name}: #{self.tutor_name}."
   end
 
   def <=>(other)

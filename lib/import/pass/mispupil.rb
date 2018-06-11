@@ -8,9 +8,11 @@ class MIS_Pupil
               :known_as,
               :email,
               :house_name,
-              :nc_year
+              :nc_year,
+              :form_code
 
   def initialize(record)
+    super
     @source_id         = record.pupil_id
     @datasource_id     = @@primary_datasource_id
     if record.preferred_name.blank?
@@ -22,6 +24,7 @@ class MIS_Pupil
     @name              = "#{@forename} #{@surname}"
     @email             = ""
     @house_name        = record.academic_house_description
+    @form_code         = record.form_code
     house = MIS_House.by_name(@house_name)
     if house
       house.note_pupil(self)
@@ -29,6 +32,9 @@ class MIS_Pupil
     #
     #  How to interpret the year group is school-specific.
     #
+    if record.form_year.blank?
+      puts "Pupil #{@name} has no year group in Pass."
+    end
     @nc_year           = translate_year_group(record.form_year)
   end
 

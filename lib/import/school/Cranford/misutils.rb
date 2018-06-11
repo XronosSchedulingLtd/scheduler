@@ -39,4 +39,30 @@ module MIS_Utils
     "#{house.name} House"
   end
 
+  #
+  #  Given the form code and form description from Pass, try to produce
+  #  something reasonable.
+  #
+  def local_form_name(sample_pupil)
+    splut = sample_pupil.form_description.split(' ')
+    if splut[0] == "Form"
+      "#{splut[1]}/#{sample_pupil.tutor_code}"
+    else
+      "#{splut[0,2].join(' ')}"
+     end
+  end
+
+  def translate_year_group(pass_year)
+    case pass_year
+    when "00N1"
+      @nc_year = -2
+    when "00N2"
+      @nc_year = -1
+    when "00R"
+      @nc_year = 0
+    else
+      @nc_year = pass_year.to_i
+    end
+  end
+
 end

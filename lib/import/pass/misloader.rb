@@ -16,6 +16,7 @@ class PASS_PupilRecord
     Column["PUPIL_ID",                   :pupil_id,                   :integer],
     Column["FORM",                       :form_code,                  :string],
     Column["FORM_DESCRIPTION",           :form_description,           :string],
+    Column["FORM_TUTOR",                 :tutor_code,                 :string],
     Column["FORM_TUTOR_NAME",            :tutor_name,                 :string],
     Column["FORM_YEAR",                  :form_year,                  :string],
     Column["SURNAME",                    :surname,                    :string],
@@ -51,11 +52,8 @@ class PASS_PupilRecord
           (pupils_by_form[record.form_code] ||= Array.new) << record
         end
       end
-#      pupils_by_form.each do |form_code, pupils|
-#        puts "Form #{form_code} has #{pupils.size} pupils."
-#      end
       accumulator[:pupils_by_id] = pupils_by_id
-      accumulator[:pupils_by_form] = pupils_by_id
+      accumulator[:pupils_by_form] = pupils_by_form
       true
     else
       puts message
@@ -291,8 +289,6 @@ PASS_IMPORT_DIR = 'import/pass/Current'
 
 class MIS_Loader
 
-  attr_reader :staff_by_name
-
   class PASS_Data < Hash
     attr_reader :loader
 
@@ -320,17 +316,6 @@ class MIS_Loader
 
   def prepare(options)
     PASS_Data.new(self, options)
-  end
-
-  def mis_specific_preparation
-    #
-    #  Incredibly, it seems we can't rely on staff ids being consistent
-    #  through the Pass data.  We therefore have to use names.
-    #
-    @staff_by_name = Hash.new
-    @staff.each do |staff|
-      @staff_by_name[staff.formal_name] = staff
-    end
   end
 
 end

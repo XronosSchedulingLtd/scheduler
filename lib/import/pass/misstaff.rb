@@ -11,6 +11,7 @@ class MIS_Staff
               :formal_name
 
   def initialize(record)
+    super
     #
     #  Don't have a proper source of staff names yet so we'll kind
     #  of busk it for now.
@@ -69,10 +70,20 @@ class MIS_Staff
   end
 
   def self.construct(loader, mis_data)
+    @staff_by_name = Hash.new
     staff_by_id = Hash.new
     mis_data[:timetable_records].each do |record|
       staff_by_id[record.staff_id] ||= MIS_Staff.new(record)
     end
+    @staff_by_name = Hash.new
+    staff_by_id.each do |id, staff|
+      @staff_by_name[staff.formal_name] = staff
+    end
     staff_by_id.values
   end
+
+  def self.by_name(name)
+    @staff_by_name[name]
+  end
+
 end

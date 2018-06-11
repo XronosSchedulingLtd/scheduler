@@ -8,6 +8,7 @@ class MIS_Subject
   attr_reader :datasource_id
 
   def initialize(id, code, description)
+    super
     initialize_generic_bit
     @id   = id
     @code = code
