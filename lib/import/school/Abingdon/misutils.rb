@@ -28,4 +28,15 @@ module MIS_Utils
     false
   end
 
+  def local_format_house_name(house)
+    if house.name == "Lower School"
+      house.name
+    else
+      "#{house.name} House"
+    end
+  end
+
+  def local_stratify_house?(house)
+    house.name != "Lower School"
+  end
 end

@@ -249,6 +249,10 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
     @code
   end
 
+  def body_text=(new_text)
+    @code = new_text
+  end
+
   def eventcategory
     #
     #  This needs fixing very quickly.
@@ -273,6 +277,14 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
     else
       0
     end
+  end
+
+  def yeargroups
+    ygs = @groups.collect {|group| group.yeargroup}.uniq
+    if ygs.empty?
+      ygs = [0]
+    end
+    ygs
   end
 
   #
@@ -420,6 +432,10 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
     @name
   end
 
+  def body_text=(new_text)
+    @name = new_text
+  end
+
   def eventcategory
     #
     #  This needs fixing very quickly.
@@ -433,6 +449,10 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
   #
   def yeargroup
     0
+  end
+
+  def yeargroups
+    [0]
   end
 
   def self.construct(loader, inner_data)
@@ -537,6 +557,10 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
     @name
   end
 
+  def body_text=(new_text)
+    @name = new_text
+  end
+
   def eventcategory
     #
     #  This needs fixing very quickly.
@@ -550,6 +574,10 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
   #
   def yeargroup
     0
+  end
+
+  def yeargroups
+    [0]
   end
 
   def self.construct(loader)
@@ -782,6 +810,10 @@ class ISAMS_TutorialEntry < MIS_ScheduleEntry
 
   def body_text
     @name
+  end
+
+  def body_text=(new_text)
+    @name = new_text
   end
 
   def hash_key

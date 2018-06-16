@@ -123,7 +123,8 @@ module MIS_Utils
     :local_effective_start_year,
     :local_wanted,
     :local_week_load_regardless,
-    :local_format_house_name
+    :local_format_house_name,
+    :local_stratify_house?
   ]
 
   def utils_ok?

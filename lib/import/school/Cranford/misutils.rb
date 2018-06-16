@@ -39,6 +39,11 @@ module MIS_Utils
     "#{house.name} House"
   end
 
+  def local_stratify_house?(house)
+    house.name != "Nursery 1" &&
+      house.name != "Nursery 2" &&
+      house.name != "Reception"
+  end
   #
   #  Given the form code and form description from Pass, try to produce
   #  something reasonable.
