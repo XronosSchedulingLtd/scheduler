@@ -107,6 +107,7 @@ class MIS_Loader
       @covers = MIS_Cover.construct(self, whatever)
       puts "Got #{@covers.size} cover records." if options.verbose
     end
+    PrepParsing::Prepper.new.process_timetable(@timetable)
   end
 
   def initialize(options)

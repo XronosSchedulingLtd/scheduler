@@ -22,7 +22,7 @@ module PrepParsing
 
     def matches?(lesson)
       (!lesson.subject_name.empty? && lesson.subject_name == self.subject) ||
-        setname_matches?(lesson.code)  #  Should really be the set name.
+        setname_matches?(lesson.body_text)  #  Should really be the set name.
     end
   end
 
@@ -138,29 +138,42 @@ module PrepParsing
 
   class Prepper
 
-    def initialize(filename)
-      @preps = PrepTT.new(filename)
-      property = Property.find_by(name: "Prep")
-      unless property
-        raise "No Property called \"Prep\" found."
+    def initialize
+      #
+      #  There may be no prep file at all, in which case we don't
+      #  bother.
+      #
+      filename = Rails.root.join(IMPORT_DIR, "modifiers", "Preps.yml")
+      begin
+        @preps = PrepTT.new(filename)
+        property_element = Setting.prep_property_element
+        if property_element
+          @prep_property = MIS_Property.new(property_element.entity)
+        else
+          @prep_property = nil
+        end
+        @suffix = Setting.prep_suffix
+      rescue Errno::ENOENT
+        @preps = nil
+        @prep_property = nil
+        @suffix = ""
       end
-      @prep_property = MIS_Property.new(property)
     end
 
     def process_timetable(timetable)
-#      puts "#{timetable.schedule.entries.count} entries to process."
-#      puts "Of which, #{timetable.schedule.entries.select {|e| e.instance_of?(ISAMS_TimetableEntry)}.count} seem to be timetable."
-      timetable.schedule.entries.each do |entry|
-        if entry.instance_of?(ISAMS_TimetableEntry) && entry.subject
-          preps = @preps.prepsfor(entry.week_just_letter,
-                                  entry.short_day_of_week,
-                                  entry.yeargroup)
-          if preps
-#            puts "Got #{preps.size} preps to consider"
-            if preps.detect { |p| p.matches?(entry) }
-#              puts "Got a match"
-              entry.code = "#{entry.code} (P)"
-              entry.properties << @prep_property
+      if @preps
+        timetable.schedule.entries.each do |entry|
+          if entry.prepable? && entry.subject && entry.yeargroups.size == 1
+            preps = @preps.prepsfor(entry.week_letter,
+                                    entry.short_day_of_week,
+                                    entry.yeargroups[0])
+            if preps
+              if preps.detect { |p| p.matches?(entry) }
+                entry.body_text = "#{entry.body_text} #{@suffix}"
+                if @prep_property
+                  entry.properties << @prep_property
+                end
+              end
             end
           end
         end

@@ -17,7 +17,7 @@ class MIS_ScheduleEntry
     end
   end
 
-  def week_letter
+  def week_name
     if self.period
       self.period.day.week.short_name
     else
@@ -25,8 +25,8 @@ class MIS_ScheduleEntry
     end
   end
 
-  def week_just_letter
-    self.week_letter[-1]
+  def week_letter
+    self.week_name[-1]
   end
 
   def day_of_week
@@ -44,14 +44,6 @@ class MIS_ScheduleEntry
   def period_name
     if self.period
       self.period.short_name
-    else
-      ""
-    end
-  end
-
-  def subject_name
-    if self.respond_to?(:subject) && self.subject
-      self.subject.name
     else
       ""
     end
@@ -81,7 +73,7 @@ class MIS_ScheduleEntry
   def to_a
     [self.entry_type,
      self.period_id,
-     self.week_letter,
+     self.week_name,
      self.day_of_week,
      self.period_name,
      self.body_text,

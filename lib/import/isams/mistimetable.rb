@@ -169,6 +169,7 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
 
   def initialize(entry)
     super()
+    @prepable = true
   end
 
   def adjust
@@ -867,6 +868,10 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
 
   def body_text
     @name
+  end
+
+  def body_text=(new_text)
+    @name = new_text
   end
 
   def hash_key

@@ -22,7 +22,15 @@ end
 
 class MIS_ScheduleEntry
 
-  attr_reader :dbrecord, :groups, :staff, :rooms, :pupils, :period, :subjects, :properties
+  attr_reader :dbrecord,
+              :groups,
+              :staff,
+              :rooms,
+              :pupils,
+              :period,
+              :subjects,
+              :properties,
+              :week_letter
 
   @@prep_property_element_id = nil
 
@@ -37,6 +45,11 @@ class MIS_ScheduleEntry
     @properties = Array.new
     @pupils     = Array.new
     @subjects   = Array.new
+    @prepable   = false
+  end
+
+  def prepable?
+    @prepable
   end
 
   def note_hiatuses(loader, hiatuses)
@@ -248,29 +261,34 @@ class MIS_ScheduleEntry
     [resources_added_count, resources_removed_count]
   end
 
+  def subject_name
+    if self.subjects.size == 1
+      self.subjects[0].name
+    end
+  end
+
   #
   #  The only Property which we're allowed to remove is the "Prep"
-  #  one, because it's the only one which we add.
+  #  one, because it's the only one which we add.  Other commitments
+  #  (i.e. those not to a property) we can remove.
   #
   def can_remove?(c)
     !c.covering &&
-     ((c.element.entity_type != 'Property') ||
-      (c.element_id == self.class.prep_property_element_id))
-  end
-
-  def self.prep_property_element_id
-    @@prep_property_element_id ||= self.get_ppei
+     ((c.element.entity_type != 'Property') || prep_property_commitment?(c))
   end
 
   #
-  #  Get prep property element id.
+  #  Is this a commitment to the prep property?
   #
-  def self.get_ppei
-    p = Property.find_by(name: "Prep")
-    if p
-      p.element.id
+  def prep_property_commitment?(c)
+    ppe = Setting.prep_property_element
+    if ppe
+      c.element_id == ppe.id
     else
-      nil
+      #
+      #  None configured.
+      #
+      false
     end
   end
 
