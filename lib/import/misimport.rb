@@ -146,6 +146,7 @@ require_relative 'misimport/misrecord.rb'
 require_relative 'misimport/misgroup.rb'
 require_relative 'misimport/misproperty.rb'
 require_relative 'misimport/parserecurring.rb'
+require_relative 'misimport/prepparsing.rb'
 require_relative 'misimport/slurper.rb'
 
 #

@@ -20,7 +20,6 @@ end
 class PASS_ScheduleEntry < MIS_ScheduleEntry
 
   attr_reader :subject,
-              :week_letter,
               :day_name,
               :period_time,
               :staff_id,
@@ -29,6 +28,7 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
 
   def initialize(entry)
     super()
+    @prepable    = true
     @lesson_id   = entry.lesson_id
     @lesson_desc = entry.lesson_desc
     @staff_id    = entry.staff_id
@@ -101,6 +101,10 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
     @lesson_desc
   end
 
+  def body_text=(new_text)
+    @lesson_desc = new_text
+  end
+
   def eventcategory
     Eventcategory.cached_category("Lesson")
   end
@@ -150,6 +154,9 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
     @staff_ids.include?(staff_id)
   end
 
+  def short_day_of_week
+    self.day_name[0,3]
+  end
 end
 
 
