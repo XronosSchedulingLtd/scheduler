@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180513080307) do
+ActiveRecord::Schema.define(version: 20180606090615) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -461,6 +461,7 @@ ActiveRecord::Schema.define(version: 20180513080307) do
     t.datetime "updated_at"
     t.boolean  "current",                   default: false
     t.integer  "datasource_id", limit: 4
+    t.string   "house_name",    limit: 255, default: ""
   end
 
   add_index "pupils", ["datasource_id"], name: "index_pupils_on_datasource_id", using: :btree
@@ -537,6 +538,12 @@ ActiveRecord::Schema.define(version: 20180513080307) do
     t.integer  "default_free_finder_day_shape_id", limit: 4
     t.string   "title_text",                       limit: 255
     t.string   "public_title_text",                limit: 255
+    t.boolean  "tutorgroups_by_house",                           default: true
+    t.string   "tutorgroups_name",                 limit: 255,   default: "Tutor group"
+    t.string   "tutor_name",                       limit: 255,   default: "Tutor"
+    t.string   "prep_suffix",                      limit: 255,   default: "(P)"
+    t.integer  "prep_property_element_id",         limit: 4
+    t.boolean  "ordinalize_years",                               default: true
   end
 
   create_table "staffs", force: :cascade do |t|

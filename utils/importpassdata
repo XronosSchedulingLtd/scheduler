@@ -1,0 +1,73 @@
+#!/bin/bash
+. /etc/profile
+#
+#  The next file contains confidential authentication information,
+#  specifically the apikey for the API and the password for direct
+#  d/b access.  In a separate file so we can commit this file
+#  to version control.
+#
+. ~/etc/passauth
+#
+#  Are we on development or live?  Where are our directories etc?
+#
+. ~/etc/whichsystem
+#
+#  And make sure we're using the right ruby.
+#
+. ~/.rvm/environments/scheduler
+#
+#
+#  Now some checks to make sure that at least the part of the
+#  environment which we need has been set.
+#
+if [ "a$SCHEDULER_DIR" == "a" ]; then
+  echo "SCHEDULER_DIR environment variable needs to be set."
+  exit 1
+fi
+if [ ! -d $SCHEDULER_DIR/import/pass ]; then
+  echo "$SCHEDULER_DIR/import/pass does not seem to be a directory."
+  exit 2
+fi
+
+cd $SCHEDULER_DIR/import/pass
+rm -f Incoming/*
+
+#
+#  And are we using additional data retrieved directly from the iSAMS
+#  database - again either doing it now or having done it earlier?
+#
+if [ "$USE_PASS_DB" = true ]; then
+  if [ -f PreFetched/CH_AC_TIMETABLE.csv ]; then
+    echo "Using pre-fetched csv files."
+    cp PreFetched/*.csv Incoming
+  else
+    $SCHEDULER_DIR/lib/extractor/pass_extractor.rb --target Incoming
+    if [ $? -ne 0 ]; then
+      echo "Failed to fetch data from Pass database."
+      exit 6
+    fi
+  fi
+else
+  echo "Not using Pass table data."
+fi
+
+#
+#  We now appear to have a set of data files.  Move them to Current
+#  and then archive them.
+#
+rm -f Current/*
+mv Incoming/* Current
+TARGET_DIR="Archive/`date +%Y/%m/%d`"
+mkdir -p $TARGET_DIR
+cp Current/* $TARGET_DIR
+if [ "$USE_PASS_DB" = true ]; then
+  bzip2 -f $TARGET_DIR/*.csv
+fi
+
+#
+#  And now invoke the import utility to bring the new data into Scheduler.
+#
+$SCHEDULER_DIR/lib/import/misimport.rb --email | tee import.log
+cp import.log $TARGET_DIR
+bzip2 -f $TARGET_DIR/import.log
+

@@ -1,12 +1,7 @@
-class MIS_PeriodTime
-  def initialize(starts_at, ends_at)
-    @starts_at    = starts_at
-    @ls_starts_at = starts_at
-    @ends_at      = ends_at
-    @ls_ends_at   = ends_at
-  end
-
-end
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2018 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
 
 class ISAMS_Period
   SELECTOR = "Periods Period"
@@ -172,8 +167,12 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
 
   attr_reader :subject, :isams_ids
 
+  attr_accessor :body_text
+
   def initialize(entry)
     super()
+    @prepable = true
+    @body_text = @code
   end
 
   def adjust
@@ -249,10 +248,6 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
     end
   end
 
-  def body_text
-    @code
-  end
-
   def eventcategory
     #
     #  This needs fixing very quickly.
@@ -277,6 +272,14 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
     else
       0
     end
+  end
+
+  def yeargroups
+    ygs = @groups.collect {|group| group.yeargroup}.uniq
+    if ygs.empty?
+      ygs = [0]
+    end
+    ygs
   end
 
   #
@@ -424,6 +427,10 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
     @name
   end
 
+  def body_text=(new_text)
+    @name = new_text
+  end
+
   def eventcategory
     #
     #  This needs fixing very quickly.
@@ -437,6 +444,10 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
   #
   def yeargroup
     0
+  end
+
+  def yeargroups
+    [0]
   end
 
   def self.construct(loader, inner_data)
@@ -541,6 +552,10 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
     @name
   end
 
+  def body_text=(new_text)
+    @name = new_text
+  end
+
   def eventcategory
     #
     #  This needs fixing very quickly.
@@ -554,6 +569,10 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
   #
   def yeargroup
     0
+  end
+
+  def yeargroups
+    [0]
   end
 
   def self.construct(loader)
@@ -788,6 +807,10 @@ class ISAMS_TutorialEntry < MIS_ScheduleEntry
     @name
   end
 
+  def body_text=(new_text)
+    @name = new_text
+  end
+
   def hash_key
     "#{@name} period #{@period_id} location #{@room_id}"
   end
@@ -872,6 +895,10 @@ class ISAMS_YeargroupEntry < MIS_ScheduleEntry
 
   def body_text
     @name
+  end
+
+  def body_text=(new_text)
+    @name = new_text
   end
 
   def hash_key

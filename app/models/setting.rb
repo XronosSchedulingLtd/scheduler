@@ -20,6 +20,8 @@ class Setting < ActiveRecord::Base
   belongs_to :default_display_day_shape, class_name: :RotaTemplate
   belongs_to :default_free_finder_day_shape, class_name: :RotaTemplate
 
+  belongs_to :prep_property_element, class_name: :Element
+
   before_save :update_html
   after_save :flush_cache
 
@@ -56,6 +58,16 @@ class Setting < ActiveRecord::Base
   end
 
   def room_cover_group_element_name=(newname)
+    #
+    #  Do nothing with it.
+    #
+  end
+
+  def prep_property_element_name
+    prep_property_element ? prep_property_element.name : ""
+  end
+
+  def prep_property_element_name=(name)
     #
     #  Do nothing with it.
     #
@@ -277,6 +289,60 @@ class Setting < ActiveRecord::Base
     end
   end
 
+  def self.tutorgroups_by_house?
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.tutorgroups_by_house?
+    else
+      true
+    end
+  end
+
+  def self.ordinalize_years?
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.ordinalize_years?
+    else
+      true
+    end
+  end
+
+  def self.tutorgroups_name
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.tutorgroups_name
+    else
+      true
+    end
+  end
+
+  def self.tutor_name
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.tutor_name
+    else
+      true
+    end
+  end
+
+  def self.prep_suffix
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.prep_suffix
+    else
+      true
+    end
+  end
+
+  def self.prep_property_element
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.prep_property_element
+    else
+      true
+    end
+  end
+
   #
   #  End-of-year processing.  Move us on into the next era.
   #
@@ -331,6 +397,24 @@ class Setting < ActiveRecord::Base
       s.public_title_text = public_title_text
     end
     s.save
+  end
+
+  #
+  #  One off method to set initial value of prep property.
+  #
+  def set_prep_property
+    unless self.prep_property_element
+      p = Property.find_by(name: "Prep")
+      if p
+        self.prep_property_element = p.element
+        self.save
+      end
+    end
+  end
+
+  def self.set_prep_property
+    s = Setting.first
+    s.set_prep_property
   end
 
   protected

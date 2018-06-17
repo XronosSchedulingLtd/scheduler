@@ -105,6 +105,7 @@ class SessionsController < ApplicationController
     logged_in? ||
       action == 'new' ||
       action == 'create' ||
+      action == 'failure' ||
       action == 'demo_login'
   end
 

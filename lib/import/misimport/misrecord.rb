@@ -73,7 +73,7 @@ class MIS_Record
         #
         unless field_name == :active && existing_value
           puts "Field #{field_name} differs for #{self.name}"
-          puts "d/b: \"#{existing_value}\" IS: \"#{proposed_value}\""
+          puts "d/b: \"#{existing_value}\" MIS: \"#{proposed_value}\""
           @dbrecord.send("#{field_name}=", proposed_value)
           changed = true
           #
@@ -93,7 +93,7 @@ class MIS_Record
         dbvalue = @dbrecord.send("#{key}")
         if dbvalue != value
           puts "Field #{key} differs for #{self.name}"
-          puts "d/b: \"#{dbvalue}\"  IS: \"#{value}\""
+          puts "d/b: \"#{dbvalue}\"  MIS: \"#{value}\""
           @dbrecord.send("#{key}=", value)
           changed = true
         end

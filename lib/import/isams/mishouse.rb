@@ -20,6 +20,10 @@ class MIS_House
     end
   end
 
+  def pupils
+    self.tugs.collect {|tug| tug.pupils}.flatten
+  end
+
   def self.construct(loader, isams_data)
     @namehash = Hash.new
     academic_houses = ISAMS_AcademicHouse.slurp(isams_data.xml, false)

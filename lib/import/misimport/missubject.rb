@@ -1,3 +1,8 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2018 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+
 class MIS_Subject < MIS_Record
 
   DB_CLASS = Subject
@@ -96,4 +101,13 @@ class MIS_Subject < MIS_Record
   def self.all_teachers
     @@all_teachers
   end
+
+  #
+  #  MIS-specific code is expected to override everything below here.
+  #
+
+  def self.construct(loader, mis_data)
+    []
+  end
+
 end
