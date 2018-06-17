@@ -1,3 +1,51 @@
+v1.3.0  2018-06-17
+
+* Add support for importing timetable, staff and pupils from WCBS Pass.
+
+  Scheduler uses its own database to store the events which it displays,
+  but it makes sense where possible to avoid double entry.  It therefore
+  has a utility to import such information as it can get automatically
+  from the school's existing MIS.
+
+  Previous versions supported importing from either SchoolBase or
+  iSAMS.  This version adds the ability to import from WCBS Pass as
+  well.
+
+  The importer is split into three layers:
+
+  *  Generic code - by far the largest bit.
+  *  MIS-specific code
+  *  School-specific code
+
+  That last section handles fine detail like how the school refers
+  to year groups, ("3rd year" or "Year 9") etc.
+
+  This release adds a new set of code in the "MIS-specific" layer,
+  and has resulted in some moving around of existing code which was
+  found to be in the wrong layer.  The interface between layes has
+  also changed slightly.
+
+  The code has been extensively tested to ensure that existing
+  supported MIS layers are not affected.
+
+* Additional settings within Scheduler
+
+  The settings section within Scheduler has had some new fields added
+  to allow more things to be tweaked to suit individual schools.  The
+  default values in each of these fields have been chosen to give the
+  same behaviour as existed before the fields were there.
+
+* Installation
+
+  In addition to the usual steps for installing a new release, it
+  may also be necessary to re-link the school-specific code files
+  as part of installing this release.  A script is provided for this.
+
+  $ cd $SCHEDULER_DIR
+  $ cd lib/import/school
+  $ ./linkup <School name>
+
+
 v1.2.3  2018-05-23
 
 * Fix a typo in the approvals notifier.
