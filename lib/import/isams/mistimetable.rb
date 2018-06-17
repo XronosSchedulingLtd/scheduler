@@ -167,9 +167,12 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
 
   attr_reader :subject, :isams_ids
 
+  attr_accessor :body_text
+
   def initialize(entry)
     super()
     @prepable = true
+    @body_text = @code
   end
 
   def adjust
@@ -243,14 +246,6 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
       #
       "Lessons #{@isams_ids.sort.join(",")}"
     end
-  end
-
-  def body_text
-    @code
-  end
-
-  def body_text=(new_text)
-    @code = new_text
   end
 
   def eventcategory
