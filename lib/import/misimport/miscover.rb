@@ -310,6 +310,10 @@ class MIS_Cover
         #
         #  No.  Adjust.
         #
+        if loader.options.verbose
+          puts "Amending cover for #{@staff_covered.name} at #{@starts_at}."
+          puts "#{@staff_covering.dbrecord.element.name} replaces #{cover_commitment.element.name}."
+        end
         cover_commitment.element = @staff_covering.dbrecord.element
         if cover_commitment.save
           amended += 1
@@ -358,5 +362,11 @@ class MIS_Cover
     last_known
   end
 
+  #
+  #  MIS-Specific code should override this.
+  #
+  def self.construct(loader, mis_data)
+    []
+  end
 end
 

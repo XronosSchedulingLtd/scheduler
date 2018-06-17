@@ -15,7 +15,8 @@ class MIS_Loader
               :ohgroups,
               :oh_groups_hash,
               :timetable,
-              :event_source
+              :event_source,
+              :week_identifier
 
   def read_mis_data(options)
     @options = options
@@ -83,7 +84,9 @@ class MIS_Loader
         @oh_groups_hash[ohg.isams_id] = ohg
       end
     end
-    self.mis_specific_preparation
+    if self.respond_to?(:mis_specific_preparation)
+      self.mis_specific_preparation
+    end
     #
     #  And now there should be enough to build the actual timetable
     #  data structures.
@@ -104,6 +107,7 @@ class MIS_Loader
       @covers = MIS_Cover.construct(self, whatever)
       puts "Got #{@covers.size} cover records." if options.verbose
     end
+    PrepParsing::Prepper.new.process_timetable(@timetable)
   end
 
   def initialize(options)
@@ -145,6 +149,10 @@ class MIS_Loader
       @start_date = Date.today
     end
     @hiatuses = Hiatus.load_hiatuses(self)
+    #
+    #  MIS-specific or school-specific code might find this useful.
+    #
+    @week_identifier = WeekIdentifier.new(@start_date, @era.ends_on)
     read_mis_data(options)
     if self.respond_to?(:local_processing)
       self.local_processing(options)
@@ -801,6 +809,51 @@ class MIS_Loader
     ensure_membership("All pupils",
                       Pupil.current.to_a,
                       Pupil)
+    pupils_by_year = Hash.new
+    @pupils.each do |pupil|
+      (pupils_by_year[pupil.nc_year] ||= Array.new) << pupil.dbrecord
+    end
+    pupils_by_year.each do |nc_year, pupils|
+      ensure_membership("#{local_yeargroup_text_pupils(local_yeargroup(nc_year))}",
+                        pupils,
+                        Pupil)
+    end
+    @houses.each do |house|
+      #
+      #  Occasionally one gets a house with no name sneaking through,
+      #  typically because there is a student who is not assigned
+      #  to a house.  Don't process these ones.
+      #
+      unless house.name.blank?
+        pupils = house.pupils.collect {|pupil| pupil.dbrecord}
+        ensure_membership("#{local_format_house_name(house)} pupils",
+                          pupils,
+                          Pupil)
+        #
+        #  And by year?
+        #
+        pupils_by_year = Hash.new
+        house.pupils.each do |pupil|
+          (pupils_by_year[pupil.nc_year] ||= Array.new) << pupil.dbrecord
+        end
+        #
+        #  For some houses it doesn't make sense to stratify by year, but
+        #  this is decided individually by each school.
+        #
+        if local_stratify_house?(house)
+          pupils_by_year.each do |nc_year, pupils|
+            if Setting.ordinalize_years?
+              year_bit = "#{local_yeargroup(nc_year).ordinalize} year"
+            else
+              year_bit = "year #{local_yeargroup(nc_year)}"
+            end
+            ensure_membership("#{local_format_house_name(house)} #{year_bit}",
+                              pupils,
+                              Pupil)
+          end
+        end
+      end
+    end
     if self.respond_to?(:do_local_auto_groups)
       do_local_auto_groups
     end

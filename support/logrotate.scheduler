@@ -1,12 +1,12 @@
-/home/john/Work/Coding/scheduler/log/production.log {
+/home/scheduler/Work/Coding/scheduler/log/production.log {
 	daily
-	su john john
+	su scheduler scheduler
 	missingok
 	rotate 10
 	compress
 	delaycompress
 	notifempty
 	postrotate
-		touch /home/john/Work/Coding/scheduler/tmp/restart.txt
+		touch /home/scheduler/Work/Coding/scheduler/tmp/restart.txt
 	endscript
 }

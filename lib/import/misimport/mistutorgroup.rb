@@ -31,6 +31,17 @@ class MIS_Tutorgroup < MIS_Group
   end
 
   #
+  #  Methods to be provided by MIS-specific code modules.
+  #
+  def self.construct(loader, mis_data)
+    #
+    #  Note that an MIS-specific version should also call super,
+    #  which calls not this method, but the one in MIS_Group.
+    #
+    super
+  end
+
+  #
   #  Finish off setting ourselves up.  Can only do this after discovering
   #  who our members are.
   #

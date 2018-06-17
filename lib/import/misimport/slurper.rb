@@ -1,6 +1,7 @@
-#
-#  Slurper module for use by extractor program
-#  Copyright (C) John Winters 2014-2016
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2018 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
 #
 
 #
@@ -15,6 +16,7 @@
 #  :integer
 #  :date
 #  :time
+#  :datetime
 #
 #  but for reverse compatibility, false will still be taken as meaning
 #  a string and true as meaning an integer.
@@ -110,6 +112,15 @@ module Slurper
                 unless row[column_hash[attr_name]] == nil
                   entry.send("#{attr_name}=",
                              Time.parse(row[column_hash[attr_name]]))
+                end
+
+              when :datetime
+                #
+                #  Leave as nil if nothing provided.
+                #
+                unless row[column_hash[attr_name]] == nil
+                  entry.send("#{attr_name}=",
+                             Time.zone.parse(row[column_hash[attr_name]]))
                 end
 
               else

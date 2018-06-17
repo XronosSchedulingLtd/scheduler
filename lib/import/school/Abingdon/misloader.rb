@@ -334,46 +334,22 @@ class MIS_Loader
     #
     all_tutors = []
     tutors_by_year = {}
-    tges_by_year = {}
     @houses.each do |house|
       tutors = []
-      pupils = []
-      house_tges_by_year = {}
       house.tugs.each do |tug|
         tutors << tug.staff.dbrecord
         all_tutors << tug.staff.dbrecord
         tutors_by_year[tug.yeargroup] ||= []
         tutors_by_year[tug.yeargroup] << tug.staff.dbrecord
-        #
-        #  And now, each of the pupils.
-        #
-        tug.pupils.each do |pupil|
-          tges_by_year[tug.yeargroup] ||= []
-          tges_by_year[tug.yeargroup] << pupil.dbrecord
-          house_tges_by_year[tug.yeargroup] ||= []
-          house_tges_by_year[tug.yeargroup] << pupil.dbrecord
-          pupils << pupil.dbrecord
-        end
       end
       if house.name == "Lower School"
         ensure_membership("#{house.name} tutors",
                           tutors,
                           Staff)
-        ensure_membership("#{house.name} pupils",
-                          pupils,
-                          Pupil)
       else
         ensure_membership("#{house.name} House tutors",
                           tutors,
                           Staff)
-        ensure_membership("#{house.name} House pupils",
-                          pupils,
-                          Pupil)
-        house_tges_by_year.each do |year_group, pupils|
-          ensure_membership("#{house.name} House #{local_yeargroup_text(year_group)}",
-                            pupils,
-                            Pupil)
-        end
       end
     end
     middle_school_tutors = []
@@ -394,11 +370,6 @@ class MIS_Loader
             year_group == 7
         upper_school_tutors += tutors
       end
-    end
-    tges_by_year.each do |year_group, pupils|
-      ensure_membership("#{local_yeargroup_text(year_group)}",
-                        pupils,
-                        Pupil)
     end
     ensure_membership("Middle school tutors", middle_school_tutors, Staff)
     ensure_membership("Upper school tutors", upper_school_tutors, Staff)
@@ -423,22 +394,6 @@ class MIS_Loader
     SB_Period.dump(@timetable)
     SB_Timetableentry.dump(@timetable)
     @timetable.save_to_csv
-    #
-    #  And now let's apply Abingdon's prep information to the
-    #  lesson records in memory.  Each one which is identified as
-    #  having a prep is modified in two ways.
-    #
-    #  1.  The body text has " (P)" tagged on the end.
-    #  2.  It has the "Prep" property attached to it.
-    #
-#    puts "Parsing preps"
-    prepper =
-      PrepParsing::Prepper.new(Rails.root.join(IMPORT_DIR,
-                                               "modifiers",
-                                               "Preps.yml"))
-#    puts "Processing timetable"
-    prepper.process_timetable(@timetable)
-#    puts "Done with preps"
   end
 
 end

@@ -47,6 +47,29 @@ module MIS_Utils
   #  etc.
   #
   #  def local_yeargroup_text(yeargroup)
+  #
+
+  #  This one is subtly different.  It defines how you would refer to
+  #  a complete year group of pupils.  It might want the word "pupils"
+  #  on the end, and it might not.  It's up to the school.  It will
+  #  be used to create groups for entire year groups.
+  #
+  #  The previous one is used in conjunction with other stuff,
+  #  so it might be used to create "Year 9 French teachers".
+  #  There you don't want the word "pupils" sneaking in, but when
+  #  referring to the whole of year 9 it might be confusing if
+  #  you don't have the word "pupils" in there.  Likewise, if you
+  #  have a year referred to as "Reception", then that word on its
+  #  own for the group of pupils might not be clear, where
+  #  "Reception pupils" is.
+  #
+  #    Year 9 pupils
+  #    1st year
+  #    Reception pupils
+  #
+  #  etc.
+  #
+  #  def local_yeargroup_text_pupils(yeargroup)
 
   #
   #  If a pupil is in National Curriculum year nc_year for the era
@@ -77,13 +100,31 @@ module MIS_Utils
   #  to load any others.
   #
   #  def local_week_load_regardless(week)
+  #
+
+  #
+  #  How should the house name be formatted for group creation?  We don't
+  #  know in advance how it will come from the MIS, and then we don't
+  #  know whether the school will want "House" adding to that.  The
+  #  MIS might contain "Green" or "Green House", and in either case,
+  #  we might want the group to be called "Green pupils" or "Green House
+  #  pupils".  Local code lets us be perfectly flexible.
+  #
+  #  The function will be passed an MIS_House record.
+  #
+  #  def local_format_house_name(house)
+  #
+  #
 
   UTILS_NEEDED = [
     :local_yeargroup,
     :local_yeargroup_text,
+    :local_yeargroup_text_pupils,
     :local_effective_start_year,
     :local_wanted,
-    :local_week_load_regardless
+    :local_week_load_regardless,
+    :local_format_house_name,
+    :local_stratify_house?
   ]
 
   def utils_ok?
@@ -106,6 +147,8 @@ require_relative 'misimport/misrecord.rb'
 require_relative 'misimport/misgroup.rb'
 require_relative 'misimport/misproperty.rb'
 require_relative 'misimport/parserecurring.rb'
+require_relative 'misimport/prepparsing.rb'
+require_relative 'misimport/slurper.rb'
 
 #
 #  Actual identifiable database things.
@@ -141,7 +184,6 @@ if current_mis
   if current_mis == "iSAMS"
     require_relative 'isams/dateextra.rb'
     require_relative 'isams/options.rb'
-    require_relative 'isams/slurper.rb'
     require_relative 'isams/depender.rb'
     require_relative 'isams/activityevent.rb'
     require_relative 'isams/activityeventoccurrence.rb'
@@ -162,9 +204,19 @@ if current_mis
     require_relative 'isams/mishouse.rb'
     require_relative 'isams/missubject.rb'
     require_relative 'isams/miscover.rb'
-  elsif current_mis == "SchoolBase"
+  elsif current_mis == "Pass" || current_mis == "SchoolBase"
+    Dir[File.join(File.dirname(__FILE__),
+                  "#{current_mis.downcase}/*.rb")].each do |file|
+      require File.absolute_path(file)
+    end
+#    require_relative 'pass/mishouse.rb'
+#    require_relative 'pass/misloader.rb'
+#    require_relative 'pass/mislocation.rb'
+#    require_relative 'pass/mispupil.rb'
+#    require_relative 'pass/misstaff.rb'
+#    require_relative 'pass/missubject.rb'
   else
-    raise "Don't know how to handle #{current_mis} as our current MIS."
+    raise "Don't know how to handle \"#{current_mis}\" as our current MIS."
   end
 else
   raise "No current MIS configured - can't import."

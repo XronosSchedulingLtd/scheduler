@@ -1,4 +1,112 @@
 #
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2018 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
+#
+#  Group hiatuses to enable them to be merged.
+#
+#  Rectangular hiatuses cannot be merged.
+#
+#  Hiatuses with no year groups (thus affecting all lessons)
+#  should not be merged.
+#
+#  It's the responsibility of the caller to make sure they're
+#  all the same type (hard or soft).
+#
+class HiatusGrouping
+
+  def initialize(hiatus)
+    if hiatus.times_by_day
+      raise "Can't group rectangular hiatuses at present"
+    end
+    @hiatuses  = [hiatus]
+    #
+    #  Hiatuses with no year groups form a group on their own.
+    #
+    @singular  = hiatus.yeargroups.size == 0
+    @starts_at = hiatus.starts_at
+    @ends_at   = hiatus.ends_at
+  end
+
+  def belongs?(hiatus)
+    !@singular &&
+     hiatus.yeargroups.size > 0 &&
+     hiatus.starts_at < @ends_at &&
+     hiatus.ends_at > @starts_at
+  end
+
+  def add(hiatus)
+    if hiatus.times_by_day
+      raise "Can't group rectangular hiatuses at present"
+    end
+    @hiatuses << hiatus
+    if hiatus.starts_at < @starts_at
+      @starts_at = hiatus.starts_at
+    end
+    if hiatus.ends_at > @ends_at
+      @ends_at = hiatus.ends_at
+    end
+  end
+
+  #
+  #  Having finished assembling this grouping, generate a fresh lot
+  #  of hiatuses representing the merged set.
+  #
+  def regroup
+    if @hiatuses.size == 1
+      return @hiatuses
+    else
+      #
+      #  First need a list of all the start and end times.
+      #
+      hard_or_soft = @hiatuses[0].hard_or_soft
+      boundaries = Array.new
+      @hiatuses.each do |hiatus|
+        boundaries << hiatus.starts_at
+        boundaries << hiatus.ends_at
+      end
+      sorted = boundaries.uniq.sort
+      #
+      #  We now have N datetimes in order.  We will generate
+      #  N-1 new hiatuses, each consisting of a merging of
+      #  all the hiatuses current in its duration.
+      #
+      merged_hiatuses = Array.new
+      sorted.each_cons(2).each do |pair|
+        hiatus = Hiatus.new(hard_or_soft, false).
+                        note_start_and_end(pair[0], pair[1])
+        #
+        #  Now - which yeargroups does it apply to?  Note that each
+        #  of our original hiatuses has at least one yeargroup.
+        #
+        @hiatuses.
+          select { |h| h.starts_at < pair[1] && h.ends_at > pair[0] }.
+          each do |h|
+            h.yeargroups.each { |yg| hiatus.note_yeargroup(yg) }
+          end
+        merged_hiatuses << hiatus
+      end
+      return merged_hiatuses
+    end
+  end
+
+  def dump
+    puts "Hiatus grouping"
+    puts "  #{@hiatuses.size} original hiatuses."
+    @hiatuses.each do |h|
+      puts "    #{h.text_details}"
+    end
+    puts "  Resulting in:"
+    self.regroup.each do |h|
+      puts "    #{h.text_details}"
+    end
+  end
+end
+
+#
 #  A class to store information about gaps in lessons.  These can be
 #  occasions when lessons are suspended for a particular year group
 #  (e.g. for study leave or exams) or chunks of the year when nothing
@@ -23,6 +131,8 @@
 #
 class Hiatus
 
+  attr_reader :times_by_day, :starts_at, :ends_at, :yeargroups, :hard_or_soft
+
   def initialize(hard_or_soft, times_by_day)
     @hard_or_soft = hard_or_soft   # :hard or :soft
     @times_by_day = times_by_day   # true or false
@@ -46,15 +156,18 @@ class Hiatus
     @end_date   = end_date
     @start_mins = start_mins
     @end_mins   = end_mins
+    self
   end
 
   def note_start_and_end(starts_at, ends_at)
     @starts_at = starts_at
     @ends_at   = ends_at
+    self
   end
 
   def note_yeargroup(year)
-    @yeargroups << year
+    @yeargroups << year unless @yeargroups.include?(year)
+    self
   end
 
   def list_yeargroups
@@ -80,6 +193,14 @@ class Hiatus
 
   def soft?
     @hard_or_soft == :soft
+  end
+
+  def <=>(other)
+    if other.instance_of?(Hiatus)
+      self.starts_at <=> other.starts_at
+    else
+      nil
+    end
   end
 
   #
@@ -122,11 +243,23 @@ class Hiatus
     @yeargroups.empty? || @yeargroups.include?(year)
   end
 
+  def applies_to_years?(years)
+    @yeargroups.empty? || (years - @yeargroups).empty?
+  end
+
   def effective_end_date
     if @times_by_day
       @end_date
     else
       @ends_at.to_date
+    end
+  end
+
+  def text_details
+    if @times_by_day
+      "Not implemented"
+    else
+      "Starts: #{@starts_at.to_s(:hmdmy)}, ends: #{@ends_at.to_s(:hmdmy)}, years: #{@yeargroups.sort}"
     end
   end
 
@@ -136,6 +269,10 @@ class Hiatus
   def occurs_after?(date)
     self.complete? &&
     self.effective_end_date >= date
+  end
+
+  def groupable?
+    @yeargroups.size > 0
   end
 
   def self.create_from_event(hard_or_soft, event, era)
@@ -165,11 +302,40 @@ class Hiatus
     KNOWN_HIATUS_TYPES.each do |key, hs|
       property = Property.find_by(name: key)
       if property
+        original_hiatuses = Array.new
 #        puts "Found property: #{key}"
         property.element.events_on(loader.start_date,
                                    loader.era.ends_on).each do |event|
 #          puts "Processing a #{key}"
-          hiatuses << Hiatus.create_from_event(hs, event, loader.era)
+          original_hiatuses << Hiatus.create_from_event(hs, event, loader.era)
+        end
+        #
+        #  Now see about merging them.
+        #
+        current_grouping = nil
+        groupings = Array.new
+        original_hiatuses.sort.each do |oh|
+          if oh.groupable?
+            if current_grouping && current_grouping.belongs?(oh)
+              current_grouping.add(oh)
+            else
+              current_grouping = HiatusGrouping.new(oh)
+              groupings << current_grouping
+            end
+          else
+            #
+            #  This one passes through without affecting the groups.
+            #
+#            puts "Ungroupable: #{oh.text_details}"
+            hiatuses << oh
+          end
+        end
+        #
+        #  And now extract merged hiatuses from the groupings.
+        #
+        groupings.each do |g|
+          hiatuses += g.regroup
+#          g.dump
         end
       else
         puts "Unable to find property: #{key}."

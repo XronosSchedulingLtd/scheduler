@@ -1,4 +1,4 @@
-class MIS_SetMembership
+class ISAMS_SetMembership
   SELECTOR = "TeachingManager SetLists SetList"
   REQUIRED_FIELDS = [
     IsamsField["Id",        :isams_id,   :attribute, :integer],
@@ -93,7 +93,7 @@ class MIS_Teachinggroup
     #
     #  Now - can I populate them?
     #
-    memberships = MIS_SetMembership.construct(loader, isams_data)
+    memberships = ISAMS_SetMembership.construct(loader, isams_data)
     memberships.each do |membership|
       tg = tgs_hash[membership.set_id]
       pupil = loader.pupil_hash[membership.pupil_id]

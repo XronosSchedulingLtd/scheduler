@@ -15,6 +15,10 @@ class Element < ActiveRecord::Base
            :dependent => :nullify
   has_many :concerns,    :dependent => :destroy
   has_many :freefinders, :dependent => :destroy
+  has_one  :prep_element_setting,
+           class_name: "Setting",
+           foreign_key: :prep_property_element_id,
+           dependent: :nullify
   #
   #  Interesting question about what happens to journal entries if
   #  the element goes away.  Elements aren't meant to go away

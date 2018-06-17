@@ -68,6 +68,13 @@ class SettingsController < ApplicationController
                     :wrapping_eventcategory_name,
                     :wrapping_eventcategory_id,
                     :default_display_day_shape_id,
-                    :default_free_finder_day_shape_id)
+                    :default_free_finder_day_shape_id,
+                    :tutorgroups_by_house,
+                    :tutorgroups_name,
+                    :tutor_name,
+                    :prep_suffix,
+                    :ordinalize_years,
+                    :prep_property_element_name,
+                    :prep_property_element_id)
     end
 end

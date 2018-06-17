@@ -73,22 +73,6 @@ class MIS_Pupil
     self.class.do_convert
   end
 
-  #
-  #  In what year would this pupil have started in the 1st year (NC year 7).
-  #  Calculated from his current year group, plus the current academic
-  #  year.
-  #
-  #  Note the inclusion of the command line option "ahead".  This is to
-  #  allow pupils to be moved up by a year or two.  Useful if you're
-  #  doing test loads for next year, but the pupils haven't yet been rolled
-  #  over.  Thus you want pupils whom the MIS thinks are in year 5
-  #  to be treated as if they were in year 6.  Note further that to
-  #  move them *up* by this amount, you subtract it from their start year.
-  #
-  def effective_start_year(era)
-    local_effective_start_year(era, self.nc_year, self.ahead)
-  end
-
   def check_idents
     if self.isams_id != self.sb_id
       puts "Pupil has isams id #{self.isams_id} and SB id #{self.sb_id}."
