@@ -28,6 +28,7 @@ class MIS_Cover
   #  covered.  All we can do is make an intelligent guess.
   #
   def initialize(loader, entry, other_entries)
+    verbose = loader.options.verbose
     #
     #  First assemble data from the "doing cover" record.
     #
@@ -40,6 +41,12 @@ class MIS_Cover
     @task_end            = entry.task_end
     @starts_at           = @task_start.strftime("%H:%M")
     @ends_at             = @task_end.strftime("%H:%M")
+    if verbose
+      puts "Examining cover by #{@covering_staff_name} (#{@covering_staff_id})"
+      puts "Cover id = #{@cover_id}"
+      puts "On #{@date.strftime("%d/%m/%Y")} from #{@starts_at} to #{@ends_at}"
+      puts "Task code = #{entry.task_code}"
+    end
     #
     #  Now need to look at the "needing cover" records.
     #  Need one with the right start and end date/times which hasn't
@@ -48,7 +55,7 @@ class MIS_Cover
     plausible_entries = other_entries.select { |oe|
       oe.task_start == entry.task_start &&
       oe.task_end == entry.task_end &&
-      oe.room_code == entry.room_code &&
+      oe.cover_id == entry.cover_id &&
       oe.task_code == entry.task_code &&
       !oe.used}
     #
@@ -58,6 +65,7 @@ class MIS_Cover
     #  avoid selecting one of those, because we will then fail
     #  later in trying to find the corresponding lesson.
     #
+    puts "Found #{plausible_entries.count} plausible entries" if verbose
     unless plausible_entries.empty?
       candidate_lessons = loader.timetable.lessons_on(@task_start.to_date)
       plausible_entries.each do |pe|
@@ -77,8 +85,20 @@ class MIS_Cover
         matches = candidate_lessons.select { |l|
           l.taught_by?(pe.covered_staff_id) &&
             l.period_time.starts_at == @starts_at &&
-            l.period_time.ends_at   == @ends_at
+            l.period_time.ends_at   == @ends_at &&
+            #
+            #  What the timetable entries call a SET_CODE, the cover
+            #  entries call a TASK_CODE.  This is Pass being silly,
+            #  not Scheduler.
+            #
+            l.set_code              == entry.task_code
         }
+        if verbose
+          puts "Found #{matches.size} possible matches."
+          matches.each do |match|
+            puts "Lesson id #{match.lesson_id}, staff id #{match.staff_id}, set code #{match.set_code}."
+          end
+        end
         if matches.size == 1
           @covered_staff_id  = pe.covered_staff_id
           @covered_staff_name  = pe.covered_staff_name
