@@ -15,10 +15,12 @@
     <%= f.label :name %><br>
     <%= f.text_field :name %>
   </div>
+  <% if Setting.tutorgroups_by_house? %>
   <div class="field">
     <%= f.label :house %><br>
     <%= f.text_field :house %>
   </div>
+  <% end %>
   <div class="field">
     <%= f.label :staff %><br>
       <%= f.collection_select(:staff_id,
