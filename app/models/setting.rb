@@ -312,7 +312,7 @@ class Setting < ActiveRecord::Base
     if @@setting
       @@setting.tutorgroups_name
     else
-      true
+      ""
     end
   end
 
@@ -321,7 +321,7 @@ class Setting < ActiveRecord::Base
     if @@setting
       @@setting.tutor_name
     else
-      true
+      ""
     end
   end
 
@@ -330,7 +330,7 @@ class Setting < ActiveRecord::Base
     if @@setting
       @@setting.prep_suffix
     else
-      true
+      ""
     end
   end
 
