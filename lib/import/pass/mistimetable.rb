@@ -23,6 +23,7 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
               :day_name,
               :period_time,
               :staff_id,
+              :set_code,
               :lesson_id,
               :room_id
 
