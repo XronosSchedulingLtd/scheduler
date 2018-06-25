@@ -13,9 +13,14 @@ class WeekIdentifier
   def initialize(start_on = Date.today, end_on = Setting.current_era.ends_on)
     event_category = Eventcategory.cached_category("Week letter")
     @dates = Hash.new(" ")
+    #
+    #  Beware of the need to specify an *exclusive* end date to
+    #  the "until" scope.  What we have is an exclusive date, so add
+    #  1 to it.
+    #
     event_category.events.
                    beginning(start_on).
-                   until(end_on).each do |event|
+                   until(end_on + 1.day).each do |event|
       start_date = event.starts_at.to_date
       end_date   = event.ends_at.midnight? ?
                    event.ends_at.to_date - 1.day :
