@@ -1,3 +1,43 @@
+v1.3.1  2018-06-25
+
+* Enhance import of cover from Pass
+
+  The cover records in the accessible Pass database tables are a little
+  curious.  Even Pass itself fails to print an accurate report from
+  them.  Improve the smarts in Scheduler's importer to try to make
+  more sense of them.
+
+* Fix to error in handling end date of repeating events.
+
+  If a repeating event was entered with the last occurrence set to be
+  on a term-time Monday, and if the repetition period was also set to
+  end on that Monday, then the last instance of the event got missed
+  out.  This was an error in the code for identifying week letters over
+  a period of weeks.
+
+  The WeekIdentifier class was fetching all the week letter events
+  from the database, but forgetting that the end date needs to be
+  specified as an *exclusive* date.  The week letter event for the
+  week in which that final Monday fell thus got missed out, and the
+  WeekIdentifer object later erroneously reported that the Monday
+  in question was in a holiday week (no week letter), resulting
+  in the missing instance of the event.
+
+* Improve display of tutor groups.
+
+  With the advent of release v1.3.0, schools can choose what name
+  to refer to tutor groups as - the default of "tutor group", or "form
+  group", or "form", or whatever they want.  Internally they're still
+  known as tutor groups, but the school's choice of name is used
+  when displaying to users.  More code has been amended to take
+  account of this choice.
+
+  Similarly, in some schools tutor groups are associated with houses
+  and in some they're not.  This too is now a system setting, and
+  when set to "not", the code won't try to display house information
+  for tutor groups.
+
+
 v1.3.0  2018-06-17
 
 * Add support for importing timetable, staff and pupils from WCBS Pass.
