@@ -536,7 +536,7 @@ ActiveRecord::Schema.define(version: 20180717154324) do
     t.boolean  "tutorgroups_by_house",                           default: true
     t.string   "tutorgroups_name",                 limit: 255,   default: "Tutor group"
     t.string   "tutor_name",                       limit: 255,   default: "Tutor"
-    t.string   "prep_suffix",                      limit: 255,   default: " (P)"
+    t.string   "prep_suffix",                      limit: 255,   default: "(P)"
     t.integer  "prep_property_element_id",         limit: 4
     t.boolean  "ordinalize_years",                               default: true
   end
