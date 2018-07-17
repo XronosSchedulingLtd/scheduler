@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180702100000) do
+ActiveRecord::Schema.define(version: 20180717154324) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -339,11 +339,9 @@ ActiveRecord::Schema.define(version: 20180702100000) do
     t.integer  "element_id", limit: 4, null: false
     t.date     "starts_on",            null: false
     t.date     "ends_on"
-    t.date     "as_at"
     t.boolean  "inverse",              null: false
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "role_id",    limit: 4
   end
 
   add_index "memberships", ["element_id"], name: "index_memberships_on_element_id", using: :btree
