@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180606090615) do
+ActiveRecord::Schema.define(version: 20180702100000) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -34,8 +34,6 @@ ActiveRecord::Schema.define(version: 20180606090615) do
     t.boolean  "names_event",                     default: false
     t.integer  "source_id",           limit: 4
     t.boolean  "tentative",                       default: false
-    t.boolean  "was_rejected",                    default: false
-    t.boolean  "was_constraining",                default: false
     t.string   "reason",              limit: 255, default: ""
     t.integer  "by_whom_id",          limit: 4
     t.integer  "proto_commitment_id", limit: 4
@@ -52,7 +50,6 @@ ActiveRecord::Schema.define(version: 20180606090615) do
   add_index "commitments", ["request_id"], name: "index_commitments_on_request_id", using: :btree
   add_index "commitments", ["status"], name: "index_commitments_on_status", using: :btree
   add_index "commitments", ["tentative"], name: "index_commitments_on_tentative", using: :btree
-  add_index "commitments", ["was_constraining"], name: "index_commitments_on_was_constraining", using: :btree
 
   create_table "concerns", force: :cascade do |t|
     t.integer  "user_id",          limit: 4
@@ -541,7 +538,7 @@ ActiveRecord::Schema.define(version: 20180606090615) do
     t.boolean  "tutorgroups_by_house",                           default: true
     t.string   "tutorgroups_name",                 limit: 255,   default: "Tutor group"
     t.string   "tutor_name",                       limit: 255,   default: "Tutor"
-    t.string   "prep_suffix",                      limit: 255,   default: "(P)"
+    t.string   "prep_suffix",                      limit: 255,   default: " (P)"
     t.integer  "prep_property_element_id",         limit: 4
     t.boolean  "ordinalize_years",                               default: true
   end
@@ -627,7 +624,6 @@ ActiveRecord::Schema.define(version: 20180606090615) do
     t.text     "form_data",    limit: 65535
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "was_complete",               default: false
     t.integer  "status",       limit: 4,     default: 0
   end
 

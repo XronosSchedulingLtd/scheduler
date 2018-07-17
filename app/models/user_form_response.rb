@@ -109,22 +109,7 @@ class UserFormResponse < ActiveRecord::Base
     self[:status] = UserFormResponse.statuses[new_status]
   end
 
-  #
-  #  A couple of maintenance methods to populate the new status field.
-  #
-  def populate_status
-    if self.was_complete?
-      self.status = :complete
-    else
-      self.status = :empty
-    end
-    self.save!
-  end
-
   def self.populate_statuses
-    self.find_each do |ufr|
-      ufr.populate_status
-    end
-    nil
+    raise "Last version containing working UserFormResponse::populate_statuses is 1.3.1"
   end
 end
