@@ -313,6 +313,16 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= f.label :max_quick_buttons, class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.number_field :max_quick_buttons %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       <%=
         f.label :prep_property_element_name,
                 "Prep property",

@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -340,6 +340,19 @@ class Setting < ActiveRecord::Base
       @@setting.prep_property_element
     else
       true
+    end
+  end
+
+  def self.max_quick_buttons
+    @@setting ||= Setting.first
+    if @@setting
+      if @@setting.max_quick_buttons < 0
+        0
+      else
+        @@setting.max_quick_buttons
+      end
+    else
+      0
     end
   end
 
