@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -741,9 +741,7 @@ class Group < ActiveRecord::Base
       included_by_group =
         group_includes.collect {|membership|
           (exclude_groups ? [] : [membership.element.entity]) +
-          membership.element.entity.members(membership.as_at ?
-                                            membership.as_at :
-                                            given_date,
+          membership.element.entity.members(given_date,
                                             true,
                                             exclude_groups,
                                             seen)
@@ -751,9 +749,7 @@ class Group < ActiveRecord::Base
       excluded_by_group =
         group_excludes.collect {|membership|
           (exclude_groups ? [] : [membership.element.entity]) +
-          membership.element.entity.members(membership.as_at ?
-                                            membership.as_at :
-                                            given_date,
+          membership.element.entity.members(given_date,
                                             true,
                                             exclude_groups,
                                             seen)
@@ -870,10 +866,7 @@ class Group < ActiveRecord::Base
           if membership.element.entity.class == Group && recurse
             #  Note that we call members here, and not outcasts.
             [membership.element.entity] +
-            membership.element.entity.members(
-              membership.as_at ?
-              membership.as_at :
-              given_date)
+            membership.element.entity.members(given_date)
           else
             membership.element.entity
           end
@@ -889,7 +882,7 @@ class Group < ActiveRecord::Base
   #  by way of this group being a member or sub-member of them.
   #
   #  Take into account group validity dates, membership validity dates,
-  #  exclusions and as_at dates.
+  #  and exclusions.
   #
   #  Note that this group has to check itself to ensure the indicated element
   #  is actually a member, and should include itself in the list of groups

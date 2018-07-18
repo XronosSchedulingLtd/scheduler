@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -652,7 +652,6 @@ class Membership < ActiveRecord::Base
 
   belongs_to :group
   belongs_to :element
-  belongs_to :role              # Optional
 
   validates :group,     :presence => true
   validates :element,   :presence => true
@@ -681,9 +680,6 @@ class Membership < ActiveRecord::Base
     (self.ends_on == nil || self.ends_on >= date)
   end
 
-  def self.is_member?(group, element, role = nil, on = nil)
-  end
-
   # Provides the name of our group, if any.
   def group_name
     group ? group.name : ""
@@ -694,19 +690,11 @@ class Membership < ActiveRecord::Base
     element ? element.name : ""
   end
 
-  # Provides the name of our role, if any.
-  def role_name
-    role ? role.name : ""
-  end
-
   #  Dummy methods
   def group_name=(newname)
   end
 
   def element_name=(newname)
-  end
-
-  def role_name=(newname)
   end
 
   #

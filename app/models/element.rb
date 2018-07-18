@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -215,6 +215,10 @@ class Element < ActiveRecord::Base
       #  might be a bit inefficient.  I'm hoping to do it as we reverse
       #  down the recursion tree.
       #
+      # ==================================================================
+      #  Old redundant comment - the as_at field no longer exists
+      # ==================================================================
+      #
       #  When working our way up the tree we have to include *all*
       #  memberships, regardless of apparently active date because there
       #  might be an as_at date in one of the membership records which
@@ -234,12 +238,13 @@ class Element < ActiveRecord::Base
       #  because without an inclusion of some sort the exclusion is irrelevant,
       #  then look at both on the way back down.
       #
-      #  ******* N.B. *******
+      # ==================================================================
+      #  End of old redundant comment
+      # ==================================================================
       #
-      #  Above comment kept for historical documentation reasons.  "as_at"
-      #  seems to be on its way out - it's never been used - and we do now
-      #  filter to just the active memberships.  It produces a significant
-      #  speed improvement.
+      #  It turned out to be much faster without allowing for the
+      #  as_at field, and I never devised a way of allowing the user
+      #  to give this field a value.  It is now gone.
       #
       self.memberships.
            inclusions.
