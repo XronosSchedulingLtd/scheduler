@@ -1,0 +1,22 @@
+//
+//  This file allows the appearance of quick buttons in the event
+//  editing screen to be tweaked.  Each button has the class
+//  'quick-add-button' and then one of 'qb-staff', 'qb-pupil', 'qb-location',
+//  'qb-property', 'qb-service', 'qb-subject' or 'qb-group'
+//
+//  The following sample would cause quick-add buttons which refer to
+//  locations to be pink, bordered with red, and to turn red when
+//  hovered over.
+//
+//
+// .quick-add-button {
+//   &.qb-location {
+//     border: red;
+//     background-color: pink;
+//     &:hover {
+//       background-color: red;
+//     }
+//   }
+// }
+//
+

@@ -28,6 +28,18 @@ class PreRequisite < ActiveRecord::Base
     element ? element.name : ""
   end
 
+  #
+  #  Provide a css class to suit the entity type, or an empty string
+  #  if we can't.
+  #
+  def entity_type_class
+    if self.element
+      " qb-#{self.element.entity_type.downcase}"
+    else
+      ""
+    end
+  end
+
   def element_name=(name)
     #
     #  Do nothing.
