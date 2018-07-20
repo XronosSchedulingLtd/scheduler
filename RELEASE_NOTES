@@ -1,3 +1,71 @@
+v1.3.2  2018-07-20
+
+This release comes to you from the depths of rural France!
+
+* Dispose of old flags in Commitment record.
+
+  The state of commitments was originally controlled by a collection of
+  flags.  These were replaced some time ago by a single status field, but
+  the old flags still existed for conversion purposes.  They have now
+  been deleted.
+
+  The corresponding conversion methods have been replaced with stubs
+  which will raise an exception if invoked, pointing the user back to
+  the necessary software version for conversion.
+
+* Remove redundant fields in Membership record.
+
+  Two fields existed in the membership record - as_at and role_id.
+  Neither has ever been used, although they did have intended purposes
+  originally.  They have now been removed.
+
+* Enhance PreRequisite processing.
+
+  Pre-requisite records were originally added to allow a configurable
+  set of resources to be listed on the event creation screen.  Users
+  could tick the ones which they wanted, and then those resources would
+  be auto-added as soon as the event was created.
+
+  They were subsequently used to provide Quick Buttons on the event
+  editing screen - a dynamic set of buttons which allow certain resources
+  to be added with a single click.  The set of buttons changed so that
+  once a resource was attached to an event, the corresponding button
+  would no longer appear.
+
+  This release adds additional flexibility.
+
+  * Each PreRequisite record now has two extra flags - pre_create and
+    quick_button.  These control whether that record is used for each
+    of the two purposes.  Each record can be used for one or the other,
+    or for both.  (In theory you can create such a record which has
+    neither flag set - it would do nothing.)
+
+  * A system setting has been added in the main settings dialogue -
+    max_quick_buttons.  This takes a numeric value.  If it is set
+    to a value greater than 0 then it limits how many quick buttons
+    will be displayed at once.  As buttons are used, more, lower
+    priority buttons slide in to take their place.
+
+    It is thus possible to define more buttons than would comfortably
+    fit on the screen, and have just the highest priority ones
+    appear to begin with.
+
+  * It is also possible to change the colour of quick buttons according
+    to the type of resource.  By default they are all a sort of
+    pale blue, but by editing the file:
+
+    $SCHEDULER_DIR/app/assets/stylesheets/tweakqb.css.scss
+
+    it is possible to set different colours for each type of resource.
+    Guidance on how to do this is provided in that file.
+
+    After editing the file, it is necessary to compile it, with:
+
+    $ cd $SCHEDULER_DIR
+    $ export RAILS_ENV=production
+    $ rake assets:precompile
+
+
 v1.3.1  2018-06-25
 
 * Enhance import of cover from Pass
