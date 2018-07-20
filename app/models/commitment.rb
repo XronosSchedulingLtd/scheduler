@@ -796,51 +796,8 @@ class Commitment < ActiveRecord::Base
     end
   end
 
-  #
-  #  A couple of maintenance methods to populate the new status
-  #  fields.
-  #
-  def populate_status
-    #
-    #  The default value for the new status field is 0, which corresponds
-    #  to "uncontrolled".  For those cases (the vast majority) no action
-    #  is required.
-    #
-    #  Note that the rejected and constraining fields have already
-    #  been renamed as "was_rejected" and "was_constraining" in preparation
-    #  for them being retired.  This is the only method which should
-    #  ever reference them.
-    #
-    #  No legacy commitments get the status of :noted - that's a new one.
-    #
-    if (self.tentative || self.was_rejected || self.was_constraining) &&
-       self.uncontrolled?
-      if self.was_constraining
-        self.status = :confirmed
-      elsif self.was_rejected
-        self.status = :rejected
-      else
-        #
-        #  That leaves just tentative.
-        #
-        self.status = :requested
-      end
-      self.save!
-      true
-    else
-      false
-    end
-  end
-
   def self.populate_statuses
-    count = 0
-    Commitment.find_each do |c|
-      if c.populate_status
-        count += 1
-      end
-    end
-    puts "#{count} commitments updated."
-    nil
+    raise "Last version containing working Commitment::populate_statuses is 1.3.1"
   end
 
   protected

@@ -1,3 +1,8 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2018 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+
 class SettingsController < ApplicationController
   before_action :set_setting, only: [:show, :edit, :update]
 
@@ -75,6 +80,7 @@ class SettingsController < ApplicationController
                     :prep_suffix,
                     :ordinalize_years,
                     :prep_property_element_name,
-                    :prep_property_element_id)
+                    :prep_property_element_id,
+                    :max_quick_buttons)
     end
 end

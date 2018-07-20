@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180606090615) do
+ActiveRecord::Schema.define(version: 20180718123053) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -34,8 +34,6 @@ ActiveRecord::Schema.define(version: 20180606090615) do
     t.boolean  "names_event",                     default: false
     t.integer  "source_id",           limit: 4
     t.boolean  "tentative",                       default: false
-    t.boolean  "was_rejected",                    default: false
-    t.boolean  "was_constraining",                default: false
     t.string   "reason",              limit: 255, default: ""
     t.integer  "by_whom_id",          limit: 4
     t.integer  "proto_commitment_id", limit: 4
@@ -52,7 +50,6 @@ ActiveRecord::Schema.define(version: 20180606090615) do
   add_index "commitments", ["request_id"], name: "index_commitments_on_request_id", using: :btree
   add_index "commitments", ["status"], name: "index_commitments_on_status", using: :btree
   add_index "commitments", ["tentative"], name: "index_commitments_on_tentative", using: :btree
-  add_index "commitments", ["was_constraining"], name: "index_commitments_on_was_constraining", using: :btree
 
   create_table "concerns", force: :cascade do |t|
     t.integer  "user_id",          limit: 4
@@ -342,11 +339,9 @@ ActiveRecord::Schema.define(version: 20180606090615) do
     t.integer  "element_id", limit: 4, null: false
     t.date     "starts_on",            null: false
     t.date     "ends_on"
-    t.date     "as_at"
     t.boolean  "inverse",              null: false
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "role_id",    limit: 4
   end
 
   add_index "memberships", ["element_id"], name: "index_memberships_on_element_id", using: :btree
@@ -379,12 +374,14 @@ ActiveRecord::Schema.define(version: 20180606090615) do
   add_index "otherhalfgrouppersonae", ["source_id"], name: "index_otherhalfgrouppersonae_on_source_id", using: :btree
 
   create_table "pre_requisites", force: :cascade do |t|
-    t.string   "label",       limit: 255
-    t.text     "description", limit: 65535
-    t.integer  "element_id",  limit: 4
-    t.integer  "priority",    limit: 4
+    t.string   "label",        limit: 255
+    t.text     "description",  limit: 65535
+    t.integer  "element_id",   limit: 4
+    t.integer  "priority",     limit: 4
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "pre_creation",               default: true
+    t.boolean  "quick_button",               default: true
   end
 
   create_table "promptnotes", force: :cascade do |t|
@@ -544,6 +541,7 @@ ActiveRecord::Schema.define(version: 20180606090615) do
     t.string   "prep_suffix",                      limit: 255,   default: "(P)"
     t.integer  "prep_property_element_id",         limit: 4
     t.boolean  "ordinalize_years",                               default: true
+    t.integer  "max_quick_buttons",                limit: 4,     default: 0
   end
 
   create_table "staffs", force: :cascade do |t|
@@ -627,7 +625,6 @@ ActiveRecord::Schema.define(version: 20180606090615) do
     t.text     "form_data",    limit: 65535
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "was_complete",               default: false
     t.integer  "status",       limit: 4,     default: 0
   end
 

@@ -162,10 +162,11 @@ ul.wrapping-resource-list {
   font-family: "Helvetica Neue", Helvetica;
   font-size: 12px;
   transition: background-color 300ms ease-out;
+  &:hover {
+    background-color: #007095;
+  }
 }
-.quick-add-button:hover {
-  background-color: #007095;
-}
+
 .quick-buttons {
   margin-bottom: 12px;
 }

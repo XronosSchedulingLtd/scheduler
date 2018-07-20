@@ -285,7 +285,7 @@ class EventsController < ApplicationController
         end
       end
     end
-    @pre_requisites = PreRequisite.order(:priority).to_a
+    @pre_requisites = PreRequisite.pre_creation.order(:priority).to_a
     #
     #  Split into two columns.
     #
