@@ -21,9 +21,13 @@ class QuickButtons < Array
     #  the corresponding button.
     #
     existing_element_ids = event.commitments.collect {|c| c.element_id}
-    PreRequisite.order(:priority).each do |pr|
+    PreRequisite.includes(:element).quick_button.order(:priority).each do |pr|
       unless existing_element_ids.include?(pr.element_id)
         self << pr
+      end
+      if Setting.max_quick_buttons > 0 &&
+        self.size >= Setting.max_quick_buttons
+        break
       end
     end
   end

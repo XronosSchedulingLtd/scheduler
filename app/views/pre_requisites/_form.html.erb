@@ -37,7 +37,7 @@
       <%= f.autocomplete_field :element_name,
                                autocomplete_element_name_elements_path,
                                :id_element => '#pre_requisite_element_id',
-                               :placeholder => "Name of service",
+                               :placeholder => "Name of service (or any element)",
                                "data-auto-focus" => true %>
         <%= f.text_field :element_id, :type => :hidden %>
     </div>
@@ -53,11 +53,26 @@
   </div>
 
   <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :pre_creation, class: "right inline" %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :pre_creation %>
+    </div>
+    <div class="small-2 columns">
+      <%= f.label :quick_button, class: "right inline" %>
+    </div>
+    <div class="small-7 columns">
+      <%= f.check_box :quick_button %>
+    </div>
+  </div>
+
+  <div class="row collapse">
     <div class="small-2 columns">&nbsp;</div>
     <div class="small-3 columns">
       <div class="actions">
         <%= f.submit @pre_requisite.id ? "Update" : "Create", :class => "zfbutton tiny radius"  %>
-        <%= link_to "Cancel", pre_requisites_url, :class => "zfbutton tiny radius" %>
+        <%= link_to "Cancel", pre_requisites_url, :class => "zfbutton tiny radius button-link" %>
       </div>
     </div>
     <div class="small-7 columns">

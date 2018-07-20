@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180717154324) do
+ActiveRecord::Schema.define(version: 20180718123053) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -374,12 +374,14 @@ ActiveRecord::Schema.define(version: 20180717154324) do
   add_index "otherhalfgrouppersonae", ["source_id"], name: "index_otherhalfgrouppersonae_on_source_id", using: :btree
 
   create_table "pre_requisites", force: :cascade do |t|
-    t.string   "label",       limit: 255
-    t.text     "description", limit: 65535
-    t.integer  "element_id",  limit: 4
-    t.integer  "priority",    limit: 4
+    t.string   "label",        limit: 255
+    t.text     "description",  limit: 65535
+    t.integer  "element_id",   limit: 4
+    t.integer  "priority",     limit: 4
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "pre_creation",               default: true
+    t.boolean  "quick_button",               default: true
   end
 
   create_table "promptnotes", force: :cascade do |t|
@@ -539,6 +541,7 @@ ActiveRecord::Schema.define(version: 20180717154324) do
     t.string   "prep_suffix",                      limit: 255,   default: "(P)"
     t.integer  "prep_property_element_id",         limit: 4
     t.boolean  "ordinalize_years",                               default: true
+    t.integer  "max_quick_buttons",                limit: 4,     default: 0
   end
 
   create_table "staffs", force: :cascade do |t|

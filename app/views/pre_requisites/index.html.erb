@@ -1,7 +1,17 @@
 <h1>Listing event pre-requisites</h1>
 
-<p>When a user creates a new event, these will be listed as services
-which the user might want to consider adding to the event.  The
+<p>These items are used potentially in two places:</p>
+
+<ul>
+<li>Before the user creates an event, they can be listed as services
+which the user might want to consider adding to the event.</li>
+
+<li>After creation, when the user is editing an event they can be
+  shown as quick buttons for adding services.</li>
+</ul>
+
+<p>Flags are available on each record to control whether or not it
+should be used in each case.  The
 "priority" value controls the order in which they will be shown -
 lowest value first.</p>
 
@@ -16,6 +26,8 @@ lowest value first.</p>
       <th>Descriptive text</th>
       <th>Element</th>
       <th>Priority</th>
+      <th title="Show on event creation screen">Pre</th>
+      <th title="Show as a quick button">QB</th>
       <th colspan="2"></th>
     </tr>
   </thead>
@@ -27,6 +39,8 @@ lowest value first.</p>
         <td><%= pre_requisite.description %></td>
         <td><%= pre_requisite.element ? pre_requisite.element.name : "None!" %></td>
         <td><%= pre_requisite.priority %></td>
+        <td><%= pre_requisite.pre_creation? %></td>
+        <td><%= pre_requisite.quick_button? %></td>
         <td><%= link_to 'Edit', edit_pre_requisite_path(pre_requisite) %></td>
         <td><%= link_to 'Destroy', pre_requisite, method: :delete, data: { confirm: "Are you sure you want to completely delete the pre-requisite \"#{pre_requisite.label}\"?" } %></td>
       </tr>
