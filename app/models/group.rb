@@ -876,66 +876,6 @@ class Group < ActiveRecord::Base
     end
   end
 
-  #
-  #  Start with this group and compile a list of all parent groups which
-  #  would claim membership of the indicated element on the indicated date,
-  #  by way of this group being a member or sub-member of them.
-  #
-  #  Take into account group validity dates, membership validity dates,
-  #  and exclusions.
-  #
-  #  Note that this group has to check itself to ensure the indicated element
-  #  is actually a member, and should include itself in the list of groups
-  #  returned if it is.  It is also possible that the indicated element
-  #  is not a member of this group on the indicated date, but is a member
-  #  of some of its parent groups, by dint of having once been a member
-  #  of this group.
-  #
-  #  Note that this method is intended for internal use by the group
-  #  processing code and so returns an array of "Group" objects, and not
-  #  the overlying visible groups.
-  #
-  #
-  #  Special processing is need to protect ourselves from someone having
-  #  set up a circular heirarchy.
-  #
-  def parents_for(element, given_date, seen = [])
-    puts "Entering parents_for at #{Time.now.strftime("%H:%M:%S.%3N")}."
-    result = self.element.memberships.inclusions.collect {|membership|
-      if seen.include?(membership.group_id)
-        []
-      else
-        seen << membership.group_id
-        membership.group.parents_for(element, given_date, seen)
-      end
-    }.flatten
-    puts "Calling self.member? at #{Time.now.strftime("%H:%M:%S.%3N")}."
-    if self.member?(element, given_date)
-      result = result + [self]
-    end
-    puts "Leaving parents_for at #{Time.now.strftime("%H:%M:%S.%3N")}."
-    result.uniq
-  end
-
-  # Decide whether the indicated entity is a member of the group.
-  def member?(item, given_date = nil, recurse = true)
-    if item.instance_of?(Element)
-      entity = item.entity
-    else
-      entity = item
-    end
-    self.members(given_date, recurse).include?(entity)
-  end
-
-  def outcast?(item, given_date = nil, recurse = true)
-    if item.instance_of?(Element)
-      entity = item.entity
-    else
-      entity = item
-    end
-    self.outcasts(given_date, recurse).include?(entity)
-  end
-
   def active_on(date)
     self.starts_on <= date &&
     (self.ends_on == nil || self.ends_on >= date)

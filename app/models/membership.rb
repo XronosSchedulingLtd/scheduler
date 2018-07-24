@@ -588,9 +588,35 @@ class Membership < ActiveRecord::Base
       }.join(" OR ")
     end
 
+    #
+    #  This is rather a specialized function.  It returns simply a list
+    #  of all the groups of which the element is a member anywhere in
+    #  the MWD_Set.  The duration information is lost.
+    #
+    #  It's only really useful if you have done the original query for
+    #  just one day (or at least, over an interval when you know there
+    #  will have been no set changes).
+    #
+    def group_list
+      @grouped_mwds.collect {
+        |batch| batch.collect {
+          |mwb| mwb.membership.group
+        }
+      }.flatten.uniq
+    end
+
     def empty?
       @grouped_mwds.size == 0
     end
+
+    def count
+      @mwds.count
+    end
+
+    def group_count
+      @grouped_mwds.count
+    end
+
 
     #
     #  End date is more significant.
