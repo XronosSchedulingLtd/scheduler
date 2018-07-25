@@ -220,6 +220,14 @@ class Element < ActiveRecord::Base
     end
   end
 
+  #
+  #  This method is intended merely for testing the above method.  It
+  #  is not an efficient way of testing membership.
+  #
+  def member_of?(group, date)
+    self.groups(date).include?(group)
+  end
+
   def events_on(start_date = nil,
                 end_date = nil,
                 eventcategory = nil,
