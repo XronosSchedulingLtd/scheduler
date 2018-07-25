@@ -621,6 +621,7 @@ class Group < ActiveRecord::Base
         membership.group = self
         membership.element = element
         membership.starts_on = as_of
+        membership.ends_on   = self.ends_on
         membership.inverse = true
         membership.save
       end
@@ -632,6 +633,7 @@ class Group < ActiveRecord::Base
       membership.group = self
       membership.element = element
       membership.starts_on = as_of
+      membership.ends_on   = self.ends_on
       membership.inverse = true
       membership.save
     end
