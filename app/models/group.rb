@@ -931,7 +931,19 @@ class Group < ActiveRecord::Base
           self.remove_member(member, date)
         end
         self.ends_on = date - 1.day
-        self.current = false
+        if self.ends_on < Date.today
+          #
+          #  By default, this method uses today as the date to end,
+          #  and sets the ends_on to 1 day less, and so we set current
+          #  to false.
+          #
+          #  However, it is possible to call this method with a date in
+          #  the future.  In that case, we don't want it to become
+          #  immediately "not current".  The overnight cron job will
+          #  do the necessary at the time.
+          #
+          self.current = false
+        end
         self.save!
       end
     else
