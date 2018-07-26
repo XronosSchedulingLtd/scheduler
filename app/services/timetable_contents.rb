@@ -14,11 +14,19 @@ class TimetableContents
       attr_reader :start_time_tod,
                   :end_time_tod,
                   :body_text,
-                  :prep_text
+                  :prep_text,
+                  :has_prep
 
       def initialize(item)
+        @has_prep = false
         if item.instance_of?(Event)
+          prep_suffix = Setting.prep_suffix
+          regex = / #{Regexp.escape(prep_suffix)}\z/
           @body_text = item.body
+          if @body_text =~ regex
+            @body_text = @body_text.sub(regex, '')
+            @has_prep = true
+          end
           @filled    = true
           @start_time_tod = Tod::TimeOfDay(item.starts_at)
           @end_time_tod   = Tod::TimeOfDay(item.ends_at)
@@ -71,6 +79,10 @@ class TimetableContents
 
       def end_time_class
         "endtime#{duration}"
+      end
+
+      def preptext_class
+        "preptext#{duration}"
       end
 
       def css_classes
@@ -146,6 +158,7 @@ class TimetableContents
     #
     @timings = Hash.new
     @durations = Hash.new
+    @preps = Hash.new
     14.times do
       @days << TimetableDay.new(self)
     end
@@ -210,6 +223,13 @@ class TimetableContents
   def note_period(period)
     @timings[period.timing_class] ||= Timing.new(period)
     @durations[period.duration] ||= true
+    if period.has_prep
+      @preps[period.duration] ||= true
+    end
+  end
+
+  def text_at_bottom(duration)
+    "#{((duration - 15) / 5) * 6}px;"
   end
 
   #
@@ -237,10 +257,18 @@ class TimetableContents
         if key <= 30
           contents << "  top: -2px;"
         else
-          contents << "  top: #{((key - 15) / 5) * 6}px;"
+          contents << "  top: #{text_at_bottom(key)}"
         end
         contents << "}"
       end
+    end
+    @preps.each do |key, flag|
+      contents << ".period .preptext#{key} {"
+      contents << "  position: absolute;"
+      contents << "  top: #{text_at_bottom(key)}"
+      contents << "  left: 2px;"
+      contents << "  font-weight: bold;"
+      contents << "}"
     end
     contents.join("\n")
   end

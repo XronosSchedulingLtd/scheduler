@@ -6,4 +6,7 @@
 <% if period.body_text %>
   <div class='periodtext'><%= period.body_text %></div>
 <% end %>
+<% if period.has_prep %>
+  <div class='<%= period.preptext_class %>'>P</div>
+<% end %>
 </div>
