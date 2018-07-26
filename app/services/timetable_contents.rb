@@ -22,6 +22,13 @@ class TimetableContents
           @filled    = true
           @start_time_tod = Tod::TimeOfDay(item.starts_at)
           @end_time_tod   = Tod::TimeOfDay(item.ends_at)
+          if duration > 35
+            @body_text += "<br/>JHW"
+            if duration > 45
+              @body_text += "<br/>M116"
+            end
+          end
+          @body_text = body_text.html_safe
         elsif item.instance_of?(RotaSlot)
           @body_text = nil
           @filled    = false
@@ -44,7 +51,7 @@ class TimetableContents
       end
 
       def show_times?
-        @filled
+        @filled && duration >= 25
       end
 
       #
@@ -60,6 +67,10 @@ class TimetableContents
 
       def timing_class
         "h#{start_time.tr(':', '')}d#{duration}"
+      end
+
+      def end_time_class
+        "endtime#{duration}"
       end
 
       def css_classes
@@ -134,6 +145,7 @@ class TimetableContents
     #  Need some way of specifying the length of a timetable cycle.
     #
     @timings = Hash.new
+    @durations = Hash.new
     14.times do
       @days << TimetableDay.new(self)
     end
@@ -170,8 +182,8 @@ class TimetableContents
     #
     #  Dates hard coded for now.
     #
-    startdate = Date.parse("2017-09-17")
-    enddate =   Date.parse("2017-09-30")
+    startdate = Date.parse("2018-04-22")
+    enddate =   Date.parse("2018-05-05")
 
     @commitments =
       Commitment.commitments_on(
@@ -197,6 +209,7 @@ class TimetableContents
 
   def note_period(period)
     @timings[period.timing_class] ||= Timing.new(period)
+    @durations[period.duration] ||= true
   end
 
   #
@@ -211,6 +224,23 @@ class TimetableContents
       contents << "  top: #{timing.top};"
       contents << "  height: #{timing.height};"
       contents << "}"
+    end
+    @durations.each do |key, flag|
+      #
+      #  Periods shorter than 25 minutes don't have room for timings.
+      #
+      if key >= 25
+        contents << ".period .endtime#{key} {"
+        contents << "  position: absolute;"
+        contents << "  font-size: 0.8em;"
+        contents << "  left: 55px;"
+        if key <= 30
+          contents << "  top: -2px;"
+        else
+          contents << "  top: #{((key - 15) / 5) * 6}px;"
+        end
+        contents << "}"
+      end
     end
     contents.join("\n")
   end
