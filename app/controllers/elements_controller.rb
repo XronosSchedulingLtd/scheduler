@@ -692,6 +692,21 @@ class ElementsController < ApplicationController
     end
   end
 
+  # GET /elements/:id/timetable
+  def timetable
+    @element = Element.find(params[:id])
+    #
+    #  May allow other dates to be specified in the future.
+    #  Note that this date merely specifies the day on which
+    #  to evaluate group membership.  The dates which we use
+    #  for storage of the timetable are a system configuration
+    #  item.
+    #
+    date = Date.parse("2017-09-17")
+    @timetable = TimetableContents.new(@element, date, current_user.day_shape)
+    @embed_css = @timetable.periods_css
+  end
+
   def authorized?(action = action_name, resource = nil)
     (logged_in? && current_user.known?) ||
     action == 'ical'

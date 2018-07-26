@@ -1,0 +1,8 @@
+<div class='<%= period.css_classes %>'>
+<% if period.show_times? %>
+  <div class='starttime'><%= period.start_time %></div>
+<% end %>
+<% if period.body_text %>
+  <div class='periodtext'><%= period.body_text %></div>
+<% end %>
+</div>

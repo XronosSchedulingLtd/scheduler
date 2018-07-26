@@ -1,0 +1,36 @@
+.timetable {
+  width: 1000px;
+  .timetable-day {
+    font-size: 12px;
+    width: 90px;
+    float: left;
+    margin-right: 10px;
+    .timetable-day-periods {
+      position: relative;
+      width: 98%;
+      height: 612px;
+      .period {
+        border: thin solid black;
+        width: 100%;
+        &.filled {
+          background-color: #cceeff;
+        }
+        &.empty {
+          background-color: #ffffff;
+        }
+        .periodtext {
+          position: relative;
+          top: 14px;
+          text-align: center;
+          line-height: 95%;
+        }
+        .starttime {
+          position: absolute;
+          top: -2px;
+          left: 1px;
+          font-size: 0.8em;
+        }
+      }
+    }
+  }
+}
