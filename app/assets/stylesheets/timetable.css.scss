@@ -24,9 +24,15 @@
           text-align: center;
           line-height: 95%;
         }
+        .periodtextsmall {
+          position: relative;
+          top: 10px;
+          text-align: center;
+          line-height: 95%;
+        }
         .starttime {
           position: absolute;
-          top: -2px;
+          top: -4px;
           left: 1px;
           font-size: 0.8em;
         }

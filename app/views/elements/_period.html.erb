@@ -4,7 +4,7 @@
   <div class='<%= period.end_time_class %>'><%= period.end_time %></div>
 <% end %>
 <% if period.body_text %>
-  <div class='periodtext'><%= period.body_text %></div>
+  <div class='<%= period.periodtext_class %>'><%= period.body_text %></div>
 <% end %>
 <% if period.has_prep %>
   <div class='<%= period.preptext_class %>'>P</div>

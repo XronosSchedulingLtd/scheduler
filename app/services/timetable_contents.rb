@@ -59,7 +59,7 @@ class TimetableContents
       end
 
       def show_times?
-        @filled && duration >= 25
+        @filled && duration >= 20
       end
 
       #
@@ -75,6 +75,14 @@ class TimetableContents
 
       def timing_class
         "h#{start_time.tr(':', '')}d#{duration}"
+      end
+
+      def periodtext_class
+        if duration >= 25
+          "periodtext"
+        else
+          "periodtextsmall"
+        end
       end
 
       def end_time_class
@@ -245,27 +253,27 @@ class TimetableContents
       contents << "  height: #{timing.height};"
       contents << "}"
     end
-    @durations.each do |key, flag|
+    @durations.each do |duration, flag|
       #
-      #  Periods shorter than 25 minutes don't have room for timings.
+      #  Periods shorter than 20 minutes don't have room for timings.
       #
-      if key >= 25
-        contents << ".period .endtime#{key} {"
+      if key >= 20
+        contents << ".period .endtime#{duration} {"
         contents << "  position: absolute;"
         contents << "  font-size: 0.8em;"
         contents << "  left: 55px;"
         if key <= 30
-          contents << "  top: -2px;"
+          contents << "  top: -4px;"
         else
-          contents << "  top: #{text_at_bottom(key)}"
+          contents << "  top: #{text_at_bottom(duration)}"
         end
         contents << "}"
       end
     end
-    @preps.each do |key, flag|
-      contents << ".period .preptext#{key} {"
+    @preps.each do |duration, flag|
+      contents << ".period .preptext#{duration} {"
       contents << "  position: absolute;"
-      contents << "  top: #{text_at_bottom(key)}"
+      contents << "  top: #{text_at_bottom(duration)}"
       contents << "  left: 2px;"
       contents << "  font-weight: bold;"
       contents << "}"
