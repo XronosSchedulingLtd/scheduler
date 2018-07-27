@@ -356,6 +356,42 @@ class Setting < ActiveRecord::Base
     end
   end
 
+  def self.first_tt_day
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.first_tt_day
+    else
+      1         # Monday
+    end
+  end
+
+  def self.last_tt_day
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.last_tt_day
+    else
+      5         # Friday
+    end
+  end
+
+  def self.tt_cycle_weeks
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.tt_cycle_weeks
+    else
+      2
+    end
+  end
+
+  def self.tt_prep_letter
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.tt_prep_letter
+    else
+      "P"
+    end
+  end
+
   #
   #  End-of-year processing.  Move us on into the next era.
   #

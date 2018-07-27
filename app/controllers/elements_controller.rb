@@ -703,7 +703,7 @@ class ElementsController < ApplicationController
     #  item.
     #
     date = Date.parse("2018-04-22")
-    @timetable = TimetableContents.new(@element, date, current_user.day_shape)
+    @timetable = Timetable::Contents.new(@element, date, current_user.day_shape)
     @embed_css = @timetable.periods_css
   end
 

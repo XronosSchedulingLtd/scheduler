@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180718123053) do
+ActiveRecord::Schema.define(version: 20180727090430) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -155,6 +155,7 @@ ActiveRecord::Schema.define(version: 20180718123053) do
     t.boolean  "visible",                   default: true
     t.boolean  "clashcheck",                default: false
     t.boolean  "busy",                      default: true
+    t.boolean  "timetable",                 default: false
   end
 
   create_table "events", force: :cascade do |t|
@@ -542,6 +543,10 @@ ActiveRecord::Schema.define(version: 20180718123053) do
     t.integer  "prep_property_element_id",         limit: 4
     t.boolean  "ordinalize_years",                               default: true
     t.integer  "max_quick_buttons",                limit: 4,     default: 0
+    t.integer  "first_tt_day",                     limit: 4,     default: 1
+    t.integer  "last_tt_day",                      limit: 4,     default: 5
+    t.integer  "tt_cycle_weeks",                   limit: 4,     default: 2
+    t.string   "tt_prep_letter",                   limit: 2,     default: "P"
   end
 
   create_table "staffs", force: :cascade do |t|
