@@ -547,6 +547,7 @@ ActiveRecord::Schema.define(version: 20180727090430) do
     t.integer  "last_tt_day",                      limit: 4,     default: 5
     t.integer  "tt_cycle_weeks",                   limit: 4,     default: 2
     t.string   "tt_prep_letter",                   limit: 2,     default: "P"
+    t.date     "tt_store_start",                                 default: '2006-01-01'
   end
 
   create_table "staffs", force: :cascade do |t|

@@ -392,6 +392,15 @@ class Setting < ActiveRecord::Base
     end
   end
 
+  def self.tt_store_start
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.tt_store_start
+    else
+      Date.parse("2006-01-01")
+    end
+  end
+
   #
   #  End-of-year processing.  Move us on into the next era.
   #

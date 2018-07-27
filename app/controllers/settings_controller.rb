@@ -98,6 +98,7 @@ class SettingsController < ApplicationController
                     :first_tt_day,
                     :last_tt_day,
                     :tt_cycle_weeks,
-                    :tt_prep_letter)
+                    :tt_prep_letter,
+                    :tt_store_start)
     end
 end
