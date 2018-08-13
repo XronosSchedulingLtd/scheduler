@@ -4,7 +4,7 @@
     font-size: 12px;
     width: 90px;
     float: left;
-    margin-right: 10px;
+    margin-right: 5px;
     .timetable-day-periods {
       position: relative;
       width: 98%;
@@ -38,5 +38,9 @@
         }
       }
     }
+  }
+  .week-gap {
+    width: 20px;
+    float: left;
   }
 }

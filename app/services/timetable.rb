@@ -142,6 +142,14 @@ module Timetable
     end
   end
 
+  class WeekGap
+
+    def to_partial_path
+      "week_gap"
+    end
+
+  end
+
   #
   #  A class to store basic timing information and generate CSS classes
   #  to match.
@@ -246,6 +254,7 @@ module Timetable
           @days[offset] << commitment.event
         end
       end
+      @days.insert(7, WeekGap.new)
     end
 
     def to_partial_path
