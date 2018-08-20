@@ -18,11 +18,12 @@ class LocationaliasesControllerTest < ActionController::TestCase
   end
 
   test "should create locationalias" do
+    session[:new_locationalias_from] = locationaliases_path
     assert_difference('Locationalias.count') do
       post :create, locationalias: { location_id: @locationalias.location_id, name: @locationalias.name, source_id: @locationalias.source_id }
     end
 
-    assert_redirected_to locationalias_path(assigns(:locationalias))
+    assert_redirected_to locationaliases_path
   end
 
   test "should show locationalias" do
