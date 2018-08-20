@@ -9,3 +9,8 @@ roomtwo:
   name: "Room two"
   active: true
   current: true
+
+aliasedroom:
+  name: "Base name"
+  active: true
+  current: true

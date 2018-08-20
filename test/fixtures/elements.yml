@@ -62,3 +62,9 @@ roomtwoelement:
   entity: roomtwo (Location)
   uuid: "llll"
 
+aliasedroomelement:
+  name: "Base name"
+  entity: aliasedroom (Location)
+  uuid: "mmmm"
+
+
