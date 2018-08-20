@@ -20,7 +20,13 @@ class LocationaliasesController < ApplicationController
   # GET /locationaliases/new
   def new
     session[:new_locationalias_from] = request.env['HTTP_REFERER']
-    @locationalias = Locationalias.new
+    @cancel_to = request.env['HTTP_REFERER']
+    location_id = params[:location_id]
+    if location_id && location = Location.find_by(id: location_id)
+      @locationalias = location.locationaliases.new
+    else
+      @locationalias = Locationalias.new
+    end
   end
 
   # GET /locationaliases/1/edit
