@@ -13,6 +13,8 @@
       <th>Other aliases</th>
       <th>Current</th>
       <th></th>
+      <th></th>
+      <th></th>
     </tr>
   </thead>
 
@@ -27,4 +29,13 @@
 
 <br>
 
-<%= link_to 'New Location', new_location_path, :class => "zfbutton tiny radius" %>
+<%=
+  link_to('New Location',
+          new_location_path,
+          class: 'zfbutton tiny radius button-link')
+%>
+<%=
+  link_to('New Location Alias',
+          new_locationalias_path,
+          class: 'zfbutton tiny radius button-link')
+%>

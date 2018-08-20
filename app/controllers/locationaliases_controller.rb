@@ -19,6 +19,7 @@ class LocationaliasesController < ApplicationController
 
   # GET /locationaliases/new
   def new
+    session[:new_locationalias_from] = request.env['HTTP_REFERER']
     @locationalias = Locationalias.new
   end
 
@@ -34,7 +35,7 @@ class LocationaliasesController < ApplicationController
 
     respond_to do |format|
       if @locationalias.save
-        format.html { redirect_to @locationalias, notice: 'Locationalias was successfully created.' }
+        format.html { redirect_to session[:new_locationalias_from], notice: 'Locationalias was successfully created.' }
         format.json { render :show, status: :created, location: @locationalias }
       else
         format.html { render :new }

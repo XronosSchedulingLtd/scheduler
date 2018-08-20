@@ -75,6 +75,10 @@ class Location < ActiveRecord::Base
     self.name <=> other.name
   end
 
+  def can_destroy?
+    !self.active || (self.element.commitments.count == 0)
+  end
+
   #
   #  Locations are sometimes presented to users with a compound name.
   #  For instance, we have "GICT", which has an alias of "Greening

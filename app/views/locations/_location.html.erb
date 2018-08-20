@@ -4,4 +4,6 @@
   <td><%= location.other_alias_names.join("<br/>").html_safe %></td>
   <td><%= location.current ? "Yes" : "No" %></td>
   <td><%= location.element ? link_to('Details', location.element) : "" %></td>
+  <td><%= link_to('Edit', edit_location_path(location)) %></td>
+  <td><%= location.can_destroy? ? link_to('Delete', location, method: :delete, data: { confirm: "Are you sure you want to completely delete the location \"#{location.name}\"?" }) : "" %></td>
 </tr>
