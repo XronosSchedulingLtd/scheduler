@@ -1,7 +1,7 @@
 <tr>
   <td><%= location.name %></td>
-  <td><%= location.display_name %></td>
-  <td><%= location.other_alias_names.join("<br/>").html_safe %></td>
+  <td><%= display_name_with_edit_links(location) %></td>
+  <td><%= other_aliases_edit_links(location) %></td>
   <td><%= location.current ? "Yes" : "No" %></td>
   <td><%= location.element ? link_to('Details', location.element) : "" %></td>
   <td><%= link_to('Edit', edit_location_path(location)) %></td>

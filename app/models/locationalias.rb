@@ -13,6 +13,9 @@ class Locationalias < ActiveRecord::Base
   after_save :update_location
   after_destroy :update_location
 
+  scope :with_display, -> { where(display: true) }
+  scope :non_display, -> { where(display: false) }
+
   self.per_page = 15
 
   #
