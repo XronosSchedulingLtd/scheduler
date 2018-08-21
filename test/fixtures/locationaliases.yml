@@ -1,11 +1,16 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  name: MyString
+  name: "Location alias 1"
   source_id: 1
-  location_id: 1
+  location: roomone
 
 two:
-  name: MyString
+  name: "Location alias 2"
   source_id: 1
-  location_id: 1
+  location: roomtwo
+
+roomalias:
+  name: "Alias of room"
+  location: aliasedroom
+  display: true

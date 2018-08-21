@@ -1,3 +1,59 @@
+v1.3.3  2018-08-21
+
+* Fix issue with updates to location aliases
+
+  Location aliases can affect the element name of the locations to
+  which they are attached.  A couple of hooks were missing, so that
+  although creating a new location alias would cause the element name
+  to be updated automatically, amending or deleting an existing alias
+  would not.  A dummy save to the corresponding location was needed
+  to get the change to take effect.
+
+  This release fixes this problem and all amendments to location aliases
+  will have the required effects immediately.
+
+* Allow edit and deletion of locations
+
+  Oddly, there was no way within the GUI to edit or delete existing
+  location records.  You could create them, but then you were stuck
+  with them.
+
+  The underlying code and screens existed, but they were not linked
+  from anywhere.  Fixed.
+
+* Prevent existing location being set from active to inactive
+
+  Once a location (or indeed, any entity within the system) has been
+  set to active it acquires an element record and can be involved in
+  events and groups.
+
+  Subsequently changing it to inactive would delete the element record,
+  and as a consequence all the historic information about that item.
+  It is therefore not allowed through the GUI.
+
+  If a location no longer exists then its "current" flag should be set
+  to false.  This will prevent it appearing in future searches, but
+  will preserve historical information about it.
+
+  (The active flag exists to cope with gash data (e.g. non-existent
+   members of staff) being fed through from an MIS.)
+
+* Easier maintenance of location aliases
+
+  Each location can have zero or more location aliases.  Previously
+  location alias editing was done from an entirely different screen
+  from location listing.
+
+  With this release, you can do almost everything from the location
+  listing - amend existing aliases and add new ones.  From the location
+  listing, click on the name of any alias in order to amend it.
+
+  The effects of the amendments are shown immediately.  If a location
+  alias goes from having "display" set to false to having it set to true,
+  it will immediately move to a different column in the location listing,
+  and the location's element name will be updated.
+
+
 v1.3.2  2018-07-20
 
 This release comes to you from the depths of rural France!

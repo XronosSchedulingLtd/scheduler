@@ -7,8 +7,9 @@
 <table class="zftable">
   <thead>
     <tr>
-      <th>Alias</th>
       <th>Location name</th>
+      <th>Alias</th>
+      <th>Resulting display name</th>
       <th>Source id</th>
       <th colspan="3"></th>
     </tr>
@@ -17,11 +18,16 @@
   <tbody>
     <% @locationaliases.each do |locationalias| %>
       <tr>
-        <td><%= locationalias.name %></td>
         <% if locationalias.location %>
           <td><%= locationalias.location.name %></td>
         <% else %>
           <td>None</td>
+        <% end %>
+        <td><%= locationalias.name %></td>
+        <% if locationalias.location %>
+          <td><%= locationalias.location.display_name %></td>
+        <% else %>
+          <td></td>
         <% end %>
         <td><%= locationalias.source_id %></td>
         <td><%= link_to 'Show', locationalias %></td>
@@ -37,4 +43,8 @@
 
 <br>
 
-<%= link_to 'New Locationalias', new_locationalias_path, class: "zfbutton radius" %>
+<%=
+  link_to('New Location Alias',
+          new_locationalias_path,
+          class: 'zfbutton tiny radius button-link')
+%>

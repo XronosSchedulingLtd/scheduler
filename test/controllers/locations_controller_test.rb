@@ -18,11 +18,12 @@ class LocationsControllerTest < ActionController::TestCase
   end
 
   test "should create location" do
+    session[:new_location_from] = locations_path
     assert_difference('Location.count') do
       post :create, location: { active: @location.active, current: @location.current, name: @location.name }
     end
 
-    assert_redirected_to location_path(assigns(:location))
+    assert_redirected_to locations_path
   end
 
   test "should show location" do
