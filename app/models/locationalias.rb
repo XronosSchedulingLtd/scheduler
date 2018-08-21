@@ -10,6 +10,11 @@ class Locationalias < ActiveRecord::Base
   belongs_to :datasource
 
   after_create :create_corresponding_location
+  after_save :update_location
+  after_destroy :update_location
+
+  scope :with_display, -> { where(display: true) }
+  scope :non_display, -> { where(display: false) }
 
   self.per_page = 15
 
@@ -59,9 +64,7 @@ class Locationalias < ActiveRecord::Base
     #  a corresponding location.  We may have been linked to an existing
     #  location as part of the creation process.
     #
-    if self.location
-      self.location.update_element
-    else
+    unless self.location
       location = Location.new
       location.name       = self.name
       location.active     = true
@@ -83,6 +86,12 @@ class Locationalias < ActiveRecord::Base
         end
         raise $!
       end
+    end
+  end
+
+  def update_location
+    if self.location
+      self.location.update_element
     end
   end
 

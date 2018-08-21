@@ -11,19 +11,42 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :name %><br>
-    <%= f.text_field :name %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :name, class: 'right inline' %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :name %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :active %><br>
-    <%= f.check_box :active %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :active, class: 'right inline' %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.check_box :active, disabled: @location.active %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :current %><br>
-    <%= f.check_box :current %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :current, class: 'right inline' %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.check_box :current %>
+    </div>
+    <div class="small-3 columns">
+    </div>
   </div>
-  <div class="actions">
-    <%= f.submit %>
+  <div class="row collapse">
+    <div class="small-9 small-offset-3 columns">
+      <div class="actions">
+        <%= f.submit @location.id ? "Update" : "Create", class: "zfbutton tiny radius" %>
+        <%= link_to "Cancel", locations_path, class: "zfbutton tiny radius button-link" %>
+      </div>
+    </div>
   </div>
 <% end %>

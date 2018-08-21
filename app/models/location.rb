@@ -26,7 +26,7 @@ class Location < ActiveRecord::Base
     #  aliases flagged as of type "display", with any flagged as "friendly"
     #  last.
     #
-    displayaliases = locationaliases.where(display: true).sort
+    displayaliases = locationaliases.with_display.sort
     if displayaliases.size > 0
       ([self.name] + displayaliases.collect {|da| da.name}).join(" / ")
     else
@@ -42,8 +42,16 @@ class Location < ActiveRecord::Base
     end
   end
 
+  def display_aliases
+    locationaliases.with_display
+  end
+
+  def other_aliases
+    locationaliases.non_display
+  end
+
   def other_alias_names
-    locationaliases.where(display: false).collect {|oa| oa.name}
+    locationaliases.non_display.collect {|oa| oa.name}
   end
 
   def display_name
@@ -73,6 +81,10 @@ class Location < ActiveRecord::Base
 
   def <=>(other)
     self.name <=> other.name
+  end
+
+  def can_destroy?
+    !self.active || (self.element.commitments.count == 0)
   end
 
   #

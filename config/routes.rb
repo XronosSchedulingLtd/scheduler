@@ -116,7 +116,9 @@ Rails.application.routes.draw do
 
   resources :tutorgroups
 
-  resources :locations
+  resources :locations do
+    resources :locationaliases, only: [:new, :create]
+  end
 
   resources :pupils
 

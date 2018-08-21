@@ -57,7 +57,8 @@
   </div>
   <div class="row">
     <div class="small-9 small-offset-3 columns">
-      <%= f.submit %>
+        <%= f.submit @locationalias.id ? "Update" : "Create", class: "zfbutton tiny radius" %>
+        <%= link_to "Cancel", @cancel_to, class: "zfbutton tiny radius button-link" %>
     </div>
   </div>
 <% end %>
