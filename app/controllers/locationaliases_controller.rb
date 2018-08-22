@@ -32,6 +32,7 @@ class LocationaliasesController < ApplicationController
   # GET /locationaliases/1/edit
   def edit
     session[:editing_locationalias_from] = request.env['HTTP_REFERER']
+    @cancel_to = request.env['HTTP_REFERER']
   end
 
   # POST /locationaliases
