@@ -1,3 +1,15 @@
+v1.3.4  2018-08-22
+
+* Fix cancel button on location alias editing screen
+
+  The same screen is used for both creating and editing a location
+  alias.  As it can now be invoked from different places the cancel
+  button works dynamically and re-directs you back to where you
+  came from.  For one instance where the screen was invoked for
+  editing (not creating) the button wasn't set up correctly and so
+  didn't take you back.  Now fixed.
+
+
 v1.3.3  2018-08-21
 
 * Fix issue with updates to location aliases
