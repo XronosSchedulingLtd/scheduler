@@ -11,6 +11,7 @@
       <th>Alias</th>
       <th>Resulting display name</th>
       <th>Source id</th>
+      <th>Data source</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -30,6 +31,11 @@
           <td></td>
         <% end %>
         <td><%= locationalias.source_id %></td>
+        <% if locationalias.datasource %>
+          <td><%= locationalias.datasource.name %></td>
+        <% else %>
+          <td></td>
+        <% end %>
         <td><%= link_to 'Show', locationalias %></td>
         <td><%= link_to 'Edit', edit_locationalias_path(locationalias) %></td>
         <td><%= link_to 'Destroy', locationalias, method: :delete, data: { confirm: 'Are you sure?' } %></td>

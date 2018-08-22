@@ -23,8 +23,15 @@
     <div class="small-3 columns">
       <%= f.label :source_id, class: "right inline" %>
     </div>
-    <div class="small-9 columns">
+    <div class="small-3 columns">
       <%= f.number_field :source_id %>
+    </div>
+    <div class="small-5 small-offset-1 columns">
+      <label>
+      <%=
+        @locationalias.datasource ? " Data source: #{@locationalias.datasource.name}" : ""
+      %>
+      </label>
     </div>
   </div>
   <div class="row collapse">
