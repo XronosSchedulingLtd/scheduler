@@ -9,7 +9,8 @@ class LocationaliasesController < ApplicationController
   # GET /locationaliases
   # GET /locationaliases.json
   def index
-    @locationaliases = Locationalias.page(params[:page]).order('name')
+    @locationaliases =
+      Locationalias.includes(:datasource).page(params[:page]).order('name')
   end
 
   # GET /locationaliases/1
