@@ -231,8 +231,8 @@ module Timetable
       #
       #  Dates hard coded for now.
       #
-      startdate = Date.parse("2018-04-22")
-      enddate =   Date.parse("2018-05-05")
+      startdate = Setting.tt_store_start
+      enddate =   startdate + Setting.tt_cycle_weeks.weeks - 1.day
       eventcategories = Eventcategory.timetable.to_a
       if eventcategories.empty?
         @commitments = []

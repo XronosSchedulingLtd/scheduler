@@ -1285,6 +1285,33 @@ class MIS_Timetable
     end
   end
 
+  #
+  #  Return the relevant lessons for a specified week number (0 or 1)
+  #  and day number (0 = Sunday, 1 = Monday, etc.)
+  #
+  def lessons_by_day(week_no, day_no)
+    #
+    #  Unfortunately, iSAMS indexes weeks from 1.
+    #
+    weeks = Array.new
+    week = @week_hash[week_no + 1]
+    if week
+      weeks << week
+    end
+    weeks += @weeks.select {|week| week.load_regardless && !week.part_time}
+    lessons = Array.new
+    weeks.each do |week|
+      day = week.day_hash[day_no + 1]
+      if day
+        lessons += day.lessons
+      end
+    end
+    if lessons.empty?
+      lessons = nil
+    end
+    lessons
+  end
+
 end
 
 

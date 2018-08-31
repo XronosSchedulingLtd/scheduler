@@ -702,7 +702,7 @@ class ElementsController < ApplicationController
     #  for storage of the timetable are a system configuration
     #  item.
     #
-    date = Date.parse("2018-04-22")
+    date = Date.today
     @timetable = Timetable::Contents.new(@element, date, current_user.day_shape)
     @embed_css = @timetable.periods_css
   end
