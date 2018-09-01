@@ -41,6 +41,11 @@ module Timetable
           if duration > 45
             @body_text += "<br/>#{item.short_location_name}"
           end
+        elsif duration < 30
+          #
+          #  Maximum of 12 characters.
+          #
+          @body_text = @body_text[0,12]
         end
         @body_text = body_text.html_safe
       elsif item.instance_of?(RotaSlot)
@@ -84,7 +89,7 @@ module Timetable
     end
 
     def periodtext_class
-      if duration >= 25
+      if duration >= 30
         "periodtext"
       else
         "periodtextsmall"
@@ -185,7 +190,7 @@ module Timetable
   #
   class Contents
 
-    attr_reader :days
+    attr_reader :days, :weeks, :week_headers
 
     def initialize(element, date, background_periods = nil)
       date ||= Date.today
@@ -199,6 +204,8 @@ module Timetable
       14.times do |index|
         @days << Day.new(self, index % 7)
       end
+      @week_headers = ["Week A", "Week B"]
+      @weeks = Setting.tt_cycle_weeks
       #
       #  Do we have a set of background periods specified?
       #
@@ -274,6 +281,10 @@ module Timetable
       "#{((duration - 15) / 5) * 6}px;"
     end
 
+    def week_width
+      ((Setting.last_tt_day - Setting.first_tt_day) + 1) * 95
+    end
+
     #
     #  Generate chunk of CSS for embedding in the page which will position
     #  the periods correctly.
@@ -312,6 +323,13 @@ module Timetable
         contents << "  font-weight: bold;"
         contents << "}"
       end
+      #
+      #  And something to allow us to put week headings over each
+      #  week.
+      #
+      contents << ".timetable .timetable-week {"
+      contents << "  width: #{week_width}px;"
+      contents << "}"
       contents.join("\n")
     end
   end
