@@ -124,11 +124,12 @@ module Timetable
   #
   class Day
 
-    attr_reader :periods
+    attr_reader :periods, :day_name
 
-    def initialize(parent)
+    def initialize(parent, day_no)
       @periods = Array.new
       @parent = parent
+      @day_name = Date::ABBR_DAYNAMES[day_no]
     end
 
     def <<(item)
@@ -195,8 +196,8 @@ module Timetable
       @timings = Hash.new
       @durations = Hash.new
       @preps = Hash.new
-      14.times do
-        @days << Day.new(self)
+      14.times do |index|
+        @days << Day.new(self, index % 7)
       end
       #
       #  Do we have a set of background periods specified?

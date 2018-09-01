@@ -5,6 +5,9 @@
     width: 90px;
     float: left;
     margin-right: 5px;
+    .timetable-day-name {
+      text-align: center;
+    }
     .timetable-day-periods {
       position: relative;
       width: 98%;
