@@ -1,7 +1,9 @@
 require 'test_helper'
 
 class PropertyTest < ActiveSupport::TestCase
-  # test "the truth" do
-  #   assert true
-  # end
+  test "creating a property should create an element" do
+    property = Property.create(name: "Google")
+    assert_not_nil property.element
+  end
+
 end

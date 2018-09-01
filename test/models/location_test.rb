@@ -7,6 +7,16 @@ class LocationTest < ActiveSupport::TestCase
     @aliasedroom = locations(:aliasedroom)
   end
 
+  test "creating an active location should create an element" do
+    location = Location.create(name: "Googol", active: true)
+    assert_not_nil location.element
+  end
+
+  test "creating an inactive location should not create an element" do
+    location = Location.create(name: "Googol", active: false)
+    assert_nil location.element
+  end
+
   test "modifying location name should change element name" do
     org_name = @location1.element.name
     @location1.name = "Banana"
