@@ -1,3 +1,19 @@
+v1.3.6  2018-09-01
+
+* Stop new locations from MIS getting two element records
+
+  When the MIS sends through details of a new location, the loader
+  handles it by creating a new location alias, which in turn causes the
+  creation of a new location.
+
+  The changes in v1.3.3 had a knock-on effect which caused the new
+  location thus created to acquire two element records.  This was
+  caused by the Entity#update_element method being called twice.
+
+  That method has now been fixed so it's perfectly safe to call it twice
+  in quick succession - as it should be.
+
+
 v1.3.5  2018-08-22
 
 * Add the name of the data source to location alias listings

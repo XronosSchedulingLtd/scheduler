@@ -60,15 +60,16 @@ module Elemental
       end
     else
       if self.active
-        creation_hash = { :name => self.element_name,
-                          :current => self.current,
-                          :entity => self }
+        creation_hash = {
+          name:    self.element_name,
+          current: self.current,
+        }
         if self.respond_to?(:entitys_owner_id)
           creation_hash[:owner_id] = self.entitys_owner_id
         end
         self.adjust_element_creation_hash(creation_hash)
         begin
-          Element.create!(creation_hash)
+          self.create_element!(creation_hash)
         rescue ActiveRecord::RecordNotUnique => e
           Rails.logger.error("Failed to create element for #{self.class}")
           #
