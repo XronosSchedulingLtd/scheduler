@@ -2,3 +2,9 @@
 <h3>Timetable for <%= @element.name %></h3>
 <%= render @timetable %>
 </div>
+<% if @doprint %>
+  <script language="JavaScript">
+    print();
+    window.close();
+  </script>
+<% end %>

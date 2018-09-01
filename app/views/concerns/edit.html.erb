@@ -20,6 +20,7 @@
   <% if @journal_entries %>
     <li class="tab-title"><a href="#concern-journal">Journal</a></li>
   <% end %>
+  <li class='tab-title'><a href='#concern-timetable'>Timetable</a></li>
 </ul>
 
 <hr/>
@@ -61,5 +62,22 @@
     <%= link_to @journal_link_text, element_journal_entries_path(@element) %>
   </div>
 <% end %>
+  <div class='content' id='concern-timetable'>
+    <%=
+      link_to(
+        "Print",
+        timetable_element_path(@element, print: true),
+        target: :_blank)
+    %>
+    <%=
+      link_to(
+        "Print all",
+        timetables_element_path(@element, print: true),
+        target: :_blank)
+    %>
+    <div class='timetable'>
+    <%= render @timetable %>
+    </div>
+  </div>
 <hr/>
 <% end %>

@@ -190,9 +190,10 @@ module Timetable
   #
   class Contents
 
-    attr_reader :days, :weeks, :week_headers
+    attr_reader :days, :weeks, :week_headers, :element_name
 
     def initialize(element, date, background_periods = nil)
+      @element_name = element.name
       date ||= Date.today
       @days = Array.new
       #

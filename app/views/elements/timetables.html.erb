@@ -1,0 +1,13 @@
+<% @timetables.each do |timetable| %>
+<div class='timetable'>
+<h3>Timetable for <%= timetable.element_name %></h3>
+<%= render timetable %>
+</div>
+<p class='pagebreak'/>
+<% end %>
+<% if @doprint %>
+  <script language="JavaScript">
+    print();
+    window.close();
+  </script>
+<% end %>

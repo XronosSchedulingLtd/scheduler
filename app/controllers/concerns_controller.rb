@@ -300,6 +300,13 @@ class ConcernsController < ApplicationController
       else
         @journal_entries = nil
       end
+      #
+      #  And the timetable?
+      #
+      date = Date.today
+      @timetable =
+        Timetable::Contents.new(@element, date, current_user.day_shape)
+      @embed_css = @timetable.periods_css
     else
       redirect_to :root
     end

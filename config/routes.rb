@@ -217,6 +217,7 @@ Rails.application.routes.draw do
     member do
       get :ical
       get :timetable
+      get :timetables
     end
   end
 
