@@ -37,9 +37,9 @@ module Timetable
         @start_time_tod = Tod::TimeOfDay(item.starts_at)
         @end_time_tod   = Tod::TimeOfDay(item.ends_at)
         if duration > 35
-          @body_text += "<br/>JHW"
+          @body_text += "<br/>#{item.staff_initials}"
           if duration > 45
-            @body_text += "<br/>M116"
+            @body_text += "<br/>#{item.short_location_name}"
           end
         end
         @body_text = body_text.html_safe

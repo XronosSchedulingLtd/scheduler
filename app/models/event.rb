@@ -764,6 +764,15 @@ class Event < ActiveRecord::Base
     end
   end
 
+  def short_location_name
+    all_locations = self.locations
+    if all_locations.size > 0
+      all_locations[0].name
+    else
+      ""
+    end
+  end
+
   def pupils(and_by_group = false)
     if and_by_group
       self.all_atomic_resources.select {|r| r.instance_of?(Pupil)}
@@ -781,6 +790,15 @@ class Event < ActiveRecord::Base
       self.all_atomic_resources.select {|r| r.instance_of?(Staff)}
     else
       self.resources.select {|r| r.instance_of?(Staff)}
+    end
+  end
+
+  def staff_initials
+    the_staff = self.staff
+    if the_staff.size > 0
+      the_staff[0].initials
+    else
+      ""
     end
   end
 
