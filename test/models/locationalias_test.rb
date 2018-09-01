@@ -52,4 +52,24 @@ class LocationaliasTest < ActiveSupport::TestCase
     assert_not_equal org_name, @location1.element.name
   end
 
+  test "creating an alias should create a location" do
+    locationalias = Locationalias.create(name: "Google",
+                                         display: false)
+    assert_not_nil locationalias.location
+  end
+
+  test "automatic location should have an element" do
+    locationalias = Locationalias.create(name: "Google",
+                                         display: false)
+    assert_not_nil locationalias.location.element
+  end
+
+  test "adding location via alias should create only one element" do
+    locationalias = Locationalias.create(name: "Google",
+                                         display: false)
+    location = locationalias.location
+    assert_not_nil location
+    elements = Element.where(entity_type: "Location").where(entity_id: location.id)
+    assert_equal 1, elements.count
+  end
 end
