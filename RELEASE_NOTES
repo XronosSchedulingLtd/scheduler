@@ -1,3 +1,47 @@
+v1.4.0  2018-09-02
+
+* Add the means to view and print timetables (as opposed to schedules)
+  for individual pupils, staff, rooms and general resources.
+
+  Scheduler usually concerns itself with a dynamic view of what is
+  actually happening within the school.  It displays what *is* happening
+  this week, rather than what would be happening in an ideal week.
+
+  Sometimes however it is useful to be able to print off an old-fashioned
+  timetable for each individual, unifying the view of all their
+  regularly scheduled events.  Typically these will be:
+
+  * Lessons
+  * Preps
+  * Activities
+
+  Scheduler achieves this by loading an idealised timetable cycle
+  (a week or a fortnight to suit the school) into a past date
+  in its database (default start: 2006-01-01) and then generating
+  a timetable using current set membership (on the day of printing) but
+  these otherwise ancient events.
+
+  The system admin can control which classes of events get included in
+  the timetable by editing the Event Category records.  Only those with
+  the "timetable" attribute will be included in printed timetables.
+
+  Timetables can be printed either for individual resources, or for groups
+  of resources (e.g. form groups).
+
+  To print a timetable for a resource, add the resource to the list of
+  things which you are viewing - coloured boxes down the left hand side
+  of the screen.  Then click on the coloured box for the required item,
+  and then on the "Timetable" tab in the page which appears.
+
+  For singular resources (anything other than a group) a single "Print"
+  button will be found there, whilst for Groups, there will be two
+  more buttons - "View member timetables" and "Print member timetables".
+
+  After installing this release, a fresh run of the MIS importer is
+  needed to populate the ideal week/fortnight.  After that, the usual
+  nightly run will keep it up to date.
+
+
 v1.3.6  2018-09-01
 
 * Stop new locations from MIS getting two element records
