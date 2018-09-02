@@ -190,7 +190,7 @@ class Group < ActiveRecord::Base
     self.make_public || self.owner_id == nil
   end
 
-  def empty?
+  def membership_empty?
     self.members(nil, false).empty?
   end
 
