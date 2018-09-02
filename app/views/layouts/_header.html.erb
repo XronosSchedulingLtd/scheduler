@@ -7,6 +7,11 @@
     <title><%= title_text %></title>
 
     <%= stylesheet_link_tag    "application", media: "all" %>
+    <% if @embed_css %>
+      <style>
+        <%= @embed_css %>
+      </style>
+    <% end %>
     <%= javascript_include_tag "vendor/modernizr" %>
     <%= csrf_meta_tags %>
   </head>

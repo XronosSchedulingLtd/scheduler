@@ -206,14 +206,19 @@ Rails.application.routes.draw do
     resources :promptnotes, shallow: true
     resources :journal_entries, only: [:index]
     resources :commitments, only: [:index]
-    get :autocomplete_element_name, :on => :collection
-    get :autocomplete_unowned_element_name, :on => :collection
-    get :autocomplete_staff_element_name, :on => :collection
-    get :autocomplete_group_element_name, :on => :collection
-    get :autocomplete_property_element_name, :on => :collection
-    get :autocomplete_location_element_name, :on => :collection
-    get :ical, :on => :member
-
+    collection do
+      get :autocomplete_element_name
+      get :autocomplete_unowned_element_name
+      get :autocomplete_staff_element_name
+      get :autocomplete_group_element_name
+      get :autocomplete_property_element_name
+      get :autocomplete_location_element_name
+    end
+    member do
+      get :ical
+      get :timetable
+      get :timetables
+    end
   end
 
   resources :item do

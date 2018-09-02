@@ -300,6 +300,15 @@ class ConcernsController < ApplicationController
       else
         @journal_entries = nil
       end
+      #
+      #  And the timetable?
+      #
+      date = Date.today
+      @timetable =
+        Timetable::Contents.new(@element, date, current_user.day_shape)
+      @embed_css = @timetable.periods_css
+      @view_member_timetables =
+        (@element.entity_type == 'Group' && !@element.entity.membership_empty?)
     else
       redirect_to :root
     end

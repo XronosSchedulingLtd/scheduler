@@ -1,0 +1,58 @@
+.timetable {
+  width: 1000px;
+  .timetable-week {
+    float: left;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  .timetable-day {
+    font-size: 12px;
+    width: 90px;
+    float: left;
+    margin-right: 5px;
+    .timetable-day-name {
+      text-align: center;
+    }
+    .timetable-day-periods {
+      position: relative;
+      width: 98%;
+      height: 612px;
+      .period {
+        border: thin solid black;
+        width: 100%;
+        &.filled {
+          background-color: #cceeff;
+        }
+        &.empty {
+          background-color: #ffffff;
+        }
+        .periodtext {
+          position: relative;
+          top: 14px;
+          text-align: center;
+          line-height: 95%;
+        }
+        .periodtextsmall {
+          position: relative;
+          top: 10px;
+          text-align: center;
+          line-height: 95%;
+          font-size: 0.8em;
+        }
+        .starttime {
+          position: absolute;
+          top: -4px;
+          left: 1px;
+          font-size: 0.8em;
+        }
+      }
+    }
+  }
+  .week-gap {
+    width: 20px;
+    float: left;
+  }
+}
+
+.pagebreak {page-break-after: always;}

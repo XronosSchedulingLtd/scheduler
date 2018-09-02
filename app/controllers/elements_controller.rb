@@ -692,6 +692,56 @@ class ElementsController < ApplicationController
     end
   end
 
+  # GET /elements/:id/timetable
+  def timetable
+    @element = Element.find(params[:id])
+    #
+    #  May allow other dates to be specified in the future.
+    #  Note that this date merely specifies the day on which
+    #  to evaluate group membership.  The dates which we use
+    #  for storage of the timetable are a system configuration
+    #  item.
+    #
+    date = Date.today
+    @timetable = Timetable::Contents.new(@element, date, current_user.day_shape)
+    @embed_css = @timetable.periods_css
+    if params[:print]
+      @doprint = true
+    else
+      @doprint = false
+    end
+  end
+
+  #
+  #  Print a set of timetables for a group, or just the one timetable
+  #  if not a group.
+  #
+  def timetables
+    element = Element.includes(:entity).find(params[:id])
+    if element.entity_type == 'Group'
+      date = Date.today
+      members = element.entity.members(nil, true, true)
+      @timetables = Timetable::Collection.new
+      members.each do |member|
+        if member.element
+          @timetables << Timetable::Contents.new(member.element,
+                                                 date,
+                                                 current_user.day_shape)
+        end
+      end
+      unless @timetables.empty?
+        @embed_css = @timetables.periods_css
+      end
+      if params[:print]
+        @doprint = true
+      else
+        @doprint = false
+      end
+    else
+      redirect_to action: 'timetable'
+    end
+  end
+
   def authorized?(action = action_name, resource = nil)
     (logged_in? && current_user.known?) ||
     action == 'ical'

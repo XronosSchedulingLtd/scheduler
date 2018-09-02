@@ -64,6 +64,14 @@ class RotaSlot < ActiveRecord::Base
     stringify(:ends_at)
   end
 
+  def starts_at_tod
+    self[:starts_at]
+  end
+
+  def ends_at_tod
+    self[:ends_at]
+  end
+
   def starts_at=(value)
     @org_starts_at = value
     assign_tod_value(:starts_at, value)
@@ -109,6 +117,10 @@ class RotaSlot < ActiveRecord::Base
     else
       nil
     end
+  end
+
+  def duration
+    self[:ends_at] - self[:starts_at]
   end
 
   private

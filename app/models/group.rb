@@ -190,6 +190,10 @@ class Group < ActiveRecord::Base
     self.make_public || self.owner_id == nil
   end
 
+  def membership_empty?
+    self.members(nil, false).empty?
+  end
+
   #
   #  Returns this group's atomic membership if relevant - that is, if
   #  this group itself contains any other groups.  Returns nil otherwise.
@@ -621,6 +625,7 @@ class Group < ActiveRecord::Base
         membership.group = self
         membership.element = element
         membership.starts_on = as_of
+        membership.ends_on   = self.ends_on
         membership.inverse = true
         membership.save
       end
@@ -632,6 +637,7 @@ class Group < ActiveRecord::Base
       membership.group = self
       membership.element = element
       membership.starts_on = as_of
+      membership.ends_on   = self.ends_on
       membership.inverse = true
       membership.save
     end
@@ -727,7 +733,7 @@ class Group < ActiveRecord::Base
       seen << self.id
       active_memberships =
         self.memberships.
-             preload([:element, :element => :entity]).
+             includes(element: :entity).
              active_on(given_date)
       excludes, includes = active_memberships.partition {|am| am.inverse}
       group_includes, atomic_includes =
@@ -772,7 +778,11 @@ class Group < ActiveRecord::Base
       #  corresponding exclusion record, so we don't need to look
       #  at the exclusion records.
       #
-      self.memberships.active_on(given_date).inclusions.select {|m|
+      self.memberships.
+           includes(element: :entity).
+           active_on(given_date).
+           inclusions.
+           select {|m|
         m.element.entity.class != Group || !exclude_groups
       }.collect {|m| m.element.entity}
     end
@@ -876,66 +886,6 @@ class Group < ActiveRecord::Base
     end
   end
 
-  #
-  #  Start with this group and compile a list of all parent groups which
-  #  would claim membership of the indicated element on the indicated date,
-  #  by way of this group being a member or sub-member of them.
-  #
-  #  Take into account group validity dates, membership validity dates,
-  #  and exclusions.
-  #
-  #  Note that this group has to check itself to ensure the indicated element
-  #  is actually a member, and should include itself in the list of groups
-  #  returned if it is.  It is also possible that the indicated element
-  #  is not a member of this group on the indicated date, but is a member
-  #  of some of its parent groups, by dint of having once been a member
-  #  of this group.
-  #
-  #  Note that this method is intended for internal use by the group
-  #  processing code and so returns an array of "Group" objects, and not
-  #  the overlying visible groups.
-  #
-  #
-  #  Special processing is need to protect ourselves from someone having
-  #  set up a circular heirarchy.
-  #
-  def parents_for(element, given_date, seen = [])
-    puts "Entering parents_for at #{Time.now.strftime("%H:%M:%S.%3N")}."
-    result = self.element.memberships.inclusions.collect {|membership|
-      if seen.include?(membership.group_id)
-        []
-      else
-        seen << membership.group_id
-        membership.group.parents_for(element, given_date, seen)
-      end
-    }.flatten
-    puts "Calling self.member? at #{Time.now.strftime("%H:%M:%S.%3N")}."
-    if self.member?(element, given_date)
-      result = result + [self]
-    end
-    puts "Leaving parents_for at #{Time.now.strftime("%H:%M:%S.%3N")}."
-    result.uniq
-  end
-
-  # Decide whether the indicated entity is a member of the group.
-  def member?(item, given_date = nil, recurse = true)
-    if item.instance_of?(Element)
-      entity = item.entity
-    else
-      entity = item
-    end
-    self.members(given_date, recurse).include?(entity)
-  end
-
-  def outcast?(item, given_date = nil, recurse = true)
-    if item.instance_of?(Element)
-      entity = item.entity
-    else
-      entity = item
-    end
-    self.outcasts(given_date, recurse).include?(entity)
-  end
-
   def active_on(date)
     self.starts_on <= date &&
     (self.ends_on == nil || self.ends_on >= date)
@@ -989,7 +939,19 @@ class Group < ActiveRecord::Base
           self.remove_member(member, date)
         end
         self.ends_on = date - 1.day
-        self.current = false
+        if self.ends_on < Date.today
+          #
+          #  By default, this method uses today as the date to end,
+          #  and sets the ends_on to 1 day less, and so we set current
+          #  to false.
+          #
+          #  However, it is possible to call this method with a date in
+          #  the future.  In that case, we don't want it to become
+          #  immediately "not current".  The overnight cron job will
+          #  do the necessary at the time.
+          #
+          self.current = false
+        end
         self.save!
       end
     else

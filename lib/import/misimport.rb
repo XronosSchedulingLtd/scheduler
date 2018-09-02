@@ -287,6 +287,8 @@ begin
           loader.do_cover
           finished(options, "cover")
         end
+        loader.do_ideal_cycle
+        finished(options, "ideal cycle")
         loader.do_auto_groups
         finished(options, "automatic groups")
         loader.do_extra_groups
