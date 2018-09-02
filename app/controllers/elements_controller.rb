@@ -721,7 +721,7 @@ class ElementsController < ApplicationController
     if element.entity_type == 'Group'
       date = Date.today
       members = element.entity.members(nil, true, true)
-      @timetables = Array.new
+      @timetables = Timetable::Collection.new
       members.each do |member|
         if member.element
           @timetables << Timetable::Contents.new(member.element,
@@ -730,7 +730,7 @@ class ElementsController < ApplicationController
         end
       end
       unless @timetables.empty?
-        @embed_css = @timetables[0].periods_css
+        @embed_css = @timetables.periods_css
       end
       if params[:print]
         @doprint = true

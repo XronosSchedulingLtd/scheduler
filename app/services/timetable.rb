@@ -190,7 +190,7 @@ module Timetable
   #
   class Contents
 
-    attr_reader :days, :weeks, :week_headers, :element_name
+    attr_reader :days, :weeks, :week_headers, :element_name, :timings, :durations, :preps
 
     def initialize(element, date, background_periods = nil)
       @element_name = element.name
@@ -278,28 +278,32 @@ module Timetable
       end
     end
 
-    def text_at_bottom(duration)
-      "#{((duration - 15) / 5) * 6}px;"
-    end
-
-    def week_width
-      ((Setting.last_tt_day - Setting.first_tt_day) + 1) * 95
+    def periods_css
+      self.class.periods_css(@timings, @durations, @preps)
     end
 
     #
     #  Generate chunk of CSS for embedding in the page which will position
     #  the periods correctly.
     #
-    def periods_css
+    def self.text_at_bottom(duration)
+      "#{((duration - 15) / 5) * 6}px;"
+    end
+
+    def self.week_width
+      ((Setting.last_tt_day - Setting.first_tt_day) + 1) * 95
+    end
+
+    def self.periods_css(timings, durations, preps)
       contents = []
-      @timings.each do |key, timing|
+      timings.each do |key, timing|
         contents << ".period.#{key} {"
         contents << "  position: absolute;"
         contents << "  top: #{timing.top};"
         contents << "  height: #{timing.height};"
         contents << "}"
       end
-      @durations.each do |duration, flag|
+      durations.each do |duration, flag|
         #
         #  Periods shorter than 20 minutes don't have room for timings.
         #
@@ -316,7 +320,7 @@ module Timetable
           contents << "}"
         end
       end
-      @preps.each do |duration, flag|
+      preps.each do |duration, flag|
         contents << ".period .preptext#{duration} {"
         contents << "  position: absolute;"
         contents << "  top: #{text_at_bottom(duration)}"
@@ -333,6 +337,32 @@ module Timetable
       contents << "}"
       contents.join("\n")
     end
+  end
+
+  #
+  #  This class works just like an array, except it can generate CSS
+  #  to suit the whole set of timetables.  Anything else put in it will
+  #  be ignored.
+  #
+  class Collection < Array
+
+    def periods_css
+      #
+      #  Merge the relevant items from each individual timetable.
+      #
+      timings = Hash.new
+      durations = Hash.new
+      preps = Hash.new
+      self.each do |timetable|
+        if timetable.instance_of? Timetable::Contents
+          timings.merge!(timetable.timings)
+          durations.merge!(timetable.durations)
+          preps.merge!(timetable.preps)
+        end
+      end
+      Timetable::Contents.periods_css(timings, durations, preps)
+    end
+
   end
 
 end

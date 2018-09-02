@@ -67,14 +67,25 @@
       link_to(
         "Print",
         timetable_element_path(@element, print: true),
-        target: :_blank)
+        target: :_blank,
+        class: 'zfbutton tiny radius button-link')
+      %>
+    <% if @view_member_timetables %>
+    <%=
+      link_to(
+        "View member timetables",
+        timetables_element_path(@element),
+        target: :_blank,
+        class: 'zfbutton tiny radius button-link')
     %>
     <%=
       link_to(
-        "Print all",
+        "Print member timetables",
         timetables_element_path(@element, print: true),
-        target: :_blank)
-    %>
+        target: :_blank,
+        class: 'zfbutton tiny radius button-link')
+      %>
+    <% end %>
     <div class='timetable'>
     <%= render @timetable %>
     </div>

@@ -190,6 +190,10 @@ class Group < ActiveRecord::Base
     self.make_public || self.owner_id == nil
   end
 
+  def empty?
+    self.members(nil, false).empty?
+  end
+
   #
   #  Returns this group's atomic membership if relevant - that is, if
   #  this group itself contains any other groups.  Returns nil otherwise.
@@ -729,7 +733,7 @@ class Group < ActiveRecord::Base
       seen << self.id
       active_memberships =
         self.memberships.
-             preload([:element, :element => :entity]).
+             includes(element: :entity).
              active_on(given_date)
       excludes, includes = active_memberships.partition {|am| am.inverse}
       group_includes, atomic_includes =
@@ -774,7 +778,11 @@ class Group < ActiveRecord::Base
       #  corresponding exclusion record, so we don't need to look
       #  at the exclusion records.
       #
-      self.memberships.active_on(given_date).inclusions.select {|m|
+      self.memberships.
+           includes(element: :entity).
+           active_on(given_date).
+           inclusions.
+           select {|m|
         m.element.entity.class != Group || !exclude_groups
       }.collect {|m| m.element.entity}
     end
