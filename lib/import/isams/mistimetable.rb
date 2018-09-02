@@ -609,6 +609,23 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
     end
   end
 
+  #
+  #  Return OH events for just one day of the week.
+  #  Unfortunately, iSams does not provide a proper timetable
+  #  of OH events - just a list of events by date.
+  #
+  #  We therefore work out the next date with this day number,
+  #  and use that.
+  #
+  #  Note that, towards the end of term, this may lead to OH
+  #  commitments not appearing.
+  #
+  def self.events_by_day_no(day_no)
+    today = Date.today
+    date = today + ((day_no - today.wday) % 7).days
+    self.events_on(date)
+  end
+
 end
 
 class ISAMS_DummyGroup
@@ -1267,6 +1284,50 @@ class MIS_Timetable
     end
     if @activities
       oh = ISAMS_OtherHalfEntry.events_on(date)
+    else
+      oh = nil
+    end
+    if lessons
+      if oh
+        lessons + oh
+      else
+        lessons
+      end
+    else
+      if oh
+        oh
+      else
+        nil
+      end
+    end
+  end
+
+  #
+  #  Return the relevant lessons for a specified week number (0 or 1)
+  #  and day number (0 = Sunday, 1 = Monday, etc.)
+  #
+  def lessons_by_day(week_no, day_no)
+    #
+    #  Unfortunately, iSAMS indexes weeks from 1.
+    #
+    weeks = Array.new
+    week = @week_hash[week_no + 1]
+    if week
+      weeks << week
+    end
+    weeks += @weeks.select {|week| week.load_regardless && !week.part_time}
+    lessons = Array.new
+    weeks.each do |week|
+      day = week.day_hash[day_no + 1]
+      if day
+        lessons += day.lessons
+      end
+    end
+    if lessons.empty?
+      lessons = nil
+    end
+    if @activities
+      oh = ISAMS_OtherHalfEntry.events_by_day_no(day_no)
     else
       oh = nil
     end

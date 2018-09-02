@@ -729,6 +729,105 @@ class MIS_Loader
   end
 
   #
+  #  Very like doing the timetable, but an idealised week/fortnight which
+  #  is used to produce printed timetables.
+  #
+  def do_ideal_cycle
+    start_date = Setting.tt_store_start
+    tt_cycle_weeks = Setting.tt_cycle_weeks
+    if start_date &&
+       (tt_cycle_weeks == 1 || tt_cycle_weeks == 2) &&
+       @timetable.respond_to?(:lessons_by_day)
+      end_date = (start_date + tt_cycle_weeks.weeks) - 1.day
+      puts "Loading ideal cycle at #{start_date} to #{end_date}" if @verbose
+      event_created_count         = 0
+      event_deleted_count         = 0
+      event_amended_count         = 0
+      resources_added_count       = 0
+      resources_removed_count     = 0
+      set_to_naming_count         = 0
+      set_to_not_naming_count     = 0
+      tt_cycle_weeks.times do |week_no|
+        Setting.first_tt_day.upto(Setting.last_tt_day) do |tt_day|
+          date = start_date + week_no.weeks + tt_day.days
+          puts "Processing #{date}" if @verbose
+          lessons = @timetable.lessons_by_day(week_no, tt_day)
+          if lessons
+            puts "#{lessons.count} lessons for #{date.to_s}" if @verbose
+            lessons.each do |lesson|
+              #
+              #  Make sure each of these lessons exists in the d/b and
+              #  at the right time.
+              #
+              created_count, amended_count =
+                lesson.ensure_db(date, @event_source, @verbose)
+              event_created_count += created_count
+              event_amended_count += amended_count
+              #
+              #  And the right resources?
+              #
+              added_count, removed_count = lesson.ensure_resources
+              resources_added_count += added_count
+              resources_removed_count += removed_count
+            end
+          else
+            puts "No lessons for #{date.to_s}" if @verbose
+          end
+          #
+          #  Anything in the database which we need to remove?
+          #
+          dbevents = Event.events_on(date,          # Start date
+                                     nil,           # End date
+                                     nil,           # Categories
+                                     @event_source, # Event source
+                                     nil,           # Resource
+                                     nil,           # Owner
+                                     true)          # And non-existent
+          dbhashes = dbevents.collect {|dbe| dbe.source_hash}.uniq
+          if lessons
+            mishashes = lessons.collect {|lesson| lesson.source_hash}
+          else
+            mishashes = []
+          end
+          puts "#{mishashes.size} events in MIS and #{dbhashes.size} in the d/b." if @verbose
+          dbonly = dbhashes - mishashes
+          if dbonly.size > 0
+            puts "Deleting #{dbonly.size} events." if @verbose
+            #
+            #  These I'm afraid have to go.  Given only the source
+            #  hash we don't have enough to find the record in the d/b
+            #  (because they repeat every fortnight) but happily we
+            #  already have the relevant d/b record in memory.
+            #
+            dbonly.each do |dbo|
+              dbrecord = dbevents.find {|dbe| dbe.source_hash == dbo}
+              if dbrecord
+                dbrecord.destroy
+              end
+              event_deleted_count += 1
+            end
+          end
+        end
+      end
+      if event_created_count > 0 || @verbose
+        puts "#{event_created_count} timetable events added."
+      end
+      if event_amended_count > 0 || @verbose
+        puts "#{event_amended_count} timetable events amended."
+      end
+      if event_deleted_count > 0 || @verbose
+        puts "#{event_deleted_count} timetable events deleted."
+      end
+      if resources_added_count > 0 || @verbose
+        puts "#{resources_added_count} resources added to timetable events."
+      end
+      if resources_removed_count > 0 || @verbose
+        puts "#{resources_removed_count} resources removed from timetable events."
+      end
+    end
+  end
+
+  #
   #  Pass the name of the group and array of the members that should be
   #  in it.
   #

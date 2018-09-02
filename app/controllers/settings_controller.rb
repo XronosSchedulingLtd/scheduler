@@ -3,6 +3,15 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
+class DayName
+  attr_reader :index, :name
+
+  def initialize(index, name)
+    @index = index
+    @name = name
+  end
+end
+
 class SettingsController < ApplicationController
   before_action :set_setting, only: [:show, :edit, :update]
 
@@ -25,6 +34,10 @@ class SettingsController < ApplicationController
       @day_shapes = tt.rota_templates
     else
       @day_shapes = []
+    end
+    @day_names = Array.new
+    Date::DAYNAMES.each_with_index do |dayname, index|
+      @day_names << DayName.new(index, dayname)
     end
   end
 
@@ -81,6 +94,11 @@ class SettingsController < ApplicationController
                     :ordinalize_years,
                     :prep_property_element_name,
                     :prep_property_element_id,
-                    :max_quick_buttons)
+                    :max_quick_buttons,
+                    :first_tt_day,
+                    :last_tt_day,
+                    :tt_cycle_weeks,
+                    :tt_prep_letter,
+                    :tt_store_start)
     end
 end

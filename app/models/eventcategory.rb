@@ -32,6 +32,7 @@ class Eventcategory < ActiveRecord::Base
   scope :visible, -> { where(visible: true) }
   scope :invisible, -> { where(visible: false) }
 
+  scope :timetable, -> { where(timetable: true) }
   scope :exclude, lambda { |ids| where.not(id: ids) }
 
   @@category_cache = {}
@@ -61,7 +62,9 @@ class Eventcategory < ActiveRecord::Base
       busy:
         "The opposite side of the previous flag.  Should events in this category be regarded as rendering their resources busy?  If this flag is unset, then the corresponding events will not be regarded as clashing with events which are being checked for clashes.",
       deprecated:
-        "This event category no longer appears in the pull-down and events cannot be saved with this category.  Old events may still exist."
+        "This event category no longer appears in the pull-down and events cannot be saved with this category.  Old events may still exist.",
+      timetable:
+        "Should events in this category appear on printed timetables?"
   }
   FIELD_TITLE_TEXTS.default = "Unknown"
 

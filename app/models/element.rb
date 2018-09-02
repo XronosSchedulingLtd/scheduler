@@ -193,66 +193,20 @@ class Element < ActiveRecord::Base
   #  of which this element is a member on the indicated date.  If no
   #  date is given then use today's date.
   #
-  #  Different processing however is required to handle inverses.  We need
-  #  to work up to the groups of which we are potentially a member, then
-  #  check we're not excluded from there by an inverse membership record.
-  #
-  #  If recursion is required then we have to select *all* groups of which
-  #  we are a member, and not just those for the indicated date.  This is
-  #  because recursion may specify a different date to think about.
-  #
   def groups(given_date = nil, recurse = true)
 #    puts "Entering groups at #{Time.now.strftime("%H:%M:%S.%3N")}."
     given_date ||= Date.today
     if recurse
-      #
-      #  With recursion, life gets a bit more entertaining.  We need to
-      #  find all groups of which we might be a potential member (working
-      #  up the tree until we find groups which aren't members of anything)
-      #  then check which ones of these we are actually a member of on
-      #  the indicated date.  The latter step could be done by a sledgehammer
-      #  approach (call member?) for each of the relevant groups, but that
-      #  might be a bit inefficient.  I'm hoping to do it as we reverse
-      #  down the recursion tree.
-      #
-      # ==================================================================
-      #  Old redundant comment - the as_at field no longer exists
-      # ==================================================================
-      #
-      #  When working our way up the tree we have to include *all*
-      #  memberships, regardless of apparently active date because there
-      #  might be an as_at date in one of the membership records which
-      #  affects things on the way back down.
-      #
-      #  E.g. Able was a member of the group A back in June, but isn't now.
-      #  Group A is a member of group B, with an as_at date of 15th June.
-      #  Able is therefore a member of B, even though he isn't currently
-      #  a member of A.
-      #
-      #  If we terminated the search on discovering that Able is not currently
-      #  a member of A, we wouldn't discover that Able is in fact currently
-      #  a member of B.
-      #
-      #  There is on the other hand no point in looking at exclusions on
-      #  the way up the tree.  We look at inclusions on the way up,
-      #  because without an inclusion of some sort the exclusion is irrelevant,
-      #  then look at both on the way back down.
-      #
-      # ==================================================================
-      #  End of old redundant comment
-      # ==================================================================
-      #
-      #  It turned out to be much faster without allowing for the
-      #  as_at field, and I never devised a way of allowing the user
-      #  to give this field a value.  It is now gone.
-      #
-      self.memberships.
-           inclusions.
-           active_on(given_date).
-           preload(:group).
-           collect {|membership| 
-        membership.group.parents_for(self, given_date)
-      }.flatten.uniq
+      gids = memberships_by_duration(
+        start_date: given_date,
+        end_date: given_date).group_list.collect {
+          |g| g.id
+        }
+      if gids.empty?
+        Group.none
+      else
+        Group.where(id: gids)
+      end
     else
       #
       #  If recursion is not required then we just return a list of the
@@ -264,6 +218,14 @@ class Element < ActiveRecord::Base
       #self.memberships.active_on(given_date).inclusions.collect {|m| m.group}
       Group.with_member_on(self, given_date)
     end
+  end
+
+  #
+  #  This method is intended merely for testing the above method.  It
+  #  is not an efficient way of testing membership.
+  #
+  def member_of?(group, date)
+    self.groups(date).include?(group)
   end
 
   def events_on(start_date = nil,
@@ -408,35 +370,6 @@ class Element < ActiveRecord::Base
         owned_by:            owned_by,
         include_nonexistent: include_nonexistent)
     end
-  end
-
-
-  def old_commitments_during(start_time:          nil,
-                         end_time:            nil,
-                         eventcategory:       nil,
-                         eventsource:         nil,
-                         owned_by:            nil,
-                         include_nonexistent: false,
-                         and_by_group:        true)
-    puts "Entering commitments_during at #{Time.now.strftime("%H:%M:%S.%3N")}."
-    if and_by_group
-      if start_time != nil
-        start_date = start_time.to_date
-      end
-      my_groups = self.groups(start_date)
-    else
-      my_groups = []
-    end
-    puts "Got groups at #{Time.now.strftime("%H:%M:%S.%3N")}."
-    result = Commitment.commitments_during(start_time:          start_time,
-                                  end_time:            end_time,
-                                  eventcategory:       eventcategory,
-                                  eventsource:         eventsource,
-                                  resource:            [self] + my_groups,
-                                  owned_by:            owned_by,
-                                  include_nonexistent: include_nonexistent)
-    puts "Fetched commitments at #{Time.now.strftime("%H:%M:%S.%3N")}."
-    result
   end
 
   #
