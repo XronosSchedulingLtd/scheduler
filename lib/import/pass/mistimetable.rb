@@ -190,6 +190,12 @@ class MIS_Schedule
     end
     @entries = lesson_hash.values
     #
+    #  Any school-specific processing?
+    #
+    if self.respond_to? :local_processing
+      self.local_processing
+    end
+    #
     #  And now find the resources.
     #
     @entries.each do |entry|
@@ -227,6 +233,8 @@ end
 
 class MIS_Timetable
 
+  WEEK_LETTERS = ["A", "B"]
+
   def initialize(loader, mis_data)
     #
     #  We shall want access to the week identifier later.
@@ -256,11 +264,29 @@ class MIS_Timetable
     #
     #  Note that more than one week may be extant on the indicated date.
     #
-    day_of_week = date.strftime("%A")
+    day_of_week = date.strftime("%a")
     week_letter = @week_identifier.week_letter(date)
     right_week = @week_hash[week_letter]
     lessons = []
     if right_week
+      right_day = right_week[day_of_week]
+      if right_day
+        lessons = right_day
+      end
+    end
+    lessons
+  end
+
+  #
+  #  Return the relevant lessons for a specified week number (0 or 1)
+  #  and day number (0 = Sunday, 1 = Monday, etc.)
+  #
+  def lessons_by_day(week_no, day_no)
+    week_letter = WEEK_LETTERS[week_no]
+    right_week = @week_hash[week_letter]
+    lessons = []
+    if right_week
+      day_of_week = Date::ABBR_DAYNAMES[day_no]
       right_day = right_week[day_of_week]
       if right_day
         lessons = right_day
