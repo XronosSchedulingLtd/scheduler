@@ -1,3 +1,29 @@
+v1.4.1  2018-09-03
+
+* Allow the merging of consecutive lessons from MIS
+
+  A situation arose where all the lessons in an MIS had been loaded
+  as half-lessons, leading to everyone getting very messy timetables.
+
+  Add the means for the importer to merge consecutive identical lessons
+  to reflect reality.
+
+* Add timetable functionality to Pass-based systems
+
+  The previous release allowed timetables only for systems importing
+  from iSAMS.  This release adds the facility to systems importing from
+  Pass.
+
+* Sort timetables when printing
+
+  When printing a whole group of timetables, they will now be sorted
+  in a sensible order.  For pupils this is by:
+
+  * year group
+  * family name
+  * given name
+
+
 v1.4.0  2018-09-02
 
 * Add the means to view and print timetables (as opposed to schedules)
