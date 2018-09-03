@@ -722,7 +722,7 @@ class ElementsController < ApplicationController
       date = Date.today
       members = element.entity.members(nil, true, true)
       @timetables = Timetable::Collection.new
-      members.each do |member|
+      members.sort.each do |member|
         if member.element
           @timetables << Timetable::Contents.new(member.element,
                                                  date,
