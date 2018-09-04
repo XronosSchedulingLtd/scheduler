@@ -95,6 +95,15 @@ module Elemental
   end
 
   #
+  #  A method to assist in the sorting of mixed entity types.
+  #
+  def sort_by_entity_type(other)
+    own_name = self.class.name
+    other_name = other.class.name
+    Element::SORT_ORDER_HASH[own_name] <=> Element::SORT_ORDER_HASH[other_name]
+  end
+
+  #
   #  An entity may well want to override these.
   #
   def show_historic_panels?
@@ -153,10 +162,14 @@ module Elemental
   end
 
   #
-  #  Default to sorting by name.
+  #  Default to sorting by entity type and then by name.
   #
   def <=>(other)
-    self.name <=> other.name
+    result = sort_by_entity_type(other)
+    if result == 0
+      result = self.name <=> other.name
+    end
+    result
   end
 
   #

@@ -63,9 +63,7 @@
       <td>Start date:</td>
       <td>
         <%= text_field_tag(:first_date,
-                           @earliest_date ?
-                           @earliest_date.strftime("%d/%m/%Y") :
-                           "",
+                           @start_date.strftime("%d/%m/%Y"),
                            :class => :datepicker) %>
       </td>
     </tr>
@@ -89,6 +87,12 @@
       <td>Do load:</td>
       <td>
         <%= check_box_tag(:do_load, 'yes', true) %>
+      </td>
+    </tr>
+    <tr>
+      <td>Load week letters:</td>
+      <td>
+        <%= check_box_tag(:do_load_weeks, 'yes', true) %>
       </td>
     </tr>
     <tr>

@@ -79,10 +79,6 @@ class Location < ActiveRecord::Base
     end
   end
 
-  def <=>(other)
-    self.name <=> other.name
-  end
-
   def can_destroy?
     !self.active || (self.element.commitments.count == 0)
   end
