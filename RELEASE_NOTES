@@ -1,3 +1,33 @@
+v1.4.2  2018-09-04
+
+* Enhance import of legacy calendar data
+
+  The importer for legacy calendar data has been enhanced to try to
+  match up locations in ICS files with the locations which the system
+  knows about.
+
+* Fix problem sorting mixed entities
+
+  The previous release added sorting of timetables before printing, but
+  in the case of a group with mixed entities (e.g. staff and pupils) in
+  the same group, the sorting did not work.
+
+  This release fixes that.  Entities are first sorted by entity type
+  in the following order:
+
+    * Properties
+    * Subjects
+    * Staff
+    * Pupils
+    * Locations
+    * Groups
+    * Services
+
+  and then within a single type they are sorted by name.
+
+  In addition, pupils are sorted by year group and then by name.
+
+
 v1.4.1  2018-09-03
 
 * Allow the merging of consecutive lessons from MIS
