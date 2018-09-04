@@ -26,9 +26,10 @@ class Locator
         @location_hash[la.name.downcase] = la
       end
     end
+    @not_found = Array.new
   end
 
-  def check_for_locations(description)
+  def check_for_locations(description, locations_text)
     #
     #  Some summaries end with "(tbc)" or "(TBC)" which interferes
     #  with location identification.  Strip it off if present and put
@@ -70,6 +71,27 @@ class Locator
         end
       end
     end
+    #
+    #  Now let's try the locations text, if we got any.
+    #
+    #  Might be nil, or an empty string.
+    #
+    unless locations_text.blank?
+      #
+      #  Split on comma, slash and ampersand, removing any surrounding spaces
+      #  as well.
+      #
+      broken = locations_text.split(/\s*[,\/&]\s*/)
+      broken.each do |chunk|
+        location = @location_hash[chunk.downcase]
+        if location
+          found_something = true
+          locations << location
+        else
+          @not_found << chunk unless @not_found.include?(chunk)
+        end
+      end
+    end
     if found_something
 #     Rails.logger.info("LOC: \"#{orgdescription}\" yields:")
 #     locations.each do |la|
@@ -80,6 +102,15 @@ class Locator
     else
 #     Rails.logger.info("LOC: No locations: \"#{orgdescription}\"")
       [orgdescription, []]
+    end
+  end
+
+  def report_not_found
+    unless @not_found.empty?
+      Rails.logger.debug("The following locations were not found.")
+      @not_found.each do |nf|
+        Rails.logger.debug("  \"#{nf}\"")
+      end
     end
   end
 
@@ -128,13 +159,14 @@ class Locator
 end
 
 class CalendarEntry
-  attr_reader :starts_at, :ends_at, :description, :all_day
+  attr_reader :starts_at, :ends_at, :description, :all_day, :locations_text
 
-  def initialize(description, starts_at, ends_at, all_day)
-    @description = description
-    @starts_at   = starts_at
-    @ends_at     = ends_at
-    @all_day     = all_day
+  def initialize(description, starts_at, ends_at, all_day, locations = nil)
+    @description    = description
+    @starts_at      = starts_at
+    @ends_at        = ends_at
+    @all_day        = all_day
+    @locations_text = locations
   end
 
   #
@@ -431,11 +463,13 @@ class CalendarEntryICS < CalendarEntry
               dtend = occurrence.dtstart
             end
           end
+          location = occurrence.location
           entries <<
             CalendarEntryICS.new(occurrence.summary,
                                  occurrence.dtstart,
                                  dtend,
-                                 all_day)
+                                 all_day,
+                                 location)
         end
       else
         Rails.logger.info("Unbounded event - #{event.summary}")
@@ -765,7 +799,8 @@ class ImportsController < ApplicationController
                 end
               else
                 description, locations =
-                  locator.check_for_locations(entry.description)
+                  locator.check_for_locations(entry.description,
+                                              entry.locations_text)
                 unless add_event(entry.starts_at,
                                  entry.ends_at,
                                  entry.all_day,
@@ -777,6 +812,8 @@ class ImportsController < ApplicationController
                 end
               end
             end
+            locator.report_not_found
+if false
             if weekletterentries.size > 0
               currentweekletter = nil
               currentweekstart  = nil
@@ -834,8 +871,8 @@ class ImportsController < ApplicationController
                   @failures << "Event #{entry.description} was invalid."
                 end
               end
-            
             end
+end            
           else
             redirect_to imports_index_path, message
           end

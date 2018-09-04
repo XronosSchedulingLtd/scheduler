@@ -843,10 +843,6 @@ class Group < ActiveRecord::Base
     end
   end
 
-  def <=>(other)
-    self.name <=> other.name
-  end
-
   #
   #  Like members, but if the date falls outside the lifetime of the group
   #  then list the members just before the group ended.
