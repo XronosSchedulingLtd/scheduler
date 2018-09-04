@@ -99,9 +99,12 @@ class Staff < ActiveRecord::Base
   end
 
   def <=>(other)
-    result = self.surname <=> other.surname
+    result = sort_by_entity_type(other)
     if result == 0
-      result = self.forename <=> other.forename
+      result = self.surname <=> other.surname
+      if result == 0
+        result = self.forename <=> other.forename
+      end
     end
     result
   end

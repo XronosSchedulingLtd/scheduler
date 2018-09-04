@@ -26,9 +26,10 @@ class Locator
         @location_hash[la.name.downcase] = la
       end
     end
+    @not_found = Array.new
   end
 
-  def check_for_locations(description)
+  def check_for_locations(description, locations_text)
     #
     #  Some summaries end with "(tbc)" or "(TBC)" which interferes
     #  with location identification.  Strip it off if present and put
@@ -70,6 +71,27 @@ class Locator
         end
       end
     end
+    #
+    #  Now let's try the locations text, if we got any.
+    #
+    #  Might be nil, or an empty string.
+    #
+    unless locations_text.blank?
+      #
+      #  Split on comma, slash and ampersand, removing any surrounding spaces
+      #  as well.
+      #
+      broken = locations_text.split(/\s*[,\/&]\s*/)
+      broken.each do |chunk|
+        location = @location_hash[chunk.downcase]
+        if location
+          found_something = true
+          locations << location
+        else
+          @not_found << chunk unless @not_found.include?(chunk)
+        end
+      end
+    end
     if found_something
 #     Rails.logger.info("LOC: \"#{orgdescription}\" yields:")
 #     locations.each do |la|
@@ -80,6 +102,15 @@ class Locator
     else
 #     Rails.logger.info("LOC: No locations: \"#{orgdescription}\"")
       [orgdescription, []]
+    end
+  end
+
+  def report_not_found
+    unless @not_found.empty?
+      Rails.logger.debug("The following locations were not found.")
+      @not_found.each do |nf|
+        Rails.logger.debug("  \"#{nf}\"")
+      end
     end
   end
 
@@ -128,13 +159,14 @@ class Locator
 end
 
 class CalendarEntry
-  attr_reader :starts_at, :ends_at, :description, :all_day
+  attr_reader :starts_at, :ends_at, :description, :all_day, :locations_text
 
-  def initialize(description, starts_at, ends_at, all_day)
-    @description = description
-    @starts_at   = starts_at
-    @ends_at     = ends_at
-    @all_day     = all_day
+  def initialize(description, starts_at, ends_at, all_day, locations = nil)
+    @description    = description
+    @starts_at      = starts_at
+    @ends_at        = ends_at
+    @all_day        = all_day
+    @locations_text = locations
   end
 
   #
@@ -431,11 +463,13 @@ class CalendarEntryICS < CalendarEntry
               dtend = occurrence.dtstart
             end
           end
+          location = occurrence.location
           entries <<
             CalendarEntryICS.new(occurrence.summary,
                                  occurrence.dtstart,
                                  dtend,
-                                 all_day)
+                                 all_day,
+                                 location)
         end
       else
         Rails.logger.info("Unbounded event - #{event.summary}")
@@ -512,49 +546,38 @@ class ImportsController < ApplicationController
                                             'UTF-8')
         parsed = CSV.parse(utf8_encoded_contents)
         entries, message = CalendarEntryCSV.array_from_data(parsed)
-        if entries
-          @earliest_date = nil
-          @latest_date   = nil
-          entries.each do |entry|
-            if @earliest_date == nil ||
-               entry.starts_at < @earliest_date
-              @earliest_date = entry.starts_at
-            end
-            if @latest_date == nil ||
-               entry.ends_at > @latest_date
-              @latest_date = entry.ends_at
-            end
-          end
-          @entries = entries.size
-        else
-          redirect_to imports_index_path, message
-        end
       elsif extension == '.ics'
         File.open(Rails.root.join(IMPORT_DIR, @name), "r") do |file|
           contents = RiCal.parse(file)
         end
         calendar = contents.first
         entries, message = CalendarEntryICS.array_from_data(calendar)
-        if entries
-          @earliest_date = nil
-          @latest_date   = nil
-          entries.each do |entry|
-            if @earliest_date == nil ||
-               entry.starts_at < @earliest_date
-              @earliest_date = entry.starts_at
-            end
-            if @latest_date == nil ||
-               entry.ends_at > @latest_date
-              @latest_date = entry.ends_at
-            end
-          end
-          @entries = entries.size
-        else
-          redirect_to imports_index_path, message
-        end
       else
-        redirect_to imports_index_path,
-                    notice: 'Currently we can process only CSV or ICS files.'
+        entries = nil
+        message = 'Currently we can process only CSV or ICS files.'
+      end
+      if entries
+        @earliest_date = nil
+        @latest_date   = nil
+        entries.each do |entry|
+          if @earliest_date == nil ||
+             entry.starts_at < @earliest_date
+            @earliest_date = entry.starts_at
+          end
+          if @latest_date == nil ||
+             entry.ends_at > @latest_date
+            @latest_date = entry.ends_at
+          end
+        end
+        today = Time.zone.today
+        if @earliest_date > today
+          @start_date = @earliest_date
+        else
+          @start_date = today
+        end
+        @entries = entries.size
+      else
+        redirect_to imports_index_path, message
       end
     end
   end
@@ -685,9 +708,10 @@ class ImportsController < ApplicationController
       #  Since we are purging events, we want all events up to midnight at
       #  the start of the day *after* the indicated day.
       #
-      end_date   = Time.zone.parse(params[:last_date]) + 1.day
-      do_purge   = (params[:do_purge] == 'yes')
-      do_load    = (params[:do_load] == 'yes')
+      end_date      = Time.zone.parse(params[:last_date]) + 1.day
+      do_purge      = (params[:do_purge] == 'yes')
+      do_load       = (params[:do_load] == 'yes')
+      do_load_weeks = (params[:do_load_weeks] == 'yes')
       @failures  = []
       #
       #  Should do some validation of the input parameters here.
@@ -765,7 +789,8 @@ class ImportsController < ApplicationController
                 end
               else
                 description, locations =
-                  locator.check_for_locations(entry.description)
+                  locator.check_for_locations(entry.description,
+                                              entry.locations_text)
                 unless add_event(entry.starts_at,
                                  entry.ends_at,
                                  entry.all_day,
@@ -777,64 +802,51 @@ class ImportsController < ApplicationController
                 end
               end
             end
-            if weekletterentries.size > 0
-              currentweekletter = nil
-              currentweekstart  = nil
-              currentweekend    = nil
-              weekletterentries.sort.each do |wle|
-#                Rails.logger.debug "WL: Processing WEEK #{
-#                                    wle.week_letter
-#                                  } from #{
-#                                    wle.starts_at.to_formatted_s(:dmy)
-#                                  } to #{
-#                                    wle.ends_at.to_formatted_s(:dmy)
-#                                  }"
-                if wle.week_letter == currentweekletter
-#                  Rails.logger.debug("WL: Continuation")
-                  #
-                  #  The week continues
-                  #
-                  currentweekend = wle.ends_at
-                else
-#                  Rails.logger.debug("WL: Change of week letter")
-                  if currentweekletter
+            locator.report_not_found
+            if do_load_weeks
+              if weekletterentries.size > 0
+                currentweekletter = nil
+                currentweekstart  = nil
+                currentweekend    = nil
+                weekletterentries.sort.each do |wle|
+                  if wle.week_letter == currentweekletter
                     #
-                    #  Need to flush this one to the d/b.
+                    #  The week continues
                     #
-#                    Rails.logger.debug "WL: Trying to save #{
-#                            currentweekstart.to_formatted_s(:dmy)
-#                          } to #{
-#                            currentweekend.to_formatted_s(:dmy)
-#                          }"
-                    unless add_event(currentweekstart,
-                                     currentweekend,
-                                     true,
-                                     "WEEK #{currentweekletter}",
-                                     weeklettercategory,
-                                     eventsource)
-                      @failures << "Event #{entry.description} was invalid."
+                    currentweekend = wle.ends_at
+                  else
+                    if currentweekletter
+                      #
+                      #  Need to flush this one to the d/b.
+                      #
+                      unless add_event(currentweekstart,
+                                       currentweekend,
+                                       true,
+                                       "WEEK #{currentweekletter}",
+                                       weeklettercategory,
+                                       eventsource)
+                        @failures << "Event #{entry.description} was invalid."
+                      end
                     end
+                    currentweekletter = wle.week_letter
+                    currentweekstart  = wle.starts_at
+                    currentweekend    = wle.ends_at
                   end
-                  currentweekletter = wle.week_letter
-                  currentweekstart  = wle.starts_at
-                  currentweekend    = wle.ends_at
-                end
-              end # Looping through week letters.
-              if currentweekletter
-                #
-                #  Need to flush this final one to the d/b.
-                #
-#                Rails.logger.debug("WL: Flushing final one")
-                unless add_event(currentweekstart,
-                                 currentweekend,
-                                 true,
-                                 "WEEK #{currentweekletter}",
-                                 weeklettercategory,
-                                 eventsource)
-                  @failures << "Event #{entry.description} was invalid."
+                end # Looping through week letters.
+                if currentweekletter
+                  #
+                  #  Need to flush this final one to the d/b.
+                  #
+                  unless add_event(currentweekstart,
+                                   currentweekend,
+                                   true,
+                                   "WEEK #{currentweekletter}",
+                                   weeklettercategory,
+                                   eventsource)
+                    @failures << "Event #{entry.description} was invalid."
+                  end
                 end
               end
-            
             end
           else
             redirect_to imports_index_path, message
