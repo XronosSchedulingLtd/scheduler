@@ -9,5 +9,5 @@
 #
 . ~/.rvm/environments/scheduler
 #
-cd ~/Work/Coding/scheduler
+cd $SCHEDULER_DIR
 lib/import/misimport.rb --check --quiet
