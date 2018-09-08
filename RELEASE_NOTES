@@ -1,3 +1,21 @@
+v1.4.3  2018-09-08
+
+* Fix to identifying week letters for recurring events
+
+  Week letter identification (week A or B) used to be done in various
+  different ways at different points in the code.  To DRY things up
+  and make them more resilient, a class was added some time back which
+  does the work on behalf of any bit of code which needs it, improving
+  both robustness and efficiency.
+
+  The recurring events loaded however was missed and was still using
+  its own very naive method, which resulted in events not being loaded
+  when the week letter events weren't exactly as it expected.
+
+  The recurring events loader now uses the specialist module to do
+  this work.
+
+
 v1.4.2  2018-09-04
 
 * Enhance import of legacy calendar data
