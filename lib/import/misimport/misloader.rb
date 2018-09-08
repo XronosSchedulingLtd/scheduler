@@ -1068,20 +1068,6 @@ class MIS_Loader
     end
   end
 
-  def get_week_letter(date)
-    events = @week_letter_category.events_on(date)
-    if events.size == 1
-      if events[0].body == "WEEK A"
-        "A"
-      elsif events[0].body == "WEEK B"
-        "B"
-      else
-        nil
-      end
-    else
-      nil
-    end
-  end
 
   def do_recurring_events
     puts "Processing recurring events" if @verbose
@@ -1103,7 +1089,7 @@ class MIS_Loader
     end
     @start_date.upto(@era.ends_on) do |date|
       puts "Processing #{date}" if @verbose
-      week_letter = get_week_letter(date)
+      week_letter = @week_identifier.week_letter(date)
       events = res.events_on(date, week_letter)
       existing_events = Event.events_on(date,
                                         date,
