@@ -25,6 +25,7 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
               :staff_id,
               :set_code,
               :lesson_id,
+              :lesson_desc,
               :room_id
 
   def initialize(entry)
@@ -143,6 +144,17 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
     @staff_ids  << other.staff_id
     @lesson_ids << other.lesson_id
     @room_ids   << other.room_id
+    #
+    #  It's just possible that the two lessons have different lesson
+    #  descriptions (if the hash_key method has been overridden).
+    #  Take the longest possible sub-string.
+    #
+    #  Note that & is not a standard method on strings.  It's in
+    #  our extend_string.rb file.
+    #
+    if self.lesson_desc != other.lesson_desc
+      @lesson_desc = self.lesson_desc & other.lesson_desc
+    end
     #
     #  Since in reality lessons may well have more than one teacher,
     #  we need to keep track of which teacher belongs to which
