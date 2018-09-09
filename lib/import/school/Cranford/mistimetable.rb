@@ -11,6 +11,28 @@ end
 
 class PASS_ScheduleEntry
   #
+  #  We override the hash key for the merging of simultaneous lessons
+  #  in order to accommodate CHS's slightly odd naming.
+  #
+  def hash_key
+    #
+    #  Starts with GAMES or PE followed by a digit.
+    #
+    if /\A(GAMES|PE)\d/ =~ @lesson_desc
+      #
+      #  Chop off the final digit.  Note that although this will make
+      #  the names match up, it won't fix the fact that the separate
+      #  lessons have different names.  The final name will end up
+      #  being that of one of the originals, but it's hard to predict which.
+      #
+      local_desc = @lesson_desc[0...-1]
+    else
+      local_desc = @lesson_desc
+    end
+    "#{local_desc}/#{@period_time.to_s}/#{@day_name}/#{@week_letter}"
+  end
+
+  #
   #  We want to merge lessons with the same name, staff and rooms
   #  which happen consecutively.  One finishes just as the next one
   #  starts.
@@ -51,19 +73,27 @@ class MIS_Schedule
     #
     #  And now look for consecutives.
     #
+    to_delete = Array.new
     @entries.each do |entry|
-      hash_key = entry.end_time_hash_key
-      other_lesson = lesson_hash[hash_key]
-      if other_lesson
-        #
-        #  Got one to merge.  We keep entry, and merge other_lesson
-        #  into it.
-        #
-        entry.period_time.ends_at = other_lesson.period_time.ends_at
-        @entries.delete(other_lesson)
-        lesson_hash.delete(hash_key)
+      unless to_delete.include?(entry)
+        hash_key = entry.end_time_hash_key
+        other_lesson = lesson_hash[hash_key]
+        if other_lesson
+          #
+          #  Got one to merge.  We keep entry, and merge other_lesson
+          #  into it.
+          #
+          entry.period_time.ends_at = other_lesson.period_time.ends_at
+          to_delete << other_lesson
+          lesson_hash.delete(hash_key)
+        end
       end
     end
-
+    #
+    #  Only delete from the array at the end because deleting entries
+    #  from an array whilst you're iterating through the array really
+    #  confuses Ruby.
+    #
+    @entries -= to_delete
   end
 end
