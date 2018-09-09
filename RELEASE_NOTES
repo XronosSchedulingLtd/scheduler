@@ -1,3 +1,29 @@
+v1.4.4  2018-09-09
+
+* Merged lessons to take common part of name
+
+  Many (most) MISes make the unwarranted assumption that each lesson involves
+  only one teacher.  Schools end up creating several parallel lessons
+  to record all the teachers involved - commonly for sport, but also
+  for other subjects.
+
+  The MIS loader in Scheduler tries to correct this by merging lessons
+  according to certain criteria, one of which is that the names should
+  match.
+
+  It is however possible for site-specific code to override this and merge
+  lessons even when the names don't match.  Eg SPORT10A and SPORT10B.
+  The merging code will now use the common part of these two names - SPORT10
+  for the resulting merged lesson.
+
+* Correct merging of consecutive lessons in school-specific code.
+
+  Code was added in the school-specific area to merge consecutive
+  lessons and one particular school.  However, it modified an array
+  whilst iterating through the same array, which Ruby doesn't like.
+  Fixed that.
+
+
 v1.4.3  2018-09-08
 
 * Fix to identifying week letters for recurring events
