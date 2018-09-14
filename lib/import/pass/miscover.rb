@@ -29,6 +29,7 @@ class MIS_Cover
   #
   def initialize(loader, entry, other_entries)
     verbose = loader.options.verbose
+    puts "=====  Start processing cover entry =====" if verbose
     #
     #  First assemble data from the "doing cover" record.
     #
@@ -82,16 +83,8 @@ class MIS_Cover
         else
           puts "Can't find #{pe.covered_staff_name} needing cover."
         end
-        matches = candidate_lessons.select { |l|
-          l.taught_by?(pe.covered_staff_id) &&
-            l.period_time.starts_at == @starts_at &&
-            l.period_time.ends_at   == @ends_at &&
-            #
-            #  What the timetable entries call a SET_CODE, the cover
-            #  entries call a TASK_CODE.  This is Pass being silly,
-            #  not Scheduler.
-            #
-            l.set_code              == entry.task_code
+        matches = candidate_lessons.select { |lesson|
+          suitable_match?(pe, lesson)
         }
         if verbose
           puts "Found #{matches.size} possible matches."
@@ -116,6 +109,22 @@ class MIS_Cover
       puts "Timing: #{@starts_at} - #{@ends_at} on #{@task_start.strftime("%d/%m/%Y")}."
       puts "#{plausible_entries.count} plausible entries."
     end
+  end
+
+  #
+  #  Note that this following method may well be over-ridden in school-
+  #  specific code.
+  #
+  def suitable_match?(pe, lesson)
+    lesson.taught_by?(pe.covered_staff_id) &&
+      lesson.period_time.starts_at == @starts_at &&
+      lesson.period_time.ends_at   == @ends_at &&
+      #
+      #  What the timetable entries call a SET_CODE, the cover
+      #  entries call a TASK_CODE.  This is Pass being silly,
+      #  not Scheduler.
+      #
+      lesson.set_code              == pe.task_code
   end
 
   def complete?(quiet)
