@@ -1,3 +1,11 @@
+v1.4.5  2018-09-14
+
+* Enhance Pass cover import to cope with merged lessons.
+
+  When consecutive lessons have been merged, and then cover is arranged,
+  extra processing is needed to match things up.
+
+
 v1.4.4  2018-09-09
 
 * Merged lessons to take common part of name
