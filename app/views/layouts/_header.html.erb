@@ -46,7 +46,8 @@
         <%= link_to "Groups", groups_path %>
         <ul class="dropdown">
           <li><%= link_to "All", groups_path %></li>
-          <li><%= link_to "Mine", groups_path(:mine => true) %></li>
+          <li><%= link_to "Mine", groups_path(mine: true) %></li>
+          <li><%= link_to "Resource", groups_path(resource: true) %></li>
           <li><%= link_to "Tutor", tutorgroups_path %></li>
         </ul>
       </li>

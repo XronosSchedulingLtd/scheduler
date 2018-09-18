@@ -19,7 +19,11 @@
     <%= f.label :current %><br>
     <%= f.check_box :current %>
   </div>
+  <div class="field">
+    <%= f.label :add_directly %><br>
+    <%= f.check_box :add_directly %>
+  </div>
   <div class="actions">
-    <%= f.submit @service.id ? "Update" : "Create", :class => "zfbutton small radius" %>
+    <%= f.submit @service.id ? "Update" : "Create", :class => "zfbutton tiny radius" %>
   </div>
 <% end %>

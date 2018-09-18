@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180727090430) do
+ActiveRecord::Schema.define(version: 20180916063144) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -105,6 +105,7 @@ ActiveRecord::Schema.define(version: 20180727090430) do
     t.boolean  "owned",                        default: false
     t.string   "uuid",             limit: 255
     t.integer  "user_form_id",     limit: 4
+    t.boolean  "add_directly",                 default: true
   end
 
   add_index "elements", ["entity_id"], name: "index_elements_on_entity_id", using: :btree
@@ -478,6 +479,11 @@ ActiveRecord::Schema.define(version: 20180727090430) do
   add_index "requests", ["event_id"], name: "index_requests_on_event_id", using: :btree
   add_index "requests", ["proto_request_id"], name: "index_requests_on_proto_request_id", using: :btree
 
+  create_table "resourcegrouppersonae", force: :cascade do |t|
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
   create_table "rota_slots", force: :cascade do |t|
     t.integer  "rota_template_id", limit: 4
     t.time     "starts_at"
@@ -505,10 +511,11 @@ ActiveRecord::Schema.define(version: 20180727090430) do
   end
 
   create_table "services", force: :cascade do |t|
-    t.string   "name",       limit: 255
+    t.string   "name",         limit: 255
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "current",                default: true
+    t.boolean  "current",                  default: true
+    t.boolean  "add_directly",             default: true
   end
 
   create_table "settings", force: :cascade do |t|

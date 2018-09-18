@@ -17,6 +17,10 @@ class Service < ActiveRecord::Base
     name
   end
 
+  def add_directly?
+    self.add_directly
+  end
+
   def owners_initials
     self.element.owners.collect {|o| o.initials}.join(", ")
   end

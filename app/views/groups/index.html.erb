@@ -1,7 +1,7 @@
-<h1>Listing groups</h1>
+<h1>Listing <%= @heading %></h1>
 <p id="notice"><%= notice %></p>
 
-<%= link_to 'New Group', new_group_path, class: "zfbutton tiny radius" %>
+<%= link_to "New #{@type_to_create} group", new_group_path(type: @type_to_create), class: "zfbutton tiny radius button-link" %>
 
 <% if @paginate %>
 <div class="digg_pagination">

@@ -4,19 +4,6 @@
 # for more information.
 
 #
-#  Slightly tricky.  We define this dummy class in two places,
-#  but the second time just opens it, fails to modify it,
-#  then closes it again.
-#
-#  The reason for this is that if a Rails instance starts up and
-#  the very first thing it tries to do is a Vanillagroup.create!
-#  then without this second definition it doesn't think it's
-#  seen it before.
-#
-class Vanillagrouppersona
-end
-
-#
 #  Note that this isn't a real Rails model - it doesn't inherit from
 #  ActiveRecord at all.
 #
@@ -45,6 +32,10 @@ class Vanillagroup
   def self.where(given_hash)
     given_hash[:persona_type] = nil
     Group.where(given_hash)
+  end
+
+  def self.count
+    Group.where("persona_type IS NULL").count
   end
 
   #

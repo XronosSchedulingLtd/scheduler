@@ -47,6 +47,7 @@ class Element < ActiveRecord::Base
   validates :uuid, uniqueness: true
 
   scope :current, -> { where(current: true) }
+  scope :add_directly, -> { where(add_directly: true) }
   scope :staff, -> { where(entity_type: "Staff") }
   scope :agroup, -> { where(entity_type: "Group") }
   scope :property, -> { where(entity_type: "Property") }

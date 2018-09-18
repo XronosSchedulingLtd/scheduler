@@ -46,10 +46,12 @@ module Elemental
       if self.active
         if self.element.name != self.element_name ||
            self.element.current != self.current ||
-           self.element.owner_id != self.entitys_owner_id
-          self.element.name     = self.element_name
-          self.element.current  = self.current
-          self.element.owner_id = self.entitys_owner_id
+           self.element.owner_id != self.entitys_owner_id ||
+           self.element.add_directly? != self.add_directly?
+          self.element.name         = self.element_name
+          self.element.current      = self.current
+          self.element.owner_id     = self.entitys_owner_id
+          self.element.add_directly = self.add_directly?
           self.element.save!
         end
       else
@@ -61,8 +63,9 @@ module Elemental
     else
       if self.active
         creation_hash = {
-          name:    self.element_name,
-          current: self.current,
+          name:         self.element_name,
+          current:      self.current,
+          add_directly: self.add_directly?
         }
         if self.respond_to?(:entitys_owner_id)
           creation_hash[:owner_id] = self.entitys_owner_id
@@ -116,6 +119,10 @@ module Elemental
   #
   def extra_panels?
     false
+  end
+
+  def add_directly?
+    true
   end
 
   def display_name

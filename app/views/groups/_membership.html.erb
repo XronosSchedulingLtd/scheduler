@@ -4,10 +4,13 @@
     <th>Pupils</th>
     <th>Groups</th>
     <th>Locations</th>
+    <th>Properties</th>
+    <th>Services</th>
+    <th>Subjects</th>
   </tr>
 <% if @atomic_membership %>
   <tr>
-    <td colspan="4" align="center">Specified members</td>
+    <td colspan="7" align="center">Specified members</td>
   </tr>
 <% end %>
   <tr>
@@ -23,10 +26,19 @@
     <td valign="top">
       <%= membership_entries_for(membership, Location, editing) %>
     </td>
+    <td valign="top">
+      <%= membership_entries_for(membership, Property, editing) %>
+    </td>
+    <td valign="top">
+      <%= membership_entries_for(membership, Service, editing) %>
+    </td>
+    <td valign="top">
+      <%= membership_entries_for(membership, Subject, editing) %>
+    </td>
   </tr>
 <% if @atomic_membership %>
   <tr>
-    <td colspan="4" align="center">Resulting membership</td>
+    <td colspan="7" align="center">Resulting membership</td>
   </tr>
   <tr>
     <td valign="top">
@@ -40,6 +52,15 @@
     </td>
     <td valign="top">
       <%= atomic_entries(@atomic_membership, Location) %>
+    </td>
+    <td valign="top">
+      <%= atomic_entries(@atomic_membership, Property) %>
+    </td>
+    <td valign="top">
+      <%= atomic_entries(@atomic_membership, Service) %>
+    </td>
+    <td valign="top">
+      <%= atomic_entries(@atomic_membership, Subject) %>
     </td>
   </tr>
 <% end %>
