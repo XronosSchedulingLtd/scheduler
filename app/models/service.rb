@@ -9,6 +9,8 @@ class Service < ActiveRecord::Base
 
   include Elemental
 
+  self.per_page = 15
+
   def active
     true
   end

@@ -59,8 +59,8 @@ class GroupsController < ApplicationController
           #  Seem to want to jump to a particular group.
           #  Use find_by to avoid raising an error.
           #
-          target_element = Element.find_by(id: element_id)
-          if target_element && target_element.entity_type == 'Group'
+          target_element = Element.agroup.find_by(id: element_id)
+          if target_element
             index = selector.find_index {|g| g.id == target_element.entity_id}
             if index
               page_param = ((index / Group.per_page) + 1).to_s

@@ -11,19 +11,32 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :name %><br>
-    <%= f.text_field :name, :class => "focus_please" %>
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :name, class: 'right inline' %>
+    </div>
+    <div class="small-10 columns">
+      <%= f.text_field :name, class: 'focus_please' %>
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :current %><br>
-    <%= f.check_box :current %>
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :current, class: 'right' %>
+    </div>
+    <div class="small-10 columns">
+      <%= f.check_box :current %>
+    </div>
   </div>
-  <div class="field">
-    <%= f.label :add_directly %><br>
-    <%= f.check_box :add_directly %>
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :add_directly, class: 'right' %>
+    </div>
+    <div class="small-10 columns">
+      <%= f.check_box :add_directly %>
+    </div>
   </div>
   <div class="actions">
-    <%= f.submit @service.id ? "Update" : "Create", :class => "zfbutton tiny radius" %>
+    <%= f.submit @service.id ? 'Update' : 'Create', class: 'zfbutton tiny radius' %>
+    <%= link_to 'Cancel', services_path, class: 'zfbutton tiny radius button-link' %>
   </div>
 <% end %>
