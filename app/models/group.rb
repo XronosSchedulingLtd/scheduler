@@ -82,6 +82,8 @@ class Group < ActiveRecord::Base
 
   include Elemental
 
+  self.per_page = 15
+
   def persona_class=(new_class)
     if new_class.instance_of?(String)
       case new_class

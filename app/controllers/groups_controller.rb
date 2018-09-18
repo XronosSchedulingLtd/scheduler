@@ -17,18 +17,58 @@ class GroupsController < ApplicationController
   # GET /groups
   # GET /groups.json
   def index
+    #
+    #  Need an element to make the finder box work.
+    #
+    @element = Element.new
     if current_user.admin && !params[:mine]
       if params[:resource]
-        @groups = Group.resourcegroups.page(params[:page]).order('name')
+        selector = Group.resourcegroups.current.order('name')
         @heading = "resource groups"
         @type_to_create = :resource
+        @which_finder = :resource
       else
-        @groups = Group.current.page(params[:page]).order('name')
+        selector = Group.current.order('name')
         @heading = "all groups"
         @type_to_create = :vanilla
+        @which_finder = :all
       end
       @paginate = true
       @separate = false
+      #
+      #  It's possible that we have been asked to display the page
+      #  containing a particular group.
+      #
+      page_param = params[:page]
+      if page_param.blank?
+        #
+        #  Default to page 1.
+        #
+        page_param = "1"
+        #
+        #  Although we portray to the user that they are searching
+        #  for a group, what we actually search on is element.  Thus
+        #  we get an element id returned.
+        #
+        #  Note that it is just possible that the user will force
+        #  in what is a valid element id, but not for a group.
+        #
+        element_id = params[:element_id]
+        unless element_id.blank?
+          #
+          #  Seem to want to jump to a particular group.
+          #  Use find_by to avoid raising an error.
+          #
+          target_element = Element.find_by(id: element_id)
+          if target_element && target_element.entity_type == 'Group'
+            index = selector.find_index {|g| g.id == target_element.entity_id}
+            if index
+              page_param = ((index / Group.per_page) + 1).to_s
+            end
+          end
+        end
+      end
+      @groups = selector.page(page_param)
     else
       @groups = Group.current.belonging_to(current_user).order('name')
       @heading = "my groups"
@@ -36,6 +76,7 @@ class GroupsController < ApplicationController
       @separate = !(@public_groups.empty? || @private_groups.empty?)
       @paginate = false
       @type_to_create = :vanilla
+      @which_finder = :mine
     end
   end
 

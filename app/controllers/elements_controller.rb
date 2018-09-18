@@ -224,7 +224,7 @@ class ElementsController < ApplicationController
     elements =
       selector.current.
               mine_or_system(current_user).
-              where('name LIKE ?', "%#{term}%").
+              where('elements.name LIKE ?', "%#{term}%").
               order("LENGTH(elements.name)").
               order(:name).
               all
@@ -247,6 +247,14 @@ class ElementsController < ApplicationController
 
   def autocomplete_group_element_name
     do_autocomplete(Element.agroup, params[:term])
+  end
+
+  def autocomplete_resourcegroup_element_name
+    do_autocomplete(Element.aresourcegroup, params[:term])
+  end
+
+  def autocomplete_my_group_element_name
+    do_autocomplete(Element.agroup.mine, params[:term])
   end
 
   def autocomplete_property_element_name

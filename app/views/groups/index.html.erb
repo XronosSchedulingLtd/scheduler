@@ -1,7 +1,18 @@
 <h1>Listing <%= @heading %></h1>
 <p id="notice"><%= notice %></p>
 
-<%= link_to "New #{@type_to_create} group", new_group_path(type: @type_to_create), class: "zfbutton tiny radius button-link" %>
+<div class='row collapse'>
+  <div class="small-9 columns">
+    <% if @paginate %>
+      <%= render 'group_finding_form' %>
+    <% else %>
+      &nbsp;
+    <% end %>
+  </div>
+  <div class="small-2 offset-1 columns">
+    <%= link_to "New #{@type_to_create} group", new_group_path(type: @type_to_create), class: "zfbutton tiny radius button-link" %>
+  </div>
+</div>
 
 <% if @paginate %>
 <div class="apple_pagination">
