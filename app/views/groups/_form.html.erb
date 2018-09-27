@@ -56,7 +56,13 @@
     <div class="small-2 columns">&nbsp;</div>
     <div class="small-2 columns">
       <div class="actions">
-        <%= f.submit @group.id ? "Finished" : "Create", :class => "zfbutton tiny radius"  %>
+        <% if @group.id %>
+          <%= f.submit 'Finished', class: 'zfbutton tiny radius'  %>
+        <% else %>
+          <%= hidden_field_tag(:type, @type) %>
+          <%= f.submit 'Create', class: 'zfbutton tiny radius'  %>
+          <%= link_to 'Cancel', @go_back_to, class: 'zfbutton tiny radius button-link' %>
+        <% end %>
       </div>
     </div>
     <div class="small-8 columns">
@@ -82,7 +88,7 @@
     <div class="small-4 columns">
       <%= form_for(@exclusion, namespace: :exclusion, remote: true) do |f| %>
         <%= f.autocomplete_field :element_name,
-                                 autocomplete_unowned_element_name_elements_path,
+                                 autocomplete_element_name_elements_path,
                                  :id_element => '#exclusion_membership_element_id',
                                  :placeholder => "but exclude",
                                  "data-auto-focus" => true %>

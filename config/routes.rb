@@ -208,11 +208,14 @@ Rails.application.routes.draw do
     resources :commitments, only: [:index]
     collection do
       get :autocomplete_element_name
-      get :autocomplete_unowned_element_name
       get :autocomplete_staff_element_name
       get :autocomplete_group_element_name
       get :autocomplete_property_element_name
       get :autocomplete_location_element_name
+      get :autocomplete_direct_add_element_name
+      get :autocomplete_resourcegroup_element_name
+      get :autocomplete_tutorgroup_element_name
+      get :autocomplete_my_group_element_name
     end
     member do
       get :ical

@@ -558,7 +558,8 @@ class User < ActiveRecord::Base
   #  Can this user drag this concern onto the schedule?
   #
   def can_drag?(concern)
-    self.can_add_resources? || self.own_element == concern.element
+    (self.can_add_resources? || self.own_element == concern.element) &&
+      concern.element.add_directly?
   end
 
   #

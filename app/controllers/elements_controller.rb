@@ -219,78 +219,54 @@ class ElementsController < ApplicationController
   #
   #autocomplete :element, :name, :scopes => [:current, :mine_or_system], :full => true
 
-  def autocomplete_element_name
-    term = params[:term].split(" ").join("%")
+  def do_autocomplete(selector, org_term)
+    term = org_term.split(" ").join("%")
     elements =
-      Element.current.
+      selector.current.
               mine_or_system(current_user).
-              where('name LIKE ?', "%#{term}%").
+              where('elements.name LIKE ?', "%#{term}%").
               order("LENGTH(elements.name)").
               order(:name).
               all
-    render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+    render json: elements.map { |element|
+      {
+        id:    element.id,
+        label: element.name,
+        value: element.name
+      }
+    }
   end
 
-  def autocomplete_unowned_element_name
-    term = params[:term].split(" ").join("%")
-    elements =
-      Element.current.
-              disowned.
-              mine_or_system(current_user).
-              where('name LIKE ?', "%#{term}%").
-              order("LENGTH(elements.name)").
-              order(:name).
-              all
-    render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+  def autocomplete_element_name
+    do_autocomplete(Element, params[:term])
   end
 
   def autocomplete_staff_element_name
-    term = params[:term].split(" ").join("%")
-    elements =
-      Element.current.
-              staff.
-              mine_or_system(current_user).
-              where('name LIKE ?', "%#{term}%").
-              order(:name).
-              all
-    render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+    do_autocomplete(Element.staff, params[:term])
   end
 
   def autocomplete_group_element_name
-    term = params[:term].split(" ").join("%")
-    elements =
-      Element.current.
-              agroup.
-              mine_or_system(current_user).
-              where('name LIKE ?', "%#{term}%").
-              order("LENGTH(elements.name)").
-              order(:name).
-              all
-    render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+    do_autocomplete(Element.agroup, params[:term])
+  end
+
+  def autocomplete_resourcegroup_element_name
+    do_autocomplete(Element.aresourcegroup, params[:term])
+  end
+
+  def autocomplete_my_group_element_name
+    do_autocomplete(Element.agroup.mine, params[:term])
   end
 
   def autocomplete_property_element_name
-    term = params[:term].split(" ").join("%")
-    elements =
-      Element.current.
-              property.
-              where('name LIKE ?', "%#{term}%").
-              order("LENGTH(elements.name)").
-              order(:name).
-              all
-    render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+    do_autocomplete(Element.property, params[:term])
   end
 
   def autocomplete_location_element_name
-    term = params[:term].split(" ").join("%")
-    elements =
-      Element.current.
-              location.
-              where('name LIKE ?', "%#{term}%").
-              order("LENGTH(elements.name)").
-              order(:name).
-              all
-    render :json => elements.map { |element| {:id => element.id, :label => element.name, :value => element.name} }
+    do_autocomplete(Element.location, params[:term])
+  end
+
+  def autocomplete_direct_add_element_name
+    do_autocomplete(Element.add_directly, params[:term])
   end
 
   #

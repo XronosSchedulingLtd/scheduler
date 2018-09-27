@@ -129,7 +129,7 @@
   <%= form_for(@commitment, remote: true) do |f| %>
     <div class="small-10 columns">
     <%= f.autocomplete_field :element_name,
-                             autocomplete_element_name_elements_path,
+                             autocomplete_direct_add_element_name_elements_path,
                              'data-auto-focus' => true,
                              :id_element => '#commitment_element_id',
                              :append_to => '#eventModal',

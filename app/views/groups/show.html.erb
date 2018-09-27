@@ -26,5 +26,4 @@
   <%= render partial: "membership", object: @group, locals: {editing: false} %>
 </p>
 
-<%= link_to 'Edit', edit_group_path(@group) %> |
-<%= link_to 'Back', groups_path %>
+<%= link_to 'Back', @go_back_to, class: 'zfbutton tiny radius button-link' %>

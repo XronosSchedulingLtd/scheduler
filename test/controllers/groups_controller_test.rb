@@ -29,7 +29,7 @@ class GroupsControllerTest < ActionController::TestCase
 #      puts assigns(:group).element.uuid
     end
 
-    assert_redirected_to edit_group_path(assigns(:group))
+    assert_redirected_to edit_group_path(assigns(:group), just_created: true)
   end
 
   test "should show group" do
