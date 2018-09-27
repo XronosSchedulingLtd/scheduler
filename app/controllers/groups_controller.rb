@@ -17,33 +17,101 @@ class GroupsController < ApplicationController
   # GET /groups
   # GET /groups.json
   def index
+    #
+    #  Need an element to make the finder box work.
+    #
+    @element = Element.new
     if current_user.admin && !params[:mine]
-      @groups = Group.current.page(params[:page]).order('name')
+      if params[:resource]
+        selector = Group.resourcegroups.current.order('name')
+        @heading = "resource groups"
+        @type_to_create = :resource
+        @which_finder = :resource
+      else
+        selector = Group.current.order('name')
+        @heading = "all groups"
+        @type_to_create = :vanilla
+        @which_finder = :all
+      end
       @paginate = true
       @separate = false
+      #
+      #  It's possible that we have been asked to display the page
+      #  containing a particular group.
+      #
+      page_param = params[:page]
+      if page_param.blank?
+        #
+        #  Default to page 1.
+        #
+        page_param = "1"
+        #
+        #  Although we portray to the user that they are searching
+        #  for a group, what we actually search on is element.  Thus
+        #  we get an element id returned.
+        #
+        #  Note that it is just possible that the user will force
+        #  in what is a valid element id, but not for a group.
+        #
+        element_id = params[:element_id]
+        unless element_id.blank?
+          #
+          #  Seem to want to jump to a particular group.
+          #  Use find_by to avoid raising an error.
+          #
+          target_element = Element.agroup.find_by(id: element_id)
+          if target_element
+            index = selector.find_index {|g| g.id == target_element.entity_id}
+            if index
+              page_param = ((index / Group.per_page) + 1).to_s
+            end
+          end
+        end
+      end
+      @groups = selector.page(page_param)
     else
       @groups = Group.current.belonging_to(current_user).order('name')
+      @heading = "my groups"
       @public_groups, @private_groups = @groups.partition {|g| g.make_public}
       @separate = !(@public_groups.empty? || @private_groups.empty?)
       @paginate = false
+      @type_to_create = :vanilla
+      @which_finder = :mine
     end
   end
 
   # GET /groups/1
   # GET /groups/1.json
   def show
+    @go_back_to = request.env['HTTP_REFERER']
     @atomic_membership = @group.atomic_membership
   end
 
   # GET /groups/new
   def new
-    @group = Vanillagroup.new
-    @group.era = Setting.current_era
-    @group.current = true
+    @go_back_to = request.env['HTTP_REFERER']
+    session[:go_back_to] = @go_back_to
+    #
+    #  We make a vanilla group regardless at this point, because
+    #  it's only needed to allow the fields to be created.  However,
+    #  we remember what kind it was that the user asked for.
+    #
+    if params[:type] == 'resource'
+      @type = :resource
+    else
+      @type = :vanilla
+    end
+    @group = Vanillagroup.new({
+      era:           Setting.current_era,
+      current:       true
+    })
   end
 
   # GET /groups/1/edit
   def edit
+    unless params[:just_created]
+      session[:go_back_to] = request.env['HTTP_REFERER']
+    end
     if current_user.can_edit?(@group)
       @membership = Membership.new
       @membership.group = @group
@@ -63,23 +131,21 @@ class GroupsController < ApplicationController
   # POST /groups
   # POST /groups.json
   def create
-    @group = Vanillagroup.new(group_params)
-#    Rails.logger.debug("Just newed")
-#    Rails.logger.debug("new_record? #{@group.new_record?}, persisted? #{@group.persisted?}")
+    if params[:type] == 'resource'
+      group_class = Resourcegroup
+    else
+      group_class = Vanillagroup
+    end
+    @group = group_class.new(group_params)
     @group.starts_on ||= Date.today
     @group.owner = current_user
 
     respond_to do |format|
       if @group.save
-#        Rails.logger.debug("Created group")
-#        Rails.logger.debug("new_record? #{@group.new_record?}, persisted? #{@group.persisted?}")
-        format.html { redirect_to edit_group_path(@group), notice: 'Group was successfully created.' }
+        format.html { redirect_to edit_group_path(@group, just_created: true), notice: 'Group was successfully created.' }
         format.json { render :show, status: :created, location: @group }
       else
-#        Rails.logger.debug("Failed to create group. id = #{@group.id}")
-#        Rails.logger.debug("new_record? #{@group.new_record?}, persisted? #{@group.persisted?}")
         @membership = @group.memberships.new
-#        Rails.logger.debug("And failed membership.") unless @membership
         format.html { render :new }
         format.json { render json: @group.errors, status: :unprocessable_entity }
       end
@@ -109,7 +175,8 @@ class GroupsController < ApplicationController
     if current_user.can_edit?(@group)
       respond_to do |format|
         if @group.update(group_params)
-          format.html { redirect_to groups_path, notice: 'Group was successfully updated.' }
+          format.html { redirect_to back_or(groups_path),
+                        notice: 'Group was successfully updated.' }
           format.json { render :show, status: :ok, location: @group }
         else
           format.html { render :edit }
@@ -124,10 +191,11 @@ class GroupsController < ApplicationController
   # DELETE /groups/1
   # DELETE /groups/1.json
   def destroy
+    session[:go_back_to] = request.env['HTTP_REFERER']
     if current_user.can_edit?(@group)
       @group.ceases_existence
       respond_to do |format|
-        format.html { redirect_to groups_url }
+        format.html { redirect_to back_or(groups_url) }
         format.json { head :no_content }
       end
     else

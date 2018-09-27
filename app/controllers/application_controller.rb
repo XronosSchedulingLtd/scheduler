@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -19,6 +19,10 @@ class ApplicationController < ActionController::Base
   before_filter :login_required
 
   private
+
+  def back_or(fallback_location)
+    session[:go_back_to] || fallback_location
+  end
 
   def login_required
     authorized?  || access_denied

@@ -9,12 +9,18 @@ class Service < ActiveRecord::Base
 
   include Elemental
 
+  self.per_page = 15
+
   def active
     true
   end
 
   def element_name
     name
+  end
+
+  def add_directly?
+    self.add_directly
   end
 
   def owners_initials

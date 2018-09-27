@@ -1,6 +1,6 @@
 <h1>Listing <%= @rota_template_type.name.downcase %> rota templates</h1>
 
-<div class="digg_pagination">
+<div class="apple_pagination">
   <%= will_paginate @rota_templates %>
 </div>
 
@@ -30,7 +30,7 @@
   </tbody>
 </table>
 
-<div class="digg_pagination">
+<div class="apple_pagination">
   <%= will_paginate @rota_templates %>
 </div>
 
@@ -38,4 +38,4 @@
 
 <%= link_to 'New Rota template',
   new_rota_template_type_rota_template_path(@rota_template_type),
-  class: "zfbutton small radius" %>
+  class: "zfbutton tiny radius" %>

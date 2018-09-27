@@ -47,11 +47,21 @@ class Element < ActiveRecord::Base
   validates :uuid, uniqueness: true
 
   scope :current, -> { where(current: true) }
+  scope :add_directly, -> { where(add_directly: true) }
   scope :staff, -> { where(entity_type: "Staff") }
   scope :agroup, -> { where(entity_type: "Group") }
+#  scope :aresourcegroup, -> {
+#    joins(:groups).where(entity_type: 'Group').where(groups: {persona_type: 'Resourcegrouppersona'})
+#  }
+  scope :aresourcegroup, -> {
+    joins( "INNER JOIN `groups` ON `elements`.`entity_id` = `groups`.`id`").
+    where( entity_type: 'Group').
+    where( groups: {persona_type: 'Resourcegrouppersona'})
+  }
   scope :property, -> { where(entity_type: "Property") }
   scope :location, -> { where(entity_type: "Location") }
-  scope :mine_or_system, ->(current_user) { where("owner_id IS NULL OR owner_id = :user_id", user_id: current_user.id) }
+  scope :mine_or_system, ->(current_user) { where("elements.owner_id IS NULL OR elements.owner_id = :user_id", user_id: current_user.id) }
+  scope :mine, ->(current_user) { where(owner_id: current_user.id) }
   scope :owned, -> { where(owned: true) }
   scope :disowned, -> { where(owned: false) }
 

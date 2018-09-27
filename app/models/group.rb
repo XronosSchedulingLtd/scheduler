@@ -5,16 +5,6 @@
 
 require 'csv'
 
-class Vanillagrouppersona
-  #
-  #  This exists just to exist.
-  #  We require any group which is created to have a persona specified,
-  #  but if you specify this one then it won't actually get a linked d/b
-  #  record, and there will be no attributes other than the standard ones.
-  #
-end
-
-
 class Group < ActiveRecord::Base
   belongs_to :era
   belongs_to :owner, :class_name => :User
@@ -41,6 +31,7 @@ class Group < ActiveRecord::Base
 
   scope :current, -> { where(current: true) }
 
+  scope :resourcegroups, -> { where(persona_type: 'Resourcegrouppersona') }
   scope :tutorgroups, -> { where(persona_type: 'Tutorgrouppersona') }
   scope :teachinggroups, -> { where(persona_type: 'Teachinggrouppersona') }
   scope :taggroups, -> { where(persona_type: 'Taggrouppersona') }
@@ -85,11 +76,26 @@ class Group < ActiveRecord::Base
   before_create    :create_persona
   after_save       :update_persona
 
-  attr_accessor :persona_class
+  attr_reader :persona_class
 
   DISPLAY_COLUMNS = [:members, :direct_groups, :indirect_groups]
 
   include Elemental
+
+  self.per_page = 15
+
+  def persona_class=(new_class)
+    if new_class.instance_of?(String)
+      case new_class
+      when "Resourcegrouppersona"
+        @person_class = Resourcegrouppersona
+      else
+        @persona_class = Vanillagrouppersona
+      end
+    else
+      @persona_class = new_class
+    end
+  end
 
   def element_name
     name
@@ -132,6 +138,13 @@ class Group < ActiveRecord::Base
     true
   end
 
+  def add_directly?
+    if self.persona && self.persona.respond_to?(:add_directly?)
+      self.persona.add_directly?
+    else
+      true
+    end
+  end
 
   def column_of(mwds, title)
     column = DisplayPanel::GeneralDisplayColumn.new(title)

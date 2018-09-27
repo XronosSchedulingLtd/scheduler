@@ -29,3 +29,25 @@ groupfour:
   era: eraone
   persona: tutorpersonatwo (Tutorgrouppersona)
 
+resourcegroupone:
+  name: "Resource group 1"
+  starts_on: 2018-09-01
+  era: eraone
+  persona: resourcepersonaone (Resourcegrouppersona)
+
+resourcegrouptwo:
+  name: "Resource group 2"
+  starts_on: 2018-09-01
+  era: eraone
+  persona: resourcepersonatwo (Resourcegrouppersona)
+
+vanillagroupone:
+  name: "Vanilla group 1"
+  starts_on: 2018-09-01
+  era: eraone
+
+vanillagrouptwo:
+  name: "Vanilla group 2"
+  starts_on: 2018-09-01
+  era: eraone
+

@@ -1,7 +1,7 @@
 <h1>Listing services</h1>
 <p id="notice"><%= notice %></p>
 
-<div class="digg_pagination">
+<div class="apple_pagination">
   <%= will_paginate @services %>
 </div>
 
@@ -11,6 +11,7 @@
       <th>Name</th>
       <th>Owners</th>
       <th>Current</th>
+      <th>Add directly</th>
       <th colspan="2"></th>
     </tr>
   </thead>
@@ -21,6 +22,7 @@
         <td><%= service.name %></td>
         <td><%= service.owners_initials %></td>
         <td><%= boolean_icon(service.current?) %></td>
+        <td><%= boolean_icon(service.add_directly?) %></td>
         <td><%= link_to 'Edit', edit_service_path(service) %></td>
         <td>
           <% if service.can_destroy? %>
@@ -32,10 +34,10 @@
   </tbody>
 </table>
 
-<div class="digg_pagination">
+<div class="apple_pagination">
   <%= will_paginate @services %>
 </div>
 
 <br>
 
-<%= link_to 'New Service', new_service_path, :class => "zfbutton small radius" %>
+<%= link_to 'New Service', new_service_path, :class => "zfbutton tiny radius button-link" %>
