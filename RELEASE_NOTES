@@ -1,3 +1,61 @@
+v1.5.0  2018-09-27
+
+This release starts turning over the ground in preparation for the
+facility to administer groups of resources - termed Resource Groups.
+Typically these will be things like Mini-buses, or mobile phones.
+
+* Add Resource Groups as a type of group within the system.
+
+  Only system administrators can create and edit Resource Groups.
+  They cannot currently be added to events.  This is a temporary state
+  of affairs until the full request and approvals mechanism is put in place.
+
+* Add "Add directly" flag to Services.
+
+  The existing Service records (used for things like Catering or Parking)
+  gain a flag "add directly" which defaults to true.  The idea is to allow
+  extend slightly the use of these records to cover both services and
+  other resources (like mini-buses) which people may request for events.
+
+  Each physical mini-bus will have a Service record, but with the new
+  flag set to false.  This will mean that people can view the mini-buses
+  and what they're doing, but not add them directly to events.  Instead
+  they will use the Resource Group request mechanism outlined above.
+
+  With this release, it is possible to start entering such resources
+  into the system.
+
+* Improve listing and editing of Groups.
+
+  The main Group listing screen has improved pagination, and gains a
+  search box so that it is now possible to jump straight to the desired
+  group, rather than trying to guess which page it is on.
+
+* Go back to correct listing after editing group.
+
+  For system adminstrators, there was a slight problem when editing groups
+  in that at the end of the edit the user would always be taken back
+  to the listing of *all* groups in the system, regardless of where the
+  edit had been invoked from.  The user will now be taken back to the
+  right listing, and the right page of a paginated listing.
+
+* Full editing of group membership.
+
+  Previously it was possible to add, for instance, a service to a group
+  but then there was no way to remove it again.  The group editing code
+  has been enhanced to understand all extant entity types.
+
+* Unify pagination across the whole system.
+
+  Several different styles of pagination were in use.  Now there is
+  only one.
+
+* Improve formatting of some buttons.
+
+  Some action buttons have been corrected to bring them into line
+  with the standard style.
+
+
 v1.4.5  2018-09-14
 
 * Enhance Pass cover import to cope with merged lessons.
