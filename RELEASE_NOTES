@@ -1,3 +1,44 @@
+v1.5.1  2018-10-07
+
+* Fix group search facility in group listing screen
+
+  The group search facility added in the previous release wasn't
+  working quite correctly, in that not all the groups listed on
+  the "All groups" pages could be searched for.
+
+  Specifically, these pages are accessible only to admin users,
+  and whilst the page would list all current groups, the search box
+  would find only system groups (those with no owner), public groups,
+  and groups belonging to the user doing the search.  Private groups
+  belonging to people other than the current user would appear in
+  the listing but not in the search box.  Fixed.
+
+* Add listing of deleted groups
+
+  When a group is deleted in Scheduler it doesn't actually get removed
+  from the database.  This is so that historical events still show
+  up correctly.  The group is flagged as no longer "current", and
+  has an end date store in its database record.
+
+  A new menu option has been added for admin users:
+  
+    Menu => Groups => All => Deleted
+
+  which will allow deleted groups to be listed and searched through.
+
+* All deleted groups to be re-instated
+
+  In the deleted groups listing, each group has a "Reinstate" button.
+  Clicking on this button will restore the group to being "current"
+  and remove the previous end date from its record.
+
+  It's membership will be the same as it was on the day it was
+  deleted - that is all elements which were members on the day of
+  deletion will be restored as members.  Any elements which were
+  removed from the group before the day of deletion will not
+  be re-instated as members.
+
+
 v1.5.0  2018-09-27
 
 This release starts turning over the ground in preparation for the
