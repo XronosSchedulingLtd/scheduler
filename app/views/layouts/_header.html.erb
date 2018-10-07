@@ -45,7 +45,12 @@
       <li class="has-dropdown">
         <%= link_to "Groups", groups_path %>
         <ul class="dropdown">
-          <li><%= link_to "All", groups_path %></li>
+          <li class='has-dropdown'>
+            <%= link_to "All", groups_path %>
+            <ul class='dropdown'>
+              <li><%= link_to "Deleted", groups_path(deleted: true) %></li>
+            </ul>
+          </li>
           <li><%= link_to "Mine", groups_path(mine: true) %></li>
           <li><%= link_to "Resource", groups_path(resource: true) %></li>
           <li><%= link_to "Tutor", tutorgroups_path %></li>
