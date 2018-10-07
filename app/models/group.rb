@@ -202,6 +202,14 @@ class Group < ActiveRecord::Base
     self.make_public ? nil : self.owner_id
   end
 
+  def owner_initials
+    if self.owner
+      self.owner.initials
+    else
+      "SYS"
+    end
+  end
+
   def public?
     self.make_public || self.owner_id == nil
   end

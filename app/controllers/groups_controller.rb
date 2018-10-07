@@ -23,7 +23,10 @@ class GroupsController < ApplicationController
     #
     @group = Group.new
     @reinstate_button = false
-    if current_user.admin && !params[:mine]
+    if admin_user? && !params[:mine]
+      @list_type  = true
+      @list_owner = true
+      @span_cols  = 4
       if params[:resource]
         selector = Group.resourcegroups.current.order('name')
         @heading = "resource groups"
@@ -91,6 +94,9 @@ class GroupsController < ApplicationController
     else
       @groups = Group.current.belonging_to(current_user).order('name')
       @heading = "my groups"
+      @list_owner = false
+      @list_type  = false
+      @span_cols  = 2
       @public_groups, @private_groups = @groups.partition {|g| g.make_public}
       @separate = !(@public_groups.empty? || @private_groups.empty?)
       @paginate = false
