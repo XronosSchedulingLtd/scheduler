@@ -108,8 +108,15 @@ Rails.application.routes.draw do
       get :members
       post :do_clone
       post :flatten
+      post :reinstate
     end
-
+    collection do
+      get :autocomplete_group_name
+      get :autocomplete_old_group_name
+      get :autocomplete_resourcegroup_name
+      get :autocomplete_owned_group_name
+      get :autocomplete_old_owned_group_name
+    end
   end
 
   resources :freefinders
@@ -213,9 +220,7 @@ Rails.application.routes.draw do
       get :autocomplete_property_element_name
       get :autocomplete_location_element_name
       get :autocomplete_direct_add_element_name
-      get :autocomplete_resourcegroup_element_name
       get :autocomplete_tutorgroup_element_name
-      get :autocomplete_my_group_element_name
     end
     member do
       get :ical

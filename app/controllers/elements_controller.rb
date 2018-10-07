@@ -249,14 +249,6 @@ class ElementsController < ApplicationController
     do_autocomplete(Element.agroup, params[:term])
   end
 
-  def autocomplete_resourcegroup_element_name
-    do_autocomplete(Element.aresourcegroup, params[:term])
-  end
-
-  def autocomplete_my_group_element_name
-    do_autocomplete(Element.agroup.mine, params[:term])
-  end
-
   def autocomplete_property_element_name
     do_autocomplete(Element.property, params[:term])
   end

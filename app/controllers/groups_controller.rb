@@ -12,24 +12,43 @@ class GroupsController < ApplicationController
                                    :destroy,
                                    :members,
                                    :do_clone,
-                                   :flatten]
+                                   :flatten,
+                                   :reinstate]
 
   # GET /groups
   # GET /groups.json
   def index
     #
-    #  Need an element to make the finder box work.
+    #  Need a group to make the finder box work.
     #
-    @element = Element.new
+    @group = Group.new
+    @reinstate_button = false
     if current_user.admin && !params[:mine]
       if params[:resource]
         selector = Group.resourcegroups.current.order('name')
         @heading = "resource groups"
         @type_to_create = :resource
         @which_finder = :resource
+      elsif params[:owned]
+        if params[:historical]
+          selector = Group.has_owner.historical.order('name')
+          @heading = "past owned groups"
+          @which_finder = :old_owned
+        else
+          selector = Group.has_owner.current.order('name')
+          @heading = "owned groups"
+          @which_finder = :owned
+        end
+        @type_to_create = :vanilla
+      elsif params[:deleted]
+        selector = Group.historical.order('name')
+        @heading = "all deleted groups"
+        @type_to_create = :vanilla
+        @which_finder = :deleted
+        @reinstate_button = true
       else
         selector = Group.current.order('name')
-        @heading = "all groups"
+        @heading = "all current groups"
         @type_to_create = :vanilla
         @which_finder = :all
       end
@@ -53,15 +72,15 @@ class GroupsController < ApplicationController
         #  Note that it is just possible that the user will force
         #  in what is a valid element id, but not for a group.
         #
-        element_id = params[:element_id]
-        unless element_id.blank?
+        group_id = params[:group_id]
+        unless group_id.blank?
           #
           #  Seem to want to jump to a particular group.
           #  Use find_by to avoid raising an error.
           #
-          target_element = Element.agroup.find_by(id: element_id)
-          if target_element
-            index = selector.find_index {|g| g.id == target_element.entity_id}
+          target_group = Group.find_by(id: group_id)
+          if target_group
+            index = selector.find_index {|g| g.id == target_group.id}
             if index
               page_param = ((index / Group.per_page) + 1).to_s
             end
@@ -217,6 +236,50 @@ class GroupsController < ApplicationController
     respond_to do |format|
       format.csv
     end
+  end
+
+  def reinstate
+    unless @group.current
+      @group.reincarnate(true)
+    end
+    redirect_to :back
+  end
+
+  def do_autocomplete(selector, org_term)
+    term = org_term.split(" ").join("%")
+    groups =
+      selector.
+              where('groups.name LIKE ?', "%#{term}%").
+              order("LENGTH(groups.name)").
+              order(:name).
+              all
+    render json: groups.map { |group|
+      {
+        id:    group.id,
+        label: group.name,
+        value: group.name
+      }
+    }
+  end
+
+  def autocomplete_group_name
+    do_autocomplete(Group.current, params[:term])
+  end
+
+  def autocomplete_old_group_name
+    do_autocomplete(Group.historical, params[:term])
+  end
+
+  def autocomplete_resourcegroup_name
+    do_autocomplete(Group.resourcegroups.current, params[:term])
+  end
+
+  def autocomplete_owned_group_name
+    do_autocomplete(Group.owned.current, params[:term])
+  end
+
+  def autocomplete_old_owned_group_name
+    do_autocomplete(Group.owned.historical, params[:term])
   end
 
   private

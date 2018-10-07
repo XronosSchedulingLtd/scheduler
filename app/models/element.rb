@@ -47,12 +47,18 @@ class Element < ActiveRecord::Base
   validates :uuid, uniqueness: true
 
   scope :current, -> { where(current: true) }
+  scope :not_current, -> { where.not(current: true) }
   scope :add_directly, -> { where(add_directly: true) }
   scope :staff, -> { where(entity_type: "Staff") }
   scope :agroup, -> { where(entity_type: "Group") }
 #  scope :aresourcegroup, -> {
 #    joins(:groups).where(entity_type: 'Group').where(groups: {persona_type: 'Resourcegrouppersona'})
 #  }
+  #
+  #  This next one does in fact work, but is no longer needed because
+  #  I'm doing it a different way.  Retained here for documentary
+  #  reasons, and in case anything similar is needed in the future.
+  #
   scope :aresourcegroup, -> {
     joins( "INNER JOIN `groups` ON `elements`.`entity_id` = `groups`.`id`").
     where( entity_type: 'Group').
