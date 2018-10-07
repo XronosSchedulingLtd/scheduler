@@ -25,17 +25,30 @@
     <tr>
       <th>Name</th>
       <th>Era</th>
-<% if admin_user? %>
-      <th>Type</th>
-<% end %>
+      <% if @list_type %>
+        <th>Type</th>
+      <% end %>
+      <% if @list_owner %>
+        <th>Owner</th>
+      <% end %>
       <th colspan="2">Members</th>
-      <th colspan="4"></th>
+      <% if @reinstate_button %>
+        <th colspan="3"></th>
+      <% else %>
+        <th colspan="4"></th>
+      <% end %>
     </tr>
     <tr>
-      <th colspan="<%= admin_user? ? "3" : "2" %>"></th>
-      <th>Immediate</th>
-      <th>Resulting</th>
-      <th colspan="4"></th>
+      <th colspan="<%= @span_cols %>"></th>
+      <th>Direct</th>
+      <th>Final</th>
+      <% if @reinstate_button %>
+        <th></th>
+        <th>Ended</th>
+        <th></th>
+      <% else %>
+        <th colspan="4"></th>
+      <% end %>
     </tr>
   </thead>
 

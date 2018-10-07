@@ -1,11 +1,11 @@
-<%= form_for(@element, html: {method: :get, class: "groupfind" } ) do |f| %>
+<%= form_for(@group, html: {method: :get, class: "groupfind" } ) do |f| %>
   <div class="row collapse">
     <div class="small-11 columns">
       <%=
         f.autocomplete_field(
           :name,
           autocomplete_path(@which_finder),
-          :id_element => '#element_id',
+          :id_element => '#group_id',
           :placeholder => "Find group",
           "data-auto-focus" => true)
       %>

@@ -1,12 +1,23 @@
 <tr>
   <td><%= grouplisting.name %></td>
   <td><%= grouplisting.era.name %></td>
-<% if admin_user? %>
-  <td><%= grouplisting.type %></td>
-<% end %>
+  <% if @list_type %>
+    <td><%= grouplisting.type %></td>
+  <% end %>
+  <% if @list_owner %>
+    <td><%= grouplisting.owner_initials %></td>
+  <% end %>
   <td><%= grouplisting.members(nil, false).count %></td>
   <td><%= grouplisting.members(nil, true, true).count %></td>
   <td><%= link_to 'Show', grouplisting %></td>
+  <% if @reinstate_button %>
+    <td><%= grouplisting.ends_on %></td>
+    <td>
+      <% unless grouplisting.current %>
+        <%= link_to "Reinstate", reinstate_group_path(grouplisting), method: :post %>
+      <% end %>
+    </td>
+  <% else %>
   <td><%= grouplisting.user_editable? ?
             link_to('Edit', edit_group_path(grouplisting)) :
             "" %></td>
@@ -18,5 +29,6 @@
                      data: {
                        confirm: "Are you sure you want to delete #{grouplisting.name}?"
                      }) :
-             "" %></td>
+                     "" %></td>
+  <% end %>
 </tr>

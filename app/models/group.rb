@@ -30,6 +30,7 @@ class Group < ActiveRecord::Base
   validate :persona_specified
 
   scope :current, -> { where(current: true) }
+  scope :historical, -> { where.not(current: true) }
 
   scope :resourcegroups, -> { where(persona_type: 'Resourcegrouppersona') }
   scope :tutorgroups, -> { where(persona_type: 'Tutorgrouppersona') }
@@ -37,6 +38,7 @@ class Group < ActiveRecord::Base
   scope :taggroups, -> { where(persona_type: 'Taggrouppersona') }
   scope :otherhalfgroups, -> { where(persona_type: 'Otherhalfgrouppersona') }
   scope :vanillagroups, -> { where(persona_type: nil) }
+  scope :owned, -> { where.not(owner_id: nil) }
 
   scope :ofera, ->(era) { where(era_id: era.id) }
 
@@ -58,6 +60,7 @@ class Group < ActiveRecord::Base
   # scope :belonging_to, ->(target_user) { joins(element: {ownerships: :user}).where(users: {id: target_user.id} ) }
   scope :belonging_to, ->(target_user) { where(owner_id: target_user.id) }
   scope :system, -> { where(owner_id: nil) }
+  scope :has_owner, -> { where.not(owner_id: nil) }
 
   #
   #  Note that this next one makes no attempt to massage dates etc.  It's
@@ -197,6 +200,14 @@ class Group < ActiveRecord::Base
     #  in public searches.
     #
     self.make_public ? nil : self.owner_id
+  end
+
+  def owner_initials
+    if self.owner
+      self.owner.initials
+    else
+      "SYS"
+    end
   end
 
   def public?
@@ -992,10 +1003,27 @@ class Group < ActiveRecord::Base
   #  the members who were members on the day the group ended.  Not
   #  needed for now though - the group comes back as empty.
   #
-  def reincarnate
-    self.ends_on = nil
-    self.current = true
-    self.save!
+  def reincarnate(with_members = false)
+    if self.ends_on
+      old_ends_on = self.ends_on
+      self.ends_on = nil
+      self.current = true
+      self.save!
+      if with_members
+        self.reload
+        #
+        #  Anything which was a member on the previous last day of
+        #  existence gets to be a member again.  Any exclusions get
+        #  re-instated too.
+        #
+        self.memberships.
+             active_on(old_ends_on).
+             each do |m|
+          m.ends_on = nil
+          m.save!
+        end
+      end
+    end
   end
 
   #
