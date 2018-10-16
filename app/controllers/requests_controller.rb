@@ -47,6 +47,24 @@ class RequestsController < ApplicationController
     end
   end
 
+  def destroy
+    @event = @request.event
+    if current_user.can_delete?(@request)
+      #
+      #  Should add:
+      #    Notifications
+      #    Journalling
+      #
+      @request.destroy
+      @event.reload
+      @resourcewarning = false
+    end
+    @quick_buttons = QuickButtons.new(@event)
+    respond_to do |format|
+      format.js
+    end
+  end
+
   private
 
   def set_request
