@@ -26,23 +26,6 @@
         <label>Event category</label>
         <p><%= @event.eventcategory.name %></p>
       </div>
-      <div class="small-12 columns">
-        <label>Event source</label>
-        <p><%= @event.eventsource.name %></p>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="small-12 columns">
-        <label>Event id</label>
-        <p><%= @event.id %></p>
-      </div>
-      <div class="small-12 columns">
-        <label>Owner</label>
-        <p><%= @event.owner_id == nil || @event.owner_id == 0 ?
-            "System" :
-            @event.owner.name %></p>
-      </div>
     </div>
 
     <% end %>
@@ -62,41 +45,74 @@
       <div class="row">
         <div class="small-12 columns">
           <div class="wrap_link">
-            <%= link_to "Wrap", new_event_wrapper_path(@event), remote: @minimal %>
+            <%=
+              link_to("Wrap",
+                      new_event_wrapper_path(@event),
+                      remote: @minimal,
+                      class: 'zfbutton teensy')
+                    %>
             <% if current_user.can_repeat?(@event) %>
               /
               <%=
                 if @event.event_collection
-                  link_to "Repeat",
-                    edit_event_event_collection_path(@event, @event.event_collection),
-                    remote: @minimal
+                  link_to(
+                    "Repeat",
+                    edit_event_event_collection_path(
+                      @event,
+                      @event.event_collection
+                    ),
+                    remote: @minimal,
+                    class: 'zfbutton teensy'
+                  )
                 else
-                  link_to "Repeat",
+                  link_to(
+                    "Repeat",
                     new_event_event_collection_path(@event),
-                    remote: @minimal
+                    remote: @minimal,
+                    class: 'zfbutton teensy'
+                  )
                 end
               %>
             <% end %>
           </div>
           <div class="edit_link">
-            <%= link_to "Edit", edit_event_path(@event), remote: @minimal %>
+            <%=
+              link_to("Edit",
+                      edit_event_path(@event),
+                      remote: @minimal,
+                      class: 'zfbutton teensy')
+                    %>
           </div>
         </div>
         <% if current_user.can_edit?(@event) %>
         <div class="small-12 columns">
-          &nbsp;
-        </div>
-        <div class="small-12 columns">
           <div class="delete_link">
             <%=
-              link_to "Delete event entirely",
-              @event,
-              remote: @minimal,
-              method: :delete,
-              data: {
-                confirm: @event.deletion_warning_message
-              }
+              link_to(
+                "Delete event entirely",
+                @event,
+                remote: @minimal,
+                method: :delete,
+                class: 'zfbutton teensy',
+                data: {
+                  confirm: @event.deletion_warning_message
+                }
+              )
             %>
+          </div>
+          <div class='clone_link'>
+            <span id='clone_button'>
+              <%=
+                link_to("Clone",
+                        clone_event_path(@event),
+                        remote: true,
+                        method: :post,
+                        class: 'zfbutton teensy')
+              %>
+            </span>
+            <span id='cloned_message' style="display: none; color: red;">
+              Cloned
+            </span>
           </div>
         </div>
         <% end %>
@@ -104,11 +120,17 @@
     <% end %>
 
     <% if known_user? %>
-      <p>
       <small>
         <div id="meta_data">
+          Event id: <%= @event.id %><br/>
+          Owner: <%=
+            @event.owner_id == nil || @event.owner_id == 0 ?
+            "System" :
+            @event.owner.name
+            %><br/>
           Created: <%= @event.created_at_text %><br/>
-          Updated: <%= @event.updated_at_text %>
+          Updated: <%= @event.updated_at_text %><br/>
+          Event source: <%= @event.eventsource.name %>
         <% if @event.journal && current_user.can_view_journal_for?(@event) %>
           <br/><%= link_to "Journal", @event.journal %>
         <% end %>
