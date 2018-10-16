@@ -34,6 +34,8 @@ Rails.application.routes.draw do
       get :candidates
       put :fulfill
       put :unfulfill
+      put :increment
+      put :decrement
     end
   end
 

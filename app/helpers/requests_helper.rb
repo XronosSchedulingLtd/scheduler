@@ -1,4 +1,12 @@
 module RequestsHelper
+  def increment_link(request)
+    link_to("+", increment_request_path(request), method: :put, remote: true)
+  end
+
+  def decrement_link(request)
+    link_to("-", decrement_request_path(request), method: :put, remote: true)
+  end
+
   def delete_link(request)
     link_to("&#215;".html_safe, request, method: :delete, remote: true)
   end
@@ -15,7 +23,7 @@ module RequestsHelper
         #  And any buttons?
         #
         if editing && user.can_delete?(request)
-          body = "#{body} #{delete_link(request)}"
+          body = "#{body} #{increment_link(request)} #{decrement_link(request)} #{delete_link(request)}"
         end
       end
       result << "<li>#{body}</li>"

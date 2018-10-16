@@ -65,6 +65,36 @@ class RequestsController < ApplicationController
     end
   end
 
+  def increment
+    @event = @request.event
+    if @request.quantity < @request.max_quantity &&
+      current_user.can_modify?(@request)
+      @request.quantity += 1
+      @request.save
+      @request.reload
+      @resourcewarning = false
+    end
+    @quick_buttons = QuickButtons.new(@event)
+    respond_to do |format|
+      format.js
+    end
+  end
+
+  def decrement
+    @event = @request.event
+    if @request.quantity > 1 &&
+      current_user.can_modify?(@request)
+      @request.quantity -= 1
+      @request.save
+      @request.reload
+      @resourcewarning = false
+    end
+    @quick_buttons = QuickButtons.new(@event)
+    respond_to do |format|
+      format.js
+    end
+  end
+
   private
 
   def set_request
