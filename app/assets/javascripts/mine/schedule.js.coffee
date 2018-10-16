@@ -70,6 +70,14 @@ $(document).ready ->
       $('#fullcalendar').data("dorefresh", "0")
       $('#fullcalendar').fullCalendar('refetchEvents')
     )
+
+  $(document).on('opened', '[data-reveal]', ->
+    #
+    #  Is there a clone button in this modal?
+    #
+    primeCloneButton()
+    )
+
   #
   #  These are the parameters which we use to initialize FullCalendar
   #  regardless.
@@ -389,6 +397,12 @@ primeCloser = ->
   $('.closer').click ->
     $('#eventModal').foundation('reveal', 'close')
 
+primeCloneButton = ->
+  $('#clone_button').click ->
+    $('#clone_button').hide()
+    $('#cloning_message').show()
+    true
+
 #
 #  I want to share a couple of variables between the next two functions,
 #  so I think I need to put them here.
@@ -547,3 +561,11 @@ window.beginWrapping = (contents) ->
   primeCloser()
   $('.pw-action').click(pwActionClicked)
 
+window.redisplayEvent = (contents) ->
+  window.refreshNeeded()
+  $('#events-dialogue').html(contents)
+  $('#cloned_message').hide('fade', 1000, ->
+    $('#clone_button').show())
+  primeCloneButton()
+  primeCloser()
+  

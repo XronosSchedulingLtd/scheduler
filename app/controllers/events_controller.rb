@@ -550,11 +550,10 @@ class EventsController < ApplicationController
         end
     request_notifier.send_notifications_for(current_user, @event)
     #
-    #  And throw the user straight into editing it.
+    #  And display it to the user.
     #
-    @commitment = Commitment.new
-    @commitment.event = @event
-    @minimal = true
+    assemble_event_info
+    @just_cloned = true
     respond_to do |format|
       format.js
     end

@@ -101,7 +101,11 @@
             %>
           </div>
           <div class='clone_link'>
-            <span id='clone_button'>
+            <% if @just_cloned %>
+              <span id='clone_button' style='display:none'>
+            <% else %>
+              <span id='clone_button'>
+            <% end %>
               <%=
                 link_to("Clone",
                         clone_event_path(@event),
@@ -110,9 +114,14 @@
                         class: 'zfbutton teensy')
               %>
             </span>
-            <span id='cloned_message' style="display: none; color: red;">
-              Cloned
+            <span id='cloning_message' style="display: none; color: red;">
+              Cloning
             </span>
+            <% if @just_cloned %>
+              <span id='cloned_message' style="color: green;">
+                Cloned
+              </span>
+            <% end %>
           </div>
         </div>
         <% end %>
