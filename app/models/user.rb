@@ -452,7 +452,8 @@ class User < ActiveRecord::Base
       self.can_add_notes?
     elsif item.instance_of?(Commitment)
       #
-      #  With edit permission you can always delete a commitment,
+      #  With edit permission you can generally delete a commitment
+      #  (the exception being if it was allocated via a request)
       #  but there are two cases which a sub-editor cannot delete.
       #
       #  1. An approved commitment (constraining == true)
@@ -463,10 +464,14 @@ class User < ActiveRecord::Base
       event = item.event
       element = item.element
       if event && element
-        self.can_edit?(event) ||
-          (self.can_subedit?(event) &&
-           !item.constraining? &&
-           !(element.owned? && item.uncontrolled?))
+        if item.request.nil?
+          self.can_edit?(event) ||
+            (self.can_subedit?(event) &&
+             !item.constraining? &&
+             !(element.owned? && item.uncontrolled?))
+        else
+          false
+        end
       else
         #
         #  Doesn't seem to be a real commitment yet.
