@@ -473,6 +473,8 @@ class User < ActiveRecord::Base
         #
         false
       end
+    elsif item.instance_of?(Request)
+      self.can_edit?(item.event)
     else
       false
     end

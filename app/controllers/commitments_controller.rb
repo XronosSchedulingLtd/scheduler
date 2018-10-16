@@ -89,14 +89,27 @@ class CommitmentsController < ApplicationController
     element =
       Element.aresourcegroup.find_by(id: commitment_params[:element_id])
     if element
-      @request = Request.new(commitment_params.merge({quantity: 1}))
-      if @request.save
+      #
+      #  Yes it is.  Is there already a request in place for this
+      #  element?  If there is then we increment the existing one
+      #  rather than creating a new one.
+      #
+      @request =
+        element.requests.find_by(event_id: commitment_params[:event_id])
+      if @request
+        @request.quantity += 1
+        @request.save
         @request.reload
-        #
-        #  Should:
-        #    Journal this addition
-        #    Add it to the request notifier
-        #
+      else
+        @request = Request.new(commitment_params.merge({quantity: 1}))
+        if @request.save
+          @request.reload
+          #
+          #  Should:
+          #    Journal this addition
+          #    Add it to the request notifier
+          #
+        end
       end
       @event = @request.event
     else
