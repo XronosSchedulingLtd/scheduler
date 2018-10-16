@@ -29,13 +29,13 @@ class ResourcegroupTest < ActiveSupport::TestCase
     end
   end
 
-  test "element should have add_directly? set to false" do
+  test "element should have add_directly? set to true" do
     rg = Resourcegroup.create!({
       name:      "Able baker",
       starts_on: Date.today,
       era:       @era1
     })
-    assert_not rg.element.add_directly?
+    assert rg.element.add_directly?
   end
 
 end
