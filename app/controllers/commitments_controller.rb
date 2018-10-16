@@ -77,24 +77,47 @@ class CommitmentsController < ApplicationController
 
   # POST /commitments
   # POST /commitments.json
+  #
+  # Depending on the requested resource, we might create a Commitment,
+  # or we might create a Request.
+  #
   def create
-    @commitment = Commitment.new(commitment_params)
-    set_appropriate_approval_status(@commitment)
     #
-    #  Not currently checking the result of this, because regardless
-    #  of whether it succeeds or fails, we just display the list of
-    #  committed resources again.
+    #  Is the specific element for which we're being asked a resource
+    #  group?
     #
-    if @commitment.save
-      @commitment.reload
-      @commitment.event.journal_commitment_added(@commitment, current_user)
-      if session[:request_notifier]
-        session[:request_notifier].commitment_added(@commitment)
+    element =
+      Element.aresourcegroup.find_by(id: commitment_params[:element_id])
+    if element
+      @request = Request.new(commitment_params.merge({quantity: 1}))
+      if @request.save
+        @request.reload
+        #
+        #  Should:
+        #    Journal this addition
+        #    Add it to the request notifier
+        #
       end
+      @event = @request.event
+    else
+      @commitment = Commitment.new(commitment_params)
+      set_appropriate_approval_status(@commitment)
+      #
+      #  Not currently checking the result of this, because regardless
+      #  of whether it succeeds or fails, we just display the list of
+      #  committed resources again.
+      #
+      if @commitment.save
+        @commitment.reload
+        @commitment.event.journal_commitment_added(@commitment, current_user)
+        if session[:request_notifier]
+          session[:request_notifier].commitment_added(@commitment)
+        end
+      end
+      @event = @commitment.event
     end
-    @event = @commitment.event
     @quick_buttons = QuickButtons.new(@event)
-    @resourcewarning = false # current_user.warn_no_resources && @event.resourceless?
+    @resourcewarning = false
     respond_to do |format|
       format.js
     end

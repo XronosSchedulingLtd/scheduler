@@ -54,6 +54,12 @@ class Request < ActiveRecord::Base
     self.element.name
   end
 
+  #
+  #  Dummy method to allow mass assignment.
+  #
+  def element_name=(name)
+  end
+
   def max_quantity
     8
   end

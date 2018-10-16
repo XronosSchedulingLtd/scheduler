@@ -18,6 +18,6 @@ class Resourcegrouppersona < ActiveRecord::Base
   end
 
   def add_directly?
-    false
+    true
   end
 end
