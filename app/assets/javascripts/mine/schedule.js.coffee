@@ -83,6 +83,7 @@ $(document).ready ->
   #  regardless.
   #
   fcParams =
+    schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source'
     height: 'parent'
     currentTimezone: 'Europe/London'
     header:
