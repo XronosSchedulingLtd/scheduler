@@ -108,6 +108,7 @@ Rails.application.routes.draw do
   resources :groups do
     member do
       get :members
+      get :schedule
       post :do_clone
       post :flatten
       post :reinstate

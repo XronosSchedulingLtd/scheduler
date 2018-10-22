@@ -6,6 +6,10 @@
 require 'csv'
 
 class GroupsController < ApplicationController
+  include DisplaySettings
+
+  layout 'schedule', only: [:schedule]
+
   before_action :set_group, only: [:show,
                                    :edit,
                                    :update,
@@ -13,7 +17,8 @@ class GroupsController < ApplicationController
                                    :members,
                                    :do_clone,
                                    :flatten,
-                                   :reinstate]
+                                   :reinstate,
+                                   :schedule]
 
   # GET /groups
   # GET /groups.json
@@ -249,6 +254,15 @@ class GroupsController < ApplicationController
       @group.reincarnate(true)
     end
     redirect_to :back
+  end
+
+  # GET /groups/1/schedule
+  #
+  def schedule
+    @group_scheduler = GroupScheduler.new(@group)
+    respond_to do |format|
+      format.html
+    end
   end
 
   def do_autocomplete(selector, org_term)

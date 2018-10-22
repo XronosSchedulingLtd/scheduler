@@ -1,0 +1,22 @@
+<div id='mainContainer'>
+  <div class='row collapse calendarbit'>
+    <div class='small-12 columns fillup'>
+      <div id='groupschedule' data-firstday="<%= @first_day %>" data-defaultdate="<%= @default_date %>" data-dorefresh='0'></div>
+    </div>
+  </div>
+  <div class='bottomrighttext'>
+    <% if admin_user? %>
+      <span title="<%= Setting.rr_versions %>"><%= SOFTWARE_VERSION %></span>
+    <% else %>
+      <%= SOFTWARE_VERSION %>
+    <% end %>
+  </div>
+  <div class='bottomtext'>
+    <a href="https://xronos.uk/" target="_blank">Xronos Scheduler</a>
+  </div>
+</div>
+
+<script type='application/json' id='fc-parameters'>
+<%= @group_scheduler.fc_parameters_json %>
+</script>
+
