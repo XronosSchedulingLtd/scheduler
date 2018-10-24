@@ -27,11 +27,14 @@ if ($('#groupschedule').length) {
           }
         },
         defaultView: 'timelineDay',
-        resourceGroupField: 'parentName'
+        resourceGroupField: 'parentName',
+        events: {
+          color: '#1f94bc'
+        }
       };
       var groupId = that.myDiv.data('groupid');
-      fcParams.resources = '/groups/' + groupId + '/scheduleresources';
-      fcParams.events    = '/groups/' + groupId + '/scheduleevents';
+      fcParams.resources  = '/groups/' + groupId + '/scheduleresources';
+      fcParams.events.url = '/groups/' + groupId + '/scheduleevents';
       that.myDiv.fullCalendar(fcParams);
     };
 

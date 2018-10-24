@@ -321,7 +321,35 @@ class EventAssembler
         :allDay        => @all_day,
         :recurring     => false,
         :editable      => true,                # For now
-        :color         => '#1f94bc',
+        :resourceId    => @resource_id
+      }
+      result
+    end
+
+  end
+
+  #
+  #  Similarly, for actual commitments.
+  #
+  class ScheduleCommitment
+    def initialize(element, commitment)
+      @id               = "Com#{commitment.id}"
+      @title            = commitment.event.body
+      @starts_at_for_fc = commitment.event.starts_at_for_fc
+      @ends_at_for_fc   = commitment.event.ends_at_for_fc
+      @all_day          = commitment.event.all_day?
+      @resource_id      = "Res#{element.id}"
+    end
+
+    def as_json(options = {})
+      result = {
+        :id            => @id,
+        :title         => @title,
+        :start         => @starts_at_for_fc,
+        :end           => @ends_at_for_fc,
+        :allDay        => @all_day,
+        :recurring     => false,
+        :editable      => true,                # For now
         :resourceId    => @resource_id
       }
       result
@@ -597,16 +625,36 @@ class EventAssembler
     if entity.can_have_requests?
       entity.element.
              requests.
-             during(@start_date, @end_date + 1.day).each do |r|
+             during(@start_date, @end_date + 1.day).
+             includes(:event).
+             each do |r|
         r.quantity.times do |i|
           result << ScheduleRequest.new(entity.element, r, i)
         end
       end
     end
-    Rails.logger.debug("Returning #{result.size} results")
     result
   end
 
+  #
+  #  And this produces events for a specified entity.  We want just direct
+  #  firm commitments, and we display them slightly differently from
+  #  in the main display.  These are simpler, and intended just for
+  #  the resource allocation display.
+  #
+  #  We go only for direct commitments - no groups or anything like that.
+  #
   def events_for(entity)
+    result = []
+    entity.element.
+           commitments.
+           firm.
+           during(@start_date, @end_date + 1.day).
+           includes(:event).
+           each do |c|
+      result << ScheduleCommitment.new(entity.element, c)
+    end
+    Rails.logger.debug("Returning #{result.count} events for #{entity.name}")
+    result
   end
 end

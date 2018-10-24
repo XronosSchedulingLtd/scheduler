@@ -44,8 +44,7 @@ class Request < ActiveRecord::Base
   #  are implemented.
   #
   scope :during, lambda {|start_date, end_date|
-    joins(:event).where("events.ends_at >= ?", start_date).
-                  where("events.starts_at < ?", end_date)
+    joins(:event).merge(Event.during(start_date, end_date))
   }
 
   #

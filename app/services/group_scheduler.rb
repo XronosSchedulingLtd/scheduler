@@ -46,10 +46,17 @@ class GroupScheduler
     end
     group_members, other_members =
       group.members(nil, false).partition {|m| m.is_a? Group}
-    group_members.each do |gm|
-      ea.requests_for(gm).each do |e|
+    #
+    #  Now the actual commitments for the immediate, non-group members
+    #  of this group.
+    #
+    other_members.each do |member|
+      ea.events_for(member).each do |e|
         events << e
       end
+    end
+    group_members.each do |gm|
+      generate_events(events, ea, gm)
     end
   end
 
@@ -66,7 +73,7 @@ class GroupScheduler
       group.members(nil, false).partition {|m| m.is_a? Group}
     other_members.each do |member|
       resources << {
-        id:         "M#{member.element.id}",
+        id:         "Res#{member.element.id}",
         parentName: name,
         title:      member.name
       }

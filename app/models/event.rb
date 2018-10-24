@@ -153,6 +153,11 @@ class Event < ActiveRecord::Base
   #  way around though - we *don't* want events that end before our
   #  start date, or start after our end date.  All others we want.
   #
+  #
+  #  Note that these expect an *exclusive* end date.  Trying to move
+  #  to this method of working everywhere.  Sadly it's not how groups
+  #  are implemented.
+  #
   scope :beginning, lambda {|date| where("ends_at >= ?", date) }
   scope :until, lambda {|date| where("starts_at < ?", date) }
   #
@@ -162,6 +167,9 @@ class Event < ActiveRecord::Base
   scope :before, lambda {|date| where("ends_at < ?", date) }
   scope :after, lambda {|date| where("starts_at > ?", date + 1.day) }
 
+  scope :during, lambda {|start_date, end_date|
+    where("ends_at >= ? AND starts_at < ?", start_date, end_date)
+  }
   #
   #  Events in the future.  Today or later.
   #

@@ -71,6 +71,10 @@ class Commitment < ActiveRecord::Base
                                         Commitment.statuses[:rejected]])}
 
   scope :until, lambda { |datetime| joins(:event).merge(Event.until(datetime)) }
+
+  scope :during, lambda {|start_date, end_date|
+    joins(:event).merge(Event.during(start_date, end_date))
+  }
   #
   #  Call-backs.
   #
