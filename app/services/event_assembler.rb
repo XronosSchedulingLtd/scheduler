@@ -628,7 +628,7 @@ class EventAssembler
              during(@start_date, @end_date + 1.day).
              includes(:event).
              each do |r|
-        r.quantity.times do |i|
+        r.num_outstanding.times do |i|
           result << ScheduleRequest.new(entity.element, r, i)
         end
       end

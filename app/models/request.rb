@@ -233,6 +233,23 @@ class Request < ActiveRecord::Base
     end
   end
 
+  #
+  #  How many outstanding requests do we have?
+  #
+  #  quantity - number of linked commitments
+  #
+  #  Guard against returning a negative value if we are currently
+  #  over-committed.  This can happen if a user reduces the
+  #  requirement after resources have been committed.
+  #
+  def num_outstanding
+    value = self.quantity - self.commitments.count
+    if value < 0
+      value = 0
+    end
+    value
+  end
+
   private
 
   def update_event_after_save
