@@ -64,7 +64,7 @@ class GroupScheduler
     name = group.name
     if group.can_have_requests?
       resources << {
-        id:         "Res#{group.element.id}",
+        id:         group.element.id,
         parentName: name,
         title:      'Requests'
       }
@@ -73,7 +73,7 @@ class GroupScheduler
       group.members(nil, false).partition {|m| m.is_a? Group}
     other_members.each do |member|
       resources << {
-        id:         "Res#{member.element.id}",
+        id:         member.element.id,
         parentName: name,
         title:      member.name
       }

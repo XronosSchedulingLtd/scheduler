@@ -36,6 +36,7 @@ Rails.application.routes.draw do
       put :unfulfill
       put :increment
       put :decrement
+      put :dragged
     end
   end
 

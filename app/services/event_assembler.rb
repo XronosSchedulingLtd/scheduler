@@ -309,19 +309,21 @@ class EventAssembler
       @starts_at_for_fc = request.event.starts_at_for_fc
       @ends_at_for_fc   = request.event.ends_at_for_fc
       @all_day          = request.event.all_day?
-      @resource_id      = "Res#{element.id}"
+      @resource_id      = element.id
+      @request_id       = request.id
     end
 
     def as_json(options = {})
       result = {
-        :id            => @id,
-        :title         => @title,
-        :start         => @starts_at_for_fc,
-        :end           => @ends_at_for_fc,
-        :allDay        => @all_day,
-        :recurring     => false,
-        :editable      => true,                # For now
-        :resourceId    => @resource_id
+        id:         @id,
+        title:      @title,
+        start:      @starts_at_for_fc,
+        end:        @ends_at_for_fc,
+        allDay:     @all_day,
+        recurring:  false,
+        editable:   true,                # For now
+        resourceId: @resource_id,
+        requestId:  @request_id
       }
       result
     end
@@ -338,20 +340,32 @@ class EventAssembler
       @starts_at_for_fc = commitment.event.starts_at_for_fc
       @ends_at_for_fc   = commitment.event.ends_at_for_fc
       @all_day          = commitment.event.all_day?
-      @resource_id      = "Res#{element.id}"
+      @resource_id      = element.id
+      if commitment.request
+        @request_id = commitment.request.id
+        @editable   = true
+      else
+        @request_id = 0
+        @editable   = false
+        @colour     = 'red'
+      end
     end
 
     def as_json(options = {})
       result = {
-        :id            => @id,
-        :title         => @title,
-        :start         => @starts_at_for_fc,
-        :end           => @ends_at_for_fc,
-        :allDay        => @all_day,
-        :recurring     => false,
-        :editable      => true,                # For now
-        :resourceId    => @resource_id
+        id:         @id,
+        title:      @title,
+        start:      @starts_at_for_fc,
+        end:        @ends_at_for_fc,
+        allDay:     @all_day,
+        recurring:  false,
+        editable:   @editable,
+        resourceId: @resource_id,
+        requestId:  @request_id
       }
+      if @colour
+        result[:color] = @colour
+      end
       result
     end
 
