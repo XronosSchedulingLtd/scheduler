@@ -1659,6 +1659,66 @@ class Event < ActiveRecord::Base
     end
   end
 
+  def multi_day_timed?
+    if @multi_day_timed.nil?
+      if !self.all_day && self.starts_at.to_date < self.ends_at.to_date
+        #
+        #  One final thing might prevent this being a timed multi-day event.
+        #  It might end at midnight on the same day that it starts.  This
+        #  is recorded as 00:00:00 on the next day.
+        #
+        if (self.starts_at.to_date + 1.day == self.ends_at.to_date) &&
+           self.ends_at.midnight?
+          @multi_day_timed = false
+        else
+          @multi_day_timed = true
+        end
+      else
+        @multi_day_timed = false
+      end
+    end
+    @multi_day_timed
+  end
+
+  def starts_at_for_fc
+    if self.all_day? || self.multi_day_timed?
+      self.starts_at.to_date.iso8601
+    else
+      self.starts_at.iso8601
+    end
+  end
+
+  def ends_at_for_fc
+    if self.all_day?
+      if self.ends_at
+        self.ends_at.to_date.iso8601
+      else
+        self.starts_at.to_date.iso8601
+      end
+    elsif self.multi_day_timed?
+      #
+      #  It is just possible that although this is a timed event, the
+      #  end time has been set to midnight.  If that's the case, then
+      #  we don't need to add an extra day.
+      #
+      if self.ends_at.midnight?
+        self.ends_at.to_date.iso8601
+      else
+        (self.ends_at.to_date + 1.day).iso8601
+      end
+    else
+      #
+      #  Odd to see a test here for ends_at being nil, because the
+      #  validation of an event won't allow that.
+      #
+      if self.ends_at == nil || self.starts_at == self.ends_at
+        nil
+      else
+        self.ends_at.iso8601
+      end
+    end
+  end
+
   #
   #  Provide an appropriate text message to be shown to the user thinking
   #  of deleting this event.

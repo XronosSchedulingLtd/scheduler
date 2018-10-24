@@ -26,19 +26,12 @@ if ($('#groupschedule').length) {
             titleFormat: 'ddd Do MMM, YYYY'
           }
         },
-        defaultView: 'timelineWeek',
-        resourceGroupField: 'parentName',
-        events: [
-          {
-            id: '1',
-            resourceId: 'a',
-            title: 'Meeting',
-            start: '2018-10-22'
-          }
-        ]
+        defaultView: 'timelineDay',
+        resourceGroupField: 'parentName'
       };
-      var moreParams = JSON.parse($('#fc-parameters').text());
-      $.extend(fcParams, moreParams);
+      var groupId = that.myDiv.data('groupid');
+      fcParams.resources = '/groups/' + groupId + '/scheduleresources';
+      fcParams.events    = '/groups/' + groupId + '/scheduleevents';
       that.myDiv.fullCalendar(fcParams);
     };
 

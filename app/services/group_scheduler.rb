@@ -9,9 +9,9 @@ class GroupScheduler
   end
 
   #
-  #  Provided initialisation parameters for FullCalendar in JSON form.
+  #  Provided list of resources for FullCalendar
   #
-  def fc_parameters_json
+  def fc_resources
     #
     #  Where we need an identifying ID, we will always base it on the
     #  element id so they are reliably unique.
@@ -19,19 +19,45 @@ class GroupScheduler
     name = @mygroup.name
     resources = Array.new
     generate_resource_lines(resources, @mygroup)
-    data = {
-      resources: resources
-    }
-    data.to_json.html_safe
+    resources
+  end
+
+  def fc_events(session, current_user, params)
+    #
+    #  We need to return both events attached to real resources, and
+    #  requests attached to any groups.  They all go in a single array
+    #  and FC will sort out displaying them against the right resource,
+    #  provided we put the right resource id in each one.
+    #
+    events = Array.new
+    ea = EventAssembler.new(session, current_user, params)
+    generate_events(events, ea, @mygroup)
+    events
   end
 
   private
+
+  def generate_events(events, ea, group)
+    name = group.name
+    if group.can_have_requests?
+      ea.requests_for(group).each do |e|
+        events << e
+      end
+    end
+    group_members, other_members =
+      group.members(nil, false).partition {|m| m.is_a? Group}
+    group_members.each do |gm|
+      ea.requests_for(gm).each do |e|
+        events << e
+      end
+    end
+  end
 
   def generate_resource_lines(resources, group)
     name = group.name
     if group.can_have_requests?
       resources << {
-        id:         "R#{group.element.id}",
+        id:         "Res#{group.element.id}",
         parentName: name,
         title:      'Requests'
       }

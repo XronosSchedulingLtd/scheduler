@@ -18,7 +18,9 @@ class GroupsController < ApplicationController
                                    :do_clone,
                                    :flatten,
                                    :reinstate,
-                                   :schedule]
+                                   :schedule,
+                                   :scheduleresources,
+                                   :scheduleevents]
 
   # GET /groups
   # GET /groups.json
@@ -259,9 +261,26 @@ class GroupsController < ApplicationController
   # GET /groups/1/schedule
   #
   def schedule
-    @group_scheduler = GroupScheduler.new(@group)
     respond_to do |format|
       format.html
+    end
+  end
+
+  # GET /groups/1/scheduleresources
+  #
+  def scheduleresources
+    resources = GroupScheduler.new(@group).fc_resources
+    respond_to do |format|
+      format.json { render json: resources }
+    end
+  end
+
+  # GET /groups/1/scheduleevents
+  #
+  def scheduleevents
+    events = GroupScheduler.new(@group).fc_events(session, current_user, params)
+    respond_to do |format|
+      format.json { render json: events }
     end
   end
 

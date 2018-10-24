@@ -1,7 +1,7 @@
 <div id='mainContainer'>
   <div class='row collapse calendarbit'>
     <div class='small-12 columns fillup'>
-      <div id='groupschedule' data-firstday="<%= @first_day %>" data-defaultdate="<%= @default_date %>" data-dorefresh='0'></div>
+      <div id='groupschedule' data-groupid="<%= @group.id %>" data-firstday="<%= @first_day %>" data-defaultdate="<%= @default_date %>" data-dorefresh='0'></div>
     </div>
   </div>
   <div class='bottomrighttext'>
@@ -15,8 +15,4 @@
     <a href="https://xronos.uk/" target="_blank">Xronos Scheduler</a>
   </div>
 </div>
-
-<script type='application/json' id='fc-parameters'>
-<%= @group_scheduler.fc_parameters_json %>
-</script>
 

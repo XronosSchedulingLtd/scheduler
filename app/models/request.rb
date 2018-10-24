@@ -39,6 +39,16 @@ class Request < ActiveRecord::Base
   validates :event,   :presence => true
 
   #
+  #  Note that this expects an *exclusive* end date.  Trying to move
+  #  to this method of working everywhere.  Sadly it's not how groups
+  #  are implemented.
+  #
+  scope :during, lambda {|start_date, end_date|
+    joins(:event).where("events.ends_at >= ?", start_date).
+                  where("events.starts_at < ?", end_date)
+  }
+
+  #
   #  Normally this won't be defined and so calls to this method will
   #  return nil.
   #

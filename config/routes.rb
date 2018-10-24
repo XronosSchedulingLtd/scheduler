@@ -109,6 +109,8 @@ Rails.application.routes.draw do
     member do
       get :members
       get :schedule
+      get :scheduleresources
+      get :scheduleevents
       post :do_clone
       post :flatten
       post :reinstate
