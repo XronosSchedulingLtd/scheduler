@@ -149,6 +149,14 @@ class Group < ActiveRecord::Base
     end
   end
 
+  def can_have_requests?
+    if self.persona && self.persona.respond_to?(:can_have_requests?)
+      self.persona.can_have_requests?
+    else
+      false
+    end
+  end
+
   def column_of(mwds, title)
     column = DisplayPanel::GeneralDisplayColumn.new(title)
     mwds.sort.each do |gmwd|

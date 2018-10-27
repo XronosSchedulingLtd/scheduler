@@ -142,11 +142,14 @@ class RequestsController < ApplicationController
               #  in existence then the creation will simply fail, which
               #  is what we want.
               #
-              @request.event.commitments.create({
+              commitment = @request.event.commitments.create({
                 element: element,
                 request: @request
               })
               success = true
+              unless commitment.valid?
+                message = "This resource is already committed to the event"
+              end
             else
               success = true
               message = "Not a suitable resoure for the request"
