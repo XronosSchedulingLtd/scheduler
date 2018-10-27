@@ -337,6 +337,7 @@ class GroupsController < ApplicationController
                                     :era_id,
                                     :current,
                                     :source_id,
-                                    :make_public)
+                                    :make_public,
+                                    :edit_preferred_colour)
     end
 end

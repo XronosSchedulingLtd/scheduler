@@ -235,7 +235,7 @@ module Elemental
   end
 
   def edit_preferred_colour
-    element_preferred_colour
+    element_preferred_colour.blank? ? "" : element_preferred_colour
   end
 
   def edit_preferred_colour=(value)
