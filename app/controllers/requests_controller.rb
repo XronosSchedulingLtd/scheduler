@@ -120,61 +120,57 @@ class RequestsController < ApplicationController
     item_id = params[:item_id]
     element_id = params[:element_id]
     if item_id && element_id
-      #
-      #  Is the item a request?  If so then the item_id will contain
-      #  the request id as an embedded item, but we don't need it.
-      #
-      checker = item_id.match(/\AReq\d+-\d\z/)
-      if checker
+      element = Element.find_by(id: element_id)
+      requested = @request.element.entity
+      if requested.is_a?(Group) && element
+        members = requested.members(nil, true, true)
         #
-        #  The user has dragged a request item.  He has dragged it
-        #  onto an element of some sort.  Provided this is a suitable
-        #  item to fulfill the request, we create a new commitment.
+        #  Is the item a request?  If so then the item_id will contain
+        #  the request id as an embedded item, but we don't need it.
         #
-        requested = @request.element.entity
-        if requested.is_a?(Group)
-          members = requested.members(nil, true, true)
-          element = Element.find_by(id: element_id)
-          if element
-            if members.include?(element.entity)
-              #
-              #  If we use create and there is a matching one already
-              #  in existence then the creation will simply fail, which
-              #  is what we want.
-              #
-              commitment = @request.event.commitments.create({
-                element: element,
-                request: @request
-              })
-              success = true
-              unless commitment.valid?
-                message = "This resource is already committed to the event"
-              end
-            else
-              success = true
-              message = "Not a suitable resoure for the request"
-            end
-          end
-        end
-      else
-        #
-        #  Is it an existing commitment?
-        #
-        checker = item_id.match(/\ACom(\d+)\z/)
+        checker = item_id.match(/\AReq\d+-\d\z/)
         if checker
-          commitment = Commitment.find_by(id: checker[1])
-          if commitment
-            #
-            #  Two possibilities.
-            #
-            #  1) It can be dragged onto another suitable resource to
-            #     fulfill the parent request.  Change the commitment.
-            #
-            #  2) It can be dragged anywhere else.  Delete the commitment,
-            #     meaning it reverts to being an unfulfilled request.
-            #
+          #
+          #  The user has dragged a request item.  He has dragged it
+          #  onto an element of some sort.  Provided this is a suitable
+          #  item to fulfill the request, we create a new commitment.
+          #
+          if members.include?(element.entity)
+            commitment = @request.fulfill(element)
             success = true
-            message = "That was an existing commitment"
+            unless commitment.valid?
+              message = "This resource is already committed to the event"
+            end
+          else
+            success = true
+            message = "Not a suitable resoure for the request"
+          end
+        else
+          #
+          #  Is it an existing commitment?
+          #
+          checker = item_id.match(/\ACom(\d+)\z/)
+          if checker
+            commitment = Commitment.find_by(id: checker[1])
+            if commitment
+              #
+              #  Two possibilities.
+              #
+              #  1) It can be dragged onto another suitable resource to
+              #     fulfill the parent request.  Change the commitment.
+              #
+              #  2) It can be dragged anywhere else.  Delete the commitment,
+              #     meaning it reverts to being an unfulfilled request.
+              #
+              @request.unfulfill(commitment.element_id)
+              success = true
+              if members.include?(element.entity)
+                commitment = @request.fulfill(element)
+                unless commitment.valid?
+                  message = "This resource is already committed to the event"
+                end
+              end
+            end
           end
         end
       end
@@ -187,14 +183,12 @@ class RequestsController < ApplicationController
           #  to pass back apart from the success, but the other end is
           #  expecting some valid JSON-structured data.
           #
-          Rails.logger.debug("Success is true")
           if message
             render json: {message: message}
           else
             render json: ["OK"]
           end
         else
-          Rails.logger.debug("Success is false")
           render json: ["Failed"], status: :bad_request
         end
       end
