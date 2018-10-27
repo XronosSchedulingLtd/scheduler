@@ -32,6 +32,27 @@ if ($('#groupschedule').length) {
         minTime: "06:00:00",
         maxTime: "21:00:00",
         resourceGroupField: 'parentName',
+        resourceColumns: [
+//          {
+//            group: true,
+//            labelText: 'Grouping',
+//            field:     'parentName'
+//          },
+          {
+            labelText: 'Resource',
+            field:     'title'
+          },
+          {
+            labelText: '',
+            width:     22,
+            text: function() { return '';},
+            render: function(resource, el) {
+              if (resource.colour) {
+                el.css('background-color', resource.colour);
+              }
+            }
+          }
+        ],
         events: {
           color: '#1f94bc'
         },

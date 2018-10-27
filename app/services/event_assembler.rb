@@ -3,6 +3,43 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
+module ColourManipulation
+
+  KNOWN_COLOUR_NAMES = {
+    "red"   => "#FF0000",
+    "pink"  => "#FFC0CB",
+    "green" => "#008000"
+  }
+  KNOWN_COLOUR_NAMES.default = "#000000"
+
+  #
+  #  Passed a colour, produces a more greyed out version of the same
+  #  colour.  Lighter, and with less colour density, but still
+  #  clearly related.
+  #
+  def washed_out(colour)
+    if colour[0] != "#"
+      colour = KNOWN_COLOUR_NAMES[colour]
+    end
+    red_bit   = colour[1,2].hex
+    green_bit = colour[3,2].hex
+    blue_bit  = colour[5,2].hex
+    #
+    #  Each bit is half way between its original shade and full blast.
+    #
+    red_bit   = (255 - (255 - red_bit)   / 2)
+    green_bit = (255 - (255 - green_bit) / 2)
+    blue_bit  = (255 - (255 - blue_bit)  / 2)
+    "##{
+         sprintf("%02x", red_bit)
+       }#{
+         sprintf("%02x", green_bit)
+       }#{
+         sprintf("%02x", blue_bit)
+       }"
+  end
+end
+
 class EventAssembler
 
   #
@@ -10,57 +47,7 @@ class EventAssembler
   #
   class ScheduleEvent
 
-    #
-    #  A bit of messing about is needed to generate a constant hash with
-    #  a default value.
-    #
-    #  I got this from a blog posting and it doesn't actually work.
-    #  it returns a string, not a hash.  It also appears to be quite
-    #  unnecessary, since the straightforward approach works without
-    #  even producing a warning.
-    #
-    #KNOWN_COLOUR_NAMES = lambda do
-    #  known_colour_names = {
-    #    "red"   => "#FF0000",
-    #    "pink"  => "#FFC0CB",
-    #    "green" => "#008000"
-    #  }.default = "#000000"
-    #  known_colour_names
-    #end.call
-    #
-    KNOWN_COLOUR_NAMES = {
-      "red"   => "#FF0000",
-      "pink"  => "#FFC0CB",
-      "green" => "#008000"
-    }
-    KNOWN_COLOUR_NAMES.default = "#000000"
-
-    #
-    #  Passed a colour, produces a more greyed out version of the same
-    #  colour.  Lighter, and with less colour density, but still
-    #  clearly related.
-    #
-    def washed_out(colour)
-      if colour[0] != "#"
-        colour = KNOWN_COLOUR_NAMES[colour]
-      end
-      red_bit   = colour[1,2].hex
-      green_bit = colour[3,2].hex
-      blue_bit  = colour[5,2].hex
-      #
-      #  Each bit is half way between its original shade and full blast.
-      #
-      red_bit   = (255 - (255 - red_bit)   / 2)
-      green_bit = (255 - (255 - green_bit) / 2)
-      blue_bit  = (255 - (255 - blue_bit)  / 2)
-      "##{
-           sprintf("%02x", red_bit)
-         }#{
-           sprintf("%02x", green_bit)
-         }#{
-           sprintf("%02x", blue_bit)
-         }"
-    end
+    include ColourManipulation
 
     def redden(colour)
       "#ff7070"
@@ -299,6 +286,8 @@ class EventAssembler
   #  that you can fulfill one by dragging it between rows.
   #
   class ScheduleRequest
+    include ColourManipulation
+
     def initialize(element, request, index)
       #
       #  The same request may appear several times, so need to generate
@@ -311,6 +300,9 @@ class EventAssembler
       @all_day          = request.event.all_day?
       @resource_id      = element.id
       @request_id       = request.id
+      if element.preferred_colour
+        @colour = washed_out(element.preferred_colour)
+      end
     end
 
     def as_json(options = {})
@@ -325,6 +317,9 @@ class EventAssembler
         resourceId: @resource_id,
         requestId:  @request_id
       }
+      if @colour
+        result[:color] = @colour
+      end
       result
     end
 
@@ -344,6 +339,9 @@ class EventAssembler
       if commitment.request
         @request_id = commitment.request.id
         @editable   = true
+        if commitment.request.element.preferred_colour
+          @colour = commitment.request.element.preferred_colour
+        end
       else
         @request_id = 0
         @editable   = false

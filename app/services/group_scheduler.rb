@@ -63,11 +63,15 @@ class GroupScheduler
   def generate_resource_lines(resources, group)
     name = group.name
     if group.can_have_requests?
-      resources << {
+      data = {
         id:         group.element.id,
         parentName: name,
         title:      'Requests'
       }
+      if group.element.preferred_colour
+        data[:colour] = group.element.preferred_colour
+      end
+      resources << data
     end
     group_members, other_members =
       group.members(nil, false).partition {|m| m.is_a? Group}
