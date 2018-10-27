@@ -44,6 +44,7 @@ module Elemental
   def update_element
     if self.element
       if self.active
+        do_save = false
         if self.element.name != self.element_name ||
            self.element.current != self.current ||
            self.element.owner_id != self.entitys_owner_id ||
@@ -52,6 +53,23 @@ module Elemental
           self.element.current      = self.current
           self.element.owner_id     = self.entitys_owner_id
           self.element.add_directly = self.add_directly?
+          do_save = true
+        end
+        if @new_preferred_colour
+          #
+          #  Someone has explicitly requested a change.
+          #
+          unless colours_effectively_the_same(@new_preferred_colour,
+                                              self.element.preferred_colour)
+            if @new_preferred_colour.blank?
+              self.element.preferred_colour = nil
+            else
+              self.element.preferred_colour = @new_preferred_colour
+            end
+            do_save = true
+          end
+        end
+        if do_save
           self.element.save!
         end
       else
@@ -69,6 +87,9 @@ module Elemental
         }
         if self.respond_to?(:entitys_owner_id)
           creation_hash[:owner_id] = self.entitys_owner_id
+        end
+        if @new_preferred_colour
+          creation_hash[:preferred_colour] = @new_preferred_colour
         end
         self.adjust_element_creation_hash(creation_hash)
         begin
@@ -211,5 +232,56 @@ module Elemental
     else
       Commitment.none
     end
+  end
+
+  def edit_preferred_colour
+    element_preferred_colour
+  end
+
+  def edit_preferred_colour=(value)
+    #
+    #  Slight bit of jiggery-pokery here.
+    #
+    #  The element record uses a value of nil to indicate there is
+    #  no preferred colour.  We however need to keep track of two
+    #  similar-sounding but different cases.
+    #
+    #  * No preferred colour has been assigned.  I.e. this method
+    #    has never been called.  The obvious thing to use for that is
+    #    nil, since that's the effective default value of an instance
+    #    variable.
+    #
+    #  * User has explicitly asked to remove the preferred colour.
+    #    This will result in us receiving nil or "", but we store it
+    #    as "", to indicate that we have an explicit change.
+    #
+    #  We set @new_preferred_colour only if we see an active change.
+    #
+    current_value = element_preferred_colour
+    if current_value.blank?
+      unless value.blank?
+        @new_preferred_colour = value
+      end
+    else
+      if value.blank?
+        @new_preferred_colour = ""
+      elsif current_value != value
+        @new_preferred_colour = value
+      end
+    end
+  end
+
+  private
+
+  def element_preferred_colour
+    if self.element
+      self.element.preferred_colour
+    else
+      nil
+    end
+  end
+
+  def colours_effectively_the_same(a, b)
+    (a.blank? && b.blank?) || (a == b)
   end
 end
