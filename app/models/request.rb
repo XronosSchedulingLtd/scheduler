@@ -46,6 +46,8 @@ class Request < ActiveRecord::Base
   scope :during, lambda {|start_date, end_date|
     joins(:event).merge(Event.during(start_date, end_date))
   }
+  scope :standalone, -> { where(proto_request_id: nil) }
+  scope :prototyped, -> { where.not(proto_request_id: nil) }
 
   #
   #  Normally this won't be defined and so calls to this method will

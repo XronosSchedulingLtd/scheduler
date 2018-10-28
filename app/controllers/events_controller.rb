@@ -123,7 +123,9 @@ class EventsController < ApplicationController
 
   def assemble_event_info
     @notes = @event.all_notes_for(current_user)
-    @have_requests = @event.requests.size > 0
+    if current_user && current_user.exams
+      @invigilation_requests = @event.requests.prototyped.to_a
+    end
     @files = Array.new
     #
     #  Make an intelligent selection of which commitments this viewer is

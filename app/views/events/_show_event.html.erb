@@ -169,9 +169,16 @@
     <div id="event-notes">
       <%= render partial: "notes", object: @notes %>
     </div>
-    <% if current_user && current_user.exams && @have_requests %>
+    <% unless @invigilation_requests.blank? %>
       <div id="invigilation-requests">
-        <%= render partial: "invigilation_requests" %>
+        <div class="row">
+          <div class="small-12 columns">
+            <% @invigilation_requests.each do |r| %>
+              <div class="request-div" data-request-id="<%= r.id %>">
+              </div>
+            <% end %>
+          </div>
+        </div>
       </div>
     <% end %>
     <% if current_user && @event.repeating_event? && current_user.could_repeat?(@event) %>
