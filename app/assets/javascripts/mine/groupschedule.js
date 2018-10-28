@@ -13,7 +13,7 @@ if ($('#groupschedule').length) {
         header: {
           left:   'prev,next today',
           center: 'title',
-          right:  'timelineDay,timelineWeek,timelineMonth'
+          right:  'timelineDay,timelineThreeDays,timelineFourDays,timelineWeek'
         },
         views: {
           month: {
@@ -24,6 +24,14 @@ if ($('#groupschedule').length) {
           },
           day: {
             titleFormat: 'ddd Do MMM, YYYY'
+          },
+          timelineThreeDays: {
+            type: 'timeline',
+            duration: { days: 3 }
+          },
+          timelineFourDays: {
+            type: 'timeline',
+            duration: { days: 4 }
           }
         },
         defaultView: 'timelineDay',
