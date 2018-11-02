@@ -20,16 +20,28 @@ if ($('#groupschedule').length) {
             titleFormat: 'MMMM YYYY'
           },
           week: {
+            slotLabelFormat: [
+              'ddd D/M',
+              'ha'
+            ],
             titleFormat: 'Do MMM, YYYY'
           },
           day: {
             titleFormat: 'ddd Do MMM, YYYY'
           },
           timelineThreeDays: {
+            slotLabelFormat: [
+              'ddd D/M',
+              'ha'
+            ],
             type: 'timeline',
             duration: { days: 3 }
           },
           timelineFourDays: {
+            slotLabelFormat: [
+              'ddd D/M',
+              'ha'
+            ],
             type: 'timeline',
             duration: { days: 4 }
           }
@@ -66,12 +78,19 @@ if ($('#groupschedule').length) {
         },
         eventStartEditable: false,
         eventDurationEditable: false,
-        eventDrop: that.handleDrop
+        eventDrop: that.handleDrop,
+        eventClick: that.handleClick
       };
       var groupId = that.myDiv.data('groupid');
       fcParams.resources  = '/groups/' + groupId + '/scheduleresources';
       fcParams.events.url = '/groups/' + groupId + '/scheduleevents';
       that.myDiv.fullCalendar(fcParams);
+    };
+
+    that.handleClick = function(event, jsEvent, view) {
+      $('#eventModal').foundation('reveal',
+                                  'open',
+                                  '/events/' + event.eventId);
     };
 
     that.handleDrop = function(event, delta, revertFunc) {

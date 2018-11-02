@@ -300,6 +300,7 @@ class EventAssembler
       @all_day          = request.event.all_day?
       @resource_id      = element.id
       @request_id       = request.id
+      @event_id         = request.event_id
       if element.preferred_colour
         @colour = washed_out(element.preferred_colour)
       end
@@ -315,7 +316,8 @@ class EventAssembler
         recurring:  false,
         editable:   true,                # For now
         resourceId: @resource_id,
-        requestId:  @request_id
+        requestId:  @request_id,
+        eventId:    @event_id
       }
       if @colour
         result[:color] = @colour
@@ -336,6 +338,7 @@ class EventAssembler
       @ends_at_for_fc   = commitment.event.ends_at_for_fc
       @all_day          = commitment.event.all_day?
       @resource_id      = element.id
+      @event_id         = commitment.event_id
       if commitment.request
         @request_id = commitment.request.id
         @editable   = true
@@ -345,7 +348,9 @@ class EventAssembler
       else
         @request_id = 0
         @editable   = false
-        @colour     = 'red'
+        unless element.add_directly?
+          @colour     = 'red'
+        end
       end
     end
 
@@ -359,7 +364,8 @@ class EventAssembler
         recurring:  false,
         editable:   @editable,
         resourceId: @resource_id,
-        requestId:  @request_id
+        requestId:  @request_id,
+        eventId:    @event_id
       }
       if @colour
         result[:color] = @colour
@@ -666,7 +672,6 @@ class EventAssembler
            each do |c|
       result << ScheduleCommitment.new(entity.element, c)
     end
-    Rails.logger.debug("Returning #{result.count} events for #{entity.name}")
     result
   end
 end
