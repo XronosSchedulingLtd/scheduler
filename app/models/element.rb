@@ -599,6 +599,11 @@ class Element < ActiveRecord::Base
     #
   end
 
+  def aresourcegroup?
+    self.entity_type == 'Group' &&
+    self.entity.type == 'Resource'
+  end
+
   protected
 
   def being_destroyed
