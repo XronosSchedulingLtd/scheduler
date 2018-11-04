@@ -12,8 +12,9 @@
     </h2>
 <% if @clashes.size > 0 %>
     <p>
-      Automatic processing of the cover records from SchoolBase has
-      thrown up the following possible clashes.
+    Automatic processing of the cover records from
+    <%= Setting.current_mis_name %>
+    has thrown up the following possible clashes.
     </p>
     <table>
       <tr>
@@ -31,8 +32,9 @@
 <% end %>
 <% if @oddities.size > 0 %>
     <p>
-      Automatic processing of the cover records from SchoolBase has
-      thrown up the following possible oddities.
+    Automatic processing of the cover records from
+    <%= Setting.current_mis_name %>
+    has thrown up the following possible oddities.
     </p>
     <table>
       <tr>

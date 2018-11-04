@@ -90,6 +90,37 @@ class UserMailer < ActionMailer::Base
     end
   end
 
+  def commitment_approved_email(commitment, complete)
+    parameters = Hash.new
+    @event      = commitment.event
+    @element    = commitment.element
+    @commitment = commitment
+    @complete   = complete
+    if commitment.by_whom
+      @approver = commitment.by_whom.name
+      parameters[:reply_to] = commitment.by_whom.email
+      @approver_email = commitment.by_whom.email
+    else
+      @approver = "the system"
+    end
+    if @event && @element
+      #
+      #  Who the e-mail goes to depends on what information is in the
+      #  event.
+      #
+      email = appropriate_email(@event)
+      if email
+        @user = User.find_by(email: email)
+        parameters[:to] = email
+        parameters[:subject] = "Request approved"
+        parameters[:from] = Setting.from_email_address
+        mail(parameters)
+      else
+        Rails.logger.info("Unable to send request approved e-mail.  No-one to send to.")
+      end
+    end
+  end
+
   def event_complete_email(event)
     @event = event
     email = appropriate_email(@event)

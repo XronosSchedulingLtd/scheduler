@@ -144,13 +144,8 @@ class CommitmentsController < ApplicationController
       @commitment.approve_and_save!(current_user)
       @event.reload
       @event.journal_commitment_approved(@commitment, current_user)
-      if @event.complete?
-        #
-        #  Given that our commitment was previously tentative, this
-        #  event must now be newly complete.
-        #
-        UserMailer.event_complete_email(@event).deliver_now
-      end
+      UserMailer.commitment_approved_email(@commitment, @event.complete?).
+                 deliver_now
       true
     else
       false

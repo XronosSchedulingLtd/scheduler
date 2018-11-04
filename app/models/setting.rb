@@ -153,6 +153,16 @@ class Setting < ActiveRecord::Base
     end
   end
 
+  #
+  #  The function above is intended to be used programatically - as
+  #  in being able to do "if Setting.current_mis" and thus returns
+  #  nil if there isn't one.  This next one is intended for display
+  #  purposes and will always return a useful string.
+  #
+  def self.current_mis_name
+    current_mis || "<MIS not configured>"
+  end
+
   def self.previous_mis
     @@setting ||= Setting.first
     if @@setting

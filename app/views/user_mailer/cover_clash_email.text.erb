@@ -4,14 +4,14 @@ Possible cover issues - <%=
 %>
 
 <% if @clashes.size > 0 %>
-  Automatic processing of the cover records from SchoolBase has
+  Automatic processing of the cover records from <%= Setting.current_mis_name %> has
   thrown up the following possible clashes.
 
 <%= render @clashes %>
 <% end %>
 
 <% if @oddities.size > 0 %>
-  Automatic processing of the cover records from SchoolBase has
+  Automatic processing of the cover records from <%= Setting.current_mis_name %> has
   thrown up the following possible oddities.
 
 <%= render @oddities %>
