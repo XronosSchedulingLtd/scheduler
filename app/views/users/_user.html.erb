@@ -1,6 +1,19 @@
-<% if @do_filters %>
-  <div id='filter-switch' data-userid='<%= @userid %>'>
-    Filter: <span id='filter-state' class='filter-<%= @filter_state %>'><%= @filter_state %></span>
+<% if @do_filters || @do_views %>
+  <div style='width: 100%;'>
+    <% if @do_filters %>
+      <div id='filter-switch' data-userid='<%= @userid %>'>
+        Filter: <span id='filter-state' class='filter-<%= @filter_state %>'><%= @filter_state %></span>
+      </div>
+    <% end %>
+    <% if @do_views %>
+      <div id='view-switch' data-userid='<%= @userid %>'
+        <% if @current_view_hover_text %>
+          title='<%= @current_view_hover_text %>'
+        <% end %>
+      >
+        View: <span id='view-state'><%= @current_view %></span>
+      </div>
+    <% end %>
   </div>
 <% end %>
 <table class="zftable">

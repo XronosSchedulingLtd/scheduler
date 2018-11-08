@@ -262,6 +262,12 @@ filterClicked = (event) ->
     'open',
     "/users/#{$('div#filter-switch').data('userid')}/filters/1/edit")
 
+viewClicked = (event) ->
+  $('#eventModal').foundation(
+    'reveal',
+    'open',
+    "/users/#{$('div#view-switch').data('userid')}/concern_sets")
+
 activateColourPicker = (field_id, sample_id) ->
   palette = ["#483D8B", "#CD5C5C", "#B8860B", "#7B68EE",
              "#808000", "#6B8E23", "#DB7093", "#2E8B57",
@@ -369,11 +375,15 @@ activateAutoSubmit = ->
 activateFilterSwitch = ->
   $('div#filter-switch').click(filterClicked)
 
+activateViewSwitch = ->
+  $('div#view-switch').click(viewClicked)
+
 activateUserColumn = ->
   activateCheckboxes()
   activateDragging()
   activateAutoSubmit()
   activateFilterSwitch()
+  activateViewSwitch()
 
 primeCloser = ->
   $('.closer').click ->

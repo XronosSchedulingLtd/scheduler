@@ -1,0 +1,20 @@
+<div>
+  <%=
+    link_to('Select',
+            select_user_concern_set_path(@user, concern_set),
+            method: :put,
+            remote: true,
+            class: 'zfbutton tiny radius button-link')
+          %>
+  <%= concern_set.name %>
+  (<%= pluralize(concern_set.num_concerns, 'item') %>)
+  <% if concern_set.id && concern_set.id != 0 %>
+    <%= link_to("&#215;".html_safe,
+                [@user, concern_set],
+                method: :delete,
+                remote: true,
+                data: {
+                  confirm: "Are you sure you want to completely delete the view \"#{concern_set.name}\" and all its configuration?"
+                }) %>
+  <% end %>
+</div>

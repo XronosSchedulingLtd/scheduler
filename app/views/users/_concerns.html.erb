@@ -14,7 +14,7 @@
         <th></th>
         <th></th>
       </tr>
-      <%= render partial: "users/concern", collection: @user.concerns.sort %>
+      <%= render partial: "users/concern", collection: @user.concerns.default_view.sort %>
     </table>
   </div>
 </div>

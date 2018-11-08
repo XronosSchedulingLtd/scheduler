@@ -70,8 +70,9 @@ class User < ActiveRecord::Base
   serialize :extra_eventcategories,      Array
   serialize :permissions,                ShadowPermissionFlags
 
-  has_many :concerns,   :dependent => :destroy
-  has_many :user_form_responses, :dependent => :destroy
+  has_many :concerns,            dependent: :destroy
+  has_many :concern_sets,        dependent: :destroy, foreign_key: :owner_id
+  has_many :user_form_responses, dependent: :destroy
 
   has_many :events, foreign_key: :owner_id, dependent: :nullify
 
@@ -86,6 +87,7 @@ class User < ActiveRecord::Base
   belongs_to :day_shape, class_name: RotaTemplate
   belongs_to :corresponding_staff, class_name: "Staff"
   belongs_to :user_profile
+  belongs_to :current_concern_set, class_name: "ConcernSet"
 
   #
   #  The only elements we can actually own currently are groups.  By creating
@@ -283,9 +285,13 @@ class User < ActiveRecord::Base
   #  If both bits are set for an element, then put it in the more
   #  privileged set.
   #
+  #  Note that only concerns in our default set can confer permissions.
+  #  Any other sets are used purely for display purposes.
+  #
   def ensure_elements_cache
     unless @elements_giving_edit && @elements_giving_subedit
       with_edit, with_subedit = self.concerns.
+                                     default_view.
                                      includes(:element).
                                      either_edit_flag.
                                      partition {|c| c.edit_any}

@@ -88,13 +88,13 @@ class ConcernsController < ApplicationController
         else
           @concern.colour = @user.free_colour
         end
+        #
+        #  If we fail to save it then it must be a duplicate
+        #  In either case, we're just going to render the list again.
+        #
+        @concern.save
+        @user.reload
       end
-      #
-      #  If we fail to save it then it must be a duplicate
-      #  In either case, we're just going to render the list again.
-      #
-      @concern.save
-      @user.reload
       respond_to do |format|
         format.js { render "create_for_user" }
       end
@@ -102,6 +102,7 @@ class ConcernsController < ApplicationController
       @reload_concerns = false
       @concern = Concern.new(concern_params)
       @concern.user = current_user
+      @concern.concern_set = current_user.current_concern_set
       @concern.list_teachers = current_user.list_teachers
       if @concern.element &&
          @concern.element.preferred_colour
@@ -118,7 +119,8 @@ class ConcernsController < ApplicationController
       #  If it's already on, then do nothing but prepare for more input.
       #
       existing_concern = Concern.find_by(user_id: @concern.user_id,
-                                         element_id: @concern.element_id)
+                                         element_id: @concern.element_id,
+                                         concern_set: current_user.current_concern_set)
       if existing_concern
         @concern = Concern.new
         @element_id = nil
