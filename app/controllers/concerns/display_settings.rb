@@ -20,7 +20,7 @@ module DisplaySettings
           @current_view_hover_text = name
         end
       else
-        @current_view = "default"
+        @current_view = ConcernSet::DefaultViewName
       end
 
       @my_events    = user.editor?

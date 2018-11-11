@@ -1,4 +1,7 @@
 class ConcernSet < ActiveRecord::Base
+
+  DefaultViewName = 'Default'
+
   has_many :concerns, dependent: :destroy
   has_one  :user_as_current,
            class_name: "User",
@@ -10,7 +13,8 @@ class ConcernSet < ActiveRecord::Base
   validates_presence_of :name
   validates_presence_of :owner
 
-  attr_accessor :copy_concerns
+  attribute :copy_concerns, Type::Boolean.new, default: true
+  attribute :and_hide,      Type::Boolean.new, default: false
 
   #
   #  This exists as a method because it needs to be able to work out

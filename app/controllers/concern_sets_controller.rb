@@ -4,7 +4,7 @@ class ConcernSetsController < ApplicationController
   # GET /users/1/concern_sets
   def index
     dummy_concern_set = ConcernSet.new({
-      name: 'default',
+      name: ConcernSet::DefaultViewName,
       owner: @user
     })
     dummy_concern_set.id = 0
@@ -18,7 +18,7 @@ class ConcernSetsController < ApplicationController
     @refresh = false
     @concern_set = @user.concern_sets.new(concern_set_params)
     if @concern_set.save
-      if @concern_set.copy_concerns == '1'
+      if @concern_set.copy_concerns
         #
         #  Need to create copies of all the currently visible concerns
         #  in what was the user's current view.
@@ -39,6 +39,21 @@ class ConcernSetsController < ApplicationController
             visible: true,
             colour:  concern.colour
           })
+          if @concern_set.and_hide
+            #
+            #  We have also been asked to remove the concern from its
+            #  existing set.  If it's a dynamic concern (one which the
+            #  user can delete) then we delete it, but if it's one which
+            #  confers privilege, then we merely make it invisible.
+            #
+            #
+            if @user.can_delete?(concern)
+              concern.destroy
+            else
+              concern.visible = false
+              concern.save
+            end
+          end
         end
       end
       @user.current_concern_set = @concern_set
@@ -108,6 +123,6 @@ class ConcernSetsController < ApplicationController
   end
 
   def concern_set_params
-    params.require(:concern_set).permit(:name, :copy_concerns)
+    params.require(:concern_set).permit(:name, :copy_concerns, :and_hide)
   end
 end
