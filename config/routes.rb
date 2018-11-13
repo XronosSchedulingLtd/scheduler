@@ -147,9 +147,12 @@ Rails.application.routes.draw do
     #  different area of dialogues.
     #
     resources :concerns, only: [:create, :destroy, :edit]
-    resources :concern_sets, only: [:index, :create, :destroy] do
+    resources :concern_sets do
       member do
         put :select
+      end
+      collection do
+        get :refresh
       end
     end
   end

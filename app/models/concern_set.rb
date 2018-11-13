@@ -32,4 +32,11 @@ class ConcernSet < ActiveRecord::Base
     end
   end
 
+  def <=>(other)
+    if other.instance_of?(ConcernSet)
+      self.name <=> other.name
+    else
+      nil
+    end
+  end
 end

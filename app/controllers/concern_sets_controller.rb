@@ -3,13 +3,7 @@ class ConcernSetsController < ApplicationController
 
   # GET /users/1/concern_sets
   def index
-    dummy_concern_set = ConcernSet.new({
-      name: ConcernSet::DefaultViewName,
-      owner: @user
-    })
-    dummy_concern_set.id = 0
-    @concern_sets = [dummy_concern_set] + @user.concern_sets
-    @concern_set = ConcernSet.new
+    prepare_index_contents
     render layout: false
   end
 
@@ -61,7 +55,59 @@ class ConcernSetsController < ApplicationController
       @refresh = true
     end
     respond_to do |format|
-      format.js { render 'select' }
+      format.js { render 'closedialogue' }
+    end
+  end
+
+  # GET /users/1/concern_sets/1/edit
+  def edit
+    #
+    #  We let users edit a concern by replacing the right-hand half
+    #  of the dialogue.  All they can change is the name.
+    #
+    @concern_set = @user.concern_sets.find_by(id: params[:id])
+    if @concern_set
+      respond_to do |format|
+        format.js
+      end
+    else
+      #
+      #  Just close down the dialogue.  Someone is playing at silly
+      #  buggers.
+      #
+      respond_to do |format|
+        format.js { render 'closedialogue' }
+      end
+    end
+  end
+
+  # PUT /users/1/concern_sets/1
+  def update
+    @concern_set = @user.concern_sets.find_by(id: params[:id])
+    if @concern_set && @concern_set.update(concern_set_params)
+      prepare_index_contents
+      respond_to do |format|
+        format.js
+      end
+    else
+      #
+      #  Just close down the dialogue.  Someone is playing at silly
+      #  buggers.
+      #
+      respond_to do |format|
+        format.js { render 'closedialogue' }
+      end
+    end
+  end
+
+  # GET /users/1/concern_sets
+  def refresh
+    #
+    #  Used to cancel an edit and go back to the listing of concern sets.
+    #
+    prepare_index_contents
+    respond_to do |format|
+      format.js
     end
   end
 
@@ -91,7 +137,7 @@ class ConcernSetsController < ApplicationController
       end
     end
     respond_to do |format|
-      format.js
+      format.js { render 'closedialogue' }
     end
   end
 
@@ -105,7 +151,7 @@ class ConcernSetsController < ApplicationController
       concern_set.destroy
     end
     respond_to do |format|
-      format.js { render 'select' }
+      format.js { render 'closedialogue' }
     end
   end
 
@@ -124,5 +170,15 @@ class ConcernSetsController < ApplicationController
 
   def concern_set_params
     params.require(:concern_set).permit(:name, :copy_concerns, :and_hide)
+  end
+
+  def prepare_index_contents
+    dummy_concern_set = ConcernSet.new({
+      name: ConcernSet::DefaultViewName,
+      owner: @user
+    })
+    dummy_concern_set.id = 0
+    @concern_sets = [dummy_concern_set] + @user.concern_sets.sort
+    @concern_set = ConcernSet.new
   end
 end

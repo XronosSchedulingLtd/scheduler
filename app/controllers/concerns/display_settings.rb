@@ -15,8 +15,8 @@ module DisplaySettings
       @filter_state = user.filter_state
       if user.current_concern_set
         name = user.current_concern_set.name
-        @current_view = name.truncate(12)
-        if name.size > 12
+        @current_view = name.truncate(11)
+        if name.size > 11
           @current_view_hover_text = name
         end
       else

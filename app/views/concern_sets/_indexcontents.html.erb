@@ -1,0 +1,13 @@
+<h2>Views</h2>
+<a class="close-reveal-modal">&#215;</a>
+<div class='row collapse'>
+  <div class='small-6 columns'>
+    <p>Choose an existing one...</p>
+    <%= render @concern_sets %>
+  </div>
+  <div class='small-6 columns'>
+    <div id='concern-set-editing'>
+      <%= render 'creation' %>
+    </div>
+  </div>
+</div>

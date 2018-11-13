@@ -1,14 +1,28 @@
-<div>
-  <%=
-    link_to('Select',
-            select_user_concern_set_path(@user, concern_set),
-            method: :put,
-            remote: true,
-            class: 'zfbutton tiny radius button-link')
-          %>
+<div class='row collapse'>
+  <div class='small-2 columns'>
+    <%=
+      link_to('Select',
+              select_user_concern_set_path(@user, concern_set),
+              method: :put,
+              remote: true,
+              class: 'zfbutton teensy radius button-link')
+            %>
+  </div>
+  <div class='small-5 columns'>
   <%= concern_set.name %>
   (<%= pluralize(concern_set.num_concerns, 'item') %>)
+  </div>
   <% if concern_set.id && concern_set.id != 0 %>
+  <div class='small-2 columns'>
+    <%=
+      link_to('Rename',
+              edit_user_concern_set_path(@user, concern_set),
+              method: :get,
+              remote: true,
+              class: 'zfbutton teensy radius button-link')
+            %>
+  </div>
+  <div class='small-1 columns'>
     <%= link_to("&#215;".html_safe,
                 [@user, concern_set],
                 method: :delete,
@@ -16,5 +30,12 @@
                 data: {
                   confirm: "Are you sure you want to completely delete the view \"#{concern_set.name}\" and all its configuration?"
                 }) %>
+  </div>
+  <div class='small-2 columns'>
+    &nbsp;
+  </div>
+  <% else %>
+    <div class='small-5 columns'>
+    </div>
   <% end %>
 </div>

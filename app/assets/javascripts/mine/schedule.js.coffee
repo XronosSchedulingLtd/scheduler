@@ -491,6 +491,12 @@ window.replaceEditingCommitments = (new_html) ->
   primeQuickAddButtons()
   window.refreshNeeded()
 
+window.beginEditingConcernSet = (body_text) ->
+  $('#concern-set-editing').html(body_text)
+
+window.endEditingConcernSet = (body_text) ->
+  $('#view-dialogue').html(body_text)
+
 window.beginNoteEditing = (body_text) ->
   $('#event-notes').html(body_text)
   $('#note_contents').focus()
