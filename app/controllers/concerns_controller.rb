@@ -108,7 +108,12 @@ class ConcernsController < ApplicationController
          @concern.element.preferred_colour
         @concern.colour = @concern.element.preferred_colour
       else
-        @concern.colour = current_user.free_colour
+        if current_user.current_concern_set
+          selector = current_user.current_concern_set.concerns
+        else
+          selector = current_user.concerns.default_view
+        end
+        @concern.colour = current_user.free_colour(selector)
       end
 
       #

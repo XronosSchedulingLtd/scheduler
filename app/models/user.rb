@@ -221,12 +221,13 @@ class User < ActiveRecord::Base
     end
   end
 
-  def free_colour
+  def free_colour(selector = nil)
     #
     #  I always specify colours in upper case, but it's possible that
     #  the user has entered one through the front end in lower case.
     #
-    in_use = self.concerns.collect {|i| i.colour ? i.colour.upcase : "dummy"}
+    selector ||= self.concerns
+    in_use = selector.collect {|i| i.colour ? i.colour.upcase : "dummy"}
     available = DECENT_COLOURS - in_use
     if available.size > 0
       available[0]
