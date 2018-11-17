@@ -32,11 +32,24 @@ class ScheduleController < ApplicationController
         #  raise an error.  Calling just find() would raise an
         #  error if the concern id was invalid.
         #
-        concern = Concern.find_by(id: concern_id)
-        if concern && concern.user == current_user
+        concern = current_user.concerns.find_by(id: concern_id)
+        if concern
           unless concern.visible
             concern.visible = true
             concern.save
+          end
+          #
+          #  This concern might belong to a concern set other than
+          #  the current one.  Change the current concern set if this
+          #  is the case.
+          #
+          #  Note that both the concern's concern set, and the user's
+          #  current concern set might potentially be nil.  Happily
+          #  these match up.
+          #
+          if concern.concern_set_id != current_user.current_concern_set_id
+            current_user.current_concern_set = concern.concern_set
+            current_user.save
           end
         end
       else
@@ -44,6 +57,9 @@ class ScheduleController < ApplicationController
         #  Or alternatively, it is possible to specify an element
         #  id.  This allows users who can add concerns to get one
         #  intelligently added directly through a link.
+        #
+        #  Note that we only ever add a concern to the default concern
+        #  set.
         #
         element_id = params[:element_id]
         if current_user && current_user.can_add_concerns? && element_id
@@ -70,6 +86,14 @@ class ScheduleController < ApplicationController
                                current_user.free_colour,
                 visible:       true
               })
+            end
+            #
+            #  And switch to the default concern set, so it is actually
+            #  visible.
+            #
+            if current_user.current_concern_set != nil
+              current_user.current_concern_set = nil
+              current_user.save
             end
           end
         end

@@ -153,7 +153,7 @@ class User < ActiveRecord::Base
   end
 
   def concern_with(element)
-    possibles = Concern.between(self, element)
+    possibles = self.concerns.default_view.concerning(element)
     if possibles.size == 1
       possibles[0]
     else

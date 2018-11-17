@@ -71,6 +71,7 @@ class Concern < ActiveRecord::Base
 
   scope :between, ->(user, element) {where(user_id: user.id, element_id: element.id)}
 
+  scope :concerning, ->(element) { where(element_id: element.id) }
   scope :auto_add, -> { where(auto_add: true) }
 
   after_save :update_after_save
