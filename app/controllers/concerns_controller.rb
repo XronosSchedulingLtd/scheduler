@@ -100,8 +100,7 @@ class ConcernsController < ApplicationController
       end
     else
       @reload_concerns = false
-      @concern = Concern.new(concern_params)
-      @concern.user = current_user
+      @concern = current_user.concerns.new(concern_params)
       @concern.concern_set = current_user.current_concern_set
       @concern.list_teachers = current_user.list_teachers
       if @concern.element &&
@@ -123,9 +122,11 @@ class ConcernsController < ApplicationController
       #
       #  If it's already on, then do nothing but prepare for more input.
       #
-      existing_concern = Concern.find_by(user_id: @concern.user_id,
-                                         element_id: @concern.element_id,
-                                         concern_set: current_user.current_concern_set)
+      existing_concern =
+        current_user.concerns.find_by({
+          element_id: @concern.element_id,
+          concern_set: current_user.current_concern_set
+        })
       if existing_concern
         @concern = Concern.new
         @element_id = nil
