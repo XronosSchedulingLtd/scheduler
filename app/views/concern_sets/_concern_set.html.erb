@@ -1,4 +1,8 @@
 <div class='row collapse'>
+  <div class='small-5 columns'>
+  <%= concern_set.name %>
+  (<%= pluralize(concern_set.num_concerns, 'item') %>)
+  </div>
   <div class='small-2 columns'>
     <%=
       link_to('Select',
@@ -7,10 +11,6 @@
               remote: true,
               class: 'zfbutton teensy radius button-link')
             %>
-  </div>
-  <div class='small-5 columns'>
-  <%= concern_set.name %>
-  (<%= pluralize(concern_set.num_concerns, 'item') %>)
   </div>
   <% if concern_set.id && concern_set.id != 0 %>
   <div class='small-2 columns'>
