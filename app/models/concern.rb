@@ -40,11 +40,13 @@ class Concern < ActiveRecord::Base
   }
   belongs_to :user
   belongs_to :element
+  belongs_to :concern_set       # May be nil
   has_one    :itemreport, :dependent => :destroy
 
-  validates :user,    :presence => true
-  validates :element, :presence => true
-  validates :element_id, uniqueness: { scope: :user_id }
+  validates_presence_of :user
+  validates_presence_of :element
+  validates_presence_of :colour
+  validates_uniqueness_of :element_id, scope: [:user_id, :concern_set_id]
 
   scope :me, -> {where(equality: true)}
   scope :not_me, -> {where.not(equality: true)}
@@ -54,6 +56,7 @@ class Concern < ActiveRecord::Base
   scope :seek_permission, -> {where(seek_permission: true)}
   scope :edit_any, -> {where(edit_any: true)}
   scope :subedit_any, -> {where(subedit_any: true)}
+  scope :default_view, -> { where(concern_set_id: nil) }
   #
   #  If we were on Rails 5 then we could combine the above two with an OR
   #  but for now we need to do it manually.
@@ -68,6 +71,7 @@ class Concern < ActiveRecord::Base
 
   scope :between, ->(user, element) {where(user_id: user.id, element_id: element.id)}
 
+  scope :concerning, ->(element) { where(element_id: element.id) }
   scope :auto_add, -> { where(auto_add: true) }
 
   after_save :update_after_save

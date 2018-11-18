@@ -101,6 +101,13 @@ input.hidden_submit {
 
 div#filter-switch {
   margin: 5px;
+  float: left;
+}
+
+div#view-switch {
+  margin: 5px;
+  padding-right: 5px;
+  float: right;
 }
 
 span#filter-state.filter-on {

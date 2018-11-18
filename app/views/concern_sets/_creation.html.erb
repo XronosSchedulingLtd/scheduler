@@ -1,0 +1,45 @@
+<p>...or create a new one</p>
+<%= form_for [@user, @concern_set], remote: true do |f| %>
+  <% if @concern_set.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@concern_set.errors.count, "error") %> prohibited this view from being saved:</h2>
+
+      <ul>
+      <% @concern_set.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row collapse">
+    <div class="small-2 columns">
+      <%= f.label :name, class: 'right inline' %>
+    </div>
+    <div class="small-10 columns">
+      <%= f.text_field :name %>
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-1 columns">
+      <%= f.check_box :copy_concerns, class: 'right inline' %>
+    </div>
+    <div class="small-10 small-offset-1 columns">
+      Do you want to copy all the existing visible items to your new view?
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-1 columns">
+      <%= f.check_box :and_hide, class: 'right inline' %>
+    </div>
+    <div class="small-10 small-offset-1 columns">
+      And then remove them from the source view?
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-2 small-offset-10 columns">
+      <%= f.submit "Create", class: 'zfbutton tiny radius' %>
+    </div>
+  </div>
+<% end %>
+

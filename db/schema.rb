@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180916063144) do
+ActiveRecord::Schema.define(version: 20181104110249) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -51,6 +51,13 @@ ActiveRecord::Schema.define(version: 20180916063144) do
   add_index "commitments", ["status"], name: "index_commitments_on_status", using: :btree
   add_index "commitments", ["tentative"], name: "index_commitments_on_tentative", using: :btree
 
+  create_table "concern_sets", force: :cascade do |t|
+    t.string   "name",       limit: 255
+    t.integer  "owner_id",   limit: 4
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+  end
+
   create_table "concerns", force: :cascade do |t|
     t.integer  "user_id",          limit: 4
     t.integer  "element_id",       limit: 4
@@ -66,6 +73,7 @@ ActiveRecord::Schema.define(version: 20180916063144) do
     t.boolean  "seek_permission",              default: false
     t.boolean  "list_teachers",                default: false
     t.boolean  "subedit_any",                  default: false
+    t.integer  "concern_set_id",   limit: 4
   end
 
   add_index "concerns", ["element_id"], name: "index_concerns_on_element_id", using: :btree
@@ -710,6 +718,7 @@ ActiveRecord::Schema.define(version: 20180916063144) do
     t.boolean  "can_view_forms",                            default: false
     t.boolean  "can_repeat_events",                         default: false
     t.boolean  "can_view_unconfirmed",                      default: false
+    t.integer  "current_concern_set_id",      limit: 4
   end
 
 end
