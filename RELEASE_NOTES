@@ -1,3 +1,52 @@
+v1.6.0  2018-11-18
+
+* Add views to the main user interface
+
+  Each user can choose a list of items to look at in the main schedule
+  screen.  Internally, Scheduler calls these "Concerns".
+
+  Some users build up a vast list of concerns down the left hand side
+  of the screen, switching them on and off as required.
+
+  This release adds the concept of a "View" to the main screen.  Each
+  view consists of a collection of concerns of the user's choosing.
+  Having created some concerns the user can switch between them quickly,
+  saving the need to keep adding and removing individual concerns from
+  what is being viewed.
+
+  Each user's existing concerns form what is called the "Default view"
+  for that user.  From this point the user can create as many other
+  named views as is desired.
+
+  To manipulate views, click on the text which reads "View: ..." at the
+  top of the list of concerns on the LHS of the screen.  It's just next
+  to the existing and similar "Filter: ..." text.  This will being up
+  a dialogue box listing the user's existing views and allowing new
+  views to be created.
+
+  To create a new view, simply type a name in the box on the right hand
+  side of the dialogue and click on the create button.  For convenience
+  the creation code can automatically copy over the currently visible
+  concerns from the previous view, and if desired remove them from the
+  source view.  This means that a user, having got the screen showing
+  a chosen set of resources as required, can quickly create a matching
+  view for exactly those resources, rather than having to create the
+  view, then add resource concerns to it.
+
+  By default the "Copy existing visible concerns" flag is on, but the
+  "and remove from source view" flag is off.  Adjust as desired using
+  the check boxes provided.
+
+  View can be renamed or deleted from the same screen.  Deleting a view
+  will throw away all the concerns attached to it, but will not affect
+  any of the underlying resources.  (The user's view of the resources
+  will go - not the resources themselves.)
+
+  A user might choose for instance to have a view called "Maths teachers"
+  looking at all the maths teachers, or a view called "Mini-buses" looking
+  at all the mini-buses.
+
+  
 v1.5.3  2018-11-04
 
 * Upgrade two dependencies to deal with advisories
