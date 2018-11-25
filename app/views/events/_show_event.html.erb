@@ -49,7 +49,7 @@
               link_to("Wrap",
                       new_event_wrapper_path(@event),
                       remote: @minimal,
-                      class: 'zfbutton teensy')
+                      class: 'zfbutton teensy button-link')
                     %>
             <% if current_user.can_repeat?(@event) %>
               /
@@ -62,14 +62,14 @@
                       @event.event_collection
                     ),
                     remote: @minimal,
-                    class: 'zfbutton teensy'
+                    class: 'zfbutton teensy button-link'
                   )
                 else
                   link_to(
                     "Repeat",
                     new_event_event_collection_path(@event),
                     remote: @minimal,
-                    class: 'zfbutton teensy'
+                    class: 'zfbutton teensy button-link'
                   )
                 end
               %>
@@ -80,7 +80,7 @@
               link_to("Edit",
                       edit_event_path(@event),
                       remote: @minimal,
-                      class: 'zfbutton teensy')
+                      class: 'zfbutton teensy button-link')
                     %>
           </div>
         </div>
@@ -93,7 +93,7 @@
                 @event,
                 remote: @minimal,
                 method: :delete,
-                class: 'zfbutton teensy',
+                class: 'zfbutton teensy button-link',
                 data: {
                   confirm: @event.deletion_warning_message
                 }
@@ -111,7 +111,7 @@
                         clone_event_path(@event),
                         remote: true,
                         method: :post,
-                        class: 'zfbutton teensy')
+                        class: 'zfbutton teensy button-link')
               %>
             </span>
             <span id='cloning_message' style="display: none; color: red;">
