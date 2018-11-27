@@ -273,6 +273,9 @@ class EventCollectionsController < ApplicationController
                   :starts_on_text,
                   :ends_on_text,
                   :when_in_month,
+                  :preserve_earlier,
+                  :preserve_later,
+                  :preserve_historical,
                   weeks: [],
                   days_of_week: [])
   end

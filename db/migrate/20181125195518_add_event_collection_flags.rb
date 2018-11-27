@@ -1,0 +1,7 @@
+class AddEventCollectionFlags < ActiveRecord::Migration
+  def change
+    add_column :event_collections, :preserve_earlier,    :boolean, default: false
+    add_column :event_collections, :preserve_later,      :boolean, default: false
+    add_column :event_collections, :preserve_historical, :boolean, default: true
+  end
+end

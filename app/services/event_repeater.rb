@@ -31,25 +31,23 @@ class EventRepeater
   #
   def self.effect_repetition(by_user, ec, event, asynchronous = false)
     result = false
+    todays_date = Date.today
     if asynchronous
       Rails.logger.error("Asynchronous event repetition not implemented yet.")
     else
       if ec.valid? && event.valid?
         if ec.note_update_requested(by_user, true)
           candidates = ec.events.sort
-          to_go = []
+          possibly_to_go = []
           week_identifier =
             WeekIdentifier.new(ec.repetition_start_date,
                                ec.repetition_end_date)
           eventsource = Eventsource.find_by(name: "Manual")
           ec.repetition_start_date.upto(ec.repetition_end_date) do |date|
-            #
-            #  Any existing events before this date should be got rid of.
-            #
             while (candidate = candidates[0]) && candidate.starts_at < date
-              to_go << candidates.shift
+              possibly_to_go << candidates.shift
             end
-            if ec.happens_on?(date, week_identifier.week_letter(date))
+            if ec.happens_on?(date, week_identifier.week_letter(date), todays_date)
               if candidates[0] &&
                  candidates[0].starts_at.to_date == date
                 #
@@ -57,9 +55,16 @@ class EventRepeater
                 #  Take it and make sure it is right.
                 #
                 candidate = candidates.shift
-                candidate.make_to_match(by_user, event) do |action, item|
-                  if block_given?
-                    yield action, item
+                #
+                #  It might not be appropriate for us to modify this
+                #  event, even though it otherwise matches.  Currently
+                #  this happens only because it is in the past.
+                #
+                if ec.can_modify_event?(candidate)
+                  candidate.make_to_match(by_user, event) do |action, item|
+                    if block_given?
+                      yield action, item
+                    end
                   end
                 end
               else
@@ -87,14 +92,16 @@ class EventRepeater
           #
           #  Any left which we haven't dealt with should be destroyed.
           #
-          (to_go + candidates).each do |event|
-            event.journal_event_destroyed(by_user, true)
-            if block_given?
-              event.commitments.each do |c|
-                yield :removed, c
+          (possibly_to_go + candidates).each do |event|
+            if ec.event_should_go?(event, todays_date)
+              event.journal_event_destroyed(by_user, true)
+              if block_given?
+                event.commitments.each do |c|
+                  yield :removed, c
+                end
               end
+              event.destroy
             end
-            event.destroy
           end
           event.journal_repeated_from(by_user)
           ec.note_finished_update
@@ -118,6 +125,7 @@ class EventRepeater
   #  Intended as a pre-check to make sure we don't delete everything.
   #
   def self.would_have_events?(ec)
+    todays_date = Date.today
     unless ec.days_of_week.empty? ||
            ec.weeks.empty? ||
            ec.repetition_end_date < ec.repetition_start_date
@@ -125,7 +133,7 @@ class EventRepeater
         WeekIdentifier.new(ec.repetition_start_date,
                            ec.repetition_end_date)
       ec.repetition_start_date.upto(ec.repetition_end_date) do |date|
-        if ec.happens_on?(date, week_identifier.week_letter(date))
+        if ec.happens_on?(date, week_identifier.week_letter(date), todays_date)
           return true
         end
       end
