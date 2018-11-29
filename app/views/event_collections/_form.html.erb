@@ -91,13 +91,13 @@
             [@event, @event_collection],
             method: :delete,
             remote: true,
-            class: "zfbutton tiny radius flip-button pw-action",
+            class: "zfbutton tiny radius flip-button pw-action button-link",
             title: "Delete all the repeating events in this series.",
             data: { confirm: "Are you sure you want to delete this whole set of repeating events?" }
           %>
         <% end %>
         <%= f.submit @action_button_text, class: "zfbutton tiny radius pw-action" %>
-        <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => "zfbutton tiny radius" %>
+        <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => 'zfbutton tiny radius button-link' %>
       </div>
       <div class="pw-the-message pw-hidden">
         <p>Please wait...</p>
