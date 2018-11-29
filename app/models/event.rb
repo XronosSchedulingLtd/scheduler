@@ -1281,6 +1281,13 @@ class Event < ActiveRecord::Base
     modifiers.each do |key, value|
       new_self.send("#{key}=", value)
     end
+    #
+    #  Unless we are explicitly doing a repeating event, we don't
+    #  want the new clone to be a member of the event collection.
+    #
+    unless repeating
+      new_self.event_collection = nil
+    end
     new_self.save!
     new_self.journal_event_created(by_user, more, repeating)
     #
