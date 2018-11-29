@@ -26,7 +26,7 @@ class EventCollectionsController < ApplicationController
       @event_collection = EventCollection.new({
         era:                    Setting.current_era,
         repetition_start_date:  @event.starts_at.to_date,
-        repetition_end_date:    Setting.current_era.ends_on,
+        repetition_end_date:    @event.starts_at.to_date + 3.months,
         pre_select:             @event.starts_at.to_date.wday,
         weeks:                  weeks
       })

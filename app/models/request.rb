@@ -58,8 +58,8 @@ class Request < ActiveRecord::Base
   #
   #  Call-backs.
   #
-  after_save    :update_event_after_save
-  after_destroy :update_event_after_destroy
+  after_save    :update_corresponding_event
+  after_destroy :update_corresponding_event
 
   def element_name
     self.element.name
@@ -252,17 +252,27 @@ class Request < ActiveRecord::Base
     value
   end
 
+  def clone_and_save(modifiers)
+    new_self = self.dup
+    modifiers.each do |key, value|
+      new_self.send("#{key}=", value)
+    end
+    #
+    #  Give the calling code the chance to make further adjustments.
+    #
+    if block_given?
+      yield new_self
+    end
+    new_self.save!
+    new_self
+  end
+
   private
 
-  def update_event_after_save
+  def update_corresponding_event
     if self.event
-      self.event.update_from_request(self.colour)
+      self.event.update_flag_colour
     end
   end
 
-  def update_event_after_destroy
-    if self.event
-      self.event.update_from_request("g")
-    end
-  end
 end

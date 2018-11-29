@@ -100,6 +100,22 @@ class Commitment < ActiveRecord::Base
     self.confirmed?
   end
 
+  #
+  #  Is this commitment cloneable?  We may be passed a list of element
+  #  ids of elements to have their commitments cloned.
+  #
+  #  We can clone if all the following are true.
+  #
+  #  1. No list, or our element id is in the list.
+  #  2. This is not a covering commitment.
+  #  3. This commitment does not arise from a request.
+  #
+  def cloneable?(element_id_list = nil)
+    (element_id_list.nil? || element_id_list.include?(self.element_id)) &&
+    self.covering.nil? &&
+    self.request.nil?
+  end
+
   def tentative=(new_value)
     Rails.logger.debug("Attempt to set tentative= #{new_value} in commitment.")
   end

@@ -252,19 +252,61 @@ class Event < ActiveRecord::Base
     end
   end
 
-  #
-  #  Colour parameter can be "r", "y" or "g".  We're looking for
-  #  the worst of these from all our requests.
-  #
-  #  "r" trumps "y" trumps "g" trumps blank.
-  #
-  def update_from_request(colour)
+  def update_flag_colour
     #
-    #  Not full functionality yet.
+    #  Given that we've been called (by a Request object) the most
+    #  likely state of affairs is that we have at least one request.
+    #  (Although it's just possible that our last remaining request
+    #  has gone away, and so we have none.)  It therefore makes sense
+    #  to restrict ourselves to just one d/b hit, rather than checking
+    #  for existence and then fetching them.
     #
-    if self.flagcolour != colour
-      self.flagcolour = colour
-      self.save!
+    requests = self.requests.to_a
+    if requests.empty?
+      unless self.flagcolour.nil?
+        self.flagcolour = nil
+        self.save!
+      end
+    else
+      #
+      #  We have at least one request and should therefore set our
+      #  flag colour accordingly.
+      #
+      #  All green gets green.
+      #  All red gets red.
+      #  Mixture gets yellow.
+      #
+      seen = {
+        'r': false,
+        'y': false,
+        'g': false
+      }
+      requests.each do |r|
+        seen[r.colour] = true
+      end
+      colour = 'y'
+      #
+      #  If we have seen any yellows at all, then we leave our final
+      #  colour at yellow.
+      #
+      unless seen['y']
+        if seen['r']
+          unless seen['g']
+            colour = 'r'
+          end
+        else
+          if seen['g']
+            colour = 'g'
+          end
+        end
+      end
+      #
+      #  And do we need to update our database record?
+      #
+      if self.flagcolour != colour
+        self.flagcolour = colour
+        self.save!
+      end
     end
   end
 
@@ -1245,11 +1287,9 @@ class Event < ActiveRecord::Base
     #
     self.commitments.each do |commitment|
       #
-      #  And we don't want to clone cover commitments.
+      #  Not all commitments are cloneable.
       #
-      unless (element_id_list &&
-              !element_id_list.include?(commitment.element_id)) ||
-             commitment.covering
+      if commitment.cloneable?
         c = commitment.clone_and_save(event: new_self) do |c|
           if block_given?
             yield c
@@ -1258,6 +1298,21 @@ class Event < ActiveRecord::Base
         new_self.journal_commitment_added(c, by_user, repeating)
       end
     end
+    #
+    #  Likewise requests.
+    #
+    self.requests.each do |request|
+      r = request.clone_and_save(event: new_self) do |c|
+        if block_given?
+          yield r
+        end
+      end
+    end
+    #
+    #  And make sure flags are set appropriately.
+    #
+    new_self.reload
+    new_self.update_flag_colour
     new_self
   end
 
