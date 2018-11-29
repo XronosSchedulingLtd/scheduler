@@ -103,8 +103,9 @@ class Event < ActiveRecord::Base
   has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
   has_many :covering_commitments, -> { where("covering_id IS NOT NULL") }, class_name: "Commitment"
   has_many :non_covering_commitments, -> { where("covering_id IS NULL") }, class_name: "Commitment"
+  has_many :standalone_commitments, -> { where("request_id IS NULL") }, class_name: "Commitment"
   has_many :elements, :through => :firm_commitments
-  has_many :elements_even_tentative, through: :commitments, source: :element
+  has_many :elements_even_tentative, through: :standalone_commitments, source: :element
   #
   #  This next one took a bit of crafting.  It is used to optimize
   #  fetching the directly associated staff elements on events when
