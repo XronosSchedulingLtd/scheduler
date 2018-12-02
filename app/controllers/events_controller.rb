@@ -533,6 +533,10 @@ class EventsController < ApplicationController
     #
     #  We enter this method with @event giving the event to be cloned.
     #
+    #  This is the old one-click cloning, currently not linked from
+    #  anywhere.  The new form-based cloning is handled by the Clones
+    #  Controller.
+    #
     request_notifier = RequestNotifier.new
     @event =
       @event.clone_and_save(

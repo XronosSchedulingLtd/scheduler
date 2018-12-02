@@ -184,6 +184,7 @@ Rails.application.routes.draw do
     resources :notes, shallow: true
     resources :requests
     resources :wrappers, only: [:new, :create]
+    resources :cloners, only: [:new, :create]
     resources :event_collections
     member do
       get :shownotes

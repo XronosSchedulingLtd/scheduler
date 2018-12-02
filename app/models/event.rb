@@ -535,6 +535,25 @@ class Event < ActiveRecord::Base
   end
 
   #
+  #  Construct appropriate timings for this event if moved to a
+  #  completely new start date.
+  #
+  #  Returns a pair - starts_at, ends_at.
+  #
+  def timings_on(date)
+    adjustment = date - self.starts_at.to_date
+    if adjustment == 0
+      return [self.starts_at, self.ends_at]
+    else
+      #
+      #  Some work needed.  By how much are we moving our event?
+      #
+      return [self.starts_at + adjustment.days,
+              self.ends_at + adjustment.days]
+    end
+  end
+
+  #
   #  Only a tiny bit different from writing directly to ends_at, but
   #  as the data are coming from FC, we need to take account of all day
   #  events.

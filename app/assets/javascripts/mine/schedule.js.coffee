@@ -556,6 +556,9 @@ window.closeModal = (full_reload, just_events, filter_state) ->
 window.refreshNeeded = ->
   $('.flag-refreshes').data("dorefresh", "1")
 
+#
+#  This one is actually used for both Wrapping and Cloning.
+#
 window.beginWrapping = (contents) ->
   $('#events-dialogue').html(contents)
   $('.datepicker').datepicker( { dateFormat: "dd/mm/yy", stepMinute: 5 })
