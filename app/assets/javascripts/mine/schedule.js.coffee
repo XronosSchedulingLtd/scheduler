@@ -564,6 +564,7 @@ window.beginWrapping = (contents) ->
   $('.datepicker').datepicker( { dateFormat: "dd/mm/yy", stepMinute: 5 })
   primeCloser()
   $('.pw-action').click(pwActionClicked)
+  window.cloningRowHandler.init()
 
 window.redisplayEvent = (contents) ->
   window.refreshNeeded()
