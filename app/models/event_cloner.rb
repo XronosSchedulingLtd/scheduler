@@ -72,12 +72,14 @@ class EventCloner
     #
     @event           = event
     @instances = []
-    if params && instance_params = params[:event_cloner_event_instance]
-      instance_params.each do |key, data|
-        date = data[:date]
-        body = data[:body]
-        unless body.blank? || date.blank?
-          @instances << EventInstance.new(date.to_date, body, key)
+    if params
+      if instance_params = params[:event_cloner_event_instance]
+        instance_params.each do |key, data|
+          date = data[:date]
+          body = data[:body]
+          unless body.blank? || date.blank?
+            @instances << EventInstance.new(date.to_date, body, key)
+          end
         end
       end
     else
