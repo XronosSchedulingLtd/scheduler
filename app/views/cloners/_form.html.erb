@@ -26,7 +26,7 @@
       <label>Description</label>
     </div>
     <div class='small-1 columns'>
-      &nbsp;
+      <img src='images/add16.png' title='Add another date' id='cloner-add-button' />
     </div>
   </div>
   <div class="row">
@@ -46,24 +46,21 @@
       <%= fields_for "event_cloner_event_instance", instance, index: instance.index do |instance_form| %>
       <div class='row cloner-row'>
         <div class='small-4 columns'>
-          <%= instance_form.text_field :date, class: 'datepicker' %>
+          <%= instance_form.text_field :date, autocomplete: 'off', class: 'datepicker' %>
         </div>
         <div class='small-7 columns'>
           <%= instance_form.text_field :body %>
         </div>
         <div class='small-1 columns'>
-          <img src='images/remove16.png' title='Remove this date' class='remover'/>
+          <div class='remover-wrapper'>
+            <img src='images/remove16.png' title='Remove this date' class='remover' />
+          </div>
         </div>
       </div>
       <% end %>
     <% end %>
     </div>
     <div class="row">
-      <div class='small-1 small-offset-11 columns'>
-        <div style='height: 32px;'>
-          <img src='images/add16.png' title='Add another date' id='cloner-add-button' />
-        </div>
-      </div>
       <hr/>
       <div class="small-12 columns">
         <%= f.submit "Create clones", class: "zfbutton tiny radius" %>
@@ -77,7 +74,8 @@
 <script type="text/template" id="clone-date-template">
 <div class='row cloner-row'>
 <div class='small-4 columns'>
-  <input class='datepicker'
+  <input autocomplete='off'
+         class='datepicker'
          type='text'
          value='<%%= initialdate %>'
          name='event_cloner_event_instance[<%%= index %>][date]'
@@ -90,7 +88,9 @@
          id='event_cloner_event_instance_<%%= index %>_body' />
 </div>
 <div class='small-1 columns'>
-  <img src='images/remove16.png' title='Remove this date' class='remover' />
+  <div class='remover-wrapper'>
+    <img src='images/remove16.png' title='Remove this date' class='remover' />
+  </div>
 </div>
 </div>
 </script>
