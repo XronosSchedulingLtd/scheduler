@@ -166,11 +166,11 @@
     <div id="show-all-commitments">
       <%= render partial: "show_all_commitments" %>
     </div>
-    <% if @form_commitments %>
+    <% if @element_connections_with_forms %>
       <div class="row">
         <div class="small-12 columns">
           <hr/>
-          Forms: <%= form_viewing_links(@form_commitments) %>
+          Forms: <%= form_viewing_links(@element_connections_with_forms) %>
         </div>
       </div>
     <% end %>

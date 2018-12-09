@@ -181,6 +181,11 @@ class Event < ActiveRecord::Base
   #
   scope :in_approvals, lambda { where("constrained OR NOT complete") }
 
+  #
+  #  Events which are listed as pending - in the approvals process
+  #  or with incomplete requests.
+  #
+  scope :pending, lambda { where("constrained OR NOT complete OR flagcolour IS NOT NULL") }
   scope :eventcategory_id, lambda {|id| where("eventcategory_id = ?", id) }
   scope :eventsource_id, lambda {|id| where("eventsource_id = ?", id) }
   scope :on, lambda {|date| where("starts_at >= ? and ends_at < ?",
@@ -692,20 +697,24 @@ class Event < ActiveRecord::Base
   #
   #  And how many forms are waiting to be filled in.  This is slightly
   #  more interesting because the forms themselves are attached to
-  #  our commitments, not directly to the event.
+  #  our commitments and requests, not directly to the event.
   #
   #  This should also include a count of any pro-formae which haven't
   #  been done.
   #
   def pending_form_count
     unless @pending_form_count
-      @pending_form_count = self.commitments.inject(0) do |total, commitment|
+      running_total = self.commitments.inject(0) do |total, commitment|
         if commitment.tentative?
           total + commitment.incomplete_ufr_count
         else
           total
         end
       end
+      running_total = self.requests.inject(running_total) do |total, request|
+        total + request.incomplete_ufr_count
+      end
+      @pending_form_count = running_total
     end
     @pending_form_count
   end

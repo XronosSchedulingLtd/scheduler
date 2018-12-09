@@ -34,6 +34,7 @@ class Request < ActiveRecord::Base
   belongs_to :proto_request
 
   has_many :commitments, :dependent => :destroy
+  has_one :user_form_response, as: :parent, dependent: :destroy
 
   validates :element, :presence => true
   validates :event,   :presence => true
@@ -60,6 +61,7 @@ class Request < ActiveRecord::Base
   #
   after_save    :update_corresponding_event
   after_destroy :update_corresponding_event
+  after_create  :check_for_forms
 
   def element_name
     self.element.name
@@ -235,6 +237,10 @@ class Request < ActiveRecord::Base
     end
   end
 
+  def pending?
+    num_outstanding > 0
+  end
+
   #
   #  How many outstanding requests do we have?
   #
@@ -263,8 +269,47 @@ class Request < ActiveRecord::Base
     if block_given?
       yield new_self
     end
+    new_self.note_progenitor(self)
     new_self.save!
     new_self
+  end
+
+  def note_progenitor(progenitor)
+    @progenitor = progenitor
+  end
+
+  def form_status
+    if self.user_form_response
+      #
+      #  Currently cope with only one.
+      #
+      ufr = self.user_form_response
+      if self.commitments.empty?
+        if ufr.complete?
+          "Complete"
+        elsif ufr.partial?
+          "Partial"
+        else
+          "To fill in"
+        end
+      else
+        "Locked"
+      end
+    else
+      "None"
+    end
+  end
+
+  def corresponding_form
+    self.user_form_response
+  end
+
+  def incomplete_ufr_count
+    if self.user_form_response && !self.user_form_response.complete?
+      1
+    else
+      0
+    end
   end
 
   private
@@ -272,6 +317,33 @@ class Request < ActiveRecord::Base
   def update_corresponding_event
     if self.event
       self.event.update_flag_colour
+    end
+  end
+
+  def check_for_forms
+    if self.event.owner && self.event.owner != 0
+      if self.element.user_form
+        user_form_response_params = {
+          user_form: self.element.user_form,
+          user:      self.event.owner
+        }
+        if @progenitor && donor = @progenitor.user_form_response
+          #
+          #  It is just possible (although extremeley unlikely) that
+          #  the configured form for the requested element has changed between
+          #  when the original event was created (and its form filled in)
+          #  and now.  We don't want to go copying the user form response
+          #  data from one form to a response for a different one.
+          #
+          #  Just check.
+          #
+          if donor.user_form_id == self.element.user_form_id
+            user_form_response_params[:form_data] = donor.form_data
+            user_form_response_params[:status]    = donor.status
+          end
+        end
+        self.create_user_form_response(user_form_response_params)
+      end
     end
   end
 

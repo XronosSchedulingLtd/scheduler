@@ -100,10 +100,10 @@ module EventsHelper
   #
   #  Provide viewing links for an array of forms.
   #
-  def form_viewing_links(form_commitments)
-    form_commitments.collect { |fc| 
-      link_to(fc.element.name,
-              user_form_response_path(fc.user_form_response,
+  def form_viewing_links(element_connections_with_forms)
+    element_connections_with_forms.collect { |ecwf| 
+      link_to(ecwf.element.name,
+              user_form_response_path(ecwf.user_form_response,
                                       close_after: true),
               target: :_blank)
     }.join(", ").html_safe
@@ -142,8 +142,17 @@ module EventsHelper
   end
 
   #
+  #  A list of all the commitments which are in the approvals process,
+  #  plus all the requests which exist at all.
+  #
+  def pending_items(event)
+    event.commitments.select {|c| c.in_approvals?} + event.requests
+  end
+
+  #
   #  List all the commitments for an event which are anywhere in the
-  #  approvals process - requested, approved, rejected.  Each is coloured
+  #  approvals process - requested, approved, rejected and all the
+  #  resource requests regardless of status.  Each is coloured
   #  and goes on one line on its own.
   #
   #  We expect the listing code already to have loaded all the commitments
@@ -151,10 +160,13 @@ module EventsHelper
   #  pick the ones which we want.
   #
   def approvals_table_list(event)
-    event.commitments.
-          select {|c| c.in_approvals?}.
-          collect {|c| icon_prefix(c, h(c.element.short_name))}.
-          join("<br/>").html_safe
+    pending_items(event).collect { |item|
+      if item.instance_of?(Commitment)
+        icon_prefix(item, h(item.element.short_name))
+      else
+        h(item.element.short_name)
+      end
+    }.join('<br/>').html_safe
   end
 
   #
@@ -163,45 +175,40 @@ module EventsHelper
   #  need to make sure they're the same height too?)
   #
   def forms_table_list(event)
-    event.commitments.
-          select {|c| c.in_approvals? }.
-          collect do |c|
-            status = c.form_status
-            if status == "To fill in" ||
-               status == "Complete" ||
-               status == "Partial"
-              #
-              #  Link to edit the form.
-              #
-              link_to(status,
-                      edit_user_form_response_path(c.corresponding_form))
-            elsif status == "Locked"
-              #
-              #  Link to display the form.
-              #
-              link_to(status,
-                      user_form_response_path(c.corresponding_form))
-            else
-              status
-            end
-          end.
-          join("<br/>").html_safe
+    pending_items(event).collect { |item|
+      status = item.form_status
+      if status == "To fill in" ||
+         status == "Complete" ||
+         status == "Partial"
+        #
+        #  Link to edit the form.
+        #
+        link_to(status,
+                edit_user_form_response_path(item.corresponding_form))
+      elsif status == "Locked"
+        #
+        #  Link to display the form.
+        #
+        link_to(status,
+                user_form_response_path(item.corresponding_form))
+      else
+        status
+      end
+    }.join('<br/>').html_safe
   end
 
   #
   #  Just produces a marker against each potential action.
   #
   def actions_table_list(event)
-    event.commitments.
-          select {|c| c.in_approvals?}.
-          collect do |c|
-            if c.rejected? || c.noted? || c.form_status == "To fill in"
-              "<" 
-            else
-              "&nbsp;"
-            end
-          end.
-          join("<br/>").html_safe
+    pending_items(event).collect { |item|
+      if (item.instance_of?(Commitment) && (item.rejected? || item.noted?)) ||
+         item.form_status == "To fill in"
+        "<" 
+      else
+        "&nbsp;"
+      end
+    }.join("<br/>").html_safe
   end
 
 

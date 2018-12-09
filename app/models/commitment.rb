@@ -232,8 +232,13 @@ class Commitment < ActiveRecord::Base
     if block_given?
       yield new_self
     end
+    new_self.note_progenitor(self)
     new_self.save!
     new_self
+  end
+
+  def note_progenitor(progenitor)
+    @progenitor = progenitor
   end
 
   def self.cover_commitments(after = nil)
@@ -845,10 +850,17 @@ class Commitment < ActiveRecord::Base
         })
       end
       if self.element.user_form
-        self.create_user_form_response({
+        user_form_response_params = {
           user_form: self.element.user_form,
           user:      self.event.owner
-        })
+        }
+        if @progenitor && donor = @progenitor.user_form_response
+          if donor.user_form_id == self.element.user_form_id
+            user_form_response_params[:form_data] = donor.form_data
+            user_form_response_params[:status]    = donor.status
+          end
+        end
+        self.create_user_form_response(user_form_response_params)
       end
     end
   end

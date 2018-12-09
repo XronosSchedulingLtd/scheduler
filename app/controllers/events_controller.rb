@@ -60,7 +60,7 @@ class EventsController < ApplicationController
           selector = target_user.events
         end
         if params.has_key?(:pending)
-          selector = selector.future.in_approvals
+          selector = selector.future.pending
           @title = "#{target_user.name}'s pending events"
           @flip_target = user_events_path(target_user)
           @flip_text = "See All"
@@ -111,7 +111,10 @@ class EventsController < ApplicationController
 #        Rails.logger.debug("Previous event count = #{previous_event_count}")
         page_no = (previous_event_count / Event.per_page) + 1
       end
-      @events = selector.includes(commitments: :user_form_response).page(page_no).order('starts_at')
+      @events = selector.includes(commitments: :user_form_response,
+                                  requests: :user_form_response).
+                         page(page_no).
+                         order('starts_at')
     else
       if params.has_key?(:pending)
         redirect_to user_events_path(current_user, pending: true)
@@ -172,15 +175,20 @@ class EventsController < ApplicationController
     #  Technically, what he can see are user_form_responses.
     #
     if user_can_view_forms?
-      @form_commitments =
-        @event.commitments.select do |c|
+      #
+      #  An element_connection is either a commitment or a request.
+      #  It needs to respond to a method called element() and another
+      #  called user_form_response().
+      #
+      @element_connections_with_forms =
+        (@event.commitments + @event.requests).select do |c|
           c.user_form_response && !c.user_form_response.empty?
         end
-      if @form_commitments.empty?
-        @form_commitments = nil
+      if @element_connections_with_forms.empty?
+        @element_connections_with_forms = nil
       end
     else
-      @form_commitments = nil
+      @element_connections_with_forms = nil
     end
   end
 
