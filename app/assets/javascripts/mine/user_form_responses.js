@@ -11,31 +11,61 @@ if ($('.user-form-response-area').length) {
 //  Wrap everything in a function to avoid namespace pollution
 //  Note that we invoke the function immediately.
 //
+//  I seem to be using a weird mix of JQuery and native DOM manipulation
+//  calls.  This is probably a bad thing.  Perhaps I was experimenting
+//  with using the native stuff.
+//
 var user_form_response = function() {
   var that = {};
+  //
+  //  Private variables for this module.
+  //
+  var responseArea;
+  var responseField;
+  var statusField;
+  var serverForm;
+  var readOnly;
 
-  that.handleSave = function() {
+  var copyEnteredData = function() {
+    var elements = document.getElementById("user-form").elements
+    var results = [];
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      if (element.type !== 'submit') {
+        var desc = {}
+        desc['id']      = element.id;
+        desc['type']    = element.type;
+        if (element.type === 'checkbox' || element.type === 'radio') {
+          desc['checked'] = element.checked;
+        } else {
+          desc['value']   = element.value;
+        }
+        results.push(desc);
+      }
+    }
+    var producedJSON = JSON.stringify(results);
+    responseField.val(producedJSON);
+  }
+
+  var handleSave = function() {
     var userForm = $('#user-form');
     if (userForm[0].checkValidity()) {
-      var elements = document.getElementById("user-form").elements
-      var results = [];
-      for (var i = 0; i < elements.length; i++) {
-        var element = elements[i];
-        if (element.type !== 'submit') {
-          var desc = {}
-          desc['id']      = element.id;
-          desc['type']    = element.type;
-          if (element.type === 'checkbox' || element.type === 'radio') {
-            desc['checked'] = element.checked;
-          } else {
-            desc['value']   = element.value;
-          }
-          results.push(desc);
-        }
-      }
-      var producedJSON = JSON.stringify(results);
-      that.responseField.val(producedJSON);
-      that.serverForm.submit();
+      copyEnteredData();
+      //
+      //  It is in a sense a security risk that the status of the form
+      //  is decided in the front end rather than the back end.  A
+      //  malicious user could modify the code to mark a form as
+      //  complete even though not all the required fields had been
+      //  completed.
+      //
+      //  However, this doesn't actually buy the user anything.  The
+      //  business of required fields is meant to make sure they don't
+      //  forget anything.  If a user takes active steps to fail to
+      //  fill in a field, then he or she is really just cutting off
+      //  his/her nose to spite his/her face.
+      //
+      statusField.val('complete');
+      serverForm.submit();
     } else {
       //
       //  This seems slightly dangerous, in that we don't really want this
@@ -46,16 +76,27 @@ var user_form_response = function() {
     }
   }
 
+  //
+  //  This one doesn't check for validity, but also sets a flag to
+  //  indicate that the form is not complete.
+  //
+  var handleSaveDraft = function() {
+    copyEnteredData();
+    statusField.val('partial');
+    serverForm.submit();
+  }
+
   that.init = function() {
-    that.responseArea = $('.user-form-response-area');
-    that.responseField = $('#user_form_response_form_data');
-    that.serverForm = $("form[class$=_user_form_response]");
-    that.readOnly = that.responseArea.data("readonly");
+    responseArea = $('.user-form-response-area');
+    responseField = $('#user_form_response_form_data');
+    statusField = $('#user_form_response_status');
+    serverForm = $("form[class$=_user_form_response]");
+    readOnly = responseArea.data("readonly");
 //    console.log("Read only = " + that.readOnly);
     //
     //  Render the form with its default contents.
     //
-    that.responseArea.formRender({
+    responseArea.formRender({
       dataType: 'json',
       formData: $('#user_form_response_definition').val()
     });
@@ -65,13 +106,13 @@ var user_form_response = function() {
     //  new response) then the JSON parser will throw an error.
     //  In that case, just don't bother filling it in.
     //
-    var suppliedJSON = that.responseField.val();
+    var suppliedJSON = responseField.val();
     if (suppliedJSON.length > 0) {
       try {
         var existingData = JSON.parse(suppliedJSON);
         for (var i = 0; i < existingData.length; i++) {
           var ed = existingData[i];
-          var targetField = that.responseArea.find('#' + ed['id']);
+          var targetField = responseArea.find('#' + ed['id']);
           if (ed.type === "checkbox" || ed.type === "radio") {
             targetField.prop("checked", ed.checked);
           } else {
@@ -86,7 +127,7 @@ var user_form_response = function() {
     //
     //  May not want to let things be changed.
     //
-    if (that.readOnly) {
+    if (readOnly) {
       var elements = document.getElementById("user-form").elements
       for (var i = 0; i < elements.length; i++) {
         var element = elements[i];
@@ -97,7 +138,8 @@ var user_form_response = function() {
     //  There may be no save button, in which case this will do
     //  nothing.
     //
-    $('#save-button').click(that.handleSave);
+    $('#save-button').click(handleSave);
+    $('#save-draft-button').click(handleSaveDraft);
   }
 
   return that;

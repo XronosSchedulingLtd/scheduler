@@ -87,7 +87,6 @@ class UserFormResponsesController < ApplicationController
   def create
     local_params = user_form_response_params
     local_params[:user] = current_user
-    local_params[:status] = :complete
     @user_form_response =
       @user_form.user_form_responses.new(local_params)
 
@@ -113,7 +112,6 @@ class UserFormResponsesController < ApplicationController
     #  permission to fill in this form.
     #
     my_params = user_form_response_params
-    my_params[:status] = :complete
     respond_to do |format|
       if @user_form_response.update(my_params)
         if parent = @user_form_response.parent
@@ -176,6 +174,6 @@ class UserFormResponsesController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def user_form_response_params
-      params.require(:user_form_response).permit(:user_form_id, :parent_id, :parent_type, :user_id, :form_data)
+      params.require(:user_form_response).permit(:user_form_id, :parent_id, :parent_type, :user_id, :form_data, :status)
     end
 end

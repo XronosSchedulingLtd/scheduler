@@ -37,16 +37,18 @@
   <%= form_for([@user_form, @user_form_response]) do |f| %>
     <%= f.text_field :definition, disabled: true %>
     <%= f.text_field :form_data %>
+    <%= f.text_field :status %>
   <% end %>
 </div>
 <form id='user-form'>
-  <div class='user-form-response-area'
+  <div class='user-form-response-area frmb'
        data-readonly=<%= @read_only ? "true" : "false" %>></div>
   <input type='submit' style='display:none'/>
 </form>
 
 <% if @save_button %>
-  <button class='zfbutton tiny radius' id='save-button'>Save</button>
+  <button class='zfbutton tiny radius' id='save-button'>Save as complete</button>
+  <button class='zfbutton tiny radius' id='save-draft-button'>Save as draft</button>
 <% end %>
 <% if @cancel_button %>
   <% if @close_after %>
