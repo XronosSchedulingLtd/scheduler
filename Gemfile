@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '4.2.10'
+gem 'rails', '4.2.11'
 gem 'rails-html-sanitizer', '~> 1.0.4'
 # Use sqlite3 as the database for Active Record
 #gem 'sqlite3'
@@ -50,7 +50,7 @@ gem 'rails-observers'
 gem 'ruby-prof'
 gem 'ri_cal'
 gem 'omniauth', '~> 1.8.1'
-gem 'omniauth-google-oauth2'
+gem 'omniauth-google-oauth2', '~> 0.6.0'
 gem 'rails-jquery-autocomplete'
 gem 'delayed_job_active_record'
 gem 'daemons'
