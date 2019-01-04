@@ -1,3 +1,35 @@
+v1.6.1  2019-01-03
+
+  There are no changes to the application functionality in this release,
+  just updated gems.
+
+  A "bundle install" step will be required after fetching this new
+  release onto an installation of Scheduler.
+
+* Upgrade gem omniauth-google-oauth2 to version 0.6.0
+
+  Google have announced that they will start switching off Google+
+  functionality this month, part of which was used by this gem in
+  effecting authentication through Google.  The new version of the
+  gem avoids using any Google+ calls.
+
+* Upgrade rails to 4.2.11
+
+  An advisory for activejob 4.2.10 was issued last month.  It doesn't
+  actually affect Scheduler (because we don't use activejob) but whilst
+  upgrades are happening...
+
+  CVE-2018-16476
+
+* Upgrade rack to 1.6.11
+
+  Likewise there was an advisory for rack, which again doesn't directly
+  affect Scheduler (which does not circumvent the standard escaping
+  functionality) but for completeness...
+
+  CVE-2018-16471
+
+
 v1.6.0  2018-11-18
 
 * Add views to the main user interface
