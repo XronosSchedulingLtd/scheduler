@@ -81,7 +81,17 @@ class CommitmentSet < Array
     #  without renaming database tables etc, so I need to special
     #  case it here.
     #
-    if self.size == 1 || self.commitment_type == "Staff"
+    #  Further special case.  What is known internally as a Service
+    #  needs to be displayed to end users as "Service / Resource" or
+    #  "Services / Resources"
+    #
+    if self.commitment_type == "Service"
+      if self.size == 1
+        "Service / Resource"
+      else
+        "Services / Resources"
+      end
+    elsif self.size == 1 || self.commitment_type == "Staff"
       self.commitment_type
     else
       self.commitment_type.pluralize
