@@ -312,6 +312,21 @@ class Request < ActiveRecord::Base
     end
   end
 
+  #
+  #  Some methods just to make requests behave quite like commitments for
+  #  display purposes.
+  #
+  def covered; false end
+  def rejected?; false end
+  def requested?; false end
+  def noted?; false end
+  def constraining?; false end
+  def covering; false end
+
+  def name_with_quantity
+    "#{ActionController::Base.helpers.pluralize(self.quantity, self.element.name)}"
+  end
+
   private
 
   def update_corresponding_event

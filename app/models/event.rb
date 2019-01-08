@@ -61,6 +61,10 @@ class CategoryValidator < ActiveModel::Validator
 end
 
 class CommitmentSet < Array
+  #
+  #  Note that, despite the name, CommitmentSets might contain Requests
+  #  as well as Commitments.
+  #
   attr_reader :commitment_type, :show_clashes
 
   def initialize(commitment_type)
@@ -791,6 +795,12 @@ class Event < ActiveRecord::Base
         end
       end
     end
+    unless self.requests.empty?
+      by_type["Request"] = CommitmentSet.new("Request")
+      self.requests.each do |r|
+        by_type["Request"] << r
+      end
+    end
     if user && user.known?
       #
       #  Not yet separating out the ones which this user can approve.
@@ -801,7 +811,8 @@ class Event < ActiveRecord::Base
         by_type["Subject"],
         by_type["Location"],
         by_type["Service"],
-        by_type["Property"]].compact, approvables]
+        by_type["Property"],
+        by_type["Request"]].compact, approvables]
     else
       #
       #  The general public get to see just Staff, Locations and Groups,

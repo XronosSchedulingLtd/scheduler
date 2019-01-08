@@ -33,7 +33,11 @@ module EventsHelper
 
   def highlighted_name(commitment, show_clashes, user)
     if user && user.known?
-      text = be_linken(commitment.element.name, commitment.element)
+      if commitment.instance_of?(Request)
+        text = be_linken(commitment.name_with_quantity, commitment.element)
+      else
+        text = be_linken(commitment.element.name, commitment.element)
+      end
       text = icon_prefix(commitment, text)
       if show_clashes && commitment.has_simple_clash? && user
         text = "<span class='double-booked' title='Double booked'>#{text}</span>"
