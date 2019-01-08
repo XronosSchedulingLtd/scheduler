@@ -354,16 +354,27 @@ class User < ActiveRecord::Base
   end
 
   #
-  #  Currently, sub-editing applies only to events.
+  #  Currently, sub-editing applies only to events and requests.
   #  You can sub-edit if you are the organizer of the event.
   #
   def can_subedit?(item)
-    if item.instance_of?(Event)
+    case item
+    when Event
       self.can_edit?(item) ||
         self.subedit_all_events? ||
         self.organiser_of?(item) ||
         (self.create_events? &&
          item.involves_any?(self.elements_giving_subedit, true))
+    when Request
+      #
+      #  Do a recursive call on ourselves, if possible.
+      #
+      event = item.event
+      if event
+        self.can_subedit?(event)
+      else
+        false
+      end
     else
       false
     end
@@ -479,7 +490,10 @@ class User < ActiveRecord::Base
         false
       end
     elsif item.instance_of?(Request)
-      self.can_edit?(item.event)
+      #
+      #  can_subedit? can cope with a nil parameter.
+      #
+      self.can_subedit?(item.event)
     else
       false
     end
@@ -536,6 +550,13 @@ class User < ActiveRecord::Base
   #
   def can_approve?(commitment)
     self.owns?(commitment.element)
+  end
+
+  #
+  #  Can the user allocate (and de-allocate) actual resources to a
+  #  current request?
+  #
+  def can_allocate_to?(request)
   end
 
   #

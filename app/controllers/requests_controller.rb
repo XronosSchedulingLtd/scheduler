@@ -1,6 +1,13 @@
 class RequestsController < ApplicationController
-  before_action :set_request
+  #
+  #  We need the set_request to run *before* our authorized? method
+  #  is invoked, so put it on the front of the chain.
+  #
+  prepend_before_action :set_request
 
+  #
+  #  These methods are used for exam invigilation type requests.
+  #
   def show
     respond_to do |format|
       format.json
@@ -47,6 +54,9 @@ class RequestsController < ApplicationController
     end
   end
 
+  #
+  #  And these are used for user-entered requests.
+  #
   def destroy
     @event = @request.event
     if current_user.can_delete?(@request)
@@ -106,74 +116,79 @@ class RequestsController < ApplicationController
     #
     success = false
     message = nil
-    #
-    #  params[:item_id] tells us what has been dragged
-    #  params[:element_id] tells us what it has been dragged onto
-    #
-    #  The target element might be a ResourceGroup, in which case we
-    #  are un-committing something, or else it might be a Resource,
-    #  in which case we are committing something.
-    #
-    #  The thing being dragged may be a request (begins Req) or
-    #  an existing commitment (begins Com).
-    #
-    item_id = params[:item_id]
-    element_id = params[:element_id]
-    if item_id && element_id
-      element = Element.find_by(id: element_id)
-      requested = @request.element.entity
-      if requested.is_a?(Group) && element
-        members = requested.members(nil, true, true)
-        #
-        #  Is the item a request?  If so then the item_id will contain
-        #  the request id as an embedded item, but we don't need it.
-        #
-        checker = item_id.match(/\AReq\d+-\d\z/)
-        if checker
+    if current_user.can_allocate_to?(@request)
+      #
+      #  params[:item_id] tells us what has ben dragged
+      #  params[:element_id] tells us what it has been dragged onto
+      #
+      #  The target element might be a ResourceGroup, in which case we
+      #  are un-committing something, or else it might be a Resource,
+      #  in which case we are committing something.
+      #
+      #  The thing being dragged may be a request (begins Req) or
+      #  an existing commitment (begins Com).
+      #
+      item_id = params[:item_id]
+      element_id = params[:element_id]
+      if item_id && element_id
+        element = Element.find_by(id: element_id)
+        requested = @request.element.entity
+        if requested.is_a?(Group) && element
+          members = requested.members(nil, true, true)
           #
-          #  The user has dragged a request item.  He has dragged it
-          #  onto an element of some sort.  Provided this is a suitable
-          #  item to fulfill the request, we create a new commitment.
+          #  Is the item a request?  If so then the item_id will contain
+          #  the request id as an embedded item, but we don't need it.
           #
-          if members.include?(element.entity)
-            commitment = @request.fulfill(element)
-            success = true
-            unless commitment.valid?
-              message = "This resource is already committed to the event"
+          checker = item_id.match(/\AReq\d+-\d\z/)
+          if checker
+            #
+            #  The user has dragged a request item.  He has dragged it
+            #  onto an element of some sort.  Provided this is a suitable
+            #  item to fulfill the request, we create a new commitment.
+            #
+            if members.include?(element.entity)
+              commitment = @request.fulfill(element)
+              success = true
+              unless commitment.valid?
+                message = "This resource is already committed to the event"
+              end
+            else
+              success = true
+              message = "Not a suitable resoure for the request"
             end
           else
-            success = true
-            message = "Not a suitable resoure for the request"
-          end
-        else
-          #
-          #  Is it an existing commitment?
-          #
-          checker = item_id.match(/\ACom(\d+)\z/)
-          if checker
-            commitment = Commitment.find_by(id: checker[1])
-            if commitment
-              #
-              #  Two possibilities.
-              #
-              #  1) It can be dragged onto another suitable resource to
-              #     fulfill the parent request.  Change the commitment.
-              #
-              #  2) It can be dragged anywhere else.  Delete the commitment,
-              #     meaning it reverts to being an unfulfilled request.
-              #
-              @request.unfulfill(commitment.element_id)
-              success = true
-              if members.include?(element.entity)
-                commitment = @request.fulfill(element)
-                unless commitment.valid?
-                  message = "This resource is already committed to the event"
+            #
+            #  Is it an existing commitment?
+            #
+            checker = item_id.match(/\ACom(\d+)\z/)
+            if checker
+              commitment = Commitment.find_by(id: checker[1])
+              if commitment
+                #
+                #  Two possibilities.
+                #
+                #  1) It can be dragged onto another suitable resource to
+                #     fulfill the parent request.  Change the commitment.
+                #
+                #  2) It can be dragged anywhere else.  Delete the commitment,
+                #     meaning it reverts to being an unfulfilled request.
+                #
+                @request.unfulfill(commitment.element_id)
+                success = true
+                if members.include?(element.entity)
+                  commitment = @request.fulfill(element)
+                  unless commitment.valid?
+                    message = "This resource is already committed to the event"
+                  end
                 end
               end
             end
           end
         end
       end
+    else
+      success = true
+      message = "You do not have permission to change this allocation."
     end
     respond_to do |format|
       format.json do
@@ -202,10 +217,34 @@ class RequestsController < ApplicationController
   end
 
   def authorized?(action = action_name, resource = nil)
-    #
-    #  For now, used only by exams-style people.  Will change.
-    #
-    (logged_in? && current_user.known? && current_user.exams?)
+    if known_user?
+      case action
+      when 'show', 'update', 'candidates', 'fulfill', 'unfulfill'
+        #
+        #  The exam-ey ones.
+        #
+        current_user.exams?
+      when 'destroy'
+        current_user.can_delete?(@request)
+      when 'increment', 'decrement'
+        current_user.can_subedit?(@request)
+      when 'dragged'
+        #
+        #  Need to be an administrator for the relevant resource
+        #  but we will leave the actual check for now.  We want to
+        #  return a meaningful error message if it's not permitted,
+        #  not just raise a processing error.
+        #
+        true
+      else
+        #
+        #  We don't know what you're trying to do, so you can't.
+        #
+        false
+      end
+    else
+      false
+    end
   end
 
   def request_params
