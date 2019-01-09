@@ -1176,7 +1176,7 @@ class Event < ActiveRecord::Base
   #
   def ensure_property(property)
     added = false
-    unless self.involves?(property)
+    unless involves?(property)
       self.commitments.create({
         element: property.element
       })
@@ -1185,7 +1185,12 @@ class Event < ActiveRecord::Base
     added
   end
 
+  private
 
+  #
+  #  Is the indicated item (element or entity) involved in the event
+  #  in any way - by either a commitment or a request?
+  #
   def involves?(item, even_tentative = false)
     if item.instance_of?(Element)
       resource = item
@@ -1197,20 +1202,24 @@ class Event < ActiveRecord::Base
     else
       selector = self.commitments.firm
     end
-#    Rails.logger.debug("Checking for commitments to #{resource.id}")
-#    Rails.logger.debug("Have commitments to:")
-#    selector.each do |c|
-#      Rails.logger.debug("Element id #{c.element_id}")
-#    end
-    !!selector.detect {|c| c.element_id == resource.id }
+    if selector.detect {|c| c.element_id == resource.id }
+      return true
+    else
+      #
+      #  What about a request?
+      #
+      !!self.requests.detect {|r| r.element_id == resource.id }
+    end
   end
+
+  public
 
   def involves_any?(list, even_tentative = false)
 #    Rails.logger.debug("Entering involves_any? to check:")
 #    list.each do |element|
 #      Rails.logger.debug("Element id #{element.id}")
 #    end
-    if list.detect {|item| self.involves?(item, even_tentative)}
+    if list.detect {|item| involves?(item, even_tentative)}
       true
     else
       false
