@@ -554,9 +554,11 @@ class User < ActiveRecord::Base
 
   #
   #  Can the user allocate (and de-allocate) actual resources to a
-  #  current request?
+  #  current request?  This is dictated by the resource to which the
+  #  request relates.
   #
   def can_allocate_to?(request)
+    self.owns?(request.element)
   end
 
   #
