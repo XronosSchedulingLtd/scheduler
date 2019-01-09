@@ -4,6 +4,22 @@ if ($('#groupschedule').length) {
   var groupScheduleCode = function() {
     var that = {};
 
+    var modalClosed = function() {
+      //
+      //  The dorefresh flag is set using a class selector, so a single bit
+      //  of setting code can set it anywhere in the whole application.
+      //
+      //  However, it's checked using a specific ID, because we want to
+      //  check our very own instance.  We also reset it by ID, so we affect
+      //  only ours.
+      //
+      var flag = that.myDiv.data('dorefresh');
+      if (flag == "1") {
+        that.myDiv.data('dorefresh', '0');
+        that.myDiv.fullCalendar('refetchEvents')
+      }
+    }
+
     that.init = function() {
       that.myDiv = $('#groupschedule');
       var fcParams = {
@@ -85,6 +101,7 @@ if ($('#groupschedule').length) {
       fcParams.resources  = '/groups/' + groupId + '/scheduleresources';
       fcParams.events.url = '/groups/' + groupId + '/scheduleevents';
       that.myDiv.fullCalendar(fcParams);
+      $(document).on('closed', '[data-reveal]', modalClosed);
     };
 
     that.handleClick = function(event, jsEvent, view) {
