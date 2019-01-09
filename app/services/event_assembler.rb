@@ -304,6 +304,7 @@ class EventAssembler
       if element.preferred_colour
         @colour = washed_out(element.preferred_colour)
       end
+      @hover_text       = "#{request.event.body} : #{request.event.owners_name}"
     end
 
     def as_json(options = {})
@@ -317,7 +318,8 @@ class EventAssembler
         editable:   true,                # For now
         resourceId: @resource_id,
         requestId:  @request_id,
-        eventId:    @event_id
+        eventId:    @event_id,
+        hoverText:  @hover_text
       }
       if @colour
         result[:color] = @colour
@@ -352,6 +354,7 @@ class EventAssembler
           @colour     = 'red'
         end
       end
+      @hover_text       = "#{commitment.event.body} : #{commitment.event.owners_name}"
     end
 
     def as_json(options = {})
@@ -365,7 +368,8 @@ class EventAssembler
         editable:   @editable,
         resourceId: @resource_id,
         requestId:  @request_id,
-        eventId:    @event_id
+        eventId:    @event_id,
+        hoverText:  @hover_text
       }
       if @colour
         result[:color] = @colour

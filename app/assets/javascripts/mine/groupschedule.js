@@ -95,13 +95,21 @@ if ($('#groupschedule').length) {
         eventStartEditable: false,
         eventDurationEditable: false,
         eventDrop: that.handleDrop,
-        eventClick: that.handleClick
+        eventClick: that.handleClick,
+        eventRender: that.addHoverText
+
       };
       var groupId = that.myDiv.data('groupid');
       fcParams.resources  = '/groups/' + groupId + '/scheduleresources';
       fcParams.events.url = '/groups/' + groupId + '/scheduleevents';
       that.myDiv.fullCalendar(fcParams);
       $(document).on('closed', '[data-reveal]', modalClosed);
+    };
+
+    that.addHoverText = function(event, element) {
+      if (event.hoverText) {
+        element[0].title = event.hoverText;
+      }
     };
 
     that.handleClick = function(event, jsEvent, view) {
