@@ -179,6 +179,13 @@ module Elemental
   end
 
   #
+  #  Overridden in entities which can in fact have requests.
+  #
+  def can_have_requests?
+    false
+  end
+
+  #
   #  Give this method a slightly different name to avoid accidentally
   #  overriding ActiveRecord's method.
   #

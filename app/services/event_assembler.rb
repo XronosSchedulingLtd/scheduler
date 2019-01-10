@@ -61,6 +61,7 @@ class EventAssembler
                    mine = false,
                    list_teachers = false)
       @event   = event
+      @event_id = event.id
       if via_element
         @sort_by = "#{via_element.id} #{event.body}"
       else
@@ -223,7 +224,7 @@ class EventAssembler
 
     def as_json(options = {})
       result = {
-        :id            => "#{@event.id}",
+        :id            => @event_id,
         :title         => @title,
         :start         => @event.starts_at_for_fc,
         :end           => @event.ends_at_for_fc,
@@ -233,7 +234,8 @@ class EventAssembler
         :color         => @colour,
         :has_clashes   => @has_clashes,
         :fc            => @flag_colour,
-        :sort_by       => @sort_by
+        :sort_by       => @sort_by,
+        :eventId       => @event_id
       }
       if @prefix
         result[:prefix] = @prefix
@@ -585,6 +587,15 @@ class EventAssembler
                                           concern.list_teachers)
                       }
           end
+          #
+          #  And add in any outstanding requests for this element's
+          #  entity.  The method quickly returns an empty array if
+          #  the entity is not eligible for requests.
+          #
+          requests = requests_for(element.entity, true)
+          unless requests.empty?
+            resulting_events += requests
+          end
         end
       end
     else
@@ -642,7 +653,12 @@ class EventAssembler
   #  This method produces event-like objects, but for requests rather
   #  than commitments.  It is used in the resource allocation display.
   #
-  def requests_for(entity)
+  #  We can produce:
+  #
+  #  * One entry per outstanding request.
+  #  * A single entry for the request, regardless.
+  #
+  def requests_for(entity, single_entry = false)
     result = []
     if entity.can_have_requests?
       entity.element.
@@ -650,8 +666,12 @@ class EventAssembler
              during(@start_date, @end_date + 1.day).
              includes(:event).
              each do |r|
-        r.num_outstanding.times do |i|
-          result << ScheduleRequest.new(entity.element, r, i)
+        if single_entry
+          result << ScheduleRequest.new(entity.element, r, r.quantity - 1)
+        else
+          r.num_outstanding.times do |i|
+            result << ScheduleRequest.new(entity.element, r, i)
+          end
         end
       end
     end

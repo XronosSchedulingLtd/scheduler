@@ -120,7 +120,7 @@ $(document).ready ->
     eventClick: (event, jsEvent, view) ->
       $('#eventModal').foundation('reveal',
                                   'open',
-                                  '/events/' + event.id)
+                                  '/events/' + event.eventId)
   #
   #  And these are the extra ones which we use if the user can edit
   #  events.
@@ -128,7 +128,7 @@ $(document).ready ->
   editFcParams =
     eventDrop: (event, delta, revertFunc) ->
       jQuery.ajax
-        url:  "/events/" + event.id + "/moved"
+        url:  "/events/" + event.eventId + "/moved"
         type: "PUT"
         dataType: "json"
         error: (jqXHR, textStatus, errorThrown) ->
@@ -140,7 +140,7 @@ $(document).ready ->
             all_day: !event.start.hasTime()
     eventResize: (event, revertFunc) ->
       jQuery.ajax
-        url:  "/events/" + event.id
+        url:  "/events/" + event.eventId
         type: "PUT"
         dataType: "json"
         error: (jqXHR, textStatus, errorThrown) ->
@@ -322,8 +322,8 @@ tweakElement = (event, element) ->
         #  This one takes a bit more thought.  The event may occur in
         #  several elements, and only the first gets the prefix.
         #
-        if !that.elementsSeen[event.id]
-          that.elementsSeen[event.id] = true
+        if !that.elementsSeen[event.eventId]
+          that.elementsSeen[event.eventId] = true
           element.find('.fc-title').prepend(event.prefix)
   #
   #  And now, do we need to add an icon?
