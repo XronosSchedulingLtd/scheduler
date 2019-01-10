@@ -604,7 +604,12 @@ class User < ActiveRecord::Base
   #
   def can_drag?(concern)
     (self.can_add_resources? || self.own_element == concern.element) &&
-      concern.element.add_directly?
+      #
+      #  This isn't yet quite the right check.  I need to check that
+      #  this user owns the parent of this particular controlled item,
+      #  not just that he/she owns something.
+      #
+    (concern.element.add_directly? || self.element_owner)
   end
 
   #
