@@ -183,6 +183,24 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Used to decide whether we are controller of some kind of grouped
+  #  resource.  We are passed an individual item (which is controlled)
+  #  and we need to decide whether this user is a controller of the group
+  #  to which this item belongs.
+  #
+  def owns_parent_of?(element)
+    #
+    #  Today's date, and don't recurse.
+    #
+    element.groups(nil, false).each do |group|
+      if self.owns?(group.element)
+        return true
+      end
+    end
+    return false
+  end
+
+  #
   #  Can this user meaningfully see the menu in the top bar?
   #
   def sees_menu?
@@ -605,11 +623,10 @@ class User < ActiveRecord::Base
   def can_drag?(concern)
     (self.can_add_resources? || self.own_element == concern.element) &&
       #
-      #  This isn't yet quite the right check.  I need to check that
-      #  this user owns the parent of this particular controlled item,
-      #  not just that he/she owns something.
+      #  Things which have the add_directly? flag unset can only
+      #  be dragged by their individual administrators.
       #
-    (concern.element.add_directly? || self.element_owner)
+    (concern.element.add_directly? || self.owns_parent_of?(concern.element))
   end
 
   #
