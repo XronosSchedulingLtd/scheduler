@@ -451,15 +451,9 @@ class EventsController < ApplicationController
               #  Guard against double commitment.
               #
               unless current_user.concerns.auto_add.detect {|c| c.element == element}
-                c = @event.commitments.create({
-                  element: element
-                }) do |c|
-                  set_appropriate_approval_status(c)
+                if add_appropriately(@event, element)
+                  added_any = true
                 end
-                if session[:request_notifier]
-                  session[:request_notifier].commitment_added(c)
-                end
-                @event.journal_commitment_added(c, current_user)
               end
             else
               Rails.logger.debug("Couldn't find element with id #{eid}")
