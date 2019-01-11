@@ -666,7 +666,7 @@ class Event < ActiveRecord::Base
   #  Do we actually have any resources?
   #
   def resourceless?
-    self.commitments.count == 0
+    self.commitments.count == 0 && self.requests.count == 0
   end
 
   #
