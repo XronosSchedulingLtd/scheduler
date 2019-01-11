@@ -371,6 +371,44 @@ class EventsController < ApplicationController
     end
   end
 
+  private
+
+  def add_appropriately(event, element)
+    did_add = false
+    if element.add_directly? ||
+       current_user.owns_parent_of?(element)
+      if element.entity.can_have_requests?
+        #
+        #  Gets a request
+        #
+        r = event.requests.create({
+          element: element,
+          quantity: 1
+        })
+        #
+        #  TODO add notifications and journalling
+        #
+        did_add = true
+      else
+        #
+        #  Gets an immediate commitment
+        #
+        c = event.commitments.create({
+          element: element
+        }) do |c|
+          set_appropriate_approval_status(c)
+        end
+        if session[:request_notifier]
+          session[:request_notifier].commitment_added(c)
+        end
+        event.journal_commitment_added(c, current_user)
+      end
+    end
+    return did_add
+  end
+
+  public
+
   # POST /events
   # POST /events.json
   def create
@@ -381,19 +419,15 @@ class EventsController < ApplicationController
       if @event.save
         @event.reload
         @event.journal_event_created(current_user)
+        added_any = false
         #
         #  Does this user have any Concerns with the auto_add flag set?
         #
         current_user.concerns.auto_add.each do |concern|
-          c = @event.commitments.create({
-            element: concern.element
-          }) do |c|
-            set_appropriate_approval_status(c)
+          element = concern.element
+          if add_appropriately(@event, element)
+            added_any = true
           end
-          if session[:request_notifier]
-            session[:request_notifier].commitment_added(c)
-          end
-          @event.journal_commitment_added(c, current_user)
         end
         #
         #  And was anything specified in the request?
@@ -431,6 +465,15 @@ class EventsController < ApplicationController
               Rails.logger.debug("Couldn't find element with id #{eid}")
             end
           end
+        end
+        if added_any
+          #
+          #  I'm having a problem with the list of requests attached
+          #  to the event ending up slightly corrupted.  It thinks
+          #  it has 1 member, but when you iterate through it it returns
+          #  that 1 member twice.
+          #
+          @event.reload
         end
         #
         #  If the user does not have permission to add resources, then
