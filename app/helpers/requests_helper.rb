@@ -15,7 +15,6 @@ module RequestsHelper
     requests = event.requests
     result = ["<ul class=\"no-bullet\">"]
     requests.each do |request|
-      Rails.logger.debug("Request is an instance of #{request.class}")
       body =
         "#{truncate(request.element.name, length: 19)} (#{request.quantity})"
       if user
