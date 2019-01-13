@@ -1,3 +1,83 @@
+v1.7.0  2019-01-13
+
+  This release adds a major new facility - Resource Groups and the means
+  to request items within them.
+
+  For certain resources within a school, the need is to request one of a
+  generic resource, rather than a specific item.  If you want the theatre,
+  then you want the theatre, but if you need 2 mini-buses then it doesn't
+  generally matter which 2 you get as long as they work.  It's up to
+  the administrator of mini-buses to decide who gets each one.  Other
+  things like mobile phones can be handled in the same way.
+
+  Resource Groups exist for this purpose.  Create a Resource Group
+  called "Mini-bus" (make it a singular name - it will be pluralized when
+  needed within the application) and then one Service entry for each
+  actual mini-bus.  For each of the individual entries, make sure the
+  "add directly" flag is unset (or users will be able to add individual
+  mini-buses directly to their events) and then add all the individual
+  mini-buses to the "Mini-bus" group.
+
+  Each time a user tries to add "Mini-bus" to an event, it will generate
+  a request for a mini-bus, which the administrator can then fulfill by
+  selecting from those available.
+
+  Resource Groups can also be nested.  You can have one called "Mini-bus"
+  which contains two other Resource Groups called "Small mini-bus" and
+  "Large mini-bus", with the actual individual mini-buses then being members
+  of these two inner groups.  A request for "Mini-bus" can then be satisfied
+  by members of either inner group, whilst a request for one of the inner
+  groups can be satisfied only by one of its own members.
+
+  The administrator of mini-buses should be given the "Controls" flag
+  for these groups in the usual way by a system administrator.
+
+  Full documentation will follow in the advanced user manual.
+
+  This release is not yet feature-complete, but the basic processing
+  works and it is being made available in order to generate feedback.
+
+  Individual release points:
+
+* The "event show" and "event edit" dialogues have been tightened up
+  to use less vertical screen space.
+
+* Cloning has been moved from the "edit" dialogue to the "show" dialogue
+  and made much more versatile.  Multiple clones can be created in one go.
+
+* Event repetition has also been enhanced, allowing date limits on what
+  will be amended in a repetition.
+
+* Resource Groups have been added to the system.  Whenever a Resource Group
+  is requested for an event it will cause the addition of a Request
+  rather than a Commitment
+
+* Individual users can be set as controllers of Resource Groups, giving
+  them access to a drag-n-drop screen to do resource allocation.  This
+  screen is currently accessed by clicking on the "v" next to the resource
+  group's name in the left hand column.  (This will probably change.)
+
+* The controller of a resource can also be given "edit" or "sub-edit"
+  permission for all events requesting the resource.  Provided this permission
+  has been granted, the events can be edited directly from the allocation
+  screen.
+
+* Requests and their corresponding commitments are displayed in the "show
+  events" dialogue.
+
+* Adding a Resource Group to an event in the "edit event" dialogue causes
+  a Request to be created, or if a corresponding request already exists,
+  causes the quantity to be incremented.  The quantity can also be
+  adjusted using nudge buttons on the item listing.
+
+* Resource Groups can be assigned to Quick Add buttons and to pre-allocation
+  tick-boxes.  Note that in the case of the Quick Add button, clicking the
+  button does not cause the button to disappear add it would for a normal
+  resource.  Instead a second click can be used to increment the quantity.
+
+* FullCalendar has been updated to version 3.9.0.
+
+
 v1.6.1  2019-01-03
 
   There are no changes to the application functionality in this release,

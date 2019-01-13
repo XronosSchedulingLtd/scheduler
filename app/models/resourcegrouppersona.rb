@@ -17,7 +17,11 @@ class Resourcegrouppersona < ActiveRecord::Base
     true
   end
 
+  def can_have_requests?
+    true
+  end
+
   def add_directly?
-    false
+    true
   end
 end

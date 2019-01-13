@@ -52,6 +52,36 @@
                                    :key,
                                    :label) %>
     </div>
+    <div class='small-4 columns'>
+      <%= f.check_box(:preserve_earlier) %>
+      <label>
+        <%=
+          f.label(:preserve_earlier,
+                  "Preserve earlier instances",
+                  title: "If any instances of the event already exist prior to the specified start date then leave them untouched.")
+                %>
+      </label>
+    </div>
+    <div class='small-4 columns'>
+      <%= f.check_box(:preserve_later) %>
+      <label>
+        <%=
+          f.label(:preserve_later,
+                  "Preserve later instances",
+                  title: "If any instances of the event already exist after the specified end date then leave them untouched.")
+                %>
+      </label>
+    </div>
+    <div class='small-4 columns'>
+      <%= f.check_box(:preserve_historical) %>
+      <label>
+        <%=
+          f.label(:preserve_historical,
+                  "Preserve historical record",
+                  title: "If any instances of the event already exist prior to today's date then leave them untouched.  Do not create any events in the past.")
+                %>
+      </label>
+    </div>
     <hr/>
     <div class="small-12 columns event-collection-buttons">
       <div class="pw-the-buttons">
@@ -61,13 +91,13 @@
             [@event, @event_collection],
             method: :delete,
             remote: true,
-            class: "zfbutton tiny radius flip-button pw-action",
+            class: "zfbutton tiny radius flip-button pw-action button-link",
             title: "Delete all the repeating events in this series.",
             data: { confirm: "Are you sure you want to delete this whole set of repeating events?" }
           %>
         <% end %>
         <%= f.submit @action_button_text, class: "zfbutton tiny radius pw-action" %>
-        <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => "zfbutton tiny radius" %>
+        <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => 'zfbutton tiny radius button-link' %>
       </div>
       <div class="pw-the-message pw-hidden">
         <p>Please wait...</p>

@@ -61,6 +61,10 @@ class CategoryValidator < ActiveModel::Validator
 end
 
 class CommitmentSet < Array
+  #
+  #  Note that, despite the name, CommitmentSets might contain Requests
+  #  as well as Commitments.
+  #
   attr_reader :commitment_type, :show_clashes
 
   def initialize(commitment_type)
@@ -81,7 +85,17 @@ class CommitmentSet < Array
     #  without renaming database tables etc, so I need to special
     #  case it here.
     #
-    if self.size == 1 || self.commitment_type == "Staff"
+    #  Further special case.  What is known internally as a Service
+    #  needs to be displayed to end users as "Service / Resource" or
+    #  "Services / Resources"
+    #
+    if self.commitment_type == "Service"
+      if self.size == 1
+        "Service / Resource"
+      else
+        "Services / Resources"
+      end
+    elsif self.size == 1 || self.commitment_type == "Staff"
       self.commitment_type
     else
       self.commitment_type.pluralize
@@ -103,8 +117,9 @@ class Event < ActiveRecord::Base
   has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
   has_many :covering_commitments, -> { where("covering_id IS NOT NULL") }, class_name: "Commitment"
   has_many :non_covering_commitments, -> { where("covering_id IS NULL") }, class_name: "Commitment"
+  has_many :standalone_commitments, -> { where("request_id IS NULL") }, class_name: "Commitment"
   has_many :elements, :through => :firm_commitments
-  has_many :elements_even_tentative, through: :commitments, source: :element
+  has_many :elements_even_tentative, through: :standalone_commitments, source: :element
   #
   #  This next one took a bit of crafting.  It is used to optimize
   #  fetching the directly associated staff elements on events when
@@ -153,6 +168,11 @@ class Event < ActiveRecord::Base
   #  way around though - we *don't* want events that end before our
   #  start date, or start after our end date.  All others we want.
   #
+  #
+  #  Note that these expect an *exclusive* end date.  Trying to move
+  #  to this method of working everywhere.  Sadly it's not how groups
+  #  are implemented.
+  #
   scope :beginning, lambda {|date| where("ends_at >= ?", date) }
   scope :until, lambda {|date| where("starts_at < ?", date) }
   #
@@ -162,6 +182,9 @@ class Event < ActiveRecord::Base
   scope :before, lambda {|date| where("ends_at < ?", date) }
   scope :after, lambda {|date| where("starts_at > ?", date + 1.day) }
 
+  scope :during, lambda {|start_date, end_date|
+    where("ends_at >= ? AND starts_at < ?", start_date, end_date)
+  }
   #
   #  Events in the future.  Today or later.
   #
@@ -172,6 +195,11 @@ class Event < ActiveRecord::Base
   #
   scope :in_approvals, lambda { where("constrained OR NOT complete") }
 
+  #
+  #  Events which are listed as pending - in the approvals process
+  #  or with incomplete requests.
+  #
+  scope :pending, lambda { where("constrained OR NOT complete OR flagcolour IS NOT NULL") }
   scope :eventcategory_id, lambda {|id| where("eventcategory_id = ?", id) }
   scope :eventsource_id, lambda {|id| where("eventsource_id = ?", id) }
   scope :on, lambda {|date| where("starts_at >= ? and ends_at < ?",
@@ -244,19 +272,61 @@ class Event < ActiveRecord::Base
     end
   end
 
-  #
-  #  Colour parameter can be "r", "y" or "g".  We're looking for
-  #  the worst of these from all our requests.
-  #
-  #  "r" trumps "y" trumps "g" trumps blank.
-  #
-  def update_from_request(colour)
+  def update_flag_colour
     #
-    #  Not full functionality yet.
+    #  Given that we've been called (by a Request object) the most
+    #  likely state of affairs is that we have at least one request.
+    #  (Although it's just possible that our last remaining request
+    #  has gone away, and so we have none.)  It therefore makes sense
+    #  to restrict ourselves to just one d/b hit, rather than checking
+    #  for existence and then fetching them.
     #
-    if self.flagcolour != colour
-      self.flagcolour = colour
-      self.save!
+    requests = self.requests.to_a
+    if requests.empty?
+      unless self.flagcolour.nil?
+        self.flagcolour = nil
+        self.save!
+      end
+    else
+      #
+      #  We have at least one request and should therefore set our
+      #  flag colour accordingly.
+      #
+      #  All green gets green.
+      #  All red gets red.
+      #  Mixture gets yellow.
+      #
+      seen = {
+        'r': false,
+        'y': false,
+        'g': false
+      }
+      requests.each do |r|
+        seen[r.colour] = true
+      end
+      colour = 'y'
+      #
+      #  If we have seen any yellows at all, then we leave our final
+      #  colour at yellow.
+      #
+      unless seen['y']
+        if seen['r']
+          unless seen['g']
+            colour = 'r'
+          end
+        else
+          if seen['g']
+            colour = 'g'
+          end
+        end
+      end
+      #
+      #  And do we need to update our database record?
+      #
+      if self.flagcolour != colour
+        self.flagcolour = colour
+        self.save!
+      end
     end
   end
 
@@ -484,6 +554,25 @@ class Event < ActiveRecord::Base
   end
 
   #
+  #  Construct appropriate timings for this event if moved to a
+  #  completely new start date.
+  #
+  #  Returns a pair - starts_at, ends_at.
+  #
+  def timings_on(date)
+    adjustment = date - self.starts_at.to_date
+    if adjustment == 0
+      return [self.starts_at, self.ends_at]
+    else
+      #
+      #  Some work needed.  By how much are we moving our event?
+      #
+      return [self.starts_at + adjustment.days,
+              self.ends_at + adjustment.days]
+    end
+  end
+
+  #
   #  Only a tiny bit different from writing directly to ends_at, but
   #  as the data are coming from FC, we need to take account of all day
   #  events.
@@ -577,7 +666,7 @@ class Event < ActiveRecord::Base
   #  Do we actually have any resources?
   #
   def resourceless?
-    self.commitments.count == 0
+    self.commitments.count == 0 && self.requests.count == 0
   end
 
   #
@@ -622,20 +711,24 @@ class Event < ActiveRecord::Base
   #
   #  And how many forms are waiting to be filled in.  This is slightly
   #  more interesting because the forms themselves are attached to
-  #  our commitments, not directly to the event.
+  #  our commitments and requests, not directly to the event.
   #
   #  This should also include a count of any pro-formae which haven't
   #  been done.
   #
   def pending_form_count
     unless @pending_form_count
-      @pending_form_count = self.commitments.inject(0) do |total, commitment|
+      running_total = self.commitments.inject(0) do |total, commitment|
         if commitment.tentative?
           total + commitment.incomplete_ufr_count
         else
           total
         end
       end
+      running_total = self.requests.inject(running_total) do |total, request|
+        total + request.incomplete_ufr_count
+      end
+      @pending_form_count = running_total
     end
     @pending_form_count
   end
@@ -680,20 +773,19 @@ class Event < ActiveRecord::Base
     by_type = Hash.new
     approvables = Array.new
     all_commitments =
-      self.commitments.preload(:element).to_a   # to_a to force the d/b hit.
+      self.commitments.preload([:element, :request]).to_a   # to_a to force the d/b hit.
     all_commitments.each do |c|
       #
-      #  If a commitment is as the result of a request, and the current
-      #  user is an administrator of requests, don't show the commitment
-      #  in the general grouping.
-      #
-      #  Currently works only for exam invigilations.  Will need refining
-      #  when requests start being used for other purposes too.
+      #  If a commitment is the result of a request which itself was
+      #  generated by a proto_request (currently applies only to
+      #  exam invigilation) *and* the user is an exam invigilator,
+      #  then don't show the commitment here.  Will be seen as part
+      #  of the assignment dialogue.
       #
       #  We display commitments only if they are firm, or this is a known
       #  user.  Tentative commitments are not shown to visitors.
       #
-      unless user && user.exams? && c.request_id
+      unless user && user.exams? && c.request && c.request.proto_request_id
         if user && user.can_approve?(c) && !c.uncontrolled?
           approvables << c
         elsif !c.tentative? || (user && user.known?)
@@ -701,6 +793,12 @@ class Event < ActiveRecord::Base
             CommitmentSet.new(c.element.entity_type)
           by_type[c.element.entity_type] << c
         end
+      end
+    end
+    unless self.requests.standalone.empty?
+      by_type["Request"] = CommitmentSet.new("Request")
+      self.requests.standalone.each do |r|
+        by_type["Request"] << r
       end
     end
     if user && user.known?
@@ -713,7 +811,8 @@ class Event < ActiveRecord::Base
         by_type["Subject"],
         by_type["Location"],
         by_type["Service"],
-        by_type["Property"]].compact, approvables]
+        by_type["Property"],
+        by_type["Request"]].compact, approvables]
     else
       #
       #  The general public get to see just Staff, Locations and Groups,
@@ -1077,7 +1176,7 @@ class Event < ActiveRecord::Base
   #
   def ensure_property(property)
     added = false
-    unless self.involves?(property)
+    unless involves?(property)
       self.commitments.create({
         element: property.element
       })
@@ -1086,7 +1185,12 @@ class Event < ActiveRecord::Base
     added
   end
 
+  private
 
+  #
+  #  Is the indicated item (element or entity) involved in the event
+  #  in any way - by either a commitment or a request?
+  #
   def involves?(item, even_tentative = false)
     if item.instance_of?(Element)
       resource = item
@@ -1098,20 +1202,24 @@ class Event < ActiveRecord::Base
     else
       selector = self.commitments.firm
     end
-#    Rails.logger.debug("Checking for commitments to #{resource.id}")
-#    Rails.logger.debug("Have commitments to:")
-#    selector.each do |c|
-#      Rails.logger.debug("Element id #{c.element_id}")
-#    end
-    !!selector.detect {|c| c.element_id == resource.id }
+    if selector.detect {|c| c.element_id == resource.id }
+      return true
+    else
+      #
+      #  What about a request?
+      #
+      !!self.requests.detect {|r| r.element_id == resource.id }
+    end
   end
+
+  public
 
   def involves_any?(list, even_tentative = false)
 #    Rails.logger.debug("Entering involves_any? to check:")
 #    list.each do |element|
 #      Rails.logger.debug("Element id #{element.id}")
 #    end
-    if list.detect {|item| self.involves?(item, even_tentative)}
+    if list.detect {|item| involves?(item, even_tentative)}
       true
     else
       false
@@ -1230,6 +1338,13 @@ class Event < ActiveRecord::Base
     modifiers.each do |key, value|
       new_self.send("#{key}=", value)
     end
+    #
+    #  Unless we are explicitly doing a repeating event, we don't
+    #  want the new clone to be a member of the event collection.
+    #
+    unless repeating
+      new_self.event_collection = nil
+    end
     new_self.save!
     new_self.journal_event_created(by_user, more, repeating)
     #
@@ -1237,11 +1352,9 @@ class Event < ActiveRecord::Base
     #
     self.commitments.each do |commitment|
       #
-      #  And we don't want to clone cover commitments.
+      #  Not all commitments are cloneable.
       #
-      unless (element_id_list &&
-              !element_id_list.include?(commitment.element_id)) ||
-             commitment.covering
+      if commitment.cloneable?
         c = commitment.clone_and_save(event: new_self) do |c|
           if block_given?
             yield c
@@ -1250,6 +1363,21 @@ class Event < ActiveRecord::Base
         new_self.journal_commitment_added(c, by_user, repeating)
       end
     end
+    #
+    #  Likewise requests.
+    #
+    self.requests.each do |request|
+      r = request.clone_and_save(event: new_self) do |c|
+        if block_given?
+          yield r
+        end
+      end
+    end
+    #
+    #  And make sure flags are set appropriately.
+    #
+    new_self.reload
+    new_self.update_flag_colour
     new_self
   end
 
@@ -1656,6 +1784,66 @@ class Event < ActiveRecord::Base
       #  Timed event.  Must start and end on the same day.
       #
       self.starts_at.to_date == self.ends_at.to_date
+    end
+  end
+
+  def multi_day_timed?
+    if @multi_day_timed.nil?
+      if !self.all_day && self.starts_at.to_date < self.ends_at.to_date
+        #
+        #  One final thing might prevent this being a timed multi-day event.
+        #  It might end at midnight on the same day that it starts.  This
+        #  is recorded as 00:00:00 on the next day.
+        #
+        if (self.starts_at.to_date + 1.day == self.ends_at.to_date) &&
+           self.ends_at.midnight?
+          @multi_day_timed = false
+        else
+          @multi_day_timed = true
+        end
+      else
+        @multi_day_timed = false
+      end
+    end
+    @multi_day_timed
+  end
+
+  def starts_at_for_fc
+    if self.all_day? || self.multi_day_timed?
+      self.starts_at.to_date.iso8601
+    else
+      self.starts_at.iso8601
+    end
+  end
+
+  def ends_at_for_fc
+    if self.all_day?
+      if self.ends_at
+        self.ends_at.to_date.iso8601
+      else
+        self.starts_at.to_date.iso8601
+      end
+    elsif self.multi_day_timed?
+      #
+      #  It is just possible that although this is a timed event, the
+      #  end time has been set to midnight.  If that's the case, then
+      #  we don't need to add an extra day.
+      #
+      if self.ends_at.midnight?
+        self.ends_at.to_date.iso8601
+      else
+        (self.ends_at.to_date + 1.day).iso8601
+      end
+    else
+      #
+      #  Odd to see a test here for ends_at being nil, because the
+      #  validation of an event won't allow that.
+      #
+      if self.ends_at == nil || self.starts_at == self.ends_at
+        nil
+      else
+        self.ends_at.iso8601
+      end
     end
   end
 

@@ -26,23 +26,6 @@
         <label>Event category</label>
         <p><%= @event.eventcategory.name %></p>
       </div>
-      <div class="small-12 columns">
-        <label>Event source</label>
-        <p><%= @event.eventsource.name %></p>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="small-12 columns">
-        <label>Event id</label>
-        <p><%= @event.id %></p>
-      </div>
-      <div class="small-12 columns">
-        <label>Owner</label>
-        <p><%= @event.owner_id == nil || @event.owner_id == 0 ?
-            "System" :
-            @event.owner.name %></p>
-      </div>
     </div>
 
     <% end %>
@@ -62,41 +45,91 @@
       <div class="row">
         <div class="small-12 columns">
           <div class="wrap_link">
-            <%= link_to "Wrap", new_event_wrapper_path(@event), remote: @minimal %>
+            <%=
+              link_to("Wrap",
+                      new_event_wrapper_path(@event),
+                      remote: @minimal,
+                      class: 'zfbutton teensy button-link')
+                    %>
             <% if current_user.can_repeat?(@event) %>
               /
               <%=
                 if @event.event_collection
-                  link_to "Repeat",
-                    edit_event_event_collection_path(@event, @event.event_collection),
-                    remote: @minimal
+                  link_to(
+                    "Repeat",
+                    edit_event_event_collection_path(
+                      @event,
+                      @event.event_collection
+                    ),
+                    remote: @minimal,
+                    class: 'zfbutton teensy button-link'
+                  )
                 else
-                  link_to "Repeat",
+                  link_to(
+                    "Repeat",
                     new_event_event_collection_path(@event),
-                    remote: @minimal
+                    remote: @minimal,
+                    class: 'zfbutton teensy button-link'
+                  )
                 end
               %>
             <% end %>
           </div>
           <div class="edit_link">
-            <%= link_to "Edit", edit_event_path(@event), remote: @minimal %>
+            <%=
+              link_to("Edit",
+                      edit_event_path(@event),
+                      remote: @minimal,
+                      class: 'zfbutton teensy button-link')
+                    %>
           </div>
         </div>
         <% if current_user.can_edit?(@event) %>
         <div class="small-12 columns">
-          &nbsp;
-        </div>
-        <div class="small-12 columns">
           <div class="delete_link">
             <%=
-              link_to "Delete event entirely",
-              @event,
-              remote: @minimal,
-              method: :delete,
-              data: {
-                confirm: @event.deletion_warning_message
-              }
+              link_to(
+                "Delete event entirely",
+                @event,
+                remote: @minimal,
+                method: :delete,
+                class: 'zfbutton teensy button-link',
+                data: {
+                  confirm: @event.deletion_warning_message
+                }
+              )
             %>
+          </div>
+          <div class='clone_link'>
+            <% if @just_cloned %>
+              <span id='clone_button' style='display:none'>
+            <% else %>
+              <span id='clone_button'>
+            <% end %>
+            <%=
+#
+#  This is the old "instant clone".  Could perhaps be restored at
+#  some time with a name like "Instant clone".
+#
+#                link_to("Clone",
+#                        clone_event_path(@event),
+#                        remote: true,
+#                        method: :post,
+#                        class: 'zfbutton teensy button-link')
+              link_to("Clone",
+                      new_event_cloner_path(@event),
+                      remote: @minimal,
+                      class: 'zfbutton teensy button-link')
+              %>
+            </span>
+            <span id='cloning_message' style="display: none; color: red;">
+              Cloning
+            </span>
+            <% if @just_cloned %>
+              <span id='cloned_message' style="color: green;">
+                Cloned
+              </span>
+            <% end %>
           </div>
         </div>
         <% end %>
@@ -104,11 +137,17 @@
     <% end %>
 
     <% if known_user? %>
-      <p>
       <small>
         <div id="meta_data">
+          Event id: <%= @event.id %><br/>
+          Owner: <%=
+            @event.owner_id == nil || @event.owner_id == 0 ?
+            "System" :
+            @event.owner.name
+            %><br/>
           Created: <%= @event.created_at_text %><br/>
-          Updated: <%= @event.updated_at_text %>
+          Updated: <%= @event.updated_at_text %><br/>
+          Event source: <%= @event.eventsource.name %>
         <% if @event.journal && current_user.can_view_journal_for?(@event) %>
           <br/><%= link_to "Journal", @event.journal %>
         <% end %>
@@ -127,20 +166,27 @@
     <div id="show-all-commitments">
       <%= render partial: "show_all_commitments" %>
     </div>
-    <% if @form_commitments %>
+    <% if @element_connections_with_forms %>
       <div class="row">
         <div class="small-12 columns">
           <hr/>
-          Forms: <%= form_viewing_links(@form_commitments) %>
+          Forms: <%= form_viewing_links(@element_connections_with_forms) %>
         </div>
       </div>
     <% end %>
     <div id="event-notes">
       <%= render partial: "notes", object: @notes %>
     </div>
-    <% if current_user && current_user.exams && @have_requests %>
+    <% unless @invigilation_requests.blank? %>
       <div id="invigilation-requests">
-        <%= render partial: "invigilation_requests" %>
+        <div class="row">
+          <div class="small-12 columns">
+            <% @invigilation_requests.each do |r| %>
+              <div class="request-div" data-request-id="<%= r.id %>">
+              </div>
+            <% end %>
+          </div>
+        </div>
       </div>
     <% end %>
     <% if current_user && @event.repeating_event? && current_user.could_repeat?(@event) %>

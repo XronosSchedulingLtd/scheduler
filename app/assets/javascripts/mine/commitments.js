@@ -6,7 +6,7 @@ if ($('#commitment-index').length) {
 
     var that = {};
 
-    that.modalClosed = function() {
+    var modalClosed = function() {
       //
       //  The dorefresh flag is set using a class selector, so a single bit
       //  of setting code can set it anywhere in the whole application.
@@ -23,7 +23,7 @@ if ($('#commitment-index').length) {
     }
 
     that.init = function() {
-      $(document).on('closed', '[data-reveal]', that.modalClosed);
+      $(document).on('closed', '[data-reveal]', modalClosed);
     }
 
     return that;

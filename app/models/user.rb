@@ -183,6 +183,24 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Used to decide whether we are controller of some kind of grouped
+  #  resource.  We are passed an individual item (which is controlled)
+  #  and we need to decide whether this user is a controller of the group
+  #  to which this item belongs.
+  #
+  def owns_parent_of?(element)
+    #
+    #  Today's date, and don't recurse.
+    #
+    element.groups(nil, false).each do |group|
+      if self.owns?(group.element)
+        return true
+      end
+    end
+    return false
+  end
+
+  #
   #  Can this user meaningfully see the menu in the top bar?
   #
   def sees_menu?
@@ -354,16 +372,27 @@ class User < ActiveRecord::Base
   end
 
   #
-  #  Currently, sub-editing applies only to events.
+  #  Currently, sub-editing applies only to events and requests.
   #  You can sub-edit if you are the organizer of the event.
   #
   def can_subedit?(item)
-    if item.instance_of?(Event)
+    case item
+    when Event
       self.can_edit?(item) ||
         self.subedit_all_events? ||
         self.organiser_of?(item) ||
         (self.create_events? &&
          item.involves_any?(self.elements_giving_subedit, true))
+    when Request
+      #
+      #  Do a recursive call on ourselves, if possible.
+      #
+      event = item.event
+      if event
+        self.can_subedit?(event)
+      else
+        false
+      end
     else
       false
     end
@@ -452,7 +481,8 @@ class User < ActiveRecord::Base
       self.can_add_notes?
     elsif item.instance_of?(Commitment)
       #
-      #  With edit permission you can always delete a commitment,
+      #  With edit permission you can generally delete a commitment
+      #  (the exception being if it was allocated via a request)
       #  but there are two cases which a sub-editor cannot delete.
       #
       #  1. An approved commitment (constraining == true)
@@ -463,16 +493,33 @@ class User < ActiveRecord::Base
       event = item.event
       element = item.element
       if event && element
-        self.can_edit?(event) ||
-          (self.can_subedit?(event) &&
-           !item.constraining? &&
-           !(element.owned? && item.uncontrolled?))
+        if item.request.nil?
+          self.can_edit?(event) ||
+            (self.can_subedit?(event) &&
+             !item.constraining? &&
+             !(element.owned? && item.uncontrolled?))
+        else
+          false
+        end
       else
         #
         #  Doesn't seem to be a real commitment yet.
         #
         false
       end
+    elsif item.instance_of?(Request)
+      #
+      #  can_subedit? can cope with a nil parameter.
+      #
+      self.can_subedit?(item.event)
+    else
+      false
+    end
+  end
+
+  def can_modify?(item)
+    if item.instance_of?(Request)
+      self.can_edit?(item.event)
     else
       false
     end
@@ -524,6 +571,15 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Can the user allocate (and de-allocate) actual resources to a
+  #  current request?  This is dictated by the resource to which the
+  #  request relates.
+  #
+  def can_allocate_to?(request)
+    self.owns?(request.element)
+  end
+
+  #
   #  Can this user create a firm commitment for this element?  Note
   #  that this is slightly different from being able to approve a
   #  commitment.  Some users can bypass permissions, but don't actually
@@ -566,7 +622,11 @@ class User < ActiveRecord::Base
   #
   def can_drag?(concern)
     (self.can_add_resources? || self.own_element == concern.element) &&
-      concern.element.add_directly?
+      #
+      #  Things which have the add_directly? flag unset can only
+      #  be dragged by their individual administrators.
+      #
+    (concern.element.add_directly? || self.owns_parent_of?(concern.element))
   end
 
   #

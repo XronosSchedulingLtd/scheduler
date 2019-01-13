@@ -60,7 +60,7 @@ class EventsController < ApplicationController
           selector = target_user.events
         end
         if params.has_key?(:pending)
-          selector = selector.future.in_approvals
+          selector = selector.future.pending
           @title = "#{target_user.name}'s pending events"
           @flip_target = user_events_path(target_user)
           @flip_text = "See All"
@@ -111,7 +111,10 @@ class EventsController < ApplicationController
 #        Rails.logger.debug("Previous event count = #{previous_event_count}")
         page_no = (previous_event_count / Event.per_page) + 1
       end
-      @events = selector.includes(commitments: :user_form_response).page(page_no).order('starts_at')
+      @events = selector.includes(commitments: :user_form_response,
+                                  requests: :user_form_response).
+                         page(page_no).
+                         order('starts_at')
     else
       if params.has_key?(:pending)
         redirect_to user_events_path(current_user, pending: true)
@@ -123,7 +126,9 @@ class EventsController < ApplicationController
 
   def assemble_event_info
     @notes = @event.all_notes_for(current_user)
-    @have_requests = @event.requests.size > 0
+    if current_user && current_user.exams
+      @invigilation_requests = @event.requests.prototyped.to_a
+    end
     @files = Array.new
     #
     #  Make an intelligent selection of which commitments this viewer is
@@ -170,15 +175,20 @@ class EventsController < ApplicationController
     #  Technically, what he can see are user_form_responses.
     #
     if user_can_view_forms?
-      @form_commitments =
-        @event.commitments.select do |c|
+      #
+      #  An element_connection is either a commitment or a request.
+      #  It needs to respond to a method called element() and another
+      #  called user_form_response().
+      #
+      @element_connections_with_forms =
+        (@event.commitments + @event.requests).select do |c|
           c.user_form_response && !c.user_form_response.empty?
         end
-      if @form_commitments.empty?
-        @form_commitments = nil
+      if @element_connections_with_forms.empty?
+        @element_connections_with_forms = nil
       end
     else
-      @form_commitments = nil
+      @element_connections_with_forms = nil
     end
   end
 
@@ -361,6 +371,44 @@ class EventsController < ApplicationController
     end
   end
 
+  private
+
+  def add_appropriately(event, element)
+    did_add = false
+    if element.add_directly? ||
+       current_user.owns_parent_of?(element)
+      if element.entity.can_have_requests?
+        #
+        #  Gets a request
+        #
+        r = event.requests.create({
+          element: element,
+          quantity: 1
+        })
+        #
+        #  TODO add notifications and journalling
+        #
+        did_add = true
+      else
+        #
+        #  Gets an immediate commitment
+        #
+        c = event.commitments.create({
+          element: element
+        }) do |c|
+          set_appropriate_approval_status(c)
+        end
+        if session[:request_notifier]
+          session[:request_notifier].commitment_added(c)
+        end
+        event.journal_commitment_added(c, current_user)
+      end
+    end
+    return did_add
+  end
+
+  public
+
   # POST /events
   # POST /events.json
   def create
@@ -371,19 +419,15 @@ class EventsController < ApplicationController
       if @event.save
         @event.reload
         @event.journal_event_created(current_user)
+        added_any = false
         #
         #  Does this user have any Concerns with the auto_add flag set?
         #
         current_user.concerns.auto_add.each do |concern|
-          c = @event.commitments.create({
-            element: concern.element
-          }) do |c|
-            set_appropriate_approval_status(c)
+          element = concern.element
+          if add_appropriately(@event, element)
+            added_any = true
           end
-          if session[:request_notifier]
-            session[:request_notifier].commitment_added(c)
-          end
-          @event.journal_commitment_added(c, current_user)
         end
         #
         #  And was anything specified in the request?
@@ -407,20 +451,23 @@ class EventsController < ApplicationController
               #  Guard against double commitment.
               #
               unless current_user.concerns.auto_add.detect {|c| c.element == element}
-                c = @event.commitments.create({
-                  element: element
-                }) do |c|
-                  set_appropriate_approval_status(c)
+                if add_appropriately(@event, element)
+                  added_any = true
                 end
-                if session[:request_notifier]
-                  session[:request_notifier].commitment_added(c)
-                end
-                @event.journal_commitment_added(c, current_user)
               end
             else
               Rails.logger.debug("Couldn't find element with id #{eid}")
             end
           end
+        end
+        if added_any
+          #
+          #  I'm having a problem with the list of requests attached
+          #  to the event ending up slightly corrupted.  It thinks
+          #  it has 1 member, but when you iterate through it it returns
+          #  that 1 member twice.
+          #
+          @event.reload
         end
         #
         #  If the user does not have permission to add resources, then
@@ -531,6 +578,10 @@ class EventsController < ApplicationController
     #
     #  We enter this method with @event giving the event to be cloned.
     #
+    #  This is the old one-click cloning, currently not linked from
+    #  anywhere.  The new form-based cloning is handled by the Clones
+    #  Controller.
+    #
     request_notifier = RequestNotifier.new
     @event =
       @event.clone_and_save(
@@ -550,11 +601,10 @@ class EventsController < ApplicationController
         end
     request_notifier.send_notifications_for(current_user, @event)
     #
-    #  And throw the user straight into editing it.
+    #  And display it to the user.
     #
-    @commitment = Commitment.new
-    @commitment.event = @event
-    @minimal = true
+    assemble_event_info
+    @just_cloned = true
     respond_to do |format|
       format.js
     end

@@ -9,7 +9,7 @@
               select_user_concern_set_path(@user, concern_set),
               method: :put,
               remote: true,
-              class: 'zfbutton teensy radius button-link')
+              class: 'zfbutton teensy button-link')
             %>
   <% if concern_set.id && concern_set.id != 0 %>
     <%=
@@ -17,7 +17,7 @@
               edit_user_concern_set_path(@user, concern_set),
               method: :get,
               remote: true,
-              class: 'zfbutton teensy radius button-link')
+              class: 'zfbutton teensy button-link')
             %>
     <%= link_to("&#215;".html_safe,
                 [@user, concern_set],

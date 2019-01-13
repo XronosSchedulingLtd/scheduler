@@ -3,6 +3,43 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
+module ColourManipulation
+
+  KNOWN_COLOUR_NAMES = {
+    "red"   => "#FF0000",
+    "pink"  => "#FFC0CB",
+    "green" => "#008000"
+  }
+  KNOWN_COLOUR_NAMES.default = "#000000"
+
+  #
+  #  Passed a colour, produces a more greyed out version of the same
+  #  colour.  Lighter, and with less colour density, but still
+  #  clearly related.
+  #
+  def washed_out(colour)
+    if colour[0] != "#"
+      colour = KNOWN_COLOUR_NAMES[colour]
+    end
+    red_bit   = colour[1,2].hex
+    green_bit = colour[3,2].hex
+    blue_bit  = colour[5,2].hex
+    #
+    #  Each bit is half way between its original shade and full blast.
+    #
+    red_bit   = (255 - (255 - red_bit)   / 2)
+    green_bit = (255 - (255 - green_bit) / 2)
+    blue_bit  = (255 - (255 - blue_bit)  / 2)
+    "##{
+         sprintf("%02x", red_bit)
+       }#{
+         sprintf("%02x", green_bit)
+       }#{
+         sprintf("%02x", blue_bit)
+       }"
+  end
+end
+
 class EventAssembler
 
   #
@@ -10,57 +47,7 @@ class EventAssembler
   #
   class ScheduleEvent
 
-    #
-    #  A bit of messing about is needed to generate a constant hash with
-    #  a default value.
-    #
-    #  I got this from a blog posting and it doesn't actually work.
-    #  it returns a string, not a hash.  It also appears to be quite
-    #  unnecessary, since the straightforward approach works without
-    #  even producing a warning.
-    #
-    #KNOWN_COLOUR_NAMES = lambda do
-    #  known_colour_names = {
-    #    "red"   => "#FF0000",
-    #    "pink"  => "#FFC0CB",
-    #    "green" => "#008000"
-    #  }.default = "#000000"
-    #  known_colour_names
-    #end.call
-    #
-    KNOWN_COLOUR_NAMES = {
-      "red"   => "#FF0000",
-      "pink"  => "#FFC0CB",
-      "green" => "#008000"
-    }
-    KNOWN_COLOUR_NAMES.default = "#000000"
-
-    #
-    #  Passed a colour, produces a more greyed out version of the same
-    #  colour.  Lighter, and with less colour density, but still
-    #  clearly related.
-    #
-    def washed_out(colour)
-      if colour[0] != "#"
-        colour = KNOWN_COLOUR_NAMES[colour]
-      end
-      red_bit   = colour[1,2].hex
-      green_bit = colour[3,2].hex
-      blue_bit  = colour[5,2].hex
-      #
-      #  Each bit is half way between its original shade and full blast.
-      #
-      red_bit   = (255 - (255 - red_bit)   / 2)
-      green_bit = (255 - (255 - green_bit) / 2)
-      blue_bit  = (255 - (255 - blue_bit)  / 2)
-      "##{
-           sprintf("%02x", red_bit)
-         }#{
-           sprintf("%02x", green_bit)
-         }#{
-           sprintf("%02x", blue_bit)
-         }"
-    end
+    include ColourManipulation
 
     def redden(colour)
       "#ff7070"
@@ -74,6 +61,7 @@ class EventAssembler
                    mine = false,
                    list_teachers = false)
       @event   = event
+      @event_id = event.id
       if via_element
         @sort_by = "#{via_element.id} #{event.body}"
       else
@@ -196,22 +184,7 @@ class EventAssembler
       #               events too, but we need to adjust the end date
       #               for the case of a fake all-day event.
       #
-      if !event.all_day && event.starts_at.to_date < event.ends_at.to_date
-        #
-        #  One final thing might prevent this being a timed multi-day event.
-        #  It might end at midnight on the same day that it starts.  This
-        #  is recorded as 00:00:00 on the next day.
-        #
-        if (event.starts_at.to_date + 1.day == event.ends_at.to_date) &&
-           event.ends_at.midnight?
-          @multi_day_timed = false
-        else
-          @multi_day_timed = true
-        end
-      else
-        @multi_day_timed = false
-      end
-      if @multi_day_timed && view_start <= event.starts_at.to_date
+      if event.multi_day_timed? && view_start <= event.starts_at.to_date
         @prefix = "(#{event.starts_at.strftime("%H:%M")}) "
       else
         @prefix = nil
@@ -223,7 +196,7 @@ class EventAssembler
           @title += " - #{staff.collect {|s| s.initials}.join(", ")}"
         end
       end
-      @all_day = event.all_day || @multi_day_timed
+      @all_day = event.all_day? || event.multi_day_timed?
       #
       #  Note that our idea of editable is slightly different from
       #  FullCalendar's.  If I set editable on the event data, then
@@ -249,58 +222,20 @@ class EventAssembler
       end
     end
 
-    def starts_at_for_fc
-      if @event.all_day || @multi_day_timed
-        @event.starts_at.to_date.iso8601
-      else
-        @event.starts_at.iso8601
-      end
-    end
-
-    def ends_at_for_fc
-      if @event.all_day
-        if @event.ends_at
-          @event.ends_at.to_date.iso8601
-        else
-          @event.starts_at.to_date.iso8601
-        end
-      elsif @multi_day_timed
-        #
-        #  It is just possible that although this is a timed event, the
-        #  end time has been set to midnight.  If that's the case, then
-        #  we don't need to add an extra day.
-        #
-        if @event.ends_at.midnight?
-          @event.ends_at.to_date.iso8601
-        else
-          (@event.ends_at.to_date + 1.day).iso8601
-        end
-      else
-        #
-        #  Odd to see a test here for ends_at being nil, because the
-        #  validation of an event won't allow that.
-        #
-        if @event.ends_at == nil || @event.starts_at == @event.ends_at
-          nil
-        else
-          @event.ends_at.iso8601
-        end
-      end
-    end
-
     def as_json(options = {})
       result = {
-        :id            => "#{@event.id}",
+        :id            => @event_id,
         :title         => @title,
-        :start         => starts_at_for_fc,
-        :end           => ends_at_for_fc,
+        :start         => @event.starts_at_for_fc,
+        :end           => @event.ends_at_for_fc,
         :allDay        => @all_day,
         :recurring     => false,
         :editable      => @editable,
         :color         => @colour,
         :has_clashes   => @has_clashes,
         :fc            => @flag_colour,
-        :sort_by       => @sort_by
+        :sort_by       => @sort_by,
+        :eventId       => @event_id
       }
       if @prefix
         result[:prefix] = @prefix
@@ -343,16 +278,119 @@ class EventAssembler
 
   end
 
+  #
+  #  We also want to be able to display requests for events.  Here we focus
+  #  more on the individual request rather than the event.  Because a request
+  #  can specify more than one instance of a resource, we display one
+  #  bar for each instance, but they need to have different IDs.
+  #
+  #  We also display only un-fulfilled requests.  This gives the illusion
+  #  that you can fulfill one by dragging it between rows.
+  #
+  class ScheduleRequest
+    include ColourManipulation
+
+    def initialize(element, request, index)
+      #
+      #  The same request may appear several times, so need to generate
+      #  a unique event id.
+      #
+      @id               = "Req#{request.id}-#{index}"
+      @title            = "#{request.event.body} (#{index + 1})"
+      @starts_at_for_fc = request.event.starts_at_for_fc
+      @ends_at_for_fc   = request.event.ends_at_for_fc
+      @all_day          = request.event.all_day?
+      @resource_id      = element.id
+      @request_id       = request.id
+      @event_id         = request.event_id
+      if element.preferred_colour
+        @colour = washed_out(element.preferred_colour)
+      end
+      @hover_text       = "#{request.event.body} : #{request.event.owners_name}"
+    end
+
+    def as_json(options = {})
+      result = {
+        id:         @id,
+        title:      @title,
+        start:      @starts_at_for_fc,
+        end:        @ends_at_for_fc,
+        allDay:     @all_day,
+        recurring:  false,
+        editable:   true,                # For now
+        resourceId: @resource_id,
+        requestId:  @request_id,
+        eventId:    @event_id,
+        hoverText:  @hover_text
+      }
+      if @colour
+        result[:color] = @colour
+      end
+      result
+    end
+
+  end
+
+  #
+  #  Similarly, for actual commitments.
+  #
+  class ScheduleCommitment
+    def initialize(element, commitment)
+      @id               = "Com#{commitment.id}"
+      @title            = commitment.event.body
+      @starts_at_for_fc = commitment.event.starts_at_for_fc
+      @ends_at_for_fc   = commitment.event.ends_at_for_fc
+      @all_day          = commitment.event.all_day?
+      @resource_id      = element.id
+      @event_id         = commitment.event_id
+      if commitment.request
+        @request_id = commitment.request.id
+        @editable   = true
+        if commitment.request.element.preferred_colour
+          @colour = commitment.request.element.preferred_colour
+        end
+      else
+        @request_id = 0
+        @editable   = false
+        unless element.add_directly?
+          @colour     = 'red'
+        end
+      end
+      @hover_text       = "#{commitment.event.body} : #{commitment.event.owners_name}"
+    end
+
+    def as_json(options = {})
+      result = {
+        id:         @id,
+        title:      @title,
+        start:      @starts_at_for_fc,
+        end:        @ends_at_for_fc,
+        allDay:     @all_day,
+        recurring:  false,
+        editable:   @editable,
+        resourceId: @resource_id,
+        requestId:  @request_id,
+        eventId:    @event_id,
+        hoverText:  @hover_text
+      }
+      if @colour
+        result[:color] = @colour
+      end
+      result
+    end
+
+  end
+
   def initialize(session, current_user, params)
     @session      = session
     @current_user = current_user
     @params       = params
+    @start_date   = Time.zone.parse(@params[:start])
+    @end_date     = Time.zone.parse(@params[:end]) - 1.day
   end
 
   def call
 #    raise params.inspect
-    start_date = Time.zone.parse(@params[:start])
-    end_date   = Time.zone.parse(@params[:end]) - 1.day
     resulting_events = []
     if @current_user && @current_user.known?
       concern_id = @params[:cid].to_i
@@ -362,7 +400,7 @@ class EventAssembler
         #  date, in order to be able to return to it on a page refresh
         #  later.
         #
-        @session[:last_start_date] = start_date
+        @session[:last_start_date] = @start_date
         #
         #  We are being asked for the usual list of events for the
         #  current user.  These consist of:
@@ -379,14 +417,14 @@ class EventAssembler
           @current_user.concerns.visible.collect {|concern| concern.element}
         if @current_user.show_owned
           my_owned_events =
-            @current_user.events_on(start_date,
-                                   end_date,
+            @current_user.events_on(@start_date,
+                                   @end_date,
                                    nil,
                                    nil,
                                    true)
           my_organised_events =
-            Event.events_on(start_date,
-                            end_date,
+            Event.events_on(@start_date,
+                            @end_date,
                             nil,
                             nil,
                             nil,
@@ -421,28 +459,28 @@ class EventAssembler
           schoolwide_events = []
         else
           schoolwide_events =
-            Event.events_on(start_date,
-                            end_date,
+            Event.events_on(@start_date,
+                            @end_date,
                             schoolwide_categories) -
                             (my_owned_events + my_organised_events)
         end
         resulting_events =
           my_owned_events.collect {|e|
-            ScheduleEvent.new(start_date,
+            ScheduleEvent.new(@start_date,
                               e,
                               nil,
                               @current_user,
                               @current_user.colour_not_involved)
           } +
           my_organised_events.collect {|e|
-            ScheduleEvent.new(start_date,
+            ScheduleEvent.new(@start_date,
                               e,
                               nil,
                               @current_user,
                               @current_user.colour_not_involved)
           } +
           schoolwide_events.collect {|e|
-            ScheduleEvent.new(start_date,
+            ScheduleEvent.new(@start_date,
                               e,
                               nil,
                               @current_user)
@@ -450,8 +488,8 @@ class EventAssembler
         if @current_user && @current_user.day_shape
           resulting_events +=
             BackgroundEvent.construct(@current_user.day_shape,
-                                      start_date.to_date,
-                                      end_date.to_date)
+                                      @start_date.to_date,
+                                      @end_date.to_date)
         end
       else
         #
@@ -522,8 +560,8 @@ class EventAssembler
             resulting_events = []
           else
             selector =
-              element.commitments_on(startdate:           start_date,
-                                     enddate:             end_date,
+              element.commitments_on(startdate:           @start_date,
+                                     enddate:             @end_date,
                                      eventcategory:       event_categories,
                                      include_nonexistent: true)
             if concern.list_teachers
@@ -540,7 +578,7 @@ class EventAssembler
                       collect {|c| c.event}.
                       uniq.
                       collect {|e|
-                        ScheduleEvent.new(start_date,
+                        ScheduleEvent.new(@start_date,
                                           e,
                                           element,
                                           @current_user,
@@ -548,6 +586,15 @@ class EventAssembler
                                           concern.equality,
                                           concern.list_teachers)
                       }
+          end
+          #
+          #  And add in any outstanding requests for this element's
+          #  entity.  The method quickly returns an empty array if
+          #  the entity is not eligible for requests.
+          #
+          requests = requests_for(element.entity, true)
+          unless requests.empty?
+            resulting_events += requests
           end
         end
       end
@@ -580,26 +627,75 @@ class EventAssembler
             #  anyway.  Basically these are key dates and week letters.
             #
             resulting_events +=
-              element.events_on(start_date,
-                                end_date,
+              element.events_on(@start_date,
+                                @end_date,
                                 Eventcategory.not_schoolwide.visible.to_a).collect {|e|
-                ScheduleEvent.new(start_date,
+                ScheduleEvent.new(@start_date,
                                   e, nil, nil, element.preferred_colour)
               }
           end
         end
       elsif fake_id.blank?
-        @session[:last_start_date] = start_date
+        @session[:last_start_date] = @start_date
         resulting_events =
          Event.events_on(
-           start_date,
-           end_date,
+           @start_date,
+           @end_date,
            Eventcategory.schoolwide.visible.to_a).collect {|e|
-             ScheduleEvent.new(start_date,
+             ScheduleEvent.new(@start_date,
                                e, nil, nil)}
       end
     end
     return resulting_events
   end
 
+  #
+  #  This method produces event-like objects, but for requests rather
+  #  than commitments.  It is used in the resource allocation display.
+  #
+  #  We can produce:
+  #
+  #  * One entry per outstanding request.
+  #  * A single entry for the request, regardless.
+  #
+  def requests_for(entity, single_entry = false)
+    result = []
+    if entity.can_have_requests?
+      entity.element.
+             requests.
+             during(@start_date, @end_date + 1.day).
+             includes(:event).
+             each do |r|
+        if single_entry
+          result << ScheduleRequest.new(entity.element, r, r.quantity - 1)
+        else
+          r.num_outstanding.times do |i|
+            result << ScheduleRequest.new(entity.element, r, i)
+          end
+        end
+      end
+    end
+    result
+  end
+
+  #
+  #  And this produces events for a specified entity.  We want just direct
+  #  firm commitments, and we display them slightly differently from
+  #  in the main display.  These are simpler, and intended just for
+  #  the resource allocation display.
+  #
+  #  We go only for direct commitments - no groups or anything like that.
+  #
+  def events_for(entity)
+    result = []
+    entity.element.
+           commitments.
+           firm.
+           during(@start_date, @end_date + 1.day).
+           includes(:event).
+           each do |c|
+      result << ScheduleCommitment.new(entity.element, c)
+    end
+    result
+  end
 end

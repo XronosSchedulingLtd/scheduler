@@ -34,6 +34,9 @@ Rails.application.routes.draw do
       get :candidates
       put :fulfill
       put :unfulfill
+      put :increment
+      put :decrement
+      put :dragged
     end
   end
 
@@ -106,6 +109,9 @@ Rails.application.routes.draw do
   resources :groups do
     member do
       get :members
+      get :schedule
+      get :scheduleresources
+      get :scheduleevents
       post :do_clone
       post :flatten
       post :reinstate
@@ -178,6 +184,7 @@ Rails.application.routes.draw do
     resources :notes, shallow: true
     resources :requests
     resources :wrappers, only: [:new, :create]
+    resources :cloners, only: [:new, :create]
     resources :event_collections
     member do
       get :shownotes

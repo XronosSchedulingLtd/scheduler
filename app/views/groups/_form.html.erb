@@ -31,8 +31,25 @@
                               :name,
                               { :prompt => true }) %>
     </div>
+<% if @group.type == "Resource" %>
+    <div class="small-2 columns">
+      <%= f.label :edit_preferred_colour, "Preferred colour", class: "right inline" %>
+    </div>
+    <div class="small-1 columns">
+      <span style="float: right">
+        <%=
+          f.hidden_field(:edit_preferred_colour,
+                         :id => :colour_picker,
+                         "data-default-colour" => @group.edit_preferred_colour,
+                         "data-allow-empty" => true) %>
+      </span>
+    </div>
+    <div class="small-3 columns">
+    </div>
+<% else %>
     <div class="small-6 columns">
     </div>
+<% end %>
   </div>
 
   <div class="row collapse">

@@ -22,6 +22,8 @@
     <td class="concern-cell">
       <% if current_user.can_delete?(concern) %>
         <%= link_to '&#215;'.html_safe, concern, remote: true, method: :delete %>
+      <% elsif concern.owns? && concern.element.aresourcegroup? %>
+        <%= link_to 'V', schedule_group_path(concern.element.entity) %>
       <% end %>
     </td>
   <% end %>

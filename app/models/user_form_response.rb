@@ -105,9 +105,13 @@ class UserFormResponse < ActiveRecord::Base
   #  In other words, if this method were deleted from here, I think
   #  it would all work just as before.
   #
-  def status=(new_status)
-    self[:status] = UserFormResponse.statuses[new_status]
-  end
+  #  In fact, it's better without this method as defined here.  The default
+  #  one copes with number, or symbol, or string, whilst this one copes
+  #  only with symbol and string.
+  #
+#  def status=(new_status)
+#    self[:status] = UserFormResponse.statuses[new_status]
+#  end
 
   def self.populate_statuses
     raise "Last version containing working UserFormResponse::populate_statuses is 1.3.1"

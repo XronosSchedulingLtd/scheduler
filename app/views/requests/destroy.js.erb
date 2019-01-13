@@ -1,0 +1,7 @@
+<% if @event %>
+window.replaceEditingCommitments(
+  "<%=j render partial: "events/resource",
+               object: @event,
+               locals: {editing: true}
+  %>")
+<% end %>
