@@ -333,12 +333,18 @@ class EventCollection < ActiveRecord::Base
   #  Does our collection of events happen on the indicated date in the
   #  indicated week?
   #
-  def happens_on?(date, week_letter)
+  #  For events in the past, if we are set not to touch them, then we
+  #  pretend they don't happen and rely on other code to know not
+  #  to delete them.
+  #
+  def happens_on?(date, week_letter, todays_date = nil)
+    todays_date ||= Date.today
     date >= self.repetition_start_date &&
     date <= self.repetition_end_date &&
     self.days_of_week.include?(date.wday) &&
     self.weeks.include?(week_letter) &&
-    right_time_of_the_month?(date)
+    right_time_of_the_month?(date) &&
+    (date >= todays_date || !self.preserve_historical)
   end
 
   def body_text
@@ -453,6 +459,37 @@ class EventCollection < ActiveRecord::Base
 
   def have_base_event?
     find_base_event
+  end
+
+  #
+  #  Should the indicated event be deleted?  We preserve it if any of
+  #  the following is true.
+  #
+  #  1. It is in the past (relative to todays_date) and preserve_historical
+  #  is set.
+  #
+  #  2. It is prior to our start date, and preserve_earlier is set.
+  #
+  #  3. It is after our end date, and preserve_later is set.
+  #
+  #  Otherwise it can go.
+  #
+  def event_should_go?(event, todays_date = nil)
+    todays_date ||= Date.today
+    !((event.starts_at < todays_date && self.preserve_historical) ||
+      (event.starts_at < self.repetition_start_date && self.preserve_earlier) ||
+      (event.starts_at > self.repetition_end_date && self.preserve_later))
+  end
+
+  #
+  #  When this one is called, it is assumed the event has already been
+  #  established as being within our date ranges, or we wouldn't be thinking
+  #  about modifying it.  Only thing left to check is that it isn't in
+  #  the past.
+  #
+  def can_modify_event?(event, todays_date = nil)
+    todays_date ||= Date.today
+    !(event.starts_at < todays_date && self.preserve_historical)
   end
 
   private

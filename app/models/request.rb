@@ -34,9 +34,21 @@ class Request < ActiveRecord::Base
   belongs_to :proto_request
 
   has_many :commitments, :dependent => :destroy
+  has_one :user_form_response, as: :parent, dependent: :destroy
 
   validates :element, :presence => true
   validates :event,   :presence => true
+
+  #
+  #  Note that this expects an *exclusive* end date.  Trying to move
+  #  to this method of working everywhere.  Sadly it's not how groups
+  #  are implemented.
+  #
+  scope :during, lambda {|start_date, end_date|
+    joins(:event).merge(Event.during(start_date, end_date))
+  }
+  scope :standalone, -> { where(proto_request_id: nil) }
+  scope :prototyped, -> { where.not(proto_request_id: nil) }
 
   #
   #  Normally this won't be defined and so calls to this method will
@@ -47,11 +59,18 @@ class Request < ActiveRecord::Base
   #
   #  Call-backs.
   #
-  after_save    :update_event_after_save
-  after_destroy :update_event_after_destroy
+  after_save    :update_corresponding_event
+  after_destroy :update_corresponding_event
+  after_create  :check_for_forms
 
   def element_name
     self.element.name
+  end
+
+  #
+  #  Dummy method to allow mass assignment.
+  #
+  def element_name=(name)
   end
 
   def max_quantity
@@ -218,17 +237,129 @@ class Request < ActiveRecord::Base
     end
   end
 
+  def pending?
+    num_outstanding > 0
+  end
+
+  #
+  #  How many outstanding requests do we have?
+  #
+  #  quantity - number of linked commitments
+  #
+  #  Guard against returning a negative value if we are currently
+  #  over-committed.  This can happen if a user reduces the
+  #  requirement after resources have been committed.
+  #
+  def num_outstanding
+    value = self.quantity - self.commitments.count
+    if value < 0
+      value = 0
+    end
+    value
+  end
+
+  def clone_and_save(modifiers)
+    new_self = self.dup
+    modifiers.each do |key, value|
+      new_self.send("#{key}=", value)
+    end
+    #
+    #  Give the calling code the chance to make further adjustments.
+    #
+    if block_given?
+      yield new_self
+    end
+    new_self.note_progenitor(self)
+    new_self.save!
+    new_self
+  end
+
+  def note_progenitor(progenitor)
+    @progenitor = progenitor
+  end
+
+  def form_status
+    if self.user_form_response
+      #
+      #  Currently cope with only one.
+      #
+      ufr = self.user_form_response
+      if self.commitments.empty?
+        if ufr.complete?
+          "Complete"
+        elsif ufr.partial?
+          "Partial"
+        else
+          "To fill in"
+        end
+      else
+        "Locked"
+      end
+    else
+      "None"
+    end
+  end
+
+  def corresponding_form
+    self.user_form_response
+  end
+
+  def incomplete_ufr_count
+    if self.user_form_response && !self.user_form_response.complete?
+      1
+    else
+      0
+    end
+  end
+
+  #
+  #  Some methods just to make requests behave quite like commitments for
+  #  display purposes.
+  #
+  def covered; false end
+  def rejected?; false end
+  def requested?; false end
+  def noted?; false end
+  def constraining?; false end
+  def covering; false end
+
+  def name_with_quantity
+    "#{ActionController::Base.helpers.pluralize(self.quantity, self.element.name)}"
+  end
+
   private
 
-  def update_event_after_save
+  def update_corresponding_event
     if self.event
-      self.event.update_from_request(self.colour)
+      self.event.update_flag_colour
     end
   end
 
-  def update_event_after_destroy
-    if self.event
-      self.event.update_from_request("g")
+  def check_for_forms
+    if self.event.owner && self.event.owner != 0
+      if self.element.user_form
+        user_form_response_params = {
+          user_form: self.element.user_form,
+          user:      self.event.owner
+        }
+        if @progenitor && donor = @progenitor.user_form_response
+          #
+          #  It is just possible (although extremeley unlikely) that
+          #  the configured form for the requested element has changed between
+          #  when the original event was created (and its form filled in)
+          #  and now.  We don't want to go copying the user form response
+          #  data from one form to a response for a different one.
+          #
+          #  Just check.
+          #
+          if donor.user_form_id == self.element.user_form_id
+            user_form_response_params[:form_data] = donor.form_data
+            user_form_response_params[:status]    = donor.status
+          end
+        end
+        self.create_user_form_response(user_form_response_params)
+      end
     end
   end
+
 end

@@ -70,11 +70,20 @@ $(document).ready ->
       $('#fullcalendar').data("dorefresh", "0")
       $('#fullcalendar').fullCalendar('refetchEvents')
     )
+
+  $(document).on('opened', '[data-reveal]', ->
+    #
+    #  Is there a clone button in this modal?
+    #
+    primeCloneButton()
+    )
+
   #
   #  These are the parameters which we use to initialize FullCalendar
   #  regardless.
   #
   fcParams =
+    schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source'
     height: 'parent'
     currentTimezone: 'Europe/London'
     header:
@@ -111,7 +120,7 @@ $(document).ready ->
     eventClick: (event, jsEvent, view) ->
       $('#eventModal').foundation('reveal',
                                   'open',
-                                  '/events/' + event.id)
+                                  '/events/' + event.eventId)
   #
   #  And these are the extra ones which we use if the user can edit
   #  events.
@@ -119,7 +128,7 @@ $(document).ready ->
   editFcParams =
     eventDrop: (event, delta, revertFunc) ->
       jQuery.ajax
-        url:  "/events/" + event.id + "/moved"
+        url:  "/events/" + event.eventId + "/moved"
         type: "PUT"
         dataType: "json"
         error: (jqXHR, textStatus, errorThrown) ->
@@ -131,7 +140,7 @@ $(document).ready ->
             all_day: !event.start.hasTime()
     eventResize: (event, revertFunc) ->
       jQuery.ajax
-        url:  "/events/" + event.id
+        url:  "/events/" + event.eventId
         type: "PUT"
         dataType: "json"
         error: (jqXHR, textStatus, errorThrown) ->
@@ -313,8 +322,8 @@ tweakElement = (event, element) ->
         #  This one takes a bit more thought.  The event may occur in
         #  several elements, and only the first gets the prefix.
         #
-        if !that.elementsSeen[event.id]
-          that.elementsSeen[event.id] = true
+        if !that.elementsSeen[event.eventId]
+          that.elementsSeen[event.eventId] = true
           element.find('.fc-title').prepend(event.prefix)
   #
   #  And now, do we need to add an icon?
@@ -388,6 +397,12 @@ activateUserColumn = ->
 primeCloser = ->
   $('.closer').click ->
     $('#eventModal').foundation('reveal', 'close')
+
+primeCloneButton = ->
+  $('#clone_button').click ->
+    $('#clone_button').hide()
+    $('#cloning_message').show()
+    true
 
 #
 #  I want to share a couple of variables between the next two functions,
@@ -541,9 +556,21 @@ window.closeModal = (full_reload, just_events, filter_state) ->
 window.refreshNeeded = ->
   $('.flag-refreshes').data("dorefresh", "1")
 
+#
+#  This one is actually used for both Wrapping and Cloning.
+#
 window.beginWrapping = (contents) ->
   $('#events-dialogue').html(contents)
   $('.datepicker').datepicker( { dateFormat: "dd/mm/yy", stepMinute: 5 })
   primeCloser()
   $('.pw-action').click(pwActionClicked)
+  window.cloningRowHandler.init()
 
+window.redisplayEvent = (contents) ->
+  window.refreshNeeded()
+  $('#events-dialogue').html(contents)
+  $('#cloned_message').hide('fade', 1000, ->
+    $('#clone_button').show())
+  primeCloneButton()
+  primeCloser()
+  

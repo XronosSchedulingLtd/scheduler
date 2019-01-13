@@ -3,35 +3,39 @@
     <%= render 'events/quick_buttons' %>
   <% end %>
 <div class="row collapse">
-  <div class="small-12 medium-4 columns">
+  <div class="small-6 medium-3 columns">
     <label>Staff</label>
     <%= commitment_entries_for(resource, Staff, editing, current_user) %>
   </div>
-  <div class="small-12 medium-4 columns">
+  <div class="small-6 medium-3 columns">
     <label>Pupils</label>
     <%= commitment_entries_for(resource, Pupil, editing, current_user) %>
   </div>
-  <div class="small-12 medium-4 columns">
+  <div class="small-6 medium-3 columns">
     <label>Locations</label>
     <%= commitment_entries_for(resource, Location, editing, current_user) %>
   </div>
-</div>
-<div class="row collapse">
   <div class="small-6 medium-3 columns">
     <label>Groups</label>
     <%= commitment_entries_for(resource, Group, editing, current_user) %>
   </div>
+</div>
+<div class="row collapse">
   <div class="small-6 medium-3 columns">
     <label>Subjects</label>
     <%= commitment_entries_for(resource, Subject, editing, current_user) %>
   </div>
   <div class="small-6 medium-3 columns">
-    <label>Services</label>
+    <label>Services / Resources</label>
     <%= commitment_entries_for(resource, Service, editing, current_user) %>
   </div>
   <div class="small-6 medium-3 columns">
     <label>Properties</label>
     <%= commitment_entries_for(resource, Property, editing, current_user) %>
+  </div>
+  <div class="small-6 medium-3 columns">
+    <label>Requests</label>
+    <%= resource_requests_for(resource, editing, current_user) %>
   </div>
 </div>
   <% if @resourcewarning %>

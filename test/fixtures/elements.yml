@@ -67,4 +67,15 @@ aliasedroomelement:
   entity: aliasedroom (Location)
   uuid: "mmmm"
 
+serviceoneelement:
+  name: "Service 1"
+  entity: one (Service)
+  uuid: "zifsa"
+  preferred_colour: "red"
+
+servicetwoelement:
+  name: "Service 2"
+  entity: two (Service)
+  uuid: "zifsadua"
+
 

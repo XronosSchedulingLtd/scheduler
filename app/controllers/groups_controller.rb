@@ -6,6 +6,10 @@
 require 'csv'
 
 class GroupsController < ApplicationController
+  include DisplaySettings
+
+  layout 'schedule', only: [:schedule]
+
   before_action :set_group, only: [:show,
                                    :edit,
                                    :update,
@@ -13,7 +17,10 @@ class GroupsController < ApplicationController
                                    :members,
                                    :do_clone,
                                    :flatten,
-                                   :reinstate]
+                                   :reinstate,
+                                   :schedule,
+                                   :scheduleresources,
+                                   :scheduleevents]
 
   # GET /groups
   # GET /groups.json
@@ -251,6 +258,32 @@ class GroupsController < ApplicationController
     redirect_to :back
   end
 
+  # GET /groups/1/schedule
+  #
+  def schedule
+    respond_to do |format|
+      format.html
+    end
+  end
+
+  # GET /groups/1/scheduleresources
+  #
+  def scheduleresources
+    resources = GroupScheduler.new(@group).fc_resources
+    respond_to do |format|
+      format.json { render json: resources }
+    end
+  end
+
+  # GET /groups/1/scheduleevents
+  #
+  def scheduleevents
+    events = GroupScheduler.new(@group).fc_events(session, current_user, params)
+    respond_to do |format|
+      format.json { render json: events }
+    end
+  end
+
   def do_autocomplete(selector, org_term)
     term = org_term.split(" ").join("%")
     groups =
@@ -304,6 +337,7 @@ class GroupsController < ApplicationController
                                     :era_id,
                                     :current,
                                     :source_id,
-                                    :make_public)
+                                    :make_public,
+                                    :edit_preferred_colour)
     end
 end

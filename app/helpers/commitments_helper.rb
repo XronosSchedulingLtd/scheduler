@@ -35,17 +35,17 @@ module CommitmentsHelper
   end
 
   def element_name_with_cover(commitment)
-    result = h(commitment.element.name)
+    result = truncate(commitment.element.name, length: 19)
     if commitment.covering
       result = result +
                 "<br/>&nbsp;&nbsp;(Covering ".html_safe +
-                h(commitment.covering.element.name) +
+                truncate(commitment.covering.element.name, length: 16) +
                 ")"
     end
     if commitment.covered
       result = result +
                 "<br/>&nbsp;&nbsp;(Covered by ".html_safe +
-                h(commitment.covered.element.name) +
+                truncate(commitment.covered.element.name, length: 16) +
                 ")"
     end
     result

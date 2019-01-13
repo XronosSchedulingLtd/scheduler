@@ -146,11 +146,6 @@
   <div id="event_resources">
     <%= render partial: "resource", object: @event, locals: {editing: true} %>
   </div>
-  <hr width="100%"></hr>
-  <div style="min-height: 18px;">
-    <span id="clone_button"><%= link_to "Clone event", clone_event_path(@event), remote: @minimal, method: :post %></span>
-    <span id="cloned_message" style="display: none; color: red;">Cloned</span>
-  </div>
 <% elsif Setting.event_creation_prompt.blank? ||
          !current_user.show_pre_requisites? %>
   <p>Create the event first in order to allow resources to be added.</p>

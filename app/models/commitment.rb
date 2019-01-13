@@ -71,6 +71,10 @@ class Commitment < ActiveRecord::Base
                                         Commitment.statuses[:rejected]])}
 
   scope :until, lambda { |datetime| joins(:event).merge(Event.until(datetime)) }
+
+  scope :during, lambda {|start_date, end_date|
+    joins(:event).merge(Event.during(start_date, end_date))
+  }
   #
   #  Call-backs.
   #
@@ -94,6 +98,22 @@ class Commitment < ActiveRecord::Base
 
   def constraining?
     self.confirmed?
+  end
+
+  #
+  #  Is this commitment cloneable?  We may be passed a list of element
+  #  ids of elements to have their commitments cloned.
+  #
+  #  We can clone if all the following are true.
+  #
+  #  1. No list, or our element id is in the list.
+  #  2. This is not a covering commitment.
+  #  3. This commitment does not arise from a request.
+  #
+  def cloneable?(element_id_list = nil)
+    (element_id_list.nil? || element_id_list.include?(self.element_id)) &&
+    self.covering.nil? &&
+    self.request.nil?
   end
 
   def tentative=(new_value)
@@ -212,8 +232,13 @@ class Commitment < ActiveRecord::Base
     if block_given?
       yield new_self
     end
+    new_self.note_progenitor(self)
     new_self.save!
     new_self
+  end
+
+  def note_progenitor(progenitor)
+    @progenitor = progenitor
   end
 
   def self.cover_commitments(after = nil)
@@ -825,10 +850,17 @@ class Commitment < ActiveRecord::Base
         })
       end
       if self.element.user_form
-        self.create_user_form_response({
+        user_form_response_params = {
           user_form: self.element.user_form,
           user:      self.event.owner
-        })
+        }
+        if @progenitor && donor = @progenitor.user_form_response
+          if donor.user_form_id == self.element.user_form_id
+            user_form_response_params[:form_data] = donor.form_data
+            user_form_response_params[:status]    = donor.status
+          end
+        end
+        self.create_user_form_response(user_form_response_params)
       end
     end
   end

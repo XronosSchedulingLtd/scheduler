@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181104110249) do
+ActiveRecord::Schema.define(version: 20181125195518) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -142,8 +142,11 @@ ActiveRecord::Schema.define(version: 20181104110249) do
     t.datetime "update_requested_at"
     t.datetime "update_started_at"
     t.datetime "update_finished_at"
-    t.integer  "lock_version",          limit: 4,   default: 0, null: false
+    t.integer  "lock_version",          limit: 4,   default: 0,     null: false
     t.integer  "requesting_user_id",    limit: 4
+    t.boolean  "preserve_earlier",                  default: false
+    t.boolean  "preserve_later",                    default: false
+    t.boolean  "preserve_historical",               default: true
   end
 
   create_table "eventcategories", force: :cascade do |t|

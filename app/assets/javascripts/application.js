@@ -19,6 +19,7 @@
 //= require autocomplete-rails
 //= require moment.min
 //= require fullcalendar.min
+//= require scheduler.min
 //= require jquery-ui-timepicker-addon
 //= require spectrum
 //= require_tree ./goodvendors

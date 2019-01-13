@@ -8,6 +8,7 @@ class Element < ActiveRecord::Base
   has_many :memberships, :dependent => :destroy
   has_many :commitments, :dependent => :destroy
   has_many :requests, :dependent => :destroy
+  has_many :requested_events, through: :requests, source: :event
   has_many :proto_commitments, :dependent => :destroy
   has_many :proto_requests, :dependent => :destroy
   has_many :exam_cycles,
@@ -596,6 +597,11 @@ class Element < ActiveRecord::Base
     #
     #  Do nothing
     #
+  end
+
+  def aresourcegroup?
+    self.entity_type == 'Group' &&
+    self.entity.type == 'Resource'
   end
 
   protected

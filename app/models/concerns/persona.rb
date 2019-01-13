@@ -20,4 +20,11 @@ module Persona
   def user_editable?
     true
   end
+
+  #
+  #  And this defaults to false, but will be true for ResourceGroups.
+  #
+  def can_have_requests?
+    false
+  end
 end

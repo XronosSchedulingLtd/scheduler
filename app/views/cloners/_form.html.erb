@@ -1,0 +1,96 @@
+<h2>Cloning event</h2>
+<div id="event-cloning-upper">
+  <div id="for_errors">
+    <% if @event_cloner.errors.any? %>
+      <%= render partial: "error_msgs", object: @event_cloner.errors %>
+    <% end %>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-12 columns">
+      <p>Event:
+      "<%= @event_cloner.event.body %>",
+      starting
+      <%= @event_cloner.event.starts_at_text %>,
+      for
+      <%= @event_cloner.event.duration_text %></p>
+    </div>
+    <hr/>
+  </div>
+<%= form_for(@event_cloner, remote: @minimal) do |f| %>
+  <div class="row">
+    <div class='small-4 columns'>
+      <label>Date to which to clone</label>
+    </div>
+    <div class='small-7 columns'>
+      <label>Description</label>
+    </div>
+    <div class='small-1 columns'>
+      <img src='images/add16.png' title='Add another date' id='cloner-add-button' />
+    </div>
+  </div>
+  <div class="row">
+    <div class='small-4 columns'>
+      <%= f.hidden_field :original_date, disabled: true %>
+    </div>
+    <div class='small-7 columns'>
+      <%= f.hidden_field :original_description, disabled: true %>
+    </div>
+    <div class='small-1 columns'>
+      <%= f.hidden_field :num_instances, disabled: true %>
+    </div>
+  </div>
+  <div id='cloner-instances'>
+    <% @event_cloner.instances.each do |instance| %>
+      <%-# You have to give a string name or index will be ignored.  Bug? -%>
+      <%= fields_for "event_cloner_event_instance", instance, index: instance.index do |instance_form| %>
+      <div class='row cloner-row'>
+        <div class='small-4 columns'>
+          <%= instance_form.text_field :date, autocomplete: 'off', class: 'datepicker' %>
+        </div>
+        <div class='small-7 columns'>
+          <%= instance_form.text_field :body %>
+        </div>
+        <div class='small-1 columns'>
+          <div class='remover-wrapper'>
+            <img src='images/remove16.png' title='Remove this date' class='remover' />
+          </div>
+        </div>
+      </div>
+      <% end %>
+    <% end %>
+    </div>
+    <div class="row">
+      <hr/>
+      <div class="small-12 columns">
+        <%= f.submit "Create clones", class: "zfbutton tiny radius" %>
+        <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => "zfbutton tiny radius button-link" %>
+      </div>
+    </div>
+  </div>
+<% end %>
+</div>
+
+<script type="text/template" id="clone-date-template">
+<div class='row cloner-row'>
+<div class='small-4 columns'>
+  <input autocomplete='off'
+         class='datepicker'
+         type='text'
+         value='<%%= initialdate %>'
+         name='event_cloner_event_instance[<%%= index %>][date]'
+         id='event_cloner_event_instance_<%%= index %>_date' />
+</div>
+<div class='small-7 columns'>
+  <input type='text'
+         value='<%%= initialbody %>'
+         name='event_cloner_event_instance[<%%= index %>][body]'
+         id='event_cloner_event_instance_<%%= index %>_body' />
+</div>
+<div class='small-1 columns'>
+  <div class='remover-wrapper'>
+    <img src='images/remove16.png' title='Remove this date' class='remover' />
+  </div>
+</div>
+</div>
+</script>
