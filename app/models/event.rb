@@ -795,9 +795,9 @@ class Event < ActiveRecord::Base
         end
       end
     end
-    unless self.requests.empty?
+    unless self.requests.standalone.empty?
       by_type["Request"] = CommitmentSet.new("Request")
-      self.requests.each do |r|
+      self.requests.standalone.each do |r|
         by_type["Request"] << r
       end
     end
