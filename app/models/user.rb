@@ -688,7 +688,7 @@ class User < ActiveRecord::Base
       @events_pending =
         selector.future.
                  incomplete.
-                 includes(commitments: :user_form_response).
+                 includes(commitments: [:element, :user_form_response]).
                  inject(0) do |total, event|
         count = 0
         event.commitments.each do |c|
@@ -701,7 +701,9 @@ class User < ActiveRecord::Base
           #  the form to be marked as pending) would get counted as 2.
           #
           if c.rejected? || c.noted?
-            count += 1
+            unless c.element.a_person?
+              count += 1
+            end
           else
             #
             #  Count incomplete forms *unless* the commitment has
