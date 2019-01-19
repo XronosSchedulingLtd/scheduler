@@ -262,10 +262,11 @@ class GroupsController < ApplicationController
   #
   def schedule
     if params[:date]
-      session[:last_start_date] = Time.zone.parse(params[:date])
+      session[:allocation_start_date] = Time.zone.parse(params[:date])
       redirect_to request.path
     else
-      start_at = session[:last_start_date] || Time.zone.now
+      start_at = session[:allocation_start_date] || Time.zone.now
+      session.delete(:allocation_start_date)
       @default_date = start_at.strftime("%Y-%m-%d")
       respond_to do |format|
         format.html

@@ -150,6 +150,7 @@ if ($('#groupschedule').length) {
               revertFunc();
             } else {
               that.myDiv.fullCalendar('refetchEvents');
+              window.triggerCountsUpdate();
             }
           },
           error: function(jqXHR, textStatus, errorThrown) {
