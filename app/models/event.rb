@@ -1808,22 +1808,22 @@ class Event < ActiveRecord::Base
     @multi_day_timed
   end
 
-  def starts_at_for_fc
-    if self.all_day? || self.multi_day_timed?
+  def starts_at_for_fc(frig_timing = true)
+    if self.all_day? || (frig_timing && self.multi_day_timed?)
       self.starts_at.to_date.iso8601
     else
       self.starts_at.iso8601
     end
   end
 
-  def ends_at_for_fc
+  def ends_at_for_fc(frig_timing = true)
     if self.all_day?
       if self.ends_at
         self.ends_at.to_date.iso8601
       else
         self.starts_at.to_date.iso8601
       end
-    elsif self.multi_day_timed?
+    elsif frig_timing && self.multi_day_timed?
       #
       #  It is just possible that although this is a timed event, the
       #  end time has been set to midnight.  If that's the case, then

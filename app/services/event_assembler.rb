@@ -290,16 +290,30 @@ class EventAssembler
   class ScheduleRequest
     include ColourManipulation
 
-    def initialize(element, request, index)
+    def initialize(main_display, element, request, index, view_start = nil)
       #
       #  The same request may appear several times, so need to generate
       #  a unique event id.
       #
+      event = request.event
+      #
       @id               = "Req#{request.id}-#{index}"
-      @title            = "#{request.event.body} (#{index + 1})"
-      @starts_at_for_fc = request.event.starts_at_for_fc
-      @ends_at_for_fc   = request.event.ends_at_for_fc
-      @all_day          = request.event.all_day?
+      @title            = "#{event.body} (#{index})"
+      if main_display
+        @starts_at_for_fc = event.starts_at_for_fc
+        @ends_at_for_fc   = event.ends_at_for_fc
+        if event.multi_day_timed? && view_start <= event.starts_at.to_date
+          @prefix = "(#{event.starts_at.strftime("%H:%M")}) "
+        else
+          @prefix = nil
+        end
+        @all_day        = event.all_day? || event.multi_day_timed?
+      else
+        @starts_at_for_fc = event.starts_at_for_fc(false)
+        @ends_at_for_fc   = event.ends_at_for_fc(false)
+        @prefix           = nil
+        @all_day          = event.all_day?
+      end
       @resource_id      = element.id
       @request_id       = request.id
       @event_id         = request.event_id
@@ -326,6 +340,9 @@ class EventAssembler
       if @colour
         result[:color] = @colour
       end
+      if @prefix
+        result[:prefix] = @prefix
+      end
       result
     end
 
@@ -334,12 +351,15 @@ class EventAssembler
   #
   #  Similarly, for actual commitments.
   #
+  #  These are used solely in the resource allocation display and are
+  #  correspondingly simpler than the main ones.
+  #
   class ScheduleCommitment
     def initialize(element, commitment)
       @id               = "Com#{commitment.id}"
       @title            = commitment.event.body
-      @starts_at_for_fc = commitment.event.starts_at_for_fc
-      @ends_at_for_fc   = commitment.event.ends_at_for_fc
+      @starts_at_for_fc = commitment.event.starts_at_for_fc(false)
+      @ends_at_for_fc   = commitment.event.ends_at_for_fc(false)
       @all_day          = commitment.event.all_day?
       @resource_id      = element.id
       @event_id         = commitment.event_id
@@ -592,7 +612,7 @@ class EventAssembler
           #  entity.  The method quickly returns an empty array if
           #  the entity is not eligible for requests.
           #
-          requests = requests_for(element.entity, true)
+          requests = requests_for(element.entity, true, @start_date)
           unless requests.empty?
             resulting_events += requests
           end
@@ -651,14 +671,20 @@ class EventAssembler
 
   #
   #  This method produces event-like objects, but for requests rather
-  #  than commitments.  It is used in the resource allocation display.
+  #  than commitments.  It is used in the resource allocation display
+  #  and in the main schedule display.
   #
   #  We can produce:
   #
   #  * One entry per outstanding request.
   #  * A single entry for the request, regardless.
   #
-  def requests_for(entity, single_entry = false)
+  #  For the main display we do a single entry, but for the resource
+  #  allocation display we do one per outstanding request.
+  #
+  #  We default to doing it for the allocation display.
+  #
+  def requests_for(entity, main_display = false, start_date = nil)
     result = []
     if entity.can_have_requests?
       entity.element.
@@ -666,11 +692,18 @@ class EventAssembler
              during(@start_date, @end_date + 1.day).
              includes(:event).
              each do |r|
-        if single_entry
-          result << ScheduleRequest.new(entity.element, r, r.quantity - 1)
+        if main_display
+          result << ScheduleRequest.new(main_display,
+                                        entity.element,
+                                        r,
+                                        r.quantity,
+                                        start_date)
         else
           r.num_outstanding.times do |i|
-            result << ScheduleRequest.new(entity.element, r, i)
+            result << ScheduleRequest.new(main_display,
+                                          entity.element,
+                                          r,
+                                          i + 1)
           end
         end
       end
