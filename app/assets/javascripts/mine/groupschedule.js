@@ -102,6 +102,10 @@ if ($('#groupschedule').length) {
       var groupId = that.myDiv.data('groupid');
       fcParams.resources  = '/groups/' + groupId + '/scheduleresources';
       fcParams.events.url = '/groups/' + groupId + '/scheduleevents';
+      var defaultDate = that.myDiv.data('defaultdate');
+      if (defaultDate) {
+        fcParams.defaultDate = defaultDate;
+      }
       that.myDiv.fullCalendar(fcParams);
       $(document).on('closed', '[data-reveal]', modalClosed);
     };

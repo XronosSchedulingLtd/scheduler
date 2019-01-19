@@ -1,0 +1,32 @@
+<tr>
+  <td>
+    <%=
+      link_to(
+        request.event.starts_at_text,
+        schedule_group_path(
+          request.element.entity,
+          date: request.event.jump_date_text
+        )
+      )
+    %>
+  </td>
+  <td><%= request.event.duration_text %></td>
+  <td><%= link_to(request.event.trimmed_body(35),
+                  event_path(request.event, from_listing: true),
+                  title: request.event.body,
+                  "data-reveal-id" => "eventModal",
+                  "data-reveal-ajax" => true) %></td>
+  <td title="<%=
+    request.event.owners_name
+  %>"><%=
+    commitment_owner_mailto(request)
+  %></td>
+  <td title="<%=
+  request.event.organiser_name
+  %>"><%=
+    commitment_organiser_mailto(request)
+  %></td>
+  <td><%= request.quantity %></td>
+  <td><%= request.num_allocated %></td>
+  <td class="form-status"><%= commitment_form_status(request) %></td>
+</tr>

@@ -228,6 +228,7 @@ Rails.application.routes.draw do
     resources :promptnotes, shallow: true
     resources :journal_entries, only: [:index]
     resources :commitments, only: [:index]
+    resources :requests, only: [:index]
     collection do
       get :autocomplete_element_name
       get :autocomplete_staff_element_name
