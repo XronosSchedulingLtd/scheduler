@@ -1710,6 +1710,11 @@ class Event < ActiveRecord::Base
     self.journal.resource_request_created(request, by_user)
   end
 
+  def journal_resource_request_destroyed(request, by_user)
+    ensure_journal
+    self.journal.resource_request_destroyed(request, by_user)
+  end
+
   def journal_resource_request_incremented(request, by_user)
     ensure_journal
     self.journal.resource_request_incremented(request, by_user)

@@ -65,6 +65,7 @@ class RequestsController < ApplicationController
       #    Notifications
       #    Journalling
       #
+      @event.journal_resource_request_destroyed(@request, current_user)
       @request.destroy
       @event.reload
       @resourcewarning = false

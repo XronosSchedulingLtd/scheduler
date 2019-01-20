@@ -385,8 +385,9 @@ class EventsController < ApplicationController
           element: element,
           quantity: 1
         })
+        event.journal_resource_request_created(r, current_user)
         #
-        #  TODO add notifications and journalling
+        #  TODO add notifications
         #
         did_add = true
       else

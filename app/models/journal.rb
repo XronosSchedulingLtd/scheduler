@@ -264,6 +264,10 @@ class Journal < ActiveRecord::Base
     entry_for_request(:resource_request_created, request, by_user)
   end
 
+  def resource_request_destroyed(request, by_user)
+    entry_for_request(:resource_request_destroyed, request, by_user)
+  end
+
   def resource_request_incremented(request, by_user)
     entry_for_request(:resource_request_incremented, request, by_user)
   end
