@@ -1725,6 +1725,16 @@ class Event < ActiveRecord::Base
     self.journal.resource_request_decremented(request, by_user)
   end
 
+  def journal_resource_request_allocated(request, by_user, element)
+    ensure_journal
+    self.journal.resource_request_allocated(request, by_user, element)
+  end
+
+  def journal_resource_request_deallocated(request, by_user, element)
+    ensure_journal
+    self.journal.resource_request_deallocated(request, by_user, element)
+  end
+
   def format_timing
     format_timings(self.starts_at, self.ends_at, self.all_day)
   end

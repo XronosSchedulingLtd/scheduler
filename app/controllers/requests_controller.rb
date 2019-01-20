@@ -152,7 +152,11 @@ class RequestsController < ApplicationController
             if members.include?(element.entity)
               commitment = @request.fulfill(element)
               success = true
-              unless commitment.valid?
+              if commitment.valid?
+                @request.event.journal_resource_request_allocated(@request,
+                                                                  current_user,
+                                                                  element)
+              else
                 message = "This resource is already committed to the event"
               end
             else
@@ -176,11 +180,21 @@ class RequestsController < ApplicationController
                 #  2) It can be dragged anywhere else.  Delete the commitment,
                 #     meaning it reverts to being an unfulfilled request.
                 #
+                old_element = commitment.element
                 @request.unfulfill(commitment.element_id)
+                @request.event.journal_resource_request_deallocated(
+                  @request,
+                  current_user,
+                  old_element)
                 success = true
                 if members.include?(element.entity)
                   commitment = @request.fulfill(element)
-                  unless commitment.valid?
+                  if commitment.valid?
+                    @request.event.journal_resource_request_allocated(
+                      @request,
+                      current_user,
+                      element)
+                  else
                     message = "This resource is already committed to the event"
                   end
                 end
