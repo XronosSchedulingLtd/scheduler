@@ -1705,6 +1705,21 @@ class Event < ActiveRecord::Base
     self.journal.repeated_from(by_user)
   end
 
+  def journal_resource_request_created(request, by_user)
+    ensure_journal
+    self.journal.resource_request_created(request, by_user)
+  end
+
+  def journal_resource_request_incremented(request, by_user)
+    ensure_journal
+    self.journal.resource_request_incremented(request, by_user)
+  end
+
+  def journal_resource_request_decremented(request, by_user)
+    ensure_journal
+    self.journal.resource_request_decremented(request, by_user)
+  end
+
   def format_timing
     format_timings(self.starts_at, self.ends_at, self.all_day)
   end

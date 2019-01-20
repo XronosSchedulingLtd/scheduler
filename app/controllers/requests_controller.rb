@@ -82,6 +82,7 @@ class RequestsController < ApplicationController
       @request.quantity += 1
       @request.save
       @request.reload
+      @event.journal_resource_request_incremented(@request, current_user)
       @resourcewarning = false
     end
     @quick_buttons = QuickButtons.new(@event)
@@ -97,6 +98,7 @@ class RequestsController < ApplicationController
       @request.quantity -= 1
       @request.save
       @request.reload
+      @event.journal_resource_request_decremented(@request, current_user)
       @resourcewarning = false
     end
     @quick_buttons = QuickButtons.new(@event)
