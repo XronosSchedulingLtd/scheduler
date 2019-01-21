@@ -1,0 +1,35 @@
+<div id="request-index" data-dorefresh="0" class="flag-refreshes">
+<div class="flip-button">
+  <%= link_to @flip_text, @flip_target, class: "zfbutton tiny radius" %>
+</div>
+<h1>Events requesting <%= @element.short_name %></h1>
+
+<div class="apple_pagination">
+  <%= will_paginate @commitments %>
+</div>
+
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>Start</th>
+      <th>Duration</th>
+      <th>Body</th>
+      <th title="Owner">Own</th>
+      <th title="Organiser">Org</th>
+      <th>Qty</th>
+      <th>Alloc</th>
+      <th>Form</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <%= render @requests %>
+  </tbody>
+</table>
+
+<div class="apple_pagination">
+  <%= will_paginate @commitments %>
+</div>
+</div>
+<br>
+

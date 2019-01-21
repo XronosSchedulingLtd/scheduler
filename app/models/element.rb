@@ -87,6 +87,29 @@ class Element < ActiveRecord::Base
   }.tap {|h| h.default = 0}
 
   #
+  #  Each entity has a class method (and an instance method) to tell
+  #  us whether it is a person or not.  If though one writes:
+  #
+  #  element.entity.class.a_person?
+  #
+  #  then ActiveRecord will fetch the entity record from the database,
+  #  even though it doesn't actually need it - it already knows the
+  #  class but doesn't look that far ahead.
+  #
+  #  Instead, we use a hash so we can determine the answer to the question
+  #  without a database hit.
+  #
+  PERSONALITY_HASH = {
+    "Property" => Property.a_person?,
+    "Subject"  => Subject.a_person?,
+    "Staff"    => Staff.a_person?,
+    "Pupil"    => Pupil.a_person?,
+    "Location" => Location.a_person?,
+    "Group"    => Group.a_person?,
+    "Service"  => Service.a_person?
+  }.tap {|h| h.default = false }
+
+  #
   #  The hint tells us whether the invoking concern is an owning
   #  concern.  If it is, then we are definitely owned.  If it is
   #  not then we might not be owned any more.
@@ -243,6 +266,10 @@ class Element < ActiveRecord::Base
   #
   def member_of?(group, date)
     self.groups(date).include?(group)
+  end
+
+  def a_person?
+    PERSONALITY_HASH[self.entity_type]
   end
 
   def events_on(start_date = nil,
@@ -558,19 +585,7 @@ class Element < ActiveRecord::Base
   end
 
   #
-  #  We count pending commitments only if:
-  #
-  #  They have no user form
-  #
-  #    OR
-  #
-  #  The form is complete.
-  #
-  #  (Not Form) OR (Complete)
-  #
-  #  is the same as:
-  #
-  #  !(Form AND !Complete)
+  #  We count pending commitments only if they have no outstanding forms.
   #
   def permissions_pending
     unless @permissions_pending
@@ -579,9 +594,15 @@ class Element < ActiveRecord::Base
              preload(:user_form_response).
              future.
              requested.
-             select {|c|
-          !(c.user_form_response && !c.user_form_response.complete?)
-        }.count
+             select {|c| c.no_forms_outstanding?  }.
+             count +
+        self.requests.
+             preload(:user_form_response, :commitments).
+             future.
+             select {|r| r.no_forms_outstanding?  }.
+             inject(0) {|memo, r|
+               memo + r.num_outstanding
+             }
     end
     @permissions_pending
   end

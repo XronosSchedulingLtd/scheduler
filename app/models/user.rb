@@ -338,7 +338,7 @@ class User < ActiveRecord::Base
   def owned_elements
     unless @owned_elements
       @owned_elements =
-        self.concerns.includes(:element).owned.collect {|c| c.element}
+        self.concerns.owned.includes(element: :entity).collect {|c| c.element}
     end
     @owned_elements
   end
@@ -647,19 +647,25 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Another thing which it is useful to cache for efficiency.
+  #
+  def owned_concerns
+    unless @owned_concerns
+      if self.element_owner
+        @owned_concerns = self.concerns.owned.preload(:element).to_a
+      else
+        @owned_concerns = []
+      end
+    end
+    @owned_concerns
+  end
+  #
   #  Another one to cache because it is needed a lot.
   #
   def permissions_pending
     unless @permissions_pending
-      #
-      #  Don't bother calculating if we know the answer would be 0.
-      #
-      if self.element_owner
-        @permissions_pending = self.concerns.preload(:element).owned.inject(0) do |total, concern|
-          total + concern.permissions_pending
-        end
-      else
-        @permissions_pending = 0
+      @permissions_pending = self.owned_concerns.inject(0) do |total, concern|
+        total + concern.permissions_pending
       end
     end
     @permissions_pending
@@ -688,7 +694,7 @@ class User < ActiveRecord::Base
       @events_pending =
         selector.future.
                  incomplete.
-                 includes(commitments: :user_form_response).
+                 includes(commitments: [:element, :user_form_response]).
                  inject(0) do |total, event|
         count = 0
         event.commitments.each do |c|
@@ -701,7 +707,9 @@ class User < ActiveRecord::Base
           #  the form to be marked as pending) would get counted as 2.
           #
           if c.rejected? || c.noted?
-            count += 1
+            unless c.element.a_person?
+              count += 1
+            end
           else
             #
             #  Count incomplete forms *unless* the commitment has
@@ -758,6 +766,17 @@ class User < ActiveRecord::Base
     @events_pending_total
   end
 
+  #
+  #  This function might appear at first sight to be redundant.  It's
+  #  simply calling events_pending_total() and caching the result.
+  #  However, we might in the future want to add other pending
+  #  requests not relating to events.
+  #
+  #  That would result in this one calling whatever_pending_total
+  #  as well, adding the two together and caching that result.
+  #
+  #  Leave it in.
+  #
   def pending_grand_total
     unless @pending_grand_total
       @pending_grand_total = events_pending_total

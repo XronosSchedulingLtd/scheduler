@@ -39,6 +39,8 @@ class Request < ActiveRecord::Base
   validates :element, :presence => true
   validates :event,   :presence => true
 
+  include WithForms
+
   #
   #  Note that this expects an *exclusive* end date.  Trying to move
   #  to this method of working everywhere.  Sadly it's not how groups
@@ -49,6 +51,8 @@ class Request < ActiveRecord::Base
   }
   scope :standalone, -> { where(proto_request_id: nil) }
   scope :prototyped, -> { where.not(proto_request_id: nil) }
+  scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}
+  scope :until, lambda { |datetime| joins(:event).merge(Event.until(datetime)) }
 
   #
   #  Normally this won't be defined and so calls to this method will
@@ -62,6 +66,8 @@ class Request < ActiveRecord::Base
   after_save    :update_corresponding_event
   after_destroy :update_corresponding_event
   after_create  :check_for_forms
+
+  self.per_page = 12
 
   def element_name
     self.element.name
@@ -251,11 +257,20 @@ class Request < ActiveRecord::Base
   #  requirement after resources have been committed.
   #
   def num_outstanding
-    value = self.quantity - self.commitments.count
-    if value < 0
-      value = 0
+    unless @num_outstanding
+      @num_outstanding = self.quantity - self.num_allocated
+      if @num_outstanding < 0
+        @num_outstanding = 0
+      end
     end
-    value
+    @num_outstanding
+  end
+
+  def num_allocated
+    unless @num_allocated
+      @num_allocated = self.commitments.size
+    end
+    @num_allocated
   end
 
   def clone_and_save(modifiers)

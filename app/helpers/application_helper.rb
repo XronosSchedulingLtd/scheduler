@@ -128,4 +128,24 @@ module ApplicationHelper
     h(text).gsub("\n", '<br/>').html_safe
   end
 
+  #
+  #  Returns an appropriate path for listing pending items relating
+  #  to the indicated element.  For most elements these will be concerns,
+  #  but for ResourceGroups, these will be requests.
+  #
+  def owned_element_listing_path(element, pending = false)
+    if element.entity.can_have_requests?
+      if pending
+        element_requests_path(element, pending: true)
+      else
+        element_requests_path(element)
+      end
+    else
+      if pending
+        element_commitments_path(element, pending: true)
+      else
+        element_commitments_path(element)
+      end
+    end
+  end
 end

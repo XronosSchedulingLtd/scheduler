@@ -36,6 +36,13 @@ module Elemental
   end
 
   module ClassMethods
+    def a_person?
+      false
+    end
+  end
+
+  def a_person?
+    self.class.a_person?
   end
 
   #

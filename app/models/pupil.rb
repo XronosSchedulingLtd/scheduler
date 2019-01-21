@@ -9,6 +9,13 @@ class Pupil < ActiveRecord::Base
 
   include Elemental
 
+  #
+  #  Override this method inherited from Elemental.
+  #
+  def self.a_person?
+    true
+  end
+
   belongs_to :datasource
 
   self.per_page = 15
