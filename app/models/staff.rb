@@ -11,6 +11,13 @@ class Staff < ActiveRecord::Base
 
   include Elemental
 
+  #
+  #  Override this method inherited from Elemental.
+  #
+  def self.a_person?
+    true
+  end
+
   belongs_to :datasource
   #
   #  Has only one per year, but in terms of data structues, has many.

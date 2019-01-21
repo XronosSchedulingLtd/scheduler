@@ -51,11 +51,9 @@ class UsersController < ApplicationController
       @pph["pending-grand-total"]  = current_user.pending_grand_total
       @pph["pending-events-total"] = current_user.events_pending_total
       @pph["pending-my-events"]    = current_user.events_pending
-      if current_user.element_owner
-        current_user.concerns.owned.each do |concern|
-          @pph["pending-element-#{concern.element_id}".to_sym] =
-          concern.permissions_pending
-        end
+      current_user.owned_concerns.each do |concern|
+        @pph["pending-element-#{concern.element_id}".to_sym] =
+        concern.permissions_pending
       end
     end
     respond_to do |format|

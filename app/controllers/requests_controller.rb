@@ -3,7 +3,7 @@ class RequestsController < ApplicationController
   #  We need the set_request to run *before* our authorized? method
   #  is invoked, so put it on the front of the chain.
   #
-  prepend_before_action :set_request
+  prepend_before_action :set_request, except: :index
 
   #
   #  These methods are used for exam invigilation type requests.
@@ -65,6 +65,7 @@ class RequestsController < ApplicationController
       #    Notifications
       #    Journalling
       #
+      @event.journal_resource_request_destroyed(@request, current_user)
       @request.destroy
       @event.reload
       @resourcewarning = false
@@ -82,6 +83,7 @@ class RequestsController < ApplicationController
       @request.quantity += 1
       @request.save
       @request.reload
+      @event.journal_resource_request_incremented(@request, current_user)
       @resourcewarning = false
     end
     @quick_buttons = QuickButtons.new(@event)
@@ -97,6 +99,7 @@ class RequestsController < ApplicationController
       @request.quantity -= 1
       @request.save
       @request.reload
+      @event.journal_resource_request_decremented(@request, current_user)
       @resourcewarning = false
     end
     @quick_buttons = QuickButtons.new(@event)
@@ -149,7 +152,11 @@ class RequestsController < ApplicationController
             if members.include?(element.entity)
               commitment = @request.fulfill(element)
               success = true
-              unless commitment.valid?
+              if commitment.valid?
+                @request.event.journal_resource_request_allocated(@request,
+                                                                  current_user,
+                                                                  element)
+              else
                 message = "This resource is already committed to the event"
               end
             else
@@ -173,11 +180,21 @@ class RequestsController < ApplicationController
                 #  2) It can be dragged anywhere else.  Delete the commitment,
                 #     meaning it reverts to being an unfulfilled request.
                 #
+                old_element = commitment.element
                 @request.unfulfill(commitment.element_id)
+                @request.event.journal_resource_request_deallocated(
+                  @request,
+                  current_user,
+                  old_element)
                 success = true
                 if members.include?(element.entity)
                   commitment = @request.fulfill(element)
-                  unless commitment.valid?
+                  if commitment.valid?
+                    @request.event.journal_resource_request_allocated(
+                      @request,
+                      current_user,
+                      element)
+                  else
                     message = "This resource is already committed to the event"
                   end
                 end
@@ -210,6 +227,43 @@ class RequestsController < ApplicationController
     end
   end
 
+  def index
+    if current_user.can_add_concerns? &&
+          params[:element_id] &&
+          @element = Element.find_by(id: params[:element_id])
+      selector = @element.requests
+      @allow_buttons = current_user.owns?(@element)
+      if params.has_key?(:pending)
+        @pending = true
+        selector = selector.future
+        @flip_target = element_requests_path(@element)
+        @flip_text = "See All"
+      else
+        @pending = false
+        @flip_target = element_requests_path(@element, pending: true)
+        @flip_text = "See Pending"
+      end
+      #
+      #  If there are lots of requests, then it makes sense to start
+      #  on the page for today.  The user can page forward or backward
+      #  as required.  Do this only if the user has not specified an
+      #  explicit page.
+      #
+      page_no = params[:page]
+      unless page_no
+        previous_requests_count = selector.until(Time.zone.now.midnight).count
+        page_no = (previous_requests_count / Request.per_page) + 1
+      end
+      @requests =
+        selector.includes([:event, :commitments, :user_form_response]).page(page_no).order('events.starts_at')
+    else
+      #
+      #  Send him off to look at his own events.
+      #
+      redirect_to user_events_path(current_user)
+    end
+  end
+
   private
 
   def set_request
@@ -228,7 +282,7 @@ class RequestsController < ApplicationController
         current_user.can_delete?(@request)
       when 'increment', 'decrement'
         current_user.can_subedit?(@request)
-      when 'dragged'
+      when 'dragged', 'index'
         #
         #  Need to be an administrator for the relevant resource
         #  but we will leave the actual check for now.  We want to

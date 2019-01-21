@@ -180,9 +180,22 @@ class ApprovalNotifier
           end
         end
       elsif c.rejected?
-        email = requester_email(c)
-        if email
-          @rs.recipient(email).note_rejection(c)
+        #
+        #  If the element requested is a person then we treat the
+        #  request as an invitation.  If the invitee has declined it
+        #  it can still make sense to leave the invitation there as
+        #  a record of:
+        #
+        #  1) That he or she was invited.
+        #  2) The reason for declining.
+        #
+        #  Don't keep sending e-mails about it.
+        #
+        unless element.a_person?
+          email = requester_email(c)
+          if email
+            @rs.recipient(email).note_rejection(c)
+          end
         end
       end
     end

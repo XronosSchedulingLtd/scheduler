@@ -260,11 +260,60 @@ class Journal < ActiveRecord::Base
     })
   end
 
+  def resource_request_created(request, by_user)
+    entry_for_request(:resource_request_created, request, by_user)
+  end
+
+  def resource_request_destroyed(request, by_user)
+    entry_for_request(:resource_request_destroyed, request, by_user)
+  end
+
+  def resource_request_incremented(request, by_user)
+    entry_for_request(:resource_request_incremented, request, by_user)
+  end
+
+  def resource_request_decremented(request, by_user)
+    entry_for_request(:resource_request_decremented, request, by_user)
+  end
+
+  def resource_request_allocated(request, by_user, element)
+    entry_for_request(:resource_request_allocated, request, by_user, element)
+  end
+
+  def resource_request_deallocated(request, by_user, element)
+    entry_for_request(:resource_request_deallocated, request, by_user, element)
+  end
+
   def format_timing
     format_timings(self.event_starts_at, self.event_ends_at, self.event_all_day)
   end
 
   private
+
+  def request_description(entry_type, request, element)
+    case entry_type
+    when :resource_request_created, :resource_request_destroyed
+      "Quantity: #{request.quantity}"
+    when :resource_request_incremented
+      "From #{request.quantity - 1} to #{request.quantity}"
+    when :resource_request_decremented
+      "From #{request.quantity - 1} to #{request.quantity}"
+    when :resource_request_allocated, :resource_request_deallocated
+      "#{element ? element.name : "Unknown"}"
+    else
+      "Whoops!"
+    end
+  end
+
+  def entry_for_request(entry_type, request, by_user, element = nil)
+    self.journal_entries.create({
+      event:      self.event,
+      user:       by_user,
+      entry_type: entry_type,
+      element:    request.element,
+      details:    request_description(entry_type, request, element)
+    })
+  end
 
   def commitment_description(entry_type, commitment)
     if entry_type == :resource_added && commitment.tentative?

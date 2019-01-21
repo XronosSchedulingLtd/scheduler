@@ -106,9 +106,10 @@ class CommitmentsController < ApplicationController
           @request.reload
           #
           #  Should:
-          #    Journal this addition
           #    Add it to the request notifier
           #
+          @request.event.journal_resource_request_created(@request,
+                                                          current_user)
         end
       end
       @event = @request.event

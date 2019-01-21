@@ -21,6 +21,8 @@ class Commitment < ActiveRecord::Base
   has_many :notes, as: :parent, dependent: :destroy
   has_one :user_form_response, as: :parent, dependent: :destroy
 
+  include WithForms
+
   validates_presence_of :event, :element
 
   validates :element_id, uniqueness: { scope: [:event_id, :covering_id] }

@@ -1705,6 +1705,36 @@ class Event < ActiveRecord::Base
     self.journal.repeated_from(by_user)
   end
 
+  def journal_resource_request_created(request, by_user)
+    ensure_journal
+    self.journal.resource_request_created(request, by_user)
+  end
+
+  def journal_resource_request_destroyed(request, by_user)
+    ensure_journal
+    self.journal.resource_request_destroyed(request, by_user)
+  end
+
+  def journal_resource_request_incremented(request, by_user)
+    ensure_journal
+    self.journal.resource_request_incremented(request, by_user)
+  end
+
+  def journal_resource_request_decremented(request, by_user)
+    ensure_journal
+    self.journal.resource_request_decremented(request, by_user)
+  end
+
+  def journal_resource_request_allocated(request, by_user, element)
+    ensure_journal
+    self.journal.resource_request_allocated(request, by_user, element)
+  end
+
+  def journal_resource_request_deallocated(request, by_user, element)
+    ensure_journal
+    self.journal.resource_request_deallocated(request, by_user, element)
+  end
+
   def format_timing
     format_timings(self.starts_at, self.ends_at, self.all_day)
   end
@@ -1808,22 +1838,22 @@ class Event < ActiveRecord::Base
     @multi_day_timed
   end
 
-  def starts_at_for_fc
-    if self.all_day? || self.multi_day_timed?
+  def starts_at_for_fc(frig_timing = true)
+    if self.all_day? || (frig_timing && self.multi_day_timed?)
       self.starts_at.to_date.iso8601
     else
       self.starts_at.iso8601
     end
   end
 
-  def ends_at_for_fc
+  def ends_at_for_fc(frig_timing = true)
     if self.all_day?
       if self.ends_at
         self.ends_at.to_date.iso8601
       else
         self.starts_at.to_date.iso8601
       end
-    elsif self.multi_day_timed?
+    elsif frig_timing && self.multi_day_timed?
       #
       #  It is just possible that although this is a timed event, the
       #  end time has been set to midnight.  If that's the case, then

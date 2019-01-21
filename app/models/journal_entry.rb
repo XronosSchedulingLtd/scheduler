@@ -25,7 +25,13 @@ class JournalEntry < ActiveRecord::Base
     :commitment_noted,
     :wrapper_created,
     :repeat_created,
-    :repeated_from
+    :repeated_from,
+    :resource_request_created,
+    :resource_request_destroyed,
+    :resource_request_incremented,
+    :resource_request_decremented,
+    :resource_request_allocated,
+    :resource_request_deallocated
   ]
   NEATER_TEXTS = [
     "Event created",
@@ -48,7 +54,13 @@ class JournalEntry < ActiveRecord::Base
     "Request noted",
     "Created as wrapper",
     "Created as repeat",
-    "Used as model for repeating events"
+    "Used as model for repeating events",
+    "Resource request created",
+    "Resource request deleted",
+    "Resource request incremented",
+    "Resource request decremented",
+    "Resource allocated",
+    "Resource deallocated"
   ]
   ELEMENT_TEXTS = {
     resource_added:      "Added",
