@@ -318,7 +318,11 @@ class EventAssembler
       @request_id       = request.id
       @event_id         = request.event_id
       if element.preferred_colour
-        @colour = washed_out(element.preferred_colour)
+        if main_display
+          @colour = element.preferred_colour
+        else
+          @colour = washed_out(element.preferred_colour)
+        end
       end
       @hover_text       = "#{request.event.body} : #{request.event.owners_name}"
     end
