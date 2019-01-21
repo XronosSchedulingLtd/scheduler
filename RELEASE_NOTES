@@ -1,3 +1,72 @@
+v1.7.1  2019-01-21
+
+* The "awaiting attention" count shown next to the word "Menu" in
+  the top bar now includes resource requests which the user is
+  authorized to handle.  Thus, the total number of, say, mini-bus
+  requests outstanding can be seen at a glance.  The number is
+  broken down by individual resource in the pop-down menu.
+
+* The corresponding menu item allows a listing of such requests to
+  be seen.
+
+* Clicking on the date of such an item takes the user directly to the
+  resource allocation screen on the right day.
+
+* As allocations are done on the resource allocation screen (or un-done)
+  the count at the top of the page updates immediately.
+
+* Multi-day timed requests appear correctly.
+
+  Requests for mini-buses etc. can be seen in the main schedule screen,
+  but in the case of one lasting more than one day they were appearing
+  as a long vertical stripe.
+
+  They now appear at the top in the "all day" area, in the same way as
+  commitments.
+
+* Requests no longer greyed out.
+
+  Requests on the main screen now appear in their configured colour rather
+  than a washed out version of it.
+
+* Journalling implemented for requests
+
+  The journal component has been enhanced to keep track of requests and
+  their administration.  Entries exist for:
+
+  * Request entered
+  * Request cancelled
+  * Request incremented
+  * Request decremented
+  * Resource allocated to request
+  * Resource de-allocated from request
+
+  All the usual journalling information appears on these entries.
+
+* Don't nag about rejected invigations to people.
+
+  The existing system for requesting a resource (like a room) which
+  has an administrator sends e-mails if the request is rejected.  This
+  makes sense for a room - if you can't have that room then you need to
+  change your plans and the system will keep reminding you daily until
+  you remove the request.
+
+  The same facility however can be used to invite a person to a meeting.
+  In this case it makes sense to send a single e-mail should the person
+  decline the invitation, but not to go on about it.  It makes perfect
+  sense for the invitation to remain in the system, documenting:
+
+  1. That he or she was invited
+  2. The reason the invitation was declined
+
+  Scheduler now distinguishes between requests for things and invitations
+  to people.  The latter will now, when declined, generate a single e-mail
+  but not the daily reminders.
+
+* The "awaiting attention" count at the top of the screen will no longer
+  include declined invitations as described in the previous point.
+
+
 v1.7.0  2019-01-13
 
   This release adds a major new facility - Resource Groups and the means
