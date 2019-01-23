@@ -694,7 +694,7 @@ class EventAssembler
       entity.element.
              requests.
              during(@start_date, @end_date + 1.day).
-             includes(:event).
+             includes([:event, :user_form_response]).
              each do |r|
         if main_display
           result << ScheduleRequest.new(main_display,
