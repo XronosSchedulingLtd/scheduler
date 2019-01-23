@@ -56,7 +56,20 @@
                                  "data-auto-focus" => true)
          %>
        <%= text_field_tag :property_element_id, '', :type => :hidden, :id => 'element_id' %>
-         
+      </td>
+    </tr>
+    <tr>
+      <td>Give to:</td>
+      <td>
+        <%=
+          autocomplete_field_tag(:user_name,
+                                 '',
+                                 autocomplete_user_name_users_path,
+                                 :id_element => '#user_id',
+                                 :placeholder => "user",
+                                 "data-auto-focus" => true)
+         %>
+       <%= text_field_tag :user_id, '', :type => :hidden, :id => 'user_id' %>
       </td>
     </tr>
     <tr>
