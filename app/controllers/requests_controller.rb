@@ -78,10 +78,8 @@ class RequestsController < ApplicationController
 
   def increment
     @event = @request.event
-    if @request.quantity < @request.max_quantity &&
-      current_user.can_modify?(@request)
-      @request.quantity += 1
-      @request.save
+    if current_user.can_modify?(@request)
+      @request.increment_and_save
       @request.reload
       @event.journal_resource_request_incremented(@request, current_user)
       @resourcewarning = false
@@ -94,10 +92,8 @@ class RequestsController < ApplicationController
 
   def decrement
     @event = @request.event
-    if @request.quantity > 1 &&
-      current_user.can_modify?(@request)
-      @request.quantity -= 1
-      @request.save
+    if current_user.can_modify?(@request)
+      @request.decrement_and_save
       @request.reload
       @event.journal_resource_request_decremented(@request, current_user)
       @resourcewarning = false

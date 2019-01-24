@@ -831,13 +831,13 @@ class Commitment < ActiveRecord::Base
 
   def update_event_after_save
     if self.event
-      self.event.update_from_commitments(self.tentative, self.constraining?)
+      self.event.update_from_contributors(self.tentative, self.constraining?)
     end
   end
 
   def update_event_after_destroy
     if self.event
-      self.event.update_from_commitments(false, false)
+      self.event.update_from_contributors(false, false)
     end
   end
 

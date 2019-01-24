@@ -232,10 +232,10 @@ class Event < ActiveRecord::Base
   #  If it is tentative, then we can't be complete.  If it's not
   #  tentative, then we might be complete.
   #
-  def update_from_commitments(commitment_tentative, commitment_constraining)
-    unless @being_destroyed || self.destroyed? || @informing_commitments
+  def update_from_contributors(contributor_tentative, contributor_constraining)
+    unless @being_destroyed || self.destroyed? || @informing_contributors
       do_save = false
-      if commitment_tentative
+      if contributor_tentative
         if self.complete
           self.complete = false
           do_save = true
@@ -243,7 +243,7 @@ class Event < ActiveRecord::Base
       else
         unless self.complete
           #
-          #  It's possible our last remaining tentative commitment either
+          #  It's possible our last remaining tentative contributor either
           #  went away or became non-tentative.
           #  This is the most expensive case to check.
           #
@@ -253,7 +253,7 @@ class Event < ActiveRecord::Base
           end
         end
       end
-      if commitment_constraining
+      if contributor_constraining
         unless self.constrained
           self.constrained = true
           do_save = true
@@ -1749,7 +1749,7 @@ class Event < ActiveRecord::Base
       #  is inefficient and could lead to infinite recursion, we'll do
       #  it all at the end.
       #
-      @informing_commitments = true
+      @informing_contributors = true
       all_firm         = true
       any_constraining = false
       self.commitments.each do |c|
@@ -1762,7 +1762,7 @@ class Event < ActiveRecord::Base
           any_constraining = true
         end
       end
-      @informing_commitments = false
+      @informing_contributors = false
       #
       #  And now we need to decide again whether we are complete.
       #  Probably not.

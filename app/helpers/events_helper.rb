@@ -24,7 +24,7 @@ module EventsHelper
       "<span class='keep-together' title='Awaiting approval'><img src=\"/images/request16.png\"/> #{text}</span>"
     elsif commitment.noted?
       "<span class='keep-together' title='#{h(commitment.reason)} - #{commitment.by_whom ? commitment.by_whom.name : ""}'><img src=\"/images/hold16.png\"/> #{text}</span>"
-    elsif commitment.constraining?
+    elsif commitment.confirmed?
       "<span class='keep-together' title='Approved'><img src=\"/images/approve16.png\"/> #{text}</span>"
     else
       text
