@@ -54,6 +54,11 @@ class Request < ActiveRecord::Base
   scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}
   scope :until, lambda { |datetime| joins(:event).merge(Event.until(datetime)) }
 
+  scope :tentative, -> { where(tentative: true) }
+  scope :firm, -> { where(tentative: false) }
+
+  scope :constraining, -> { where(constraining: true) }
+
   #
   #  Normally this won't be defined and so calls to this method will
   #  return nil.
@@ -342,18 +347,6 @@ class Request < ActiveRecord::Base
       end
     else
       "None"
-    end
-  end
-
-  def corresponding_form
-    self.user_form_response
-  end
-
-  def incomplete_ufr_count
-    if self.user_form_response && !self.user_form_response.complete?
-      1
-    else
-      0
     end
   end
 

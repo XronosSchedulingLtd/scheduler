@@ -14,4 +14,17 @@ module WithForms
   def no_forms_outstanding?
     !self.user_form_response || self.user_form_response.complete?
   end
+
+  def incomplete_ufr_count
+    if self.user_form_response && !self.user_form_response.complete?
+      1
+    else
+      0
+    end
+  end
+
+  def corresponding_form
+    self.user_form_response
+  end
+
 end

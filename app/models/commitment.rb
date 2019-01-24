@@ -811,18 +811,6 @@ class Commitment < ActiveRecord::Base
     end
   end
 
-  def corresponding_form
-    self.user_form_response
-  end
-
-  def incomplete_ufr_count
-    if self.user_form_response && !self.user_form_response.complete?
-      1
-    else
-      0
-    end
-  end
-
   def self.populate_statuses
     raise "Last version containing working Commitment::populate_statuses is 1.3.1"
   end
