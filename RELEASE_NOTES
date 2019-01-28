@@ -1,3 +1,38 @@
+v1.7.2  2019-01-28
+
+* Allow events imported from ics file to be given to a user
+
+  Scheduler has long had the ability to import a batch of events from
+  an ics file.  Up until now, these have always ended up as system
+  events - no owner.  This release adds the ability to specify a user
+  at the time of import and the imported events will then belong to that
+  user.
+
+* Wash out colour of request if forms outstanding
+
+  On the resource allocation screen, it is now possibility to distinguish
+  waiting requests which have forms outstanding.  Requests with forms
+  outstanding (waiting to be filled in) will be shown in a washed-out
+  version of the configured colour, whilst requests with their forms
+  completed (or with no configured form) will be shown in the full
+  colour.  This makes it possible to tell at a glance whether the form
+  is done without having to click on the request.
+
+* Requests now control events in the same way as commitments do.
+
+  If some requested resources for an event have been allocated, the
+  requester can no longer change the timing of the event.  This is
+  the same behaviour as already existed for approved commitments.
+
+* Pending forms on requests contribute to "Permissions Pending" total
+
+  The count in the top bar of a user's screen now includes any forms
+  which the user needs to fill in.
+
+* Dean Close-specific import code brought up to compatibility with this
+  release of Scheduler
+
+
 v1.7.1  2019-01-21
 
 * The "awaiting attention" count shown next to the word "Menu" in
