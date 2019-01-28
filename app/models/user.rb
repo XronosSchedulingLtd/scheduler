@@ -694,7 +694,8 @@ class User < ActiveRecord::Base
       @events_pending =
         selector.future.
                  incomplete.
-                 includes(commitments: [:element, :user_form_response]).
+                 includes([commitments: [:element, :user_form_response],
+                           requests: [:element, :user_form_response]]).
                  inject(0) do |total, event|
         count = 0
         event.commitments.each do |c|
@@ -720,6 +721,11 @@ class User < ActiveRecord::Base
             if c.tentative?
               count += c.incomplete_ufr_count
             end
+          end
+        end
+        event.requests.each do |r|
+          if r.tentative?
+            count += r.incomplete_ufr_count
           end
         end
         total + count

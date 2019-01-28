@@ -582,7 +582,8 @@ class ImportsController < ApplicationController
     end
   end
 
-  def add_event(starts_at,
+  def add_event(owner,
+                starts_at,
                 ends_at,
                 all_day,
                 body,
@@ -590,6 +591,7 @@ class ImportsController < ApplicationController
                 source,
                 resources = nil)
     event = Event.new
+    event.owner         = owner
     event.starts_at     = starts_at
     event.ends_at       = ends_at
     event.all_day       = all_day
@@ -701,6 +703,11 @@ class ImportsController < ApplicationController
     dutycategory = Eventcategory.find_by_name("Duty")
     property_element = Element.find_by(id: params[:property_element_id])
     property = property_element ? property_element.entity : nil
+    #
+    #  If no user id is specified, or it's invalid, then owner will
+    #  be nil and we'll end up with system events.
+    #
+    owner = User.find_by(id: params[:user_id])
     known_staff = Staff.active.current.teaching
     if maincategory && weeklettercategory && dutycategory && property
       start_date = Time.zone.parse(params[:first_date])
@@ -778,7 +785,8 @@ class ImportsController < ApplicationController
                     entry.description =~ /^Detention.*uty/i
                 relevant_staff = find_relevant_staff(entry.description,
                                                      known_staff)
-                unless add_event(entry.starts_at,
+                unless add_event(owner,
+                                 entry.starts_at,
                                  entry.ends_at,
                                  entry.all_day,
                                  entry.description,
@@ -791,7 +799,8 @@ class ImportsController < ApplicationController
                 description, locations =
                   locator.check_for_locations(entry.description,
                                               entry.locations_text)
-                unless add_event(entry.starts_at,
+                unless add_event(owner,
+                                 entry.starts_at,
                                  entry.ends_at,
                                  entry.all_day,
                                  description,
@@ -819,7 +828,8 @@ class ImportsController < ApplicationController
                       #
                       #  Need to flush this one to the d/b.
                       #
-                      unless add_event(currentweekstart,
+                      unless add_event(owner,
+                                       currentweekstart,
                                        currentweekend,
                                        true,
                                        "WEEK #{currentweekletter}",
@@ -837,7 +847,8 @@ class ImportsController < ApplicationController
                   #
                   #  Need to flush this final one to the d/b.
                   #
-                  unless add_event(currentweekstart,
+                  unless add_event(owner,
+                                   currentweekstart,
                                    currentweekend,
                                    true,
                                    "WEEK #{currentweekletter}",

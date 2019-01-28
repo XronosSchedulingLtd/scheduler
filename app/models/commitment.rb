@@ -811,18 +811,6 @@ class Commitment < ActiveRecord::Base
     end
   end
 
-  def corresponding_form
-    self.user_form_response
-  end
-
-  def incomplete_ufr_count
-    if self.user_form_response && !self.user_form_response.complete?
-      1
-    else
-      0
-    end
-  end
-
   def self.populate_statuses
     raise "Last version containing working Commitment::populate_statuses is 1.3.1"
   end
@@ -831,13 +819,13 @@ class Commitment < ActiveRecord::Base
 
   def update_event_after_save
     if self.event
-      self.event.update_from_commitments(self.tentative, self.constraining?)
+      self.event.update_from_contributors(self.tentative, self.constraining?)
     end
   end
 
   def update_event_after_destroy
     if self.event
-      self.event.update_from_commitments(false, false)
+      self.event.update_from_contributors(false, false)
     end
   end
 

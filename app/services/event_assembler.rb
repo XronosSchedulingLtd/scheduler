@@ -318,7 +318,7 @@ class EventAssembler
       @request_id       = request.id
       @event_id         = request.event_id
       if element.preferred_colour
-        if main_display
+        if main_display || request.no_forms_outstanding?
           @colour = element.preferred_colour
         else
           @colour = washed_out(element.preferred_colour)
@@ -694,7 +694,7 @@ class EventAssembler
       entity.element.
              requests.
              during(@start_date, @end_date + 1.day).
-             includes(:event).
+             includes([:event, :user_form_response]).
              each do |r|
         if main_display
           result << ScheduleRequest.new(main_display,

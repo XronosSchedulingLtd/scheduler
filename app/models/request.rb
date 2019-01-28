@@ -54,6 +54,11 @@ class Request < ActiveRecord::Base
   scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}
   scope :until, lambda { |datetime| joins(:event).merge(Event.until(datetime)) }
 
+  scope :tentative, -> { where(tentative: true) }
+  scope :firm, -> { where(tentative: false) }
+
+  scope :constraining, -> { where(constraining: true) }
+
   #
   #  Normally this won't be defined and so calls to this method will
   #  return nil.
@@ -174,9 +179,20 @@ class Request < ActiveRecord::Base
   #  Takes an element and makes it at least partly fulfill this request.
   #  Returns the new commitment record, which may be flagged with errors.
   #
+  #  It's tempting at this point to attempt to trigger a database write
+  #  in order for our after_save method then to update the event.
+  #
+  #  However, the fact that we're creating a commitment will do the
+  #  necessary.
+  #
   def fulfill(element)
     do_save = false
-    current_colour = self.colour
+    #
+    #  If our calculated colour changes then we need to force
+    #  a save of ourselves in order to cause the corresponding event
+    #  to be updated.  It caches a copy of the flag colour.
+    #
+    current_colour   = self.colour
     new_commitment = self.commitments.create({
       event:   self.event,
       element: element})
@@ -189,47 +205,66 @@ class Request < ActiveRecord::Base
       if self.colour != current_colour
         do_save = true
       end
-      if do_save
-        self.save
-      end
+      set_status_flags(do_save)
     end
     new_commitment
   end
 
   def unfulfill(element_id)
-    current_colour = self.colour
     current_commitment =
       self.commitments.detect {|c| c.element_id == element_id}
     if current_commitment
+      current_colour   = self.colour
       element = current_commitment.element
       current_commitment.destroy
       self.reload
-      if self.colour != current_colour
-        self.save
+      set_status_flags(self.colour != current_colour)
+      if self.proto_request
+        #
+        #  This is an invigilation case, so re-calculate the element's
+        #  loading.
+        #
+        this_day = self.event.starts_at.to_date
+        invigilation_commitments_today = 
+          Commitment.commitments_on(
+            startdate:     this_day,
+            eventcategory: "Invigilation",
+            resource:      element).count
+        sunday = this_day - this_day.wday
+        saturday = sunday + 6.days
+        invigilation_commitments_this_week = 
+          Commitment.commitments_on(
+            startdate:     sunday,
+            enddate:       saturday,
+            eventcategory: "Invigilation",
+            resource:      element).count
+        @updated_nominee =
+          Candidate.new(
+            element.id,
+            element.name, 
+            invigilation_commitments_today,
+            invigilation_commitments_this_week)
       end
-      #
-      #  And now re-calculate this element's loading.
-      #
-      this_day = self.event.starts_at.to_date
-      invigilation_commitments_today = 
-        Commitment.commitments_on(
-          startdate:     this_day,
-          eventcategory: "Invigilation",
-          resource:      element).count
-      sunday = this_day - this_day.wday
-      saturday = sunday + 6.days
-      invigilation_commitments_this_week = 
-        Commitment.commitments_on(
-          startdate:     sunday,
-          enddate:       saturday,
-          eventcategory: "Invigilation",
-          resource:      element).count
-      @updated_nominee =
-        Candidate.new(
-          element.id,
-          element.name, 
-          invigilation_commitments_today,
-          invigilation_commitments_this_week)
+    end
+  end
+
+  def increment_and_save
+    if self.quantity < max_quantity
+      self.quantity += 1
+      set_status_flags(true)
+      true
+    else
+      false
+    end
+  end
+
+  def decrement_and_save
+    if self.quantity > 1
+      self.quantity -= 1
+      set_status_flags(true)
+      true
+    else
+      false
     end
   end
 
@@ -315,16 +350,11 @@ class Request < ActiveRecord::Base
     end
   end
 
-  def corresponding_form
-    self.user_form_response
-  end
-
-  def incomplete_ufr_count
-    if self.user_form_response && !self.user_form_response.complete?
-      1
-    else
-      0
-    end
+  #
+  #  We count as confirmed if all have been allocated.
+  #
+  def confirmed?
+    self.num_outstanding == 0
   end
 
   #
@@ -335,11 +365,57 @@ class Request < ActiveRecord::Base
   def rejected?; false end
   def requested?; false end
   def noted?; false end
-  def constraining?; false end
   def covering; false end
 
   def name_with_quantity
     "#{ActionController::Base.helpers.pluralize(self.quantity, self.element.name)}"
+  end
+
+  def set_status_flags(force_save = false)
+    do_save = force_save
+    if self.num_outstanding > 0
+      unless self.tentative?
+        self.tentative = true
+        do_save = true
+      end
+    else
+      if self.tentative?
+        self.tentative = false
+        do_save = true
+      end
+    end
+    if self.num_allocated > 0
+      unless self.constraining?
+        self.constraining = true
+        do_save = true
+      end
+    else
+      if self.constraining?
+        self.constraining = false
+        do_save = true
+      end
+    end
+    if do_save
+      self.save!
+    end
+    return do_save
+  end
+
+  def self.set_initial_flags
+    num_processed = 0
+    num_changed = 0
+    #
+    #  Note that these flags are meaningful only for user-entered
+    #  requests.  We don't bother with them for system-generated
+    #  ones.
+    #
+    Request.standalone.each do |request|
+      num_processed += 1
+      if request.set_status_flags
+        num_changed += 1
+      end
+    end
+    puts "Modified #{num_changed} records out of #{num_processed}"
   end
 
   private
@@ -347,6 +423,11 @@ class Request < ActiveRecord::Base
   def update_corresponding_event
     if self.event
       self.event.update_flag_colour
+      if self.destroyed?
+        self.event.update_from_contributors(false, false)
+      else
+        self.event.update_from_contributors(self.tentative?, self.constraining?)
+      end
     end
   end
 

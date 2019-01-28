@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181125195518) do
+ActiveRecord::Schema.define(version: 20190124100431) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -484,6 +484,8 @@ ActiveRecord::Schema.define(version: 20181125195518) do
     t.integer  "quantity",         limit: 4, default: 1
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "tentative",                  default: true
+    t.boolean  "constraining",               default: false
   end
 
   add_index "requests", ["element_id"], name: "index_requests_on_element_id", using: :btree
