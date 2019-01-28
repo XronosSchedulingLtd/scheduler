@@ -18,6 +18,8 @@ module MIS_Utils
     "Year #{yeargroup}"
   end
 
+  alias local_yeargroup_text_pupils local_yeargroup_text
+
   def local_effective_start_year(era, nc_year, ahead = 0)
     era.starts_on.year + 1 - (nc_year + ahead)
   end
@@ -30,4 +32,11 @@ module MIS_Utils
     true
   end
 
+  def local_format_house_name(house)
+    "#{house.name} House"
+  end
+
+  def local_stratify_house?(house)
+    true
+  end
 end
