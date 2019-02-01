@@ -229,6 +229,7 @@ Rails.application.routes.draw do
     resources :journal_entries, only: [:index]
     resources :commitments, only: [:index]
     resources :requests, only: [:index]
+    resources :form_reports, only: [:create]
     collection do
       get :autocomplete_element_name
       get :autocomplete_staff_element_name

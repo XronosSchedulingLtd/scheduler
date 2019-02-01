@@ -254,6 +254,9 @@ class ConcernsController < ApplicationController
         @item_report.concern = @concern
       end
       @element = @concern.element
+      if @element.user_form && current_user.can_view_forms_for?(@element)
+        @form_report = FormReport.new
+      end
       #
       #  A reduced form of this page is used when an administrator
       #  is editing a concern on behalf of a user - generally in order

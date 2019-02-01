@@ -599,6 +599,10 @@ class User < ActiveRecord::Base
        self.corresponding_staff.element == event.organiser)
   end
 
+  def can_view_forms_for?(element)
+    self.can_view_forms? || self.owns?(element)
+  end
+
   def can_view_journal_for?(object)
     #
     #  For now it's just the admin users, but we may add more fine-grained
