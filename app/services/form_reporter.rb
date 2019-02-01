@@ -18,6 +18,9 @@ class UserFormField
 end
 
 class IndividualResponse
+
+  @@sanitizer = Rails::Html::FullSanitizer.new
+
   attr_reader :event
 
   #
@@ -97,7 +100,7 @@ class IndividualResponse
 
   def self.column_headers(fields)
     %w(Date Event Time Duration Owner Organiser Quantity Form\ status) +
-    fields.collect {|name, f| f.label}
+    fields.collect {|name, f| @@sanitizer.sanitize(f.label)}
   end
 
   def <=>(other)
