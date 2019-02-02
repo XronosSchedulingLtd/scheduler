@@ -7,30 +7,27 @@ require 'json'
 require 'csv'
 
 class UserFormField
-  attr_reader :type, :label, :name, :subtype
+  attr_reader :label
 
   def initialize(definition)
-    @type       = definition['type']
     @label      = definition['label']
-    @name       = definition['name']
-    @subtype    = definition['subtype']
     @definition = definition
   end
 
-  def radio_button_label(index)
-    Rails.logger.debug("Looking for label with index of #{index}")
+  def selection_label(index)
     label = nil
     values = @definition['values']
     if values
-      Rails.logger.debug("Got values")
       entry = values[index]
       if entry
-        Rails.logger.debug("Got entry")
         label = entry['label']
+        #
+        #  For some odd reason, checkbox labels have a leading space.
+        #
+        if label
+          label.strip!
+        end
       end
-    end
-    if label
-      Rails.logger.debug("Returning #{label}")
     end
     label
   end
@@ -97,7 +94,7 @@ class IndividualResponse
         type = raw_data['type']
         id = raw_data['id']
         case type
-        when 'text', 'textarea'
+        when 'text', 'textarea', 'select-one'
           value = raw_data['value']
           if id && value
             @contents[id] << value
@@ -114,12 +111,31 @@ class IndividualResponse
             index = matched[2].to_i
             field = fields[key]
             if field
-              label = field.radio_button_label(index)
+              label = field.selection_label(index)
               if label
                 @contents[key] << label
               end
             end
           end
+        when 'checkbox'
+          checked = raw_data['checked']
+          matched = id.match(/(^checkbox-group-\d+)-(\d+$)/)
+          if matched && checked
+            #
+            #  Now need to work out the name for this item,
+            #  which is in the field definitions.
+            #
+            key = matched[1]
+            index = matched[2].to_i
+            field = fields[key]
+            if field
+              label = field.selection_label(index)
+              if label
+                @contents[key] << label
+              end
+            end
+          end
+
         end
       end
     end
