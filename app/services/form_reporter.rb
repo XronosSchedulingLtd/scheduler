@@ -94,32 +94,16 @@ class IndividualResponse
         type = raw_data['type']
         id = raw_data['id']
         case type
+
         when 'text', 'textarea', 'select-one'
           value = raw_data['value']
           if id && value
             @contents[id] << value
           end
-        when 'radio'
+
+        when 'radio', 'checkbox'
           checked = raw_data['checked']
-          matched = id.match(/(^radio-group-\d+)-(\d+$)/)
-          if matched && checked
-            #
-            #  Now need to work out the name for this item,
-            #  which is in the field definitions.
-            #
-            key = matched[1]
-            index = matched[2].to_i
-            field = fields[key]
-            if field
-              label = field.selection_label(index)
-              if label
-                @contents[key] << label
-              end
-            end
-          end
-        when 'checkbox'
-          checked = raw_data['checked']
-          matched = id.match(/(^checkbox-group-\d+)-(\d+$)/)
+          matched = id.match(/(^#{type}-group-\d+)-(\d+$)/)
           if matched && checked
             #
             #  Now need to work out the name for this item,
