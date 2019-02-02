@@ -10,14 +10,71 @@ class UserFormField
   attr_reader :type, :label, :name, :subtype
 
   def initialize(definition)
-    @type    = definition['type']
-    @label   = definition['label']
-    @name    = definition['name']
-    @subtype = definition['subtype']
+    @type       = definition['type']
+    @label      = definition['label']
+    @name       = definition['name']
+    @subtype    = definition['subtype']
+    @definition = definition
   end
+
+  def radio_button_label(index)
+    Rails.logger.debug("Looking for label with index of #{index}")
+    label = nil
+    values = @definition['values']
+    if values
+      Rails.logger.debug("Got values")
+      entry = values[index]
+      if entry
+        Rails.logger.debug("Got entry")
+        label = entry['label']
+      end
+    end
+    if label
+      Rails.logger.debug("Returning #{label}")
+    end
+    label
+  end
+
 end
 
 class IndividualResponse
+
+  #
+  #  Like a hash, except that it auto-creates an array for each entry and
+  #  accumulates stuff.
+  #
+  #  a = Accumulator.new
+  #  a[:john] << 'a'
+  #  a[:john] << 'b'
+  #  a[:john]
+  #  ['a', 'b']
+  #
+  #  I may or may not like this in due course.
+  #
+  #  Note that you'll never get back nil as the result for an entry,
+  #  always just an empty array.
+  #
+  class Accumulator < Hash
+
+    class AccumulatorArray < Array
+      def to_s
+        case self.size
+        when 0
+          ""
+        when 1
+          self[0].to_s
+        else
+          self.join(', ')
+        end
+      end
+
+    end
+
+    def [](key)
+      super || (self[key] = AccumulatorArray.new)
+    end
+
+  end
 
   @@sanitizer = Rails::Html::FullSanitizer.new
 
@@ -26,22 +83,43 @@ class IndividualResponse
   #
   #  joiner may be either a Commitment or a Request
   #
-  def initialize(joiner)
-    Rails.logger.debug('Creating IndividualResponse')
+  def initialize(joiner, fields)
     @ufr = joiner.user_form_response
     @event = joiner.event
     @joiner = joiner
     #
     #  Convert our field contents into a structure.
     #
-    @contents = Hash.new
+    @contents = Accumulator.new
     if @ufr.form_data
       raw_contents = JSON.parse(@ufr.form_data)
       raw_contents.each do |raw_data|
+        type = raw_data['type']
         id = raw_data['id']
-        value = raw_data['value']
-        if id && value
-          @contents[id] = value
+        case type
+        when 'text', 'textarea'
+          value = raw_data['value']
+          if id && value
+            @contents[id] << value
+          end
+        when 'radio'
+          checked = raw_data['checked']
+          matched = id.match(/(^radio-group-\d+)-(\d+$)/)
+          if matched && checked
+            #
+            #  Now need to work out the name for this item,
+            #  which is in the field definitions.
+            #
+            key = matched[1]
+            index = matched[2].to_i
+            field = fields[key]
+            if field
+              label = field.radio_button_label(index)
+              if label
+                @contents[key] << label
+              end
+            end
+          end
         end
       end
     end
@@ -73,12 +151,7 @@ class IndividualResponse
   def field_contents(fields)
     result = []
     fields.each do |name, definition|
-      value = @contents[name]
-      if value
-        result << value
-      else
-        result << ''
-      end
+      result << @contents[name].to_s
     end
     result
   end
@@ -118,7 +191,6 @@ class FormReporter
   attr_reader :raw_field_defs
 
   def initialize(element, starts_on, ends_on)
-    Rails.logger.debug("Passed #{starts_on}, #{ends_on}")
     @ok        = false
     @element   = element
     @starts_on = starts_on
@@ -152,12 +224,11 @@ class FormReporter
           @element.requests.
                    during(@starts_on, @ends_on + 1.day).to_a
         ).select {|joiner|
-          Rails.logger.debug("Evaluating joiner")
           joiner.user_form_response != nil &&
             joiner.user_form_response.user_form == @user_form
         }
       joiners.each do |joiner|
-        @responses << IndividualResponse.new(joiner)
+        @responses << IndividualResponse.new(joiner, @fields)
       end
       @ok = true
     end
