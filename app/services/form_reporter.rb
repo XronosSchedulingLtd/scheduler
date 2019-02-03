@@ -61,7 +61,7 @@ class IndividualResponse
         when 1
           self[0].to_s
         else
-          self.join(', ')
+          self.join("\n")
         end
       end
 
@@ -95,7 +95,7 @@ class IndividualResponse
         id = raw_data['id']
         case type
 
-        when 'text', 'textarea', 'select-one'
+        when 'text', 'textarea', 'select-one', 'number', 'date'
           value = raw_data['value']
           if id && value
             @contents[id] << value
