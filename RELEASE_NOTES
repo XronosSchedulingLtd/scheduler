@@ -1,3 +1,25 @@
+v1.7.3  2019-02-04
+
+* Provide download of form data for resources
+
+  Many resources require the requesting user to complete a form providing
+  additional information about the request.  Each of these forms can
+  be viewed individually in association with the corresponding event.
+
+  This release adds the means for the administrator of the resource
+  (and anyone with general permission to view forms) to download a spreadsheet
+  (CSV) file containing all the form data for a specified period.  The
+  default period is 1 month, but any other interval can be chosen.
+
+  The report is accessed by clicking on the corresponding item in the
+  user's left hand column, then on the "Reports" tab, and then on the
+  Generate button down at the bottom.  The dates can be amended before
+  clicking on the button.
+
+  The generated report will be downloaded automatically to the requester's
+  computer, and can then be opened in the spreadsheet package of choice.
+
+
 v1.7.2  2019-01-28
 
 * Allow events imported from ics file to be given to a user

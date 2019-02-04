@@ -35,6 +35,8 @@ class UserFormResponse < ActiveRecord::Base
         self.parent
       elsif self.parent.instance_of?(Commitment)
         self.parent.event
+      elsif self.parent.instance_of?(Request)
+        self.parent.event
       else
         nil
       end

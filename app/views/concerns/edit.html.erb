@@ -37,6 +37,11 @@
   <div class="content" id="concern-report">
     <h3>Report</h3>
     <%= render "report" %>
+    <% if @form_report %>
+      <hr/>
+      <h3>Forms</h3>
+      <%= render "form_report_form" %>
+    <% end %>
   </div>
 <% if @proforma %>
   <div class="content" id="concern-proforma">
