@@ -134,7 +134,11 @@ class ResourceLoadingCalculator
       end
 
       def to_s
-        "#{@start_time.to_s(:hhmm)} to #{@end_time.to_s(:hhmm)}"
+        if @end_time == @start_time + 1.day
+          "All day"
+        else
+          "#{@start_time.to_s(:hhmm)} to #{@end_time.to_s(:hhmm)}"
+        end
       end
 
       def <=>(other)
@@ -291,15 +295,15 @@ class ResourceLoadingCalculator
 
   class DayLoading
 
-    MaximumLoadingReport = Struct.new(:name, :element, :loading, :timing)
+    LoadingReport = Struct.new(:name, :element, :loading, :timing)
 
-    class MaximumLoadingReport
+    class LoadingReport
       def to_partial_path
-        'maximum_loading'
+        'loading_report'
       end
     end
 
-    attr_reader :maximum_loading_reports, :date
+    attr_reader :maximum_loading_reports, :overloads, :date
 
     def initialize(element, date)
       #
@@ -320,6 +324,7 @@ class ResourceLoadingCalculator
       @element = element
       @date = date
       @maximum_loading_reports = Array.new
+      @overloads = Array.new
       all_entities = [@element.entity]
       if @element.entity.instance_of?(Group)
         all_entities += @element.entity.members(@date)
@@ -429,6 +434,12 @@ class ResourceLoadingCalculator
             else
               new_loading = ts.loading_for(requestee)
             end
+            if new_loading.overload?
+              @overloads << LoadingReport.new(requestee.entity_name,
+                                              requestee.entity.element,
+                                              new_loading,
+                                              ts)
+            end
             if new_loading > max_loading
               max_loading = new_loading
               max_loading_slot = ts
@@ -436,10 +447,10 @@ class ResourceLoadingCalculator
           end
           if max_loading_slot && max_loading.used > 0
             @maximum_loading_reports <<
-              MaximumLoadingReport.new(requestee.entity_name,
-                                       requestee.entity.element,
-                                       max_loading,
-                                       max_loading_slot.timing)
+              LoadingReport.new(requestee.entity_name,
+                                requestee.entity.element,
+                                max_loading,
+                                max_loading_slot.timing)
             #puts "Maximum loading for #{requestee.entity.name} is #{max_loading.to_s} at #{max_loading_slot.to_s}"
           end
         end

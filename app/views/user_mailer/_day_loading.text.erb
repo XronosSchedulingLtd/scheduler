@@ -8,3 +8,8 @@ None
 <%= render day_loading.maximum_loading_reports %>
 <% end %>
 
+<% if day_loading.overloads.size > 0 %>
+Overloads
+---------
+<%= render day_loading.overloads %>
+<% end %>
