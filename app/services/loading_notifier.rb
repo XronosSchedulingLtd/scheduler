@@ -15,7 +15,7 @@ class LoadingNotifier
     #
     class Recipient
 
-      Item = Struct.new(:element, :data)
+      Item = Struct.new(:element, :data, :num_overloads)
 
       attr_reader :email
 
@@ -24,8 +24,8 @@ class LoadingNotifier
         @items = Array.new
       end
 
-      def note_loading_data(element, data)
-        @items << Item.new(element, data)
+      def note_loading_data(element, data, num_overloads)
+        @items << Item.new(element, data, num_overloads)
       end
 
       def dump
@@ -96,8 +96,9 @@ class LoadingNotifier
     Date.today.upto(Date.today + 2.days) do |date|
       days << calculator.loading_on(date)
     end
+    num_overloads = ResourceLoadingCalculator.count_overloads(days)
     approver_emails.each do |ae|
-      @rs.recipient(ae).note_loading_data(element, days)
+      @rs.recipient(ae).note_loading_data(element, days, num_overloads)
     end
   end
 

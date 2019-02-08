@@ -480,5 +480,12 @@ class ResourceLoadingCalculator
     return DayLoading.new(@element, date)
   end
 
+  def self.count_overloads(day_loadings)
+    #
+    #  Given an array of day loadings, count the number of overloads.
+    #
+    day_loadings.inject(0) { |sum, dl| sum + dl.overloads.size }
+  end
+
 end
 
