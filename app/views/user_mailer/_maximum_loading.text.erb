@@ -1,0 +1,1 @@
+<%= maximum_loading.name %> - <%= maximum_loading.timing.to_s %> <%= maximum_loading.loading.to_s("requested out of ") %><% if maximum_loading.loading.overload? %> **Overload**<% end %>

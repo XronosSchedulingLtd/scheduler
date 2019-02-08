@@ -293,7 +293,13 @@ class ResourceLoadingCalculator
 
     MaximumLoadingReport = Struct.new(:name, :element, :loading, :timing)
 
-    attr_reader :maximum_loading_reports
+    class MaximumLoadingReport
+      def to_partial_path
+        'maximum_loading'
+      end
+    end
+
+    attr_reader :maximum_loading_reports, :date
 
     def initialize(element, date)
       #
@@ -313,6 +319,7 @@ class ResourceLoadingCalculator
       #
       @element = element
       @date = date
+      @maximum_loading_reports = Array.new
       all_entities = [@element.entity]
       if @element.entity.instance_of?(Group)
         all_entities += @element.entity.members(@date)
@@ -413,7 +420,6 @@ class ResourceLoadingCalculator
         #  Now we are preparing data which we may well be asked for
         #  later.
         #
-        @maximum_loading_reports = Array.new
         requestees.each do |requestee|
           max_loading = Loading::NoLoading
           max_loading_slot = nil
@@ -428,18 +434,20 @@ class ResourceLoadingCalculator
               max_loading_slot = ts
             end
           end
-          if max_loading_slot
+          if max_loading_slot && max_loading.used > 0
             @maximum_loading_reports <<
               MaximumLoadingReport.new(requestee.entity_name,
                                        requestee.entity.element,
                                        max_loading,
                                        max_loading_slot.timing)
             #puts "Maximum loading for #{requestee.entity.name} is #{max_loading.to_s} at #{max_loading_slot.to_s}"
-          else
-            puts "No maximum loading slot!"
           end
         end
       end
+    end
+
+    def to_partial_path
+      'day_loading'
     end
   end
 

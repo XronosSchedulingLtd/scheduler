@@ -1,78 +1,81 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2019 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
 
 class ApprovalNotifier
-
-  #
-  #  One of these per user who is going to get notices.
-  #
-  class Recipient
-
-    class ElementQueue < Array
-      attr_reader :element
-
-      def initialize(element)
-        @element = element
-        super()
-      end
-
-      def dump
-        puts "      #{@element.name}"
-        puts "        #{self.size} commitments"
-      end
-    end
-
-    attr_reader :email
-
-    def initialize(email)
-      @email = email
-      @rejections = Array.new
-      @forms = Array.new
-      @my_queues = Hash.new
-    end
-
-    def note_request(element, commitment)
-      queue = (@my_queues[element.id] ||= ElementQueue.new(element))
-      queue << commitment
-    end
-
-    def note_form(commitment)
-      @forms << commitment
-    end
-
-    def note_rejection(commitment)
-      @rejections << commitment
-    end
-
-    def dump
-      puts "    Dumping Recipient"
-      puts "    Email #{@email}"
-      puts "    #{@rejections.size} rejections"
-      puts "    #{@forms.size} forms to fill in"
-      puts "    #{@my_queues.size} resources"
-      @my_queues.each do |key, mq|
-        mq.dump
-      end
-    end
-
-    #
-    #  Send the e-mails for this recipient.
-    #
-    def send_emails
-      @rejections.each do |r|
-        UserMailer.commitment_rejected_email(r).deliver_now
-      end
-      if @my_queues.size > 0
-        UserMailer.pending_approvals_email(@email,
-                                           @my_queues.values).deliver_now
-      end
-    end
-
-  end
 
   #
   #  Responsible for storing and finding Recipient records.
   #
   class RecipientSet < Hash
 
+    #
+    #  One of these per user who is going to get notices.
+    #
+    class Recipient
+
+      class ElementQueue < Array
+        attr_reader :element
+
+        def initialize(element)
+          @element = element
+          super()
+        end
+
+        def dump
+          puts "      #{@element.name}"
+          puts "        #{self.size} commitments"
+        end
+      end
+
+      attr_reader :email
+
+      def initialize(email)
+        @email = email
+        @rejections = Array.new
+        @forms = Array.new
+        @my_queues = Hash.new
+      end
+
+      def note_request(element, commitment)
+        queue = (@my_queues[element.id] ||= ElementQueue.new(element))
+        queue << commitment
+      end
+
+      def note_form(commitment)
+        @forms << commitment
+      end
+
+      def note_rejection(commitment)
+        @rejections << commitment
+      end
+
+      def dump
+        puts "    Dumping Recipient"
+        puts "    Email #{@email}"
+        puts "    #{@rejections.size} rejections"
+        puts "    #{@forms.size} forms to fill in"
+        puts "    #{@my_queues.size} resources"
+        @my_queues.each do |key, mq|
+          mq.dump
+        end
+      end
+
+      #
+      #  Send the e-mails for this recipient.
+      #
+      def send_emails
+        @rejections.each do |r|
+          UserMailer.commitment_rejected_email(r).deliver_now
+        end
+        if @my_queues.size > 0
+          UserMailer.pending_approvals_email(@email,
+                                             @my_queues.values).deliver_now
+        end
+      end
+
+    end
     #
     #  Find the recipient record for a given e-mail address, creating
     #  it if it does not already exist.

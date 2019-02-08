@@ -10,6 +10,10 @@ class Date
     (self + 1.day).at_beginning_of_day
   end
 
+  def fulsome_format
+    self.strftime("%a #{self.day.ordinalize} %b, %Y")
+  end
+
   def self.safe_parse(value, default = nil)
     Date.parse(value.to_s)
   rescue ArgumentError
