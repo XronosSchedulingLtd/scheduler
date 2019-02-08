@@ -49,6 +49,39 @@ class ResourceLoadingCalculator
 
   end
 
+  class Timing
+    attr_reader :start_time, :end_time
+
+    def initialize(start_time, end_time)
+      @start_time = start_time
+      @end_time   = end_time
+    end
+
+    def to_s
+      if @end_time.midnight?
+        if @start_time.midnight?
+        "All day"
+        else
+          "#{@start_time.to_s(:hhmm)} to 24:00"
+        end
+      else
+        "#{@start_time.to_s(:hhmm)} to #{@end_time.to_s(:hhmm)}"
+      end
+    end
+
+    def <=>(other)
+      if other.instance_of?(Timing)
+        result = self.start_time <=> other.start_time
+        if result == 0
+          result = self.end_time <=> other.end_time
+        end
+        return result
+      else
+        return nil
+      end
+    end
+  end
+
   class RequestableResourceGroup
     #
     #  This exists only so we can calculate the members of
@@ -84,6 +117,26 @@ class ResourceLoadingCalculator
         @atomic_members.detect {|am| am.element == element}
     end
 
+  end
+
+  class OtherEvent
+
+    attr_reader :event, :timing, :elements
+
+    def initialize(date, event)
+      @event = event
+      @timing = Timing.new(event.start_time_on(date),
+                           event.end_time_on(date))
+      @elements = Array.new
+    end
+
+    def note_element(element)
+      @elements << element
+    end
+
+    def to_partial_path
+      'other_event'
+    end
   end
 
   class TimeSlot
@@ -125,34 +178,6 @@ class ResourceLoadingCalculator
       end
     end
 
-    class Timing
-      attr_reader :start_time, :end_time
-
-      def initialize(start_time, end_time)
-        @start_time = start_time
-        @end_time   = end_time
-      end
-
-      def to_s
-        if @end_time == @start_time + 1.day
-          "All day"
-        else
-          "#{@start_time.to_s(:hhmm)} to #{@end_time.to_s(:hhmm)}"
-        end
-      end
-
-      def <=>(other)
-        if other.instance_of?(Timing)
-          result = self.start_time <=> other.start_time
-          if result == 0
-            result = self.end_time <=> other.end_time
-          end
-          return result
-        else
-          return nil
-        end
-      end
-    end
 
     attr_reader :timing, :events
 
@@ -325,6 +350,7 @@ class ResourceLoadingCalculator
       @date = date
       @maximum_loading_reports = Array.new
       @overloads = Array.new
+      @other_events = Hash.new
       all_entities = [@element.entity]
       if @element.entity.instance_of?(Group)
         all_entities += @element.entity.members(@date)
@@ -369,6 +395,9 @@ class ResourceLoadingCalculator
           all_commitments += commitments
           commitments.each do |c|
             elements_by_commitment_id[c.id] << e.element
+            event_record =
+              (@other_events[c.event_id] ||= OtherEvent.new(date, c.event))
+            event_record.note_element(e.element)
           end
         end
       end
@@ -459,6 +488,14 @@ class ResourceLoadingCalculator
 
     def to_partial_path
       'day_loading'
+    end
+
+    def other_events
+      #
+      #  We need a hash to construct it, but client code is
+      #  presented with just an array.
+      #
+      @other_events.values
     end
   end
 

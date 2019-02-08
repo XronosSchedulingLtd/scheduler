@@ -13,3 +13,9 @@ Overloads
 ---------
 <%= render day_loading.overloads %>
 <% end %>
+
+<% if day_loading.other_events.size > 0 %>
+Other events
+------------
+<%= render day_loading.other_events %>
+<% end %>
