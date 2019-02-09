@@ -93,7 +93,7 @@ class LoadingNotifier
     #  For now we'll do the next week.  To be changed.
     #
     days = Array.new
-    Date.today.upto(Date.today + 2.days) do |date|
+    Date.today.upto(Date.today + 6.days) do |date|
       days << calculator.loading_on(date)
     end
     num_overloads = ResourceLoadingCalculator.count_overloads(days)
