@@ -355,6 +355,11 @@ class ResourceLoadingCalculator
       if @element.entity.instance_of?(Group)
         all_entities += @element.entity.members(@date)
       end
+      if @element.entity.respond_to?(:wrapping_mins)
+        @wrapping_mins = @element.entity.wrapping_mins
+      else
+        @wrapping_mins = 0
+      end
       #
       #  Now, accumulate all the requests which we can find for any entity
       #  which can have requests.
@@ -428,8 +433,8 @@ class ResourceLoadingCalculator
         #
         times = Array.new
         all_events.each do |event|
-          times << event.start_time_on(@date)
-          times << event.end_time_on(@date)
+          times << event.start_time_on(@date, @wrapping_mins)
+          times << event.end_time_on(@date, @wrapping_mins)
         end
         times.sort!
         times.uniq!
