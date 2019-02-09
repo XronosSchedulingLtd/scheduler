@@ -86,19 +86,21 @@ class LoadingNotifier
      collect {|u| u.email}
   end
 
-  def process_element(element)
-    approver_emails = appropriate_approver_emails(element)
-    calculator = ResourceLoadingCalculator.new(element)
-    #
-    #  For now we'll do the next week.  To be changed.
-    #
-    days = Array.new
-    Date.today.upto(Date.today + 6.days) do |date|
-      days << calculator.loading_on(date)
-    end
-    num_overloads = ResourceLoadingCalculator.count_overloads(days)
-    approver_emails.each do |ae|
-      @rs.recipient(ae).note_loading_data(element, days, num_overloads)
+  def process_element(element, num_days)
+    if num_days > 0
+      approver_emails = appropriate_approver_emails(element)
+      calculator = ResourceLoadingCalculator.new(element)
+      #
+      #  For now we'll do the next week.  To be changed.
+      #
+      days = Array.new
+      Date.today.upto(Date.today + (num_days - 1).days) do |date|
+        days << calculator.loading_on(date)
+      end
+      num_overloads = ResourceLoadingCalculator.count_overloads(days)
+      approver_emails.each do |ae|
+        @rs.recipient(ae).note_loading_data(element, days, num_overloads)
+      end
     end
   end
 
@@ -109,8 +111,9 @@ class LoadingNotifier
     #  which accommodate Requests - effectively just ResourceGroups.
     #
     Element.owned.includes(:entity).each do |element|
-      if element.can_have_requests?
-        self.process_element(element)
+      if element.can_have_requests? &&
+         element.entity.respond_to?(:loading_report_days)
+        self.process_element(element, element.entity.loading_report_days)
       end
     end
     self
