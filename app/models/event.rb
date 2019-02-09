@@ -467,20 +467,26 @@ class Event < ActiveRecord::Base
   #
   #  Do we need separate processing for an all day event?
   #
-  def start_time_on(date)
+  def start_time_on(date, padding_mins = 0)
     #
     #  Make sure we're dealing with an actual date.
     #
     date = date.to_date
     if self.exists_on?(date)
-      if self.starts_at < date
+      #
+      #  We add the padding only *after* checking whether it fits on
+      #  a date.  Otherwise, padding might take an all day event into
+      #  the next day.
+      #
+      padded_starts_at = self.starts_at - padding_mins.minutes
+      if padded_starts_at < date
         #
         #  Event begins before the indicated day.  Return the
         #  start of the day as a TimeWithZone
         #
         date.in_time_zone
       else
-        self.starts_at
+        padded_starts_at
       end
     else
       nil
@@ -491,16 +497,17 @@ class Event < ActiveRecord::Base
     self.starts_at < interval_end_time && self.ends_at > interval_start_time
   end
 
-  def end_time_on(date)
+  def end_time_on(date, padding_mins = 0)
     #
     #  Make sure we're dealing with an actual date.
     #
     date = date.to_date
     if self.exists_on?(date)
-      if self.ends_at > date + 1.day
+      padded_ends_at = self.ends_at + padding_mins.minutes
+      if padded_ends_at > date + 1.day
         (date + 1.day).in_time_zone
       else
-        self.ends_at
+        padded_ends_at
       end
     else
       nil
