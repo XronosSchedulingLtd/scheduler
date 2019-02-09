@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190124100431) do
+ActiveRecord::Schema.define(version: 20190209151437) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -495,6 +495,8 @@ ActiveRecord::Schema.define(version: 20190124100431) do
   create_table "resourcegrouppersonae", force: :cascade do |t|
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "loading_report_days", limit: 4, default: 0
+    t.integer  "wrapping_mins",       limit: 4, default: 0
   end
 
   create_table "rota_slots", force: :cascade do |t|
