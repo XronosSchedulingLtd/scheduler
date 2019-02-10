@@ -484,6 +484,10 @@ class Element < ActiveRecord::Base
     end
   end
 
+  def can_have_requests?
+    entity.can_have_requests?
+  end
+
   #
   #  We sort elements first by their type (order specified at head of
   #  file) and then by their own native sorting method.

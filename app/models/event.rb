@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -173,7 +173,7 @@ class Event < ActiveRecord::Base
   #  to this method of working everywhere.  Sadly it's not how groups
   #  are implemented.
   #
-  scope :beginning, lambda {|date| where("ends_at >= ?", date) }
+  scope :beginning, lambda {|date| where("ends_at > ?", date) }
   scope :until, lambda {|date| where("starts_at < ?", date) }
   #
   #  And these are for specifying events which are over before a given
@@ -183,7 +183,7 @@ class Event < ActiveRecord::Base
   scope :after, lambda {|date| where("starts_at > ?", date + 1.day) }
 
   scope :during, lambda {|start_date, end_date|
-    where("ends_at >= ? AND starts_at < ?", start_date, end_date)
+    where("ends_at > ? AND starts_at < ?", start_date, end_date)
   }
   #
   #  Events in the future.  Today or later.
@@ -426,6 +426,92 @@ class Event < ActiveRecord::Base
 
   def jump_date_text
     self.starts_at.to_date.strftime("%Y-%m-%d")
+  end
+
+  #
+  #  Does this event exist at all on the indicated date?
+  #
+  #  Note in particular that an event ending at 2019-02-04 00:00:00
+  #  does not exist on the 4th of February.  It's an exclusive
+  #  end time.
+  #
+  def exists_on?(date)
+    #
+    #  Think about the inverse.  We don't exist on the given date
+    #  if either:
+    #
+    #  * We start after the day has ended.
+    #  * We end before the day has started.
+    #
+    self.starts_at < date + 1.day && self.ends_at > date
+  end
+
+  #
+  #  Calculate the effective start time for this event on the indicated
+  #  date.  If we start on that date then it's just our start time,
+  #  but if we start before and run into the date then it's midnight at
+  #  the start of that date.
+  #
+  #  If we don't actually overlap with that date then it's an error
+  #  by the calling code.  What to return?  Could return nil, on the grounds
+  #  that we don't have a start time on that date.  Calling code beware.
+  #
+  #  Yes, that is actually a sensible result.
+  #
+  #  * Q: What is your start time on this date?
+  #  * A: I don't have one - nil
+  #
+  #  This means we do need to check our end date as well.  If we are
+  #  done and over with before the indicated date then we don't have
+  #  a start time for that date.
+  #
+  #  Do we need separate processing for an all day event?
+  #
+  def start_time_on(date, padding_mins = 0)
+    #
+    #  Make sure we're dealing with an actual date.
+    #
+    date = date.to_date
+    if self.exists_on?(date)
+      #
+      #  We add the padding only *after* checking whether it fits on
+      #  a date.  Otherwise, padding might take an all day event into
+      #  the next day.
+      #
+      padded_starts_at = self.starts_at - padding_mins.minutes
+      if padded_starts_at < date
+        #
+        #  Event begins before the indicated day.  Return the
+        #  start of the day as a TimeWithZone
+        #
+        date.in_time_zone
+      else
+        padded_starts_at
+      end
+    else
+      nil
+    end
+  end
+
+  def exists_during?(interval_start_time, interval_end_time)
+    self.starts_at < interval_end_time && self.ends_at > interval_start_time
+  end
+
+  def end_time_on(date, padding_mins = 0)
+    #
+    #  Make sure we're dealing with an actual date.
+    #
+    date = date.to_date
+    if self.exists_on?(date)
+      padded_ends_at = self.ends_at + padding_mins.minutes
+      if padded_ends_at > date + 1.day
+        (date + 1.day).in_time_zone
+      else
+        padded_ends_at
+      end
+    else
+      nil
+    end
   end
 
   #

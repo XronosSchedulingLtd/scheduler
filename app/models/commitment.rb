@@ -77,6 +77,9 @@ class Commitment < ActiveRecord::Base
   scope :during, lambda {|start_date, end_date|
     joins(:event).merge(Event.during(start_date, end_date))
   }
+
+  scope :standalone, -> { where(request: nil) }
+
   #
   #  Call-backs.
   #

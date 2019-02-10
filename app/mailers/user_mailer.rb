@@ -196,6 +196,15 @@ class UserMailer < ActionMailer::Base
          subject: "Predicted absences")
   end
 
+  def resource_loading_email(email, item)
+    @element = item.element
+    @data = item.data
+    @num_overloads = item.num_overloads
+    mail(to: email,
+         from: Setting.from_email_address,
+         subject: "Predicted loading for resource \"#{item.element.name}\"")
+  end
+
   private
 
   def appropriate_email(event)
