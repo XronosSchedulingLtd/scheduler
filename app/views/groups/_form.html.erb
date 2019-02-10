@@ -65,8 +65,26 @@
     <div class="small-1 columns">
       <%= f.check_box :make_public, :disabled => !public_groups_user? %>
     </div>
+<% if @group.type == "Resource" %>
+    <div class="small-1 columns">
+      &nbsp;
+    </div>
+    <div class="small-2 columns">
+      <%= f.label :report_days, class: "right inline" %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.number_field :loading_report_days, min: 0, max: 28 %>
+    </div>
+    <div class="small-2 columns">
+      <%= f.label :wrapping_mins, class: "right inline" %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.number_field :wrapping_mins, min: 0, max: 30 %>
+    </div>
+<% else %>
     <div class="small-7 columns">
     </div>
+<% end %>
   </div>
 
   <div class="row collapse">

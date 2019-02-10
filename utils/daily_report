@@ -1,6 +1,7 @@
 #!/bin/bash
 . /etc/profile
 . ~/etc/whichsystem
-cd ~/Work/Coding/scheduler
+cd $SCHEDULER_DIR
 ~/.rvm/wrappers/scheduler/rake daily:check_approvals
 ~/.rvm/wrappers/scheduler/rake daily:adjust_currency_flags
+~/.rvm/wrappers/scheduler/rake daily:report_loadings

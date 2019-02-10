@@ -346,6 +346,8 @@ class GroupsController < ApplicationController
                                     :current,
                                     :source_id,
                                     :make_public,
-                                    :edit_preferred_colour)
+                                    :edit_preferred_colour,
+                                    :loading_report_days,
+                                    :wrapping_mins)
     end
 end

@@ -1,0 +1,26 @@
+<% if day_loading.overloads.size > 0 %>
+  <h3 class='warning'>
+<% else %>
+  <h3>
+<% end %><%= day_loading.date.fulsome_format %></h3>
+
+<h4>Peak times</h4>
+<% if day_loading.maximum_loading_reports.empty? %>
+  <p>None</p>
+<% else %>
+  <ul>
+  <%= render day_loading.maximum_loading_reports %>
+  </ul>
+<% end %>
+
+<% if day_loading.overloads.size > 0 %>
+  <h4 class='warning'>Overloads</h4>
+  <ul>
+    <%= render day_loading.overloads %>
+  </ul>
+<% end %>
+
+<% if day_loading.other_events.size > 0 %>
+  <h4>Other events</h4>
+  <%= render day_loading.other_events %>
+<% end %>
