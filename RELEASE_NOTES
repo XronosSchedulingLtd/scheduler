@@ -1,3 +1,32 @@
+v1.7.4  2019-02-10
+
+* Provide an e-mailed summary report of resource loading looking ahead.
+
+  The overnight reports now include one specifically tailored for
+  resource groups where there are requests for resources from a pool -
+  e.g. minibuses or mobile phones.
+
+  Each time the daily job is run, the system looks ahead by a configurable
+  number of days, and analyses the requests for each configured resource
+  on a day-by-day basis.  It identifies peak loading times and any overload
+  times, then e-mails a summary report to all configured administrators
+  of the resource.  Overloaded dates are highlighted.
+
+  Each resource can also have a configured "wrapper time" expressed in
+  minutes.  By default this is 0, but if the number is increased then the
+  analysis will take account of this time before and after each request.
+
+  Thus, if a wrapper time of 15 minutes is set, then two events will be
+  considered to overlap if they are less than 30 minutes apart - 15 minutes
+  from each event.  This is to allow time for switchover of resources.
+
+  The report also lists events for any of the pooled resources which have
+  been created outside the request/allocation system.  These would typically
+  represent such resources being unavailable - e.g. a mini-bus being serviced.
+  The loading calculations above take account of such events when working
+  out if there is a shortage of the resources.
+
+
 v1.7.3  2019-02-04
 
 * Provide download of form data for resources
