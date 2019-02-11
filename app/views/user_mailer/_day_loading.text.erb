@@ -1,21 +1,28 @@
 <%= day_loading.date.fulsome_format %>
 
+<% if day_loading.anything? -%>
 Peak times
 ----------
 <% if day_loading.maximum_loading_reports.empty? %>
 None
+
 <% else %>
 <%= render day_loading.maximum_loading_reports %>
-<% end %>
 
+<% end %>
 <% if day_loading.overloads.size > 0 %>
 Overloads
 ---------
 <%= render day_loading.overloads %>
-<% end %>
 
+<% end %>
 <% if day_loading.other_events.size > 0 %>
 Other events
 ------------
 <%= render day_loading.other_events %>
+
 <% end %>
+<% else -%>
+  No relevant events
+
+<% end -%>
