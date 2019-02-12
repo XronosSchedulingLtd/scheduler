@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190209151437) do
+ActiveRecord::Schema.define(version: 20190212111748) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -486,6 +486,7 @@ ActiveRecord::Schema.define(version: 20190209151437) do
     t.datetime "updated_at"
     t.boolean  "tentative",                  default: true
     t.boolean  "constraining",               default: false
+    t.boolean  "confirmed",                  default: false
   end
 
   add_index "requests", ["element_id"], name: "index_requests_on_element_id", using: :btree
@@ -497,6 +498,8 @@ ActiveRecord::Schema.define(version: 20190209151437) do
     t.datetime "updated_at"
     t.integer  "loading_report_days", limit: 4, default: 0
     t.integer  "wrapping_mins",       limit: 4, default: 0
+    t.integer  "confirmation_days",   limit: 4, default: 0
+    t.integer  "form_warning_days",   limit: 4, default: 0
   end
 
   create_table "rota_slots", force: :cascade do |t|
@@ -726,6 +729,8 @@ ActiveRecord::Schema.define(version: 20190209151437) do
     t.boolean  "can_repeat_events",                         default: false
     t.boolean  "can_view_unconfirmed",                      default: false
     t.integer  "current_concern_set_id",      limit: 4
+    t.boolean  "confirmation_messages",                     default: true
+    t.boolean  "prompt_for_forms",                          default: true
   end
 
 end
