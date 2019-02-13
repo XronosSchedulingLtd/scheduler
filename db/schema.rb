@@ -486,7 +486,7 @@ ActiveRecord::Schema.define(version: 20190212111748) do
     t.datetime "updated_at"
     t.boolean  "tentative",                  default: true
     t.boolean  "constraining",               default: false
-    t.boolean  "confirmed",                  default: false
+    t.boolean  "reconfirmed",                default: false
   end
 
   add_index "requests", ["element_id"], name: "index_requests_on_element_id", using: :btree

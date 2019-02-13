@@ -6,6 +6,6 @@ class AddEmailFields < ActiveRecord::Migration
     add_column :users, :confirmation_messages, :boolean, default: true
     add_column :users, :prompt_for_forms, :boolean, default: true
 
-    add_column :requests, :confirmed, :boolean, default: false
+    add_column :requests, :reconfirmed, :boolean, default: false
   end
 end

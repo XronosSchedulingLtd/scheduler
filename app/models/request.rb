@@ -59,6 +59,9 @@ class Request < ActiveRecord::Base
 
   scope :constraining, -> { where(constraining: true) }
 
+  scope :reconfirmed, -> { where(reconfirmed: true) }
+  scope :awaiting_reconfirmation, -> { where(reconfirmed: false) }
+
   #
   #  Normally this won't be defined and so calls to this method will
   #  return nil.
