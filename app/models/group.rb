@@ -286,7 +286,8 @@ class Group < ActiveRecord::Base
         super
       end
     else
-      if self.persona_class && self.persona_class.new.respond_to?(method_sym)
+      if self.persona_class &&
+         (temporary_persona = self.persona_class.new).respond_to?(method_sym)
         if method_sym.to_s =~ /=$/
           @persona_hash[method_sym.to_s.chomp("=").to_sym] = arguments.first
         else
@@ -296,7 +297,7 @@ class Group < ActiveRecord::Base
           #  now.  All we can provide is a default value, but it might
           #  be useful.
           #
-          self.persona_class.new.send(method_sym, *arguments)
+          temporary_persona.send(method_sym, *arguments)
         end
       else
         super
