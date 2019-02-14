@@ -205,6 +205,13 @@ class UserMailer < ActionMailer::Base
          subject: "Predicted loading for resource \"#{item.element.name}\"")
   end
 
+  def forms_overdue_email(email, items)
+    @items = items
+    mail(to: email,
+         from: Setting.from_email_address,
+         subject: "There are forms awaiting your input in Scheduler")
+  end
+
   private
 
   def appropriate_email(event)

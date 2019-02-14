@@ -62,6 +62,10 @@ class Request < ActiveRecord::Base
   scope :reconfirmed, -> { where(reconfirmed: true) }
   scope :awaiting_reconfirmation, -> { where(reconfirmed: false) }
 
+  scope :with_incomplete_form, -> { joins(:user_form_response).merge(UserFormResponse.incomplete) }
+
+  scope :none_allocated, -> { includes(:commitments).where(commitments: {request_id: nil}) }
+
   #
   #  Normally this won't be defined and so calls to this method will
   #  return nil.

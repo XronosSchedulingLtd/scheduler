@@ -10,6 +10,11 @@ namespace :daily do
     LoadingNotifier.new.scan_elements.send_emails
   end
 
+  desc "Prompt people to complete forms."
+  task :prompt_for_forms => :environment do
+    FormPrompter.new.scan_elements.send_emails
+  end
+
   desc "Adjust group currency flags."
   task :adjust_currency_flags => :environment do
     Group.adjust_currency_flags
