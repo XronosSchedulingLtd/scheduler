@@ -21,7 +21,6 @@ class FormPrompter
         def initialize(request, ufr)
           @request = request
           @ufr     = ufr
-          puts "Created item with request #{@request.inspect}"
         end
 
         def to_partial_path
@@ -55,7 +54,6 @@ class FormPrompter
       #  Send the e-mails for this recipient.
       #
       def send_emails
-        puts "Have #{@items.size} for #{@email}"
         UserMailer.forms_overdue_email(@email,
                                        @items).deliver_now
       end
@@ -99,7 +97,6 @@ class FormPrompter
       #
       form_warning_days = element.entity.form_warning_days
       if form_warning_days > 0
-        puts "Element #{element.name} should be processed."
         start_date = Date.today
         end_date = start_date + form_warning_days
         #
@@ -113,14 +110,11 @@ class FormPrompter
                   during(start_date, end_date).
                   none_allocated.
                   with_incomplete_form
-        puts "Found #{requests.size} suitable requests."
         requests.each do  |request|
           ufr = request.user_form_response
           if ufr
-            puts "Got a ufr"
             user = ufr.user
             if user
-              puts "Got the user - #{user.name}"
               #
               #  Some users do a lot of this and they're allowed to
               #  opt out of receiving these prompts.
