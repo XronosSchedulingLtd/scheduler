@@ -41,8 +41,8 @@ class FormPrompter
 
       attr_reader :email
 
-      def initialize(email)
-        @email = email
+      def initialize(user)
+        @user  = user
         @items = Array.new
       end
 
@@ -54,8 +54,9 @@ class FormPrompter
       #  Send the e-mails for this recipient.
       #
       def send_emails
-        UserMailer.forms_overdue_email(@email,
-                                       @items).deliver_now
+        UserMailer.forms_overdue_email(@user.email,
+                                       @items,
+                                       @user).deliver_now
       end
 
     end
@@ -63,8 +64,8 @@ class FormPrompter
     #  Find the recipient record for a given e-mail address, creating
     #  it if it does not already exist.
     #
-    def recipient(email)
-      self[email] ||= Recipient.new(email)
+    def recipient(user)
+      self[user.email] ||= Recipient.new(user)
     end
 
     def send_emails
@@ -120,7 +121,7 @@ class FormPrompter
               #  opt out of receiving these prompts.
               #
               if user.prompt_for_forms
-                @rs.recipient(user.email).
+                @rs.recipient(user).
                     note_form_needing_attention(request, ufr)
               end
             end
