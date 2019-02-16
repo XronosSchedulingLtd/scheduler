@@ -40,6 +40,19 @@ module ColourManipulation
   end
 end
 
+module DisplayHelpers
+  def hover_text_for(event)
+    staff = event.staff_entities
+    if staff.size > 0
+      trailer = "\nStaff: #{staff.collect {|s| s.initials}.join(", ")}"
+    else
+      trailer = ""
+    end
+    "#{event.body} : #{event.owners_name}#{trailer}"
+  end
+
+end
+
 class EventAssembler
 
   #
@@ -289,6 +302,7 @@ class EventAssembler
   #
   class ScheduleRequest
     include ColourManipulation
+    include DisplayHelpers
 
     def initialize(main_display, element, request, index, view_start = nil)
       #
@@ -324,7 +338,7 @@ class EventAssembler
           @colour = washed_out(element.preferred_colour)
         end
       end
-      @hover_text       = "#{request.event.body} : #{request.event.owners_name}"
+      @hover_text       = hover_text_for(request.event)
     end
 
     def as_json(options = {})
@@ -359,6 +373,9 @@ class EventAssembler
   #  correspondingly simpler than the main ones.
   #
   class ScheduleCommitment
+
+    include DisplayHelpers
+
     def initialize(element, commitment)
       @id               = "Com#{commitment.id}"
       @title            = commitment.event.body
@@ -380,7 +397,7 @@ class EventAssembler
           @colour     = 'red'
         end
       end
-      @hover_text       = "#{commitment.event.body} : #{commitment.event.owners_name}"
+      @hover_text       = hover_text_for(commitment.event)
     end
 
     def as_json(options = {})
