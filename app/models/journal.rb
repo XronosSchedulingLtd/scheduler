@@ -297,7 +297,7 @@ class Journal < ActiveRecord::Base
     when :resource_request_incremented
       "From #{request.quantity - 1} to #{request.quantity}"
     when :resource_request_decremented
-      "From #{request.quantity - 1} to #{request.quantity}"
+      "From #{request.quantity + 1} to #{request.quantity}"
     when :resource_request_allocated, :resource_request_deallocated
       "#{element ? element.name : "Unknown"}"
     else
