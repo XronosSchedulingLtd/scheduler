@@ -428,6 +428,26 @@ class Request < ActiveRecord::Base
     puts "Modified #{num_changed} records out of #{num_processed}"
   end
 
+  def <=>(other)
+    if other.instance_of?(Request)
+      if self.event
+        if other.event
+          self.event <=> other.event
+        else
+          1
+        end
+      else
+        if other.event
+          -1
+        else
+          0
+        end
+      end
+    else
+      nil
+    end
+  end
+
   private
 
   def update_corresponding_event

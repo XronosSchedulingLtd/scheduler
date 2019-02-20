@@ -16,15 +16,10 @@ class ReconfirmationPrompter
     class Recipient
 
       class Item
-        attr_reader :request, :ufr
+        attr_reader :request
 
-        def initialize(request, ufr)
+        def initialize(request)
           @request = request
-          @ufr     = ufr
-        end
-
-        def to_partial_path
-          'pending_form_item'
         end
 
         def event_description
@@ -37,6 +32,18 @@ class ReconfirmationPrompter
           "#{ActionController::Base.helpers.pluralize(quantity, resource)}"
         end
 
+        def to_partial_path
+          'request_reconfirmation_item'
+        end
+
+        def <=>(other)
+          if other.instance_of?(Item)
+            self.request <=> other.request
+          else
+            nil
+          end
+        end
+
       end
 
       attr_reader :email
@@ -46,17 +53,17 @@ class ReconfirmationPrompter
         @items = Array.new
       end
 
-      def note_form_needing_attention(request, ufr)
-        @items << Item.new(request, ufr)
+      def note_request(request)
+        @items << Item.new(request)
       end
 
       #
       #  Send the e-mails for this recipient.
       #
       def send_emails
-        UserMailer.forms_overdue_email(@user.email,
-                                       @items,
-                                       @user).deliver_now
+        UserMailer.reconfirm_requests_email(@user.email,
+                                            @items.sort,
+                                            @user).deliver_now
       end
 
     end
@@ -74,6 +81,9 @@ class ReconfirmationPrompter
       end
     end
 
+    def note_request(user, request)
+      self.recipient(user).note_request(request)
+    end
   end
 
   attr_reader :rs
@@ -101,7 +111,7 @@ class ReconfirmationPrompter
             #  opt out of receiving these prompts.
             #
             if user.confirmation_messages
-              puts "Got one"
+              @rs.note_request(user, request)
             end
           end
         end

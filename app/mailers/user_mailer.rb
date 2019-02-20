@@ -213,6 +213,14 @@ class UserMailer < ActionMailer::Base
          subject: "There are forms awaiting your input in Scheduler")
   end
 
+  def reconfirm_requests_email(email, items, user)
+    @items = items
+    @user = user
+    mail(to: email,
+         from: Setting.from_email_address,
+         subject: "Please re-confirm your resource requests in Scheduler")
+  end
+
   private
 
   def appropriate_email(event)
