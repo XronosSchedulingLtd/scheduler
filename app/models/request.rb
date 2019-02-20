@@ -54,6 +54,9 @@ class Request < ActiveRecord::Base
   scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}
   scope :until, lambda { |datetime| joins(:event).merge(Event.until(datetime)) }
 
+  #
+  #  Tentative means we haven't yet been allocated all our resources.
+  #
   scope :tentative, -> { where(tentative: true) }
   scope :firm, -> { where(tentative: false) }
 

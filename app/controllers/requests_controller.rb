@@ -260,6 +260,14 @@ class RequestsController < ApplicationController
     end
   end
 
+  def reconfirm
+    @request.reconfirmed = true
+    @request.save
+    respond_to do |format|
+      format.html
+    end
+  end
+
   private
 
   def set_request
