@@ -223,6 +223,7 @@ class Event < ActiveRecord::Base
   scope :complete, lambda { where(complete: true) }
   scope :incomplete, lambda { where.not(complete: true) }
   scope :has_clashes, lambda { where(has_clashes: true) }
+  scope :owned_by, lambda {|user| where(owner: user) }
 
   before_destroy :being_destroyed
 

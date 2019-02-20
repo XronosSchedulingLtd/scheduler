@@ -37,6 +37,7 @@ Rails.application.routes.draw do
       put :increment
       put :decrement
       put :dragged
+      put :reconfirm
     end
   end
 
@@ -146,6 +147,7 @@ Rails.application.routes.draw do
     get :pp, :on => :collection
     resources :filters, only: [:edit, :update]
     resources :events, only: [:index]
+    resources :requests, only: [:index]
     #
     #  One would not normally make :destroy and :edit for concerns
     #  subsidiary to users, but we do it to distinguish such

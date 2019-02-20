@@ -73,6 +73,7 @@ class RequestsController < ApplicationController
     @quick_buttons = QuickButtons.new(@event)
     respond_to do |format|
       format.js
+      format.html { redirect_to :back }
     end
   end
 
@@ -223,12 +224,21 @@ class RequestsController < ApplicationController
     end
   end
 
+  #
+  #  This method can be used in two ways:
+  #
+  #  1) To provide a listing of all the requests for a resource.
+  #     Used by administrators of a resource.
+  #  2) To provide a listing of all the requests by a user.
+  #
   def index
     if current_user.can_add_concerns? &&
           params[:element_id] &&
           @element = Element.find_by(id: params[:element_id])
+      #
+      #  By element
+      #
       selector = @element.requests
-      @allow_buttons = current_user.owns?(@element)
       if params.has_key?(:pending)
         @pending = true
         selector = selector.future
@@ -251,7 +261,40 @@ class RequestsController < ApplicationController
         page_no = (previous_requests_count / Request.per_page) + 1
       end
       @requests =
-        selector.includes([:event, :commitments, :user_form_response]).page(page_no).order('events.starts_at')
+        selector.includes([:event, :commitments, :user_form_response]).
+                 page(page_no).
+                 order('events.starts_at')
+      @show_owner          = true
+      @show_organiser      = true
+      @show_resource       = false
+      @show_action_buttons = false
+      @title = "Events requesting #{@element.short_name}"
+    elsif params[:user_id] && @user = User.find_by(id: params[:user_id])
+      #
+      #  By requesting user
+      #
+      selector = Request.owned_by(@user)
+      if params.has_key?(:pending)
+        @pending = true
+        selector = selector.future
+        @flip_target = user_requests_path(@user)
+        @flip_text = "See All"
+      else
+        @pending = false
+        @flip_target = user_requests_path(@user, pending: true)
+        @flip_text = "See Pending"
+      end
+      page_no = params[:page]
+      unless page_no
+        previous_requests_count = selector.until(Time.zone.now.midnight).count
+        page_no = (previous_requests_count / Request.per_page) + 1
+      end
+      @requests = selector.page(page_no).order('events.starts_at')
+      @show_owner          = false
+      @show_organiser      = false
+      @show_resource       = true
+      @show_action_buttons = true
+      @title = "Requests by #{@user.name}"
     else
       #
       #  Send him off to look at his own events.
@@ -263,9 +306,7 @@ class RequestsController < ApplicationController
   def reconfirm
     @request.reconfirmed = true
     @request.save
-    respond_to do |format|
-      format.html
-    end
+    redirect_to :back
   end
 
   private
@@ -286,14 +327,21 @@ class RequestsController < ApplicationController
         current_user.can_delete?(@request)
       when 'increment', 'decrement'
         current_user.can_subedit?(@request)
-      when 'dragged', 'index'
-        #
-        #  Need to be an administrator for the relevant resource
-        #  but we will leave the actual check for now.  We want to
-        #  return a meaningful error message if it's not permitted,
-        #  not just raise a processing error.
-        #
-        true
+      when 'dragged', 'index', 'reconfirm'
+        if params[:user_id]
+          #
+          #  Need to be the user, or an admin
+          #
+          current_user.admin? || params[:user_id].to_i == current_user.id
+        else
+          #
+          #  Need to be an administrator for the relevant resource
+          #  but we will leave the actual check for now.  We want to
+          #  return a meaningful error message if it's not permitted,
+          #  not just raise a processing error.
+          #
+          true
+        end
       else
         #
         #  We don't know what you're trying to do, so you can't.

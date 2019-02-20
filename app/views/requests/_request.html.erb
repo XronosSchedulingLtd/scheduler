@@ -16,17 +16,28 @@
                   title: request.event.body,
                   "data-reveal-id" => "eventModal",
                   "data-reveal-ajax" => true) %></td>
-  <td title="<%=
-    request.event.owners_name
-  %>"><%=
-    commitment_owner_mailto(request)
-  %></td>
-  <td title="<%=
-  request.event.organiser_name
-  %>"><%=
-    commitment_organiser_mailto(request)
-  %></td>
+  <% if @show_owner %>
+    <td title="<%=
+      request.event.owners_name
+    %>"><%=
+      commitment_owner_mailto(request)
+      %></td>
+  <% end %>
+  <% if @show_organiser %>
+    <td title="<%=
+    request.event.organiser_name
+    %>"><%=
+      commitment_organiser_mailto(request)
+      %></td>
+  <% end %>
+  <% if @show_resource %>
+    <td><%= request.element.short_name %></td>
+  <% end %>
   <td><%= request.quantity %></td>
   <td><%= request.num_allocated %></td>
   <td class="form-status"><%= commitment_form_status(request) %></td>
+  <% if @show_action_buttons %>
+    <td><%= confirmation_button_or_message(request) %></td>
+    <td><%= request_cancel_button(request) %></td>
+  <% end %>
 </tr>

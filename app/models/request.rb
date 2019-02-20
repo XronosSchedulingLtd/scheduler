@@ -69,6 +69,9 @@ class Request < ActiveRecord::Base
 
   scope :none_allocated, -> { includes(:commitments).where(commitments: {request_id: nil}) }
 
+  scope :owned_by, lambda {|user|
+     joins(:event).merge(Event.owned_by(user))
+  }
   #
   #  Normally this won't be defined and so calls to this method will
   #  return nil.

@@ -44,6 +44,15 @@ module UserMailerHelper
            class: "zfbutton")
   end
 
+  def mailer_pending_requests_link(user, text = "View pending requests")
+    link_to(text,
+            user_requests_url(user,
+                              pending: true,
+                              protocol: schedulers_protocol,
+                              host: schedulers_host),
+           class: "zfbutton")
+  end
+
   def mailer_mail_to_link(email, name, subject = nil)
     options = {
       class: "zfbutton"
