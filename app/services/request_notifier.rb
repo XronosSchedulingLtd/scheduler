@@ -232,10 +232,12 @@ class RequestNotifier
 
   def request_incremented(request)
     request_adjusted(request, request.quantity - 1)
+    self
   end
 
   def request_decremented(request)
     request_adjusted(request, request.quantity + 1)
+    self
   end
 
   def request_destroyed(request)
@@ -247,6 +249,7 @@ class RequestNotifier
     end
     @requests_destroyed[request.id] =
       RequestRecord.new(request, original_quantity)
+    self
   end
 
   #
