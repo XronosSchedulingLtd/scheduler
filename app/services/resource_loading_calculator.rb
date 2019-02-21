@@ -502,6 +502,19 @@ class ResourceLoadingCalculator
       #
       @other_events.values
     end
+
+    #
+    #  Is there anything at all involving our element?
+    #
+    def anything?
+      #
+      #  If they are all empty we have nothing - otherwise we have
+      #  something.
+      #
+      !(@maximum_loading_reports.empty? &&
+        @overloads.empty? &&
+        @other_events.empty?)
+    end
   end
 
   def initialize(element)

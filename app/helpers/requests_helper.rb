@@ -30,4 +30,29 @@ module RequestsHelper
     result << "</ul>"
     result.join("\n").html_safe
   end
+
+  def confirmation_button_or_message(request)
+    if request.reconfirmable?
+      if request.reconfirmed?
+        "Confirmed"
+      else
+        link_to("Do confirm",
+                reconfirm_request_path(request),
+                method: :put,
+                class: 'zfbutton teensy tiny button-link')
+      end
+    else
+      ""
+    end
+  end
+
+  def request_cancel_button(request)
+    link_to("Cancel",
+            request,
+            method: :delete,
+            data: { confirm: "Are you sure you want to cancel this request completely?" },
+            class: 'zfbutton teensy tiny button-link')
+
+  end
+
 end

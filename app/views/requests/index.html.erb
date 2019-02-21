@@ -2,10 +2,10 @@
 <div class="flip-button">
   <%= link_to @flip_text, @flip_target, class: "zfbutton tiny radius" %>
 </div>
-<h1>Events requesting <%= @element.short_name %></h1>
+<h1><%= @title %></h1>
 
 <div class="apple_pagination">
-  <%= will_paginate @commitments %>
+  <%= will_paginate @requests %>
 </div>
 
 <table class="zftable">
@@ -14,11 +14,22 @@
       <th>Start</th>
       <th>Duration</th>
       <th>Body</th>
-      <th title="Owner">Own</th>
-      <th title="Organiser">Org</th>
+      <% if @show_owner %>
+        <th title="Owner">Own</th>
+      <% end %>
+      <% if @show_organiser %>
+        <th title="Organiser">Org</th>
+      <% end %>
+      <% if @show_resource %>
+        <th>Resource</th>
+      <% end %>
       <th>Qty</th>
       <th>Alloc</th>
       <th>Form</th>
+      <% if @show_action_buttons %>
+        <th></th>
+        <th></th>
+      <% end %>
     </tr>
   </thead>
 
@@ -28,7 +39,7 @@
 </table>
 
 <div class="apple_pagination">
-  <%= will_paginate @commitments %>
+  <%= will_paginate @requests %>
 </div>
 </div>
 <br>

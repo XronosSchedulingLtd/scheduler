@@ -54,11 +54,24 @@ class Request < ActiveRecord::Base
   scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}
   scope :until, lambda { |datetime| joins(:event).merge(Event.until(datetime)) }
 
+  #
+  #  Tentative means we haven't yet been allocated all our resources.
+  #
   scope :tentative, -> { where(tentative: true) }
   scope :firm, -> { where(tentative: false) }
 
   scope :constraining, -> { where(constraining: true) }
 
+  scope :reconfirmed, -> { where(reconfirmed: true) }
+  scope :awaiting_reconfirmation, -> { where(reconfirmed: false) }
+
+  scope :with_incomplete_form, -> { joins(:user_form_response).merge(UserFormResponse.incomplete) }
+
+  scope :none_allocated, -> { includes(:commitments).where(commitments: {request_id: nil}) }
+
+  scope :owned_by, lambda {|user|
+     joins(:event).merge(Event.owned_by(user))
+  }
   #
   #  Normally this won't be defined and so calls to this method will
   #  return nil.
@@ -282,6 +295,24 @@ class Request < ActiveRecord::Base
     num_outstanding > 0
   end
 
+  def reconfirmable?
+    if self.event &&
+       self.element &&
+       self.element.entity &&
+       self.element.entity.respond_to?(:confirmation_days)
+      confirmation_days = self.element.entity.confirmation_days
+      if confirmation_days > 0
+        start_date = Date.today
+        end_date = start_date + confirmation_days
+        self.event.exists_during?(start_date, end_date)
+      else
+        false
+      end
+    else
+      false
+    end
+  end
+
   #
   #  How many outstanding requests do we have?
   #
@@ -416,6 +447,26 @@ class Request < ActiveRecord::Base
       end
     end
     puts "Modified #{num_changed} records out of #{num_processed}"
+  end
+
+  def <=>(other)
+    if other.instance_of?(Request)
+      if self.event
+        if other.event
+          self.event <=> other.event
+        else
+          1
+        end
+      else
+        if other.event
+          -1
+        else
+          0
+        end
+      end
+    else
+      nil
+    end
   end
 
   private

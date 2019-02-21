@@ -223,6 +223,7 @@ class Event < ActiveRecord::Base
   scope :complete, lambda { where(complete: true) }
   scope :incomplete, lambda { where.not(complete: true) }
   scope :has_clashes, lambda { where(has_clashes: true) }
+  scope :owned_by, lambda {|user| where(owner: user) }
 
   before_destroy :being_destroyed
 
@@ -1819,6 +1820,11 @@ class Event < ActiveRecord::Base
   def journal_resource_request_deallocated(request, by_user, element)
     ensure_journal
     self.journal.resource_request_deallocated(request, by_user, element)
+  end
+
+  def journal_resource_request_reconfirmed(request, by_user)
+    ensure_journal
+    self.journal.resource_request_reconfirmed(request, by_user)
   end
 
   def format_timing

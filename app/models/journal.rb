@@ -284,6 +284,10 @@ class Journal < ActiveRecord::Base
     entry_for_request(:resource_request_deallocated, request, by_user, element)
   end
 
+  def resource_request_reconfirmed(request, by_user)
+    entry_for_request(:resource_request_reconfirmed, request, by_user)
+  end
+
   def format_timing
     format_timings(self.event_starts_at, self.event_ends_at, self.event_all_day)
   end
@@ -292,12 +296,14 @@ class Journal < ActiveRecord::Base
 
   def request_description(entry_type, request, element)
     case entry_type
-    when :resource_request_created, :resource_request_destroyed
+    when :resource_request_created,
+         :resource_request_destroyed,
+         :resource_request_reconfirmed
       "Quantity: #{request.quantity}"
     when :resource_request_incremented
       "From #{request.quantity - 1} to #{request.quantity}"
     when :resource_request_decremented
-      "From #{request.quantity - 1} to #{request.quantity}"
+      "From #{request.quantity + 1} to #{request.quantity}"
     when :resource_request_allocated, :resource_request_deallocated
       "#{element ? element.name : "Unknown"}"
     else
