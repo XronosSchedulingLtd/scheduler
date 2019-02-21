@@ -1,3 +1,63 @@
+v1.7.5  2019-02-21
+
+Mostly adding e-mails relating to resource requests
+
+* Added additional styling to try to stop Gmail turning the header
+  text blue
+
+* Tidied day loading e-mail slightly
+
+* Added new database fields to cope with e-mails prompting users to
+  fill in forms and to re-confirm requests.  Users can opt out of
+  receiving these, although the default is for them to be in.
+
+* Allow users to turn the new flags off and on
+
+* Allow the system administrator to configure when prompting e-mails
+  will be sent.  Separate thresholds (number of days) can be set for
+  each resource group.
+
+* Tidied up editing of groups in general.
+
+* Added daily job generating e-mails nagging users to fill in their
+  forms.
+
+* Added daily job generating e-mails asking users to re-confirm their
+  bookings.
+
+* Added staff initials to the hover text for each event in the resource
+  allocation screen.  This means that provided the events are entered
+  properly - with the drivers shown as being involved in the event - then
+  the resource allocator can see who the drivers are without having to
+  click into the event.
+
+* Added a new screen which allows users to re-confirm or cancel their
+  upcoming bookings.  The prompting e-mail contains a link which will
+  take the user directly to his or her screen, making the process
+  quick.
+
+  Users can only re-confirm a booking once it is within the configured
+  re-confirmation window.  This is to prevent users simply re-confirming
+  them as soon as they enter them (possibly months ahead) then forgetting
+  about them and defeating the whole point of having the re-confirmation
+  process.
+
+* Corrected journal entry created when a user decrements the number
+  of a resource required.  It previously said "down from 3 to 4" where
+  it should have said "down from 5 to 4".
+
+* Added code to create a journal entry when the user implicitly increments
+  a request.  This happens if the user tries to add the item a second
+  time to the event.
+
+* Journal re-confirmation of requests.
+
+* Added e-mails to the resource administrator which are sent if a user
+  amends a request after resources have started being allocated to that
+  request.  Sends an e-mail if the user increments, decrements or cancels
+  the request.
+
+
 v1.7.4  2019-02-10
 
 * Provide an e-mailed summary report of resource loading looking ahead.
