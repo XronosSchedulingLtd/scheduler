@@ -295,6 +295,24 @@ class Request < ActiveRecord::Base
     num_outstanding > 0
   end
 
+  def reconfirmable?
+    if self.event &&
+       self.element &&
+       self.element.entity &&
+       self.element.entity.respond_to?(:confirmation_days)
+      confirmation_days = self.element.entity.confirmation_days
+      if confirmation_days > 0
+        start_date = Date.today
+        end_date = start_date + confirmation_days
+        self.event.exists_during?(start_date, end_date)
+      else
+        false
+      end
+    else
+      false
+    end
+  end
+
   #
   #  How many outstanding requests do we have?
   #

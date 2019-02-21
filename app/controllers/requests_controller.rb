@@ -63,7 +63,6 @@ class RequestsController < ApplicationController
       #
       #  Should add:
       #    Notifications
-      #    Journalling
       #
       @event.journal_resource_request_destroyed(@request, current_user)
       #
@@ -313,7 +312,10 @@ class RequestsController < ApplicationController
         previous_requests_count = selector.until(Time.zone.now.midnight).count
         page_no = (previous_requests_count / Request.per_page) + 1
       end
-      @requests = selector.page(page_no).order('events.starts_at')
+      @requests =
+        selector.includes([:event, :commitments, :element, :user_form_response]).
+                 page(page_no).
+                 order('events.starts_at')
       @show_owner          = false
       @show_organiser      = false
       @show_resource       = true

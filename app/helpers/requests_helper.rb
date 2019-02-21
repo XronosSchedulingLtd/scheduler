@@ -32,13 +32,17 @@ module RequestsHelper
   end
 
   def confirmation_button_or_message(request)
-    if request.reconfirmed?
-      "Confirmed"
+    if request.reconfirmable?
+      if request.reconfirmed?
+        "Confirmed"
+      else
+        link_to("Do confirm",
+                reconfirm_request_path(request),
+                method: :put,
+                class: 'zfbutton teensy tiny button-link')
+      end
     else
-      link_to("Do confirm",
-              reconfirm_request_path(request),
-              method: :put,
-              class: 'zfbutton teensy tiny button-link')
+      ""
     end
   end
 
