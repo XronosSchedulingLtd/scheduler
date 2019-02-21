@@ -66,6 +66,14 @@ class RequestsController < ApplicationController
       #    Journalling
       #
       @event.journal_resource_request_destroyed(@request, current_user)
+      #
+      #  We notify only if allocation has already started.
+      #
+      if @request.num_allocated > 0
+        if session[:request_notifier]
+          session[:request_notifier].request_destroyed(@request)
+        end
+      end
       @request.destroy
       @event.reload
       @resourcewarning = false
@@ -83,6 +91,14 @@ class RequestsController < ApplicationController
       @request.increment_and_save
       @request.reload
       @event.journal_resource_request_incremented(@request, current_user)
+      #
+      #  We notify only if allocation has already started.
+      #
+      if @request.num_allocated > 0
+        if session[:request_notifier]
+          session[:request_notifier].request_incremented(@request)
+        end
+      end
       @resourcewarning = false
     end
     @quick_buttons = QuickButtons.new(@event)
@@ -97,6 +113,14 @@ class RequestsController < ApplicationController
       @request.decrement_and_save
       @request.reload
       @event.journal_resource_request_decremented(@request, current_user)
+      #
+      #  We notify only if allocation has already started.
+      #
+      if @request.num_allocated > 0
+        if session[:request_notifier]
+          session[:request_notifier].request_decremented(@request)
+        end
+      end
       @resourcewarning = false
     end
     @quick_buttons = QuickButtons.new(@event)

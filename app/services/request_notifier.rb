@@ -58,7 +58,8 @@ class RequestNotifier
   #
   class ElementRecord
 
-    attr_reader :events_added_to, :events_removed_from
+    attr_reader :events_added_to,
+                :events_removed_from
 
     def initialize(element, event)
       #
@@ -87,11 +88,26 @@ class RequestNotifier
 
   end
 
+  class RequestRecord
+    attr_reader :original_quantity, :description, :element_id, :num_allocated
+    attr_accessor :current_quantity
+
+    def initialize(request, original_quantity)
+      @original_quantity = original_quantity
+      @description = "Request for #{request.element.name}"
+      @current_quantity = original_quantity
+      @element_id = request.element_id
+      @num_allocated = request.num_allocated
+    end
+  end
+
   def initialize(general_title = "<none given>")
 
     @general_title = general_title
     @elements_added   = Array.new
     @elements_removed = Array.new
+    @requests_adjusted = Hash.new
+    @requests_destroyed = Hash.new
 
     @element_records = Hash.new
   end
@@ -189,6 +205,51 @@ class RequestNotifier
   end
 
   #
+  #  We want to keep track of the requests which have been changed,
+  #  and report only the final result.
+  #
+  #  If someone increments and then decrements, we need send no
+  #  e-mail.
+  #
+  def request_adjusted(request, previous_quantity)
+    #
+    #  The first time we see a reference to a given request we store
+    #  a record of its previous quantity value - i.e. the original
+    #  value at the start of the session.
+    #
+    record =
+      @requests_adjusted[request.id] ||=
+      RequestRecord.new(request, previous_quantity)
+    if request.quantity == record.original_quantity
+      #
+      #  Back to where we started.  Get rid of this entry.
+      #
+      @requests_adjusted.delete(request.id)
+    else
+      record.current_quantity = request.quantity
+    end
+  end
+
+  def request_incremented(request)
+    request_adjusted(request, request.quantity - 1)
+  end
+
+  def request_decremented(request)
+    request_adjusted(request, request.quantity + 1)
+  end
+
+  def request_destroyed(request)
+    if @requests_adjusted[request.id]
+      original_quantity = @requests_adjusted[request.id].original_quantity
+      @requests_adjusted.delete(request.id)
+    else
+      original_quantity = request.quantity
+    end
+    @requests_destroyed[request.id] =
+      RequestRecord.new(request, original_quantity)
+  end
+
+  #
   #  Called when a user has finished editing an event.  Sends any
   #  notifications needed for requested resources, provided the administrator
   #  of said resource has requested immediate notification.
@@ -213,6 +274,20 @@ class RequestNotifier
           end
         end
       end
+      event.requests.constraining.each do |request|
+        resource = request.element
+        resource.owners.each do |owner|
+          #
+          #  This is a slightly different case.  Someone is cancelling
+          #  a request for a managed resource after the resource has
+          #  been allocated.  Send the e-mail regardless.
+          #
+          UserMailer.resource_request_cancelled_email(owner,
+                                                      resource,
+                                                      event,
+                                                      user).deliver_now
+        end
+      end
     else
       #
       #  Has the user deleted any signficant elements in the course
@@ -231,6 +306,17 @@ class RequestNotifier
           end
         end
       end
+      @requests_destroyed.each do |key, record|
+        resource = Element.find_by(id: record.element_id)
+        if resource
+          resource.owners.each do |owner|
+            UserMailer.resource_request_cancelled_email(owner,
+                                                        resource,
+                                                        event,
+                                                        user).deliver_now
+          end
+        end
+      end
       #
       #  And added any?
       #
@@ -244,6 +330,21 @@ class RequestNotifier
                                                   event,
                                                   user).deliver_now
             end
+          end
+        end
+      end
+      #
+      #  Or adjusted any?
+      #
+      @requests_adjusted.each do |key, record|
+        resource = Element.find_by(id: record.element_id)
+        if resource
+          resource.owners.each do |owner|
+            UserMailer.request_adjusted_email(owner,
+                                              resource,
+                                              event,
+                                              record,
+                                              user).deliver_now
           end
         end
       end

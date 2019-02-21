@@ -168,6 +168,30 @@ class UserMailer < ActionMailer::Base
     do_resource_email(owner, resource, event, user, true)
   end
 
+  def request_adjusted_email(owner, resource, event, record, user = nil)
+    @resource = resource
+    @event = event
+    parameters = {
+      to:      owner.email,
+      from:    Setting.from_email_address,
+      subject: "Request for #{resource.name} adjusted after allocation"
+    }
+    if @event.organiser
+      parameters[:reply_to] = @event.organiser.entity.email
+    elsif @event.owner
+      parameters[:reply_to] = @event.owner.email
+    elsif user
+      parameters[:reply_to] = user.email
+    end
+    @owner_name = @event.owner ? @event.owner.name : "<System>"
+    @organiser_name = @event.organiser ? @event.organiser.name : "<None>"
+    @user_name = user ? user.name : "<None>"
+    @previous_quantity = record.original_quantity
+    @new_quantity      = record.current_quantity
+    @num_allocated     = record.num_allocated
+    mail(parameters)
+  end
+
   def resource_batch_email(owner, resource, record, user, general_title)
     @resource      = resource
     @record        = record
