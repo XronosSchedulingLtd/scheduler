@@ -69,8 +69,20 @@ class RequestsController < ApplicationController
       #  We notify only if allocation has already started.
       #
       if @request.num_allocated > 0
-        if session[:request_notifier]
-          session[:request_notifier].request_destroyed(@request)
+        if request.format.html?
+          #
+          #  A standalone request - not part of an editing session
+          #
+          RequestNotifier.new.
+                          request_destroyed(@request).
+                          send_notifications_for(current_user, @event)
+        else
+          #
+          #  Should be part of an editing session.
+          #
+          if session[:request_notifier]
+            session[:request_notifier].request_destroyed(@request)
+          end
         end
       end
       @request.destroy
