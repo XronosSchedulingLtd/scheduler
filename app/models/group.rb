@@ -91,7 +91,7 @@ class Group < ActiveRecord::Base
     if new_class.instance_of?(String)
       case new_class
       when "Resourcegrouppersona"
-        @person_class = Resourcegrouppersona
+        @persona_class = Resourcegrouppersona
       else
         @persona_class = Vanillagrouppersona
       end
@@ -104,8 +104,8 @@ class Group < ActiveRecord::Base
     name
   end
 
-  def description
-    "#{self.type} group"
+  def description(capitalize = true)
+    "#{self.type(capitalize)} group"
   end
 
   def description_line
@@ -241,11 +241,25 @@ class Group < ActiveRecord::Base
   #
   #  What type is this group?
   #
-  def type
+  #  Or will this group be?  We need to cope when we are freshly
+  #  created and not yet saved to the database.
+  #
+  def type(capitalize = true)
+    persona_class_name = nil
     if self.persona_type
-      self.persona_type.chomp("grouppersona")
+      persona_class_name = self.persona_type
+    elsif self.persona_class
+      persona_class_name = self.persona_class.to_s
+    end
+    if persona_class_name
+      result = persona_class_name.chomp("grouppersona")
     else
-      "Vanilla"
+      result = "Vanilla"
+    end
+    if capitalize
+      result
+    else
+      result.downcase
     end
   end
 
@@ -272,11 +286,18 @@ class Group < ActiveRecord::Base
         super
       end
     else
-      if self.persona_class && self.persona_class.new.respond_to?(method_sym)
+      if self.persona_class &&
+         (temporary_persona = self.persona_class.new).respond_to?(method_sym)
         if method_sym.to_s =~ /=$/
           @persona_hash[method_sym.to_s.chomp("=").to_sym] = arguments.first
         else
           @persona_hash[method_sym]
+          #
+          #  The calling code might quite like to have its query answered
+          #  now.  All we can provide is a default value, but it might
+          #  be useful.
+          #
+          temporary_persona.send(method_sym, *arguments)
         end
       else
         super

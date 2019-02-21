@@ -130,10 +130,12 @@ class GroupsController < ApplicationController
     #
     if params[:type] == 'resource'
       @type = :resource
+      group_class = Resourcegroup
     else
       @type = :vanilla
+      group_class = Vanillagroup
     end
-    @group = Vanillagroup.new({
+    @group = group_class.new({
       era:           Setting.current_era,
       current:       true
     })
@@ -348,6 +350,8 @@ class GroupsController < ApplicationController
                                     :make_public,
                                     :edit_preferred_colour,
                                     :loading_report_days,
-                                    :wrapping_mins)
+                                    :wrapping_mins,
+                                    :confirmation_days,
+                                    :form_warning_days)
     end
 end

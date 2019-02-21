@@ -71,6 +71,7 @@ class Element < ActiveRecord::Base
   scope :mine, ->(current_user) { where(owner_id: current_user.id) }
   scope :owned, -> { where(owned: true) }
   scope :disowned, -> { where(owned: false) }
+  scope :with_form, -> { where.not(user_form: nil) }
 
   before_create :add_uuid
   before_destroy :being_destroyed

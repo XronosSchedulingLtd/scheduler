@@ -100,6 +100,16 @@ class CommitmentsController < ApplicationController
         @request.quantity += 1
         @request.save
         @request.reload
+        @request.event.journal_resource_request_incremented(@request,
+                                                            current_user)
+        #
+        #  We notify only if allocation has already started.
+        #
+        if @request.num_allocated > 0
+          if session[:request_notifier]
+            session[:request_notifier].request_incremented(@request)
+          end
+        end
       else
         @request = Request.new(commitment_params.merge({quantity: 1}))
         if @request.save

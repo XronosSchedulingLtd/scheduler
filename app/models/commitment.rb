@@ -130,18 +130,22 @@ class Commitment < ActiveRecord::Base
   #  pre-load the events.
   #
   def <=>(other)
-    if self.event
-      if other.event
-        self.event <=> other.event
+    if other.instance_of?(Commitment)
+      if self.event
+        if other.event
+          self.event <=> other.event
+        else
+          1
+        end
       else
-        1
+        if other.event
+          -1
+        else
+          0
+        end
       end
     else
-      if other.event
-        -1
-      else
-        0
-      end
+      nil
     end
   end
 

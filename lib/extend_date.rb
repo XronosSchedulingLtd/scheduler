@@ -14,6 +14,10 @@ class Date
     self.strftime("%a #{self.day.ordinalize} %b, %Y")
   end
 
+  def compact_format
+    self.strftime("%a #{self.day.ordinalize} %b")
+  end
+
   def self.safe_parse(value, default = nil)
     Date.parse(value.to_s)
   rescue ArgumentError

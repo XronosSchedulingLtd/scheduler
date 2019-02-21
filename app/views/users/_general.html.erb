@@ -102,14 +102,25 @@
   </div>
 <% end %>
 <% if current_user.admin || current_user.element_owner %>
-  <%= flag_group(f, 12, 6, "Resource request notifications",
+  <%= flag_group(f, 12, 6, "Resource administrator notifications",
                  [
                    {field: :email_notification,
                     prompt: "Daily",
-                    annotation: "Should the system send daily e-mail notifications of pending requests?"},
+                    annotation: "Should the system send daily e-mail notifications of requests awaiting your attention?"},
                    {field: :immediate_notification,
                     prompt: "Immediate",
-                    annotation: "Should the system send immediate e-mail notifications of resource requests?"}
+                    annotation: "Should the system send immediate e-mail notifications of requests awaiting your attention?"}
+                 ]) %>
+<% end %>
+<% if current_user.create_events? %>
+  <%= flag_group(f, 12, 6, "Requesting resources",
+                 [
+                   {field: :confirmation_messages,
+                    prompt: "Confirmation",
+                    annotation: "Should the system send e-mails reminding you to confirm your resource requests?"},
+                   {field: :prompt_for_forms,
+                    prompt: "Form prompts",
+                    annotation: "Should the system send e-mails reminding you to fill in forms?"}
                  ]) %>
 <% end %>
 <% if current_user.admin || current_user.staff? %>
