@@ -1822,6 +1822,11 @@ class Event < ActiveRecord::Base
     self.journal.resource_request_deallocated(request, by_user, element)
   end
 
+  def journal_resource_request_reconfirmed(request, by_user)
+    ensure_journal
+    self.journal.resource_request_reconfirmed(request, by_user)
+  end
+
   def format_timing
     format_timings(self.starts_at, self.ends_at, self.all_day)
   end

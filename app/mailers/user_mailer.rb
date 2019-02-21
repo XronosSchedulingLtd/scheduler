@@ -221,6 +221,7 @@ class UserMailer < ActionMailer::Base
          subject: "Please re-confirm your resource requests in Scheduler")
   end
 
+
   private
 
   def appropriate_email(event)

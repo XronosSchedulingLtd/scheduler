@@ -306,6 +306,7 @@ class RequestsController < ApplicationController
   def reconfirm
     @request.reconfirmed = true
     @request.save
+    @request.event.journal_resource_request_reconfirmed(@request, current_user)
     redirect_to :back
   end
 
