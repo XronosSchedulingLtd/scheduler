@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190212111748) do
+ActiveRecord::Schema.define(version: 20190222120307) do
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -731,6 +731,7 @@ ActiveRecord::Schema.define(version: 20190212111748) do
     t.integer  "current_concern_set_id",      limit: 4
     t.boolean  "confirmation_messages",                     default: true
     t.boolean  "prompt_for_forms",                          default: true
+    t.boolean  "can_edit_memberships",                      default: false
   end
 
 end
