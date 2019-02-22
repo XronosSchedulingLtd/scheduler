@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  group: groupone
+  element: pupiloneelement
+  starts_on: 2013-09-01
+  inverse: false
+
+two:
+  group: grouptwo
+  element: pupiltwoelement
+  starts_on: 2013-09-01
+  inverse: false

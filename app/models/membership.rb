@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2018 John Winters
+# Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -684,6 +684,7 @@ class Membership < ActiveRecord::Base
   validates :starts_on, :presence => true
   
   validate :not_backwards
+  validate :unique
   
 
   scope :starts_by, lambda {|date| where("starts_on <= ?", date) }
@@ -695,8 +696,8 @@ class Membership < ActiveRecord::Base
                            }
   scope :exclusions, -> { where(inverse: true) }
   scope :inclusions, -> { where(inverse: false) }
-  scope :by_element, ->(element) { where("element_id = ?", element.id) }
-  scope :of_group,   ->(group)   { where("group_id = ?", group.id) }
+  scope :by_element, ->(element) { where(element: element) }
+  scope :of_group,   ->(group)   { where(group: group) }
 
   #
   #  Can I also have a method with the same name?  It appears I can.
@@ -831,17 +832,24 @@ class Membership < ActiveRecord::Base
   #  happen.
   #
   def unique
-    if self.ends_on
-      clashes = Membership.by_element(self.element).
-                           of_group(self.group).
-                           active_during(self.starts_on, self.ends_on)
-    else
-      clashes = Membership.by_element(self.element).
-                           of_group(self.group).
-                           continues_until(self.starts_on)
-    end
-    if clashes.size > 0
-      errors.add(:overall, "Duplicate memberships are not allowed.")
+    #
+    #  If we don't have a starts_on then don't bother with this check.
+    #  We will fail a different validation.
+    #
+    if self.starts_on && self.element && self.group
+      selector = Membership.by_element(self.element).
+                            of_group(self.group)
+      if self.ends_on
+        selector = selector.active_during(self.starts_on, self.ends_on)
+      else
+        selector = selector.continues_until(self.starts_on)
+      end
+      unless self.new_record?
+        selector = selector.where.not(id: self.id)
+      end
+      if selector.size > 0
+        errors.add(:base, "Duplicate memberships are not allowed.")
+      end
     end
   end
 
