@@ -16,7 +16,7 @@ class ApplicationController < ActionController::Base
                 :known_user?,
                 :public_groups_user?
 
-  before_filter :login_required
+  before_action :login_required
 
   private
 
