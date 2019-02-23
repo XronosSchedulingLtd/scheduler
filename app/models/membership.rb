@@ -812,6 +812,23 @@ class Membership < ActiveRecord::Base
 #    Rails.logger.debug("Leaving membership.recurse_mbd.")
   end
 
+  def self.check_all_valid
+    count = 0
+    invalid_ids = Array.new
+    Membership.find_each do |membership|
+      unless membership.valid?
+        count += 1
+        invalid_ids << membership.id
+      end
+    end
+    puts "Found #{count} invalid records."
+    invalid_ids.each do |id|
+      puts "Invalid id #{id}"
+    end
+    nil
+  end
+
+
   private
 
   def not_backwards
