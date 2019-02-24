@@ -1,0 +1,30 @@
+<h1>Membership records for group "<%= @group.name %>"</h1>
+<p id="notice"><%= notice %></p>
+<p>Editing membership records directly is potentially risky if you
+don't know what you're doing.  You're going round the back of the usual
+user interface (editing a group) and affecting the underlying records
+themselves.  The system will check each individual record to make sure
+they're consistent, but you could still produce
+an inconsistent state of affairs.  Tread carefully</p>
+
+<p>In particular, deleting a membership record here is quite different
+from removing a member from a group in the group editing dialogue. That
+merely marks the membership as over; deleting it here will make it as if
+the membership had never existed.</p>
+<table class='zftable'>
+  <thead>
+    <th>From</th>
+    <th>To</th>
+    <th>Element</th>
+    <th></th>
+    <% if @show_action_links %>
+      <th></th>
+      <th></th>
+      <th></th>
+    <% end %>
+  </thead>
+  <tbody>
+    <%= render @memberships %>
+  </tbody>
+</table>
+<%= link_to 'Add membership record', new_group_membership_path(@group), class: "tiny zfbutton radius button-link" %>

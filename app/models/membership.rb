@@ -676,6 +676,8 @@ class Membership < ActiveRecord::Base
   #  Start of the Membership class proper
   #
 
+  include Comparable
+
   belongs_to :group
   belongs_to :element
 
@@ -702,7 +704,7 @@ class Membership < ActiveRecord::Base
   #
   #  Can I also have a method with the same name?  It appears I can.
   #
-  def active_on(date)
+  def active_on?(date)
     self.starts_on <= date &&
     (self.ends_on == nil || self.ends_on >= date)
   end
@@ -810,6 +812,84 @@ class Membership < ActiveRecord::Base
                                    seen,
                                    level + 1)
 #    Rails.logger.debug("Leaving membership.recurse_mbd.")
+  end
+
+  def <=>(other)
+    if other.instance_of?(Membership)
+      #
+      #  We sort first by start date, then by end date.
+      #
+      if self.starts_on == other.starts_on
+        if self.ends_on == other.ends_on
+          #
+          #  We must never return 0 unless we are actually dealing with
+          #  two references to the same record.  This is because Comparable
+          #  re-defines == to use this method.
+          #
+          #  Our final decision is based on the ids of the two records.
+          #
+          self.id <=> other.id
+        else
+          if self.ends_on
+            if other.ends_on
+              self.ends_on <=> other.ends_on
+            else
+              #
+              #  He doesn't have an end date.  We come first.
+              #
+              -1
+            end
+          else
+            #
+            #  We don't have an end date so we come second.
+            #
+            1
+          end
+        end
+      else
+        if self.starts_on
+          if other.starts_on
+            self.starts_on <=> other.starts_on
+          else
+            1
+          end
+        else
+          -1
+        end
+      end
+    else
+      nil
+    end
+  end
+
+  def starts_on_text
+    self.starts_on ? self.starts_on.to_s(:dmy) : ""
+  end
+
+  def ends_on_text
+    self.ends_on ? self.ends_on.to_s(:dmy) : ""
+  end
+
+  def starts_on_text=(text)
+    self.starts_on = Date.safe_parse(text)
+  end
+
+  def ends_on_text=(text)
+    self.ends_on = Date.safe_parse(text)
+  end
+
+  #
+  #  Does it make sense to call terminate() for this membership
+  #  record?
+  #
+  def could_terminate?(date = Date.today)
+    self.ends_on.nil? && date >= self.starts_on
+  end
+
+  def terminate(date = Date.today)
+    self.update({
+      ends_on: date
+    })
   end
 
   def self.check_all_valid
