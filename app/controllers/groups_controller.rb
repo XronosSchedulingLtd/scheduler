@@ -30,6 +30,7 @@ class GroupsController < ApplicationController
     #
     @group = Group.new
     @reinstate_button = false
+    @allow_membership_editing = current_user.can_edit_memberships?
     if admin_user? && !params[:mine]
       @list_type  = true
       @list_owner = true
@@ -147,11 +148,8 @@ class GroupsController < ApplicationController
       session[:go_back_to] = request.env['HTTP_REFERER']
     end
     if current_user.can_edit?(@group)
-      @membership = Membership.new
-      @membership.group = @group
-      @exclusion = Membership.new
-      @exclusion.group = @group
-      @exclusion.inverse = true
+      @membership = @group.memberships.new
+      @exclusion  = @group.memberships.new({inverse: true})
       @atomic_membership = @group.atomic_membership
     else
       #

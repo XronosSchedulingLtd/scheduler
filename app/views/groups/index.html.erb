@@ -35,7 +35,11 @@
       <% if @reinstate_button %>
         <th colspan="3"></th>
       <% else %>
-        <th colspan="4"></th>
+        <% if @allow_membership_editing %>
+          <th colspan="5"></th>
+        <% else %>
+          <th colspan="4"></th>
+        <% end %>
       <% end %>
     </tr>
     <tr>
@@ -47,7 +51,11 @@
         <th>Ended</th>
         <th></th>
       <% else %>
-        <th colspan="4"></th>
+        <% if @allow_membership_editing %>
+          <th colspan="5"></th>
+        <% else %>
+          <th colspan="4"></th>
+        <% end %>
       <% end %>
     </tr>
   </thead>
