@@ -33,7 +33,8 @@ class MembershipsController < ApplicationController
 
   def new
     @membership = @group.memberships.new({
-      starts_on: Date.today
+      starts_on: Date.today,
+      ends_on:   @group.ends_on
     })
   end
 
@@ -118,8 +119,14 @@ class MembershipsController < ApplicationController
   end
 
   def index
+    if params[:and_save]
+      session[:listing_memberships_from] = request.env['HTTP_REFERER']
+    end
     @memberships = @group.memberships.sort
     @show_action_links = current_user.can_edit?(@group)
+    if session[:listing_memberships_from]
+      @back_link_target = session[:listing_memberships_from]
+    end
   end
 
   def edit

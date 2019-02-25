@@ -22,7 +22,10 @@
             link_to('Edit', edit_group_path(grouplisting)) :
             "" %></td>
   <% if @allow_membership_editing %>
-    <td><%= link_to "Memberships", group_memberships_path(grouplisting) %></td>
+    <td><%=
+    link_to "Memberships",
+      group_memberships_path(grouplisting, and_save: true)
+      %></td>
   <% end %>
   <td><%= link_to "Export", members_group_path(grouplisting, format: "csv") %></td>
   <td><%= grouplisting.user_editable? ?
