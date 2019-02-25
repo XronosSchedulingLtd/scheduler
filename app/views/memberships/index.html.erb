@@ -27,4 +27,9 @@ the membership had never existed.</p>
     <%= render @memberships %>
   </tbody>
 </table>
-<%= link_to 'Add membership record', new_group_membership_path(@group), class: "tiny zfbutton radius button-link" %>
+<%= link_to 'Add membership record',
+  new_group_membership_path(@group),
+  class: 'tiny zfbutton radius button-link' %>
+<% if @back_link_target %>
+  <%= link_to "Back to group listing", @back_link_target, class: 'tiny zfbutton radius button-link' %>
+<% end %>
