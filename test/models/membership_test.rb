@@ -171,4 +171,13 @@ class MembershipTest < ActiveSupport::TestCase
     assert_not_equal membership1, membership2
   end
 
+  test "group cannot be a member of itself" do
+    membership = Membership.create({
+      element:   @group1.element,
+      group:     @group1,
+      starts_on: @group1.starts_on,
+      inverse:   false
+    })
+    assert_not membership.valid?
+  end
 end

@@ -687,6 +687,7 @@ class Membership < ActiveRecord::Base
   
   validate :not_backwards
   validate :unique
+  validate :not_self
   
 
   scope :starts_by, lambda {|date| where("starts_on <= ?", date) }
@@ -946,6 +947,17 @@ class Membership < ActiveRecord::Base
       end
       if selector.size > 0
         errors.add(:base, "Duplicate memberships are not allowed.")
+      end
+    end
+  end
+
+  def not_self
+    #
+    #  A group cannot be a direct member of itself.
+    #
+    if self.element && self.group
+      if self.element.entity == self.group
+        errors.add(:base, 'A group cannot be a direct member of itself.')
       end
     end
   end

@@ -78,4 +78,8 @@ servicetwoelement:
   entity: two (Service)
   uuid: "zifsadua"
 
+grouponeelement:
+  name: "Group one"
+  entity: groupone (Group)
+  uuid: "mswksalsj"
 
