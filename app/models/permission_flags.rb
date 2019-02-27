@@ -43,7 +43,7 @@ class PermissionFlags < Hash
     can_view_forms:       "View forms",
     can_view_unconfirmed: "View unconfirmed",
     can_repeat_events:    "Repeating events",
-    can_edit_memberships: "Edit memberships directly"
+    can_edit_memberships: "Edit members"
   }
   NICER_TEXT.default = "Pass"
 
