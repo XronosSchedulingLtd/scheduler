@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2018 John Winters
+# Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -676,6 +676,8 @@ class Membership < ActiveRecord::Base
   #  Start of the Membership class proper
   #
 
+  include Comparable
+
   belongs_to :group
   belongs_to :element
 
@@ -684,6 +686,8 @@ class Membership < ActiveRecord::Base
   validates :starts_on, :presence => true
   
   validate :not_backwards
+  validate :unique
+  validate :not_self
   
 
   scope :starts_by, lambda {|date| where("starts_on <= ?", date) }
@@ -695,13 +699,13 @@ class Membership < ActiveRecord::Base
                            }
   scope :exclusions, -> { where(inverse: true) }
   scope :inclusions, -> { where(inverse: false) }
-  scope :by_element, ->(element) { where("element_id = ?", element.id) }
-  scope :of_group,   ->(group)   { where("group_id = ?", group.id) }
+  scope :by_element, ->(element) { where(element: element) }
+  scope :of_group,   ->(group)   { where(group: group) }
 
   #
   #  Can I also have a method with the same name?  It appears I can.
   #
-  def active_on(date)
+  def active_on?(date)
     self.starts_on <= date &&
     (self.ends_on == nil || self.ends_on >= date)
   end
@@ -811,6 +815,101 @@ class Membership < ActiveRecord::Base
 #    Rails.logger.debug("Leaving membership.recurse_mbd.")
   end
 
+  def <=>(other)
+    if other.instance_of?(Membership)
+      #
+      #  We sort first by start date, then by end date.
+      #
+      if self.starts_on == other.starts_on
+        if self.ends_on == other.ends_on
+          #
+          #  We must never return 0 unless we are actually dealing with
+          #  two references to the same record.  This is because Comparable
+          #  re-defines == to use this method.
+          #
+          #  Our final decision is based on the ids of the two records.
+          #
+          self.id <=> other.id
+        else
+          if self.ends_on
+            if other.ends_on
+              self.ends_on <=> other.ends_on
+            else
+              #
+              #  He doesn't have an end date.  We come first.
+              #
+              -1
+            end
+          else
+            #
+            #  We don't have an end date so we come second.
+            #
+            1
+          end
+        end
+      else
+        if self.starts_on
+          if other.starts_on
+            self.starts_on <=> other.starts_on
+          else
+            1
+          end
+        else
+          -1
+        end
+      end
+    else
+      nil
+    end
+  end
+
+  def starts_on_text
+    self.starts_on ? self.starts_on.to_s(:dmy) : ""
+  end
+
+  def ends_on_text
+    self.ends_on ? self.ends_on.to_s(:dmy) : ""
+  end
+
+  def starts_on_text=(text)
+    self.starts_on = Date.safe_parse(text)
+  end
+
+  def ends_on_text=(text)
+    self.ends_on = Date.safe_parse(text)
+  end
+
+  #
+  #  Does it make sense to call terminate() for this membership
+  #  record?
+  #
+  def could_terminate?(date = Date.today)
+    self.ends_on.nil? && date >= self.starts_on
+  end
+
+  def terminate(date = Date.today)
+    self.update({
+      ends_on: date
+    })
+  end
+
+  def self.check_all_valid
+    count = 0
+    invalid_ids = Array.new
+    Membership.find_each do |membership|
+      unless membership.valid?
+        count += 1
+        invalid_ids << membership.id
+      end
+    end
+    puts "Found #{count} invalid records."
+    invalid_ids.each do |id|
+      puts "Invalid id #{id}"
+    end
+    nil
+  end
+
+
   private
 
   def not_backwards
@@ -831,17 +930,35 @@ class Membership < ActiveRecord::Base
   #  happen.
   #
   def unique
-    if self.ends_on
-      clashes = Membership.by_element(self.element).
-                           of_group(self.group).
-                           active_during(self.starts_on, self.ends_on)
-    else
-      clashes = Membership.by_element(self.element).
-                           of_group(self.group).
-                           continues_until(self.starts_on)
+    #
+    #  If we don't have a starts_on then don't bother with this check.
+    #  We will fail a different validation.
+    #
+    if self.starts_on && self.element && self.group
+      selector = Membership.by_element(self.element).
+                            of_group(self.group)
+      if self.ends_on
+        selector = selector.active_during(self.starts_on, self.ends_on)
+      else
+        selector = selector.continues_until(self.starts_on)
+      end
+      unless self.new_record?
+        selector = selector.where.not(id: self.id)
+      end
+      if selector.size > 0
+        errors.add(:base, "Duplicate memberships are not allowed.")
+      end
     end
-    if clashes.size > 0
-      errors.add(:overall, "Duplicate memberships are not allowed.")
+  end
+
+  def not_self
+    #
+    #  A group cannot be a direct member of itself.
+    #
+    if self.element && self.group
+      if self.element.entity == self.group
+        errors.add(:base, 'A group cannot be a direct member of itself.')
+      end
     end
   end
 

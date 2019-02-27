@@ -108,6 +108,11 @@ Rails.application.routes.draw do
   resources :locationaliases
 
   resources :groups do
+    resources :memberships, shallow: true do
+      member do
+        put :terminate
+      end
+    end
     member do
       get :members
       get :schedule
@@ -177,8 +182,6 @@ Rails.application.routes.draw do
   end
 
   post '/commitments/:commitment_id/coverwith/:id', to: 'covers#coverwith'
-
-  resources :memberships
 
   resources :staffs
 

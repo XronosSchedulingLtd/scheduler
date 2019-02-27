@@ -145,25 +145,23 @@
   <h3>Members</h3>
   <div class="row">
     <div class="small-8 columns">
-      <%= form_for(@membership, remote: true) do |f| %>
+      <%= form_for([@group, @membership], remote: true) do |f| %>
         <%= f.autocomplete_field :element_name,
                                  autocomplete_element_name_elements_path,
                                  :id_element => '#membership_element_id',
                                  :placeholder => "Add a member",
                                  "data-auto-focus" => true %>
         <%= f.text_field :element_id, :type => :hidden %>
-        <%= f.text_field :group_id, :type => :hidden %>
       <% end %>
     </div>
     <div class="small-4 columns">
-      <%= form_for(@exclusion, namespace: :exclusion, remote: true) do |f| %>
+      <%= form_for([@group, @exclusion], namespace: :exclusion, remote: true) do |f| %>
         <%= f.autocomplete_field :element_name,
                                  autocomplete_element_name_elements_path,
                                  :id_element => '#exclusion_membership_element_id',
                                  :placeholder => "but exclude",
                                  "data-auto-focus" => true %>
         <%= f.text_field :element_id, :type => :hidden %>
-        <%= f.text_field :group_id, :type => :hidden %>
         <%= f.text_field :inverse, :type => :hidden %>
       <% end %>
     </div>
