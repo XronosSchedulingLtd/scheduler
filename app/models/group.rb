@@ -772,11 +772,37 @@ class Group < ActiveRecord::Base
   #
   #  Note that this method returns *entities* - of whatever type.
   #
-  def members(given_date     = nil,
-              recurse        = true,
-              exclude_groups = false,
-              seen           = [])
+  def members(given_date      = nil,
+              recurse         = true,
+              exclude_groups  = false,
+              and_future_ones = false)
+    #
+    #  given_date      - the date on which to evaluate membership
+    #                    defaults to today
+    #  recurse         - whether to go down into nested groups
+    #  exclude_groups  - should entities which are themselves groups be
+    #                    excluded from the list
+    #  and_future_ones - should entities which *will* be members in
+    #                    the future (relative to the specified date)
+    #                    be returned
+    #  
     unless given_date
+      #
+      #  The logic here is that if a date is given then we go with that
+      #  date throughout.  If no date is given then we used today's
+      #  date *unless* that would put us outside the lifespan of the
+      #  group.  In that last case we adjust the date to the first
+      #  or last date of the group's existence, whichever is closer.
+      #
+      #  Without this, a casual call to members() for a group which
+      #  has ceased existence would indicate that it had no members,
+      #  which is true but surprising.  People tend to want to know
+      #  what members it had when it existed.
+      #
+      #  Note therefore that if a caller explicitly specifies a date
+      #  outside the duration of the group, they will get back no
+      #  members.
+      #
       given_date = Date.today
       if given_date < self.starts_on
         given_date = self.starts_on
@@ -784,6 +810,17 @@ class Group < ActiveRecord::Base
         given_date = self.ends_on
       end
     end
+    members_worker_method(given_date, recurse, exclude_groups)
+  end
+
+  protected
+
+  def members_worker_method(
+    given_date,
+    recurse,
+    exclude_groups,
+    seen = [])
+
     return [] unless active_on(given_date)
     return [] if seen.include?(self.id)
     if recurse 
@@ -804,18 +841,14 @@ class Group < ActiveRecord::Base
       included_by_group =
         group_includes.collect {|membership|
           (exclude_groups ? [] : [membership.element.entity]) +
-          membership.element.entity.members(given_date,
-                                            true,
-                                            exclude_groups,
-                                            seen)
+          membership.element.entity.members_worker_method(
+            given_date, true, exclude_groups, seen)
         }.flatten.uniq
       excluded_by_group =
         group_excludes.collect {|membership|
           (exclude_groups ? [] : [membership.element.entity]) +
-          membership.element.entity.members(given_date,
-                                            true,
-                                            exclude_groups,
-                                            seen)
+          membership.element.entity.members_worker_method(
+            given_date, true, exclude_groups, seen)
         }.flatten.uniq
       included_atomically =
         atomic_includes.collect {|membership| membership.element.entity}
@@ -844,6 +877,8 @@ class Group < ActiveRecord::Base
       }.collect {|m| m.element.entity}
     end
   end
+
+  public
 
   #
   #  Check whether an entity (or an element) is a member of the
