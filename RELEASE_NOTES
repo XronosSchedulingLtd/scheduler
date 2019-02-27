@@ -1,3 +1,20 @@
+v1.7.6  2019-02-27
+
+* Added the ability to edit membership records directly
+
+  Scheduler stores not just the instantaneous membership of a group but
+  a full record (and even future projection) of its membership.
+
+  The normal group editing facilities hide this feature, but quietly keep
+  track of the membership over time.
+
+  This release adds the means for suitably privileged users (a new
+  privilege bit in the user record) to edit the membership records directly.
+
+  For more details on using this facility, see the Advanced User Guide
+  at https://xronos.uk/advanced
+
+
 v1.7.5  2019-02-21
 
 Mostly adding e-mails relating to resource requests
