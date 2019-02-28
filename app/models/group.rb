@@ -810,7 +810,7 @@ class Group < ActiveRecord::Base
         given_date = self.ends_on
       end
     end
-    members_worker_method(given_date, recurse, exclude_groups)
+    members_worker_method(given_date, recurse, exclude_groups, and_future_ones)
   end
 
   protected
@@ -819,6 +819,7 @@ class Group < ActiveRecord::Base
     given_date,
     recurse,
     exclude_groups,
+    and_future_ones,
     seen = [])
 
     return [] unless active_on(given_date)
@@ -842,13 +843,13 @@ class Group < ActiveRecord::Base
         group_includes.collect {|membership|
           (exclude_groups ? [] : [membership.element.entity]) +
           membership.element.entity.members_worker_method(
-            given_date, true, exclude_groups, seen)
+            given_date, true, exclude_groups, and_future_ones, seen)
         }.flatten.uniq
       excluded_by_group =
         group_excludes.collect {|membership|
           (exclude_groups ? [] : [membership.element.entity]) +
           membership.element.entity.members_worker_method(
-            given_date, true, exclude_groups, seen)
+            given_date, true, exclude_groups, and_future_ones, seen)
         }.flatten.uniq
       included_atomically =
         atomic_includes.collect {|membership| membership.element.entity}
