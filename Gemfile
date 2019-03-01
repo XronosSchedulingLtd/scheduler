@@ -69,3 +69,7 @@ group :development do
   gem 'web-console', '~> 2.0'
   gem 'quiet_assets'
 end
+
+group :test, :development do
+  gem 'factory_bot_rails'
+end

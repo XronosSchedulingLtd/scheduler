@@ -846,6 +846,19 @@ class Group < ActiveRecord::Base
   end
 
   #
+  #  Check whether an entity (or an element) is a member of the
+  #  group.
+  #
+  def member?(item, given_date = nil, recurse = true)
+    if item.instance_of?(Element)
+      entity = element.entity
+    else
+      entity = item
+    end
+    self.members(given_date, recurse).include?(entity)
+  end
+
+  #
   #  Just return the membership records which give us explicit inclusions
   #  on the indicated date.
   #
@@ -937,6 +950,15 @@ class Group < ActiveRecord::Base
     else
       []
     end
+  end
+
+  def outcast?(item, given_date = nil, recurse = true)
+    if item.instance_of?(Element)
+      entity = element.entity
+    else
+      entity = item
+    end
+    self.outcasts(given_date, recurse).include?(entity)
   end
 
   def active_on(date)
