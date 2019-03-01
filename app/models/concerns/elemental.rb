@@ -84,6 +84,13 @@ module Elemental
         #  An inactive entity shouldn't have an element.
         #
         self.element.destroy
+        #
+        #  There is still a copy of the element in memory, and it's
+        #  just possible that we might, for instance, try to create
+        #  a membership record with it later.  Disconnect from
+        #  it.
+        #
+        self.element = nil
       end
     else
       if self.active

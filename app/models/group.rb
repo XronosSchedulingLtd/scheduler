@@ -486,6 +486,10 @@ class Group < ActiveRecord::Base
   #
   def add_member(item, as_of = nil)
     # Rails.logger.info("Entering add_member for #{item.name}")
+    if item.nil?
+      Rails.logger.info('Nil item passed to add_member')
+      return false
+    end
     if item.instance_of?(Element)
       element = item
     else
