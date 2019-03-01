@@ -199,4 +199,34 @@ class GroupTest < ActiveSupport::TestCase
     assert     @group.member?(location3)
   end
 
+  test 'members can be added in the future' do
+    location1 = FactoryBot.create(:location)
+    assert @group.add_member(location1, Date.tomorrow)
+    #
+    #  Not today
+    #
+    assert_not @group.member?(location1), 'not today'
+    #
+    #  But it will be tomorrow
+    #
+    assert @group.member?(location1, Date.tomorrow), 'but tomorrow'
+    #
+    #  And just generally in the future from today
+    #
+    assert @group.member?(location1, Date.today, true, true), 'and in the future'
+    #
+    #  And check all the same with recursion turned off.  It's a different
+    #  path through the model code.
+    #
+    assert_not @group.member?(location1, nil, false), 'not today'
+    #
+    #  But it will be tomorrow
+    #
+    assert @group.member?(location1, Date.tomorrow, false), 'but tomorrow'
+    #
+    #  And just generally in the future from today
+    #
+    assert @group.member?(location1, Date.today, false, true), 'and in the future'
+  end
+
 end

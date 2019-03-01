@@ -822,15 +822,23 @@ class Group < ActiveRecord::Base
     and_future_ones,
     seen = [])
 
-    return [] unless active_on(given_date)
+    if and_future_ones
+      return [] unless active_on_or_after(given_date)
+    else
+      return [] unless active_on(given_date)
+    end
     return [] if seen.include?(self.id)
     if recurse 
       seen << self.id
-      active_memberships =
+      selector =
         self.memberships.
-             includes(element: :entity).
-             active_on(given_date)
-      excludes, includes = active_memberships.partition {|am| am.inverse}
+             includes(element: :entity)
+      if and_future_ones
+        selector = selector.continues_until(given_date)
+      else
+        selector = selector.active_on(given_date)
+      end
+      excludes, includes = selector.partition {|am| am.inverse}
       group_includes, atomic_includes =
         includes.partition {|m| m.element.entity_type == "Group"}
       group_excludes, atomic_excludes =
@@ -869,11 +877,13 @@ class Group < ActiveRecord::Base
       #  corresponding exclusion record, so we don't need to look
       #  at the exclusion records.
       #
-      self.memberships.
-           includes(element: :entity).
-           active_on(given_date).
-           inclusions.
-           select {|m|
+      selector = self.memberships.includes(element: :entity).inclusions
+      if and_future_ones
+        selector = selector.continues_until(given_date)
+      else
+        selector = selector.active_on(given_date)
+      end
+      selector.select {|m|
         m.element.entity.class != Group || !exclude_groups
       }.collect {|m| m.element.entity}
     end
@@ -885,13 +895,13 @@ class Group < ActiveRecord::Base
   #  Check whether an entity (or an element) is a member of the
   #  group.
   #
-  def member?(item, given_date = nil, recurse = true)
+  def member?(item, given_date = nil, recurse = true, and_future_ones = false)
     if item.instance_of?(Element)
       entity = element.entity
     else
       entity = item
     end
-    self.members(given_date, recurse).include?(entity)
+    self.members(given_date, recurse, false, and_future_ones).include?(entity)
   end
 
   #
@@ -1000,6 +1010,14 @@ class Group < ActiveRecord::Base
   def active_on(date)
     self.starts_on <= date &&
     (self.ends_on == nil || self.ends_on >= date)
+  end
+
+  def active_on_or_after(date)
+    #
+    #  Essentially just check that we aren't done and over with before
+    #  the specified date.
+    #
+    self.ends_on == nil || self.ends_on >= date
   end
 
   #
