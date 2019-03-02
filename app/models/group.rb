@@ -486,6 +486,10 @@ class Group < ActiveRecord::Base
   #
   def add_member(item, as_of = nil)
     # Rails.logger.info("Entering add_member for #{item.name}")
+    if item.nil?
+      Rails.logger.info('Nil item passed to add_member')
+      return false
+    end
     if item.instance_of?(Element)
       element = item
     else
@@ -768,11 +772,37 @@ class Group < ActiveRecord::Base
   #
   #  Note that this method returns *entities* - of whatever type.
   #
-  def members(given_date     = nil,
-              recurse        = true,
-              exclude_groups = false,
-              seen           = [])
+  def members(given_date      = nil,
+              recurse         = true,
+              exclude_groups  = false,
+              and_future_ones = false)
+    #
+    #  given_date      - the date on which to evaluate membership
+    #                    defaults to today
+    #  recurse         - whether to go down into nested groups
+    #  exclude_groups  - should entities which are themselves groups be
+    #                    excluded from the list
+    #  and_future_ones - should entities which *will* be members in
+    #                    the future (relative to the specified date)
+    #                    be returned
+    #  
     unless given_date
+      #
+      #  The logic here is that if a date is given then we go with that
+      #  date throughout.  If no date is given then we used today's
+      #  date *unless* that would put us outside the lifespan of the
+      #  group.  In that last case we adjust the date to the first
+      #  or last date of the group's existence, whichever is closer.
+      #
+      #  Without this, a casual call to members() for a group which
+      #  has ceased existence would indicate that it had no members,
+      #  which is true but surprising.  People tend to want to know
+      #  what members it had when it existed.
+      #
+      #  Note therefore that if a caller explicitly specifies a date
+      #  outside the duration of the group, they will get back no
+      #  members.
+      #
       given_date = Date.today
       if given_date < self.starts_on
         given_date = self.starts_on
@@ -780,15 +810,35 @@ class Group < ActiveRecord::Base
         given_date = self.ends_on
       end
     end
-    return [] unless active_on(given_date)
+    members_worker_method(given_date, recurse, exclude_groups, and_future_ones)
+  end
+
+  protected
+
+  def members_worker_method(
+    given_date,
+    recurse,
+    exclude_groups,
+    and_future_ones,
+    seen = [])
+
+    if and_future_ones
+      return [] unless active_on_or_after(given_date)
+    else
+      return [] unless active_on(given_date)
+    end
     return [] if seen.include?(self.id)
     if recurse 
       seen << self.id
-      active_memberships =
+      selector =
         self.memberships.
-             includes(element: :entity).
-             active_on(given_date)
-      excludes, includes = active_memberships.partition {|am| am.inverse}
+             includes(element: :entity)
+      if and_future_ones
+        selector = selector.continues_until(given_date)
+      else
+        selector = selector.active_on(given_date)
+      end
+      excludes, includes = selector.partition {|am| am.inverse}
       group_includes, atomic_includes =
         includes.partition {|m| m.element.entity_type == "Group"}
       group_excludes, atomic_excludes =
@@ -800,18 +850,14 @@ class Group < ActiveRecord::Base
       included_by_group =
         group_includes.collect {|membership|
           (exclude_groups ? [] : [membership.element.entity]) +
-          membership.element.entity.members(given_date,
-                                            true,
-                                            exclude_groups,
-                                            seen)
+          membership.element.entity.members_worker_method(
+            given_date, true, exclude_groups, and_future_ones, seen)
         }.flatten.uniq
       excluded_by_group =
         group_excludes.collect {|membership|
           (exclude_groups ? [] : [membership.element.entity]) +
-          membership.element.entity.members(given_date,
-                                            true,
-                                            exclude_groups,
-                                            seen)
+          membership.element.entity.members_worker_method(
+            given_date, true, exclude_groups, and_future_ones, seen)
         }.flatten.uniq
       included_atomically =
         atomic_includes.collect {|membership| membership.element.entity}
@@ -831,14 +877,31 @@ class Group < ActiveRecord::Base
       #  corresponding exclusion record, so we don't need to look
       #  at the exclusion records.
       #
-      self.memberships.
-           includes(element: :entity).
-           active_on(given_date).
-           inclusions.
-           select {|m|
+      selector = self.memberships.includes(element: :entity).inclusions
+      if and_future_ones
+        selector = selector.continues_until(given_date)
+      else
+        selector = selector.active_on(given_date)
+      end
+      selector.select {|m|
         m.element.entity.class != Group || !exclude_groups
       }.collect {|m| m.element.entity}
     end
+  end
+
+  public
+
+  #
+  #  Check whether an entity (or an element) is a member of the
+  #  group.
+  #
+  def member?(item, given_date = nil, recurse = true, and_future_ones = false)
+    if item.instance_of?(Element)
+      entity = element.entity
+    else
+      entity = item
+    end
+    self.members(given_date, recurse, false, and_future_ones).include?(entity)
   end
 
   #
@@ -935,9 +998,26 @@ class Group < ActiveRecord::Base
     end
   end
 
+  def outcast?(item, given_date = nil, recurse = true)
+    if item.instance_of?(Element)
+      entity = element.entity
+    else
+      entity = item
+    end
+    self.outcasts(given_date, recurse).include?(entity)
+  end
+
   def active_on(date)
     self.starts_on <= date &&
     (self.ends_on == nil || self.ends_on >= date)
+  end
+
+  def active_on_or_after(date)
+    #
+    #  Essentially just check that we aren't done and over with before
+    #  the specified date.
+    #
+    self.ends_on == nil || self.ends_on >= date
   end
 
   #
