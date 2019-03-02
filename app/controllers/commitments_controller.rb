@@ -100,6 +100,7 @@ class CommitmentsController < ApplicationController
         @request.quantity += 1
         @request.save
         @request.reload
+        @amended_request_id = @request.id
         @request.event.journal_resource_request_incremented(@request,
                                                             current_user)
         #
@@ -114,6 +115,7 @@ class CommitmentsController < ApplicationController
         @request = Request.new(commitment_params.merge({quantity: 1}))
         if @request.save
           @request.reload
+          @amended_request_id = @request.id
           #
           #  Should:
           #    Add it to the request notifier

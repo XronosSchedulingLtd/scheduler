@@ -505,6 +505,7 @@ window.replaceEditingCommitments = (new_html) ->
   $('#event_resources').html(new_html)
   primeQuickAddButtons()
   window.refreshNeeded()
+  $('.flashme').effect('highlight', {color: 'orange'}, 1500)
 
 window.beginEditingConcernSet = (body_text) ->
   $('#concern-set-editing').html(body_text)

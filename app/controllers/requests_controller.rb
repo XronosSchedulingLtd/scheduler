@@ -101,6 +101,7 @@ class RequestsController < ApplicationController
     if current_user.can_modify?(@request)
       @request.increment_and_save
       @request.reload
+      @amended_request_id = @request.id
       @event.journal_resource_request_incremented(@request, current_user)
       #
       #  We notify only if allocation has already started.
@@ -123,6 +124,7 @@ class RequestsController < ApplicationController
     if current_user.can_modify?(@request)
       @request.decrement_and_save
       @request.reload
+      @amended_request_id = @request.id
       @event.journal_resource_request_decremented(@request, current_user)
       #
       #  We notify only if allocation has already started.
