@@ -51,7 +51,8 @@ if ($('#groupschedule').length) {
               'ha'
             ],
             type: 'timeline',
-            duration: { days: 3 }
+            duration: { days: 3 },
+            titleFormat: 'Do MMM, YYYY'
           },
           timelineFourDays: {
             slotLabelFormat: [
@@ -59,7 +60,8 @@ if ($('#groupschedule').length) {
               'ha'
             ],
             type: 'timeline',
-            duration: { days: 4 }
+            duration: { days: 4 },
+            titleFormat: 'Do MMM, YYYY'
           }
         },
         defaultView: 'timelineDay',
