@@ -350,6 +350,7 @@ class GroupsController < ApplicationController
                                     :loading_report_days,
                                     :wrapping_mins,
                                     :confirmation_days,
-                                    :form_warning_days)
+                                    :form_warning_days,
+                                    :needs_people)
     end
 end

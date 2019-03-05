@@ -113,6 +113,7 @@ class Event < ActiveRecord::Base
   belongs_to :event_collection
   has_many :commitments, :dependent => :destroy
   has_many :requests, :dependent => :destroy
+  has_many :requested_elements, through: :requests, source: :element
   has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
   has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
   has_many :covering_commitments, -> { where("covering_id IS NOT NULL") }, class_name: "Commitment"
@@ -700,6 +701,18 @@ class Event < ActiveRecord::Base
   def organisers_email
     if self.organiser && self.organiser.entity_type == "Staff"
       self.organiser.entity.email
+    else
+      nil
+    end
+  end
+
+  def organiser_user
+    #
+    #  Return the user linked as the organiser of this event, if
+    #  feasible.
+    #
+    if self.organiser && self.organiser.entity.respond_to?(:corresponding_user)
+      self.organiser.entity.corresponding_user
     else
       nil
     end

@@ -20,6 +20,11 @@ namespace :daily do
     ReconfirmationPrompter.new.scan_requests.send_emails
   end
 
+  desc 'Prompt people to list drivers etc.'
+  task prompt_for_staff: :environment do
+    StaffPrompter.new.scan_events.send_emails
+  end
+
   desc 'Adjust group currency flags.'
   task adjust_currency_flags: :environment do
     Group.adjust_currency_flags

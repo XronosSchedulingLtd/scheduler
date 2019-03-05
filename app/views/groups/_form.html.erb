@@ -44,7 +44,17 @@
                          "data-allow-empty" => true) %>
       </span>
     </div>
-    <div class='small-3 columns'>
+    <div class="small-2 columns">
+      <%=
+        f.label(
+          :needs_people,
+          class: "right inline",
+          title: 'If set, then the system will expect as many people to be allocated to the event as the number of these resources requested.  E.g. drivers for mini-buses.'
+        )
+        %>
+    </div>
+    <div class="small-1 columns">
+      <%= f.check_box :needs_people %>
     </div>
 <% else %>
     <div class='small-6 columns'>
@@ -94,8 +104,9 @@
       <%=
         f.label(
           :form_warning_days,
+          'Warning days',
           class: "right inline",
-          title: 'How many days in advance of an event should the system start nagging the user to fill in uncompleted forms? 0 disables.'
+          title: 'How many days in advance of an event should the system start nagging the user to fill in uncompleted forms and staff details? 0 disables.'
         )
       %>
     </div>
