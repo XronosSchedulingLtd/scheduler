@@ -37,17 +37,27 @@ class FormPrompter
           "#{ActionController::Base.helpers.pluralize(quantity, resource)}"
         end
 
+        def <=>(other)
+          if other.instance_of?(Item)
+            self.request <=> other.request
+          else
+            nil
+          end
+        end
+
       end
 
       attr_reader :email
 
       def initialize(user)
         @user  = user
-        @items = Array.new
+        @items = Hash.new
       end
 
       def note_form_needing_attention(request, ufr)
-        @items << Item.new(request, ufr)
+        unless @items[request.id]
+          @items[request.id] = Item.new(request, ufr)
+        end
       end
 
       #
@@ -55,7 +65,7 @@ class FormPrompter
       #
       def send_emails
         UserMailer.forms_overdue_email(@user.email,
-                                       @items,
+                                       @items.values.sort,
                                        @user).deliver_now
       end
 
@@ -74,6 +84,9 @@ class FormPrompter
       end
     end
 
+    def note_form_needing_attention(user, request, ufr)
+      self.recipient(user).note_form_needing_attention(request, ufr)
+    end
   end
 
   attr_reader :rs
@@ -107,23 +120,24 @@ class FormPrompter
         #
         requests =
           element.requests.
-                  includes(user_form_response: :user).
+                  includes(:event, user_form_response: :user).
                   during(start_date, end_date).
                   none_allocated.
                   with_incomplete_form
         requests.each do  |request|
           ufr = request.user_form_response
           if ufr
-            user = ufr.user
-            if user
-              #
-              #  Some users do a lot of this and they're allowed to
-              #  opt out of receiving these prompts.
-              #
-              if user.prompt_for_forms
-                @rs.recipient(user).
-                    note_form_needing_attention(request, ufr)
-              end
+            event = request.event
+            owner = event.owner
+            if owner && owner.prompt_for_forms?
+              @rs.note_form_needing_attention(owner, request, ufr)
+            end
+            #
+            #  And the organiser, if any.
+            #
+            organiser = event.organiser_user
+            if organiser  && organiser.prompt_for_forms?
+              @rs.note_form_needing_attention(organiser, request, ufr)
             end
           end
         end
