@@ -5,7 +5,7 @@ class CreateAhoyMessages < ActiveRecord::Migration
       t.text :to
       t.string :mailer
       t.text :subject
-      t.text :content
+      t.text :content, limit: 1048576
       t.timestamp :sent_at
     end
   end

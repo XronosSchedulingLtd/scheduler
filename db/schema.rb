@@ -19,7 +19,7 @@ ActiveRecord::Schema.define(version: 20190305122700) do
     t.text     "to",        limit: 65535
     t.string   "mailer",    limit: 255
     t.text     "subject",   limit: 65535
-    t.text     "content",   limit: 65535
+    t.text     "content",   limit: 16777215
     t.datetime "sent_at"
   end
 
