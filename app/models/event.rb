@@ -1454,7 +1454,7 @@ class Event < ActiveRecord::Base
       #
       #  Not all commitments are cloneable.
       #
-      if commitment.cloneable?
+      if commitment.cloneable?(element_id_list)
         c = commitment.clone_and_save(event: new_self) do |c|
           if block_given?
             yield c
