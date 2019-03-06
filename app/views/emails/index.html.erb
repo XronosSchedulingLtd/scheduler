@@ -1,4 +1,10 @@
-<h1>Listing emails sent</h1>
+<h1>Listing emails sent<%=
+if @user
+  " to #{@user.name}"
+else
+  ""
+end
+%></h1>
 <div class="apple_pagination">
   <%= will_paginate @emails %>
 </div>

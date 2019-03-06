@@ -9,6 +9,7 @@ module EmailsHelper
   class EmailDeconstructor
 
     include Rails.application.routes.url_helpers
+    include ActionView::Helpers::UrlHelper
 
     MAXIMUM_FIELD_LENGTH = 25
 
@@ -25,7 +26,15 @@ module EmailsHelper
         if name.length > MAXIMUM_FIELD_LENGTH
           name = name[0, MAXIMUM_FIELD_LENGTH - 3] + "..."
         end
-        result = "<a href='#{user_emails_path(user)}' title='#{user.name}'>#{name}</a>".html_safe
+        #
+        #  The association is polymorphic, and it's just possible
+        #  we might end up with something else.
+        #
+        if user.instance_of?(User)
+          result = "<a href='#{user_emails_path(user)}' title='#{user.name}'>#{name}</a>".html_safe
+        else
+          result = "<span title='#{user.name}'>#{name}</span>".html_safe
+        end
       end
       result
     end
@@ -65,8 +74,8 @@ module EmailsHelper
 
     def parts_columns
       result = []
-      @deconstructed.parts.each do |part|
-        result << "<td>#{ content_type_description(part.content_type) }</td>"
+      @deconstructed.parts.each_with_index do |part, i|
+        result << "<td>#{ parts_link(part, i) }</td>"
       end
       result.join("\n").html_safe
     end
@@ -82,6 +91,13 @@ module EmailsHelper
       else
         content_type
       end
+    end
+
+    def parts_link(part, i)
+      link_to(content_type_description(part.content_type),
+              email_path(@message, part_no: i),
+              'data-reveal-id' => 'eventModal',
+              'data-reveal-ajax' => true )
     end
 
   end

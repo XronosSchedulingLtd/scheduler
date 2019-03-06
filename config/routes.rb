@@ -272,7 +272,7 @@ Rails.application.routes.draw do
 
   resources :eras
 
-  resources :emails
+  resources :emails, only: [:index, :show]
 
   root 'schedule#show'
 

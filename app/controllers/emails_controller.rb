@@ -5,7 +5,7 @@
 
 class EmailsController < ApplicationController
   before_action :set_user, only: [:index]
-  before_action :set_email, only: [:show, :edit, :update, :destroy]
+  before_action :set_email, only: [:show]
 
   # GET /emails
   # GET /emails.json
@@ -24,6 +24,38 @@ class EmailsController < ApplicationController
   # GET /emails/1
   # GET /emails/1.json
   def show
+    @modal = request.xhr?
+    #
+    #  Actually shows just part of an e-mail in a pop-up box.
+    #
+    #  Has the user specified which part?  If not, we show the first
+    #  one.
+    #
+    if params[:part_no]
+      part_no = params[:part_no].to_i
+    else
+      part_no = 0
+    end
+    @deconstructed = Mail.new(@email.content)
+    if part_no < @deconstructed.parts.count
+      @part = @deconstructed.parts[part_no]
+    else
+      @part = @deconstructed.parts.first
+    end
+    #
+    #  Is it text or HTML?
+    #
+    case @part.content_type
+      when /\Atext\/html/
+        @document = Nokogiri::HTML(@part.decoded)
+        @html = @document.at('body').children.to_html
+      else
+        #
+        #  Treat as text.
+        #
+        @text = @part.decoded
+    end
+    render layout: !@modal
   end
 
   private
