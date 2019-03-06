@@ -1,0 +1,31 @@
+<h1>Listing emails sent</h1>
+<div class="apple_pagination">
+  <%= will_paginate @emails %>
+</div>
+
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>Sent at</th>
+      <th>User</th>
+      <th>Email</th>
+      <th>Subject</th>
+      <th>Parts</th>
+      <th colspan="2"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <%= render collection: @emails, partial: 'emails/message' %>
+  </tbody>
+</table>
+
+<div class="apple_pagination">
+  <%= will_paginate @emails %>
+</div>
+<% if @user %>
+  <div class="flip-button">
+    <%= link_to 'Back to all', emails_path, class: "zfbutton tiny radius button-link" %>
+  </div>
+<% end %>
+

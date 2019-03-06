@@ -95,7 +95,6 @@ class StaffPrompter
   end
 
   def process_event(event)
-    puts "Processing #{event.body}"
     #
     #  What we have here is an event with at least one request
     #  which needs to have staff numbers checked.
@@ -115,7 +114,6 @@ class StaffPrompter
         num_needed += request.quantity
       end
     end
-    puts "Total needed = #{num_needed}"
     if num_needed > num_staff
       #
       #  This one warrants a warning e-mail.  It should go to both the

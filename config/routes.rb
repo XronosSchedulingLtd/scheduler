@@ -153,6 +153,7 @@ Rails.application.routes.draw do
     resources :filters, only: [:edit, :update]
     resources :events, only: [:index]
     resources :requests, only: [:index]
+    resources :emails, only: [:index]
     #
     #  One would not normally make :destroy and :edit for concerns
     #  subsidiary to users, but we do it to distinguish such
@@ -270,6 +271,8 @@ Rails.application.routes.draw do
   post 'imports/commit_file'
 
   resources :eras
+
+  resources :emails
 
   root 'schedule#show'
 

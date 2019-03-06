@@ -61,6 +61,7 @@ gem 'loofah', '~> 2.2.2'
 gem 'nokogiri'
 gem 'tod'
 gem 'redcarpet'
+gem 'ahoy_email'
 group :production do
   gem 'tiny_tds'
 end
