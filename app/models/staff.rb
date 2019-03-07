@@ -83,7 +83,8 @@ class Staff < ActiveRecord::Base
   def csv_name
     [self.initials,
      self.forename,
-     self.surname].to_csv
+     self.surname,
+     self.email].to_csv
   end
 
   #
