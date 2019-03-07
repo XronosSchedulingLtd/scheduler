@@ -226,7 +226,22 @@ class Event < ActiveRecord::Base
   scope :has_clashes, lambda { where(has_clashes: true) }
   scope :owned_by, lambda {|user| where(owner: user) }
 
+  def self.owned_or_organised_by(user)
+    if user.corresponding_staff
+      staff_element = user.corresponding_staff.element
+      where("owner_id = ? OR organiser_id = ?", user.id, staff_element.id)
+    else
+      where(owner: user)
+    end
+  end
+
   before_destroy :being_destroyed
+
+  def owned_or_organised_by?(user)
+    self.owner_id == user.id ||
+      (user.corresponding_staff &&
+       user.corresponding_staff.element.id == self.organiser_id)
+  end
 
   #
   #  We are being asked to check whether we are complete or not.  The
