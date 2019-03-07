@@ -229,7 +229,9 @@ class Event < ActiveRecord::Base
   def self.owned_or_organised_by(user)
     if user.corresponding_staff
       staff_element = user.corresponding_staff.element
-      where("owner_id = ? OR organiser_id = ?", user.id, staff_element.id)
+      where("events.owner_id = ? OR events.organiser_id = ?",
+            user.id,
+            staff_element.id)
     else
       where(owner: user)
     end

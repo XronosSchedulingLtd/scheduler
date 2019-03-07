@@ -310,7 +310,7 @@ class RequestsController < ApplicationController
       #
       #  By requesting user
       #
-      selector = Request.owned_by(@user)
+      selector = Request.owned_or_organised_by(@user)
       if params.has_key?(:pending)
         @pending = true
         selector = selector.future
