@@ -6,6 +6,7 @@
 class Setting < ActiveRecord::Base
 
   @@setting = nil
+  @@from_email_domain = nil
   @@got_hostname = false
   @@hostname = ""
   @@rr_versions = nil
@@ -42,6 +43,7 @@ class Setting < ActiveRecord::Base
   #
   def flush_cache
     @@setting = Setting.first
+    @@from_email_domain = nil
   end
 
   def update_html
@@ -197,6 +199,24 @@ class Setting < ActiveRecord::Base
     else
       ""
     end
+  end
+
+  #
+  #  What e-mail domain do our e-mails originate from?
+  #
+  def self.from_email_domain
+    unless @@from_email_domain
+      @@setting ||= Setting.first
+      @@from_email_domain = ""
+      if @@setting
+        our_email_address = @@setting.from_email_address
+        unless our_email_address.blank?
+          @@from_email_domain =
+            Mail::Address.new(our_email_address).domain
+        end
+      end
+    end
+    @@from_email_domain
   end
 
   def self.require_uuid

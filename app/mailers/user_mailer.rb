@@ -245,6 +245,13 @@ class UserMailer < ActionMailer::Base
          subject: "Please re-confirm your resource requests in Scheduler")
   end
 
+  def prompt_for_staff_email(email, items, user)
+    @items = items
+    @user = user
+    mail(to: email,
+         from: Setting.from_email_address,
+         subject: "Some of your events need staff to go with resources")
+  end
 
   private
 

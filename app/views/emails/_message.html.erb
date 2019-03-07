@@ -1,0 +1,14 @@
+<%
+  #
+  #  Need to do a bit of work to break down the e-mail.
+  #
+  d = get_deconstructor(message)
+%>
+<tr>
+  <td><%= message.sent_at.to_s(:hmdmy) %></td>
+  <td><%= d.user_column %></td>
+  <td><%= d.to_column %></td>
+  <td><%= d.subject_column %></td>
+  <td><%= d.num_parts %></td>
+<%= d.parts_columns %>
+</tr>

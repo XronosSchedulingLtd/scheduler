@@ -50,7 +50,7 @@ class GroupScheduler
     #  Now the actual commitments for the immediate, non-group members
     #  of this group.
     #
-    other_members.each do |member|
+    other_members.sort.each do |member|
       ea.events_for(member).each do |e|
         events << e
       end
@@ -74,8 +74,8 @@ class GroupScheduler
       resources << data
     end
     group_members, other_members =
-      group.members(nil, false).partition {|m| m.is_a? Group}
-    other_members.each do |member|
+      group.members(nil, false, false, true).partition {|m| m.is_a? Group}
+    other_members.sort.each do |member|
       resources << {
         id:         member.element.id,
         parentName: name,

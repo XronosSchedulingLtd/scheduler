@@ -50,11 +50,13 @@ class ReconfirmationPrompter
 
       def initialize(user)
         @user  = user
-        @items = Array.new
+        @items = Hash.new
       end
 
       def note_request(request)
-        @items << Item.new(request)
+        unless @items[request.id]
+          @items[request.id] = Item.new(request)
+        end
       end
 
       #
@@ -62,7 +64,7 @@ class ReconfirmationPrompter
       #
       def send_emails
         UserMailer.reconfirm_requests_email(@user.email,
-                                            @items.sort,
+                                            @items.values.sort,
                                             @user).deliver_now
       end
 
@@ -112,6 +114,12 @@ class ReconfirmationPrompter
             #
             if user.confirmation_messages
               @rs.note_request(user, request)
+            end
+          end
+          organiser = request.event.organiser_user
+          if organiser
+            if organiser.confirmation_messages
+              @rs.note_request(organiser, request)
             end
           end
         end

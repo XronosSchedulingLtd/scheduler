@@ -16,3 +16,20 @@ select.compressed, input.compressed {
   display: flex;
   align-items: center;
 }
+
+div.mail-header {
+  width: 100%;
+  color: white;
+  background-color: rgb(33, 45, 72);
+  line-height: 45px;
+  padding-left: 15px;
+  padding-right: 15px;
+  font-size: 17px;
+  font-weight: normal;
+}
+
+div.mail-header a.schedlink {
+  color: white;
+  text-decoration: none;
+}
+

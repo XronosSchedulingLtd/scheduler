@@ -7,3 +7,4 @@ cd $SCHEDULER_DIR
 ~/.rvm/wrappers/scheduler/rake daily:report_loadings
 ~/.rvm/wrappers/scheduler/rake daily:prompt_for_forms
 ~/.rvm/wrappers/scheduler/rake daily:prompt_for_reconfirmation
+~/.rvm/wrappers/scheduler/rake daily:prompt_for_staff

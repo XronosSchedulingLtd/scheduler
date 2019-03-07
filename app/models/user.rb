@@ -84,6 +84,7 @@ class User < ActiveRecord::Base
            foreign_key: "by_whom_id",
            dependent: :nullify
 
+  has_many :messages, class_name: 'Ahoy::Message', as: :user
   belongs_to :preferred_event_category, class_name: Eventcategory
   belongs_to :day_shape, class_name: RotaTemplate
   belongs_to :corresponding_staff, class_name: "Staff"

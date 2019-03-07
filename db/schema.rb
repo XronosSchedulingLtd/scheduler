@@ -11,7 +11,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190222120307) do
+ActiveRecord::Schema.define(version: 20190305122700) do
+
+  create_table "ahoy_messages", force: :cascade do |t|
+    t.integer  "user_id",   limit: 4
+    t.string   "user_type", limit: 255
+    t.text     "to",        limit: 65535
+    t.string   "mailer",    limit: 255
+    t.text     "subject",   limit: 65535
+    t.text     "content",   limit: 16777215
+    t.datetime "sent_at"
+  end
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -500,6 +510,7 @@ ActiveRecord::Schema.define(version: 20190222120307) do
     t.integer  "wrapping_mins",       limit: 4, default: 0
     t.integer  "confirmation_days",   limit: 4, default: 0
     t.integer  "form_warning_days",   limit: 4, default: 0
+    t.boolean  "needs_people",                  default: false
   end
 
   create_table "rota_slots", force: :cascade do |t|

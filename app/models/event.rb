@@ -113,6 +113,7 @@ class Event < ActiveRecord::Base
   belongs_to :event_collection
   has_many :commitments, :dependent => :destroy
   has_many :requests, :dependent => :destroy
+  has_many :requested_elements, through: :requests, source: :element
   has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
   has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
   has_many :covering_commitments, -> { where("covering_id IS NOT NULL") }, class_name: "Commitment"
@@ -225,7 +226,24 @@ class Event < ActiveRecord::Base
   scope :has_clashes, lambda { where(has_clashes: true) }
   scope :owned_by, lambda {|user| where(owner: user) }
 
+  def self.owned_or_organised_by(user)
+    if user.corresponding_staff
+      staff_element = user.corresponding_staff.element
+      where("events.owner_id = ? OR events.organiser_id = ?",
+            user.id,
+            staff_element.id)
+    else
+      where(owner: user)
+    end
+  end
+
   before_destroy :being_destroyed
+
+  def owned_or_organised_by?(user)
+    self.owner_id == user.id ||
+      (user.corresponding_staff &&
+       user.corresponding_staff.element.id == self.organiser_id)
+  end
 
   #
   #  We are being asked to check whether we are complete or not.  The
@@ -700,6 +718,18 @@ class Event < ActiveRecord::Base
   def organisers_email
     if self.organiser && self.organiser.entity_type == "Staff"
       self.organiser.entity.email
+    else
+      nil
+    end
+  end
+
+  def organiser_user
+    #
+    #  Return the user linked as the organiser of this event, if
+    #  feasible.
+    #
+    if self.organiser && self.organiser.entity.respond_to?(:corresponding_user)
+      self.organiser.entity.corresponding_user
     else
       nil
     end
@@ -1441,7 +1471,7 @@ class Event < ActiveRecord::Base
       #
       #  Not all commitments are cloneable.
       #
-      if commitment.cloneable?
+      if commitment.cloneable?(element_id_list)
         c = commitment.clone_and_save(event: new_self) do |c|
           if block_given?
             yield c

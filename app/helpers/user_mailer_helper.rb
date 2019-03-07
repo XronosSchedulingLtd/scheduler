@@ -31,7 +31,7 @@ module UserMailerHelper
         protocol: schedulers_protocol,
         host: schedulers_host
       ),
-      class: "zfbutton"
+      class: "zfbutton tiny radius button-link"
     )
   end
 
@@ -41,7 +41,7 @@ module UserMailerHelper
                             pending: true,
                             protocol: schedulers_protocol,
                             host: schedulers_host),
-           class: "zfbutton")
+           class: "zfbutton tiny radius button-link")
   end
 
   def mailer_pending_requests_link(user, text = "View pending requests")
@@ -50,12 +50,12 @@ module UserMailerHelper
                               pending: true,
                               protocol: schedulers_protocol,
                               host: schedulers_host),
-           class: "zfbutton")
+           class: "zfbutton tiny radius button-link")
   end
 
   def mailer_mail_to_link(email, name, subject = nil)
     options = {
-      class: "zfbutton"
+      class: "zfbutton tiny radius button-link"
     }
     if subject
       options[:subject] = subject
@@ -72,7 +72,7 @@ module UserMailerHelper
         protocol: schedulers_protocol,
         host: schedulers_host
       ),
-      class: "zfbutton"
+      class: "zfbutton tiny radius button-link"
     )
   end
 
