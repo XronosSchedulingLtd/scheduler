@@ -4,8 +4,8 @@
 # for more information.
 
 class EmailsController < ApplicationController
-  before_action :set_user, only: [:index]
-  before_action :set_email, only: [:show]
+  prepend_before_action :set_user, only: [:index]
+  prepend_before_action :set_email, only: [:show]
 
   # GET /emails
   # GET /emails.json
@@ -62,13 +62,20 @@ class EmailsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_email
-    @email = Ahoy::Message.find(params[:id])
+    @email = Ahoy::Message.includes(:user).find(params[:id])
   end
 
   def set_user
     if params[:user_id]
       @user = User.find(params[:user_id])
     end
+  end
+
+  def authorized?(action = action_name, resource = nil)
+    logged_in? &&
+      (current_user.admin ||
+       (action == 'index' && @user == current_user) ||
+       (action == 'show' && @email.user == current_user))
   end
 
 end
