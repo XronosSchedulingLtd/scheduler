@@ -29,7 +29,7 @@ end
 <div class="apple_pagination">
   <%= will_paginate @emails %>
 </div>
-<% if @user %>
+<% if @provide_button %>
   <div class="flip-button">
     <%= link_to 'Back to all', emails_path, class: "zfbutton tiny radius button-link" %>
   </div>

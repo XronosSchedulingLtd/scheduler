@@ -12,6 +12,7 @@ class EmailsController < ApplicationController
   def index
     if @user
       selector = @user.messages
+      @provide_button = current_user.admin?
     else
       selector = Ahoy::Message
     end
@@ -73,7 +74,7 @@ class EmailsController < ApplicationController
 
   def authorized?(action = action_name, resource = nil)
     logged_in? &&
-      (current_user.admin ||
+      (current_user.admin? ||
        (action == 'index' && @user == current_user) ||
        (action == 'show' && @email.user == current_user))
   end
