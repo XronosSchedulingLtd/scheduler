@@ -42,3 +42,85 @@ FactoryBot.define do
     active { true }
   end
 end
+
+FactoryBot.define do
+  factory :staff do
+    sequence(:name) { |n| "Staff member #{n}" }
+    sequence(:initials) { |n| "SM#{n}" }
+    active { true }
+    current { true }
+    teaches { true }
+  end
+end
+
+FactoryBot.define do
+  factory :pupil do
+    sequence(:name) { |n| "Pupil #{n}" }
+  end
+end
+
+FactoryBot.define do
+  factory :service do
+    sequence(:name) { |n| "Resource / Service #{n}" }
+  end
+end
+
+FactoryBot.define do
+  factory :user_profile do
+    sequence(:name) { |n| "User profile #{n}" }
+  end
+end
+
+FactoryBot.define do
+  factory :user do
+    firstday { 0 }
+    user_profile
+  end
+end
+
+FactoryBot.define do
+  factory :eventcategory do
+    sequence(:name) { |n| "Event category #{n}" }
+    pecking_order   { 10 }
+    #
+    #  And some sensible ordinary defaults
+    #
+    schoolwide             { false }
+    publish                { true }
+    unimportant            { false }
+    #
+    #  The rest have defaults in the d/b anyway.
+    #
+  end
+end
+
+FactoryBot.define do
+  factory :eventsource do
+    sequence(:name) { |n| "Event source #{n}" }
+  end
+end
+
+FactoryBot.define do
+  factory :event do
+    sequence(:body) { |n| "Event #{n}" }
+    eventcategory
+    eventsource
+    starts_at { Time.now }
+    ends_at   { Time.now + 1.hour }
+  end
+end
+
+FactoryBot.define do
+  factory :resourcegrouppersona do
+  end
+end
+
+FactoryBot.define do
+  factory :resourcegroup do
+    sequence(:name) { |n| "Resource group #{n}" }
+    era
+    starts_on { Date.today }
+    association :persona, factory: :resourcegrouppersona
+  end
+end
+
