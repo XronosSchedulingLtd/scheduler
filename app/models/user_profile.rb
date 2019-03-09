@@ -69,28 +69,34 @@ class UserProfile < ActiveRecord::Base
     #  Anything which we don't set will default to 0,
     #  or PermissionFlags::PERMISSION_NO.
     #
-    self.create!({
-      name: "Staff",
-      permissions: {
-        editor:            PermissionFlags::PERMISSION_YES,
-        can_repeat_events: PermissionFlags::PERMISSION_YES,
-        can_add_resources: PermissionFlags::PERMISSION_YES,
-        can_add_notes:     PermissionFlags::PERMISSION_YES,
-        can_has_groups:    PermissionFlags::PERMISSION_YES,
-        public_groups:     PermissionFlags::PERMISSION_YES,
-        can_find_free:     PermissionFlags::PERMISSION_YES,
-        can_add_concerns:  PermissionFlags::PERMISSION_YES,
-        can_roam:          PermissionFlags::PERMISSION_YES
-      }
-    })
-    self.create!({
-      name: "Pupil",
-      permissions: {
-        editor:            PermissionFlags::PERMISSION_YES
-      }
-    })
-    self.create!({
-      name: "Guest"
-    })
+    unless UserProfile.find_by(name: 'Staff')
+      self.create!({
+        name: 'Staff',
+        permissions: {
+          editor:            PermissionFlags::PERMISSION_YES,
+          can_repeat_events: PermissionFlags::PERMISSION_YES,
+          can_add_resources: PermissionFlags::PERMISSION_YES,
+          can_add_notes:     PermissionFlags::PERMISSION_YES,
+          can_has_groups:    PermissionFlags::PERMISSION_YES,
+          public_groups:     PermissionFlags::PERMISSION_YES,
+          can_find_free:     PermissionFlags::PERMISSION_YES,
+          can_add_concerns:  PermissionFlags::PERMISSION_YES,
+          can_roam:          PermissionFlags::PERMISSION_YES
+        }
+      })
+    end
+    unless UserProfile.find_by(name: 'Pupil')
+      self.create!({
+        name: "Pupil",
+        permissions: {
+          editor:            PermissionFlags::PERMISSION_YES
+        }
+      })
+    end
+    unless UserProfile.find_by(name: 'Guest')
+      self.create!({
+        name: "Guest"
+      })
+    end
   end
 end
