@@ -1484,11 +1484,12 @@ class Event < ActiveRecord::Base
     #  Likewise requests.
     #
     self.requests.each do |request|
-      r = request.clone_and_save(event: new_self) do |c|
+      r = request.clone_and_save(event: new_self) do |r|
         if block_given?
           yield r
         end
       end
+      new_self.journal_resource_request_created(r, by_user)
     end
     #
     #  And make sure flags are set appropriately.
@@ -1576,8 +1577,8 @@ class Event < ActiveRecord::Base
     #
     #  We ignore covering commitments on both sides.
     #
-    our_commitments = self.non_covering_commitments.to_a
-    donor_event.non_covering_commitments.each do |dc|
+    our_commitments = self.commitments.cloneable.to_a
+    donor_event.commitments.cloneable.each do |dc|
       #
       #  Do we have a matching one?  If yes, remove from array.
       #  If no, create it.
@@ -1611,6 +1612,38 @@ class Event < ActiveRecord::Base
         yield :removed, oc
       end
       oc.destroy
+    end
+    #
+    #  And do much the same for requests.  Note that we only attempt
+    #  to get requests for the same thing.  We don't adjust quantities
+    #  or allocatedness.
+    #
+    our_requests = self.requests.to_a
+    donor_event.requests.each do |dr|
+      existing = our_requests.detect {|r| r.element_id == dr.element_id}
+      if existing
+        #
+        #  This is where we would adjust it if we were doing that.
+        #
+        #  Note that the next line is merely removing it from our list,
+        #  not deleting it.
+        #
+        our_requests.delete(existing)
+      else
+        r = dr.clone_and_save(event: self) do |r|
+          if block_given?
+            yield :added, r
+          end
+        end
+        self.journal_resource_request_created(r, by_user)
+      end
+    end
+    our_requests.each do |request|
+      self.journal_resource_request_destroyed(request, by_user)
+      if block_given?
+        yield :removed, request
+      end
+      request.destroy
     end
   end
 

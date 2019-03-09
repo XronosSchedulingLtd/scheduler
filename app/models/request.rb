@@ -354,6 +354,7 @@ class Request < ActiveRecord::Base
     if block_given?
       yield new_self
     end
+    new_self.set_status_flags
     new_self.note_progenitor(self)
     new_self.save!
     new_self
