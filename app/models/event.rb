@@ -1645,6 +1645,9 @@ class Event < ActiveRecord::Base
       end
       request.destroy
     end
+    self.reload
+    self.update_flag_colour
+    self
   end
 
   #
