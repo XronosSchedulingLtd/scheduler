@@ -35,7 +35,7 @@
   </div>
   <div class="small-6 medium-3 columns">
     <label>Requests</label>
-    <%= resource_requests_for(resource, editing, current_user) %>
+    <%= resource_requests_for(resource, editing, current_user, @amended_request_id) %>
   </div>
 </div>
   <% if @resourcewarning %>

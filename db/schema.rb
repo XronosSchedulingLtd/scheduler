@@ -11,7 +11,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190222120307) do
+ActiveRecord::Schema.define(version: 20190308105742) do
+
+  create_table "ahoy_messages", force: :cascade do |t|
+    t.integer  "user_id",   limit: 4
+    t.string   "user_type", limit: 255
+    t.text     "to",        limit: 65535
+    t.string   "mailer",    limit: 255
+    t.text     "subject",   limit: 65535
+    t.text     "content",   limit: 16777215
+    t.datetime "sent_at"
+  end
+
+  add_index "ahoy_messages", ["user_type", "user_id"], name: "index_ahoy_messages_on_user_type_and_user_id", using: :btree
 
   create_table "attachments", force: :cascade do |t|
     t.string   "description",        limit: 255
@@ -117,6 +129,7 @@ ActiveRecord::Schema.define(version: 20190222120307) do
   end
 
   add_index "elements", ["entity_id"], name: "index_elements_on_entity_id", using: :btree
+  add_index "elements", ["entity_type", "entity_id"], name: "index_elements_on_entity_type_and_entity_id", using: :btree
   add_index "elements", ["owner_id"], name: "index_elements_on_owner_id", using: :btree
   add_index "elements", ["uuid"], name: "index_elements_on_uuid", unique: true, using: :btree
 
@@ -260,6 +273,7 @@ ActiveRecord::Schema.define(version: 20190222120307) do
   add_index "groups", ["datasource_id"], name: "index_groups_on_datasource_id", using: :btree
   add_index "groups", ["era_id"], name: "index_groups_on_era_id", using: :btree
   add_index "groups", ["owner_id"], name: "index_groups_on_owner_id", using: :btree
+  add_index "groups", ["persona_type", "persona_id"], name: "index_groups_on_persona_type_and_persona_id", using: :btree
   add_index "groups", ["source_id"], name: "index_groups_on_source_id", using: :btree
   add_index "groups", ["source_id_str"], name: "index_groups_on_source_id_str", using: :btree
 
@@ -377,6 +391,7 @@ ActiveRecord::Schema.define(version: 20190222120307) do
 
   add_index "notes", ["owner_id"], name: "index_notes_on_owner_id", using: :btree
   add_index "notes", ["parent_id"], name: "index_notes_on_parent_id", using: :btree
+  add_index "notes", ["parent_type", "parent_id"], name: "index_notes_on_parent_type_and_parent_id", using: :btree
 
   create_table "otherhalfgrouppersonae", force: :cascade do |t|
     t.integer  "source_id",  limit: 4
@@ -500,6 +515,7 @@ ActiveRecord::Schema.define(version: 20190222120307) do
     t.integer  "wrapping_mins",       limit: 4, default: 0
     t.integer  "confirmation_days",   limit: 4, default: 0
     t.integer  "form_warning_days",   limit: 4, default: 0
+    t.boolean  "needs_people",                  default: false
   end
 
   create_table "rota_slots", force: :cascade do |t|
@@ -658,6 +674,8 @@ ActiveRecord::Schema.define(version: 20190222120307) do
     t.datetime "updated_at"
     t.integer  "status",       limit: 4,     default: 0
   end
+
+  add_index "user_form_responses", ["parent_type", "parent_id"], name: "index_user_form_responses_on_parent_type_and_parent_id", using: :btree
 
   create_table "user_forms", force: :cascade do |t|
     t.string   "name",               limit: 255

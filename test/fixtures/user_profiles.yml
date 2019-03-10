@@ -5,7 +5,7 @@ one:
   permissions: <%=
     pf = PermissionFlags.new
     pf[:editor] = 1
-    pf[:groups] = 1
+    pf[:can_has_groups] = 1
     pf.to_yaml.inspect
     %>
 
@@ -14,6 +14,6 @@ two:
   permissions: <%=
     pf = PermissionFlags.new
     pf[:editor] = 1
-    pf[:groups] = 1
+    pf[:can_has_groups] = 1
     pf.to_yaml.inspect
     %>

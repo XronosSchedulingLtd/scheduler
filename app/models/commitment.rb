@@ -80,6 +80,8 @@ class Commitment < ActiveRecord::Base
 
   scope :standalone, -> { where(request: nil) }
 
+  scope :cloneable, -> { where(request:nil).where(covering: nil) }
+
   #
   #  Call-backs.
   #

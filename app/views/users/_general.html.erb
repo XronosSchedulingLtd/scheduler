@@ -119,8 +119,8 @@
                     prompt: "Confirmation",
                     annotation: "Should the system send e-mails reminding you to confirm your resource requests?"},
                    {field: :prompt_for_forms,
-                    prompt: "Form prompts",
-                    annotation: "Should the system send e-mails reminding you to fill in forms?"}
+                    prompt: "Prompt for details",
+                    annotation: "Should the system send e-mails reminding you to fill in forms and identify relevant staff?"}
                  ]) %>
 <% end %>
 <% if current_user.admin || current_user.staff? %>

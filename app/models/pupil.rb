@@ -76,7 +76,8 @@ class Pupil < ActiveRecord::Base
   def csv_name
     [self.known_as,
      self.surname,
-     self.tutorgroup_name].to_csv
+     self.tutorgroup_name,
+     self.email].to_csv
   end
 
   #

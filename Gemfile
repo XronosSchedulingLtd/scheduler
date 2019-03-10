@@ -61,6 +61,7 @@ gem 'loofah', '~> 2.2.2'
 gem 'nokogiri'
 gem 'tod'
 gem 'redcarpet'
+gem 'ahoy_email'
 group :production do
   gem 'tiny_tds'
 end
@@ -68,4 +69,8 @@ end
 group :development do
   gem 'web-console', '~> 2.0'
   gem 'quiet_assets'
+end
+
+group :test, :development do
+  gem 'factory_bot_rails'
 end

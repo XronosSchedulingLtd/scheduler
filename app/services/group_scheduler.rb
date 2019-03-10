@@ -74,8 +74,12 @@ class GroupScheduler
       resources << data
     end
     group_members, other_members =
-      group.members(nil, false).partition {|m| m.is_a? Group}
-    other_members.each do |member|
+      group.members(nil, false, false, true).partition {|m| m.is_a? Group}
+    #
+    #  We need sort only the resource lines.  The events will follow
+    #  their resources around because they're identified by id.
+    #
+    other_members.sort.each do |member|
       resources << {
         id:         member.element.id,
         parentName: name,

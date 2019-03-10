@@ -1,0 +1,10 @@
+<% if @modal %>
+<a class="close-reveal-modal">&#215;</a>
+<% end %>
+<h1>Contents of e-mail</h1>
+
+<% if @html %>
+  <%= @html.html_safe %>
+<% else %>
+  <pre><%= @text %></pre>
+<% end %>

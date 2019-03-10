@@ -70,7 +70,11 @@ class Request < ActiveRecord::Base
   scope :none_allocated, -> { includes(:commitments).where(commitments: {request_id: nil}) }
 
   scope :owned_by, lambda {|user|
-     joins(:event).merge(Event.owned_by(user))
+    joins(:event).merge(Event.owned_by(user))
+  }
+
+  scope :owned_or_organised_by, lambda {|user|
+    joins(:event).merge(Event.owned_or_organised_by(user))
   }
   #
   #  Normally this won't be defined and so calls to this method will
@@ -210,7 +214,7 @@ class Request < ActiveRecord::Base
       event:   self.event,
       element: element})
     if new_commitment.valid?
-      num_commitments = self.commitments.count
+      num_commitments = self.commitments.size
       if num_commitments > self.quantity
         self.quantity = num_commitments
         do_save = true
@@ -242,7 +246,7 @@ class Request < ActiveRecord::Base
           Commitment.commitments_on(
             startdate:     this_day,
             eventcategory: "Invigilation",
-            resource:      element).count
+            resource:      element).size
         sunday = this_day - this_day.wday
         saturday = sunday + 6.days
         invigilation_commitments_this_week = 
@@ -250,7 +254,7 @@ class Request < ActiveRecord::Base
             startdate:     sunday,
             enddate:       saturday,
             eventcategory: "Invigilation",
-            resource:      element).count
+            resource:      element).size
         @updated_nominee =
           Candidate.new(
             element.id,
@@ -282,9 +286,9 @@ class Request < ActiveRecord::Base
   end
 
   def colour
-    if self.commitments.count >= self.quantity
+    if self.commitments.size >= self.quantity
       "g"
-    elsif self.commitments.count > 0
+    elsif self.commitments.size > 0
       "y"
     else
       "r"
@@ -350,6 +354,7 @@ class Request < ActiveRecord::Base
     if block_given?
       yield new_self
     end
+    new_self.set_status_flags
     new_self.note_progenitor(self)
     new_self.save!
     new_self

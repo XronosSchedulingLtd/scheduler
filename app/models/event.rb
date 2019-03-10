@@ -113,6 +113,7 @@ class Event < ActiveRecord::Base
   belongs_to :event_collection
   has_many :commitments, :dependent => :destroy
   has_many :requests, :dependent => :destroy
+  has_many :requested_elements, through: :requests, source: :element
   has_many :firm_commitments, -> { where.not(tentative: true) }, class_name: "Commitment"
   has_many :tentative_commitments, -> { where(tentative: true) }, class_name: "Commitment"
   has_many :covering_commitments, -> { where("covering_id IS NOT NULL") }, class_name: "Commitment"
@@ -225,7 +226,24 @@ class Event < ActiveRecord::Base
   scope :has_clashes, lambda { where(has_clashes: true) }
   scope :owned_by, lambda {|user| where(owner: user) }
 
+  def self.owned_or_organised_by(user)
+    if user.corresponding_staff
+      staff_element = user.corresponding_staff.element
+      where("events.owner_id = ? OR events.organiser_id = ?",
+            user.id,
+            staff_element.id)
+    else
+      where(owner: user)
+    end
+  end
+
   before_destroy :being_destroyed
+
+  def owned_or_organised_by?(user)
+    self.owner_id == user.id ||
+      (user.corresponding_staff &&
+       user.corresponding_staff.element.id == self.organiser_id)
+  end
 
   #
   #  We are being asked to check whether we are complete or not.  The
@@ -700,6 +718,18 @@ class Event < ActiveRecord::Base
   def organisers_email
     if self.organiser && self.organiser.entity_type == "Staff"
       self.organiser.entity.email
+    else
+      nil
+    end
+  end
+
+  def organiser_user
+    #
+    #  Return the user linked as the organiser of this event, if
+    #  feasible.
+    #
+    if self.organiser && self.organiser.entity.respond_to?(:corresponding_user)
+      self.organiser.entity.corresponding_user
     else
       nil
     end
@@ -1441,7 +1471,7 @@ class Event < ActiveRecord::Base
       #
       #  Not all commitments are cloneable.
       #
-      if commitment.cloneable?
+      if commitment.cloneable?(element_id_list)
         c = commitment.clone_and_save(event: new_self) do |c|
           if block_given?
             yield c
@@ -1454,11 +1484,12 @@ class Event < ActiveRecord::Base
     #  Likewise requests.
     #
     self.requests.each do |request|
-      r = request.clone_and_save(event: new_self) do |c|
+      r = request.clone_and_save(event: new_self) do |r|
         if block_given?
           yield r
         end
       end
+      new_self.journal_resource_request_created(r, by_user)
     end
     #
     #  And make sure flags are set appropriately.
@@ -1546,8 +1577,8 @@ class Event < ActiveRecord::Base
     #
     #  We ignore covering commitments on both sides.
     #
-    our_commitments = self.non_covering_commitments.to_a
-    donor_event.non_covering_commitments.each do |dc|
+    our_commitments = self.commitments.cloneable.to_a
+    donor_event.commitments.cloneable.each do |dc|
       #
       #  Do we have a matching one?  If yes, remove from array.
       #  If no, create it.
@@ -1582,6 +1613,41 @@ class Event < ActiveRecord::Base
       end
       oc.destroy
     end
+    #
+    #  And do much the same for requests.  Note that we only attempt
+    #  to get requests for the same thing.  We don't adjust quantities
+    #  or allocatedness.
+    #
+    our_requests = self.requests.to_a
+    donor_event.requests.each do |dr|
+      existing = our_requests.detect {|r| r.element_id == dr.element_id}
+      if existing
+        #
+        #  This is where we would adjust it if we were doing that.
+        #
+        #  Note that the next line is merely removing it from our list,
+        #  not deleting it.
+        #
+        our_requests.delete(existing)
+      else
+        r = dr.clone_and_save(event: self) do |r|
+          if block_given?
+            yield :added, r
+          end
+        end
+        self.journal_resource_request_created(r, by_user)
+      end
+    end
+    our_requests.each do |request|
+      self.journal_resource_request_destroyed(request, by_user)
+      if block_given?
+        yield :removed, request
+      end
+      request.destroy
+    end
+    self.reload
+    self.update_flag_colour
+    self
   end
 
   #

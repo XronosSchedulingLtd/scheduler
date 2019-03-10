@@ -1,4 +1,5 @@
 module RequestsHelper
+
   def increment_link(request)
     link_to("+", increment_request_path(request), method: :put, remote: true)
   end
@@ -11,12 +12,16 @@ module RequestsHelper
     link_to("&#215;".html_safe, request, method: :delete, remote: true)
   end
 
-  def resource_requests_for(event, editing, user)
+  def resource_requests_for(event, editing, user, amended_request_id = 0)
     requests = event.requests
     result = ["<ul class=\"no-bullet\">"]
     requests.each do |request|
       body =
         "#{truncate(request.element.name, length: 19)} (#{request.quantity})"
+      if request.id == amended_request_id
+        body =
+          "<span class='flashme'>#{body}</span>"
+      end
       if user
         #
         #  And any buttons?
