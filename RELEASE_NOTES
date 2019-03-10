@@ -1,3 +1,158 @@
+v1.7.7  2019-03-10
+
+* Highlight resource when the numer requested is changed
+
+  There have been a couple of incidents of people clicking on a quick
+  button for a resource and not noticing that each time they do it the
+  requested quantity increments.
+
+  The UI now flashes the resource each time the requested quantity is
+  incremented or decremented to try to prevent this.
+
+* Individual resources shown in alphabetical order
+
+  On the resource allocation screen, individual resources within a
+  resource group are now shown in alphabetical order.
+
+* Resource groups may require staff
+
+  A flag has been added to the ResourceGroup record "requires_staff".
+  If set, the system assumes that as many staff will be required for
+  an event as there are resources from this group - e.g. drivers for
+  mini-buses.
+
+* New e-mail to prompt for staff
+
+  An e-mail has been added to the automatically generated ones which
+  will prompt the owners of upcoming events if there don't seem to
+  be enough staff for the resources.  It uses the same day count
+  and user flag as the existing e-mail which prompts for forms to
+  be completed.
+
+* Prompt e-mails sent to both owners and organisers
+
+  The three e-mails relating to resource allocation:
+
+  1. Please fill in your forms
+  2. Please re-confirm your request
+  3. Please allocate suitable staff
+
+  were previously sent only to the owner of the event.  Now they are sent
+  to both owner and organiser.  Individual users can choose not to receive
+  them, which is potentially useful for very frequent requesters, or for
+  people who enter events on behalf of other people.  In the latter case,
+  all the event-enterer needs to do is put the right organiser on the event
+  and disable the e-mails for him or herself.  Then the e-mails will go
+  to the organiser and not the owner.  (It is of course much better to
+  have the organiser do the event entry in the first place.)
+
+  If the same person is listed as both owner and organiser, he or she
+  will receive only one copy of the e-mail (or none if the e-mails
+  for that user are disabled).
+
+* Allow organisers to react appropriately to above e-mails
+
+  In the HTML versions of the above e-mails, links are provided which
+  if clicked take the user directly to the appropriate page within Scheduler
+  to action the request.  These links will now work correctly for the
+  organiser, even if he or she is not the owner of the event.
+
+* Outgoing e-mails logged
+
+  All automatically generated outgoing e-mails are now logged to the database
+  in both text and HTML formats.
+
+* Administrators can view logged e-mails
+
+  A user with admin privileges can view the entire log of outgoing e-mails,
+  or filter down to e-mails sent to one particular user.  The text and
+  HTML versions of the e-mail can be viewed separately.
+
+* Admin menu re-structured
+
+  The pull-down menu seen by administrators had got rather long - in some
+  cases too long for convenient use on a small screen.
+
+  To overcome this, the main menu seen by an administrator now includes
+  just one extra item over and above those seen by normal users - a
+  choice called simply "Admin".  This then leads to a sub-menu with all
+  the old administrator menu options, plus the newly added "E-mails" one.
+
+* Date display in custom allocator views fixed
+
+  In the resource allocation screen, in the 3-day and 4-day views, the
+  dates were appearing in American format.  They now appear in the same
+  way as in all the rest of Scheduler.
+
+* Forward group membership displayed in allocator screen
+
+  Using the advanced group editing facilities added in the previous release,
+  it is possible to specify *future* members of a group.  The resource
+  allocation screen is now aware of this and will display the relevant
+  lines appropriately.
+
+  Thus, if for instance there are going to be a couple of hired mini-buses
+  available for three days next week, the appropriate extra lines will
+  appear on the allocation screen.
+
+  This area of code is not yet complete.  It does not check attempted
+  allocations to ensure they fit with the availability.  Use with care.
+
+* Staff and pupil e-mails added to FreeFinder listings
+
+  When the FreeFinder utility is used to find free resources in the system
+  it is possible to export a list of those found.  This list will now
+  include the e-mail addresses of any staff or pupils in the list.
+
+* Fix re-repetition of events with resource requests
+
+  A bug has been fixed which affected events with resource requests which
+  were repeated using the event repetition facility.
+
+  A simple repetition of such an event worked fine - copying normal
+  commitments, and requests for resources, but not copying any allocated
+  resources.
+
+  If however the original event was then edited and the changes propagated
+  to the other copies via the repetition facility, any new requests were
+  not propagated, but allocated resources were.  The end result was
+  a single request on the original event, but with N allocations - one
+  to each copy of the event.
+
+  This error in the code has been fixed.
+
+* Fix wrapping code to take account of selected resources
+
+  When a user wraps an event (adds events before and after for set-up
+  and clear-up time) the dialogue provides tick boxes to select which
+  resources should be added to the wrapping events too.  Typically these
+  will be the locations and perhaps the staff, but the user can select
+  what is wanted.
+
+  A bug introduced several releases back meant that this selection was
+  then ignored and all the resources from the original event got copied
+  to the wrapping events.
+
+  This error in the code has been fixed.
+
+* Test suite enhanced
+
+  Many extra automated tests have been added in the areas of group
+  membership and event manipulation.
+
+  The tests now make use of FactoryBot to create the right conditions
+  for each test.
+
+* Display of resource allocation screen speeded up
+
+  The lack of an appropriate index made the population of the events
+  in the resource allocation screen inordinately slow.  Up to 2.6s to
+  fetch the events on a busy day.
+
+  By adding an extra index to the database, this has been reduced to
+  less than 0.5s.
+
+
 v1.7.6  2019-02-27
 
 * Added the ability to edit membership records directly
