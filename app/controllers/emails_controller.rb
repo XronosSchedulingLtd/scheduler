@@ -7,6 +7,28 @@ class EmailsController < ApplicationController
   prepend_before_action :set_user, only: [:index]
   prepend_before_action :set_email, only: [:show]
 
+  class EamArray < Array
+    #
+    #  Pass an ActiveRecord relation.
+    #
+    def initialize(relation)
+      super()
+      @relation = relation
+      relation.each do |email|
+        self << EnhancedAhoyMessage.new(email)
+      end
+    end
+
+    def total_pages
+      @relation.total_pages
+    end
+
+    def current_page
+      @relation.current_page
+    end
+
+  end
+
   # GET /emails
   # GET /emails.json
   def index
@@ -16,10 +38,11 @@ class EmailsController < ApplicationController
     else
       selector = Ahoy::Message
     end
-    @emails = selector.paginate({
+    emails = selector.paginate({
       page: params[:page],
       per_page: 15
     }).order('sent_at DESC')
+    @eams = EamArray.new(emails)
   end
 
   # GET /emails/1

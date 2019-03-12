@@ -1,0 +1,8 @@
+<tr>
+  <td><%= eam.sent_at.to_s(:hmdmy) %></td>
+  <td><%= user_column(eam) %></td>
+  <td><%= to_column(eam) %></td>
+  <td><%= subject_column(eam) %></td>
+  <td><%= eam.parts.count %></td>
+<%= parts_columns(eam) %>
+</tr>

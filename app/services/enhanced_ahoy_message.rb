@@ -37,6 +37,21 @@ class EnhancedAhoyMessage
     @deconstructed.content_type
   end
 
+  def to_partial_path
+    "eam"
+  end
+
+  #
+  #  Interesting discovery - the render code tries to call "to_model"
+  #  if available before trying "to_partial_path".  We need to implement
+  #  this too, because otherwise the call on "to_model" will be passed
+  #  to our Ahoy::Message, which has a different idea about the kind
+  #  of partial which is needed.
+  #
+  def to_model
+    self
+  end
+
   #
   #  These defer anything which we still don't understand to the
   #  original Ahoy::Message
@@ -49,6 +64,6 @@ class EnhancedAhoyMessage
   end
 
   def respond_to_missing?(method_sym, *arguments)
-    @message.respond_to(method_sym, *arguments)
+    @message.respond_to?(method_sym, *arguments)
   end
 end
