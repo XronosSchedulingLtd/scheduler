@@ -1,14 +1,16 @@
 <%
   #
   #  Need to do a bit of work to break down the e-mail.
+  #  I would prefer to do this in the controller, but if I generate
+  #  an array of EAMs there, then it breaks the pagination code.
   #
-  d = get_deconstructor(message)
+  eam = EnhancedAhoyMessage.new(message)
 %>
 <tr>
   <td><%= message.sent_at.to_s(:hmdmy) %></td>
-  <td><%= d.user_column %></td>
-  <td><%= d.to_column %></td>
-  <td><%= d.subject_column %></td>
-  <td><%= d.num_parts %></td>
-<%= d.parts_columns %>
+  <td><%= user_column(eam) %></td>
+  <td><%= to_column(eam) %></td>
+  <td><%= subject_column(eam) %></td>
+  <td><%= eam.parts.count %></td>
+<%= parts_columns(eam) %>
 </tr>

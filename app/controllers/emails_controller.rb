@@ -37,15 +37,11 @@ class EmailsController < ApplicationController
     else
       part_no = 0
     end
-    deconstructed = Mail.new(@email.content)
-    if deconstructed.multipart?
-      if part_no < deconstructed.parts.count
-        @part = deconstructed.parts[part_no]
-      else
-        @part = deconstructed.parts.first
-      end
+    eam = EnhancedAhoyMessage.new(@email)
+    if part_no < eam.parts.count
+      @part = eam.parts[part_no]
     else
-      @part = deconstructed
+      @part = eam.parts.first
     end
     #
     #  Is it text or HTML?
