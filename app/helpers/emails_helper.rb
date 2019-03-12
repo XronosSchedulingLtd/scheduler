@@ -68,14 +68,34 @@ module EmailsHelper
       "<span title='#{h @message.subject}'>#{h subject_text}</span>".html_safe
     end
 
+    #
+    #  The Mail library provides a different interface depending on
+    #  whether or not the original email is multi-part.  We hide
+    #  that a bit and make our interface the same.  A non-multi-part
+    #  message is portrayed as having just one part.
+    #
+    #  Logical, no?
+    #
     def num_parts
-      @deconstructed.parts.count
+      if @deconstructed.multipart?
+        @deconstructed.parts.count
+      else
+        1
+      end
     end
 
     def parts_columns
       result = []
-      @deconstructed.parts.each_with_index do |part, i|
-        result << "<td>#{ parts_link(part, i) }</td>"
+      if @deconstructed.multipart?
+        @deconstructed.parts.each_with_index do |part, i|
+          result << "<td>#{ parts_link(part, i) }</td>"
+        end
+      else
+        #
+        #  It has only a single part, but we fib a bit.
+        #
+        result << "<td>#{ parts_link(@deconstructed, 0) }</td>"
+        result << "<td></td>"
       end
       result.join("\n").html_safe
     end
@@ -103,7 +123,6 @@ module EmailsHelper
   end
 
   def get_deconstructor(message)
-    emails_path
     EmailDeconstructor.new(message)
   end
 

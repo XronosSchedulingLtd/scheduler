@@ -37,11 +37,15 @@ class EmailsController < ApplicationController
     else
       part_no = 0
     end
-    @deconstructed = Mail.new(@email.content)
-    if part_no < @deconstructed.parts.count
-      @part = @deconstructed.parts[part_no]
+    deconstructed = Mail.new(@email.content)
+    if deconstructed.multipart?
+      if part_no < deconstructed.parts.count
+        @part = deconstructed.parts[part_no]
+      else
+        @part = deconstructed.parts.first
+      end
     else
-      @part = @deconstructed.parts.first
+      @part = deconstructed
     end
     #
     #  Is it text or HTML?
