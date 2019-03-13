@@ -1,0 +1,21 @@
+<hr/>
+<h4>Comments</h4>
+<p><%= @comments.count %> comments</p>
+<div class='row collapse'>
+  <%= render partial: '/comments/comment', collection: @comments %>
+</div>
+<% if @allow_add_comment %>
+  <hr/>
+  <%= form_for([@user_form_response, @comment]) do |f| %>
+  <div class='row collapse'>
+    <div class='small-11 columns'>
+      <%= f.text_field :body %>
+    </div>
+    <div class='small-1 column'>
+      <%= f.submit "Add comment", class: 'zfbutton tiny postfix radius' %>
+    </div>
+  </div>
+  <% end %>
+<% end %>
+<hr/>
+

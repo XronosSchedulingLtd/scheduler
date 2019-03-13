@@ -7,8 +7,19 @@ FactoryBot.define do
 end
 
 FactoryBot.define do
+  factory :property do
+    sequence(:name) { |n| "Property number #{n}" }
+  end
+end
+
+#
+#  If you try to create an element on its own, it will get a Property
+#  as its entity.
+#
+FactoryBot.define do
   factory :element do
     sequence(:name) { |n| "Element number #{n}" }
+    association :entity, factory: :property
   end
 end
 
@@ -121,6 +132,34 @@ FactoryBot.define do
     era
     starts_on { Date.today }
     association :persona, factory: :resourcegrouppersona
+  end
+end
+
+FactoryBot.define do
+  factory :user_form do
+    sequence(:name) { |n| "User form #{n}" }
+  end
+end
+
+FactoryBot.define do
+  factory :commitment do
+    event
+    element
+  end
+end
+
+FactoryBot.define do
+  factory :user_form_response do
+    user_form
+    association :parent, factory: :commitment
+  end
+end
+
+FactoryBot.define do
+  factory :comment do
+    user
+    association :parent, factory: :user_form_response
+    body { "Hello there - I'm a comment" }
   end
 end
 

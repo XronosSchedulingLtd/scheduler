@@ -46,6 +46,9 @@
   <input type='submit' style='display:none'/>
 </form>
 
+<% if @show_comments %>
+  <%= render 'comments' %>
+<% end %>
 <% if @save_button %>
   <button class='zfbutton tiny radius' id='save-button'>Save as complete</button>
   <button class='zfbutton tiny radius' id='save-draft-button'>Save as draft</button>

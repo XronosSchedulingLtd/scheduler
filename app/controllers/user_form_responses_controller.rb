@@ -35,6 +35,15 @@ class UserFormResponsesController < ApplicationController
     @read_only = true
     @save_button = false
     @cancel_button = true
+    @show_comments = true
+    #
+    #  You get rather odd behaviour if you pass an ActiveRecord::Relation
+    #  to "render" in a view.  It gets rendered one more time than there
+    #  are records.  Force it to an array here to prevent this.
+    #
+    @comments = @user_form_response.comments.to_a
+    @allow_add_comment = true
+    @comment = @user_form_response.comments.new
     if params[:close_after]
       @cancel_url = "#"
       @close_after = true

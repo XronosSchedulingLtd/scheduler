@@ -1,3 +1,8 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2019 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+
 class CommitmentsController < ApplicationController
   before_action :set_commitment, only: [:ajaxapprove,
                                         :approve,

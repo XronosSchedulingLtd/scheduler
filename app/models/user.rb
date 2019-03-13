@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2018 John Winters
+# Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -85,6 +85,7 @@ class User < ActiveRecord::Base
            dependent: :nullify
 
   has_many :messages, class_name: 'Ahoy::Message', as: :user
+  has_many :comments, dependent: :destroy
   belongs_to :preferred_event_category, class_name: Eventcategory
   belongs_to :day_shape, class_name: RotaTemplate
   belongs_to :corresponding_staff, class_name: "Staff"

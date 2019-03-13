@@ -22,7 +22,9 @@ Rails.application.routes.draw do
     get :autocomplete_user_form_name, :on => :collection
   end
 
-  resources :user_form_responses
+  resources :user_form_responses do
+    resources :comments, shallow: true
+  end
 
   resources :periods, only: [:index]
 
@@ -54,11 +56,6 @@ Rails.application.routes.draw do
       post :split
     end
   end
-
-  resources :posts do
-      resources :comments, except: [:show, :edit, :update, :destroy]
-  end
-  resources :comments, only: [:show, :edit, :update, :destroy]
 
   #
   #  I don't seem to be able to achieve this by means of the shallow

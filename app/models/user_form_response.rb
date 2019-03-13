@@ -1,3 +1,8 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2019 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
 class UserFormResponse < ActiveRecord::Base
 
   enum status: [
@@ -10,7 +15,9 @@ class UserFormResponse < ActiveRecord::Base
   belongs_to :parent, polymorphic: true
   belongs_to :user
 
-  validates :user_form, presence: true
+  has_many :comments, as: :parent, dependent: :destroy
+
+  validates :user_form, :parent, presence: true
 
   scope :incomplete, -> { where.not("user_form_responses.status = ?",
                                     UserFormResponse.statuses[:complete]) }
