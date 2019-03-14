@@ -4,14 +4,26 @@
 # for more information.
 
 class CommentsController < ApplicationController
-  before_action :find_comment, only: [:edit, :update]
+  before_action :find_comment, only: [:edit, :update, :destroy]
   before_action :find_user_form_response, only: [:create]
 
   def create
+    do_pushback = (params[:subaction] == 'pushback')
     @comment =
       @user_form_response.comments.new(
         commitment_params.merge({user: current_user}))
-    @comment.save
+    if @comment.save
+      if do_pushback
+        @user_form_response.pushback_and_save
+      end
+    end
+    redirect_to :back
+  end
+
+  def destroy
+    if current_user.can_delete?(@comment)
+      @comment.destroy
+    end
     redirect_to :back
   end
 

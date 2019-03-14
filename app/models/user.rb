@@ -515,6 +515,8 @@ class User < ActiveRecord::Base
       #  can_subedit? can cope with a nil parameter.
       #
       self.can_subedit?(item.event)
+    elsif item.instance_of?(Comment)
+      (item.user_id == self.id) || self.admin?
     else
       false
     end
