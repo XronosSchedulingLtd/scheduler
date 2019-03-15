@@ -626,6 +626,18 @@ class User < ActiveRecord::Base
     end
   end
 
+  def can_add_comments_to?(item)
+    if item.instance_of?(UserFormResponse)
+      #
+      #  UserFormResponse is attached to Commitment or Request.
+      #  Are we an admin of the corresponding element?
+      #
+      self.admin || self.owns?(item.parent.element)
+    else
+      false
+    end
+  end
+
   #
   #  Can this user drag this concern onto the schedule?
   #

@@ -84,8 +84,65 @@ end
 
 FactoryBot.define do
   factory :user do
+
+    #
+    #  We have to be quite clever to allow privilege flags to be set
+    #  via traits individually.  They all need to end up in the same
+    #  hash.
+    #
+    #  First we create some transient variables with default values.
+    #
+    transient do
+      permissions_admin      { false }
+      permissions_editor     { false }
+      permissions_privileged { false }
+    end
+
+    #
+    #  Then traits to allow us to change those values
+    #
+    trait :admin do
+      permissions_admin { true }
+    end
+
+    trait :editor do
+      permissions_editor { true }
+    end
+
+    trait :privileged do
+      permissions_privileged { true }
+    end
+
     firstday { 0 }
     user_profile
+
+    permissions do
+      #
+      #  And now use those transient values to build our
+      #  permissions hash, all in one go.
+      #
+      hash = {}
+      if permissions_admin
+        hash[:admin] = true
+      end
+      if permissions_editor
+        hash[:editor] = true
+      end
+      if permissions_privileged
+        hash[:privileged] = true
+      end
+      hash
+    end
+
+    factory :admin_user, traits: [:admin]
+  end
+end
+
+FactoryBot.define do
+  factory :concern do
+    user
+    element
+    colour { 'blue' }
   end
 end
 
@@ -160,6 +217,14 @@ FactoryBot.define do
     user
     association :parent, factory: :user_form_response
     body { "Hello there - I'm a comment" }
+  end
+end
+
+FactoryBot.define do
+  factory :request do
+    element
+    event
+    quantity { 1 }
   end
 end
 

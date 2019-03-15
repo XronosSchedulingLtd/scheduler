@@ -45,7 +45,9 @@
        data-readonly=<%= @read_only ? "true" : "false" %>></div>
   <input type='submit' style='display:none'/>
 </form>
-
+<% if @form_status %>
+  <p>Current form status: <%= @form_status %></p>
+<% end %>
 <% if @show_comments %>
   <%= render 'comments' %>
 <% end %>

@@ -26,6 +26,10 @@ class UserFormResponsesController < ApplicationController
         @event = parent.event
         @resource = parent.element
         @status = parent.status
+      elsif parent.instance_of?(Request)
+        @event = parent.event
+        @resource = parent.element
+        @status = parent.pending? ? "Pending" : "Complete"
       else
         @event = nil
       end
@@ -35,15 +39,31 @@ class UserFormResponsesController < ApplicationController
     @read_only = true
     @save_button = false
     @cancel_button = true
-    @show_comments = true
+    @form_status = @user_form_response.status.to_s.capitalize
     #
-    #  You get rather odd behaviour if you pass an ActiveRecord::Relation
-    #  to "render" in a view.  It gets rendered one more time than there
-    #  are records.  Force it to an array here to prevent this.
+    #  You get to see the comments if either:
+    #
+    #  a) There are existing comments
+    #  b) You are entitled to add comments
     #
     @comments = @user_form_response.comments.to_a
-    @allow_add_comment = true
-    @comment = @user_form_response.comments.new
+    can_add = current_user.can_add_comments_to?(@user_form_response)
+    if !@comments.empty? || can_add
+      @show_comments = true
+      #
+      #  You get rather odd behaviour if you pass an ActiveRecord::Relation
+      #  to "render" in a view.  It gets rendered one more time than there
+      #  are records.  Force it to an array here to prevent this.
+      #
+      if can_add
+        @allow_add_comment = true
+        @comment = @user_form_response.comments.new
+      else
+        @allow_add_comment = false
+      end
+    else
+      @show_comments = false
+    end
     if params[:close_after]
       @cancel_url = "#"
       @close_after = true
@@ -83,12 +103,28 @@ class UserFormResponsesController < ApplicationController
             @extra_text << "\nReason: #{parent.reason}"
           end
         end
+      elsif parent.instance_of?(Request)
+        @event = parent.event
+        @resource = parent.element
       else
         @event = nil
       end
     else
       @event = nil
     end
+    #
+    #  We don't allow the addition of comments when editing the form,
+    #  but you can see any that are there.
+    #
+    @comments = @user_form_response.comments.to_a
+    if @comments.empty?
+      @show_comments = false
+    else
+      @show_comments = true
+      @allow_add_comment = false
+    end
+    @form_status = @user_form_response.status.to_s.capitalize
+
   end
 
   # POST /user_form_responses

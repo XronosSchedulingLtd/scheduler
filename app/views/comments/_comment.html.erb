@@ -1,4 +1,4 @@
-<div class='small-1 column'>JHW</div>
+<div class='small-1 column'><%= comment.user.initials %></div>
 <div class='small-10 columns'><%= comment.body %></div>
 <div class='small-1 columns'>
   <% if current_user && current_user.can_delete?(comment) %>

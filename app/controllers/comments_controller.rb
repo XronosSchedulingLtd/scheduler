@@ -4,8 +4,8 @@
 # for more information.
 
 class CommentsController < ApplicationController
-  before_action :find_comment, only: [:edit, :update, :destroy]
-  before_action :find_user_form_response, only: [:create]
+  prepend_before_action :find_comment, only: [:destroy]
+  prepend_before_action :find_user_form_response, only: [:create]
 
   def create
     do_pushback = (params[:subaction] == 'pushback')
@@ -21,9 +21,7 @@ class CommentsController < ApplicationController
   end
 
   def destroy
-    if current_user.can_delete?(@comment)
-      @comment.destroy
-    end
+    @comment.destroy
     redirect_to :back
   end
 
@@ -40,5 +38,39 @@ class CommentsController < ApplicationController
   def commitment_params
     params.require(:comment).permit(:parent_id, :parent_type, :body)
   end
+
+  def authorized?(action = action_name, resource = nil)
+    result = false
+    if logged_in?
+      if current_user.admin
+        result = true
+      else
+        case action
+        when 'create'
+          #
+          #  If you're not an admin, then you must be a controller
+          #  of the relevant resource.
+          #
+          #  linker may be either a Request or a Commitment
+          #
+          linker = @user_form_response.parent
+          if linker
+            element = linker.element
+            if element
+              result = current_user.owns?(element)
+            end
+          end
+        when 'destroy'
+          #
+          #  You must be either admin, or the owner of the comment.
+          #  It is policed by the method in the User model.
+          #
+          result = current_user.can_delete?(@comment)
+        end
+      end
+    end
+    result
+  end
+
 end
 
