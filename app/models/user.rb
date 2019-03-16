@@ -347,6 +347,25 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  A subset of owned elements.  Elements which we own and which can have
+  #  requests made on them.
+  #
+  def owned_resources
+    unless @owned_resources
+      #
+      #  Call the function to make the most of our cache.
+      #
+      @owned_resources =
+        self.owned_elements.select {|oe| oe.can_have_requests?}
+    end
+    @owned_resources
+  end
+
+  def resource_owner?
+    !self.owned_resources.empty?
+  end
+
+  #
   #  Can this user edit the indicated item?
   #
   def can_edit?(item)

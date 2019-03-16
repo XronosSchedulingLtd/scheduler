@@ -229,6 +229,13 @@ module ApplicationHelper
       elsif user.can_has_groups?
         m.item('Groups', groups_path)
       end
+      if user.resource_owner?
+        m.dropdown('Allocate') do
+          user.owned_resources.each do |owned|
+            m.item(owned.name, schedule_group_path(owned.entity))
+          end
+        end
+      end
       if user.create_events?
         m.dropdown(events_menu_text(user), user_events_path(user)) do
           m.dropdown(my_events_menu_text(user),
