@@ -253,6 +253,25 @@ class UserMailer < ActionMailer::Base
          subject: "Some of your events need staff to go with resources")
   end
 
+  def comment_added_email(
+    email,
+    event,
+    element,
+    comment,
+    user,
+    did_pushback)
+    @comment = comment
+    @event = event
+    @element = element
+    @user = user
+    @did_pushback = did_pushback
+    mail(
+      to: email,
+      from: Setting.from_email_address,
+      reply_to: user.email,
+      subject: "#{user.name} has added a comment to one of your request forms")
+  end
+
   private
 
   def appropriate_email(event)

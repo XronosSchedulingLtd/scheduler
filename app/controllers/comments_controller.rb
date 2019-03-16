@@ -14,8 +14,12 @@ class CommentsController < ApplicationController
         commitment_params.merge({user: current_user}))
     if @comment.save
       if do_pushback
-        @user_form_response.pushback_and_save
+        did_pushback = @user_form_response.pushback_and_save
       end
+      notify_relevant_users(@user_form_response,
+                            @comment,
+                            current_user,
+                            did_pushback)
     end
     redirect_to :back
   end
@@ -70,6 +74,46 @@ class CommentsController < ApplicationController
       end
     end
     result
+  end
+
+  def notify_relevant_users(
+    user_form_response,
+    comment,
+    by_user,
+    did_pushback)
+
+    linker = user_form_response.parent
+    #
+    #  linker may be either a Commitment or a Request
+    #
+    if linker
+      event = linker.event
+      element = linker.element
+      if event && element
+        owner = event.owner
+        #
+        #  And the organiser, if any.
+        #
+        organiser = event.organiser_user
+        if owner
+          UserMailer.comment_added_email(owner.email,
+                                         event,
+                                         element,
+                                         comment,
+                                         by_user,
+                                         did_pushback).deliver_now
+        end
+        if organiser && (organiser != owner)
+          UserMailer.comment_added_email(organiser.email,
+                                         event,
+                                         element,
+                                         comment,
+                                         by_user,
+                                         did_pushback).deliver_now
+        end
+      end
+    end
+
   end
 
 end

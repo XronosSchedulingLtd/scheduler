@@ -108,6 +108,9 @@ class UserFormResponse < ActiveRecord::Base
     if self.complete?
       self.status = :partial
       self.save
+      true
+    else
+      false
     end
   end
 
