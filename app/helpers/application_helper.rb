@@ -268,7 +268,6 @@ module ApplicationHelper
           m.item('Clashes', notifiers_path)
         end
       end
-      m << "<li class='divider'>"
     end
     m.result
   end

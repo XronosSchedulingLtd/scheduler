@@ -39,6 +39,7 @@
 <% if current_user %>
   <%  if current_user.sees_menu? %>
     <%= menu_for(current_user) %>
+    <li class='divider'>
   <%  end %>
         <li>
 <%   if current_user.known? %>
