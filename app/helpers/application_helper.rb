@@ -148,4 +148,125 @@ module ApplicationHelper
       end
     end
   end
+
+  def li(text)
+    "<li>#{text}</li>"
+  end
+
+  def dropdown(m, title_text, link = '#')
+    m << "<li class='has-dropdown'>"
+    m << link_to(title_text, link)
+    m << "<ul class='dropdown'>"
+    if block_given?
+      yield
+    end
+    m << "</ul>"
+    m << "</li>"
+  end
+
+  def li_link(m, title, link)
+    m << li(link_to(title, link))
+  end
+
+  #
+  #  Build the appropriate HTML for the menu for this user.
+  #
+  def menu_for(user)
+    m = []
+    dropdown(m, header_menu_text(user)) do
+      if user.admin?
+        dropdown(m, 'Admin') do
+          li_link(m, 'E-mails', emails_path)
+          dropdown(m, 'Models') do
+            li_link(m, 'Data sources', datasources_path)
+            li_link(m, 'Eras', eras_path)
+            dropdown(m, 'Events', events_path) do
+              li_link(m, 'Repeating', event_collections_path)
+              dropdown(m, 'Categories', eventcategories_path) do
+                li_link(m, 'Current', eventcategories_path(current: true))
+                li_link(m, 'Deprecated', eventcategories_path(deprecated: true))
+              end
+              li_link(m, 'Sources', eventsources_path)
+            end
+            dropdown(m, 'Locations', locations_path) do
+              li_link(m, 'Aliases', locationaliases_path)
+              li_link(m, 'Owned', locations_path(owned: true))
+            end
+            li_link(m, 'Properties', properties_path)
+            li_link(m, 'Pupils', pupils_path)
+            li_link(m, 'Services', services_path)
+            dropdown(m, 'Staff', staffs_path) do
+              li_link(m, 'Active', staffs_path(active: true))
+              li_link(m, 'Inactive', staffs_path(inactive: true))
+            end
+            li_link(m, 'Subjects', subjects_path)
+            dropdown(m, 'Users', users_path) do
+              li_link(m, 'Profiles', user_profiles_path)
+            end
+          end
+          dropdown(m, 'Settings', settings_path) do
+            li_link(m, 'Pre-requisites', pre_requisites_path)
+          end
+          li_link(m, 'Imports', imports_index_path)
+          li_link(m, 'Day shape',
+                  rota_template_type_rota_templates_path(
+                    DayShapeManager.template_type))
+        end
+        dropdown(m, 'Groups', groups_path) do
+          dropdown(m, 'All', groups_path) do
+            li_link(m, 'Deleted', groups_path(deleted: true))
+          end
+          li_link(m, 'Mine', groups_path(mine: true))
+          li_link(m, 'Resource', groups_path(resource: true))
+          li_link(m, 'Tutor', tutorgroups_path)
+        end
+      elsif user.can_has_groups?
+        li_link(m, 'Groups', groups_path)
+      end
+      if user.create_events?
+        dropdown(m, events_menu_text(user), user_events_path(user)) do
+          dropdown(m,
+                   my_events_menu_text(user),
+                   user_events_path(user, pending: true)) do
+            li_link(m, 'All', user_events_path(user))
+          end
+          if user.admin?
+            li_link(m, 'All', events_path)
+          end
+          user.owned_elements.each do |ce|
+            dropdown(m,
+                     controlled_element_menu_text(ce),
+                     owned_element_listing_path(ce, true)) do
+              li_link(m, 'All', owned_element_listing_path(ce))
+            end
+          end
+        end
+      end
+      if user.can_find_free?
+        li_link(m, 'Find free', new_freefinder_path)
+      end
+      if user.can_has_forms?
+        li_link(m, 'Forms', user_forms_path)
+      end
+      if user.can_view_journal_for?(:events)
+        dropdown(m, 'Journals', journals_path) do
+          li_link(m, 'Current', journals_path(current: true))
+          li_link(m, 'Deleted events', journals_path(deleted: true))
+        end
+      end
+      if user.exams?
+        dropdown(m, 'Invigilation') do
+          li_link(m,
+                  'Templates',
+                  rota_template_type_rota_templates_path(
+                    InvigilationManager.template_type))
+          li_link(m, 'Cycles', exam_cycles_path)
+          li_link(m, 'E-mails', new_notifier_path)
+          li_link(m, 'Clashes', notifiers_path)
+        end
+      end
+      m << "<li class='divider'>"
+    end.join("\n").html_safe
+  end
+
 end
