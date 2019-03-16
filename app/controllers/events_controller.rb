@@ -182,7 +182,7 @@ class EventsController < ApplicationController
       #
       @element_connections_with_forms =
         (@event.commitments + @event.requests).select do |c|
-          c.user_form_response && !c.user_form_response.empty?
+          c.user_form_response && !c.user_form_response.pristine?
         end
       if @element_connections_with_forms.empty?
         @element_connections_with_forms = nil

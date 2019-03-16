@@ -1,10 +1,41 @@
-<% if @event %>
-  <% if @cancel_button && @close_after %>
-    <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius flip-button button-link', onclick: "window.close();" %>
+<% if @cancel_button && @close_after %>
+  <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius flip-button button-link', onclick: "window.close();" %>
+<% end %>
+<div style='display:none'>
+  <%= form_for([@user_form, @user_form_response]) do |f| %>
+    <%= f.text_field :definition, disabled: true %>
+    <%= f.text_field :form_data %>
+    <%= f.text_field :status %>
   <% end %>
-  <h3>Request form for <%= @resource.name %></h3>
+</div>
+<form id='user-form'>
+  <div class='user-form-response-area frmb'
+       data-readonly=<%= @read_only ? "true" : "false" %>></div>
+  <input type='submit' style='display:none'/>
+</form>
+<% if @form_status %>
+  <p>Current form status: <%= @form_status %></p>
+<% end %>
+<% if @show_comments %>
+  <%= render 'comments' %>
+<% end %>
+<% if @save_button %>
+  <button class='zfbutton tiny radius' id='save-button'>Save as complete</button>
+  <button class='zfbutton tiny radius' id='save-draft-button'>Save as draft</button>
+<% end %>
+<% if @cancel_button %>
+  <% if @close_after %>
+    <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius button-link', onclick: "window.close();" %>
+  <% else %>
+    <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius button-link' %>
+  <% end %>
+<% end %>
+
+<% if @event %>
+  <hr/>
+  <h3>Request for <%= @resource.name %></h3>
   <% if @status %>
-    Status: <%= @status %><br/>
+    Request status: <%= @status %><br/>
   <% end %>
   Event: <%= @event.body %><br/>
   Starts: <%= @event.starts_at_text %><br/>
@@ -31,30 +62,5 @@
   <br/>
   <%= preserve_line_breaks(@extra_text) %>
 <% end %>
-  <hr/>
-<% end %>
-<div style='display:none'>
-  <%= form_for([@user_form, @user_form_response]) do |f| %>
-    <%= f.text_field :definition, disabled: true %>
-    <%= f.text_field :form_data %>
-    <%= f.text_field :status %>
-  <% end %>
-</div>
-<form id='user-form'>
-  <div class='user-form-response-area frmb'
-       data-readonly=<%= @read_only ? "true" : "false" %>></div>
-  <input type='submit' style='display:none'/>
-</form>
-
-<% if @save_button %>
-  <button class='zfbutton tiny radius' id='save-button'>Save as complete</button>
-  <button class='zfbutton tiny radius' id='save-draft-button'>Save as draft</button>
-<% end %>
-<% if @cancel_button %>
-  <% if @close_after %>
-    <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius button-link', onclick: "window.close();" %>
-  <% else %>
-    <%= link_to @cancel_text, @cancel_url, class: 'zfbutton tiny radius button-link' %>
-  <% end %>
 <% end %>
 

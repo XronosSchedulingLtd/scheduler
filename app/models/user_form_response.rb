@@ -1,7 +1,33 @@
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2019 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
 class UserFormResponse < ActiveRecord::Base
 
   enum status: [
-    :empty,
+    #
+    #================================================================
+    #
+    #  DANGER WILL ROBINSON!
+    #
+    #  The first status value here used to be called :empty, but that
+    #  leads via a long chain to surprising results.
+    #
+    #  ActiveModel helpfully creates some helper methods - empty?,
+    #  partial?, and complete? so you can do ufr.partial? rather than
+    #  "ufr.status == :partial", but then the new empty? method
+    #  is aliased as blank?, which the ActiveModel validation code
+    #  calls to see whether a record exists at all.
+    #
+    #  Took me ages to track this down.
+    #
+    #  The moral of this story is - never give any enum a value of
+    #  :empty (or :blank, but that's more obviously a no-no).
+    #
+    #================================================================
+    #
+    :pristine,
     :partial,
     :complete
   ]
@@ -10,7 +36,9 @@ class UserFormResponse < ActiveRecord::Base
   belongs_to :parent, polymorphic: true
   belongs_to :user
 
-  validates :user_form, presence: true
+  has_many :comments, as: :parent, dependent: :destroy
+
+  validates :user_form, :parent, presence: true
 
   scope :incomplete, -> { where.not("user_form_responses.status = ?",
                                     UserFormResponse.statuses[:complete]) }
@@ -74,6 +102,16 @@ class UserFormResponse < ActiveRecord::Base
 
   def user_text
     self.user ? self.user.name : ""
+  end
+
+  def pushback_and_save
+    if self.complete?
+      self.status = :partial
+      self.save
+      true
+    else
+      false
+    end
   end
 
   #
