@@ -1,0 +1,37 @@
+<hr/>
+<h4>Comments</h4>
+<div class='row collapse'>
+  <%= render partial: '/comments/comment', collection: @comments %>
+</div>
+<% if @allow_add_comment %>
+  <hr/>
+  <%= form_for([@user_form_response, @comment]) do |f| %>
+  <div class='row collapse'>
+    <div class='small-10 columns'>
+      <%= f.text_field :body %>
+    </div>
+    <div class='small-1 column'>
+      <%=
+        f.button("Add comment",
+                 type: :submit,
+                 name: 'subaction',
+                 value: 'justadd',
+                 class: 'zfbutton tiny postfix radius',
+                 title: 'Just add a comment')
+      %>
+    </div>
+    <div class='small-1 column'>
+      <%=
+        f.button("Push back",
+                 type: :submit,
+                 name: 'subaction',
+                 value: 'pushback',
+                 class: 'zfbutton tiny postfix radius',
+                 title: 'Add a comment and push the form back to the submitter to be completed further.')
+      %>
+    </div>
+  </div>
+  <% end %>
+<% end %>
+<hr/>
+

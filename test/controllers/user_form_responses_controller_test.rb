@@ -2,8 +2,8 @@ require 'test_helper'
 
 class UserFormResponsesControllerTest < ActionController::TestCase
   setup do
-    @user_form_response = user_form_responses(:one)
-    @user_form = user_forms(:real)
+    @user_form_response = FactoryBot.create(:user_form_response)
+    @user_form = @user_form_response.user_form
     @user = users(:one)
     session[:user_id] = users(:admin).id
     session[:return_to] = user_form_path(@user_form)

@@ -148,4 +148,135 @@ module ApplicationHelper
       end
     end
   end
+
+  class MenuMaker < Array
+
+    include ActionView::Helpers::UrlHelper
+
+    def dropdown(title_text, link = '#')
+      self << "<li class='has-dropdown'>"
+      self << link_to(title_text, link)
+      self << "<ul class='dropdown'>"
+      if block_given?
+        yield
+      end
+      self << "</ul>"
+      self << "</li>"
+    end
+
+    def item(title, link)
+      self << "<li>#{link_to(title, link)}</li>"
+    end
+
+    def result
+      self.join("\n").html_safe
+    end
+
+  end
+
+  #
+  #  Build the appropriate HTML for the menu for this user.
+  #
+  def menu_for(user)
+    m = MenuMaker.new
+    m.dropdown(header_menu_text(user)) do
+      if user.admin?
+        m.dropdown('Admin') do
+          m.item('E-mails', emails_path)
+          m.dropdown('Models') do
+            m.item('Data sources', datasources_path)
+            m.item('Eras', eras_path)
+            m.dropdown('Events', events_path) do
+              m.item('Repeating', event_collections_path)
+              m.dropdown('Categories', eventcategories_path) do
+                m.item('Current', eventcategories_path(current: true))
+                m.item('Deprecated', eventcategories_path(deprecated: true))
+              end
+              m.item('Sources', eventsources_path)
+            end
+            m.dropdown('Locations', locations_path) do
+              m.item('Aliases', locationaliases_path)
+              m.item('Owned', locations_path(owned: true))
+            end
+            m.item('Properties', properties_path)
+            m.item('Pupils', pupils_path)
+            m.item('Services', services_path)
+            m.dropdown('Staff', staffs_path) do
+              m.item('Active', staffs_path(active: true))
+              m.item('Inactive', staffs_path(inactive: true))
+            end
+            m.item('Subjects', subjects_path)
+            m.dropdown('Users', users_path) do
+              m.item('Profiles', user_profiles_path)
+            end
+          end
+          m.dropdown('Settings', settings_path) do
+            m.item('Pre-requisites', pre_requisites_path)
+          end
+          m.item('Imports', imports_index_path)
+          m.item('Day shape',
+                  rota_template_type_rota_templates_path(
+                    DayShapeManager.template_type))
+        end
+        m.dropdown('Groups', groups_path) do
+          m.dropdown('All', groups_path) do
+            m.item('Deleted', groups_path(deleted: true))
+          end
+          m.item('Mine', groups_path(mine: true))
+          m.item('Resource', groups_path(resource: true))
+          m.item('Tutor', tutorgroups_path)
+        end
+      elsif user.can_has_groups?
+        m.item('Groups', groups_path)
+      end
+      if user.resource_owner?
+        m.dropdown('Allocate') do
+          user.owned_resources.each do |owned|
+            m.item(owned.name, schedule_group_path(owned.entity))
+          end
+        end
+      end
+      if user.create_events?
+        m.dropdown(events_menu_text(user), user_events_path(user)) do
+          m.dropdown(my_events_menu_text(user),
+                     user_events_path(user, pending: true)) do
+            m.item('All', user_events_path(user))
+          end
+          if user.admin?
+            m.item('All', events_path)
+          end
+          user.owned_elements.each do |ce|
+            m.dropdown(controlled_element_menu_text(ce),
+                       owned_element_listing_path(ce, true)) do
+              m.item('All', owned_element_listing_path(ce))
+            end
+          end
+        end
+      end
+      if user.can_find_free?
+        m.item('Find free', new_freefinder_path)
+      end
+      if user.can_has_forms?
+        m.item('Forms', user_forms_path)
+      end
+      if user.can_view_journal_for?(:events)
+        m.dropdown('Journals', journals_path) do
+          m.item('Current', journals_path(current: true))
+          m.item('Deleted events', journals_path(deleted: true))
+        end
+      end
+      if user.exams?
+        m.dropdown('Invigilation') do
+          m.item('Templates',
+                    rota_template_type_rota_templates_path(
+                      InvigilationManager.template_type))
+          m.item('Cycles', exam_cycles_path)
+          m.item('E-mails', new_notifier_path)
+          m.item('Clashes', notifiers_path)
+        end
+      end
+    end
+    m.result
+  end
+
 end

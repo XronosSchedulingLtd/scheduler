@@ -6,7 +6,7 @@ else
 end
 %></h1>
 <div class="apple_pagination">
-  <%= will_paginate @emails %>
+  <%= will_paginate @eams %>
 </div>
 
 <table class="zftable">
@@ -22,12 +22,12 @@ end
   </thead>
 
   <tbody>
-    <%= render collection: @emails, partial: 'emails/message' %>
+    <%= render @eams %>
   </tbody>
 </table>
 
 <div class="apple_pagination">
-  <%= will_paginate @emails %>
+  <%= will_paginate @eams %>
 </div>
 <% if @provide_button %>
   <div class="flip-button">

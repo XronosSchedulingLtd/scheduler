@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2018 John Winters
+# Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -85,6 +85,7 @@ class User < ActiveRecord::Base
            dependent: :nullify
 
   has_many :messages, class_name: 'Ahoy::Message', as: :user
+  has_many :comments, dependent: :destroy
   belongs_to :preferred_event_category, class_name: Eventcategory
   belongs_to :day_shape, class_name: RotaTemplate
   belongs_to :corresponding_staff, class_name: "Staff"
@@ -346,6 +347,25 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  A subset of owned elements.  Elements which we own and which can have
+  #  requests made on them.
+  #
+  def owned_resources
+    unless @owned_resources
+      #
+      #  Call the function to make the most of our cache.
+      #
+      @owned_resources =
+        self.owned_elements.select {|oe| oe.can_have_requests?}
+    end
+    @owned_resources
+  end
+
+  def resource_owner?
+    !self.owned_resources.empty?
+  end
+
+  #
   #  Can this user edit the indicated item?
   #
   def can_edit?(item)
@@ -514,6 +534,8 @@ class User < ActiveRecord::Base
       #  can_subedit? can cope with a nil parameter.
       #
       self.can_subedit?(item.event)
+    elsif item.instance_of?(Comment)
+      (item.user_id == self.id) || self.admin?
     else
       false
     end
@@ -618,6 +640,18 @@ class User < ActiveRecord::Base
       self.admin
     elsif object == :events
       self.admin
+    else
+      false
+    end
+  end
+
+  def can_add_comments_to?(item)
+    if item.instance_of?(UserFormResponse)
+      #
+      #  UserFormResponse is attached to Commitment or Request.
+      #  Are we an admin of the corresponding element?
+      #
+      self.admin || self.owns?(item.parent.element)
     else
       false
     end

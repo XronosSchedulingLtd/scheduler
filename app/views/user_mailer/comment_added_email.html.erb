@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+    <%= render partial: "styling" %>
+  </head>
+  <body>
+    <%= render partial: "header" %>
+
+    <p>Comment from <%= @user.name %> about your request for "<%= @element.name %>"</p>
+
+    <p class='indented'><%= @comment.body %></p>
+
+    <p>The relevant event is "<%= @event.body %>"
+    on <%= @event.start_date_text %> at <%= @event.start_time_text %></p>
+
+<% if @did_pushback %>
+  <p>The status of the corresponding form has thus changed from "Complete" to
+  "Pending".  Please could you re-visit the form and make any necessary updates?</p>
+<% end %>
+
+  </body>
+</html>
