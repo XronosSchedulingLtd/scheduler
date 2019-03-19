@@ -176,7 +176,7 @@ class ApprovalNotifier
           approver_emails.each do |ae|
             @rs.recipient(ae).note_request(element, c)
           end
-        elsif c.user_form_response && c.user_form_response.empty?
+        elsif c.user_form_response && c.user_form_response.pristine?
           email = requester_email(c)
           if email
             @rs.recipient(email).note_form(c)
