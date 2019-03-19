@@ -1,3 +1,12 @@
+v1.7.8.1 2019-03-19
+
+* Fix error in daily notifications caused by last update.
+
+  In testing for the next upcoming release, a bug was identified in
+  the previous one which prevents the daily e-mail run completing
+  sucessfully.  This hotfix corrects that problem.
+
+
 v1.7.8  2019-03-17
 
 * Upgraded Rails to version 4.2.11.1
