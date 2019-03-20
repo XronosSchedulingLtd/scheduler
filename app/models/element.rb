@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Element < ActiveRecord::Base
+class Element < ApplicationRecord
   belongs_to :entity, :polymorphic => true
   has_many :memberships, :dependent => :destroy
   has_many :commitments, :dependent => :destroy

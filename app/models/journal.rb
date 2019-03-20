@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
-class Journal < ActiveRecord::Base
+class Journal < ApplicationRecord
   belongs_to :event
   belongs_to :event_eventcategory, class_name: :Eventcategory
   belongs_to :event_owner,         class_name: :User

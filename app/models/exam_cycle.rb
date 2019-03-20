@@ -1,4 +1,4 @@
-class ExamCycle < ActiveRecord::Base
+class ExamCycle < ApplicationRecord
 
   include Generator
 

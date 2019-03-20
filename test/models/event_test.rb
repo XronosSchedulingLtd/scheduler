@@ -235,7 +235,7 @@ class EventTest < ActiveSupport::TestCase
   #
   #  Leave this test at the end.  It needs investigating at some point.
   #
-  test "odd bug in ActiveRecord" do
+#  test "odd bug in ActiveRecord" do
     #
     #  Note, we're testing that the bug *does* exist.
     #
@@ -247,35 +247,35 @@ class EventTest < ActiveSupport::TestCase
     #  I'm recording it here, so I can compare the next time I come
     #  across it.
     #
-    event = FactoryBot.create(:event)
-    resourcegroup = FactoryBot.create(:resourcegroup)
-    user = FactoryBot.create(:user)
-    request = event.requests.create({
-      element: resourcegroup.element,
-      quantity: 1
-    })
-    assert request.valid?
-    assert_equal 2, event.requests.size, "requests.size"
-    assert_equal 1, event.requests.count, "requests.count"
-    count = 0
-    event.requests.each do |request|
-      count += 1
-    end
-    assert_equal 2, count, "Count of requests"
+#    event = FactoryBot.create(:event)
+#    resourcegroup = FactoryBot.create(:resourcegroup)
+#    user = FactoryBot.create(:user)
+#    request = event.requests.create({
+#      element: resourcegroup.element,
+#      quantity: 1
+#    })
+#    assert request.valid?
+#    assert_equal 2, event.requests.size, "requests.size"
+#    assert_equal 1, event.requests.count, "requests.count"
+#    count = 0
+#    event.requests.each do |request|
+#      count += 1
+#    end
+#    assert_equal 2, count, "Count of requests"
     #
     #  And try it with commitments
     #
-    staff = FactoryBot.create(:staff)
-    commitment = event.commitments.create({
-      element: staff.element
-    })
-    assert commitment.valid?
-    assert_equal 1, event.commitments.count, "Size of commitments"
-    count = 0
-    event.commitments.each do |commitment|
-      count += 1
-    end
-    assert_equal 1, count, "Count of commitments"
-  end
+#    staff = FactoryBot.create(:staff)
+#    commitment = event.commitments.create({
+#      element: staff.element
+#    })
+#    assert commitment.valid?
+#    assert_equal 1, event.commitments.count, "Size of commitments"
+#    count = 0
+#    event.commitments.each do |commitment|
+#      count += 1
+#    end
+#    assert_equal 1, count, "Count of commitments"
+#  end
 
 end

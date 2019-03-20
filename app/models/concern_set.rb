@@ -1,4 +1,4 @@
-class ConcernSet < ActiveRecord::Base
+class ConcernSet < ApplicationRecord
 
   DefaultViewName = 'Default'
 
@@ -13,8 +13,8 @@ class ConcernSet < ActiveRecord::Base
   validates_presence_of :name
   validates_presence_of :owner
 
-  attribute :copy_concerns, Type::Boolean.new, default: true
-  attribute :and_hide,      Type::Boolean.new, default: false
+  attribute :copy_concerns, :boolean, default: true
+  attribute :and_hide,      :boolean, default: false
 
   #
   #  This exists as a method because it needs to be able to work out

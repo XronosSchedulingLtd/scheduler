@@ -4,7 +4,7 @@
 # for more information.
 #
 
-class Attachment < ActiveRecord::Base
+class Attachment < ApplicationRecord
   belongs_to :parent, polymorphic: true
   belongs_to :user_file
 

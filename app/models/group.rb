@@ -5,7 +5,7 @@
 
 require 'csv'
 
-class Group < ActiveRecord::Base
+class Group < ApplicationRecord
   belongs_to :era
   belongs_to :owner, :class_name => :User
   belongs_to :persona, :polymorphic => true, :dependent => :destroy

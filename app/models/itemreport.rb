@@ -5,7 +5,7 @@
 #
 require 'uri'
 
-class Itemreport < ActiveRecord::Base
+class Itemreport < ApplicationRecord
   belongs_to :concern
   belongs_to :excluded_element,
              :class_name => :Element

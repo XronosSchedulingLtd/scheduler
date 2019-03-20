@@ -1,4 +1,4 @@
-class Request < ActiveRecord::Base
+class Request < ApplicationRecord
 
   class Candidate
     attr_reader :element_id,

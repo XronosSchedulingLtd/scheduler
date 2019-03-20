@@ -44,7 +44,7 @@ gem 'spring',        group: :development
 gem 'foundation-rails', '5.5.0.0'
 gem 'jquery-ui-rails'
 gem 'charlock_holmes'
-gem 'will_paginate', '~> 3.0'
+gem 'will_paginate'
 gem 'rails-observers'
 gem 'ruby-prof'
 gem 'ri_cal'
@@ -74,4 +74,5 @@ end
 
 group :test, :development do
   gem 'factory_bot_rails'
+  gem 'rails-controller-testing'
 end

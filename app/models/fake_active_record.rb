@@ -1,4 +1,4 @@
-class FakeActiveRecord < ActiveRecord::Base
+class FakeActiveRecord < ApplicationRecord
 
   def self.columns
     @columns ||= [];

@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Eventsource < ActiveRecord::Base
+class Eventsource < ApplicationRecord
 
    validates :name, presence: true
    validates :name, uniqueness: true

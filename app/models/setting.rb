@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Setting < ActiveRecord::Base
+class Setting < ApplicationRecord
 
   @@setting = nil
   @@from_email_domain = nil

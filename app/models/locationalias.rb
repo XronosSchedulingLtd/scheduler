@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Locationalias < ActiveRecord::Base
+class Locationalias < ApplicationRecord
 
   validates :name, presence: true
   belongs_to :location

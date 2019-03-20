@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
-class Datasource < ActiveRecord::Base
+class Datasource < ApplicationRecord
    validates :name, presence: true
    validates :name, uniqueness: true
 

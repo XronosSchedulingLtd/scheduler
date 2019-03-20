@@ -1,4 +1,4 @@
-class ProtoCommitment < ActiveRecord::Base
+class ProtoCommitment < ApplicationRecord
   belongs_to :proto_event
   belongs_to :element
 

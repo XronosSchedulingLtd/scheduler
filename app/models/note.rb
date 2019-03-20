@@ -5,7 +5,7 @@
 #
 require 'uri'
 
-class Note < ActiveRecord::Base
+class Note < ApplicationRecord
   belongs_to :parent, polymorphic: true
 #  belongs_to :commitments, -> { where( notes: { parent_type: 'Commitment' } ).includes(:notes) }, foreign_key: 'parent_id'
   belongs_to :owner, class_name: :User

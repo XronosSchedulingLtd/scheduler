@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Service < ActiveRecord::Base
+class Service < ApplicationRecord
 
   validates :name, presence: true
 

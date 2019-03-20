@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class User < ActiveRecord::Base
+class User < ApplicationRecord
 
   include Permissions
 

@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
-class Subject < ActiveRecord::Base
+class Subject < ApplicationRecord
 
   DISPLAY_COLUMNS = [:subject_teachers, :subject_groups, :dummy]
 

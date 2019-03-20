@@ -5,7 +5,7 @@
 
 require 'yaml'
 
-class Membership < ActiveRecord::Base
+class Membership < ApplicationRecord
 
   class MembershipWithDuration
 

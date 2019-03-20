@@ -33,7 +33,7 @@ class RotaSlotValidator < ActiveModel::Validator
 
 end
 
-class RotaSlot < ActiveRecord::Base
+class RotaSlot < ApplicationRecord
   serialize :starts_at, Tod::TimeOfDay
   serialize :ends_at, Tod::TimeOfDay
   serialize :days, Array

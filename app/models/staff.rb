@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Staff < ActiveRecord::Base
+class Staff < ApplicationRecord
 
   validates :name, presence: true
 

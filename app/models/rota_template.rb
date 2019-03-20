@@ -1,4 +1,4 @@
-class RotaTemplate < ActiveRecord::Base
+class RotaTemplate < ApplicationRecord
 
   belongs_to :rota_template_type
 

@@ -58,7 +58,7 @@ class RepeatDatesValidator < ActiveModel::Validator
 
 end
 
-class EventCollection < ActiveRecord::Base
+class EventCollection < ApplicationRecord
 
   class DaynameWithIndex
     attr_reader :name, :index

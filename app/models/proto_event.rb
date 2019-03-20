@@ -203,7 +203,7 @@ class ProtoEventValidator < ActiveModel::Validator
 end
 
 
-class ProtoEvent < ActiveRecord::Base
+class ProtoEvent < ApplicationRecord
   belongs_to :eventcategory
   belongs_to :eventsource
   has_many :proto_commitments, :dependent => :destroy

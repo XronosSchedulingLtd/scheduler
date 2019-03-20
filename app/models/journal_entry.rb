@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
-class JournalEntry < ActiveRecord::Base
+class JournalEntry < ApplicationRecord
   enum entry_type: [
     :event_created,
     :event_destroyed,

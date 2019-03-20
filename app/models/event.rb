@@ -104,7 +104,7 @@ class CommitmentSet < Array
 
 end
 
-class Event < ActiveRecord::Base
+class Event < ApplicationRecord
 
   include ActiveModel::Validations
 

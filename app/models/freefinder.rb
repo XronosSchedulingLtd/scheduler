@@ -17,7 +17,7 @@ require 'csv'
 #  group.  The group lists the candidates for us to find free
 #  ones of.
 #
-class Freefinder < ActiveRecord::Base
+class Freefinder < ApplicationRecord
 
   belongs_to :element
 

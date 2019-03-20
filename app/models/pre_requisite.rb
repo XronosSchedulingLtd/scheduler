@@ -4,7 +4,7 @@
 # for more information.
 #
 
-class PreRequisite < ActiveRecord::Base
+class PreRequisite < ApplicationRecord
   belongs_to :element
 
   validates :element, presence: true

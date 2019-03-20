@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Tutorgrouppersona < ActiveRecord::Base
+class Tutorgrouppersona < ApplicationRecord
 
   validates :staff, presence: true
 

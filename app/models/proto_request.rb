@@ -1,4 +1,4 @@
-class ProtoRequest < ActiveRecord::Base
+class ProtoRequest < ApplicationRecord
   belongs_to :element
   belongs_to :proto_event
 

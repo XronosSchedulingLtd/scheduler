@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Era < ActiveRecord::Base
+class Era < ApplicationRecord
 
   has_many :groups, dependent: :destroy
   has_many :event_collections, dependent: :destroy

@@ -1,4 +1,4 @@
-class UserProfile < ActiveRecord::Base
+class UserProfile < ApplicationRecord
 
   include Permissions
 

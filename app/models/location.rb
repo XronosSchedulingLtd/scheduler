@@ -20,7 +20,7 @@ class SubsidiaryValidator < ActiveModel::Validator
 
 end
 
-class Location < ActiveRecord::Base
+class Location < ApplicationRecord
 
   has_many :locationaliases, :dependent => :nullify
 

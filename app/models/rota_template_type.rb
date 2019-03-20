@@ -1,4 +1,4 @@
-class RotaTemplateType < ActiveRecord::Base
+class RotaTemplateType < ApplicationRecord
 
   has_many :rota_templates, :dependent => :destroy
 
