@@ -20,31 +20,50 @@ class ErasControllerTest < ActionController::TestCase
 
   test "should create era" do
     assert_difference('Era.count') do
-      post :create, era: { ends_on: @era.ends_on, name: @era.name, starts_on: @era.starts_on }
+      post(
+        :create,
+        params: {
+          era: {
+            ends_on: @era.ends_on,
+            name: @era.name,
+            starts_on: @era.starts_on
+          }
+        }
+      )
     end
 
     assert_redirected_to era_path(assigns(:era))
   end
 
   test "should show era" do
-    get :show, id: @era
+    get :show, params: { id: @era }
     assert_response :success
   end
 
   test "should get edit" do
-    get :edit, id: @era
+    get :edit, params: { id: @era }
     assert_response :success
   end
 
   test "should update era" do
-    patch :update, id: @era, era: { ends_on: @era.ends_on, name: @era.name, starts_on: @era.starts_on }
+    patch(
+      :update,
+      params: {
+        id: @era,
+        era: {
+          ends_on: @era.ends_on,
+          name: @era.name,
+          starts_on: @era.starts_on
+        }
+      }
+    )
     assert_redirected_to eras_path
   end
 
   test "should destroy era" do
     request.env["HTTP_REFERER"] = "/"
     assert_difference('Era.count', -1) do
-      delete :destroy, id: @eratodelete
+      delete :destroy, params: { id: @eratodelete }
     end
 
     assert_redirected_to eras_path
@@ -53,7 +72,7 @@ class ErasControllerTest < ActionController::TestCase
   test "should fail to destroy era" do
     request.env["HTTP_REFERER"] = "/"
     assert_difference('Era.count', 0) do
-      delete :destroy, id: @era
+      delete :destroy, params: { id: @era }
     end
 
     assert_redirected_to "/"

@@ -22,36 +22,47 @@ class UserProfilesControllerTest < ActionController::TestCase
 
   test "should create user_profile" do
     assert_difference('UserProfile.count') do
-      post :create, user_profile: {
-        name: @user_profile.name,
-        permissions: @permission_flags
-      }
+      post(
+        :create,
+        params: {
+          user_profile: {
+            name: @user_profile.name,
+            permissions: @permission_flags
+          }
+        }
+      )
     end
 
     assert_redirected_to user_profiles_path
   end
 
   test "should show user_profile" do
-    get :show, id: @user_profile
+    get :show, params: { id: @user_profile }
     assert_response :success
   end
 
   test "should get edit" do
-    get :edit, id: @user_profile
+    get :edit, params: { id: @user_profile }
     assert_response :success
   end
 
   test "should update user_profile" do
-    patch :update, id: @user_profile, user_profile: {
-      name: @user_profile.name,
-      permissions: @permission_flags
-    }
+    patch(
+      :update,
+      params: {
+        id: @user_profile,
+        user_profile: {
+          name: @user_profile.name,
+          permissions: @permission_flags
+        }
+      }
+    )
     assert_redirected_to user_profiles_path
   end
 
   test "should destroy user_profile" do
     assert_difference('UserProfile.count', -1) do
-      delete :destroy, id: @user_profile
+      delete :destroy, params: { id: @user_profile }
     end
 
     assert_redirected_to user_profiles_path

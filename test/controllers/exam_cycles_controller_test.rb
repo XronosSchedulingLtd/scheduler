@@ -34,36 +34,46 @@ class ExamCyclesControllerTest < ActionController::TestCase
 
   test "should create exam_cycle" do
     assert_difference('ExamCycle.count') do
-      post :create, exam_cycle: {
-        default_rota_template_id: @exam_cycle.default_rota_template_id,
-        name: @exam_cycle.name,
-        starts_on_text: @exam_cycle.starts_on,
-        ends_on_text: @exam_cycle.ends_on,
-        default_group_element_id: @exam_cycle.default_group_element_id
-      }
+      post :create,
+           params: {
+             exam_cycle: {
+               default_rota_template_id: @exam_cycle.default_rota_template_id,
+               name: @exam_cycle.name,
+               starts_on_text: @exam_cycle.starts_on,
+               ends_on_text: @exam_cycle.ends_on,
+               default_group_element_id: @exam_cycle.default_group_element_id
+             }
+           }
     end
 
     assert_redirected_to exam_cycles_path
   end
 
   test "should show exam_cycle" do
-    get :show, id: @exam_cycle
+    get :show, params: { id: @exam_cycle }
     assert_response :success
   end
 
   test "should get edit" do
-    get :edit, id: @exam_cycle
+    get :edit, params: { id: @exam_cycle }
     assert_response :success
   end
 
   test "should update exam_cycle" do
-    patch :update, id: @exam_cycle, exam_cycle: { default_rota_template_id: @exam_cycle.default_rota_template_id, name: @exam_cycle.name }
+    patch :update,
+          params: {
+            id: @exam_cycle,
+            exam_cycle: {
+              default_rota_template_id: @exam_cycle.default_rota_template_id,
+              name: @exam_cycle.name
+            }
+          }
     assert_redirected_to exam_cycles_path
   end
 
   test "should destroy exam_cycle" do
     assert_difference('ExamCycle.count', -1) do
-      delete :destroy, id: @exam_cycle
+      delete :destroy, params: { id: @exam_cycle }
     end
 
     assert_redirected_to exam_cycles_path

@@ -36,7 +36,7 @@ class ProtoEventsControllerTest < ActionController::TestCase
   end
 
   test "should get index" do
-    get :index, format: :json, exam_cycle_id: @exam_cycle.id
+    get :index, format: :json, params: { exam_cycle_id: @exam_cycle.id}
     assert_response :success
     assert_not_nil assigns(:proto_events)
   end
@@ -45,8 +45,10 @@ class ProtoEventsControllerTest < ActionController::TestCase
     assert_difference('ProtoEvent.count') do
       post :create,
            format: :json,
-           exam_cycle_id: @exam_cycle.id,
-           proto_event: @valid_params
+           params: {
+             exam_cycle_id: @exam_cycle.id,
+             proto_event: @valid_params
+           }
     end
     assert_response :success
   end
@@ -54,15 +56,17 @@ class ProtoEventsControllerTest < ActionController::TestCase
   test "should update proto_event" do
     patch :update,
           format: :json,
-          exam_cycle_id: @exam_cycle.id,
-          id: @existing_proto_event,
-          proto_event: @valid_params
+          params: {
+            exam_cycle_id: @exam_cycle.id,
+            id: @existing_proto_event,
+            proto_event: @valid_params
+          }
     assert_response :success
   end
 
   test "should destroy proto_event" do
     assert_difference('ProtoEvent.count', -1) do
-      delete :destroy, format: :json, exam_cycle_id: @exam_cycle.id, id: @existing_proto_event
+      delete :destroy, format: :json, params: { exam_cycle_id: @exam_cycle.id, id: @existing_proto_event}
     end
     assert_response :success
   end
