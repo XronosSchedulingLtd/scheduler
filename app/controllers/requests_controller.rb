@@ -83,7 +83,7 @@ class RequestsController < ApplicationController
     @quick_buttons = QuickButtons.new(@event)
     respond_to do |format|
       format.js
-      format.html { redirect_to :back }
+      format.html { redirect_back fallback_location: root_path }
     end
   end
 
@@ -328,7 +328,7 @@ class RequestsController < ApplicationController
     @request.reconfirmed = true
     @request.save
     @request.event.journal_resource_request_reconfirmed(@request, current_user)
-    redirect_to :back
+    redirect_back fallback_location: root_path
   end
 
   private

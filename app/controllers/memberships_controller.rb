@@ -94,7 +94,7 @@ class MembershipsController < ApplicationController
       #  We have already checked the user's permissions.
       #
       @membership.destroy
-      redirect_to :back
+      redirect_back fallback_location: root_path
     else
       #
       #  This one likewise doesn't work quite the way you might expect.
@@ -148,9 +148,9 @@ class MembershipsController < ApplicationController
     #  setting the end date to today.
     #
     if @membership.terminate
-      redirect_to :back
+      redirect_back fallback_location: root_path
     else
-      redirect_to :back, notice: 'Not a valid end date'
+      redirect_back fallback_location: root_path, notice: 'Not a valid end date'
     end
   end
 

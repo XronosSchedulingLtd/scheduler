@@ -657,7 +657,7 @@ class EventsController < ApplicationController
     public_properties = Property.public_ones.to_a
     invisible_categories = Eventcategory.invisible.to_a
     if search_text.blank? || public_properties.size == 0
-      redirect_to :back
+      redirect_back fallback_location: root_path
     else
       selector = Event.beginning(Setting.current_era.starts_on).non_confidential
       unless current_user && current_user.staff?
@@ -733,7 +733,7 @@ class EventsController < ApplicationController
         file.write(uploaded_io.read)
       end
     end
-    redirect_to :back
+    redirect_back fallback_location: root_path
   end
 
   private

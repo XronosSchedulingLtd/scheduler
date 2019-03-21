@@ -255,7 +255,7 @@ class GroupsController < ApplicationController
     unless @group.current
       @group.reincarnate(true)
     end
-    redirect_to :back
+    redirect_back fallback_location: root_path
   end
 
   # GET /groups/1/schedule

@@ -21,12 +21,12 @@ class CommentsController < ApplicationController
                             current_user,
                             did_pushback)
     end
-    redirect_to :back
+    redirect_back fallback_location: root_path
   end
 
   def destroy
     @comment.destroy
-    redirect_to :back
+    redirect_back fallback_location: root_path
   end
 
   private
