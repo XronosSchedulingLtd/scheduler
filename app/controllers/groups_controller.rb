@@ -356,23 +356,32 @@ class GroupsController < ApplicationController
       end
     end
 
-    # Use callbacks to share common setup or constraints between actions.
-    def set_group
-      @group = Group.find(params[:id])
-    end
+  def authorized?(action = action_name, resource = nil)
+    logged_in? && (current_user.create_groups? || action == 'index')
+  end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def group_params
-      params.require(:group).permit(:name,
-                                    :era_id,
-                                    :current,
-                                    :source_id,
-                                    :make_public,
-                                    :edit_preferred_colour,
-                                    :loading_report_days,
-                                    :wrapping_mins,
-                                    :confirmation_days,
-                                    :form_warning_days,
-                                    :needs_people)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_group
+    @group = Group.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def group_params
+    params.require(:group).permit(:name,
+                                  :era_id,
+                                  :current,
+                                  :source_id,
+                                  :make_public,
+                                  :edit_preferred_colour,
+                                  :loading_report_days,
+                                  :wrapping_mins,
+                                  :confirmation_days,
+                                  :form_warning_days,
+                                  :needs_people)
+  end
+
+  def back_or(fallback_location)
+    session[:go_back_to] || fallback_location
+  end
+
 end
