@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190312100540) do
+ActiveRecord::Schema.define(version: 20190326091128) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -762,6 +762,10 @@ ActiveRecord::Schema.define(version: 20190312100540) do
     t.boolean  "confirmation_messages",                     default: true
     t.boolean  "prompt_for_forms",                          default: true
     t.boolean  "can_edit_memberships",                      default: false
+    t.string   "uuid",                        limit: 255
+    t.boolean  "can_api",                                   default: false
   end
+
+  add_index "users", ["uuid"], name: "index_users_on_uuid", unique: true, using: :btree
 
 end

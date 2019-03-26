@@ -108,6 +108,8 @@ class User < ActiveRecord::Base
 
   validates :user_profile, :presence => true
 
+  validates :uuid, uniqueness: true
+
   scope :arranges_cover, lambda { where("arranges_cover = true") }
   scope :element_owner, lambda { where(:element_owner => true) }
   scope :editors, lambda { where(editor: true) }
@@ -115,6 +117,7 @@ class User < ActiveRecord::Base
   scope :administrators, lambda { where(admin: true) }
   scope :demo_user, lambda { where(demo_user: true) }
 
+  before_create :add_uuid
   before_destroy :being_destroyed
   before_save :update_legacy_permission_flags
   after_save :find_matching_resources
@@ -1218,6 +1221,66 @@ class User < ActiveRecord::Base
     end
   end
 
+  #
+  #  Client code is not allowed to modify uuid.
+  #
+  def uuid=(value)
+  end
+
+  #
+  #  This method is called as the element record is about to be
+  #  created in the database.
+  #
+  def add_uuid
+    #
+    #  In theory we shouldn't get here if the record isn't valid, but...
+    #
+    if self.valid?
+      generate_uuid
+      #
+      #  This seems really stupid, but surely we should have some
+      #  code to cope with the possibility of a clash?
+      #
+      #  I don't want a loop in case of a coding error which means
+      #  it turns into an endless loop.
+      #
+      #  If after a second attempt our record is still invalid
+      #  (meaning the uuid is still clashing with one already in
+      #  the database) then the create!() (invoked from elemental.rb)
+      #  will throw an error and the creation of the underlying
+      #  element will be rolled back.  On the other hand, if you're
+      #  that unlucky you're not going to live much longer anyway.
+      #
+      #  Note that by this point, the automatic Rails record validation
+      #  has already been performed, and won't be performed again.
+      #  The only thing which is going to stop the save succeeding
+      #  is an actual constraint on the database - which is there.
+      #
+      unless self.valid?
+        generate_uuid
+      end
+    end
+  end
+
+  def self.generate_uuids
+    self.find_each do |user|
+      if user.uuid.blank?
+        user.generate_initial_uuid
+        user.save!
+      end
+    end
+    nil
+  end
+
+  #
+  #  This one is public, but won't overwrite an existing uuid.
+  #
+  def generate_initial_uuid
+    if self.uuid.blank?
+      generate_uuid
+    end
+  end
+
   protected
 
   def being_destroyed
@@ -1240,6 +1303,13 @@ class User < ActiveRecord::Base
         return sprintf("#%02X%02X%02X", red_bit, green_bit, blue_bit)
       end
     end
+  end
+
+  #
+  #  This one generates a uuid regardless.
+  #
+  def generate_uuid
+    write_attribute(:uuid, SecureRandom.uuid)
   end
 
 end
