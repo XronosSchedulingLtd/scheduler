@@ -11,7 +11,7 @@ module PublicApi
     #
     def login
       uid = params[:uid]
-      if uid && user = User.find_by(uuid: uid) && user.can_api?
+      if uid && (user = User.find_by(uuid: uid)) && user.can_api?
         reset_session
         session[:user_id] = user.id
         render json: { status: 'OK' }
