@@ -34,7 +34,7 @@ module PublicApi
           redirect_to '/'
         end
         format.json do
-          render json: { message: 'Access denied' }, status: 401
+          render json: { status: 'Access denied' }, status: :unauthorized
         end
       end
     end

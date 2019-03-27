@@ -5,12 +5,10 @@
 
 module PublicApi
 
-  class ElementsController < PublicApi::ApplicationController
-    DEFAULT_LIMIT = 10
-
+  class PupilsController < PublicApi::ApplicationController
     def index
-      @elements = Element.first(DEFAULT_LIMIT)
-      render json: @elements
+      @pupils = Pupil.current.to_a
+      render json: @pupils
     end
   end
 
