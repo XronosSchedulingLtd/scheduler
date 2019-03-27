@@ -3,7 +3,7 @@ PublicApi::Engine.routes.draw do
   get '/logout', to: 'sessions#logout'
 
   resources :elements, only: [:index, :show] do
-    resources :events, only: [:index]
+    resources :requests, only: [:index]
   end
 #  resources :pupils, only: [:index]
 end

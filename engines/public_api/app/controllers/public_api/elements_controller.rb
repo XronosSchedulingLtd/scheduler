@@ -6,7 +6,6 @@
 module PublicApi
 
   class ElementsController < PublicApi::ApplicationController
-    DEFAULT_LIMIT = 10
 
     def index
       #
