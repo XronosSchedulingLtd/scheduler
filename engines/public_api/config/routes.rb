@@ -4,6 +4,7 @@ PublicApi::Engine.routes.draw do
 
   resources :elements, only: [:index, :show] do
     resources :requests, only: [:index]
+    resources :commitments, only: [:index]
   end
 #  resources :pupils, only: [:index]
 end

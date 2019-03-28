@@ -5,9 +5,9 @@
 
 module PublicApi
 
-  class RequestsController < PublicApi::ApplicationController
+  class CommitmentsController < PublicApi::ApplicationController
 
-    # GET /elements/1/requests.json
+    # GET /elements/1/commitments.json
     #
     def index
       status = :ok
@@ -15,19 +15,16 @@ module PublicApi
       message  = nil
       @element = Element.find_by(id: params[:element_id])
       if @element
-        if @element.can_have_requests?
-          status, message, start_date, end_date =
-            process_date_params(params)
-          if status == :ok
-            #
-            #  Still no error identified.
-            #
-            requests = @element.requests.
-                                during(start_date, end_date + 1.day).
-                                includes(:event)
-          end
-        else
-          status = :method_not_allowed
+        status, message, start_date, end_date =
+          process_date_params(params)
+        if status == :ok
+          #
+          #  Still no error identified.
+          #
+          commitments =
+            @element.commitments_on(startdate: start_date,
+                                    enddate: end_date).
+                     includes(:event)
         end
       else
         status = :not_found
@@ -38,8 +35,8 @@ module PublicApi
       json_result = {
         status: status_text(status)
       }
-      if requests
-        json_result[:requests] = ModelHasher.new.summary_from(requests.sort)
+      if commitments
+        json_result[:commitments] = ModelHasher.new.summary_from(commitments.sort)
       end
       if message
         json_result[:message] = message

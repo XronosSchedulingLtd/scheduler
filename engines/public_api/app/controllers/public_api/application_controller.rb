@@ -43,7 +43,7 @@ module PublicApi
             entity_type: item.entity_type,
             entity_id:   item.entity_id
           }
-        when Request
+        when Request, Commitment
           {
             id: item.id,
             event: {
@@ -109,7 +109,74 @@ module PublicApi
 
     before_action :login_required
 
+    StatusTexts = {
+      ok:                 'OK',
+      created:            'Created',
+      not_found:          'Not found',
+      bad_request:        'Bad request',
+      unauthorized:       'Access denied',
+      method_not_allowed: 'Method not allowed'
+    }
+    StatusTexts.default = 'Unknown error'
+
     private
+
+    #
+    #  Shared between a couple of controllers.
+    #
+    def process_date_params(params)
+      status = :ok
+      message = nil
+      #
+      #  Default to just today.  If just a start date is given,
+      #  then default to 1 day.
+      #
+      #  Note that here our end date is inclusive, which is less
+      #  logical but appeals to end users.  Our groups unfortunately
+      #  work that way, although the datetimes on our events don't.
+      #
+      start_date = Date.today
+      end_date = Date.today
+      if params[:start_date]
+        #
+        #  Attempted to set the start date.
+        #
+        start_date = Time.zone.parse(params[:start_date])
+        if start_date
+          if params[:end_date]
+            end_date = Time.zone.parse(params[:end_date])
+            unless end_date
+              status = :bad_request
+              message = 'End date not understood'
+            end
+          else
+            end_date = start_date
+          end
+        else
+          status = :bad_request
+          message = 'Start date not understood'
+        end
+      else
+        if params[:end_date]
+          end_date = Time.zone.parse(params[:end_date])
+          unless end_date
+            status = :bad_request
+            message = 'End date not understood'
+          end
+        end
+      end
+      if status == :ok
+        if end_date < start_date
+          status = :bad_request
+          message = "End date before start date"
+        end
+      end
+      return [status, message, start_date, end_date]
+    end
+
+    def status_text(code)
+      StatusTexts[code]
+    end
 
     def current_user
       @current_user ||=
