@@ -6,5 +6,8 @@ PublicApi::Engine.routes.draw do
     resources :requests, only: [:index]
     resources :commitments, only: [:index]
   end
+
+  resources :events, only: [:create]
+
 #  resources :pupils, only: [:index]
 end

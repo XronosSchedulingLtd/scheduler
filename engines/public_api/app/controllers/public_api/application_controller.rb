@@ -45,15 +45,17 @@ module PublicApi
           }
         when Request, Commitment
           {
-            id: item.id,
-            event: {
-              id:        item.event.id,
-              body:      item.event.body,
-              starts_at: item.event.starts_at,
-              ends_at:   item.event.ends_at,
-              all_day:   item.event.all_day,
-              elements:  self.summary_from(item.event.elements)
-            }
+            id:    item.id,
+            event: self.summary_from(item.event)
+          }
+        when Event
+          {
+            id:        item.id,
+            body:      item.body,
+            starts_at: item.starts_at,
+            ends_at:   item.ends_at,
+            all_day:   item.all_day,
+            elements:  self.summary_from(item.elements)
           }
         else
           {}
@@ -106,16 +108,20 @@ module PublicApi
     end
 
     protect_from_forgery with: :null_session
+    skip_before_action :verify_authenticity_token
 
     before_action :login_required
 
     StatusTexts = {
-      ok:                 'OK',
-      created:            'Created',
-      not_found:          'Not found',
-      bad_request:        'Bad request',
-      unauthorized:       'Access denied',
-      method_not_allowed: 'Method not allowed'
+      ok:                   'OK',
+      created:              'Created',
+      not_found:            'Not found',
+      bad_request:          'Bad request',
+      unauthorized:         'Access denied',
+      forbidden:            'Permission denied',
+      method_not_allowed:   'Method not allowed',
+      unprocessable_entity: 'Unable to process',
+      service_unavailable:  'Service unavailable'
     }
     StatusTexts.default = 'Unknown error'
 

@@ -2065,7 +2065,7 @@ class Event < ActiveRecord::Base
     #  if we don't then we need to do the adjustment.
     #
     self.starts_at = self.starts_at.to_date
-    unless self.ends_at.midnight? && self.id != nil
+    unless self.ends_at.blank? || (self.ends_at.midnight? && self.id != nil)
       self.ends_at = self.ends_at.to_date + 1.day
     end
   end
