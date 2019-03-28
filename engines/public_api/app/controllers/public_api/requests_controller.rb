@@ -7,29 +7,6 @@ module PublicApi
 
   class RequestsController < PublicApi::ApplicationController
 
-    class RequestToSend
-      def initialize(request)
-        @my_hash = Hash.new
-        @my_hash[:id] = request.id
-        event_hash = Hash.new
-        event_hash[:id] = request.event.id
-        event_hash[:body] = request.event.body
-        event_hash[:starts_at] = request.event.starts_at
-        event_hash[:ends_at] = request.event.ends_at
-        event_hash[:all_day] = request.event.all_day
-        elements = Array.new
-        request.event.elements.each do |element|
-          elements << element.hash_of([:id, :name, :entity_type])
-        end
-        event_hash[:elements] = elements
-        @my_hash[:event] = event_hash
-      end
-
-      def as_json(options={})
-        @my_hash
-      end
-    end
-
     # GET /elements/1/requests.json
     #
     def index
@@ -44,10 +21,10 @@ module PublicApi
           end_date = Date.today + 1.day
           requests = @element.requests.
                               during(start_date, end_date).
-                              includes(:event).collect {|r| RequestToSend.new(r)}
+                              includes(:event)
           render json: {
             status: 'OK',
-            requests: requests
+            requests: ModelHasher.new.summary_from(requests)
           }, status: :ok
 
         else

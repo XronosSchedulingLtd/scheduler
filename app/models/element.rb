@@ -630,26 +630,6 @@ class Element < ActiveRecord::Base
     self.entity.type == 'Resource'
   end
 
-  #
-  #  Return a hash, consisting of selected fields from ourself.
-  #  If asked for a non-existent field, ignore it.
-  #
-  #  Each requested item should be a string or symbol.
-  #
-  #  For safety, don't allow anything ending in "=".
-  #
-  def hash_of(fields)
-    result = {}
-    fields.each do |field|
-      unless field[-1] == '='
-        if self.respond_to?(field)
-          result[field] = self.send(field)
-        end
-      end
-    end
-    result
-  end
-
   protected
 
   def being_destroyed

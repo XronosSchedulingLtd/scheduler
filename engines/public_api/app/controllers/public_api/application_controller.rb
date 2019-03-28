@@ -5,6 +5,106 @@
 
 module PublicApi
   class ApplicationController < ActionController::Base
+
+    class ModelHasher
+      #
+      #  An object which knows how to build suitable hashes from
+      #  our ActiveModel records to send with Json.
+      #
+      #  You can pass in either a single record, or an array of them.
+      #
+      #  We might in the future add the means to request extra fields.
+      #
+
+      def summary_from(data)
+        if data.respond_to?(:collect)
+          data.collect {|item| item_summary(item)}
+        else
+          item_summary(data)
+        end
+      end
+
+      def detail_from(data)
+        if data.respond_to?(:collect)
+          data.collect {|item| item_detail(item)}
+        else
+          item_detail(data)
+        end
+      end
+
+      private
+
+      def item_summary(item)
+        case item
+        when Element
+          {
+            id:          item.id,
+            name:        item.name,
+            entity_type: item.entity_type,
+            entity_id:   item.entity_id
+          }
+        when Request
+          {
+            id: item.id,
+            event: {
+              id:        item.event.id,
+              body:      item.event.body,
+              starts_at: item.event.starts_at,
+              ends_at:   item.event.ends_at,
+              all_day:   item.event.all_day,
+              elements:  self.summary_from(item.event.elements)
+            }
+          }
+        else
+          {}
+        end
+      end
+
+      #
+      #  Note that the purpose of this method is to provide detailed
+      #  information about the item or items passed - the items themselves.
+      #
+      #  It would not be appropriate for it to look up the membership
+      #  of a group and start giving details of that.  If you want
+      #  details of each of the members, then look them up yourself and
+      #  pass an array of them in to here.
+      #
+      def item_detail(item)
+        case item
+        when Element
+          hash = {
+            id:          item.id,
+            name:        item.name,
+            entity_type: item.entity_type,
+            entity_id:   item.entity_id,
+            current:     item.current
+          }
+          case item.entity_type
+          when 'Staff'
+            hash[:email]      = item.entity.email
+            hash[:title]      = item.entity.title
+            hash[:initials]   = item.entity.initials
+            hash[:forename]   = item.entity.forename
+            hash[:surname]    = item.entity.surname
+          when 'Pupil'
+            hash[:email]      = item.entity.email
+            hash[:forename]   = item.entity.forename
+            hash[:surname]    = item.entity.surname
+            hash[:known_as]   = item.entity.known_as
+            hash[:year_group] = item.entity.year_group
+            hash[:house_name] = item.entity.house_name
+          when 'Group'
+            hash[:description] = item.entity.description
+          else
+          end
+          hash
+        else
+          {}
+        end
+      end
+
+    end
+
     protect_from_forgery with: :null_session
 
     before_action :login_required

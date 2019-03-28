@@ -42,10 +42,10 @@ module PublicApi
         status = :ok
         status_text = 'OK'
       end
-      hashes = @elements.collect {|e| e.hash_of([:id, :name, :entity_type])}
+      data = ModelHasher.new.summary_from(@elements)
       render json: {
         status: status_text,
-        elements: hashes
+        elements: data
       }, status: status
     end
 
@@ -55,11 +55,11 @@ module PublicApi
       #  the non-existence case explicitly and tidily rather than
       #  throwing the caller into a generic error handler.
       #
-      @element = Element.find_by(id: params[:id])
+      @element = Element.includes(:entity).find_by(id: params[:id])
       if @element
         render json: {
           status: "OK",
-          element: @element.hash_of([:id, :name, :entity_type])
+          element: ModelHasher.new.detail_from(@element)
         }
       else
         render json: {status: "Not found"}, status: :not_found
