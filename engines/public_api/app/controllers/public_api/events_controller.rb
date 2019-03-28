@@ -18,6 +18,8 @@ module PublicApi
             eventsource.events.create(
               event_params.merge(owner: current_user))
           if event.valid?
+            event.reload
+            event.journal_event_created(current_user)
             #
             #  Now I should add the requested elements, if any.
             #
