@@ -16,11 +16,11 @@ module PublicApi
       #  We might in the future add the means to request extra fields.
       #
 
-      def summary_from(data)
+      def summary_from(data, context = nil)
         if data.respond_to?(:collect)
-          data.collect {|item| item_summary(item)}
+          data.collect {|item| item_summary(item, context)}
         else
-          item_summary(data)
+          item_summary(data, context)
         end
       end
 
@@ -34,31 +34,82 @@ module PublicApi
 
       private
 
-      def item_summary(item)
+      def item_summary(item, context)
+        #
+        #  The context is where we came to this object from.
+        #
+        #  Thus, if we are looking at a commitment record in the
+        #  context of an event, we don't want to see details
+        #  of the event again, but we do want to know about the
+        #  element.  Likewise if we are in the context of the
+        #  element, we don't want to know about the element again,
+        #  but we do want to know about the event.
+        #
+        hash = nil
         case item
         when Element
-          {
+          hash = {
             id:          item.id,
             name:        item.name,
             entity_type: item.entity_type,
             entity_id:   item.entity_id
           }
-        when Request, Commitment
-          {
-            id:    item.id,
-            event: self.summary_from(item.event)
+        when Request
+          hash = {
+            id:            item.id,
+            quantity:      item.quantity,
+            num_allocated: item.num_allocated
           }
+          unless item.element == context
+            hash[:element] = self.summary_from(item.element, item)
+          end
+          unless item.event == context
+            hash[:event] = self.summary_from(item.event, item)
+          end
+        when Commitment
+          hash = {
+            id:     item.id,
+            status: item.status
+          }
+          unless item.element == context
+            hash[:element] = self.summary_from(item.element, item)
+          end
+          unless item.event == context
+            hash[:event] = self.summary_from(item.event, item)
+          end
         when Event
-          {
+          hash = {
             id:        item.id,
             body:      item.body,
             starts_at: item.starts_at,
             ends_at:   item.ends_at,
             all_day:   item.all_day,
-            elements:  self.summary_from(item.elements)
           }
+          #
+          #  If asked for an event in the context of something else,
+          #  we just give the bare essentials (above).
+          #
+          unless context
+            hash[:commitments] = self.summary_from(item.commitments, item)
+            hash[:requests] = self.summary_from(item.requests, item)
+          end
+        end
+        if hash
+          #
+          #  Item is some sort of model.
+          #
+          valid = item.valid?
+          hash[:valid] = valid
+          unless valid
+            hash[:errors] = item.errors
+          end
+          return hash
         else
-          {}
+          if item.instance_of?(Hash)
+            return item
+          else
+            return {}
+          end
         end
       end
 
@@ -217,5 +268,24 @@ module PublicApi
       logged_in? && current_user.can_api? && request.format == 'json'
     end
 
+    def set_appropriate_approval_status(commitment)
+      #
+      #  It's just possible that we will be passed nil for the element
+      #  (if someone is trying to create a gash commitment).  Rather
+      #  than raising an exception, return uncontrolled.
+      #
+      #  The saving of the commitment will fail due to the
+      #  lack of an element.
+      #
+      if commitment.element
+        if current_user.needs_permission_for?(commitment.element)
+          commitment.status = :requested
+        else
+          commitment.status = :uncontrolled
+        end
+      else
+        commitment.status = :uncontrolled
+      end
+    end
   end
 end

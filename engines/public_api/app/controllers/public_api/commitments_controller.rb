@@ -36,7 +36,8 @@ module PublicApi
         status: status_text(status)
       }
       if commitments
-        json_result[:commitments] = ModelHasher.new.summary_from(commitments.sort)
+        json_result[:commitments] =
+          ModelHasher.new.summary_from(commitments.sort, @element)
       end
       if message
         json_result[:message] = message

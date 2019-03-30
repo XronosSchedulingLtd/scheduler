@@ -39,7 +39,7 @@ module PublicApi
         status: status_text(status)
       }
       if requests
-        json_result[:requests] = ModelHasher.new.summary_from(requests.sort)
+        json_result[:requests] = ModelHasher.new.summary_from(requests.sort, @element)
       end
       if message
         json_result[:message] = message
