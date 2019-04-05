@@ -97,6 +97,13 @@ class EventTest < ActiveSupport::TestCase
     assert_equal 1, request.num_allocated, "Num allocated"
     assert_equal 1, request.num_outstanding, "Num outstanding"
 
+    #
+    #    This reload shouldn't be necessary, but there appears to be
+    #    a bug in ActiveRecord which makes the request appear twice
+    #    in the array.  The count is 1, but the size is 2 and if you
+    #    iterate through then the same record appears twice.
+    #
+    event.reload
     new_event = event.clone_and_save(user, {})
     assert new_event.valid?
 
