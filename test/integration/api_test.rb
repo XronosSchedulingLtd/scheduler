@@ -465,6 +465,113 @@ class ApiTest < ActionDispatch::IntegrationTest
     assert_equal 2, requests.size
   end
 
+  #
+  #  And similarly for the commitments controller.
+  #
+  #  1. Get a listing of commitments for an element for a range of dates
+  #  2. Delete a specific commitment (subject to access permissions)
+  #
+
+  test 'should be able to get listing of commitments for an element' do
+    do_valid_login
+    event1 = generate_event_on(Date.today,          @staff1.element)
+    event2 = generate_event_on(Date.today + 1.day,  @staff1.element)
+    event3 = generate_event_on(Date.today + 2.days, @staff1.element)
+    #
+    #  Try for all 3 days.
+    #
+    get @api_paths.element_commitments_path(
+      @staff1.element,
+      start_date: Date.today.strftime("%Y-%m-%d"),
+      end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
+    ), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    commitments = response_data['commitments']
+    assert_instance_of Array, commitments
+    assert_equal 3, commitments.size
+    #
+    #  Just 2 days should give only 2 of them.
+    #
+    get @api_paths.element_commitments_path(
+      @staff1.element,
+      start_date: (Date.today + 1.day).strftime("%Y-%m-%d"),
+      end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
+    ), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    commitments = response_data['commitments']
+    assert_instance_of Array, commitments
+    assert_equal 2, commitments.size
+    #
+    #  And no date at all should give us just 1 - today's.
+    #
+    get @api_paths.element_commitments_path(
+      @staff1.element
+    ), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    commitments = response_data['commitments']
+    assert_instance_of Array, commitments
+    assert_equal 1, commitments.size
+  end
+
+  test 'should be able to delete a commitment' do
+    do_valid_login
+    event1 = generate_event_on(Date.today,          @staff1.element)
+    event2 = generate_event_on(Date.today + 1.day,  @staff1.element)
+    event3 = generate_event_on(Date.today + 2.days, @staff1.element)
+    #
+    #  Try for all 3 days.
+    #
+    get @api_paths.element_commitments_path(
+      @staff1.element,
+      start_date: Date.today.strftime("%Y-%m-%d"),
+      end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
+    ), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    commitments = response_data['commitments']
+    assert_instance_of Array, commitments
+    assert_equal 3, commitments.size
+    #
+    #  Now delete the middle one.
+    #
+    target_id = event2['commitments'][0]['id']
+
+    delete @api_paths.commitment_path(target_id), format: :json
+    assert_response :success
+
+    #
+    #  And there should be only 2 left.
+    #
+    get @api_paths.element_commitments_path(
+      @staff1.element,
+      start_date: Date.today.strftime("%Y-%m-%d"),
+      end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
+    ), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    commitments = response_data['commitments']
+    assert_instance_of Array, commitments
+    assert_equal 2, commitments.size
+  end
+
   private
 
   def do_valid_login(user = @api_user)
