@@ -7,7 +7,7 @@ module PublicApi
 
   class EventsController < PublicApi::ApplicationController
 
-    before_action :set_event, only: [:add]
+    before_action :set_event, only: [:add, :destroy]
 
     # POST /api/events.json
     def create
@@ -151,6 +151,20 @@ module PublicApi
         json_result[:message] = message
       end
       render json: json_result, status: status
+    end
+
+    # DELETE /api/events/1
+    #
+    def destroy
+      if current_user.can_delete?(@event)
+        @event.journal_event_destroyed(current_user)
+        @event.destroy
+        status = :ok
+      else
+        status = :forbidden
+      end
+      render json: { status: status_text(status) }, status: status
+
     end
 
     private
