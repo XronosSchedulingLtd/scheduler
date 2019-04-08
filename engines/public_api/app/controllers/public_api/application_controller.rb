@@ -148,7 +148,10 @@ module PublicApi
             hash[:house_name] = item.entity.house_name
           when 'Group'
             hash[:description] = item.entity.description
-          else
+          when 'Property'
+            hash[:make_public] = item.entity.make_public
+            hash[:auto_staff]  = item.entity.auto_staff
+            hash[:auto_pupils] = item.entity.auto_pupils
           end
           hash
         else
@@ -162,6 +165,20 @@ module PublicApi
     skip_before_action :verify_authenticity_token
 
     before_action :login_required
+
+    rescue_from Exception do |exception|
+      message = exception.to_s
+      exception = exception.class.to_s
+      status = :bad_request
+      case exception
+      when ActiveRecord::RecordNotFound
+        message = exception.to_s
+        status = :not_found
+      end
+      render json: {status: status_text(status),
+                    exception: exception,
+                    message: message}, status: status
+    end
 
     StatusTexts = {
       ok:                   'OK',
@@ -258,13 +275,14 @@ module PublicApi
           redirect_to '/'
         end
         format.json do
-          render json: { status: 'Access denied' }, status: :unauthorized
+          render json: {
+            status: status_text(:unauthorized)
+          }, status: :unauthorized
         end
       end
     end
 
     def authorized?(action = action_name, resource = nil)
-      Rails.logger.debug("session[:user_id] = #{session[:user_id]}")
       logged_in? && current_user.can_api? && request.format == 'json'
     end
 

@@ -7,6 +7,8 @@ module PublicApi
 
   class RequestsController < PublicApi::ApplicationController
 
+    before_action :find_request, only: [:destroy]
+
     # GET /elements/1/requests.json
     #
     def index
@@ -47,7 +49,24 @@ module PublicApi
       render json: json_result, status: status
     end
 
+    # DELETE /api/requests/1
+    def destroy
+      @event = @request.event
+      if current_user.can_delete?(@request)
+        @event.journal_resource_request_destroyed(@request, current_user)
+        @request.destroy
+        status = :ok
+      else
+        status = :forbidden
+      end
+      render json: { status: status_text(status) }, status: status
+    end
+
     private
+
+    def find_request
+      @request = Request.find(params[:id])
+    end
 
   end
 

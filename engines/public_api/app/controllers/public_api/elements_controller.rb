@@ -22,29 +22,24 @@ module PublicApi
         @elements = Element.current.where(name: params[:name])
         if @elements.empty?
           status = :not_found
-          status_text = 'Not found'
         else
           status = :ok
-          status_text = 'OK'
         end
       elsif params[:namelike]
         @elements =
           Element.current.where("name LIKE ?", "%#{params[:namelike]}%")
         if @elements.empty?
           status = :not_found
-          status_text = 'Not found'
         else
           status = :ok
-          status_text = 'OK'
         end
       else
         @elements = []
         status = :ok
-        status_text = 'OK'
       end
       data = ModelHasher.new.summary_from(@elements)
       render json: {
-        status: status_text,
+        status: status_text(status),
         elements: data
       }, status: status
     end
@@ -62,7 +57,7 @@ module PublicApi
           element: ModelHasher.new.detail_from(@element)
         }
       else
-        render json: {status: "Not found"}, status: :not_found
+        render json: {status: status_text(:not_found)}, status: :not_found
       end
     end
 

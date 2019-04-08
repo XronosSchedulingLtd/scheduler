@@ -7,6 +7,8 @@ module PublicApi
 
   class CommitmentsController < PublicApi::ApplicationController
 
+    before_action :find_commitment, only: [:destroy]
+
     # GET /elements/1/commitments.json
     #
     def index
@@ -45,7 +47,24 @@ module PublicApi
       render json: json_result, status: status
     end
 
+    # DELETE /api/commitments/1
+    def destroy
+      @event = @commitment.event
+      if current_user.can_delete?(@commitment)
+        @event.journal_commitment_removed(@commitment, current_user)
+        @commitment.destroy
+        status = :ok
+      else
+        status = :forbidden
+      end
+      render json: { status: status_text(status) }, status: status
+    end
+
     private
+
+    def find_commitment
+      @commitment = Commitment.find(params[:id])
+    end
 
   end
 

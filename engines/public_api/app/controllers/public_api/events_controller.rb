@@ -6,7 +6,14 @@
 module PublicApi
 
   class EventsController < PublicApi::ApplicationController
+
+    before_action :set_event, only: [:add]
+
+    # POST /api/events.json
     def create
+      #
+      #  Create an event and optionally add elements to it.
+      #
       status   = :ok
       event    = nil
       failures = nil
@@ -85,7 +92,72 @@ module PublicApi
       render json: json_result, status: status
     end
 
+    # POST /api/events/1/add.json
+    def add
+      #
+      #  Add one or more elements to an existing event.
+      #
+      status   = :ok
+      failures = nil
+      message  = nil
+      if current_user.can_edit?(@event)
+        if (element_ids = params[:elements])
+          failures = Array.new
+          if element_ids.respond_to?(:each)
+            #
+            #  An array to process
+            #
+            element_ids.each do |element_id|
+              linker = add_element(@event, element_id)
+              unless linker.respond_to?(:valid?) && linker.valid?
+                failures << linker
+              end
+            end
+          else
+            #
+            #  Just the one
+            #
+            linker = add_element(@event, element_ids)
+            unless linker.respond_to?(:valid?) && linker.valid?
+              failures << linker
+            end
+          end
+        else
+          status = :bad_request
+          message = "At least one element id must be specified"
+        end
+        #
+        #  We may now have some invalid commitment or request records
+        #  attached to our event, which makes it appear invalid too.
+        #
+        #  There is also a bug in Rails 4.2.11.1 whereby newly created
+        #  commitments appear twice in the in-memory copy of the
+        #  event record.  See tests for details.  It's fixed in
+        #  Rails 5.0, but for now this next step will address both.
+        #
+        @event.reload
+      else
+        status = :forbidden
+      end
+      mh = ModelHasher.new
+      json_result = {
+        status: status_text(status)
+      }
+      json_result[:event] = mh.summary_from(@event)
+      if failures
+        json_result[:failures] = mh.summary_from(failures, @event)
+      end
+      if message
+        json_result[:message] = message
+      end
+      render json: json_result, status: status
+    end
+
     private
+
+    def set_event
+      @event = Event.find(params[:id])
+    end
 
     def event_params
       params.require(:event).permit(:body,
@@ -111,11 +183,22 @@ module PublicApi
       if element
         if element.can_have_requests?
           #
-          #  Go for a request
+          #  Go for a request.  There may already be one, in which
+          #  case we increment it.
           #
-          request = event.requests.create(element: element, quantity: 1)
-          if request.valid?
-            event.journal_resource_request_created(request, current_user)
+          request = event.requests.find_by(element: element)
+          if request
+            if request.increment_and_save
+              event.journal_resource_request_incremented(request,
+                                                         current_user)
+            end
+          else
+            request = event.requests.create(element: element, quantity: 1)
+            if request.valid?
+              event.journal_resource_request_created(request, current_user)
+            else
+              event.reload
+            end
           end
           request
         else
@@ -127,6 +210,16 @@ module PublicApi
           end
           if commitment.valid?
             event.journal_commitment_added(commitment, current_user)
+          else
+            #
+            #  Every we try to create a commitment and fail we need to
+            #  reload the event.  This is because the commitment
+            #  record remains in memory, flagged as invalid and attached
+            #  to our in-memory copy of the event.  If we subsequently
+            #  try to update and save the event, it will fail because
+            #  it seems invalid.
+            #
+            event.reload
           end
           commitment
         end
