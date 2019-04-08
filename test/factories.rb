@@ -78,6 +78,12 @@ FactoryBot.define do
 end
 
 FactoryBot.define do
+  factory :subject do
+    sequence(:name) { |n| "Subject #{n}" }
+  end
+end
+
+FactoryBot.define do
   factory :user_profile do
     sequence(:name) { |n| "User profile #{n}" }
   end

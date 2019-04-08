@@ -10,6 +10,11 @@ class ApiTest < ActionDispatch::IntegrationTest
     @pupil2 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Major")
     @pupil3 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Minor")
     @pupil4 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Minimus")
+    @group1 = FactoryBot.create(:group)
+    @location1 = FactoryBot.create(:location)
+    @property1 = FactoryBot.create(:property)
+    @service1 = FactoryBot.create(:service)
+    @subject1 = FactoryBot.create(:subject)
 
     @api_paths = PublicApi::Engine.routes.url_helpers
   end
@@ -138,57 +143,37 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test "element show succeeds for valid staff element" do
     do_valid_login
-    get @api_paths.element_path(@staff1.element), format: :json
-    assert_response :ok
-    data = JSON.parse(response.body)
-    status = data['status']
-    element = data['element']
-    assert_equal "OK", status
-    assert_equal @staff1.element.id, element['id']
-    #
-    #  Note that these might have a value of nil, but they should still
-    #  be there.
-    #
-    assert element.key?('name')
-    assert element.key?('entity_type')
-    assert element.key?('entity_id')
-    assert element.key?('current')
-    #
-    #  Stuff specific to it being a staff element.
-    #
-    assert element.key?('email')
-    assert element.key?('title')
-    assert element.key?('initials')
-    assert element.key?('forename')
-    assert element.key?('surname')
+    do_show_element(@staff1.element)
   end
 
   test "element show succeeds for valid pupil element" do
     do_valid_login
-    get @api_paths.element_path(@pupil1.element), format: :json
-    assert_response :ok
-    data = JSON.parse(response.body)
-    status = data['status']
-    element = data['element']
-    assert_equal "OK", status
-    assert_equal @pupil1.element.id, element['id']
-    #
-    #  Note that these might have a value of nil, but they should still
-    #  be there.
-    #
-    assert element.key?('name')
-    assert element.key?('entity_type')
-    assert element.key?('entity_id')
-    assert element.key?('current')
-    #
-    #  Stuff specific to it being a pupil element.
-    #
-    assert element.key?('email')
-    assert element.key?('forename')
-    assert element.key?('surname')
-    assert element.key?('known_as')
-    assert element.key?('year_group')
-    assert element.key?('house_name')
+    do_show_element(@pupil1.element)
+  end
+
+  test "element show succeeds for valid group element" do
+    do_valid_login
+    do_show_element(@group1.element)
+  end
+
+  test "element show succeeds for valid location element" do
+    do_valid_login
+    do_show_element(@location1.element)
+  end
+
+  test "element show succeeds for valid property element" do
+    do_valid_login
+    do_show_element(@property1.element)
+  end
+
+  test "element show succeeds for valid service element" do
+    do_valid_login
+    do_show_element(@service1.element)
+  end
+
+  test "element show succeeds for valid subject element" do
+    do_valid_login
+    do_show_element(@subject1.element)
   end
 
   private
@@ -201,6 +186,49 @@ class ApiTest < ActionDispatch::IntegrationTest
   def do_logout
     get @api_paths.logout_path, format: :json
     assert_response :success
+  end
+
+  def do_show_element(element)
+    #
+    #  This handles only the positive case.  The element should
+    #  exist in the database.
+    #
+    get @api_paths.element_path(element), format: :json
+    assert_response :ok
+    data = JSON.parse(response.body)
+    status = data['status']
+    element_data = data['element']
+    assert_equal "OK", status
+    assert_equal element.id, element_data['id']
+    #
+    #  Note that these might have a value of nil, but they should still
+    #  be there.
+    #
+    assert element_data.key?('name')
+    assert element_data.key?('entity_type')
+    assert element_data.key?('entity_id')
+    assert element_data.key?('current')
+    case element.entity_type
+    when 'Pupil'
+      assert element_data.key?('email')
+      assert element_data.key?('forename')
+      assert element_data.key?('surname')
+      assert element_data.key?('known_as')
+      assert element_data.key?('year_group')
+      assert element_data.key?('house_name')
+    when 'Staff'
+      assert element_data.key?('email')
+      assert element_data.key?('title')
+      assert element_data.key?('initials')
+      assert element_data.key?('forename')
+      assert element_data.key?('surname')
+    when 'Group'
+      assert element_data.key?('description')
+    when 'Property'
+      assert element_data.key?('make_public')
+      assert element_data.key?('auto_staff')
+      assert element_data.key?('auto_pupils')
+    end
   end
 
 end
