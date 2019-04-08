@@ -67,6 +67,7 @@ end
 FactoryBot.define do
   factory :pupil do
     sequence(:name) { |n| "Pupil #{n}" }
+    current { true }
   end
 end
 
