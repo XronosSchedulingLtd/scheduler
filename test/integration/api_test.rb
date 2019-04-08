@@ -111,6 +111,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     assert_equal "OK", status
     assert_instance_of Array, elements
     assert_equal 1, elements.size
+    check_element_summary(elements[0])
   end
 
   test "fuzzy search for non-existent element returns appropriate error" do
@@ -130,6 +131,9 @@ class ApiTest < ActionDispatch::IntegrationTest
     assert_equal "OK", status
     assert_instance_of Array, elements
     assert_equal 4, elements.size
+    elements.each do |element|
+      check_element_summary(element)
+    end
   end
 
   test "element show with invalid id returns appropriate error" do
@@ -231,5 +235,11 @@ class ApiTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def check_element_summary(summary)
+    assert summary.key?('id')
+    assert summary.key?('name')
+    assert summary.key?('entity_type')
+    assert summary.key?('entity_id')
+  end
 end
 
