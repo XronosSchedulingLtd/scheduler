@@ -96,6 +96,7 @@ FactoryBot.define do
       permissions_admin      { false }
       permissions_editor     { false }
       permissions_privileged { false }
+      permissions_api        { false }
     end
 
     #
@@ -111,6 +112,10 @@ FactoryBot.define do
 
     trait :privileged do
       permissions_privileged { true }
+    end
+
+    trait :api do
+      permissions_api { true }
     end
 
     firstday { 0 }
@@ -130,6 +135,9 @@ FactoryBot.define do
       end
       if permissions_privileged
         hash[:privileged] = true
+      end
+      if permissions_api
+        hash[:can_api] = true
       end
       hash
     end
