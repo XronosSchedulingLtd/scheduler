@@ -358,6 +358,113 @@ class ApiTest < ActionDispatch::IntegrationTest
       event['commitments'].size
   end
 
+  #
+  #  The requests controller.  Should be able to:
+  #
+  #  1. Get a listing of requests for an element for a range of dates
+  #  2. Delete a specific request (subject to access permissions)
+  #
+
+  test 'should be able to get listing of requests for an element' do
+    do_valid_login
+    event1 = generate_event_on(Date.today,          @resourcegroup.element)
+    event2 = generate_event_on(Date.today + 1.day,  @resourcegroup.element)
+    event3 = generate_event_on(Date.today + 2.days, @resourcegroup.element)
+    #
+    #  Try for all 3 days.
+    #
+    get @api_paths.element_requests_path(
+      @resourcegroup.element,
+      start_date: Date.today.strftime("%Y-%m-%d"),
+      end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
+    ), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    requests = response_data['requests']
+    assert_instance_of Array, requests
+    assert_equal 3, requests.size
+    #
+    #  Just 2 days should give only 2 of them.
+    #
+    get @api_paths.element_requests_path(
+      @resourcegroup.element,
+      start_date: (Date.today + 1.day).strftime("%Y-%m-%d"),
+      end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
+    ), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    requests = response_data['requests']
+    assert_instance_of Array, requests
+    assert_equal 2, requests.size
+    #
+    #  And no date at all should give us just 1 - today's.
+    #
+    get @api_paths.element_requests_path(
+      @resourcegroup.element
+    ), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    requests = response_data['requests']
+    assert_instance_of Array, requests
+    assert_equal 1, requests.size
+  end
+
+  test 'should be able to delete a request' do
+    do_valid_login
+    event1 = generate_event_on(Date.today,          @resourcegroup.element)
+    event2 = generate_event_on(Date.today + 1.day,  @resourcegroup.element)
+    event3 = generate_event_on(Date.today + 2.days, @resourcegroup.element)
+    #
+    #  Try for all 3 days.
+    #
+    get @api_paths.element_requests_path(
+      @resourcegroup.element,
+      start_date: Date.today.strftime("%Y-%m-%d"),
+      end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
+    ), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    requests = response_data['requests']
+    assert_instance_of Array, requests
+    assert_equal 3, requests.size
+    #
+    #  Now delete the middle one.
+    #
+    target_id = event2['requests'][0]['id']
+
+    delete @api_paths.request_path(target_id), format: :json
+    assert_response :success
+
+    #
+    #  And there should be only 2 left.
+    #
+    get @api_paths.element_requests_path(
+      @resourcegroup.element,
+      start_date: Date.today.strftime("%Y-%m-%d"),
+      end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
+    ), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    requests = response_data['requests']
+    assert_instance_of Array, requests
+    assert_equal 2, requests.size
+  end
+
   private
 
   def do_valid_login(user = @api_user)
@@ -428,6 +535,49 @@ class ApiTest < ActionDispatch::IntegrationTest
     #  Both are strings, but formatted differently.
     #
     assert_equal Time.zone.parse(expected), Time.zone.parse(actual)
+  end
+
+  def generate_event_on(date, using = nil)
+    #
+    #  Generate an event on the given date, using the element or elements
+    #  indicated.
+    #  Pass back the structure returned from the host, which gives
+    #  event id etc.
+    #
+    date = date.to_date         #  Just in case we've been given a time.
+    start_time = date + 10.hours
+    end_time = date + 11.hours
+    body = "Event on #{date.strftime("%d/%m/%Y")}"
+    event_params = {
+      body:           body,
+      starts_at_text: start_time.strftime("%d/%m/%Y %H:%M"),
+      ends_at_text:   end_time.strftime("%d/%m/%Y %H:%M"),
+      eventcategory_id: @eventcategory.id
+    }
+    if using
+      if using.respond_to?(:each)
+        #
+        #  Treat as an array
+        #
+        element_ids = using.collect {|u| u.id}
+      else
+        element_ids = [using.id]
+      end
+      post @api_paths.events_path(
+        event: event_params,
+        elements: element_ids
+      ), format: :json
+    else
+      post @api_paths.events_path(event: event_params), format: :json
+    end
+    assert_response 201         # Created
+    response_data = JSON.parse(response.body)
+    event = response_data['event']
+    assert_instance_of Hash, event
+    failures = response_data['failures']
+    assert_instance_of Array, failures
+    assert_empty failures
+    return event
   end
 
 end
