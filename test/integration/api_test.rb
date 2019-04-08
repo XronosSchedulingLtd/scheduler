@@ -2,7 +2,8 @@ require 'test_helper'
 
 class ApiTest < ActionDispatch::IntegrationTest
   setup do
-    @api_user = FactoryBot.create(:user, :api)
+    @api_user = FactoryBot.create(:user, :api, :editor)
+    @api_user_no_edit = FactoryBot.create(:user, :api)
     @ordinary_user = FactoryBot.create(:user)
     @staff1 = FactoryBot.create(
       :staff, {name: "Able Baker Charlie", initials: "ABC"})
@@ -15,6 +16,27 @@ class ApiTest < ActionDispatch::IntegrationTest
     @property1 = FactoryBot.create(:property)
     @service1 = FactoryBot.create(:service)
     @subject1 = FactoryBot.create(:subject)
+    @resourcegroup = FactoryBot.create(:resourcegroup)
+    #
+    #  You can't create events unless this event source exists.
+    #
+    @eventsource = FactoryBot.create(:eventsource, name: 'API')
+    @eventcategory = FactoryBot.create(:eventcategory, name: 'Test API events')
+    @event_start_time = Time.zone.now
+    @event_end_time = Time.zone.now + 1.hour
+    @valid_event_params = {
+      body:           'My test event',
+      starts_at_text: @event_start_time.strftime("%d/%m/%Y %H:%M"),
+      ends_at_text:   @event_end_time.strftime("%d/%m/%Y %H:%M"),
+      eventcategory_id: @eventcategory.id
+    }
+    @elements_to_add = [
+      @staff1.element,
+      @pupil1.element,
+      @location1.element,
+      @resourcegroup.element
+    ]
+    @element_ids_to_add = @elements_to_add.collect {|e| e.id}
 
     @api_paths = PublicApi::Engine.routes.url_helpers
   end
@@ -29,12 +51,12 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test "random uid does not log in" do
     get @api_paths.login_path(uid: 'ablebakercharlie'), format: :json
-    assert_response 401
+    assert_response 401         # Unauthorized
   end
 
   test "ordinary user cannot log in through api" do
     get @api_paths.login_path(uid: @ordinary_user.uuid), format: :json
-    assert_response 401
+    assert_response 401         # Unauthorized
   end
 
   test "api user can log in through api" do
@@ -61,7 +83,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #  Initially can't issue an arbitrary request.
     #
     get @api_paths.elements_path, format: :json
-    assert_response 401
+    assert_response 401         # Unauthorized
     #
     #  Then login and we can.
     #
@@ -73,7 +95,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     do_logout
     get @api_paths.elements_path, format: :json
-    assert_response 401
+    assert_response 401         # Unauthorized
   end
 
   #
@@ -180,10 +202,166 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_show_element(@subject1.element)
   end
 
+  #
+  #  And now the events controller
+  #
+  test "event create without params fails" do
+    do_valid_login
+    post @api_paths.events_path, format: :json
+    assert_response 400         # Bad request
+  end
+
+  test "event create with valid params succeeds" do
+    do_valid_login
+    post @api_paths.events_path(event: @valid_event_params), format: :json
+    assert_response 201         # Created
+  end
+
+  test "unauthorized user can't create event" do
+    do_valid_login(@api_user_no_edit)
+    post @api_paths.events_path(event: @valid_event_params), format: :json
+    assert_response 403         # Forbidden
+  end
+
+  test "can add elements whilst creating" do
+    do_valid_login
+    post @api_paths.events_path(
+      event: @valid_event_params,
+      elements: @element_ids_to_add
+    ), format: :json
+    assert_response 201         # Created
+    #puts response.body
+    response_data = JSON.parse(response.body)
+    #
+    #  Check textual status
+    #
+    status = response_data['status']
+    assert_equal 'Created', status
+    #
+    #  Check for failures - there should be none.
+    #
+    failures = response_data['failures']
+    assert_instance_of Array, failures
+    assert_empty failures
+    #
+    #  And check the event has the right fields, plus the right number
+    #  of commitments and requests.
+    #
+    event = response_data['event']
+    assert_instance_of Hash, event
+    assert_equal @valid_event_params[:body], event['body']
+    compare_times @valid_event_params[:starts_at_text], event['starts_at']
+    compare_times @valid_event_params[:ends_at_text], event['ends_at']
+    assert_not event['all_day']
+    #
+    #  How many should be commitments and how many requests?
+    #
+    for_requests, for_commitments =
+      @elements_to_add.partition {|e| e.can_have_requests?}
+    assert_equal for_requests.size,
+      event['requests'].size
+    assert_equal for_commitments.size,
+      event['commitments'].size
+  end
+
+  test 'two entries for same requestable item result in one request' do
+    do_valid_login
+    post @api_paths.events_path(
+      event: @valid_event_params,
+      elements: [@resourcegroup.element.id, @resourcegroup.element.id]
+    ), format: :json
+    assert_response 201         # Created
+    response_data = JSON.parse(response.body)
+    #
+    #  Check for failures - there should be none.
+    #
+    failures = response_data['failures']
+    assert_instance_of Array, failures
+    assert_empty failures
+    #
+    #  Should have one request, with a quantity of 2.
+    #
+    event = response_data['event']
+    assert_instance_of Hash, event
+    requests = event['requests']
+    assert_equal 1, requests.size
+    assert_equal 2, requests[0]['quantity']
+  end
+
+  test 'two entries for same ordinary item result in a failure' do
+    do_valid_login
+    post @api_paths.events_path(
+      event: @valid_event_params,
+      elements: [@staff1.element.id, @staff1.element.id]
+    ), format: :json
+    assert_response 201         # Created
+    response_data = JSON.parse(response.body)
+    #
+    #  Check for failures - there should be one.
+    #
+    failures = response_data['failures']
+    assert_instance_of Array, failures
+    assert_equal 1, failures.size
+    #
+    #  Should have just one commitment.
+    #
+    event = response_data['event']
+    assert_instance_of Hash, event
+    commitments = event['commitments']
+    assert_equal 1, commitments.size
+  end
+
+  test 'can add elements after creating event' do
+    do_valid_login
+    post @api_paths.events_path(
+      event: @valid_event_params
+    ), format: :json
+    assert_response 201         # Created
+    response_data = JSON.parse(response.body)
+    #
+    #  Check textual status
+    #
+    status = response_data['status']
+    assert_equal 'Created', status
+    #
+    #  We have our event - now add to it.
+    #
+    event = response_data['event']
+    assert_instance_of Hash, event
+    event_id = event['id']
+
+    post @api_paths.add_event_path(event_id,
+                                   elements: @element_ids_to_add),
+                                   format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    #
+    #  Check for failures - there should be none.
+    #
+    failures = response_data['failures']
+    assert_instance_of Array, failures
+    assert_empty failures
+    #
+    #  And check the event has the right number
+    #  of commitments and requests.
+    #
+    event = response_data['event']
+    assert_instance_of Hash, event
+    #
+    #  How many should be commitments and how many requests?
+    #
+    for_requests, for_commitments =
+      @elements_to_add.partition {|e| e.can_have_requests?}
+    assert_equal for_requests.size,
+      event['requests'].size
+    assert_equal for_commitments.size,
+      event['commitments'].size
+  end
+
   private
 
-  def do_valid_login
-    get @api_paths.login_path(uid: @api_user.uuid), format: :json
+  def do_valid_login(user = @api_user)
+    get @api_paths.login_path(uid: user.uuid), format: :json
     assert_response :success
   end
 
@@ -241,5 +419,16 @@ class ApiTest < ActionDispatch::IntegrationTest
     assert summary.key?('entity_type')
     assert summary.key?('entity_id')
   end
+
+  def compare_times(expected, actual)
+    #
+    #  expected is what we sent
+    #  actual is what we got back
+    #
+    #  Both are strings, but formatted differently.
+    #
+    assert_equal Time.zone.parse(expected), Time.zone.parse(actual)
+  end
+
 end
 
