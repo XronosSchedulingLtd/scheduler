@@ -90,7 +90,7 @@ sjp = seeder.new_staff("Mr",  "Simon",    "Philpotts", "SJP", [:maths, :fm],
 ced = seeder.new_staff("Mrs", "Claire",   "Dunwoody",  "CED", [:french])
 medical = seeder.new_service("Medical")
 catering = seeder.new_service("Catering")
-sjp_user = seeder.new_user(sjp)
+sjp_user = seeder.new_user(sjp, 'f9c4317f-97d8-48ae-abae-dc7b52b63a11')
 ced_user = seeder.new_user(ced).
        controls(seeder.properties[:calendarproperty]).
        controls(catering).

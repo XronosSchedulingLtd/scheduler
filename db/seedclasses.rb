@@ -85,7 +85,12 @@ class Seeder
   class SeedStaff
     attr_reader :dbrecord, :initials
 
-    def initialize(title, forename, surname, initials, email = nil)
+    def initialize(
+      title,
+      forename,
+      surname,
+      initials,
+      email = nil)
       @initials = initials
       unless email
         email = "#{forename.downcase}.#{surname.downcase}@xronos.uk"
@@ -119,7 +124,8 @@ class Seeder
   class SeedUser
     attr_reader :dbrecord
 
-    def initialize(corresponding_staff_or_pupil)
+    def initialize(corresponding_staff_or_pupil, uuid = nil)
+      puts "uuid passed in is #{uuid}"
       if corresponding_staff_or_pupil.instance_of?(SeedStaff)
         profile = UserProfile.staff_profile
       else
@@ -132,8 +138,14 @@ class Seeder
         email:        corresponding_staff_or_pupil.dbrecord.email,
         user_profile: profile,
         day_shape:    day_shape,
-        demo_user:    true
+        demo_user:    true,
+        initial_uuid: uuid
       })
+      puts "Created user has uuid of #{@dbrecord.uuid}"
+      if uuid
+        @dbrecord.permissions[:can_api] = true
+        @dbrecord.save!
+      end
     end
 
     def controls(entity)
@@ -692,6 +704,7 @@ class Seeder
     @eventsources[:thisfile] = Eventsource.create!({ name: "Seedfile" })
     @eventsources[:manual]   = Eventsource.create!({ name: "Manual" })
     @eventsources[:rotaslot] = Eventsource.create!({ name: "RotaSlot" })
+    @eventsources[:api]      = Eventsource.create!({ name: "API" })
     #
     #  Rota template types.
     #
@@ -880,8 +893,8 @@ class Seeder
   #
   #  Create a new user record to match an existing member of staff.
   #
-  def new_user(existing_staff_or_pupil)
-    rec = SeedUser.new(existing_staff_or_pupil)
+  def new_user(existing_staff_or_pupil, uuid = nil)
+    rec = SeedUser.new(existing_staff_or_pupil, uuid)
     if existing_staff_or_pupil.instance_of?(SeedStaff)
       key = existing_staff_or_pupil.initials.downcase.to_sym
       @users[key] = rec

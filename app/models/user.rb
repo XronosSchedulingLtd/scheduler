@@ -1230,6 +1230,16 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  But it is allowed to pass in an initial UUID to use.
+  #
+  #  We will only use it if we don't already have something
+  #  and it doesn't cause a clash.
+  #
+  def initial_uuid=(value)
+    @initial_uuid = value
+  end
+
+  #
   #  This method is called as the element record is about to be
   #  created in the database.
   #
@@ -1238,7 +1248,7 @@ class User < ActiveRecord::Base
     #  In theory we shouldn't get here if the record isn't valid, but...
     #
     if self.valid?
-      generate_uuid
+      generate_initial_uuid
       #
       #  This seems really stupid, but surely we should have some
       #  code to cope with the possibility of a clash?
@@ -1257,6 +1267,10 @@ class User < ActiveRecord::Base
       #  has already been performed, and won't be performed again.
       #  The only thing which is going to stop the save succeeding
       #  is an actual constraint on the database - which is there.
+      #
+      #  This will also cope with the case where a caller has passed
+      #  in an initial UUID, but it's not unique.  We will go on
+      #  and generate a unique one.
       #
       unless self.valid?
         generate_uuid
@@ -1279,7 +1293,11 @@ class User < ActiveRecord::Base
   #
   def generate_initial_uuid
     if self.uuid.blank?
-      generate_uuid
+      if @initial_uuid.blank?
+        generate_uuid
+      else
+        write_attribute(:uuid, @initial_uuid)
+      end
     end
   end
 
