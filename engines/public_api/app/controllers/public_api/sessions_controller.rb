@@ -10,8 +10,8 @@ module PublicApi
     #  provide is the secret UUID of an API-enabled user.
     #
     def login
-      uid = params[:uid]
-      if uid && (user = User.find_by(uuid: uid)) && user.can_api?
+      uuid = params[:uuid] || params[:uid]
+      if uuid && (user = User.find_by(uuid: uuid)) && user.can_api?
         reset_session
         session[:user_id] = user.id
         render json: { status: 'OK' }
