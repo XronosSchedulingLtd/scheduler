@@ -125,7 +125,6 @@ class Seeder
     attr_reader :dbrecord
 
     def initialize(corresponding_staff_or_pupil, uuid = nil)
-      puts "uuid passed in is #{uuid}"
       if corresponding_staff_or_pupil.instance_of?(SeedStaff)
         profile = UserProfile.staff_profile
       else
@@ -141,7 +140,6 @@ class Seeder
         demo_user:    true,
         initial_uuid: uuid
       })
-      puts "Created user has uuid of #{@dbrecord.uuid}"
       if uuid
         @dbrecord.permissions[:can_api] = true
         @dbrecord.save!
