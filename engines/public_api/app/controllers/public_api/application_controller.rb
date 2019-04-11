@@ -189,6 +189,24 @@ module PublicApi
             hash[:auto_pupils] = item.entity.auto_pupils
           end
           hash
+        when Eventcategory
+          hash = {
+            id:            item.id,
+            name:          item.name,
+            pecking_order: item.pecking_order,
+            schoolwide:    item.schoolwide,
+            publish:       item.publish,
+            visible:       item.visible,
+            unimportant:   item.unimportant,
+            can_merge:     item.can_merge,
+            can_borrow:    item.can_borrow,
+            compactable:   item.compactable,
+            privileged:    item.privileged,
+            clash_check:   item.clashcheck,
+            busy:          item.busy,
+            timetable:     item.timetable
+          }
+          hash
         else
           {}
         end

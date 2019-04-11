@@ -667,6 +667,36 @@ class ApiTest < ActionDispatch::IntegrationTest
     assert_equal expected, eventcategories.size
   end
 
+  test 'ordinary API user can get details of ordinary event category' do
+    do_valid_login
+    get @api_paths.eventcategory_path(@eventcategory), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    eventcategory = response_data['eventcategory']
+    assert_instance_of Hash, eventcategory
+  end
+
+  test 'but not of privileged event category' do
+    do_valid_login
+    get @api_paths.eventcategory_path(@privileged_eventcategory), format: :json
+    assert_response :forbidden
+  end
+
+  test 'privileged API user can query any event category' do
+    do_valid_login(@privileged_api_user)
+    get @api_paths.eventcategory_path(@privileged_eventcategory), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    eventcategory = response_data['eventcategory']
+    assert_instance_of Hash, eventcategory
+  end
+
   private
 
   def do_valid_login(user = @api_user)
