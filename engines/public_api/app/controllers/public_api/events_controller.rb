@@ -37,10 +37,10 @@ module PublicApi
                 #
                 #  An array to process
                 #
-                element_ids.each do |element_id|
+                element_ids.each_with_index do |element_id, index|
                   linker = add_element(event, element_id)
                   unless linker.respond_to?(:valid?) && linker.valid?
-                    failures << linker
+                    failures << FailureRecord.new(linker, index, element_id)
                   end
                 end
               else
@@ -49,7 +49,7 @@ module PublicApi
                 #
                 linker = add_element(event, element_ids)
                 unless linker.respond_to?(:valid?) && linker.valid?
-                  failures << linker
+                  failures << FailureRecord.new(linker, 0, element_ids)
                 end
               end
             end
@@ -240,7 +240,6 @@ module PublicApi
       else
         {
           status: "Not found",
-          element_id: element_id
         }
       end
     end

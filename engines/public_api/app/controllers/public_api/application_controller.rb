@@ -6,6 +6,18 @@
 module PublicApi
   class ApplicationController < ActionController::Base
 
+    class FailureRecord < Hash
+
+      def initialize(item, index, element_id)
+        super()
+        self[:index]      = index
+        self[:element_id] = element_id
+        self[:item_type]  = item.class.to_s
+        self[:item]       = item
+      end
+
+    end
+
     class ModelHasher
       #
       #  An object which knows how to build suitable hashes from
@@ -93,19 +105,37 @@ module PublicApi
             hash[:commitments] = self.summary_from(item.commitments, item)
             hash[:requests] = self.summary_from(item.requests, item)
           end
+        when FailureRecord
+          #
+          #  This next bit looks a little weird.  The failure record
+          #  contains an item which is one of:
+          #
+          #  * Commitment record
+          #  * Request record
+          #  * Hash
+          #
+          #  The first two need to be converted to hashes.  We do
+          #  that and then supplant the entry in our new hash.
+          #
+          hash = item.merge({
+            item: item_summary(item[:item], context)
+          })
         end
+
         if hash
           #
-          #  Item is some sort of model.
+          #  Item is some sort of model, or a FailureRecord.
           #
-          valid = item.valid?
-          hash[:valid] = valid
-          unless valid
-            hash[:errors] = item.errors
+          if item.respond_to?(:valid?)
+            valid = item.valid?
+            hash[:valid] = valid
+            unless valid
+              hash[:errors] = item.errors
+            end
           end
           return hash
         else
-          if item.instance_of?(Hash)
+          if item.kind_of?(Hash)
             return item
           else
             return {}
