@@ -4,6 +4,7 @@ class ApiTest < ActionDispatch::IntegrationTest
   setup do
     @api_user = FactoryBot.create(:user, :api, :editor)
     @api_user_no_edit = FactoryBot.create(:user, :api)
+    @privileged_api_user = FactoryBot.create(:user, :api, :editor, :privileged)
     @ordinary_user = FactoryBot.create(:user)
     @staff1 = FactoryBot.create(
       :staff, {name: "Able Baker Charlie", initials: "ABC"})
@@ -22,6 +23,9 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     @eventsource = FactoryBot.create(:eventsource, name: 'API')
     @eventcategory = FactoryBot.create(:eventcategory, name: 'Test API events')
+    @privileged_eventcategory = FactoryBot.create(:eventcategory,
+                                                  name: 'Privileged category',
+                                                  privileged: true)
     @event_start_time = Time.zone.now
     @event_end_time = Time.zone.now + 1.hour
     @valid_event_params = {
@@ -221,6 +225,22 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login(@api_user_no_edit)
     post @api_paths.events_path(event: @valid_event_params), format: :json
     assert_response 403         # Forbidden
+  end
+
+  test "ordinary api user can't use privileged category" do
+    do_valid_login
+    post @api_paths.events_path(
+      event: @valid_event_params.merge({
+        eventcategory_id: @privileged_eventcategory.id})), format: :json
+    assert_response 403         # Forbidden
+  end
+
+  test "but a privileged user can" do
+    do_valid_login(@privileged_api_user)
+    post @api_paths.events_path(
+      event: @valid_event_params.merge({
+        eventcategory_id: @privileged_eventcategory.id})), format: :json
+    assert_response 201         # Created
   end
 
   test "can add elements whilst creating" do

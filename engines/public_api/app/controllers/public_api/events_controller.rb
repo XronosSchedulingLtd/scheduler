@@ -21,50 +21,62 @@ module PublicApi
       if current_user.create_events?
         eventsource = Eventsource.find_by(name: "API")
         if eventsource
-          event =
-            eventsource.events.create(
-              event_params.merge(owner: current_user))
-          if event.valid?
-            event.reload
-            event.journal_event_created(current_user)
-            status = :created
-            #
-            #  Now I should add the requested elements, if any.
-            #
-            failures = Array.new
-            if (element_ids = params[:elements])
-              if element_ids.respond_to?(:each)
+          eventcategory =
+            Eventcategory.find_by(id: event_params[:eventcategory_id])
+          if eventcategory
+            if eventcategory.privileged && !current_user.privileged
+              status = :forbidden
+              message = 'Privileged event category'
+            else
+              event =
+                eventsource.events.create(
+                  event_params.merge(owner: current_user))
+              if event.valid?
+                event.reload
+                event.journal_event_created(current_user)
+                status = :created
                 #
-                #  An array to process
+                #  Now I should add the requested elements, if any.
                 #
-                element_ids.each_with_index do |element_id, index|
-                  linker = add_element(event, element_id)
-                  unless linker.respond_to?(:valid?) && linker.valid?
-                    failures << FailureRecord.new(linker, index, element_id)
+                failures = Array.new
+                if (element_ids = params[:elements])
+                  if element_ids.respond_to?(:each)
+                    #
+                    #  An array to process
+                    #
+                    element_ids.each_with_index do |element_id, index|
+                      linker = add_element(event, element_id)
+                      unless linker.respond_to?(:valid?) && linker.valid?
+                        failures << FailureRecord.new(linker, index, element_id)
+                      end
+                    end
+                  else
+                    #
+                    #  Just the one
+                    #
+                    linker = add_element(event, element_ids)
+                    unless linker.respond_to?(:valid?) && linker.valid?
+                      failures << FailureRecord.new(linker, 0, element_ids)
+                    end
                   end
                 end
+                #
+                #  We may now have some invalid commitment or request records
+                #  attached to our event, which makes it appear invalid too.
+                #
+                #  There is also a bug in Rails 4.2.11.1 whereby newly created
+                #  commitments appear twice in the in-memory copy of the
+                #  event record.  See tests for details.  It's fixed in
+                #  Rails 5.0, but for now this next step will address both.
+                #
+                event.reload
               else
-                #
-                #  Just the one
-                #
-                linker = add_element(event, element_ids)
-                unless linker.respond_to?(:valid?) && linker.valid?
-                  failures << FailureRecord.new(linker, 0, element_ids)
-                end
+                status = :unprocessable_entity
               end
             end
-            #
-            #  We may now have some invalid commitment or request records
-            #  attached to our event, which makes it appear invalid too.
-            #
-            #  There is also a bug in Rails 4.2.11.1 whereby newly created
-            #  commitments appear twice in the in-memory copy of the
-            #  event record.  See tests for details.  It's fixed in
-            #  Rails 5.0, but for now this next step will address both.
-            #
-            event.reload
           else
-            status = :unprocessable_entity
+            status = :not_found
+            message = "Eventcategory not found"
           end
         else
           status = :service_unavailable
