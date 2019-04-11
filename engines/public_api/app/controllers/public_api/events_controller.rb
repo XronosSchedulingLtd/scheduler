@@ -190,7 +190,10 @@ module PublicApi
                                     :eventcategory_id,
                                     :starts_at_text,
                                     :ends_at_text,
-                                    :all_day_field)
+                                    :all_day_field,
+                                    :starts_at,
+                                    :ends_at,
+                                    :all_day)
     end
 
     #
