@@ -24,7 +24,7 @@ module PublicApi
           eventcategory =
             Eventcategory.find_by(id: event_params[:eventcategory_id])
           if eventcategory
-            if eventcategory.privileged && !current_user.privileged
+            if eventcategory.privileged? && !current_user.privileged?
               status = :forbidden
               message = 'Privileged event category'
             else

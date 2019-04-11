@@ -639,6 +639,34 @@ class ApiTest < ActionDispatch::IntegrationTest
     assert_equal 2, commitments.size
   end
 
+  test 'ordinary API user sees only ordinary event categories' do
+    expected = Eventcategory.unprivileged.available.size
+    do_valid_login
+    get @api_paths.eventcategories_path, format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    eventcategories = response_data['eventcategories']
+    assert_instance_of Array, eventcategories
+    assert_equal expected, eventcategories.size
+  end
+
+  test 'privileged API user sees all event categories' do
+    expected = Eventcategory.available.size
+    do_valid_login(@privileged_api_user)
+    get @api_paths.eventcategories_path, format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    status = response_data['status']
+    assert_equal 'OK', status
+    eventcategories = response_data['eventcategories']
+    assert_instance_of Array, eventcategories
+    assert_equal expected, eventcategories.size
+  end
+
   private
 
   def do_valid_login(user = @api_user)

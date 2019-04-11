@@ -15,6 +15,7 @@ PublicApi::Engine.routes.draw do
 
   resources :commitments, only: [:destroy]
   resources :requests, only: [:destroy]
+  resources :eventcategories, only: [:index]
 
 #  resources :pupils, only: [:index]
 end

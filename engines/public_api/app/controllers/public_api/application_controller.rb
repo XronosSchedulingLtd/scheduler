@@ -105,6 +105,11 @@ module PublicApi
             hash[:commitments] = self.summary_from(item.commitments, item)
             hash[:requests] = self.summary_from(item.requests, item)
           end
+        when Eventcategory
+          hash = {
+            id:   item.id,
+            name: item.name
+          }
         when FailureRecord
           #
           #  This next bit looks a little weird.  The failure record
