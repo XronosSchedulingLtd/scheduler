@@ -73,9 +73,10 @@ class Seeder
 
     attr_reader :dbrecord
 
-    def initialize(name)
+    def initialize(name, add_directly = true)
       @dbrecord = Service.create!({
-        name: name
+        name:         name,
+        add_directly: add_directly
       })
       @dbrecord.reload
     end
@@ -310,6 +311,8 @@ class Seeder
         baseclass = Teachinggroup
       when "Tutor"
         baseclass = Tutorgroup
+      when "Resource"
+        baseclass = Resourcegroup
       else
         baseclass = Vanillagroup
       end
@@ -389,6 +392,17 @@ class Seeder
       #  element name.  Force a save to ensure it is updated.
       #
       new_member.force_save
+    end
+  end
+
+  class SeedResourceGroup < SeedGroup
+    def initialize(name, era)
+      super(name, era, "Resource")
+    end
+
+    def taught_by(staff)
+      @dbrecord.staffs << staff.dbrecord
+      self
     end
   end
 
@@ -900,8 +914,8 @@ class Seeder
     rec
   end
 
-  def new_service(name)
-    SeedService.new(name)
+  def new_service(name, add_directly = true)
+    SeedService.new(name, add_directly)
   end
 
   def new_form(name, user, definition)

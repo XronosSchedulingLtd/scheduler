@@ -533,6 +533,14 @@ seeder.lesson(:psl, :g11geo4,   :l104, :nextmonday, 3, {non_existent: true})
 seeder.lesson(:dpr, :g11ger2,   :l105, :nextmonday, 4, {non_existent: true})
 seeder.lesson(:prw, :g11his4,   :l106, :nextmonday, 6, {non_existent: true})
 
+#
+#  And a resource group for mini-buses.
+#
+minibuses = Seeder::SeedResourceGroup.new("Minibus", seeder.eras[:current_era])
+
+minibuses << seeder.new_service("Minibus one", false)
+minibuses << seeder.new_service("Minibus two", false)
+
 
 #
 #  Switch our new system into demo mode.  Definitely don't do this on
