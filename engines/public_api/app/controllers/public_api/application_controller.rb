@@ -183,6 +183,7 @@ module PublicApi
             hash[:house_name] = item.entity.house_name
           when 'Group'
             hash[:description] = item.entity.description
+            hash[:members]     = item.entity.members.count
           when 'Property'
             hash[:make_public] = item.entity.make_public
             hash[:auto_staff]  = item.entity.auto_staff
