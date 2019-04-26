@@ -156,7 +156,8 @@ class Seeder
         existing.owns = true
         existing.save!
       else
-        SeedConcern.new(self, entity, false, true, "#123456")
+        SeedConcern.new(self, entity, false, true, self.dbrecord.free_colour)
+        self.dbrecord.reload
       end
       self
     end
@@ -171,6 +172,13 @@ class Seeder
     attr_reader :dbrecord
 
     def initialize(user, entity, equality, controls, colour)
+      #
+      #  If the indicated entity already has a preferred colour
+      #  than that over-rides the one given.
+      #
+      unless entity.dbrecord.element.preferred_colour.blank?
+        colour = entity.dbrecord.element.preferred_colour
+      end
       @dbrecord = Concern.create!({
         user:     user.dbrecord,
         element:  entity.dbrecord.element,
@@ -396,8 +404,15 @@ class Seeder
   end
 
   class SeedResourceGroup < SeedGroup
-    def initialize(name, era)
-      super(name, era, "Resource")
+    def initialize(name, era, preferred_colour = nil)
+      if preferred_colour
+        more = {
+          edit_preferred_colour: preferred_colour
+        }
+      else
+        more = {}
+      end
+      super(name, era, "Resource", more)
     end
 
     def taught_by(staff)
@@ -852,9 +867,14 @@ class Seeder
       end
       extra[:organiser_id] = organiser.element_id
     end
-    if timing == :all_day
+    case timing
+    when :all_day
       starts = Time.zone.parse(@weekdates[day].to_s)
       ends = Time.zone.parse((@weekdates[day] + 1.day).to_s)
+      extra[:all_day] = true
+    when :five_days
+      starts = Time.zone.parse(@weekdates[day].to_s)
+      ends = Time.zone.parse((@weekdates[day] + 5.days).to_s)
       extra[:all_day] = true
     else
       starts = Time.zone.parse("#{@weekdates[day].to_s} #{timing[0]}")

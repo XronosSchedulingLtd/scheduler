@@ -263,6 +263,18 @@ seeder.add_event(:dateother,
                  nil,
                  {involving: calendarproperty})
 
+#
+#  A couple of week letters.
+#
+#
+seeder.add_event(:weekletter,
+                 "Week A",
+                 :monday,
+                 :five_days)
+seeder.add_event(:weekletter,
+                 "Week B",
+                 :nextmonday,
+                 :five_days)
 
 #
 #  Now some simple timetable stuff.
@@ -536,11 +548,16 @@ seeder.lesson(:prw, :g11his4,   :l106, :nextmonday, 6, {non_existent: true})
 #
 #  And a resource group for mini-buses.
 #
-minibuses = Seeder::SeedResourceGroup.new("Minibus", seeder.eras[:current_era])
+minibuses = Seeder::SeedResourceGroup.new(
+  "Minibus",
+  seeder.eras[:current_era],
+  "#5c0568"  # Decent purple
+)
 
 minibuses << seeder.new_service("Minibus one", false)
 minibuses << seeder.new_service("Minibus two", false)
 
+ced_user.controls(minibuses)
 
 #
 #  Switch our new system into demo mode.  Definitely don't do this on
