@@ -261,6 +261,10 @@ class ElementsController < ApplicationController
     do_autocomplete(Element.add_directly, params[:term])
   end
 
+  def autocomplete_viewable_element_name
+    do_autocomplete(Element.viewable, params[:term])
+  end
+
   #
   #  This method does a lot of work in showing various kinds of information
   #  for various types of element.  Each element has a corresponding entity

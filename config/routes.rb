@@ -240,6 +240,7 @@ Rails.application.routes.draw do
       get :autocomplete_property_element_name
       get :autocomplete_location_element_name
       get :autocomplete_direct_add_element_name
+      get :autocomplete_viewable_element_name
       get :autocomplete_tutorgroup_element_name
     end
     member do
