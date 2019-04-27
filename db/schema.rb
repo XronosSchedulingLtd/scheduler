@@ -604,6 +604,7 @@ ActiveRecord::Schema.define(version: 20190427095209) do
     t.integer  "tt_cycle_weeks",                   limit: 4,     default: 2
     t.string   "tt_prep_letter",                   limit: 2,     default: "P"
     t.date     "tt_store_start",                                 default: '2006-01-01'
+    t.string   "busy_string",                      limit: 255,   default: "Busy"
   end
 
   create_table "staffs", force: :cascade do |t|

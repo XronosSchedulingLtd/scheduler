@@ -1303,6 +1303,18 @@ class Event < ActiveRecord::Base
     added
   end
 
+  #
+  #  If an event is confidential, then most people can't view
+  #  the body.
+  #
+  def body
+    if self.confidential?
+      Setting.busy_string
+    else
+      super
+    end
+  end
+
   private
 
   #
