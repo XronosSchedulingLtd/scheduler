@@ -17,6 +17,7 @@ class Eventcategory < ActiveRecord::Base
 
   has_many :users, foreign_key: :preferred_event_category_id, :dependent => :nullify
   after_save :flush_cache
+  after_save :update_dependent_events, if: :confidential_changed?
 
   scope :publish,          lambda { where(publish: true) }
   scope :name_starts_with, lambda { |prefix| where("name LIKE :prefix",
@@ -64,7 +65,9 @@ class Eventcategory < ActiveRecord::Base
       deprecated:
         "This event category no longer appears in the pull-down and events cannot be saved with this category.  Old events may still exist.",
       timetable:
-        "Should events in this category appear on printed timetables?"
+        "Should events in this category appear on printed timetables?",
+      confidential:
+        "Events in this category are confidential.  The body text is visible only to those with a need to know - those involved in the event."
   }
   FIELD_TITLE_TEXTS.default = "Unknown"
 
@@ -142,4 +145,21 @@ class Eventcategory < ActiveRecord::Base
   def self.title_of(key)
     FIELD_TITLE_TEXTS[key]
   end
+
+  protected
+
+  def update_dependent_events
+    #
+    #  It's just possible that there could be large numbers of events
+    #  of this category.  Systems exist with of the order of half
+    #  a million lessons.  Whilst we don't anticipate these being
+    #  made confidential, we should still cope.
+    #
+    #  Use find_each rather than each, so we get them in batches.
+    #
+    self.events.find_each do |e|
+      e.save
+    end
+  end
+
 end

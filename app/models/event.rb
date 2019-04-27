@@ -238,6 +238,7 @@ class Event < ActiveRecord::Base
   end
 
   before_destroy :being_destroyed
+  before_save    :update_confidentiality
 
   def owned_or_organised_by?(user)
     self.owner_id == user.id ||
@@ -2104,5 +2105,21 @@ class Event < ActiveRecord::Base
     @being_destroyed = true
   end
 
+  #
+  #  Make sure our confidentiality flag matches that of our event
+  #  category.  We have already been validated, so we must have
+  #  an eventcategory.
+  #
+  def update_confidentiality
+    if self.eventcategory
+      unless self.confidential == self.eventcategory.confidential?
+        self.confidential = self.eventcategory.confidential?
+      end
+    end
+    #
+    #  Must return true or we break the chain.
+    #
+    true
+  end
 
 end

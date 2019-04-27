@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190326091128) do
+ActiveRecord::Schema.define(version: 20190427095209) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -138,6 +138,7 @@ ActiveRecord::Schema.define(version: 20190326091128) do
     t.string   "uuid",             limit: 255
     t.integer  "user_form_id",     limit: 4
     t.boolean  "add_directly",                 default: true
+    t.boolean  "viewable",                     default: true
   end
 
   add_index "elements", ["entity_id"], name: "index_elements_on_entity_id", using: :btree
@@ -193,6 +194,7 @@ ActiveRecord::Schema.define(version: 20190326091128) do
     t.boolean  "clashcheck",                default: false
     t.boolean  "busy",                      default: true
     t.boolean  "timetable",                 default: false
+    t.boolean  "confidential",              default: false
   end
 
   create_table "events", force: :cascade do |t|
@@ -221,6 +223,7 @@ ActiveRecord::Schema.define(version: 20190326091128) do
     t.integer  "proto_event_id",      limit: 4
     t.string   "flagcolour",          limit: 255
     t.integer  "event_collection_id", limit: 4
+    t.boolean  "confidential",                      default: false
   end
 
   add_index "events", ["complete"], name: "index_events_on_complete", using: :btree

@@ -102,6 +102,7 @@ class EventcategoriesController < ApplicationController
                                             :visible,
                                             :busy,
                                             :clashcheck,
-                                            :timetable)
+                                            :timetable,
+                                            :confidential)
     end
 end

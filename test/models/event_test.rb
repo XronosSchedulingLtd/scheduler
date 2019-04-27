@@ -4,6 +4,19 @@ class EventTest < ActiveSupport::TestCase
   setup do
     @eventcategory = FactoryBot.create(:eventcategory)
     @eventsource   = FactoryBot.create(:eventsource)
+    @confidential_ec = FactoryBot.create(:eventcategory, confidential: true)
+  end
+
+  test "should have a confidential flag" do
+    event = FactoryBot.create(:event)
+    assert event.respond_to?(:confidential?)
+  end
+
+  test "confidential flag should mirror that in event category" do
+    event = FactoryBot.create(:event, eventcategory: @eventcategory)
+    assert_not event.confidential?
+    event = FactoryBot.create(:event, eventcategory: @confidential_ec)
+    assert event.confidential?
   end
 
   test "can create an event" do

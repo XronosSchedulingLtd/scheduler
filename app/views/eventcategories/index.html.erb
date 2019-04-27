@@ -64,6 +64,11 @@
           <span>Timetable</span>
         </div>
       </th>
+      <th class="rotated">
+        <div title="<%= Eventcategory.title_of(:confidential) %>">
+          <span>Confidential</span>
+        </div>
+      </th>
       <th colspan="2"></th>
     </tr>
   </thead>
@@ -85,6 +90,7 @@
         <td><%= boolean_icon(eventcategory.clashcheck?) %></td>
         <td><%= boolean_icon(eventcategory.busy?) %></td>
         <td><%= boolean_icon(eventcategory.timetable?) %></td>
+        <td><%= boolean_icon(eventcategory.confidential?) %></td>
         <td><%= link_to 'Edit', edit_eventcategory_path(eventcategory) %></td>
         <td>
           <% if eventcategory.can_destroy? %>
