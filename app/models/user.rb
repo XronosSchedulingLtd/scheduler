@@ -626,12 +626,13 @@ class User < ActiveRecord::Base
   #  to see the body text.  Being attached via a group will not do.
   #
   def can_see_body_of?(event)
-    Rails.logger.debug("Entering User#can_see_body_of?")
+    !event.confidential? ||
     event.owner_id == self.id ||
-      (event.commitments.detect {|c|
-         confidentiality_elements.include?(c.element_id)
-       } != nil)
-
+    (
+      event.commitments.detect { |c|
+        confidentiality_elements.include?(c.element_id)
+      } != nil
+    )
   end
 
   #

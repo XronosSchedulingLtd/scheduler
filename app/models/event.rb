@@ -1308,6 +1308,15 @@ class Event < ActiveRecord::Base
   #  the body.
   #
   def body(user = nil)
+    #
+    #  Note that, although the User#can_see_body_of? method will
+    #  itself check the "confidential?" flag, we check it ourselves
+    #  first for efficiency.  This method is called a lot and there's
+    #  no point in getting into special processing if it's not needed
+    #  at all.
+    #
+    #  We also have to cope with the case of there being no user.
+    #
     if self.confidential?
       if user && user.can_see_body_of?(self)
         super()
@@ -1317,6 +1326,20 @@ class Event < ActiveRecord::Base
     else
       super()
     end
+  end
+
+  #
+  #  But when we're doing forms, there is no option to pass in an
+  #  extra parameter to the getter/setter methods.  We therefore
+  #  provide these two, and it is the responsibility of the form
+  #  code to make sure that permissions have already been checked.
+  #
+  def real_body
+    read_attribute(:body)
+  end
+
+  def real_body=(new_value)
+    self.body = new_value
   end
 
   private
