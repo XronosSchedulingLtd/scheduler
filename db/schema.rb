@@ -98,6 +98,7 @@ ActiveRecord::Schema.define(version: 20190427095209) do
     t.boolean  "list_teachers",                default: false
     t.boolean  "subedit_any",                  default: false
     t.integer  "concern_set_id",   limit: 4
+    t.boolean  "assistant_to",                 default: false
   end
 
   add_index "concerns", ["element_id"], name: "index_concerns_on_element_id", using: :btree

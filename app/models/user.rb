@@ -591,6 +591,49 @@ class User < ActiveRecord::Base
     can_drag_timing
   end
 
+  def confidentiality_elements
+    unless @confidentiality_elements
+      @confidentiality_elements =
+        #
+        #  We want a list of all the elements which we are either
+        #  equal to, or assistant to.
+        #
+        self.concerns.
+             select { |c| c.equality? || c.assistant_to? }.
+             collect {|c| c.element_id}
+        Rails.logger.debug("Confidentiality elements of #{self.name} are #{
+                           @confidentiality_elements.join(",")
+        }")
+    end
+    @confidentiality_elements
+  end
+
+  #
+  #  A user can see the body of a confidential event if:
+  #
+  #  * He or she owns the event
+  #  * He or she is invited to the event
+  #  * He or she has a suitable link to an invitee.
+  #
+  #  Two evaluate those last two, we keep a cache of the elements
+  #  which we are linked to by concerns which have either the
+  #  "identity" (this is me) or "pa_to" flags set.
+  #
+  #  We need just a cache of the element ids, and we compare those
+  #  to the elements attached to the event.
+  #
+  #  Note that currently you need a *direct* attachment to the event
+  #  to see the body text.  Being attached via a group will not do.
+  #
+  def can_see_body_of?(event)
+    Rails.logger.debug("Entering User#can_see_body_of?")
+    event.owner_id == self.id ||
+      (event.commitments.detect {|c|
+         confidentiality_elements.include?(c.element_id)
+       } != nil)
+
+  end
+
   #
   #  Does this user have appropriate permissions to approve/decline
   #  the indicated commitment?

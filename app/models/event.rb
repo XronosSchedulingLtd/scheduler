@@ -1307,11 +1307,15 @@ class Event < ActiveRecord::Base
   #  If an event is confidential, then most people can't view
   #  the body.
   #
-  def body
+  def body(user = nil)
     if self.confidential?
-      Setting.busy_string
+      if user && user.can_see_body_of?(self)
+        super()
+      else
+        Setting.busy_string
+      end
     else
-      super
+      super()
     end
   end
 
