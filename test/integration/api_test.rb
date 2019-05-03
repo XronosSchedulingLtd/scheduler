@@ -42,6 +42,8 @@ class ApiTest < ActionDispatch::IntegrationTest
     ]
     @element_ids_to_add = @elements_to_add.collect {|e| e.id}
 
+    @existing_event = FactoryBot.create(:event, owner: @api_user)
+
     @api_paths = PublicApi::Engine.routes.url_helpers
   end
 
@@ -361,6 +363,78 @@ class ApiTest < ActionDispatch::IntegrationTest
     failures = response_data['failures']
     assert_instance_of Array, failures
     assert_empty failures
+    #
+    #  And check the event has the right number
+    #  of commitments and requests.
+    #
+    event = response_data['event']
+    assert_instance_of Hash, event
+    #
+    #  How many should be commitments and how many requests?
+    #
+    for_requests, for_commitments =
+      @elements_to_add.partition {|e| e.can_have_requests?}
+    assert_equal for_requests.size,
+      event['requests'].size
+    assert_equal for_commitments.size,
+      event['commitments'].size
+  end
+
+  test 'can query an existing event' do
+    do_valid_login
+    get @api_paths.event_path(@existing_event), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    #
+    #  Check textual status
+    #
+    status = response_data['status']
+    assert_equal 'OK', status
+    #
+    event = response_data['event']
+    assert_instance_of Hash, event
+  end
+
+  test 'querying non-existent event returns correct status' do
+    do_valid_login
+    get @api_paths.event_path(999), format: :json
+    assert_response :missing
+    response_data = JSON.parse(response.body)
+    #
+    #  Check textual status
+    #
+    status = response_data['status']
+    assert_equal 'Not found', status
+  end
+
+  test 'event query returns both commitments and requests' do
+    do_valid_login
+    #
+    #  Start by adding some stuff to our existing event.
+    #
+    post @api_paths.add_event_path(@existing_event.id,
+                                   elements: @element_ids_to_add),
+                                   format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    #
+    #  Check for failures - there should be none.
+    #
+    failures = response_data['failures']
+    assert_instance_of Array, failures
+    assert_empty failures
+    #
+    #  Now query it.
+    #
+    get @api_paths.event_path(@existing_event), format: :json
+    assert_response :success
+    response_data = JSON.parse(response.body)
+    #
+    #  Check textual status
+    #
+    status = response_data['status']
+    assert_equal 'OK', status
+    #
     #
     #  And check the event has the right number
     #  of commitments and requests.

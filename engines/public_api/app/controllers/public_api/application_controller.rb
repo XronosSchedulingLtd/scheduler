@@ -222,15 +222,14 @@ module PublicApi
 
     rescue_from Exception do |exception|
       message = exception.to_s
-      exception = exception.class.to_s
+      exception_class = exception.class.to_s
       status = :bad_request
       case exception
       when ActiveRecord::RecordNotFound
-        message = exception.to_s
         status = :not_found
       end
       render json: {status: status_text(status),
-                    exception: exception,
+                    exception: exception_class,
                     message: message}, status: status
     end
 

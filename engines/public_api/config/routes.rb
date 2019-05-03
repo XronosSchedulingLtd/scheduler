@@ -7,7 +7,7 @@ PublicApi::Engine.routes.draw do
     resources :commitments, only: [:index]
   end
 
-  resources :events, only: [:create, :destroy] do
+  resources :events, only: [:show, :create, :destroy] do
     member do
       post :add
     end

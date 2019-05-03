@@ -7,7 +7,22 @@ module PublicApi
 
   class EventsController < PublicApi::ApplicationController
 
-    before_action :set_event, only: [:add, :destroy]
+    before_action :set_event, only: [:show, :add, :destroy]
+
+    # GET /api/events/1.json
+    #
+    def show
+      #
+      #  If we get here, then we've already found the event.
+      #
+      status = :ok
+      mh = ModelHasher.new
+      json_result = {
+        status: status_text(status)
+      }
+      json_result[:event] = mh.summary_from(@event)
+      render json: json_result, status: status
+    end
 
     # POST /api/events.json
     def create
