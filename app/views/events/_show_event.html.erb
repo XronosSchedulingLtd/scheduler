@@ -1,4 +1,6 @@
-<% if @event.confidential? %>
+<% if @event.confidential? &&
+    current_user &&
+    current_user.can_see_body_of?(@event) %>
 <span class='tinytext'>(Event's body text is not generally visible.)</span>
 <% end %>
 <h3><%= @event.body(current_user) %></h3>
