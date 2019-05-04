@@ -263,6 +263,14 @@ seeder.add_event(:dateother,
                  nil,
                  {involving: calendarproperty})
 
+puts seeder.staff[:ced].class
+
+seeder.add_event(:private,
+                 "Confidential meeting",
+                 :monday,
+                 ["13:00", "14:00"],
+                 :ced).involving(seeder.staff[:ced])
+   
 #
 #  A couple of week letters.
 #

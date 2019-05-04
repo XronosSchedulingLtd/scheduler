@@ -25,15 +25,16 @@ class Seeder
 
     def initialize(values = nil)
       @hash = Hash.new
-      @hash[:schoolwide]  = false
-      @hash[:publish]     = true
-      @hash[:unimportant] = false
-      @hash[:can_merge]   = false
-      @hash[:can_borrow]  = false
-      @hash[:compactable] = true
-      @hash[:deprecated]  = false
-      @hash[:privileged]  = false
-      @hash[:visible]     = true
+      @hash[:schoolwide]   = false
+      @hash[:publish]      = true
+      @hash[:unimportant]  = false
+      @hash[:can_merge]    = false
+      @hash[:can_borrow]   = false
+      @hash[:compactable]  = true
+      @hash[:deprecated]   = false
+      @hash[:privileged]   = false
+      @hash[:visible]      = true
+      @hash[:confidential] = false
       @hash.merge!(values) if values
     end
   end
@@ -785,7 +786,9 @@ class Seeder
     {id: :meeting,
      ech: ECH.new({name: "Meeting"}).hash},
     {id: :hospitality,
-     ech: ECH.new({name: "Hospitality"}).hash}
+     ech: ECH.new({name: "Hospitality"}).hash},
+    {id: :private,
+     ech: ECH.new({name: "Private", confidential: true}).hash}
   ]
 
 
