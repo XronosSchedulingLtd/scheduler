@@ -150,16 +150,12 @@ class Eventcategory < ActiveRecord::Base
 
   def update_dependent_events
     #
-    #  It's just possible that there could be large numbers of events
-    #  of this category.  Systems exist with of the order of half
-    #  a million lessons.  Whilst we don't anticipate these being
-    #  made confidential, we should still cope.
+    #  Do a bulk update.  This will not trigger the callback in the
+    #  event record.  It is also phenomenally faster than doing
+    #  individual updates.
     #
-    #  Use find_each rather than each, so we get them in batches.
-    #
-    self.events.find_each do |e|
-      e.save
-    end
+    self.events.where(confidential: !self.confidential?).
+                update_all(confidential: self.confidential?)
   end
 
 end
