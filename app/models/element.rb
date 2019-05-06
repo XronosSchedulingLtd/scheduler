@@ -631,6 +631,57 @@ class Element < ActiveRecord::Base
     self.entity.type == 'Resource'
   end
 
+  #
+  #  This element is to absorb all the commitments and memberships
+  #  of the other indicated element, leaving it bereft of both.
+  #
+  #  Returns an array of 4 values.
+  #
+  #  * How many commitments the other element had.
+  #  * How many were transferred.
+  #  * How many memberships the other element had.
+  #  * How many were transferred.
+  #
+  #  After calling this function, it's a good idea for the calling
+  #  code to reload its copy of other_element, particularly if it
+  #  intends to destroy it.  Otherwise the cached copy in memory
+  #  may well cause some of the transferred things to be destroyed too.
+  #
+  def absorb(other_element)
+    commitment_count = other_element.commitments.count
+    commitments_transferred = 0
+    other_element.commitments.each do |commitment|
+      if self.commitments.detect {|c| c.event_id == commitment.event_id}
+        commitment.destroy
+      else
+        commitment.element = self
+        commitment.save!
+        commitments_transferred += 1
+        self.reload
+      end
+    end
+    membership_count = other_element.memberships.count
+    memberships_transferred = 0
+    other_element.memberships.each do |membership|
+      #
+      #  This test is slightly too naive, because it takes no account
+      #  of chronology.
+      #
+      if self.memberships.detect {|m| m.group_id == membership.group_id}
+        membership.destroy
+      else
+        membership.element = self
+        membership.save!
+        memberships_transferred += 1
+        self.reload
+      end
+    end
+    return commitment_count,
+           commitments_transferred,
+           membership_count,
+           memberships_transferred
+  end
+
   protected
 
   def being_destroyed
