@@ -238,6 +238,7 @@ class Event < ActiveRecord::Base
   end
 
   before_destroy :being_destroyed
+  before_save    :update_confidentiality
 
   def owned_or_organised_by?(user)
     self.owner_id == user.id ||
@@ -1302,6 +1303,45 @@ class Event < ActiveRecord::Base
     added
   end
 
+  #
+  #  If an event is confidential, then most people can't view
+  #  the body.
+  #
+  def body(user = nil)
+    #
+    #  Note that, although the User#can_see_body_of? method will
+    #  itself check the "confidential?" flag, we check it ourselves
+    #  first for efficiency.  This method is called a lot and there's
+    #  no point in getting into special processing if it's not needed
+    #  at all.
+    #
+    #  We also have to cope with the case of there being no user.
+    #
+    if self.confidential?
+      if user && user.can_see_body_of?(self)
+        super()
+      else
+        Setting.busy_string
+      end
+    else
+      super()
+    end
+  end
+
+  #
+  #  But when we're doing forms, there is no option to pass in an
+  #  extra parameter to the getter/setter methods.  We therefore
+  #  provide these two, and it is the responsibility of the form
+  #  code to make sure that permissions have already been checked.
+  #
+  def real_body
+    read_attribute(:body)
+  end
+
+  def real_body=(new_value)
+    self.body = new_value
+  end
+
   private
 
   #
@@ -2065,7 +2105,7 @@ class Event < ActiveRecord::Base
     #  if we don't then we need to do the adjustment.
     #
     self.starts_at = self.starts_at.to_date
-    unless self.ends_at.midnight? && self.id != nil
+    unless self.ends_at.blank? || (self.ends_at.midnight? && self.id != nil)
       self.ends_at = self.ends_at.to_date + 1.day
     end
   end
@@ -2104,5 +2144,21 @@ class Event < ActiveRecord::Base
     @being_destroyed = true
   end
 
+  #
+  #  Make sure our confidentiality flag matches that of our event
+  #  category.  We have already been validated, so we must have
+  #  an eventcategory.
+  #
+  def update_confidentiality
+    if self.eventcategory
+      unless self.confidential == self.eventcategory.confidential?
+        self.confidential = self.eventcategory.confidential?
+      end
+    end
+    #
+    #  Must return true or we break the chain.
+    #
+    true
+  end
 
 end

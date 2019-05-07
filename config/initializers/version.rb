@@ -1,1 +1,1 @@
-SOFTWARE_VERSION = "Version 1.7.8.1"
+SOFTWARE_VERSION = "Version 1.8.0 pre3 (with API) 2018-05-03"

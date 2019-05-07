@@ -5,12 +5,14 @@ one:
   uid: MyString
   name: MyString
   email: MyString
+  uuid: "ababababababa"
 
 two:
   provider: MyString
   uid: MyString
   name: MyString
   email: MyString
+  uuid: "cdcdcdcdcdcd"
 
 admin:
   provider: MyString
@@ -18,4 +20,5 @@ admin:
   name: "Admin user"
   email: "admin@nowhere"
   admin: true
+  uuid: "efefefefef"
 

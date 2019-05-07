@@ -40,7 +40,7 @@ module EventsHelper
       end
       text = icon_prefix(commitment, text)
       if show_clashes && commitment.has_simple_clash? && user
-        text = "<span class='double-booked' title='Double booked'>#{text}</span>"
+        text = "<span class='double-booked' title='Double booked - #{commitment.text_of_clashes}'>#{text}</span>".html_safe
       end
       if commitment.covering
         if commitment.element.entity_type == "Location"

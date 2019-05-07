@@ -86,7 +86,15 @@
 <div class="row">
 <% if @full_details %>
 
-  <%= tscb_group(f, @user, :permissions, 12, 6, "Permissions", PermissionFlags.permitted_keys, @user.user_profile.permissions) %>
+  <%= tscb_group(f,
+                 @user,
+                 :permissions,
+                 12,
+                 6,
+                 "Permissions",
+                 PermissionFlags.permitted_keys,
+                 @user.user_profile.permissions,
+                 "UUID: #{ @user.uuid }") %>
 
   <%= flag_group(f, 12, 6, "Information",
                  [

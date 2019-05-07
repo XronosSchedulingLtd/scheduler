@@ -105,15 +105,29 @@ module ApplicationHelper
     result.join("\n").html_safe
   end
 
-  def tscb_group(f, parent, field, small_cols, med_cols, label, keys, defaults = nil)
+  def tscb_group(f,
+                 parent,
+                 field,
+                 small_cols,
+                 med_cols,
+                 label,
+                 keys,
+                 defaults = nil,
+                 extra_text = nil)
     result = Array.new
     result << "<div class='small-#{small_cols} medium-#{med_cols} columns tscb-zone'>"
     result << "  <label>#{label}</label>"
     keys.each_with_index do |key, i|
       result << single_tscb(f, parent, field, key, defaults)
       if (i + 1) % 3 == 0
-        result << "<br/>"
+        result << '<br/>'
       end
+    end
+    if extra_text
+      unless result.last == '<br/>'
+        result << '<br/>'
+      end
+      result << extra_text
     end
     result << "</div>"
     result.join("\n").html_safe

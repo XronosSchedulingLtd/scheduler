@@ -1,4 +1,9 @@
-<h3><%= @event.body %></h3>
+<% if @event.confidential? &&
+    current_user &&
+    current_user.can_see_body_of?(@event) %>
+<span class='tinytext'>(Event's body text is not generally visible.)</span>
+<% end %>
+<h3><%= @event.body(current_user) %></h3>
 <div class="row">
   <div class="small-12 medium-3 columns right_border">
 

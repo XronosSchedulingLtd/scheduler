@@ -90,7 +90,7 @@ sjp = seeder.new_staff("Mr",  "Simon",    "Philpotts", "SJP", [:maths, :fm],
 ced = seeder.new_staff("Mrs", "Claire",   "Dunwoody",  "CED", [:french])
 medical = seeder.new_service("Medical")
 catering = seeder.new_service("Catering")
-sjp_user = seeder.new_user(sjp)
+sjp_user = seeder.new_user(sjp, 'f9c4317f-97d8-48ae-abae-dc7b52b63a11')
 ced_user = seeder.new_user(ced).
        controls(seeder.properties[:calendarproperty]).
        controls(catering).
@@ -263,6 +263,24 @@ seeder.add_event(:dateother,
                  nil,
                  {involving: calendarproperty})
 
+seeder.add_event(:personal,
+                 "Confidential meeting",
+                 :monday,
+                 ["13:00", "14:00"],
+                 :ced).involving(seeder.staff[:ced])
+   
+#
+#  A couple of week letters.
+#
+#
+seeder.add_event(:weekletter,
+                 "Week A",
+                 :monday,
+                 :five_days)
+seeder.add_event(:weekletter,
+                 "Week B",
+                 :nextmonday,
+                 :five_days)
 
 #
 #  Now some simple timetable stuff.
@@ -533,6 +551,19 @@ seeder.lesson(:psl, :g11geo4,   :l104, :nextmonday, 3, {non_existent: true})
 seeder.lesson(:dpr, :g11ger2,   :l105, :nextmonday, 4, {non_existent: true})
 seeder.lesson(:prw, :g11his4,   :l106, :nextmonday, 6, {non_existent: true})
 
+#
+#  And a resource group for mini-buses.
+#
+minibuses = Seeder::SeedResourceGroup.new(
+  "Minibus",
+  seeder.eras[:current_era],
+  "#5c0568"  # Decent purple
+)
+
+minibuses << seeder.new_service("Minibus one", false)
+minibuses << seeder.new_service("Minibus two", false)
+
+ced_user.controls(minibuses)
 
 #
 #  Switch our new system into demo mode.  Definitely don't do this on

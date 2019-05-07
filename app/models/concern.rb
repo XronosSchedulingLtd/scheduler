@@ -14,7 +14,8 @@ class Concern < ActiveRecord::Base
     :subedit_any,
     :skip_permissions,
     :seek_permission,
-    :list_teachers
+    :list_teachers,
+    :assistant_to
   ]
   TITLES = {
     visible:          "Currently visible",
@@ -25,7 +26,8 @@ class Concern < ActiveRecord::Base
     subedit_any:      "Sub-edit any",
     skip_permissions: "Skip permissions",
     seek_permission:  "Seek permission",
-    list_teachers:    "List teachers"
+    list_teachers:    "List teachers",
+    assistant_to:     "See confidential"
   }
   EXPLANATIONS = {
     visible:          "Are events for this resource currently visible?",
@@ -36,7 +38,8 @@ class Concern < ActiveRecord::Base
     subedit_any:      "Can this user sub-edit any event involving this resource?",
     skip_permissions: "Can this user skip the permissions process for this resource?",
     seek_permission:  "Set to put requests through the permissions process regardless.",
-    list_teachers:    "When viewing events for this resource, should teachers be listed?"
+    list_teachers:    "When viewing events for this resource, should teachers be listed?",
+    assistant_to:     "When viewing events for this resource, can the user see the body text of the event even when it is confidential?"
   }
   belongs_to :user
   belongs_to :element

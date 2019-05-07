@@ -202,7 +202,7 @@ class EventAssembler
       else
         @prefix = nil
       end
-      @title = event.body
+      @title = event.body(current_user)
       if list_teachers
         staff = event.staff_entities
         if staff.size > 0

@@ -15,6 +15,8 @@ class Note < ActiveRecord::Base
 
   enum note_type: [ :ordinary, :clashes, :yaml ]
 
+  before_save :format_contents
+
   #
   #  Visibility values
   #
@@ -84,4 +86,38 @@ class Note < ActiveRecord::Base
     self.promptnote && self.promptnote.read_only
   end
 
+  def format_contents
+    unless self.contents.blank?
+      renderer = Redcarpet::Render::HTML.new(
+        filter_html: true,
+        hard_wrap: true,
+        link_attributes: {
+          target: '_blank',
+          rel: 'noopener'
+        }
+      )
+      original_html =
+        Redcarpet::Markdown.new(renderer,
+                                autolink: true, lax_spacing: true).
+                                render(self.contents)
+      #
+      #  Want to make any links open a new page.
+      #  This was my original way of doing it, but I think
+      #  Redcarpet can do it all for me.
+      #
+#      doc = Nokogiri::HTML::DocumentFragment.parse(original_html)
+#      doc.css('a').each do |link|
+#        link['target'] = '_blank'
+#        link['rel'] = 'noopener'
+#      end
+#      self.formatted_contents = doc.to_s
+      self.formatted_contents = original_html
+    end
+  end
+
+  def self.format_all_contents
+    Note.all.each do |note|
+      note.save
+    end
+  end
 end

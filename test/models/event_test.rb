@@ -4,6 +4,19 @@ class EventTest < ActiveSupport::TestCase
   setup do
     @eventcategory = FactoryBot.create(:eventcategory)
     @eventsource   = FactoryBot.create(:eventsource)
+    @confidential_ec = FactoryBot.create(:eventcategory, confidential: true)
+  end
+
+  test "should have a confidential flag" do
+    event = FactoryBot.create(:event)
+    assert event.respond_to?(:confidential?)
+  end
+
+  test "confidential flag should mirror that in event category" do
+    event = FactoryBot.create(:event, eventcategory: @eventcategory)
+    assert_not event.confidential?
+    event = FactoryBot.create(:event, eventcategory: @confidential_ec)
+    assert event.confidential?
   end
 
   test "can create an event" do
@@ -97,6 +110,13 @@ class EventTest < ActiveSupport::TestCase
     assert_equal 1, request.num_allocated, "Num allocated"
     assert_equal 1, request.num_outstanding, "Num outstanding"
 
+    #
+    #    This reload shouldn't be necessary, but there appears to be
+    #    a bug in ActiveRecord which makes the request appear twice
+    #    in the array.  The count is 1, but the size is 2 and if you
+    #    iterate through then the same record appears twice.
+    #
+    event.reload
     new_event = event.clone_and_save(user, {})
     assert new_event.valid?
 

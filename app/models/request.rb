@@ -38,6 +38,7 @@ class Request < ActiveRecord::Base
 
   validates :element, :presence => true
   validates :event,   :presence => true
+  validates :element_id, uniqueness: { scope: :event_id }
 
   include WithForms
 
@@ -472,6 +473,17 @@ class Request < ActiveRecord::Base
     else
       nil
     end
+  end
+
+  def self.count_invalid
+    count = 0
+    Request.all.each do |request|
+      unless request.valid?
+        count += 1
+      end
+    end
+    puts "Count = #{count}"
+    nil
   end
 
   private

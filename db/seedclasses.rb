@@ -25,15 +25,16 @@ class Seeder
 
     def initialize(values = nil)
       @hash = Hash.new
-      @hash[:schoolwide]  = false
-      @hash[:publish]     = true
-      @hash[:unimportant] = false
-      @hash[:can_merge]   = false
-      @hash[:can_borrow]  = false
-      @hash[:compactable] = true
-      @hash[:deprecated]  = false
-      @hash[:privileged]  = false
-      @hash[:visible]     = true
+      @hash[:schoolwide]   = false
+      @hash[:publish]      = true
+      @hash[:unimportant]  = false
+      @hash[:can_merge]    = false
+      @hash[:can_borrow]   = false
+      @hash[:compactable]  = true
+      @hash[:deprecated]   = false
+      @hash[:privileged]   = false
+      @hash[:visible]      = true
+      @hash[:confidential] = false
       @hash.merge!(values) if values
     end
   end
@@ -73,9 +74,10 @@ class Seeder
 
     attr_reader :dbrecord
 
-    def initialize(name)
+    def initialize(name, add_directly = true)
       @dbrecord = Service.create!({
-        name: name
+        name:         name,
+        add_directly: add_directly
       })
       @dbrecord.reload
     end
@@ -85,7 +87,12 @@ class Seeder
   class SeedStaff
     attr_reader :dbrecord, :initials
 
-    def initialize(title, forename, surname, initials, email = nil)
+    def initialize(
+      title,
+      forename,
+      surname,
+      initials,
+      email = nil)
       @initials = initials
       unless email
         email = "#{forename.downcase}.#{surname.downcase}@xronos.uk"
@@ -119,7 +126,7 @@ class Seeder
   class SeedUser
     attr_reader :dbrecord
 
-    def initialize(corresponding_staff_or_pupil)
+    def initialize(corresponding_staff_or_pupil, uuid = nil)
       if corresponding_staff_or_pupil.instance_of?(SeedStaff)
         profile = UserProfile.staff_profile
       else
@@ -132,8 +139,13 @@ class Seeder
         email:        corresponding_staff_or_pupil.dbrecord.email,
         user_profile: profile,
         day_shape:    day_shape,
-        demo_user:    true
+        demo_user:    true,
+        initial_uuid: uuid
       })
+      if uuid
+        @dbrecord.permissions[:can_api] = true
+        @dbrecord.save!
+      end
     end
 
     def controls(entity)
@@ -145,7 +157,8 @@ class Seeder
         existing.owns = true
         existing.save!
       else
-        SeedConcern.new(self, entity, false, true, "#123456")
+        SeedConcern.new(self, entity, false, true, self.dbrecord.free_colour)
+        self.dbrecord.reload
       end
       self
     end
@@ -160,6 +173,13 @@ class Seeder
     attr_reader :dbrecord
 
     def initialize(user, entity, equality, controls, colour)
+      #
+      #  If the indicated entity already has a preferred colour
+      #  than that over-rides the one given.
+      #
+      unless entity.dbrecord.element.preferred_colour.blank?
+        colour = entity.dbrecord.element.preferred_colour
+      end
       @dbrecord = Concern.create!({
         user:     user.dbrecord,
         element:  entity.dbrecord.element,
@@ -300,6 +320,8 @@ class Seeder
         baseclass = Teachinggroup
       when "Tutor"
         baseclass = Tutorgroup
+      when "Resource"
+        baseclass = Resourcegroup
       else
         baseclass = Vanillagroup
       end
@@ -379,6 +401,24 @@ class Seeder
       #  element name.  Force a save to ensure it is updated.
       #
       new_member.force_save
+    end
+  end
+
+  class SeedResourceGroup < SeedGroup
+    def initialize(name, era, preferred_colour = nil)
+      if preferred_colour
+        more = {
+          edit_preferred_colour: preferred_colour
+        }
+      else
+        more = {}
+      end
+      super(name, era, "Resource", more)
+    end
+
+    def taught_by(staff)
+      @dbrecord.staffs << staff.dbrecord
+      self
     end
   end
 
@@ -692,6 +732,7 @@ class Seeder
     @eventsources[:thisfile] = Eventsource.create!({ name: "Seedfile" })
     @eventsources[:manual]   = Eventsource.create!({ name: "Manual" })
     @eventsources[:rotaslot] = Eventsource.create!({ name: "RotaSlot" })
+    @eventsources[:api]      = Eventsource.create!({ name: "API" })
     #
     #  Rota template types.
     #
@@ -745,7 +786,9 @@ class Seeder
     {id: :meeting,
      ech: ECH.new({name: "Meeting"}).hash},
     {id: :hospitality,
-     ech: ECH.new({name: "Hospitality"}).hash}
+     ech: ECH.new({name: "Hospitality"}).hash},
+    {id: :personal,
+     ech: ECH.new({name: "Personal", confidential: true}).hash}
   ]
 
 
@@ -827,9 +870,14 @@ class Seeder
       end
       extra[:organiser_id] = organiser.element_id
     end
-    if timing == :all_day
+    case timing
+    when :all_day
       starts = Time.zone.parse(@weekdates[day].to_s)
       ends = Time.zone.parse((@weekdates[day] + 1.day).to_s)
+      extra[:all_day] = true
+    when :five_days
+      starts = Time.zone.parse(@weekdates[day].to_s)
+      ends = Time.zone.parse((@weekdates[day] + 5.days).to_s)
       extra[:all_day] = true
     else
       starts = Time.zone.parse("#{@weekdates[day].to_s} #{timing[0]}")
@@ -880,8 +928,8 @@ class Seeder
   #
   #  Create a new user record to match an existing member of staff.
   #
-  def new_user(existing_staff_or_pupil)
-    rec = SeedUser.new(existing_staff_or_pupil)
+  def new_user(existing_staff_or_pupil, uuid = nil)
+    rec = SeedUser.new(existing_staff_or_pupil, uuid)
     if existing_staff_or_pupil.instance_of?(SeedStaff)
       key = existing_staff_or_pupil.initials.downcase.to_sym
       @users[key] = rec
@@ -889,8 +937,8 @@ class Seeder
     rec
   end
 
-  def new_service(name)
-    SeedService.new(name)
+  def new_service(name, add_directly = true)
+    SeedService.new(name, add_directly)
   end
 
   def new_form(name, user, definition)

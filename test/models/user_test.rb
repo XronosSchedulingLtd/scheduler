@@ -26,4 +26,9 @@ class UserTest < ActiveSupport::TestCase
     assert user.valid?
   end
 
+  test "new user gets UUID" do
+    user = FactoryBot.create(:user, email: 'chap@baker.com')
+    assert_not_nil user.uuid
+  end
+
 end
