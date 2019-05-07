@@ -263,8 +263,6 @@ seeder.add_event(:dateother,
                  nil,
                  {involving: calendarproperty})
 
-puts seeder.staff[:ced].class
-
 seeder.add_event(:personal,
                  "Confidential meeting",
                  :monday,
