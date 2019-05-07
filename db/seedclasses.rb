@@ -787,8 +787,8 @@ class Seeder
      ech: ECH.new({name: "Meeting"}).hash},
     {id: :hospitality,
      ech: ECH.new({name: "Hospitality"}).hash},
-    {id: :private,
-     ech: ECH.new({name: "Private", confidential: true}).hash}
+    {id: :personal,
+     ech: ECH.new({name: "Personal", confidential: true}).hash}
   ]
 
 

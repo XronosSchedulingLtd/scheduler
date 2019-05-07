@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190427095209) do
+ActiveRecord::Schema.define(version: 20190506140954) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -391,18 +391,19 @@ ActiveRecord::Schema.define(version: 20190427095209) do
   add_index "memberships", ["group_id"], name: "index_memberships_on_group_id", using: :btree
 
   create_table "notes", force: :cascade do |t|
-    t.string   "title",         limit: 255,   default: ""
-    t.text     "contents",      limit: 65535
-    t.integer  "parent_id",     limit: 4
-    t.string   "parent_type",   limit: 255
-    t.integer  "owner_id",      limit: 4
-    t.integer  "promptnote_id", limit: 4
-    t.boolean  "visible_guest",               default: false
-    t.boolean  "visible_staff",               default: true
-    t.boolean  "visible_pupil",               default: false
-    t.integer  "note_type",     limit: 4,     default: 0
+    t.string   "title",              limit: 255,   default: ""
+    t.text     "contents",           limit: 65535
+    t.integer  "parent_id",          limit: 4
+    t.string   "parent_type",        limit: 255
+    t.integer  "owner_id",           limit: 4
+    t.integer  "promptnote_id",      limit: 4
+    t.boolean  "visible_guest",                    default: false
+    t.boolean  "visible_staff",                    default: true
+    t.boolean  "visible_pupil",                    default: false
+    t.integer  "note_type",          limit: 4,     default: 0
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.text     "formatted_contents", limit: 65535
   end
 
   add_index "notes", ["owner_id"], name: "index_notes_on_owner_id", using: :btree

@@ -265,7 +265,7 @@ seeder.add_event(:dateother,
 
 puts seeder.staff[:ced].class
 
-seeder.add_event(:private,
+seeder.add_event(:personal,
                  "Confidential meeting",
                  :monday,
                  ["13:00", "14:00"],
