@@ -1,3 +1,110 @@
+v1.8.0   2019-05-07
+
+* Upgrade version of Ruby to 2.5.5
+
+  Previous versions of Scheduler used Ruby 2.3.6 but that is approaching
+  end-of-life.  Ruby 2.6 has been released but is still relatively
+  young, hence this conservative upgrade.
+
+  Extra steps are needed to upgrade to this release.  See:
+
+    https://xronos.uk/admin/rubyupgrade.html
+
+* Add an API to allow client programs to create and query the d/b
+
+  In this release, an API has been added which allows client-written
+  programs to interact with Scheduler's database.
+
+  For full information, see:
+
+    https://xronos.uk/api/
+
+* Add confidential events
+
+  It is sometimes desirable to enter an event into Scheduler but
+  keep the details of the event secret from those not involved.  The
+  presence of the event indicates that those involved are busy, but
+  general users of the system need not know exactly what they are
+  doing.
+
+  A new flag has been added to the Eventcategory model - confidential.
+  The system administrator can create as many confidential eventcategories
+  as desired.  An obvious one might be called "Personal".  A user could
+  then enter in "Appointment at the JR" with appropriate timing,
+  but all anyone else would see is that the user is busy.
+
+  The text which appears instead of the normal body text of the event
+  is configurable on each system.  It defaults to "Busy".
+
+  The "confidential" flag can be combined with any of the other flags
+  which already exist on Eventcategories.  E.g. one could have an
+  eventcategory which is both "confidential" and "privileged".
+
+  The real description of any confidential event is visible only to those
+  directly involved in the event.  So, if for instance an event is
+  entered as "Meeting with Mr and Mrs ..... re the humus incident"
+  in a confidential category, then only those invited to the meeting
+  could see that text.  Everyone else would see just "Busy", or whatever
+  has been configured as the busy text.
+
+  Selected users can be set up to see confidential events for other
+  users.  Thus the head's PA might need to see events involving the head,
+  including confidential information.
+
+* Add invisible staff
+
+  Similarly, it may be desirable for the schedules of particular members
+  of staff not to be generally visible - e.g. perhaps the headmaster.
+
+  A flag has been added to the Staff record - visible - which defaults
+  to true.  If it is switched off by a system administrator, then
+  users cannot ask to see the schedule for that particular member of
+  staff.  They can still add that member of staff to events (or at least,
+  invite him or her to events) and can see events involving that member
+  of staff, but they can't ask to view that member of staff's full
+  schedule.
+
+  The system administrator can still give individual users access to
+  that staff member's schedule - again the obvious example is to allow
+  the head's PA to see the head's schedule.
+
+* Show details of clashes in hover text
+
+  When a user views details of an event, double-booked entities are
+  shown in a red box.  Historically the hover text for these items has
+  shown simply, "Double booked", but it now includes details of the other
+  event or events to which the entity is committed.
+
+* Enhance staff merging code
+
+  Sometimes a member of staff gets entered into Scheduler twice - e.g.
+  first manually and then later by being imported from the school's MIS.
+
+  There now exists automated code which will scan for any such member
+  of staff and merge the duplicate records.  Staff are considered to
+  be duplicates if two of them have the same e-mail address.
+
+* Allow the use of Markdown in Notes attached to events
+
+  Scheduler allows users to add Notes to events giving extra ancillary
+  information.  Up until now these have been restricted to just text
+  but now the user can use Markdown to format things a bit.
+
+  In particular, URLs will be turned into links.
+
+* Seed data enhanced
+
+  The seed data used to populate the demonstration system at
+  https://schedulerdemo.xronos.uk/ has been enhanced in various
+  ways - the main one of which is to allow experimentation with the
+  API against that system.
+
+* Tests
+
+  The suite of automated tests has been greatly expanded.  In particular
+  the API has a complete set of tests.
+
+
 v1.7.8.1 2019-03-19
 
 * Fix error in daily notifications caused by last update.
