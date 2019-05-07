@@ -29,4 +29,30 @@ class EventcategoryTest < ActiveSupport::TestCase
     eventcategory = Eventcategory.new(:name => "Banana", :pecking_order => 1)
     assert eventcategory.valid?
   end
+
+  test "should have a confidential flag" do
+    ec = FactoryBot.create(:eventcategory)
+    assert ec.respond_to?(:confidential?)
+  end
+
+  test "confidential should default to false" do
+    ec = FactoryBot.create(:eventcategory)
+    assert_not ec.confidential?
+  end
+
+  test "modifying confidential flag should modify dependent events" do
+    ec = FactoryBot.create(:eventcategory)
+    assert_not ec.confidential?
+    event = FactoryBot.create(:event, eventcategory: ec)
+    assert_not event.confidential?
+    ec.confidential = true
+    ec.save!
+    event.reload
+    assert event.confidential?
+    ec.confidential = false
+    ec.save!
+    event.reload
+    assert_not event.confidential?
+  end
+
 end

@@ -22,7 +22,7 @@
   <td colspan="<%= @third_column ? "3" : "2" %>">
     <%= form_for(@concern, remote: true) do |f| %>
       <%= f.autocomplete_field :name,
-                               autocomplete_element_name_elements_path,
+                               autocomplete_viewable_element_name_elements_path,
                                :id_element => '#concern_element_id',
                                :placeholder => "Add watch item",
                                "data-auto-focus" => true,

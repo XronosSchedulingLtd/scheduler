@@ -468,6 +468,10 @@ class ConcernsController < ApplicationController
       options_flags <<
         {field: :skip_permissions,
          annotation: "Should this user be able to skip the permissions process when adding this resource to an event?"}
+      options_flags <<
+        {field: :assistant_to,
+         prompt: "See confidential events",
+         annotation: "Should this user be able to view the body of confidential events involving this resource?"}
     end
     options_flags
   end
@@ -540,7 +544,8 @@ class ConcernsController < ApplicationController
                     :edit_any,
                     :subedit_any,
                     :skip_permissions,
-                    :list_teachers)
+                    :list_teachers,
+                    :assistant_to)
     else
       params.require(:concern).
              permit(:element_id,

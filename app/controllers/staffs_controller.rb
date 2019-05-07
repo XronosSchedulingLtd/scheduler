@@ -108,7 +108,8 @@ class StaffsController < ApplicationController
                                     :source_id,
                                     :active,
                                     :current,
-                                    :multicover)
+                                    :multicover,
+                                    :edit_viewable)
     end
 
     def authorized?(action = action_name, resource = nil)

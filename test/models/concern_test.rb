@@ -55,4 +55,22 @@ class ConcernTest < ActiveSupport::TestCase
     assert_not c2.valid?
   end
 
+  test "Each concern has an assistant_to flag" do
+    c = Concern.create({
+      element: @element1,
+      user:    @user1,
+      colour:  "red"
+    })
+    assert c.respond_to?(:assistant_to?)
+  end
+
+  test "Assistant_to defaults to false" do
+    c = Concern.create({
+      element: @element1,
+      user:    @user1,
+      colour:  "red"
+    })
+    assert_not c.assistant_to?
+  end
+
 end

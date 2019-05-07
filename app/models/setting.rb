@@ -431,6 +431,15 @@ class Setting < ActiveRecord::Base
     end
   end
 
+  def self.busy_string
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.busy_string
+    else
+      "Busy"
+    end
+  end
+
   #
   #  End-of-year processing.  Move us on into the next era.
   #

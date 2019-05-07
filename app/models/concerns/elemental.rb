@@ -49,6 +49,7 @@ module Elemental
   #  This method makes sure we keep our element record.
   #
   def update_element
+    Rails.logger.debug("@new_viewable = #{@new_viewable} (#{@new_viewable.class})")
     if self.element
       if self.active
         do_save = false
@@ -75,6 +76,10 @@ module Elemental
             end
             do_save = true
           end
+        end
+        if instance_variable_defined?(:@new_viewable)
+          self.element.viewable = @new_viewable
+          do_save = true
         end
         if do_save
           self.element.save!
@@ -104,6 +109,9 @@ module Elemental
         end
         if @new_preferred_colour
           creation_hash[:preferred_colour] = @new_preferred_colour
+        end
+        if instance_variable_defined?(:@new_viewable)
+          creation_hash[:viewable] = @new_viewable
         end
         self.adjust_element_creation_hash(creation_hash)
         begin
@@ -292,6 +300,20 @@ module Elemental
     end
   end
 
+  def edit_viewable
+    element_viewable
+  end
+
+  def edit_viewable=(new_value)
+    #
+    #  We are being given an explicit value for the viewable
+    #  field in our element.
+    #
+    #  Generally we are given nothing, so it defaults to "true".
+    #
+    @new_viewable = new_value
+  end
+
   private
 
   def element_preferred_colour
@@ -300,6 +322,10 @@ module Elemental
     else
       nil
     end
+  end
+
+  def element_viewable
+    self.element ?  self.element.viewable : true
   end
 
   def colours_effectively_the_same(a, b)

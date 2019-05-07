@@ -154,71 +154,68 @@ class Staff < ActiveRecord::Base
 
   #
   #  A maintenance method to move over information from manually created
-  #  staff (existing before an iSAMS import) to the corresponding
-  #  record from iSAMS.
+  #  staff (existing before an MIS import) to the corresponding
+  #  record from the MIS.
   #
-  #  Not that this method is not generally robust.  It was written for
-  #  the specific case of Dean Close school, where only two members
-  #  of staff had any existing commitments at all and only one each.
+  #  This method is called for each staff record which has *not*
+  #  come from an MIS.  It looks for another record with the same
+  #  e-mail address which *has* come from the MIS.
   #
-  #  None had any existing memberships.
+  #  If it finds one then it copies all its
+  #
+  #  * Memberships
+  #  * Commitments
+  #
+  #  to the MIS-derived one, and then self-destructs.
+  #
+  #  It will work only if there is exactly one matching staff
+  #  record.
+  #
+  #  A really weird circumstance has arisen.  Sometimes we have
+  #  two identical staff members, both of which have been entered
+  #  manually.  That's just silly, but it happens.  Try to cope
+  #  with that too.
+  #
+  #  Don't attempt to transfer user records.  If we delete
+  #  the staff member connected to a user, then the next time they
+  #  log in they will be linked in again.
   #
 
   def check_and_transfer(messages)
-    messages << "Processing #{self.name}."
-    messages << "#{self.element.commitments.count} existing commitments."
-    user = self.corresponding_user
-    if user
-      messages << "Has user record."
-    else
-      messages << "Has no user record."
-    end
-    candidates = Staff.where(email: self.email) - [self]
-    puts "#{candidates.size} candidates."
-    if candidates.size == 1
-      new_one = candidates[0]
-      #
-      #  Hand over our commitments.
-      #
-      self.element.commitments.each do |c|
-        c.element = new_one.element
-        c.save!
+    unless self.email.blank?
+      candidates = Staff.where(email: self.email, active: true) - [self]
+      if candidates.size == 1
+        #
+        #  It seems we have a good one.
+        #
+        recipient = candidates[0]
+        messages << "Merging #{self.name}"
+        commitment_count, commitments_transferred,
+        membership_count, memberships_transferred =
+          recipient.element.absorb(self.element)
+        #
+        #  The danger we have here is that if we simply destroy our
+        #  record, there will be a cached copy of its element in memory
+        #  which will lead to other things being destroyed as well,
+        #  speficially the commitments which we have just re-assigned.
+        #  (The commitment no longer thinks it is connected to the element,
+        #  but the cached element will still contain a reference to the
+        #  commitment.)
+        #
+        #  Reload the element first.
+        #
+        self.element.reload
+        self.destroy!
+        messages << "Transferred #{commitments_transferred} commitments out of #{commitment_count}"
+        messages << "Transferred #{memberships_transferred} memberships out of #{membership_count}"
       end
-      #
-      #  And our user record.
-      #
-      if user
-        concern = self.element.concerns.me[0]
-        concern.element = new_one.element
-        concern.save!
-      end
-      #
-      #  The danger we have here is that if we simply destroy our
-      #  record, there will be a cached copy of its element in memory
-      #  which will lead to other things being destroyed as well,
-      #  speficially the commitments which we have just re-assigned.
-      #  (The commitment no longer thinks it is connected to the element,
-      #  but the cached element will still contain a reference to the
-      #  commitment.)
-      #
-      #  Reload the element first.
-      #
-      self.element.reload
-      self.destroy!
-      true
-    else
-      false
     end
   end
 
   def self.check_and_transfer
     messages = []
-    Staff.where(datasource: nil).each do |staff|
-      if staff.check_and_transfer(messages)
-        messages << "Processed #{staff.name}."
-      else
-        messages << "Didn't process #{staff.name}."
-      end
+    Staff.where(datasource: nil, active: true).each do |staff|
+      staff.check_and_transfer(messages)
     end
     puts messages.join("\n")
     nil

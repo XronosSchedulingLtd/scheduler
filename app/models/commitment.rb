@@ -284,18 +284,40 @@ class Commitment < ActiveRecord::Base
   #  Note that if our own event is flagged as being a non-busy one,
   #  then we can't clash regardless.
   #
+  #  Note further that, if our own event has zero duration then it
+  #  will not show up as overlapping with itself.  We need to cope
+  #  with that.
+  #
   def has_simple_clash?
     non_busy_categories = Eventcategory.non_busy_categories
-    if non_busy_categories.collect {|ec| ec.id}.include?(self.event.eventcategory_id)
+    if non_busy_categories.collect {|ec| ec.id}.
+                           include?(self.event.eventcategory_id)
       false
     else
-      self.element.commitments_during(
+      contenders = self.element.commitments_during(
         start_time:        self.event.starts_at,
         end_time:          self.event.ends_at,
         and_by_group:      false,
-        excluded_category: non_busy_categories).size > 1
+        excluded_category: non_busy_categories).to_a
+      @clashing_commitments = contenders - [self]
+      @clashing_commitments.size > 0
     end
   end
+
+  #
+  #  Should only be called after previous function has returned true,
+  #  and cached the list of clashing commitments.
+  #
+  def text_of_clashes
+    if @clashing_commitments
+      @clashing_commitments.collect {|cc|
+        "#{cc.event.body} (#{cc.event.duration_or_all_day_string})"
+      }.join(", ")
+    else
+      ""
+    end
+  end
+
 
   #
   #  This is intended for use explicitly by the results of calling

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190312100540) do
+ActiveRecord::Schema.define(version: 20190506140954) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -98,6 +98,7 @@ ActiveRecord::Schema.define(version: 20190312100540) do
     t.boolean  "list_teachers",                default: false
     t.boolean  "subedit_any",                  default: false
     t.integer  "concern_set_id",   limit: 4
+    t.boolean  "assistant_to",                 default: false
   end
 
   add_index "concerns", ["element_id"], name: "index_concerns_on_element_id", using: :btree
@@ -138,6 +139,7 @@ ActiveRecord::Schema.define(version: 20190312100540) do
     t.string   "uuid",             limit: 255
     t.integer  "user_form_id",     limit: 4
     t.boolean  "add_directly",                 default: true
+    t.boolean  "viewable",                     default: true
   end
 
   add_index "elements", ["entity_id"], name: "index_elements_on_entity_id", using: :btree
@@ -193,6 +195,7 @@ ActiveRecord::Schema.define(version: 20190312100540) do
     t.boolean  "clashcheck",                default: false
     t.boolean  "busy",                      default: true
     t.boolean  "timetable",                 default: false
+    t.boolean  "confidential",              default: false
   end
 
   create_table "events", force: :cascade do |t|
@@ -221,6 +224,7 @@ ActiveRecord::Schema.define(version: 20190312100540) do
     t.integer  "proto_event_id",      limit: 4
     t.string   "flagcolour",          limit: 255
     t.integer  "event_collection_id", limit: 4
+    t.boolean  "confidential",                      default: false
   end
 
   add_index "events", ["complete"], name: "index_events_on_complete", using: :btree
@@ -387,18 +391,19 @@ ActiveRecord::Schema.define(version: 20190312100540) do
   add_index "memberships", ["group_id"], name: "index_memberships_on_group_id", using: :btree
 
   create_table "notes", force: :cascade do |t|
-    t.string   "title",         limit: 255,   default: ""
-    t.text     "contents",      limit: 65535
-    t.integer  "parent_id",     limit: 4
-    t.string   "parent_type",   limit: 255
-    t.integer  "owner_id",      limit: 4
-    t.integer  "promptnote_id", limit: 4
-    t.boolean  "visible_guest",               default: false
-    t.boolean  "visible_staff",               default: true
-    t.boolean  "visible_pupil",               default: false
-    t.integer  "note_type",     limit: 4,     default: 0
+    t.string   "title",              limit: 255,   default: ""
+    t.text     "contents",           limit: 65535
+    t.integer  "parent_id",          limit: 4
+    t.string   "parent_type",        limit: 255
+    t.integer  "owner_id",           limit: 4
+    t.integer  "promptnote_id",      limit: 4
+    t.boolean  "visible_guest",                    default: false
+    t.boolean  "visible_staff",                    default: true
+    t.boolean  "visible_pupil",                    default: false
+    t.integer  "note_type",          limit: 4,     default: 0
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.text     "formatted_contents", limit: 65535
   end
 
   add_index "notes", ["owner_id"], name: "index_notes_on_owner_id", using: :btree
@@ -601,6 +606,7 @@ ActiveRecord::Schema.define(version: 20190312100540) do
     t.integer  "tt_cycle_weeks",                   limit: 4,     default: 2
     t.string   "tt_prep_letter",                   limit: 2,     default: "P"
     t.date     "tt_store_start",                                 default: '2006-01-01'
+    t.string   "busy_string",                      limit: 255,   default: "Busy"
   end
 
   create_table "staffs", force: :cascade do |t|
@@ -762,6 +768,10 @@ ActiveRecord::Schema.define(version: 20190312100540) do
     t.boolean  "confirmation_messages",                     default: true
     t.boolean  "prompt_for_forms",                          default: true
     t.boolean  "can_edit_memberships",                      default: false
+    t.string   "uuid",                        limit: 255
+    t.boolean  "can_api",                                   default: false
   end
+
+  add_index "users", ["uuid"], name: "index_users_on_uuid", unique: true, using: :btree
 
 end

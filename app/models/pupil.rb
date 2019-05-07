@@ -87,7 +87,7 @@ class Pupil < ActiveRecord::Base
   #  year 1.
   #
   def year_group(in_era = Setting.current_era)
-    if in_era
+    if in_era && self.start_year
       in_era.starts_on.year - self.start_year + 1
     else
       0

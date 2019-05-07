@@ -23,5 +23,11 @@ module Scheduler
 
     # Do not swallow errors in after_commit/after_rollback callbacks.
     config.active_record.raise_in_transactional_callbacks = true
+
+    config.autoload_paths += %W(#{config.root}/engines/public_api/lib)
+
+    config.before_initialize do
+      PublicApi::Engine.instance.initializers.map {|e| e.run Rails.application }
+    end
   end
 end

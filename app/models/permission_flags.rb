@@ -20,7 +20,8 @@ class PermissionFlags < Hash
     :can_view_forms,
     :admin,
     :can_view_unconfirmed,
-    :can_edit_memberships
+    :can_edit_memberships,
+    :can_api
   ]
 
   NICER_TEXT = {
@@ -43,7 +44,8 @@ class PermissionFlags < Hash
     can_view_forms:       "View forms",
     can_view_unconfirmed: "View unconfirmed",
     can_repeat_events:    "Repeating events",
-    can_edit_memberships: "Edit members"
+    can_edit_memberships: "Edit members",
+    can_api:              "Can use API"
   }
   NICER_TEXT.default = "Pass"
 

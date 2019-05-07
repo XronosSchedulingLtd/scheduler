@@ -158,7 +158,7 @@ module CommitmentsHelper
           #
           #  Put it in yet another span.
           #
-          body = "<span class=\"double-booked\" title=\"Double booked\">#{body}</span>"
+          body = "<span class=\"double-booked\" title=\"Double booked - #{commitment.text_of_clashes}\">#{body}</span>".html_safe
         end
         result << "<li>#{body}</li>"
       else

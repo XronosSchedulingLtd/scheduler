@@ -108,6 +108,8 @@ class User < ActiveRecord::Base
 
   validates :user_profile, :presence => true
 
+  validates :uuid, uniqueness: true
+
   scope :arranges_cover, lambda { where("arranges_cover = true") }
   scope :element_owner, lambda { where(:element_owner => true) }
   scope :editors, lambda { where(editor: true) }
@@ -115,6 +117,7 @@ class User < ActiveRecord::Base
   scope :administrators, lambda { where(admin: true) }
   scope :demo_user, lambda { where(demo_user: true) }
 
+  before_create :add_uuid
   before_destroy :being_destroyed
   before_save :update_legacy_permission_flags
   after_save :find_matching_resources
@@ -536,6 +539,8 @@ class User < ActiveRecord::Base
       self.can_subedit?(item.event)
     elsif item.instance_of?(Comment)
       (item.user_id == self.id) || self.admin?
+    elsif item.instance_of?(Event)
+      self.can_edit?(item)
     else
       false
     end
@@ -584,6 +589,50 @@ class User < ActiveRecord::Base
       can_drag_timing = false
     end
     can_drag_timing
+  end
+
+  def confidentiality_elements
+    unless @confidentiality_elements
+      @confidentiality_elements =
+        #
+        #  We want a list of all the elements which we are either
+        #  equal to, or assistant to.
+        #
+        self.concerns.
+             select { |c| c.equality? || c.assistant_to? }.
+             collect {|c| c.element_id}
+        Rails.logger.debug("Confidentiality elements of #{self.name} are #{
+                           @confidentiality_elements.join(",")
+        }")
+    end
+    @confidentiality_elements
+  end
+
+  #
+  #  A user can see the body of a confidential event if:
+  #
+  #  * He or she owns the event
+  #  * He or she is invited to the event
+  #  * He or she has a suitable link to an invitee.
+  #
+  #  Two evaluate those last two, we keep a cache of the elements
+  #  which we are linked to by concerns which have either the
+  #  "identity" (this is me) or "pa_to" flags set.
+  #
+  #  We need just a cache of the element ids, and we compare those
+  #  to the elements attached to the event.
+  #
+  #  Note that currently you need a *direct* attachment to the event
+  #  to see the body text.  Being attached via a group will not do.
+  #
+  def can_see_body_of?(event)
+    !event.confidential? ||
+    event.owner_id == self.id ||
+    (
+      event.commitments.detect { |c|
+        confidentiality_elements.include?(c.element_id)
+      } != nil
+    )
   end
 
   #
@@ -1218,6 +1267,84 @@ class User < ActiveRecord::Base
     end
   end
 
+  #
+  #  Client code is not allowed to modify uuid.
+  #
+  def uuid=(value)
+  end
+
+  #
+  #  But it is allowed to pass in an initial UUID to use.
+  #
+  #  We will only use it if we don't already have something
+  #  and it doesn't cause a clash.
+  #
+  def initial_uuid=(value)
+    @initial_uuid = value
+  end
+
+  #
+  #  This method is called as the element record is about to be
+  #  created in the database.
+  #
+  def add_uuid
+    #
+    #  In theory we shouldn't get here if the record isn't valid, but...
+    #
+    if self.valid?
+      generate_initial_uuid
+      #
+      #  This seems really stupid, but surely we should have some
+      #  code to cope with the possibility of a clash?
+      #
+      #  I don't want a loop in case of a coding error which means
+      #  it turns into an endless loop.
+      #
+      #  If after a second attempt our record is still invalid
+      #  (meaning the uuid is still clashing with one already in
+      #  the database) then the create!() (invoked from elemental.rb)
+      #  will throw an error and the creation of the underlying
+      #  element will be rolled back.  On the other hand, if you're
+      #  that unlucky you're not going to live much longer anyway.
+      #
+      #  Note that by this point, the automatic Rails record validation
+      #  has already been performed, and won't be performed again.
+      #  The only thing which is going to stop the save succeeding
+      #  is an actual constraint on the database - which is there.
+      #
+      #  This will also cope with the case where a caller has passed
+      #  in an initial UUID, but it's not unique.  We will go on
+      #  and generate a unique one.
+      #
+      unless self.valid?
+        generate_uuid
+      end
+    end
+  end
+
+  def self.generate_uuids
+    self.find_each do |user|
+      if user.uuid.blank?
+        user.generate_initial_uuid
+        user.save!
+      end
+    end
+    nil
+  end
+
+  #
+  #  This one is public, but won't overwrite an existing uuid.
+  #
+  def generate_initial_uuid
+    if self.uuid.blank?
+      if @initial_uuid.blank?
+        generate_uuid
+      else
+        write_attribute(:uuid, @initial_uuid)
+      end
+    end
+  end
+
   protected
 
   def being_destroyed
@@ -1240,6 +1367,13 @@ class User < ActiveRecord::Base
         return sprintf("#%02X%02X%02X", red_bit, green_bit, blue_bit)
       end
     end
+  end
+
+  #
+  #  This one generates a uuid regardless.
+  #
+  def generate_uuid
+    write_attribute(:uuid, SecureRandom.uuid)
   end
 
 end

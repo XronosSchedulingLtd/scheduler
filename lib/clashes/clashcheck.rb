@@ -90,7 +90,7 @@ class ClashChecker
   def generate_text(resources, clashing_events)
     result = Array.new
     clashing_events.each do |ce|
-      result << "#{ce.body} (#{ce.duration_or_all_day_string})"
+      result << "##### #{ce.body} (#{ce.duration_or_all_day_string})"
       ce_resources =
         ce.all_atomic_resources.select { |r|
           CLASSES_TO_CHECK.include?(r.class)
@@ -107,6 +107,7 @@ class ClashChecker
                 join(", ").
                 wrap(78).
                 indent(2)
+      result << "\n#{clashing_resources.size} missing out of #{resources.size}"
     end
     result.join("\n")
   end

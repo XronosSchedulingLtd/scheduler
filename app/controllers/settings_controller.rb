@@ -99,6 +99,7 @@ class SettingsController < ApplicationController
                     :last_tt_day,
                     :tt_cycle_weeks,
                     :tt_prep_letter,
-                    :tt_store_start)
+                    :tt_store_start,
+                    :busy_string)
     end
 end
