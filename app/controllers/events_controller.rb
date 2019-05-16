@@ -640,7 +640,7 @@ class EventsController < ApplicationController
     else
       selector = Event.beginning(Setting.current_era.starts_on).non_confidential
       unless current_user && current_user.staff?
-        selector = selector.involving_one_of(public_properties.collect {|pp| pp.element }).complete
+        selector = selector.involving_one_of(public_properties.collect {|pp| pp.element })
       end
       selector = invisible_categories.inject(selector) { |memo, ic|
         memo.excluding_category(ic)

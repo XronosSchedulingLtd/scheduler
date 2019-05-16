@@ -1,12 +1,20 @@
 <tr>
   <td>
     <%=
-      link_to found_event.starts_at_text,
-              schedule_show_path + "?date=#{found_event.jump_date_text}"
+      link_to(
+        found_event.starts_at_text,
+        schedule_show_path(date: found_event.jump_date_text)
+      )
     %>
   </td>
   <td title="<%= found_event.body %>">
-    <%= truncate(found_event.body, :length => 40) %>
+    <%=
+      link_to(found_event.trimmed_body(40),
+              event_path(found_event, from_listing: true),
+              title: found_event.body,
+              'data-reveal-id' => 'eventModal',
+              'data-reveal-ajax' => true)
+     %>
   </td>
 <% if @full_details %>
   <td title="<%= found_event.properties.collect {|p| p.name}.join(",")%>">

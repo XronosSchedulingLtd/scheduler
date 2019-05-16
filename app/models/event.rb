@@ -219,7 +219,15 @@ class Event < ActiveRecord::Base
   #  If you really want it to be returned N times, then tag ".distinct(false)"
   #  on the end, which incredibly will undo the above modifier.
   #
-  scope :involving_one_of, lambda {|elements| joins(:commitments).where(commitments: { element_id: elements.collect {|e| e.id}}).distinct}
+  scope :involving_one_of, lambda { |elements|
+    joins(:commitments).
+    where(
+      commitments: {
+        element_id: elements.collect {|e| e.id},
+        tentative: false
+      }
+    ).distinct
+  }
   scope :excluding_category, lambda {|ec| where("eventcategory_id != ?", ec.id) }
   scope :complete, lambda { where(complete: true) }
   scope :incomplete, lambda { where.not(complete: true) }
