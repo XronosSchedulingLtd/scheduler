@@ -18,12 +18,30 @@ if DB_TABLE_PREFIX.nil?
 end
 
 tables = [
-  DatabaseTable.new("CH_AC_NEEDING_COVER",      :all),
-  DatabaseTable.new("CH_AC_PROVIDING_COVER",    :all),
-  DatabaseTable.new("CH_AC_SUBJECT_SETS",       :all),
-  DatabaseTable.new("CH_AC_TIMETABLE",          :all),
-  DatabaseTable.new("CH_AD_CURR_SUBJECTS",      :all),
-  DatabaseTable.new("CH_AD_CURR_BASIC_DETAILS", :all)
+  DatabaseTable.new("#{DB_TABLE_PREFIX}_AC_NEEDING_COVER",      :all),
+  DatabaseTable.new("#{DB_TABLE_PREFIX}_AC_PROVIDING_COVER",    :all),
+  DatabaseTable.new("#{DB_TABLE_PREFIX}_AC_SUBJECT_SETS",       :all),
+  DatabaseTable.new("#{DB_TABLE_PREFIX}_AC_TIMETABLE",          :all),
+  DatabaseTable.new("#{DB_TABLE_PREFIX}_AD_CURR_SUBJECTS",      :all),
+  DatabaseTable.new("#{DB_TABLE_PREFIX}_AD_CURR_BASIC_DETAILS", :all),
+  DatabaseTable.new("#{DB_TABLE_PREFIX}_ST_DETAILS",
+                     %w(
+                       STAFF_ID
+                       CODE
+                       LEAVE_DATE
+                       SHORT_NAME
+                       NAME_ID
+                       NAME_CODE
+                       NAME
+                       SURNAME
+                       FIRST_NAMES
+                       PREFERRED_NAME
+                       TITLE
+                       INITIALS
+                       INTERNAL_EMAIL_ADDRESS
+                       TIMETABLE_CODE
+                     )
+                   )
 ]
 options = Options.new
 
