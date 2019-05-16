@@ -226,6 +226,9 @@ class Event < ActiveRecord::Base
   scope :has_clashes, lambda { where(has_clashes: true) }
   scope :owned_by, lambda {|user| where(owner: user) }
 
+  scope :confidential, lambda { where(confidential: true) }
+  scope :non_confidential, lambda { where.not(confidential: true) }
+
   def self.owned_or_organised_by(user)
     if user.corresponding_staff
       staff_element = user.corresponding_staff.element
