@@ -9,7 +9,7 @@
   Event: <%= @event.body %><br/>
   Starts: <%= @event.starts_at_text %>,
   duration: <%= @event.duration_text %><br/>
-  Owner: <%= @event.owner ? @event.owner.name : "System" %><% if @event.organiser %>, organiser: <%= @event.organiser.name %>
+  Owner: <%= @event.owner ? @event.owner.name : "System" %><% if @event.organiser %>, Organiser: <%= @event.organiser.name %>
   <% end %>
   <% unless (staff = @event.staff).empty? %>
     <br/>Staff: <%= staff.collect {|s| s.name }.join(", ") %>
