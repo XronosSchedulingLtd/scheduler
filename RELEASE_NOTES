@@ -1,3 +1,36 @@
+v1.8.1   2019-05-18
+
+* Enhance import of staff records from WCBS/Pass
+
+  The automated import from WCBS/Pass was using the timetable table
+  to get a list of all the teaching staff.  It nows uses a staff
+  table to get a list of all staff, including their initials and
+  correct e-mail addresses.
+
+* Exclude confidential events from searches
+
+  The code which searches for events by name now explicitly excludes
+  all confidential events.  Previously you could, for instance, search
+  for "hummus incident" (see below) and it would be found, but then
+  displayed as just "Busy".  Now it simply won't be found.
+
+* Provide link to event on search results page
+
+  The search results page now provides links to open each found event
+  directly, much like on other event listings pages.
+
+* Add consistent styling to "Add staff" button
+
+  The link in the staff listing page for creating a new staff record
+  did not have the usual styling applied to it.
+
+* Move event summary back to the top of user forms
+
+  When comments were added to user forms, the event summary was moved
+  to the bottom of the form, below the field data.  In this release
+  it is moved back to the top.
+
+
 v1.8.0   2019-05-07
 
 * Upgrade version of Ruby to 2.5.5
@@ -42,7 +75,7 @@ v1.8.0   2019-05-07
 
   The real description of any confidential event is visible only to those
   directly involved in the event.  So, if for instance an event is
-  entered as "Meeting with Mr and Mrs ..... re the humus incident"
+  entered as "Meeting with Mr and Mrs ..... re the hummus incident"
   in a confidential category, then only those invited to the meeting
   could see that text.  Everyone else would see just "Busy", or whatever
   has been configured as the busy text.

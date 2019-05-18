@@ -62,6 +62,50 @@ class PASS_PupilRecord
   end
 end
 
+
+class PASS_StaffRecord
+  FILE_NAME = "#{DB_TABLE_PREFIX}_ST_DETAILS.csv"
+
+  REQUIRED_COLUMNS = [
+    Column["STAFF_ID",               :staff_id,       :integer],
+    Column["LEAVE_DATE",             :leave_date,     :date],
+    Column["CODE",                   :initials,       :string],
+    Column["NAME",                   :formal_name,    :string],
+    Column["SURNAME",                :surname,        :string],
+    Column["FIRST_NAMES",            :first_names,    :string],
+    Column["PREFERRED_NAME",         :preferred_name, :string],
+    Column["TITLE",                  :title,          :string],
+    Column["INTERNAL_EMAIL_ADDRESS", :email,          :string]
+  ]
+
+  include Slurper
+
+  def adjust(accumulator)
+  end
+
+  def wanted?
+    true
+  end
+
+  def self.construct(accumulator, import_dir)
+    records, message = self.slurp(accumulator, import_dir, true)
+    if records
+      if accumulator.loader.options.verbose
+        puts "Got #{records.count} staff records."
+      end
+      staff_by_id = Hash.new
+      records.each do |record|
+        staff_by_id[record.staff_id]             = record
+      end
+      accumulator[:staff_by_id] = staff_by_id
+      true
+    else
+      puts message
+      false
+    end
+  end
+end
+
 class PASS_CoverRecord
   FILE_NAME = "#{DB_TABLE_PREFIX}_AC_PROVIDING_COVER.csv"
 
@@ -294,6 +338,7 @@ class MIS_Loader
 
     TO_SLURP = [
       PASS_PupilRecord,
+      PASS_StaffRecord,
       PASS_TimetableRecord,
       PASS_SubjectRecord,
       PASS_SubjectSetRecord,
