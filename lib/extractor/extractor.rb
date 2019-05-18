@@ -14,6 +14,7 @@
 require 'csv'
 require 'optparse'
 require 'tiny_tds'
+require 'charlock_holmes'
 
 class DatabaseTable
   @@password = nil
@@ -103,11 +104,20 @@ class DatabaseTable
         port: @@db_port.to_i,
         database: @@db_name)
     end
+    detector = CharlockHolmes::EncodingDetector.new
     result = client.execute("SELECT #{columns} FROM #{@table_name};")
     fields = result.fields
     csv << fields
     result.each do |row|
-      csv << fields.collect {|f| row[f]}
+      csv << fields.collect { |f|
+        data = row[f]
+	if data.instance_of?(String) && data.size > 100
+          detection = detector.detect(data)
+          CharlockHolmes::Converter.convert(data, detection[:encoding], 'UTF-8')
+        else
+          data
+        end
+      }
     end
     client.close
     csv.close
