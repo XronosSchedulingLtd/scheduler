@@ -161,7 +161,9 @@ module PublicApi
           end
           return hash
         else
-          if item.kind_of?(Hash)
+          if item.nil?
+            return nil
+          elsif item.kind_of?(Hash)
             return item
           else
             return {}
