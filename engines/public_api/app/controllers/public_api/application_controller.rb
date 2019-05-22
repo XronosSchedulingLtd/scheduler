@@ -110,6 +110,27 @@ module PublicApi
             id:   item.id,
             name: item.name
           }
+        when Note
+          hash = {
+            id: item.id,
+            contents: item.contents,
+            visible_guest: item.visible_guest,
+            visible_staff: item.visible_staff,
+            visible_pupil: item.visible_pupil
+          }
+          unless item.parent == context
+            hash[:parent] = self.summary_from(item.parent, item)
+          end
+          unless item.owner == context
+            hash[:owner] = self.summary_from(item.owner, item)
+          end
+        when User
+          hash = {
+            id: item.id,
+            name: item.name,
+            email: item.email
+          }
+
         when FailureRecord
           #
           #  This next bit looks a little weird.  The failure record
@@ -206,6 +227,16 @@ module PublicApi
             clash_check:   item.clashcheck,
             busy:          item.busy,
             timetable:     item.timetable
+          }
+          hash
+        when Note
+          hash = {
+            id: item.id,
+            contents: item.contents,
+            visible_guest: item.visible_guest,
+            visible_staff: item.visible_staff,
+            visible_pupil: item.visible_pupil,
+            formatted_contents: item.formatted_contents
           }
           hash
         else

@@ -8,6 +8,7 @@ PublicApi::Engine.routes.draw do
   end
 
   resources :events, only: [:show, :create, :destroy] do
+    resources :notes, shallow: true
     member do
       post :add
     end

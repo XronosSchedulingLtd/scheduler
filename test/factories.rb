@@ -91,7 +91,8 @@ end
 
 FactoryBot.define do
   factory :user do
-
+    sequence(:name) { |n| "User number #{n}" }
+    sequence(:email) { |n| "user#{n}@myschool.org.uk" }
     #
     #  We have to be quite clever to allow privilege flags to be set
     #  via traits individually.  They all need to end up in the same
@@ -104,6 +105,7 @@ FactoryBot.define do
       permissions_editor     { false }
       permissions_privileged { false }
       permissions_api        { false }
+      permissions_noter      { false }
     end
 
     #
@@ -123,6 +125,10 @@ FactoryBot.define do
 
     trait :api do
       permissions_api { true }
+    end
+
+    trait :noter do
+      permissions_noter { true }
     end
 
     firstday { 0 }
@@ -145,6 +151,9 @@ FactoryBot.define do
       end
       if permissions_api
         hash[:can_api] = true
+      end
+      if permissions_noter
+        hash[:can_add_notes] = true
       end
       hash
     end
@@ -190,6 +199,13 @@ FactoryBot.define do
     eventsource
     starts_at { Time.now }
     ends_at   { Time.now + 1.hour }
+  end
+end
+
+FactoryBot.define do
+  factory :note do
+    association :parent, factory: :event
+    contents { "Some random text in a note" }
   end
 end
 
