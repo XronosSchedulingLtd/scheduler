@@ -133,7 +133,6 @@ class Event < ActiveRecord::Base
   #
   has_many :staff_elements, -> { where(elements: {entity_type: "Staff"}) }, class_name: "Element", :source => :element, :through => :firm_commitments
   has_many :notes, as: :parent, :dependent => :destroy
-  has_many :attachments, as: :parent, :dependent => :destroy
   has_many :direct_locations, -> { where(elements: {entity_type: "Location"}) }, class_name: "Element", :source => :element, :through => :non_covering_commitments
   has_many :cover_locations, -> { where(elements: {entity_type: "Location"}) }, class_name: "Element", :source => :element, :through => :covering_commitments
 

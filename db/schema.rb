@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190506140954) do
+ActiveRecord::Schema.define(version: 20190603093913) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -24,20 +24,6 @@ ActiveRecord::Schema.define(version: 20190506140954) do
   end
 
   add_index "ahoy_messages", ["user_type", "user_id"], name: "index_ahoy_messages_on_user_type_and_user_id", using: :btree
-
-  create_table "attachments", force: :cascade do |t|
-    t.string   "description",        limit: 255
-    t.integer  "parent_id",          limit: 4
-    t.string   "parent_type",        limit: 255
-    t.string   "original_file_name", limit: 255
-    t.string   "meta_data",          limit: 255
-    t.string   "saved_as",           limit: 255
-    t.boolean  "visible_guest",                  default: false
-    t.boolean  "visible_staff",                  default: false
-    t.boolean  "visible_pupil",                  default: false
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
 
   create_table "comments", force: :cascade do |t|
     t.integer  "parent_id",   limit: 4
@@ -607,6 +593,8 @@ ActiveRecord::Schema.define(version: 20190506140954) do
     t.string   "tt_prep_letter",                   limit: 2,     default: "P"
     t.date     "tt_store_start",                                 default: '2006-01-01'
     t.string   "busy_string",                      limit: 255,   default: "Busy"
+    t.string   "user_files_dir",                   limit: 255,   default: "UserFiles"
+    t.integer  "user_file_allowance",              limit: 4,     default: 0
   end
 
   create_table "staffs", force: :cascade do |t|
@@ -681,6 +669,17 @@ ActiveRecord::Schema.define(version: 20190506140954) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "user_files", force: :cascade do |t|
+    t.integer  "owner_id",           limit: 4
+    t.string   "original_file_name", limit: 255
+    t.string   "uuid",               limit: 255
+    t.integer  "file_size",          limit: 4,   default: 0
+    t.datetime "created_at",                                 null: false
+    t.datetime "updated_at",                                 null: false
+  end
+
+  add_index "user_files", ["uuid"], name: "index_user_files_on_uuid", unique: true, using: :btree
 
   create_table "user_form_responses", force: :cascade do |t|
     t.integer  "user_form_id", limit: 4

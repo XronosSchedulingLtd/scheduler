@@ -1,0 +1,30 @@
+<h3>Files belonging to <%= @user.name %></h3>
+
+<h4>Existing files</h4>
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Size</th>
+      <th>Uploaded</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= render @user_files %>
+  </tbody>
+</table>
+
+<p><%= usage_summary(@total_size, @allowance) %></p>
+
+<% if @allow_upload %>
+<h4>Upload file</h4>
+<%= form_tag({action: :upload}, multipart: true) do %>
+  <%= file_field_tag 'file_info' %>
+  <%= submit_tag 'Upload' %>
+<% end %>
+<% else %>
+  <p>Upload disabled</p>
+<% end %>
+

@@ -74,6 +74,7 @@ class User < ActiveRecord::Base
   has_many :concerns,            dependent: :destroy
   has_many :concern_sets,        dependent: :destroy, foreign_key: :owner_id
   has_many :user_form_responses, dependent: :destroy
+  has_many :user_files,          dependent: :destroy, foreign_key: :owner_id
 
   has_many :events, foreign_key: :owner_id, dependent: :nullify
 
@@ -716,6 +717,20 @@ class User < ActiveRecord::Base
       #  be dragged by their individual administrators.
       #
     (concern.element.add_directly? || self.owns_parent_of?(concern.element))
+  end
+
+  def can_upload_with_figures?
+    allowance = Setting.user_file_allowance
+    total_size = self.user_files.inject(0) {|sum, uf| sum + uf.file_size}
+    result = total_size < allowance
+    return result, total_size, allowance
+  end
+
+  def can_upload?
+    #
+    #  Just the first value returned by the previous function.
+    #
+    can_upload_with_figures?[0]
   end
 
   #
