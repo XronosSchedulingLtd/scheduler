@@ -1,20 +1,5 @@
 require 'test_helper'
 
-class DummyFileInfo
-  def original_filename
-    "banana.png"
-  end
-
-  def read
-    "Here is some data"
-  end
-
-  def size
-    17
-  end
-
-end
-
 class UserFileTest < ActiveSupport::TestCase
   setup do
     @user = FactoryBot.create(:user)
@@ -23,6 +8,7 @@ class UserFileTest < ActiveSupport::TestCase
       owner: @user,
       file_info: @file_info
     }
+    @existing_file = FactoryBot.create(:user_file, owner: @user)
   end
 
   teardown do
@@ -40,8 +26,11 @@ class UserFileTest < ActiveSupport::TestCase
   end
 
   test 'can create a user file' do
-    user_file = UserFile.create(@valid_params)
-    assert user_file.valid?
+    assert_difference('UserFile.count') do
+      user_file = UserFile.create(@valid_params)
+      assert user_file.valid?
+      assert File.exist?(user_file.file_full_path_name)
+    end
   end
 
   test 'must have an owner' do
@@ -53,4 +42,14 @@ class UserFileTest < ActiveSupport::TestCase
     user_file = UserFile.create(@valid_params.except(:file_info))
     assert_not user_file.valid?
   end
+
+  test 'can delete file' do
+    assert @existing_file.valid?
+    assert File.exist?(@existing_file.file_full_path_name)
+    assert_difference('UserFile.count', -1) do
+      @existing_file.destroy
+    end
+    assert_not File.exist?(@existing_file.file_full_path_name)
+  end
+
 end

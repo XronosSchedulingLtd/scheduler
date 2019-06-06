@@ -12,3 +12,19 @@ class ActiveSupport::TestCase
   # Add more helper methods to be used by all tests here...
   include FactoryBot::Syntax::Methods
 end
+
+class DummyFileInfo
+  def original_filename
+    "banana.png"
+  end
+
+  def read
+    "Here is some data"
+  end
+
+  def size
+    17
+  end
+
+end
+

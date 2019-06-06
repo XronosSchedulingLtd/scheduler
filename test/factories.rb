@@ -213,5 +213,11 @@ FactoryBot.define do
     event
     quantity { 1 }
   end
+
+  factory :user_file do
+    association :owner, factory: :user
+    file_info { DummyFileInfo.new }
+  end
+
 end
 
