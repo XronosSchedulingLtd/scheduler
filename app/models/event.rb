@@ -1064,9 +1064,9 @@ class Event < ActiveRecord::Base
 
   def all_notes_for(user)
     self.commitments.collect { |commitment|
-      commitment.notes.visible_to(user).to_a
+      commitment.notes.includes(attachments: :user_file).visible_to(user).to_a
     }.flatten +
-    self.notes.visible_to(user).to_a
+    self.notes.includes(attachments: :user_file).visible_to(user).to_a
   end
 
   # Returns an array of events for the indicated category, resource

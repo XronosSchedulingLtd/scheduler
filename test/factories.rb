@@ -1,4 +1,10 @@
 FactoryBot.define do
+  factory :attachment do
+    parent_id { 1 }
+    parent_type { "MyString" }
+    user_file_id { 1 }
+  end
+
   factory :era do
     sequence(:name) { |n| "Era number #{n}" }
     starts_on       { Date.today }

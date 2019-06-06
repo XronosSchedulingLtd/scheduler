@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190603093913) do
+ActiveRecord::Schema.define(version: 20190606090041) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -24,6 +24,17 @@ ActiveRecord::Schema.define(version: 20190603093913) do
   end
 
   add_index "ahoy_messages", ["user_type", "user_id"], name: "index_ahoy_messages_on_user_type_and_user_id", using: :btree
+
+  create_table "attachments", force: :cascade do |t|
+    t.integer  "parent_id",    limit: 4
+    t.string   "parent_type",  limit: 255
+    t.integer  "user_file_id", limit: 4
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+  end
+
+  add_index "attachments", ["parent_id", "parent_type"], name: "index_attachments_on_parent_id_and_parent_type", using: :btree
+  add_index "attachments", ["user_file_id"], name: "index_attachments_on_user_file_id", using: :btree
 
   create_table "comments", force: :cascade do |t|
     t.integer  "parent_id",   limit: 4

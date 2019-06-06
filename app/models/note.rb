@@ -1,13 +1,15 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
 class Note < ActiveRecord::Base
-  belongs_to :parent, :polymorphic => true
+  belongs_to :parent, polymorphic: true
 #  belongs_to :commitments, -> { where( notes: { parent_type: 'Commitment' } ).includes(:notes) }, foreign_key: 'parent_id'
-  belongs_to :owner, :class_name => :User
+  belongs_to :owner, class_name: :User
   belongs_to :promptnote
+  has_many :attachments, as: :parent, dependent: :destroy
+  has_many :user_files, through: :attachments
 
   validates :parent, presence: true
 
@@ -74,6 +76,10 @@ class Note < ActiveRecord::Base
     else
       read_attribute(:contents)
     end
+  end
+
+  def any_attachments?
+    !self.attachments.empty?
   end
 
   #

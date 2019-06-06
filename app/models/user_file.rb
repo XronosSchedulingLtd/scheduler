@@ -8,6 +8,8 @@ class UserFile < ActiveRecord::Base
 
   belongs_to :owner, class_name: :User
 
+  has_many :attachments, dependent: :destroy
+
   validates :file_info, presence: true
   validates :owner, presence: true
 
