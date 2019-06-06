@@ -542,6 +542,8 @@ class User < ActiveRecord::Base
       (item.user_id == self.id) || self.admin?
     elsif item.instance_of?(Event)
       self.can_edit?(item)
+    elsif item.instance_of?(UserFile)
+      self.admin? || self.id == @user_file.owner_id
     else
       false
     end

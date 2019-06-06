@@ -78,7 +78,7 @@ class UserFilesController < ApplicationController
       when 'index', 'upload'
         current_user.admin? || current_user == @user
       when 'destroy'
-        current_user.admin? || current_user == @user_file.owner
+        current_user.can_delete?(@user_file)
       when 'show'
         true
       else
