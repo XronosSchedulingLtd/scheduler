@@ -684,13 +684,13 @@ ActiveRecord::Schema.define(version: 20190606090041) do
   create_table "user_files", force: :cascade do |t|
     t.integer  "owner_id",           limit: 4
     t.string   "original_file_name", limit: 255
-    t.string   "uuid",               limit: 255
+    t.string   "nanoid",             limit: 255
     t.integer  "file_size",          limit: 4,   default: 0
     t.datetime "created_at",                                 null: false
     t.datetime "updated_at",                                 null: false
   end
 
-  add_index "user_files", ["uuid"], name: "index_user_files_on_uuid", unique: true, using: :btree
+  add_index "user_files", ["nanoid"], name: "index_user_files_on_nanoid", unique: true, using: :btree
 
   create_table "user_form_responses", force: :cascade do |t|
     t.integer  "user_form_id", limit: 4

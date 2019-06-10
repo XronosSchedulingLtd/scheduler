@@ -3,7 +3,7 @@ require 'digest'
 class UserFile < ActiveRecord::Base
 
   before_destroy :remove_file_on_disk
-  before_create  :add_uuid
+  before_create  :add_nanoid
   after_create   :copy_to_disk
 
   belongs_to :owner, class_name: :User
@@ -13,7 +13,7 @@ class UserFile < ActiveRecord::Base
   validates :file_info, presence: true
   validates :owner, presence: true
 
-  validates :uuid, uniqueness: true
+  validates :nanoid, uniqueness: true
 
   def file_info=(incoming_data)
     self.original_file_name = incoming_data.original_filename
@@ -25,9 +25,9 @@ class UserFile < ActiveRecord::Base
     @incoming_file_info
   end
 
-  def uuid=(value)
+  def nanoid=(value)
     #
-    #  Client code is not allowed to modify the uuid.
+    #  Client code is not allowed to modify the nanoid.
     #
   end
 
@@ -75,12 +75,12 @@ class UserFile < ActiveRecord::Base
     end
   end
 
-  def add_uuid
+  def add_nanoid
     #
     #  In theory we shouldn't get here if the record isn't valid, but...
     #
     if self.valid?
-      generate_initial_uuid
+      generate_initial_nanoid
       #
       #  This seems really stupid, but surely we should have some
       #  code to cope with the possibility of a clash?
@@ -89,7 +89,7 @@ class UserFile < ActiveRecord::Base
       #  it turns into an endless loop.
       #
       #  If after a second attempt our record is still invalid
-      #  (meaning the uuid is still clashing with one already in
+      #  (meaning the nanoid is still clashing with one already in
       #  the database) then the create!() (invoked from elemental.rb)
       #  will throw an error and the creation of the underlying
       #  element will be rolled back.  On the other hand, if you're
@@ -106,26 +106,26 @@ class UserFile < ActiveRecord::Base
       #
       unless self.valid?
         #
-        #  At this point we have a uuid but there is a problem with it.
-        #  Force an overwrite by calling generate_uuid directly.
+        #  At this point we have a nanoid but there is a problem with it.
+        #  Force an overwrite by calling generate_nanoid directly.
         #
-        generate_uuid
+        generate_nanoid
       end
     end
   end
 
-  def generate_initial_uuid
-    if self.uuid.blank?
-      generate_uuid
+  def generate_initial_nanoid
+    if self.nanoid.blank?
+      generate_nanoid
     end
   end
 
-  def generate_uuid
+  def generate_nanoid
     #
     #  Need to use write_attribute, because our setter method
     #  is overridden to do nothing.
     #
-    write_attribute(:uuid, SecureRandom.uuid)
+    write_attribute(:nanoid, Nanoid.generate(size: 12))
   end
 
 

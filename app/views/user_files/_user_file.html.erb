@@ -4,7 +4,7 @@
   <td><%= user_file.created_at.to_s(:hmsdmy) %></td>
   <td><%=
     link_to "Download",
-            user_file_path(user_file.uuid)
+            user_file_path(user_file.nanoid)
   %></td>
   <td><%=
     link_to "Delete",

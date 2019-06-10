@@ -8,7 +8,7 @@ class UserFilesController < ApplicationController
 
   prepend_before_action :set_user, only: [:index, :upload]
   prepend_before_action :set_user_file, only: [:destroy]
-  prepend_before_action :find_by_uuid, only: [:show]
+  prepend_before_action :find_by_nanoid, only: [:show]
 
   #
   #  GET /users/1/user_files
@@ -64,12 +64,12 @@ class UserFilesController < ApplicationController
     @user_file = UserFile.find(params[:id])
   end
 
-  def find_by_uuid
+  def find_by_nanoid
     #
     #  Use find_by! to make it behave like find and raise an error
     #  if the record is not found.
     #
-    @user_file = UserFile.find_by!(uuid: params[:id])
+    @user_file = UserFile.find_by!(nanoid: params[:id])
   end
 
   def authorized?(action = action_name, resource = nil)
