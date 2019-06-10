@@ -3,6 +3,8 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
+require 'uri'
+
 class Note < ActiveRecord::Base
   belongs_to :parent, polymorphic: true
 #  belongs_to :commitments, -> { where( notes: { parent_type: 'Commitment' } ).includes(:notes) }, foreign_key: 'parent_id'
@@ -18,6 +20,7 @@ class Note < ActiveRecord::Base
   enum note_type: [ :ordinary, :clashes, :yaml ]
 
   before_save :format_contents
+  after_save :check_for_attachments, if: :contents_changed?
 
   #
   #  Visibility values
@@ -120,6 +123,54 @@ class Note < ActiveRecord::Base
 #      end
 #      self.formatted_contents = doc.to_s
       self.formatted_contents = original_html
+    end
+  end
+
+  def check_for_attachments
+    #
+    #  Get rid of all existing attachment records.
+    #  We will re-construct any that are still relevant.
+    #
+    self.attachments.destroy_all
+    unless self.formatted_contents.blank?
+      doc = Nokogiri::HTML::DocumentFragment.parse(self.formatted_contents)
+      doc.css('a').each do |link|
+        #
+        #  Is this a link to a file within our system?  If so, then
+        #  we need to create a corresponding attachment record.
+        #
+        Rails.logger.debug("Link class is #{link.class}")
+        Rails.logger.debug("Content is #{link.content}")
+        Rails.logger.debug("Href is #{link[:href]}")
+        uri = URI.parse(link[:href])
+        Rails.logger.debug("Host is #{uri.host}")
+        Rails.logger.debug("Path is #{uri.path}")
+        #
+        #  Is it on our host?
+        #
+        if uri.relative? || uri.host == Setting.dns_domain_name
+          Rails.logger.debug("On our host")
+          #
+          #  Seems to be our host at least.
+          #  Is it a link to a user file?
+          #
+          if uri.path =~ /^\/user_files\//
+            Rails.logger.debug("Path matches")
+            #
+            #  Looking hopeful.  Now need to extract the last part.
+            #
+            leaf = Pathname.new(uri.path).basename.to_s
+            #
+            #  And does that match one of our files?
+            #
+            Rails.logger.debug("Leaf = #{leaf}")
+            user_file = UserFile.find_by(nanoid: leaf)
+            if user_file
+              self.attachments.create(user_file: user_file)
+            end
+          end
+        end
+      end
     end
   end
 
