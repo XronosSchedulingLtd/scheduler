@@ -387,6 +387,9 @@ activateFilterSwitch = ->
 activateViewSwitch = ->
   $('div#view-switch').click(viewClicked)
 
+activateEmbedButton = ->
+  $('#embed-button').click(window.openFileDialogue)
+
 activateUserColumn = ->
   activateCheckboxes()
   activateDragging()
@@ -516,6 +519,7 @@ window.endEditingConcernSet = (body_text) ->
 window.beginNoteEditing = (body_text) ->
   $('#event-notes').html(body_text)
   $('#note_contents').focus()
+  activateEmbedButton();
   hideCloser()
 
 window.endNoteEditing = (new_note_text, new_shown_commitments) ->

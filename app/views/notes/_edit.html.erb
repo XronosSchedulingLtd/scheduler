@@ -30,6 +30,7 @@
      annotation: "Should this note be visible to pupils - e.g. prep?"}]) %>
 </div>
 <div id="saveButton">
+  <span class='zfbutton tiny radius' id='embed-button'>Embed file</span>
   <%= f.submit @note.id ? "Update" : "Save", :class => "zfbutton tiny radius" %>
   <%= link_to "Cancel", shownotes_event_path(@event), :remote => true, :class => "zfbutton tiny radius" %>
 </div>
