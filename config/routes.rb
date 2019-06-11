@@ -173,7 +173,7 @@ Rails.application.routes.draw do
       end
     end
   end
-  resources :user_files, only: [:show, :destroy]
+  resources :user_files, only: [:index, :show, :destroy]
 
   resources :commitments do
     member do

@@ -6,7 +6,8 @@
 
 class UserFilesController < ApplicationController
 
-  prepend_before_action :set_user, only: [:index, :upload]
+  prepend_before_action :set_user, only: [:upload]
+  prepend_before_action :might_set_user, only: [:index]
   prepend_before_action :set_user_file, only: [:destroy]
   prepend_before_action :find_by_nanoid, only: [:show]
 
@@ -14,8 +15,20 @@ class UserFilesController < ApplicationController
   #  GET /users/1/user_files
   #
   def index
-    @user_files = @user.user_files
-    @allow_upload, @total_size, @allowance = @user.can_upload_with_figures?
+    #
+    #  If no specific user has been specified, then use the current
+    #  user.
+    #
+    @user ||= current_user
+    if @user
+      @user_files = @user.user_files
+      @allow_upload, @total_size, @allowance = @user.can_upload_with_figures?
+    else
+      @user_files = []
+      @allow_upload = false
+      @total_size = 0
+      @allowance = 0
+    end
   end
 
   def show
@@ -60,6 +73,17 @@ class UserFilesController < ApplicationController
     @user = User.find(params[:user_id])
   end
 
+  #
+  #  For an index, the user_id parameters is optional.
+  #
+  def might_set_user
+    if params[:user_id]
+      @user = User.find(params[:user_id])
+    else
+      @user = nil
+    end
+  end
+
   def set_user_file
     @user_file = UserFile.find(params[:id])
   end
@@ -73,9 +97,17 @@ class UserFilesController < ApplicationController
   end
 
   def authorized?(action = action_name, resource = nil)
-    if known_user?
+    if current_user
       case action
-      when 'index', 'upload'
+      when 'index'
+        #
+        #  A user may or may not have been specified.
+        #
+        Rails.logger.debug("admin flag yields #{current_user.admin?}")
+        current_user.admin? ||
+          (@user && current_user == @user) ||
+          (!@user)
+      when 'upload'
         current_user.admin? || current_user == @user
       when 'destroy'
         current_user.can_delete?(@user_file)
