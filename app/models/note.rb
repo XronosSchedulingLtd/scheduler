@@ -87,7 +87,9 @@ class Note < ActiveRecord::Base
   end
 
   def format_contents
-    unless self.contents.blank?
+    if self.contents.blank?
+      self.formatted_contents = "<p></p>"
+    else
       renderer = Redcarpet::Render::HTML.new(
         filter_html: true,
         hard_wrap: true,
@@ -117,6 +119,12 @@ class Note < ActiveRecord::Base
 
   def self.format_all_contents
     Note.all.each do |note|
+      note.save
+    end
+  end
+
+  def self.format_missing_contents
+    Note.where(formatted_contents: nil).each do |note|
       note.save
     end
   end
