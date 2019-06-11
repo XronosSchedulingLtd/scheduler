@@ -100,6 +100,7 @@ class SettingsController < ApplicationController
                     :tt_cycle_weeks,
                     :tt_prep_letter,
                     :tt_store_start,
-                    :busy_string)
+                    :busy_string,
+                    :user_file_allowance)
     end
 end
