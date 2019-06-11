@@ -1,3 +1,28 @@
+v1.8.1.1 2019-06-11
+
+* Hotfix for a problem with empty notes
+
+  In v1.8.0, the means to use Markdown in notes attached to events
+  was added.  This meant the introduction of a new text field in the
+  notes record - formatted_contents.  Unfortunately, the database
+  engine does not allow the setting of default contents for a text
+  field, so it's really important to make sure it is given an explicit
+  value, otherwise it ends up as nil.
+
+  An error in the code for generating the formatted text meant that
+  if a user created a completely blank note, the formatted text didn't
+  get filled in, rendering the parent event undisplayable.
+
+  This release fixes that error in the code.  A helper method is
+  provided:
+
+    Note.format_missing_contents
+
+  which should be run after the release is installed.  It will find
+  any affected notes in the database and give them formatted contents
+  of "<p></p>".
+
+
 v1.8.1   2019-05-18
 
 * Enhance import of staff records from WCBS/Pass
