@@ -92,6 +92,7 @@ FactoryBot.define do
       permissions_privileged { false }
       permissions_api        { false }
       permissions_noter      { false }
+      permissions_files      { false }
     end
 
     #
@@ -117,6 +118,10 @@ FactoryBot.define do
       permissions_noter { true }
     end
 
+    trait :files do
+      permissions_files { true }
+    end
+
     firstday { 0 }
     user_profile
 
@@ -140,6 +145,9 @@ FactoryBot.define do
       end
       if permissions_noter
         hash[:can_add_notes] = true
+      end
+      if permissions_files
+        hash[:can_has_files] = true
       end
       hash
     end
