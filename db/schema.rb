@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190606090041) do
+ActiveRecord::Schema.define(version: 20190612104434) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -780,6 +780,7 @@ ActiveRecord::Schema.define(version: 20190606090041) do
     t.boolean  "can_edit_memberships",                      default: false
     t.string   "uuid",                        limit: 255
     t.boolean  "can_api",                                   default: false
+    t.boolean  "can_has_files",                             default: false
   end
 
   add_index "users", ["uuid"], name: "index_users_on_uuid", unique: true, using: :btree
