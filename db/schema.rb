@@ -781,6 +781,7 @@ ActiveRecord::Schema.define(version: 20190612104434) do
     t.string   "uuid",                        limit: 255
     t.boolean  "can_api",                                   default: false
     t.boolean  "can_has_files",                             default: false
+    t.boolean  "loading_notification",                      default: true
   end
 
   add_index "users", ["uuid"], name: "index_users_on_uuid", unique: true, using: :btree

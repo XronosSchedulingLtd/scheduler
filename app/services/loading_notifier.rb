@@ -82,7 +82,7 @@ class LoadingNotifier
   def appropriate_approver_emails(element)
     (element.concerns.owned.collect {|c| c.user} +
      User.administrators.to_a).
-     uniq.select {|u| u.email_notification}.
+     uniq.select {|u| u.loading_notification?}.
      collect {|u| u.email}
   end
 
