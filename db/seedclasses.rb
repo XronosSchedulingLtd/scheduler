@@ -678,7 +678,8 @@ class Seeder
         from_email_address:  "scheduler@#{dns_domain_name}",
         require_uuid:        true,
         title_text:          internal_title,
-        public_title_text:   public_title
+        public_title_text:   public_title,
+        user_file_allowance: 10                 # MiB
       })
     end
     #
