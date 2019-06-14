@@ -122,7 +122,7 @@ if ($('#file-selector-dialog').length) {
         width: 700,
         modal: true,
         buttons: {
-          'Embed': doSelect,
+          'Generate': doSelect,
           Cancel: function() {
             dialog.dialog('close');
             currentlyOpen = false;
