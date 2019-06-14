@@ -17,6 +17,14 @@ if ($('#file-selector-dialog').length) {
       field.caret(position + text.length);
     }
 
+    function escapeMarkdown(string) {
+      //
+      //  Do some very basic escaping of a string to get correct
+      //  Markdown
+      //
+      return string.replace(/_/g, '\\_');
+    }
+
     function doSelect() {
       //
       //  We need to decide whether we are going to inject any text
@@ -51,7 +59,7 @@ if ($('#file-selector-dialog').length) {
           textToInject = "[" + textOfLink + "](" + url + ")";
         } else {
           if (fileName.length) {
-            textToInject = "[" + fileName + "](" + url + ")";
+            textToInject = "[" + escapeMarkdown(fileName) + "](" + url + ")";
           } else {
             textToInject = url;
           }
