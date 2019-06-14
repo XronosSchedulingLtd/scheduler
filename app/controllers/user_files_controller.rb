@@ -52,9 +52,13 @@ class UserFilesController < ApplicationController
     #  Webrick gets marginally upset if we don't se the file
     #  size in the header for it.
     #
-    response.headers['Content-Length'] = @user_file.file_size.to_s
-    send_file(@user_file.file_full_path_name,
-              filename: @user_file.original_file_name)
+    if @user_file
+      response.headers['Content-Length'] = @user_file.file_size.to_s
+      send_file(@user_file.file_full_path_name,
+                filename: @user_file.original_file_name)
+    else
+      render 'file_not_found'
+    end
   end
 
   #
@@ -107,7 +111,7 @@ class UserFilesController < ApplicationController
     #  Use find_by! to make it behave like find and raise an error
     #  if the record is not found.
     #
-    @user_file = UserFile.find_by!(nanoid: params[:id])
+    @user_file = UserFile.find_by(nanoid: params[:id])
   end
 
   def authorized?(action = action_name, resource = nil)
