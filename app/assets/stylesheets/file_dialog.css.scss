@@ -4,6 +4,8 @@
 
 div#fsd-filelist {
   line-height: 30px;
+  height: 200px;
+  overflow-y: scroll;
   span {
     border: 1px solid rgb(0,112,149);
     padding: 3px 5px 3px 3px;

@@ -110,7 +110,7 @@ if ($('#file-selector-dialog').length) {
     that.init = function() {
       dialog = $('#file-selector-dialog').dialog({
         autoOpen: false,
-        height: 500,
+        height: 600,
         width: 700,
         modal: true,
         buttons: {
