@@ -1,0 +1,24 @@
+.ui-dialog.ui-front {
+  z-index: 1500;
+}
+
+div#fsd-filelist {
+  line-height: 30px;
+  span {
+    border: 1px solid rgb(0,112,149);
+    padding: 3px 5px 3px 3px;
+    border-radius: 4px;
+    margin-left: 2px;
+    margin-right: 2px;
+    color: white;
+    background-color: rgb(0,140,186);
+    font-family: "Helvetica Neue", Helvetica;
+    font-size: 12px;
+    transition: background-color 300ms ease-out;
+    white-space:nowrap;
+    &:hover {
+      background-color: #007095;
+    }
+  }
+}
+

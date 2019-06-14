@@ -19,10 +19,24 @@ class UserFilesController < ApplicationController
     #  If no specific user has been specified, then use the current
     #  user.
     #
-    @user ||= current_user
+    #  However, if we are accessed as /user_files then the upload
+    #  facility currently doesn't work, so disable it.
+    #
     if @user
-      @user_files = @user.user_files
-      @allow_upload, @total_size, @allowance = @user.can_upload_with_figures?
+      might_allow_upload = true
+    else
+      @user = current_user
+      might_allow_upload = false
+    end
+    if @user
+      @user_files = @user.user_files.order(:original_file_name)
+      if might_allow_upload
+        @allow_upload, @total_size, @allowance = @user.can_upload_with_figures?
+      else
+        @allow_upload = false
+        @total_size = 0
+        @allowance = 0
+      end
     else
       @user_files = []
       @allow_upload = false

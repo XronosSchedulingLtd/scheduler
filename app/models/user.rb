@@ -722,10 +722,14 @@ class User < ActiveRecord::Base
   end
 
   def can_upload_with_figures?
-    allowance = Setting.user_file_allowance
-    total_size = self.user_files.inject(0) {|sum, uf| sum + uf.file_size}
-    result = total_size < allowance
-    return result, total_size, allowance
+    if can_has_files?
+      allowance = Setting.user_file_allowance
+      total_size = self.user_files.inject(0) {|sum, uf| sum + uf.file_size}
+      result = total_size < allowance
+      return result, total_size, allowance
+    else
+      return false, 0, 0
+    end
   end
 
   def can_upload?

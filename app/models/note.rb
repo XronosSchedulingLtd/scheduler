@@ -139,23 +139,16 @@ class Note < ActiveRecord::Base
         #  Is this a link to a file within our system?  If so, then
         #  we need to create a corresponding attachment record.
         #
-        Rails.logger.debug("Link class is #{link.class}")
-        Rails.logger.debug("Content is #{link.content}")
-        Rails.logger.debug("Href is #{link[:href]}")
         uri = URI.parse(link[:href])
-        Rails.logger.debug("Host is #{uri.host}")
-        Rails.logger.debug("Path is #{uri.path}")
         #
         #  Is it on our host?
         #
         if uri.relative? || uri.host == Setting.dns_domain_name
-          Rails.logger.debug("On our host")
           #
           #  Seems to be our host at least.
           #  Is it a link to a user file?
           #
           if uri.path =~ /^\/user_files\//
-            Rails.logger.debug("Path matches")
             #
             #  Looking hopeful.  Now need to extract the last part.
             #
@@ -163,7 +156,6 @@ class Note < ActiveRecord::Base
             #
             #  And does that match one of our files?
             #
-            Rails.logger.debug("Leaf = #{leaf}")
             user_file = UserFile.find_by(nanoid: leaf)
             if user_file
               self.attachments.create(user_file: user_file)

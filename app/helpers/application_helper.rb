@@ -273,6 +273,9 @@ module ApplicationHelper
       if user.can_has_forms?
         m.item('Forms', user_forms_path)
       end
+      if user.can_has_files?
+        m.item('Files', user_user_files_path(user))
+      end
       if user.can_view_journal_for?(:events)
         m.dropdown('Journals', journals_path) do
           m.item('Current', journals_path(current: true))
