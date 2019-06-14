@@ -527,6 +527,7 @@ window.endNoteEditing = (new_note_text, new_shown_commitments) ->
   if new_shown_commitments
     window.replaceShownCommitments(new_shown_commitments)
   showCloser()
+  window.closeFileDialogue()
 
 window.switchToEditingEvent = (contents) ->
   $('#events-dialogue').html(contents)

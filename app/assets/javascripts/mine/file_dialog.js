@@ -6,6 +6,7 @@ if ($('#file-selector-dialog').length) {
     var that = {};
     var dialog;
     var oldPos;
+    var currentlyOpen = false;
 
     function insertText(field, position, text) {
       var existingContents = field.val();
@@ -58,6 +59,7 @@ if ($('#file-selector-dialog').length) {
       }
 
       dialog.dialog('close');
+      currentlyOpen = false;
       if (oldPos !== null) {
         var contentsField = $('#note_contents');
         contentsField.focus().caret(oldPos);
@@ -85,7 +87,6 @@ if ($('#file-selector-dialog').length) {
 
       list.empty();
       data.forEach(function(item) {
-        console.log(item);
         list.append('<span data-nanoid="' + item['nanoid'] + '">' + item['original_file_name'] + '</span> ');
       });
       //
@@ -93,6 +94,7 @@ if ($('#file-selector-dialog').length) {
       //
       list.find('span').click(fileClickHandler);
       dialog.dialog('open');
+      currentlyOpen = true;
     }
 
     that.init = function() {
@@ -105,6 +107,7 @@ if ($('#file-selector-dialog').length) {
           'Embed': doSelect,
           Cancel: function() {
             dialog.dialog('close');
+            currentlyOpen = false;
             if (oldPos !== null) {
               $('#note_contents').focus().caret(oldPos);
             }
@@ -141,6 +144,19 @@ if ($('#file-selector-dialog').length) {
           dataType: 'json'
         }).done(populateAndOpen);
       }
+
+      window.closeFileDialogue = function() {
+        //
+        //  If the Foundation modal closes whilst we are open, then we close
+        //  too.
+        //
+        if (currentlyOpen) {
+          dialog.dialog('close');
+          currentlyOpen = false;
+        }
+      }
+
+      $(document).on('closed', '[data-reveal]', window.closeFileDialogue);
 
     }
 
