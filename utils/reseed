@@ -1,4 +1,14 @@
 #!/bin/bash
+#
+#  You really don't want to run this script by mistakely, so by default
+#  it refuses to run at all.  Delete the next three lines if you really
+#  want to use it.  It's intended for use merely on a demo system.
+#
+echo "Do you really want to purge your entire database?"
+echo "If so, then edit this script and remove these lines."
+exit 1
+#
+
 . /etc/profile
 #
 #  Are we on development or live?
@@ -19,6 +29,8 @@ if [ -d $SCHEDULER_DIR ]; then
   cd $SCHEDULER_DIR
   rake db:schema:load >/dev/null
   rake db:seed
+  rm -rf UserFiles/*
+  mkdir UserFiles/Test
   ./lib/clashes/clashcheck.rb --weeks 1 --start `./lib/clashes/sundate.rb`
 else
   echo "$SCHEDULER_DIR does not seem to be a directory."
