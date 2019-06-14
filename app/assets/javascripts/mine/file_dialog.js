@@ -93,6 +93,16 @@ if ($('#file-selector-dialog').length) {
       //  And set up click handlers for each of them.
       //
       list.find('span').click(fileClickHandler);
+      //
+      //  Remove any left-over content in our input fields from a
+      //  possible previous invocation.
+      //
+      $('#fsd-textoflink').val('');
+      $('#fsd-url').val('');
+      $('#fsd-filename').val('');
+      //
+      //  And open it.
+      //
       dialog.dialog('open');
       currentlyOpen = true;
     }
