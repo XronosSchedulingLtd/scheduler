@@ -49,7 +49,7 @@ class UserFilesController < ApplicationController
     #
     #  @user_file should already be set.
     #
-    #  Webrick gets marginally upset if we don't se the file
+    #  Webrick gets marginally upset if we don't set the file
     #  size in the header for it.
     #
     if @user_file
@@ -135,7 +135,10 @@ class UserFilesController < ApplicationController
         false
       end
     else
-      false
+      #
+      #  For guests, only 'show' is allowed.
+      #
+      action == 'show'
     end
   end
 
