@@ -28,9 +28,9 @@ fi
 if [ -d $SCHEDULER_DIR ]; then
   cd $SCHEDULER_DIR
   rake db:schema:load >/dev/null
-  rake db:seed
   rm -rf UserFiles/*
   mkdir UserFiles/Test
+  rake db:seed
   ./lib/clashes/clashcheck.rb --weeks 1 --start `./lib/clashes/sundate.rb`
 else
   echo "$SCHEDULER_DIR does not seem to be a directory."
