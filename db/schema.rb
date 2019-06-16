@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190612104434) do
+ActiveRecord::Schema.define(version: 20190616071906) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -507,15 +507,16 @@ ActiveRecord::Schema.define(version: 20190612104434) do
   add_index "pupils", ["source_id"], name: "index_pupils_on_source_id", using: :btree
 
   create_table "requests", force: :cascade do |t|
-    t.integer  "event_id",         limit: 4
-    t.integer  "element_id",       limit: 4
-    t.integer  "proto_request_id", limit: 4
-    t.integer  "quantity",         limit: 4, default: 1
+    t.integer  "event_id",          limit: 4
+    t.integer  "element_id",        limit: 4
+    t.integer  "proto_request_id",  limit: 4
+    t.integer  "quantity",          limit: 4, default: 1
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "tentative",                  default: true
-    t.boolean  "constraining",               default: false
-    t.boolean  "reconfirmed",                default: false
+    t.boolean  "tentative",                   default: true
+    t.boolean  "constraining",                default: false
+    t.boolean  "reconfirmed",                 default: false
+    t.integer  "commitments_count", limit: 4, default: 0,     null: false
   end
 
   add_index "requests", ["element_id"], name: "index_requests_on_element_id", using: :btree

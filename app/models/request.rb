@@ -486,6 +486,12 @@ class Request < ActiveRecord::Base
     nil
   end
 
+  def self.set_initial_counts
+    Request.all.each do |request|
+      Request.reset_counters(request.id, :commitments)
+    end
+  end
+
   private
 
   def update_corresponding_event
