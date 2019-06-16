@@ -91,6 +91,7 @@ ced = seeder.new_staff("Mrs", "Claire",   "Dunwoody",  "CED", [:french])
 medical = seeder.new_service("Medical")
 catering = seeder.new_service("Catering")
 sjp_user = seeder.new_user(sjp, 'f9c4317f-97d8-48ae-abae-dc7b52b63a11')
+sjps_file = sjp_user.add_user_file(Rails.root.join('support', 'Rowing.jpg'))
 ced_user = seeder.new_user(ced).
        controls(seeder.properties[:calendarproperty]).
        controls(catering).
@@ -224,8 +225,11 @@ seeder.add_event(:sportsfixture,
        involving(calendarproperty, sjp).
        add_note(
          "",
-         "Please could parents not attempt to take rowers away\nbefore the end of the last event.\n\nRefreshments will be provided in the school marquee.",
-         {visible_guest: true}
+         "Refreshments will be provided in the school marquee.\n\nThe location of Dorney Lake can be found on [Google Maps](https://goo.gl/maps/zyw6KdVL8t8fY8GUA).\n\nWith any luck we should be able to manage some [early morning rowing](/user_files/#{sjps_file.nanoid}).\n\nPlease could parents not attempt to take rowers away before the end of the last event.",
+         {
+           visible_guest: true,
+           owner: sjp_user.dbrecord
+         }
        )
 seeder.add_event(:assembly,
                 "Founder's Assembly",

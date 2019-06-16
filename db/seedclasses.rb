@@ -1,5 +1,20 @@
 require 'yaml'
 
+class DummyFileInfo
+  attr_reader :original_filename, :size
+
+  def initialize(file_path)
+    @original_filename = File.basename(file_path)
+    @size = File.size(file_path)
+    @handle = File.open(file_path, "rb")
+  end
+
+  def read
+    @handle.read
+  end
+
+end
+
 class Seeder
 
   module HasElement
@@ -165,6 +180,11 @@ class Seeder
 
     def user_id
       @dbrecord.id
+    end
+
+    def add_user_file(file_path)
+      file_info = DummyFileInfo.new(file_path)
+      @dbrecord.user_files.create({file_info: file_info})
     end
 
   end
@@ -588,6 +608,7 @@ class Seeder
         definition:      definition
       })
     end
+
   end
 
   #
