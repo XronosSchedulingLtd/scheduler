@@ -46,7 +46,7 @@ module PublicApi
 
       private
 
-      def item_summary(item, context)
+      def item_summary(item, context = :none)
         #
         #  The context is where we came to this object from.
         #
@@ -56,6 +56,11 @@ module PublicApi
         #  element.  Likewise if we are in the context of the
         #  element, we don't want to know about the element again,
         #  but we do want to know about the event.
+        #
+        #  Note the use of :none rather than nil for the default
+        #  context.  This is so that if we compare it to a
+        #  field in the item which happens to be nil, it won't
+        #  match.
         #
         hash = nil
         case item
@@ -110,6 +115,33 @@ module PublicApi
             id:   item.id,
             name: item.name
           }
+        when Note
+          #
+          #  Note that this is used for both summary and detail
+          #  responses.  There's too little to draw a useful
+          #  dividing line between them.
+          #
+          hash = {
+            id:                 item.id,
+            contents:           item.contents,
+            visible_guest:      item.visible_guest,
+            visible_staff:      item.visible_staff,
+            visible_pupil:      item.visible_pupil,
+            formatted_contents: item.formatted_contents
+          }
+          unless item.parent == context
+            hash[:parent] = self.summary_from(item.parent, item)
+          end
+          unless item.owner == context
+            hash[:owner] = self.summary_from(item.owner, item)
+          end
+        when User
+          hash = {
+            id: item.id,
+            name: item.name,
+            email: item.email
+          }
+
         when FailureRecord
           #
           #  This next bit looks a little weird.  The failure record
@@ -140,7 +172,9 @@ module PublicApi
           end
           return hash
         else
-          if item.kind_of?(Hash)
+          if item.nil?
+            return nil
+          elsif item.kind_of?(Hash)
             return item
           else
             return {}
@@ -208,6 +242,12 @@ module PublicApi
             timetable:     item.timetable
           }
           hash
+        when Note
+          #
+          #  There really is no point in trying to have two different
+          #  representations of a note - there's so little in it.
+          #
+          item_summary(item)
         else
           {}
         end

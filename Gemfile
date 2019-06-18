@@ -62,6 +62,7 @@ gem 'nokogiri'
 gem 'tod'
 gem 'redcarpet'
 gem 'ahoy_email'
+gem 'nanoid'
 group :production do
   gem 'tiny_tds'
 end

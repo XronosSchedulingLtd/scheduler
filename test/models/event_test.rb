@@ -121,6 +121,12 @@ class EventTest < ActiveSupport::TestCase
     assert new_event.valid?
 
     new_request = new_event.requests.first
+    #
+    #  num_allocated makes use of the cached commitment count in the
+    #  request record.  Make sure that matches reality with a forced
+    #  d/b access to get the real count.
+    #
+    assert_equal new_request.commitments.count, new_request.num_allocated, "Checking cached count"
     assert_equal 0, new_request.num_allocated
     assert_equal 2, new_request.num_outstanding
 

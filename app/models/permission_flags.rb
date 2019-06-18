@@ -21,7 +21,8 @@ class PermissionFlags < Hash
     :admin,
     :can_view_unconfirmed,
     :can_edit_memberships,
-    :can_api
+    :can_api,
+    :can_has_files
   ]
 
   NICER_TEXT = {
@@ -45,7 +46,8 @@ class PermissionFlags < Hash
     can_view_unconfirmed: "View unconfirmed",
     can_repeat_events:    "Repeating events",
     can_edit_memberships: "Edit members",
-    can_api:              "Can use API"
+    can_api:              "Can use API",
+    can_has_files:        "Can upload files"
   }
   NICER_TEXT.default = "Pass"
 

@@ -440,6 +440,31 @@ class Setting < ActiveRecord::Base
     end
   end
 
+  def self.user_files_dir
+    @@setting ||= Setting.first
+    if @@setting
+      if ENV['RAILS_ENV'] == 'test'
+        "#{@@setting.user_files_dir}/Test"
+      else
+        @@setting.user_files_dir
+      end
+    else
+      "UserFiles"
+    end
+  end
+
+  def self.user_file_allowance
+    @@setting ||= Setting.first
+    if @@setting
+      #
+      #  Database field is in mebibytes.
+      #
+      @@setting.user_file_allowance * 1048576
+    else
+      0
+    end
+  end
+
   #
   #  End-of-year processing.  Move us on into the next era.
   #

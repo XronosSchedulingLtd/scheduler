@@ -593,6 +593,26 @@ class Element < ActiveRecord::Base
   #
   #  We count pending commitments only if they have no outstanding forms.
   #
+  #  A note on performance.
+  #
+  #  On a system with 58 pending future requests and about 1.7 million
+  #  existing commitments, we started to see a big slowdown in this
+  #  method, particularly in the requests part.  What we were doing was to
+  #  preload the matching commitments, thus avoiding 58 individual
+  #  counts (1 per request) to see how many commitments there were.  In all
+  #  it took about 1700ms.
+  #
+  #    preload(:user_form_response, :commitments).
+  #
+  #  Surprisingly, just removing the preload achieved a big speed up.
+  #  Instead of the single call to load all matching commitments for the
+  #  58 requests, we started doing 58 separate COUNT calls and it took
+  #  only 100-200ms in total.
+  #
+  #  I then added a cached_count field to the request records so that
+  #  these d/b calls were no longer needed.  The incremental improvement
+  #  was surprisingly small, but it's neater.
+  #
   def permissions_pending
     unless @permissions_pending
       @permissions_pending = 
@@ -603,7 +623,7 @@ class Element < ActiveRecord::Base
              select {|c| c.no_forms_outstanding?  }.
              count +
         self.requests.
-             preload(:user_form_response, :commitments).
+             preload(:user_form_response).
              future.
              select {|r| r.no_forms_outstanding?  }.
              inject(0) {|memo, r|

@@ -166,7 +166,14 @@ Rails.application.routes.draw do
         get :refresh
       end
     end
+    resources :user_files do
+      collection do
+        get :index
+        post :upload
+      end
+    end
   end
+  resources :user_files, only: [:index, :show, :destroy]
 
   resources :commitments do
     member do

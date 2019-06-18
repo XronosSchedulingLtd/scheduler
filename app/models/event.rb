@@ -133,7 +133,6 @@ class Event < ActiveRecord::Base
   #
   has_many :staff_elements, -> { where(elements: {entity_type: "Staff"}) }, class_name: "Element", :source => :element, :through => :firm_commitments
   has_many :notes, as: :parent, :dependent => :destroy
-  has_many :attachments, as: :parent, :dependent => :destroy
   has_many :direct_locations, -> { where(elements: {entity_type: "Location"}) }, class_name: "Element", :source => :element, :through => :non_covering_commitments
   has_many :cover_locations, -> { where(elements: {entity_type: "Location"}) }, class_name: "Element", :source => :element, :through => :covering_commitments
 
@@ -1065,9 +1064,9 @@ class Event < ActiveRecord::Base
 
   def all_notes_for(user)
     self.commitments.collect { |commitment|
-      commitment.notes.visible_to(user).to_a
+      commitment.notes.includes(attachments: :user_file).visible_to(user).to_a
     }.flatten +
-    self.notes.visible_to(user).to_a
+    self.notes.includes(attachments: :user_file).visible_to(user).to_a
   end
 
   # Returns an array of events for the indicated category, resource

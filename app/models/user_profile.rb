@@ -81,7 +81,8 @@ class UserProfile < ActiveRecord::Base
           public_groups:     PermissionFlags::PERMISSION_YES,
           can_find_free:     PermissionFlags::PERMISSION_YES,
           can_add_concerns:  PermissionFlags::PERMISSION_YES,
-          can_roam:          PermissionFlags::PERMISSION_YES
+          can_roam:          PermissionFlags::PERMISSION_YES,
+          can_has_files:     PermissionFlags::PERMISSION_YES
         }
       })
     end
