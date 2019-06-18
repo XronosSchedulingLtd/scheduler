@@ -16,7 +16,7 @@ class Commitment < ActiveRecord::Base
   belongs_to :event
   belongs_to :element
   belongs_to :proto_commitment
-  belongs_to :request
+  belongs_to :request, counter_cache: true
   belongs_to :by_whom, class_name: "User"
   has_many :notes, as: :parent, dependent: :destroy
   has_one :user_form_response, as: :parent, dependent: :destroy

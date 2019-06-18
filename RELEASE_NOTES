@@ -1,3 +1,82 @@
+v1.8.2   2019-06-18
+
+* Allow users to store files in Scheduler
+
+  It is now possible for suitably privileged users to upload files
+  for local storage within Scheduler.  This facility is intended for
+  embedding files within notes as described next.
+
+  The system administrator can control which users are allowed to
+  upload files, and how much disk space each user can use.
+
+  The default web server - Nginx - also puts a limit on how large
+  each individual uploaded file can be.  The Nginx configuration
+  file can be altered to set whatever limit is required.  The
+  relevant line goes in /etc/nginx/sites-available/scheduler
+  and looks like:
+
+    client_max_body_size 20M;
+
+  or whatever you choose.  The above line sets a limit of 20 mebibytes
+  for any one file.
+
+  The facility is not intended to be used as a general purpose bulk
+  file store.  It is advisable to set a fairly low limit on the total
+  disk space available to any individual user - perhaps something of
+  the order of 100 mebibytes, depending on the amount of disk space
+  available on your server.
+
+* Assist users in embedding files with notes
+
+  Since v1.8.0, notes attached to events have allowed the entry of
+  formatted text using Markdown.  This includes the ability to create
+  links within the notes.
+
+  With files now being available in Scheduler, the user can first upload
+  a file, then embed a link to it within one or more notes.  To assist
+  with the process, a helper dialogue has been added to the note
+  editing interaction.  The user clicks on a button to invoke it, then
+  selects the file to embed and the helper creates the required
+  Markdown text.
+
+  The helper can also be used to generate Markdown for external links -
+  e.g. a link to a Google Maps location.
+
+  Full documentation for notes and files will be found at:
+
+    https://xronos.uk/notesnfiles.html
+
+* Separate flag to control e-mails about resource loading
+
+  An extra flag has been added to the user record allowing a user
+  to choose whether or not to receive resource loading e-mails
+  separately from whether or not they receive daily request e-mails.
+
+  This affects only users who manage resources.
+
+* Speed up resource count queries
+
+  If a user leaves Scheduler open in the browser, the front end sends
+  a periodic (10 minutes) query to the back end to find out if there
+  are any items awaiting the user's attention.  The response is used
+  to update the numbers in the user's menu structure.
+
+  For some heavily loaded users, the processing of this request could
+  take as long as 5 seconds under very bad conditions.  By adding a
+  cache field to one of the database records this has been reduced to
+  100ms.
+
+* Enhance seed data for demonstration system
+
+  The seed data for demonstration systems has been enhanced to show off
+  the new file embedding facilities.
+
+* Enhance API to allow creation/modification/deletion of notes
+
+  The API has been enhanced to allow the manipulation of notes
+  attached to events.  Full details are in the API manual.
+
+
 v1.8.1.1 2019-06-11
 
 * Hotfix for a problem with empty notes

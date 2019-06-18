@@ -74,6 +74,7 @@ class User < ActiveRecord::Base
   has_many :concerns,            dependent: :destroy
   has_many :concern_sets,        dependent: :destroy, foreign_key: :owner_id
   has_many :user_form_responses, dependent: :destroy
+  has_many :user_files,          dependent: :destroy, foreign_key: :owner_id
 
   has_many :events, foreign_key: :owner_id, dependent: :nullify
 
@@ -541,6 +542,8 @@ class User < ActiveRecord::Base
       (item.user_id == self.id) || self.admin?
     elsif item.instance_of?(Event)
       self.can_edit?(item)
+    elsif item.instance_of?(UserFile)
+      self.admin? || self.id == @user_file.owner_id
     else
       false
     end
@@ -716,6 +719,24 @@ class User < ActiveRecord::Base
       #  be dragged by their individual administrators.
       #
     (concern.element.add_directly? || self.owns_parent_of?(concern.element))
+  end
+
+  def can_upload_with_figures?
+    if can_has_files?
+      allowance = Setting.user_file_allowance
+      total_size = self.user_files.inject(0) {|sum, uf| sum + uf.file_size}
+      result = total_size < allowance
+      return result, total_size, allowance
+    else
+      return false, 0, 0
+    end
+  end
+
+  def can_upload?
+    #
+    #  Just the first value returned by the previous function.
+    #
+    can_upload_with_figures?[0]
   end
 
   #

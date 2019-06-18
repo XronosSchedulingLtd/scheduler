@@ -1,13 +1,17 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
+require 'uri'
+
 class Note < ActiveRecord::Base
-  belongs_to :parent, :polymorphic => true
+  belongs_to :parent, polymorphic: true
 #  belongs_to :commitments, -> { where( notes: { parent_type: 'Commitment' } ).includes(:notes) }, foreign_key: 'parent_id'
-  belongs_to :owner, :class_name => :User
+  belongs_to :owner, class_name: :User
   belongs_to :promptnote
+  has_many :attachments, as: :parent, dependent: :destroy
+  has_many :user_files, through: :attachments
 
   validates :parent, presence: true
 
@@ -16,6 +20,7 @@ class Note < ActiveRecord::Base
   enum note_type: [ :ordinary, :clashes, :yaml ]
 
   before_save :format_contents
+  after_save :check_for_attachments, if: :contents_changed?
 
   #
   #  Visibility values
@@ -76,6 +81,10 @@ class Note < ActiveRecord::Base
     end
   end
 
+  def any_attachments?
+    !self.attachments.empty?
+  end
+
   #
   #  This used to be a database field, but it's now calculated
   #  dynamically.  To be read only, we need to have a prompt
@@ -114,6 +123,46 @@ class Note < ActiveRecord::Base
 #      end
 #      self.formatted_contents = doc.to_s
       self.formatted_contents = original_html
+    end
+  end
+
+  def check_for_attachments
+    #
+    #  Get rid of all existing attachment records.
+    #  We will re-construct any that are still relevant.
+    #
+    self.attachments.destroy_all
+    unless self.formatted_contents.blank?
+      doc = Nokogiri::HTML::DocumentFragment.parse(self.formatted_contents)
+      doc.css('a').each do |link|
+        #
+        #  Is this a link to a file within our system?  If so, then
+        #  we need to create a corresponding attachment record.
+        #
+        uri = URI.parse(link[:href])
+        #
+        #  Is it on our host?
+        #
+        if uri.relative? || uri.host == Setting.dns_domain_name
+          #
+          #  Seems to be our host at least.
+          #  Is it a link to a user file?
+          #
+          if uri.path =~ /^\/user_files\//
+            #
+            #  Looking hopeful.  Now need to extract the last part.
+            #
+            leaf = Pathname.new(uri.path).basename.to_s
+            #
+            #  And does that match one of our files?
+            #
+            user_file = UserFile.find_by(nanoid: leaf)
+            if user_file
+              self.attachments.create(user_file: user_file)
+            end
+          end
+        end
+      end
     end
   end
 

@@ -1,0 +1,37 @@
+<div id='file-selector-dialog' title='Generate file link' style='display:none;'>
+  <div class='row collapse'>
+    <form>
+      <fieldset>
+        <div class='small-12 columns'>
+          <label for='fsd-textoflink'>Link text</label>
+          <input type='text'
+                 name='fsd-textoflink'
+                 id='fsd-textoflink'
+                 placeholder='optional'
+                 title='If given, this text will appear in place of the filename as part of your note.'/>
+        </div>
+        <div class='small-6 columns'>
+          <label for='fsd-url'>URL</label>
+          <input type='text'
+                 name='fsd-url'
+                 id='fsd-url'
+                 placeholder='URL of file to link'
+                 title='The URL of a file which can be freely downloaded. It may be hosted either within Scheduler or elsewhere.'/>
+        </div>
+        <div class='small-6 columns'>
+          <label for='fsd-filename'>File name</label>
+          <input type='text'
+                 name='fsd-filename'
+                 id='fsd-filename'
+                 title='The name of the file.  This will be used as the text of the link if no other text is given above.'/>
+        </div>
+      </fieldset>
+    </form>
+  </div>
+  <div class='row collapse'>
+    <p>Existing files - click to select one</p>
+    <div id='fsd-filelist'>
+    </div>
+  </div>
+</div>
+

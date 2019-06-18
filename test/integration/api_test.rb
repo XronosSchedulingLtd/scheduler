@@ -2,7 +2,8 @@ require 'test_helper'
 
 class ApiTest < ActionDispatch::IntegrationTest
   setup do
-    @api_user = FactoryBot.create(:user, :api, :editor)
+    @api_user = FactoryBot.create(:user, :api, :editor, :noter)
+    @other_api_user = FactoryBot.create(:user, :api, :editor, :noter)
     @api_user_no_edit = FactoryBot.create(:user, :api)
     @privileged_api_user = FactoryBot.create(:user, :api, :editor, :privileged)
     @ordinary_user = FactoryBot.create(:user)
@@ -43,6 +44,11 @@ class ApiTest < ActionDispatch::IntegrationTest
     @element_ids_to_add = @elements_to_add.collect {|e| e.id}
 
     @existing_event = FactoryBot.create(:event, owner: @api_user)
+
+    @existing_note = FactoryBot.create(:note,
+                                       parent: @existing_event,
+                                       owner: @api_user,
+                                       contents: "A note for an existing event")
 
     @api_paths = PublicApi::Engine.routes.url_helpers
   end
@@ -111,10 +117,8 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login
     get @api_paths.elements_path, format: :json
     assert_response :success
-    data = JSON.parse(response.body)
-    status = data['status']
+    data = unpack_response(response, 'OK')
     elements = data['elements']
-    assert_equal "OK", status
     #
     #  elements should be an empty array.
     #
@@ -133,10 +137,8 @@ class ApiTest < ActionDispatch::IntegrationTest
     get @api_paths.elements_path(name: 'ABC - Able Baker Charlie'),
         format: :json
     assert_response :success
-    data = JSON.parse(response.body)
-    status = data['status']
+    data = unpack_response(response, 'OK')
     elements = data['elements']
-    assert_equal "OK", status
     assert_instance_of Array, elements
     assert_equal 1, elements.size
     check_element_summary(elements[0])
@@ -153,10 +155,8 @@ class ApiTest < ActionDispatch::IntegrationTest
     get @api_paths.elements_path(namelike: 'Fotheringay'),
         format: :json
     assert_response :success
-    data = JSON.parse(response.body)
-    status = data['status']
+    data = unpack_response(response, 'OK')
     elements = data['elements']
-    assert_equal "OK", status
     assert_instance_of Array, elements
     assert_equal 4, elements.size
     elements.each do |element|
@@ -168,9 +168,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login
     get @api_paths.element_path(id: 999), format: :json
     assert_response :missing
-    data = JSON.parse(response.body)
-    status = data['status']
-    assert_equal "Not found", status
+    unpack_response(response, 'Not found')
   end
 
   test "element show succeeds for valid staff element" do
@@ -252,13 +250,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       elements: @element_ids_to_add
     ), format: :json
     assert_response 201         # Created
-    #puts response.body
-    response_data = JSON.parse(response.body)
-    #
-    #  Check textual status
-    #
-    status = response_data['status']
-    assert_equal 'Created', status
+    response_data = unpack_response(response, 'Created')
     #
     #  Check for failures - there should be none.
     #
@@ -293,7 +285,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       elements: [@resourcegroup.element.id, @resourcegroup.element.id]
     ), format: :json
     assert_response 201         # Created
-    response_data = JSON.parse(response.body)
+    response_data = unpack_response(response, 'Created')
     #
     #  Check for failures - there should be none.
     #
@@ -317,7 +309,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       elements: [@staff1.element.id, @staff1.element.id]
     ), format: :json
     assert_response 201         # Created
-    response_data = JSON.parse(response.body)
+    response_data = unpack_response(response, 'Created')
     #
     #  Check for failures - there should be one.
     #
@@ -339,12 +331,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       event: @valid_event_params
     ), format: :json
     assert_response 201         # Created
-    response_data = JSON.parse(response.body)
-    #
-    #  Check textual status
-    #
-    status = response_data['status']
-    assert_equal 'Created', status
+    response_data = unpack_response(response, 'Created')
     #
     #  We have our event - now add to it.
     #
@@ -356,7 +343,7 @@ class ApiTest < ActionDispatch::IntegrationTest
                                    elements: @element_ids_to_add),
                                    format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
+    response_data = unpack_response(response, 'OK')
     #
     #  Check for failures - there should be none.
     #
@@ -384,13 +371,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login
     get @api_paths.event_path(@existing_event), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    #
-    #  Check textual status
-    #
-    status = response_data['status']
-    assert_equal 'OK', status
-    #
+    response_data = unpack_response(response, 'OK')
     event = response_data['event']
     assert_instance_of Hash, event
   end
@@ -399,12 +380,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login
     get @api_paths.event_path(999), format: :json
     assert_response :missing
-    response_data = JSON.parse(response.body)
-    #
-    #  Check textual status
-    #
-    status = response_data['status']
-    assert_equal 'Not found', status
+    response_data = unpack_response(response, 'Not found')
   end
 
   test 'event query returns both commitments and requests' do
@@ -416,7 +392,7 @@ class ApiTest < ActionDispatch::IntegrationTest
                                    elements: @element_ids_to_add),
                                    format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
+    response_data = unpack_response(response, 'OK')
     #
     #  Check for failures - there should be none.
     #
@@ -428,12 +404,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     get @api_paths.event_path(@existing_event), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    #
-    #  Check textual status
-    #
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     #
     #
     #  And check the event has the right number
@@ -473,10 +444,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
     ), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     requests = response_data['requests']
     assert_instance_of Array, requests
     assert_equal 3, requests.size
@@ -489,10 +457,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
     ), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     requests = response_data['requests']
     assert_instance_of Array, requests
     assert_equal 2, requests.size
@@ -503,10 +468,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       @resourcegroup.element
     ), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     requests = response_data['requests']
     assert_instance_of Array, requests
     assert_equal 1, requests.size
@@ -526,10 +488,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
     ), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     requests = response_data['requests']
     assert_instance_of Array, requests
     assert_equal 3, requests.size
@@ -550,10 +509,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
     ), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     requests = response_data['requests']
     assert_instance_of Array, requests
     assert_equal 2, requests.size
@@ -580,10 +536,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
     ), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
     assert_instance_of Array, commitments
     assert_equal 3, commitments.size
@@ -596,10 +549,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
     ), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
     assert_instance_of Array, commitments
     assert_equal 2, commitments.size
@@ -610,10 +560,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       @staff1.element
     ), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
     assert_instance_of Array, commitments
     assert_equal 1, commitments.size
@@ -633,10 +580,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
     ), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
     assert_instance_of Array, commitments
     assert_equal 3, commitments.size
@@ -657,10 +601,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
     ), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
     assert_instance_of Array, commitments
     assert_equal 2, commitments.size
@@ -680,10 +621,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
     ), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
     assert_instance_of Array, commitments
     assert_equal 3, commitments.size
@@ -704,10 +642,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
     ), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
     assert_instance_of Array, commitments
     assert_equal 2, commitments.size
@@ -718,10 +653,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login
     get @api_paths.eventcategories_path, format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     eventcategories = response_data['eventcategories']
     assert_instance_of Array, eventcategories
     assert_equal expected, eventcategories.size
@@ -732,10 +664,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login(@privileged_api_user)
     get @api_paths.eventcategories_path, format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     eventcategories = response_data['eventcategories']
     assert_instance_of Array, eventcategories
     assert_equal expected, eventcategories.size
@@ -745,10 +674,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login
     get @api_paths.eventcategory_path(@eventcategory), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     eventcategory = response_data['eventcategory']
     assert_instance_of Hash, eventcategory
   end
@@ -763,15 +689,161 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login(@privileged_api_user)
     get @api_paths.eventcategory_path(@privileged_eventcategory), format: :json
     assert_response :success
-    response_data = JSON.parse(response.body)
-    assert_instance_of Hash, response_data
-    status = response_data['status']
-    assert_equal 'OK', status
+    response_data = unpack_response(response, 'OK')
     eventcategory = response_data['eventcategory']
     assert_instance_of Hash, eventcategory
   end
 
+  test 'can get list of notes for event' do
+    do_valid_login
+    get @api_paths.event_notes_path(@existing_event), format: :json
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    notes = response_data['notes']
+    assert_instance_of Array, notes, "Notes"
+    assert_equal 1, notes.size
+    assert_equal @existing_note.contents, notes[0]['contents']
+  end
+
+  test 'notes request for bad event id gives not_found' do
+    do_valid_login
+    get @api_paths.event_notes_path(999), format: :json
+    assert_response :missing
+  end
+
+  test 'can add a note to an event' do
+    original_count = @existing_event.notes.count
+    do_valid_login
+    post @api_paths.event_notes_path(
+      @existing_event,
+      note: { contents: 'Hello, world!'}
+    ), format: :json
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    note = response_data['note']
+    assert_instance_of Hash, note
+    assert_equal 'Hello, world!', note['contents']
+    #
+    #  And do we now see it in the list for the event?
+    #
+    get @api_paths.event_notes_path(@existing_event), format: :json
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    notes = response_data['notes']
+    assert_instance_of Array, notes, "Notes"
+    assert_equal original_count + 1, notes.size
+  end
+
+  test 'can set flags on a note as we add it' do
+    do_valid_login
+    post @api_paths.event_notes_path(
+      @existing_event,
+      note: {
+        contents: 'Hello, world!',
+        visible_guest: true,
+        visible_staff: false,
+        visible_pupil: true
+      }
+    ), format: :json
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    note = response_data['note']
+    assert_instance_of Hash, note
+    assert_equal 'Hello, world!', note['contents']
+    assert     note['visible_guest']
+    assert_not note['visible_staff']
+    assert     note['visible_pupil']
+  end
+
+  test 'can get more details of a note' do
+    do_valid_login
+    get @api_paths.note_path(@existing_note), format: :json
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    note = response_data['note']
+    assert_instance_of Hash, note
+    assert note.has_key? 'id'
+    assert note.has_key? 'contents'
+    assert note.has_key? 'visible_guest'
+    assert note.has_key? 'visible_staff'
+    assert note.has_key? 'visible_pupil'
+    assert note.has_key? 'formatted_contents'
+  end
+
+  test 'but not of a non-existent note' do
+    do_valid_login
+    get @api_paths.note_path(999), format: :json
+    assert_response :missing
+  end
+
+  test 'can update the contents of a note' do
+    do_valid_login
+    get @api_paths.note_path(@existing_note), format: :json
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    note = response_data['note']
+    original_contents = note['contents']
+    assert_not_nil original_contents
+
+    put @api_paths.note_path(
+      @existing_note,
+      note: {
+        contents: 'Updated contents'
+      }), format: :json
+    assert_response :success
+    #
+    #  Check our change has been effective
+    #
+    get @api_paths.note_path(@existing_note), format: :json
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    note = response_data['note']
+    new_contents = note['contents']
+    assert_equal 'Updated contents', new_contents
+  end
+
+  test 'cannot update a note belonging to someone else' do
+    do_valid_login(@other_api_user)
+    put @api_paths.note_path(
+      @existing_note,
+      note: {
+        contents: 'Updated contents'
+      }), format: :json
+    assert_response :forbidden
+  end
+
+  test 'can delete a note from an event' do
+    do_valid_login
+    delete @api_paths.note_path(@existing_note), format: :json
+    assert_response :success
+  end
+
+  test 'but not one which we do not own' do
+    #
+    #  The pre-existing note belongs to @api_user, not to @other_api_user.
+    #
+    do_valid_login(@other_api_user)
+    delete @api_paths.note_path(@existing_note), format: :json
+    assert_response :forbidden
+  end
+
+  test 'cannot delete a non-existent note' do
+    do_valid_login
+    delete @api_paths.note_path(999), format: :json
+    assert_response :missing
+  end
+
+
   private
+
+  def unpack_response(response, expected_status = nil)
+    response_data = JSON.parse(response.body)
+    assert_instance_of Hash, response_data
+    if expected_status
+      assert_equal expected_status, response_data['status']
+    end
+    response_data
+  end
 
   def do_valid_login(user = @api_user)
     get @api_paths.login_path(uid: user.uuid), format: :json

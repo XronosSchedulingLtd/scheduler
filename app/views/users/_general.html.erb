@@ -117,7 +117,10 @@
                     annotation: "Should the system send daily e-mail notifications of requests awaiting your attention?"},
                    {field: :immediate_notification,
                     prompt: "Immediate",
-                    annotation: "Should the system send immediate e-mail notifications of requests awaiting your attention?"}
+                    annotation: "Should the system send immediate e-mail notifications of requests awaiting your attention?"},
+                   {field: :loading_notification,
+                    prompt: "Loading",
+                    annotation: "Should the system send daily e-mails about projected loadings?"}
                  ]) %>
 <% end %>
 <% if current_user.create_events? %>

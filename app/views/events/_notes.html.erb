@@ -9,7 +9,7 @@
 <% if current_user && current_user.can_add_notes? %>
     <div class="note_link">
       <%=
-        link_to "Add note", new_event_note_path(@event), remote: true
+        link_to "Add note / file", new_event_note_path(@event), remote: true
       %>
     </div>
     <hr/>

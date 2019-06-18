@@ -1,27 +1,28 @@
 FactoryBot.define do
+  factory :attachment do
+    parent_id { 1 }
+    parent_type { "MyString" }
+    user_file_id { 1 }
+  end
+
   factory :era do
     sequence(:name) { |n| "Era number #{n}" }
     starts_on       { Date.today }
     ends_on         { Date.today + 1.year }
   end
-end
 
-FactoryBot.define do
   factory :property do
     sequence(:name) { |n| "Property number #{n}" }
   end
-end
 
 #
 #  If you try to create an element on its own, it will get a Property
 #  as its entity.
 #
-FactoryBot.define do
   factory :element do
     sequence(:name) { |n| "Element number #{n}" }
     association :entity, factory: :property
   end
-end
 
 #
 #  Note that we don't need to specify Element records within our
@@ -32,7 +33,6 @@ end
 #  to create the link explicitly because they go around the back of
 #  the models and shove stuff in the database directly.
 #
-FactoryBot.define do
   factory :group do
     sequence(:name) { |n| "Group number #{n}" }
     era
@@ -45,16 +45,12 @@ FactoryBot.define do
     starts_on     { Date.today }
     add_attribute(:persona_class) { 'Vanillagrouppersona' }
   end
-end
 
-FactoryBot.define do
   factory :location do
     sequence(:name) { |n| "Location number #{n}" }
     active { true }
   end
-end
 
-FactoryBot.define do
   factory :staff do
     sequence(:name) { |n| "Staff member #{n}" }
     sequence(:initials) { |n| "SM#{n}" }
@@ -62,36 +58,27 @@ FactoryBot.define do
     current { true }
     teaches { true }
   end
-end
 
-FactoryBot.define do
   factory :pupil do
     sequence(:name) { |n| "Pupil #{n}" }
     current { true }
   end
-end
 
-FactoryBot.define do
   factory :service do
     sequence(:name) { |n| "Resource / Service #{n}" }
   end
-end
 
-FactoryBot.define do
   factory :subject do
     sequence(:name) { |n| "Subject #{n}" }
   end
-end
 
-FactoryBot.define do
   factory :user_profile do
     sequence(:name) { |n| "User profile #{n}" }
   end
-end
 
-FactoryBot.define do
   factory :user do
-
+    sequence(:name) { |n| "User number #{n}" }
+    sequence(:email) { |n| "user#{n}@myschool.org.uk" }
     #
     #  We have to be quite clever to allow privilege flags to be set
     #  via traits individually.  They all need to end up in the same
@@ -104,6 +91,8 @@ FactoryBot.define do
       permissions_editor     { false }
       permissions_privileged { false }
       permissions_api        { false }
+      permissions_noter      { false }
+      permissions_files      { false }
     end
 
     #
@@ -123,6 +112,14 @@ FactoryBot.define do
 
     trait :api do
       permissions_api { true }
+    end
+
+    trait :noter do
+      permissions_noter { true }
+    end
+
+    trait :files do
+      permissions_files { true }
     end
 
     firstday { 0 }
@@ -146,22 +143,24 @@ FactoryBot.define do
       if permissions_api
         hash[:can_api] = true
       end
+      if permissions_noter
+        hash[:can_add_notes] = true
+      end
+      if permissions_files
+        hash[:can_has_files] = true
+      end
       hash
     end
 
     factory :admin_user, traits: [:admin]
   end
-end
 
-FactoryBot.define do
   factory :concern do
     user
     element
     colour { 'blue' }
   end
-end
 
-FactoryBot.define do
   factory :eventcategory do
     sequence(:name) { |n| "Event category #{n}" }
     pecking_order   { 10 }
@@ -175,15 +174,11 @@ FactoryBot.define do
     #  The rest have defaults in the d/b anyway.
     #
   end
-end
 
-FactoryBot.define do
   factory :eventsource do
     sequence(:name) { |n| "Event source #{n}" }
   end
-end
 
-FactoryBot.define do
   factory :event do
     sequence(:body) { |n| "Event #{n}" }
     eventcategory
@@ -191,55 +186,52 @@ FactoryBot.define do
     starts_at { Time.now }
     ends_at   { Time.now + 1.hour }
   end
-end
 
-FactoryBot.define do
+  factory :note do
+    association :parent, factory: :event
+    contents { "Some random text in a note" }
+  end
+
   factory :resourcegrouppersona do
   end
-end
 
-FactoryBot.define do
   factory :resourcegroup do
     sequence(:name) { |n| "Resource group #{n}" }
     era
     starts_on { Date.today }
     association :persona, factory: :resourcegrouppersona
   end
-end
 
-FactoryBot.define do
   factory :user_form do
     sequence(:name) { |n| "User form #{n}" }
   end
-end
 
-FactoryBot.define do
   factory :commitment do
     event
     element
   end
-end
 
-FactoryBot.define do
   factory :user_form_response do
     user_form
     association :parent, factory: :commitment
   end
-end
 
-FactoryBot.define do
   factory :comment do
     user
     association :parent, factory: :user_form_response
     body { "Hello there - I'm a comment" }
   end
-end
 
-FactoryBot.define do
   factory :request do
     element
     event
     quantity { 1 }
   end
+
+  factory :user_file do
+    association :owner, factory: :user
+    file_info { DummyFileInfo.new }
+  end
+
 end
 

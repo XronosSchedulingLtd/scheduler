@@ -346,6 +346,14 @@ class Request < ActiveRecord::Base
 
   def clone_and_save(modifiers)
     new_self = self.dup
+    #
+    #  Each request record contains a cached count of attached commitments.
+    #  Since we now have no commitments, we need to zero that count.
+    #
+    #  ActiveRecord will take over looking after it as and when we
+    #  start acquiring our own commitments.
+    #
+    new_self.commitments_count = 0
     modifiers.each do |key, value|
       new_self.send("#{key}=", value)
     end
@@ -484,6 +492,12 @@ class Request < ActiveRecord::Base
     end
     puts "Count = #{count}"
     nil
+  end
+
+  def self.set_initial_counts
+    Request.all.each do |request|
+      Request.reset_counters(request.id, :commitments)
+    end
   end
 
   private

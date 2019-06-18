@@ -8,4 +8,15 @@ div.note_contents {
   background-color: #f0f0f0;
   padding-left: 4px;
   padding-right: 4px;
+  a {
+    color: rgb(0,140,186);
+  }
+}
+
+div.note-attachments {
+  padding-left: 4px;
+  padding-right: 4px;
+  p {
+    margin-bottom: 5px;
+  }
 }
