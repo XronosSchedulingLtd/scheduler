@@ -27,7 +27,9 @@ module PublicApi
         end
       elsif params[:namelike]
         @elements =
-          Element.current.where("name LIKE ?", "%#{params[:namelike]}%")
+          Element.current.
+                  where("name LIKE ?", "%#{params[:namelike]}%").
+                  limit(100)
         if @elements.empty?
           status = :not_found
         else

@@ -166,6 +166,23 @@ class ApiTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test 'limit of 100 on how many elements returned' do
+    105.times do |i|
+      FactoryBot.create(:pupil, name: "Pupil #{i}")
+    end
+    do_valid_login
+    get @api_paths.elements_path(namelike: 'Pupil'),
+        format: :json
+    assert_response :success
+    data = unpack_response(response, 'OK')
+    elements = data['elements']
+    assert_instance_of Array, elements
+    assert_equal 100, elements.size
+    elements.each do |element|
+      check_element_summary(element)
+    end
+  end
+
   test "element show with invalid id returns appropriate error" do
     do_valid_login
     get @api_paths.element_path(id: 999), format: :json
