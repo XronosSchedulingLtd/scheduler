@@ -43,7 +43,9 @@ class ApiTest < ActionDispatch::IntegrationTest
     ]
     @element_ids_to_add = @elements_to_add.collect {|e| e.id}
 
-    @existing_event = FactoryBot.create(:event, owner: @api_user)
+    @existing_event = FactoryBot.create(:event,
+                                        owner: @api_user,
+                                        organiser: @staff1.element)
 
     @existing_note = FactoryBot.create(:note,
                                        parent: @existing_event,
@@ -421,6 +423,27 @@ class ApiTest < ActionDispatch::IntegrationTest
       event['requests'].size
     assert_equal for_commitments.size,
       event['commitments'].size
+  end
+
+  test 'event query should return extra details' do
+    do_valid_login
+    get @api_paths.event_path(@existing_event), format: :json
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    event = response_data['event']
+    assert_instance_of Hash, event
+    assert_not_nil event['starts_at']
+    assert_not_nil event['ends_at']
+    assert_not_nil event['all_day']
+    #
+    #  Not all events have an owner or organiser, so all we can
+    #  check in general is that the field exists.  However,
+    #  our own constructed event does have both of these specified.
+    #
+    assert_not_nil event['organiser']
+    assert_not_nil event['owner']
+    assert_not_nil event['requests']
+    assert_not_nil event['commitments']
   end
 
   #

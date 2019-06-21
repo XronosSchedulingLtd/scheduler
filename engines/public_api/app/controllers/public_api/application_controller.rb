@@ -224,6 +224,18 @@ module PublicApi
             hash[:auto_pupils] = item.entity.auto_pupils
           end
           hash
+        when Event
+          hash = {
+            id:          item.id,
+            body:        item.body,
+            starts_at:   item.starts_at,
+            ends_at:     item.ends_at,
+            all_day:     item.all_day,
+            organiser:   self.summary_from(item.organiser),
+            owner:       self.summary_from(item.owner),
+            commitments: self.summary_from(item.commitments, item),
+            requests:    self.summary_from(item.requests, item)
+          }
         when Eventcategory
           hash = {
             id:            item.id,
