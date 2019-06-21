@@ -16,48 +16,7 @@
         <td><%= setting.current_era ? setting.current_era.name : "Era not set" %></td>
       </tr>
       <tr>
-        <td>Next era</td>
-        <td><%= setting.next_era ? setting.next_era.name : "Era not set" %></td>
-      </tr>
-      <tr>
-        <td>Previous era</td>
-        <td><%= setting.previous_era ? setting.previous_era.name : "Era not set" %></td>
-      </tr>
-      <tr>
-        <td>Perpetual era</td>
-        <td><%= setting.perpetual_era ? setting.perpetual_era.name : "Era not set" %></td>
-      </tr>
-      <tr>
-        <td>Enforcing permissions</td>
-        <td><%= setting.enforce_permissions ? "Yes" : "No" %></td>
-      </tr>
-      <tr>
-        <td>Current MIS</td>
-        <td><%= setting.current_mis %></td>
-      </tr>
-      <tr>
-        <td>Previous MIS</td>
-        <td><%= setting.previous_mis %></td>
-      </tr>
-      <tr>
-        <td>Authentication</td>
-        <td><%= setting.auth_type %></td>
-      </tr>
-      <tr>
-        <td>DNS domain name</td>
-        <td><%= setting.dns_domain_name %></td>
-      </tr>
-      <tr>
-        <td>E-mails originate from</td>
-        <td><%= setting.from_email_address %></td>
-      </tr>
-      <tr>
-        <td>Event creation prompt</td>
-        <td><%=
-          setting.event_creation_html ?  setting.event_creation_html.html_safe : "" %></td>
-      </tr>
-      <tr>
-        <td><%= link_to 'Edit', edit_setting_path(setting) %></td>
+        <td><%= link_to 'Edit', edit_setting_path(setting), class: 'zfbutton tiny radius button-link' %></td>
         <td></td>
       </tr>
     <% end %>
