@@ -5,6 +5,7 @@ if ($('#file-selector-dialog').length) {
   var file_dialog = function() {
     var that = {};
     var dialog;
+    var template;
     var oldPos;
     var currentlyOpen = false;
 
@@ -90,7 +91,7 @@ if ($('#file-selector-dialog').length) {
       }
     }
 
-    function populateAndOpen(data, textStatus, jqXHR) {
+    function populateFiles(data) {
       var list = $('#file-selector-dialog div#fsd-filelist');
 
       list.empty();
@@ -101,6 +102,12 @@ if ($('#file-selector-dialog').length) {
       //  And set up click handlers for each of them.
       //
       list.find('span').click(fileClickHandler);
+    }
+
+    function populateAndOpen(data, textStatus, jqXHR) {
+      var dialogue_div = $('#for-upload-dialogue');
+
+      populateFiles(data);
       //
       //  Remove any left-over content in our input fields from a
       //  possible previous invocation.
@@ -109,16 +116,27 @@ if ($('#file-selector-dialog').length) {
       $('#fsd-url').val('');
       $('#fsd-filename').val('');
       //
+      //  Add the upload dialogue.
+      //
+      var mock_data = {
+        'user_id': 4
+      }
+      dialogue_div.html(template(mock_data));
+      //
       //  And open it.
       //
       dialog.dialog('open');
       currentlyOpen = true;
     }
 
+    function repopulate(data, textStatus, jqXHR) {
+      populateFiles(data);
+    }
+
     that.init = function() {
       dialog = $('#file-selector-dialog').dialog({
         autoOpen: false,
-        height: 600,
+        height: 650,
         width: 700,
         modal: true,
         buttons: {
@@ -132,6 +150,7 @@ if ($('#file-selector-dialog').length) {
           }
         }
       });
+      template = _.template($('#file-upload-dialogue').html()),
 
       window.openFileDialogue = function(event) {
         var contentsField = $('#note_contents');
@@ -172,6 +191,16 @@ if ($('#file-selector-dialog').length) {
           dialog.dialog('close');
           currentlyOpen = false;
         }
+      }
+
+      window.fileUploadComplete = function() {
+        $.ajax({
+          url: '/user_files',
+          type: 'GET',
+          context: this,
+          contentType: 'application/json',
+          dataType: 'json'
+        }).done(repopulate);
       }
 
       $(document).on('closed', '[data-reveal]', window.closeFileDialogue);

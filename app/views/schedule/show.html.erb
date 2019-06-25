@@ -79,4 +79,18 @@
 <%%= name %> <a href="#" class="deleter">&#215;</a>
 </script>
 
+<script type='text/template' id='file-upload-dialogue'>
+<form enctype='multipart/form-data'
+      action='/users/<%%= user_id %>/user_files/upload'
+      accept-charset='UTF-8'
+      method='post'
+      data-remote='true'
+      id='upload-dialogue-form'>
+  <input name='utf8' type='hidden' value='✓'>
+  <input type='hidden' name='authenticity_token' value='<%= form_authenticity_token %>'>
+  <input type='hidden' name='do_remote' value='✓'>
+  <input type='file' name='file_info' id='file_info'>
+  <input type='submit' name='commit' value='Upload'>
+</form>
+</script>
 
