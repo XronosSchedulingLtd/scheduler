@@ -89,8 +89,12 @@
   <input name='utf8' type='hidden' value='✓'>
   <input type='hidden' name='authenticity_token' value='<%= form_authenticity_token %>'>
   <input type='hidden' name='do_remote' value='✓'>
-  <input type='file' name='file_info' id='file_info'>
-  <input type='submit' name='commit' value='Upload'>
+  <div class='small-8 columns'>
+    <input type='file' name='file_info' id='file_info'>
+  </div>
+  <div class='small-4 columns'>
+    <input type='submit' name='commit' value='Upload' class='zfbutton teensy radius'>
+  </div>
 </form>
 </script>
 

@@ -21,8 +21,8 @@ class Attachment < ActiveRecord::Base
 
   def shortened_name
     candidate = name
-    if candidate.size > 20
-      candidate = candidate[0, 17] + '...'
+    if candidate.size > 18
+      candidate = candidate[0, 15] + '...'
     end
     candidate
   end

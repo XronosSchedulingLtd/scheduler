@@ -2,9 +2,19 @@
   z-index: 1500;
 }
 
+div#file-selector-dialog {
+  fieldset {
+    padding: 0.25rem;
+  }
+
+  input {
+    margin-bottom: 5px;
+  }
+}
+
 div#fsd-filelist {
   line-height: 30px;
-  height: 180px;
+  height: 230px;
   overflow-y: scroll;
   span {
     border: 1px solid rgb(0,112,149);
@@ -24,3 +34,8 @@ div#fsd-filelist {
   }
 }
 
+div#file-upload-area {
+  border: 1px solid rgb(221, 221, 221);
+  margin-top: 5px;
+  padding: 5px;
+}
