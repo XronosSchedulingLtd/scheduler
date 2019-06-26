@@ -119,7 +119,7 @@ if ($('#file-selector-dialog').length) {
       //  Add the upload dialogue.
       //
       var mock_data = {
-        'user_id': 4
+        'user_id': dialog.data('user-id')
       }
       dialogue_div.html(template(mock_data));
       //

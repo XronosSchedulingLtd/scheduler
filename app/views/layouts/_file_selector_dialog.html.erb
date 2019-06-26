@@ -1,4 +1,7 @@
-<div id='file-selector-dialog' title='Generate file link' style='display:none;'>
+<div id='file-selector-dialog'
+     title='Generate file link'
+     style='display:none;'
+     data-user-id='<%= current_user ? current_user.id : 0 %>'>
   <div class='row collapse'>
     <p>Existing files - click to select one</p>
     <div id='fsd-filelist'>
