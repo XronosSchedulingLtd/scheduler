@@ -8,6 +8,7 @@ if ($('#file-selector-dialog').length) {
     var template;
     var oldPos;
     var currentlyOpen = false;
+    var userId;
 
     function insertText(field, position, text) {
       var existingContents = field.val();
@@ -95,7 +96,7 @@ if ($('#file-selector-dialog').length) {
       var list = $('#file-selector-dialog div#fsd-filelist');
 
       list.empty();
-      data.forEach(function(item) {
+      data['files'].forEach(function(item) {
         list.append('<span data-nanoid="' + item['nanoid'] + '">' + item['original_file_name'] + '</span> ');
       });
       //
@@ -119,7 +120,7 @@ if ($('#file-selector-dialog').length) {
       //  Add the upload dialogue.
       //
       var mock_data = {
-        'user_id': dialog.data('user-id')
+        'user_id': userId
       }
       dialogue_div.html(template(mock_data));
       //
@@ -151,6 +152,7 @@ if ($('#file-selector-dialog').length) {
         }
       });
       template = _.template($('#file-upload-dialogue').html()),
+      userId = dialog.data('user-id');
 
       window.openFileDialogue = function(event) {
         var contentsField = $('#note_contents');
@@ -174,7 +176,7 @@ if ($('#file-selector-dialog').length) {
           oldPos = null;
         }
         $.ajax({
-          url: '/user_files',
+          url: '/users/' + userId + '/user_files',
           type: 'GET',
           context: this,
           contentType: 'application/json',
@@ -195,7 +197,7 @@ if ($('#file-selector-dialog').length) {
 
       window.fileUploadComplete = function() {
         $.ajax({
-          url: '/user_files',
+          url: '/users/' + userId + '/user_files',
           type: 'GET',
           context: this,
           contentType: 'application/json',
