@@ -203,6 +203,7 @@ if ($('#file-selector-dialog').length) {
       }
 
       window.fileUploadComplete = function() {
+        $('#upload-dialogue-form').trigger('reset');
         $.ajax({
           url: '/users/' + userId + '/user_files',
           type: 'GET',
