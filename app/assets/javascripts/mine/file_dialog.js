@@ -92,11 +92,11 @@ if ($('#file-selector-dialog').length) {
       }
     }
 
-    function populateFiles(data) {
+    function populateFiles(files) {
       var list = $('#file-selector-dialog div#fsd-filelist');
 
       list.empty();
-      data['files'].forEach(function(item) {
+      files.forEach(function(item) {
         list.append('<span data-nanoid="' + item['nanoid'] + '">' + item['original_file_name'] + '</span> ');
       });
       //
@@ -108,7 +108,7 @@ if ($('#file-selector-dialog').length) {
     function populateAndOpen(data, textStatus, jqXHR) {
       var dialogue_div = $('#for-upload-dialogue');
 
-      populateFiles(data);
+      populateFiles(data['files']);
       //
       //  Remove any left-over content in our input fields from a
       //  possible previous invocation.
@@ -117,12 +117,19 @@ if ($('#file-selector-dialog').length) {
       $('#fsd-url').val('');
       $('#fsd-filename').val('');
       //
-      //  Add the upload dialogue.
+      //  Is this user allowed to upload?
       //
-      var mock_data = {
-        'user_id': userId
+      if (data['allow_upload']) {
+        //
+        //  Add the upload dialogue.
+        //
+        var mock_data = {
+          'user_id': userId
+        }
+        dialogue_div.html(template(mock_data));
+      } else {
+        dialogue_div.html('<p class="unavailable">not available</p>');
       }
-      dialogue_div.html(template(mock_data));
       //
       //  And open it.
       //
@@ -131,7 +138,7 @@ if ($('#file-selector-dialog').length) {
     }
 
     function repopulate(data, textStatus, jqXHR) {
-      populateFiles(data);
+      populateFiles(data['files']);
     }
 
     that.init = function() {
@@ -151,7 +158,7 @@ if ($('#file-selector-dialog').length) {
           }
         }
       });
-      template = _.template($('#file-upload-dialogue').html()),
+      template = _.template($('#file-upload-dialogue').html());
       userId = dialog.data('user-id');
 
       window.openFileDialogue = function(event) {
