@@ -7,16 +7,28 @@ if ($('#file-selector-dialog').length) {
     var dialog;
     var template;
     var oldPos;
+    var oldRange;
     var currentlyOpen = false;
     var userId;
 
-    function insertText(field, position, text) {
-      var existingContents = field.val();
-      var newContents = existingContents.substring(0, position) +
-                        text +
-                        existingContents.substring(position);
-      field.val(newContents);
-      field.caret(position + text.length);
+    function insertText(field, position, range, text) {
+      //
+      //  How we behave here depends on whether there was
+      //  anything selected before.
+      //
+      if (range.length > 0) {
+        //
+        //  Select what was selected before, then replace it, then
+        //  unselect it and put the cursor at the end.
+        //
+        field.range(range.start, range.end).range(text);
+        field.caret(field.range().end);
+      } else {
+        //
+        //  Just insert at indicated position
+        //
+        field.caret(position).caret(text);
+      }
     }
 
     function escapeMarkdown(string) {
@@ -74,7 +86,7 @@ if ($('#file-selector-dialog').length) {
         var contentsField = $('#note_contents');
         contentsField.focus().caret(oldPos);
         if (textToInject.length) {
-          insertText(contentsField, oldPos, textToInject);
+          insertText(contentsField, oldPos, oldRange, textToInject);
         }
       }
     }
@@ -113,7 +125,11 @@ if ($('#file-selector-dialog').length) {
       //  Remove any left-over content in our input fields from a
       //  possible previous invocation.
       //
-      $('#fsd-textoflink').val('');
+      if (oldRange) {
+        $('#fsd-textoflink').val(oldRange.text);
+      } else {
+        $('#fsd-textoflink').val('');
+      }
       $('#fsd-url').val('');
       $('#fsd-filename').val('');
       //
@@ -178,6 +194,7 @@ if ($('#file-selector-dialog').length) {
         //  it exists.
         //
         if (contentsField) {
+          oldRange = contentsField.range();
           oldPos = contentsField.caret();
         } else {
           oldPos = null;
