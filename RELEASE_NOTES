@@ -1,3 +1,45 @@
+v1.8.3   2019-07-02
+
+* Provide more details when a single event is queried through the API
+
+  The API has always allowed individual events to be queried, but
+  previously provided no more information than it would have done
+  in an event listing.  The returned data now include extras like
+  the owner and organiser of the event.
+
+* Re-arrange order of fields in system settings
+
+  In writing documentation for the system settings it was noticed that
+  the fields in the settings dialogue were in a less than logical order.
+  They have been re-arranged to make slightly more sense - and to match
+  the new documentation.
+
+* Place limit of 100 on API fuzzy element search
+
+  The API provides the means to list elements using a fuzzy match
+  call.  If the provided string is really short - e.g. just "e" - then
+  the API would end up listing pretty much every element in the system.
+
+  It now limits the total number of elements returned in such a
+  search to 100.
+
+* Allow file upload from note editing dialogue
+
+  The previous release added the means to upload files, plus a helper
+  for generating links in notes.  However the two processes were separate.
+  The user had to upload the file first through a top level menu choice,
+  then create/edit a note and create a link.
+
+  It is now possible to upload the file as part of using the link
+  creation helper.
+
+* More events in seed data
+
+  The seed data used by the Scheduler demonstration system now
+  has significantly more calendar events in it, giving a more
+  realistic view to the sample week.
+
+
 v1.8.2   2019-06-18
 
 * Allow users to store files in Scheduler
