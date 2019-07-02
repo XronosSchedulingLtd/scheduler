@@ -65,6 +65,7 @@ class UserFilesController < ApplicationController
   #  Receive an incoming file.
   #
   def upload
+#    raise params.inspect
     file_info = params[:file_info]
     if file_info
       @user_file = @user.user_files.create({file_info: file_info})
@@ -75,7 +76,10 @@ class UserFilesController < ApplicationController
       #
       file_info.close(true)
     end
-    redirect_to user_user_files_path(@user)
+    respond_to do |format|
+      format.html { redirect_to user_user_files_path(@user) }
+      format.js
+    end
   end
 
   def destroy

@@ -165,6 +165,7 @@ GEM
     rdoc (4.1.1)
       json (~> 1.4)
     redcarpet (3.4.0)
+    remotipart (1.4.3)
     ri_cal (0.8.8)
     ruby-prof (0.15.1)
     safely_block (0.2.1)
@@ -234,6 +235,7 @@ DEPENDENCIES
   rails-jquery-autocomplete
   rails-observers
   redcarpet
+  remotipart
   ri_cal
   ruby-prof
   sass (~> 3.3.0)

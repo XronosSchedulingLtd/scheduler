@@ -20,7 +20,7 @@ module PublicApi
       json_result = {
         status: status_text(status)
       }
-      json_result[:event] = mh.summary_from(@event)
+      json_result[:event] = mh.detail_from(@event)
       render json: json_result, status: status
     end
 

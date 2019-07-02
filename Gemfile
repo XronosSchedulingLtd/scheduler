@@ -63,6 +63,7 @@ gem 'tod'
 gem 'redcarpet'
 gem 'ahoy_email'
 gem 'nanoid'
+gem 'remotipart'
 group :production do
   gem 'tiny_tds'
 end
