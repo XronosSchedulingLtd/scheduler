@@ -188,6 +188,9 @@ cr << gb
 
 seeder.set_room_cover_group(cr)
 
+#
+#  Some calendar events to make at least one week look reasonably busy.
+#
 calendarproperty = seeder.properties[:calendarproperty]
 suspensionproperty = seeder.properties[:suspensionproperty]
 
@@ -207,9 +210,8 @@ seeder.add_event(:trip,
                  "Geography field trip",
                  :thursday,
                  ["09:00", "17:00"],
-                 :ced,
-                 nil,
-                 {involving: [calendarproperty, geopupils]})
+                 :ced).
+        involving(calendarproperty, geopupils)
 seeder.add_event(:parentsevening,
                  "Year 9 parents' evening",
                  :tuesday,
@@ -242,6 +244,9 @@ seeder.add_event(:assembly,
                  allpupils,
                  seeder.locations[:mainhall])
 
+#
+#  Assemblies
+#
 [:monday, :tuesday, :wednesday, :thursday, :friday].each do |day|
   seeder.add_event(:assembly,
                    "Assembly",
@@ -254,18 +259,14 @@ end
 seeder.add_event(:datecrucial,
                  "Founder's Day",
                  :monday,
-                 :all_day,
-                 nil,
-                 nil,
-                 {involving: calendarproperty})
+                 :all_day).
+       involving(calendarproperty)
 
 seeder.add_event(:dateother,
                  "Year 11 exams",
                  :nextmonday,
-                 :all_day,
-                 nil,
-                 nil,
-                 {involving: calendarproperty})
+                 :all_day).
+       involving(calendarproperty)
 
 seeder.add_event(:personal,
                  "Confidential meeting",
