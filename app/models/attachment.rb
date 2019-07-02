@@ -10,4 +10,20 @@ class Attachment < ActiveRecord::Base
 
   validates :parent, presence: true
   validates :user_file, presence: true
+
+  def name
+    if user_file
+      user_file.original_file_name
+    else
+      "<None>"
+    end
+  end
+
+  def shortened_name
+    candidate = name
+    if candidate.size > 18
+      candidate = candidate[0, 15] + '...'
+    end
+    candidate
+  end
 end

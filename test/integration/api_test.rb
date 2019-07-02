@@ -43,7 +43,9 @@ class ApiTest < ActionDispatch::IntegrationTest
     ]
     @element_ids_to_add = @elements_to_add.collect {|e| e.id}
 
-    @existing_event = FactoryBot.create(:event, owner: @api_user)
+    @existing_event = FactoryBot.create(:event,
+                                        owner: @api_user,
+                                        organiser: @staff1.element)
 
     @existing_note = FactoryBot.create(:note,
                                        parent: @existing_event,
@@ -159,6 +161,23 @@ class ApiTest < ActionDispatch::IntegrationTest
     elements = data['elements']
     assert_instance_of Array, elements
     assert_equal 4, elements.size
+    elements.each do |element|
+      check_element_summary(element)
+    end
+  end
+
+  test 'limit of 100 on how many elements returned' do
+    105.times do |i|
+      FactoryBot.create(:pupil, name: "Pupil #{i}")
+    end
+    do_valid_login
+    get @api_paths.elements_path(namelike: 'Pupil'),
+        format: :json
+    assert_response :success
+    data = unpack_response(response, 'OK')
+    elements = data['elements']
+    assert_instance_of Array, elements
+    assert_equal 100, elements.size
     elements.each do |element|
       check_element_summary(element)
     end
@@ -421,6 +440,27 @@ class ApiTest < ActionDispatch::IntegrationTest
       event['requests'].size
     assert_equal for_commitments.size,
       event['commitments'].size
+  end
+
+  test 'event query should return extra details' do
+    do_valid_login
+    get @api_paths.event_path(@existing_event), format: :json
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    event = response_data['event']
+    assert_instance_of Hash, event
+    assert_not_nil event['starts_at']
+    assert_not_nil event['ends_at']
+    assert_not_nil event['all_day']
+    #
+    #  Not all events have an owner or organiser, so all we can
+    #  check in general is that the field exists.  However,
+    #  our own constructed event does have both of these specified.
+    #
+    assert_not_nil event['organiser']
+    assert_not_nil event['owner']
+    assert_not_nil event['requests']
+    assert_not_nil event['commitments']
   end
 
   #

@@ -88,14 +88,18 @@ seeder.subject(:sport,     "Sport")
 sjp = seeder.new_staff("Mr",  "Simon",    "Philpotts", "SJP", [:maths, :fm],
                        "sjrphilpotts@gmail.com")
 ced = seeder.new_staff("Mrs", "Claire",   "Dunwoody",  "CED", [:french])
+
 medical = seeder.new_service("Medical")
 catering = seeder.new_service("Catering")
-sjp_user = seeder.new_user(sjp, 'f9c4317f-97d8-48ae-abae-dc7b52b63a11')
+sjp_user =
+  seeder.new_user(sjp, 'f9c4317f-97d8-48ae-abae-dc7b52b63a11').
+         deselect(seeder.properties[:calendarproperty])
 sjps_file = sjp_user.add_user_file(Rails.root.join('support', 'Rowing.jpg'))
 ced_user = seeder.new_user(ced).
        controls(seeder.properties[:calendarproperty]).
        controls(catering).
-       controls(medical)
+       controls(medical).
+       deselect(seeder.properties[:calendarproperty])
 catering.add_form(
   seeder.new_form("Catering request",
                   ced_user,
@@ -152,6 +156,11 @@ sptpupils = seeder.new_group(:sptpupils, "Sport pupils", :current_era)
 
 seeder.location(:mainhall, "MH", "Main Hall")
 seeder.location(:gks, "GKS", "Genghis Khan Suite")
+seeder.location(:headsgarden, "CHG", "Head's Garden")
+seeder.location(:shop, "Clothing store")
+seeder.location(:theatre, "Oliver Theatre")
+seeder.location(:sportsfield, "Sports Field")
+seeder.location(:sportshall, "Sports Hall")
 
 lb = Seeder::SeedGroup.new("Lincoln Building", seeder.eras[:current_era])
 
@@ -188,6 +197,9 @@ cr << gb
 
 seeder.set_room_cover_group(cr)
 
+#
+#  Some calendar events to make at least one week look reasonably busy.
+#
 calendarproperty = seeder.properties[:calendarproperty]
 suspensionproperty = seeder.properties[:suspensionproperty]
 
@@ -207,9 +219,8 @@ seeder.add_event(:trip,
                  "Geography field trip",
                  :thursday,
                  ["09:00", "17:00"],
-                 :ced,
-                 nil,
-                 {involving: [calendarproperty, geopupils]})
+                 :ced).
+        involving(calendarproperty, geopupils)
 seeder.add_event(:parentsevening,
                  "Year 9 parents' evening",
                  :tuesday,
@@ -241,7 +252,97 @@ seeder.add_event(:assembly,
                  allstaff,
                  allpupils,
                  seeder.locations[:mainhall])
+seeder.add_event(:trip,
+                 "Duke of Edinburgh bronze expedition",
+                 :tuesday,
+                 ["08:30", "17:00"],
+                 nil,
+                 nil,
+                 :thursday).involving(calendarproperty)
+seeder.add_event(:dateother,
+                 "RSM exams",
+                 :wednesday,
+                 :all_day,
+                 :ced,
+                 :ced,
+                 :friday).involving(calendarproperty)
+seeder.add_event(:trip,
+                 "Post-season tiddlywinks training camp",
+                 :thursday,
+                 :all_day,
+                 :ced,
+                 :ced,
+                 :nexttuesday).involving(calendarproperty)
+seeder.add_event(:hospitality,
+                 "Tea party for new parents",
+                 :friday,
+                 ["16:00", "17:30"],
+                 :ced,
+                 :ced).involving(calendarproperty,
+                                 seeder.locations[:headsgarden])
+seeder.add_event(:meeting,
+                 "Governors' meeting",
+                 :friday,
+                 ["15:00", "16:30"]).involving(calendarproperty)
+seeder.add_event(:sportsfixture,
+                 "Inter-house sports competitions",
+                 :friday,
+                 ["14:00", "17:00"],
+                 :sjp,
+                 :sjp).involving(calendarproperty,
+                                 seeder.locations[:sportsfield],
+                                 seeder.locations[:sportshall])
+seeder.add_event(:dateother,
+                 "Second-hand uniform shop",
+                 :thursday,
+                 ["09:00", "10:30"],
+                 :ced,
+                 :ced).involving(calendarproperty,
+                                 seeder.locations[:shop])
+seeder.add_event(:performance,
+                 "Senior School Production - Les Miserables.  Dress Rehearsal",
+                 :wednesday,
+                 ["19:30", "21:30"],
+                 :ced,
+                 :ced).involving(calendarproperty,
+                                 seeder.locations[:theatre])
+seeder.add_event(:performance,
+                 "Senior School Production - Les Miserables.  Performance 1",
+                 :thursday,
+                 ["19:30", "21:30"],
+                 :ced,
+                 :ced).involving(calendarproperty,
+                                 seeder.locations[:theatre])
+seeder.add_event(:performance,
+                 "Senior School Production - Les Miserables.  Performance 2",
+                 :friday,
+                 ["19:30", "21:30"],
+                 :ced,
+                 :ced).involving(calendarproperty,
+                                 seeder.locations[:theatre])
+seeder.add_event(:performance,
+                 "Senior School Production - Les Miserables.  Performance 3",
+                 :saturday,
+                 ["19:30", "21:30"],
+                 :ced,
+                 :ced).involving(calendarproperty,
+                                 seeder.locations[:theatre])
+seeder.add_event(:trip,
+                 "Ridgeway Challenge",
+                 :tuesday,
+                 ["08:30", "18:30"]).involving(calendarproperty)
+seeder.add_event(:trip,
+                 "Lower School trip to Warwick Castle",
+                 :wednesday,
+                 ["08:00", "16:30"]).involving(calendarproperty)
+seeder.add_event(:dateother,
+                 "GCSE options presentation to parents and pupils",
+                 :monday,
+                 ["18:30", "20:30"]).involving(calendarproperty)
 
+#
+#  Assemblies
+#
 [:monday, :tuesday, :wednesday, :thursday, :friday].each do |day|
   seeder.add_event(:assembly,
                    "Assembly",
@@ -254,18 +355,14 @@ end
 seeder.add_event(:datecrucial,
                  "Founder's Day",
                  :monday,
-                 :all_day,
-                 nil,
-                 nil,
-                 {involving: calendarproperty})
+                 :all_day).
+       involving(calendarproperty)
 
 seeder.add_event(:dateother,
                  "Year 11 exams",
                  :nextmonday,
-                 :all_day,
-                 nil,
-                 nil,
-                 {involving: calendarproperty})
+                 :all_day).
+       involving(calendarproperty)
 
 seeder.add_event(:personal,
                  "Confidential meeting",

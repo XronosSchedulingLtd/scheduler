@@ -5,16 +5,30 @@ if ($('#file-selector-dialog').length) {
   var file_dialog = function() {
     var that = {};
     var dialog;
+    var template;
     var oldPos;
+    var oldRange;
     var currentlyOpen = false;
+    var userId;
 
-    function insertText(field, position, text) {
-      var existingContents = field.val();
-      var newContents = existingContents.substring(0, position) +
-                        text +
-                        existingContents.substring(position);
-      field.val(newContents);
-      field.caret(position + text.length);
+    function insertText(field, position, range, text) {
+      //
+      //  How we behave here depends on whether there was
+      //  anything selected before.
+      //
+      if (range.length > 0) {
+        //
+        //  Select what was selected before, then replace it, then
+        //  unselect it and put the cursor at the end.
+        //
+        field.range(range.start, range.end).range(text);
+        field.caret(field.range().end);
+      } else {
+        //
+        //  Just insert at indicated position
+        //
+        field.caret(position).caret(text);
+      }
     }
 
     function escapeMarkdown(string) {
@@ -72,7 +86,7 @@ if ($('#file-selector-dialog').length) {
         var contentsField = $('#note_contents');
         contentsField.focus().caret(oldPos);
         if (textToInject.length) {
-          insertText(contentsField, oldPos, textToInject);
+          insertText(contentsField, oldPos, oldRange, textToInject);
         }
       }
     }
@@ -90,24 +104,48 @@ if ($('#file-selector-dialog').length) {
       }
     }
 
-    function populateAndOpen(data, textStatus, jqXHR) {
+    function populateFiles(files) {
       var list = $('#file-selector-dialog div#fsd-filelist');
 
       list.empty();
-      data.forEach(function(item) {
+      files.forEach(function(item) {
         list.append('<span data-nanoid="' + item['nanoid'] + '">' + item['original_file_name'] + '</span> ');
       });
       //
       //  And set up click handlers for each of them.
       //
       list.find('span').click(fileClickHandler);
+    }
+
+    function populateAndOpen(data, textStatus, jqXHR) {
+      var dialogue_div = $('#for-upload-dialogue');
+
+      populateFiles(data['files']);
       //
       //  Remove any left-over content in our input fields from a
       //  possible previous invocation.
       //
-      $('#fsd-textoflink').val('');
+      if (oldRange) {
+        $('#fsd-textoflink').val(oldRange.text);
+      } else {
+        $('#fsd-textoflink').val('');
+      }
       $('#fsd-url').val('');
       $('#fsd-filename').val('');
+      //
+      //  Is this user allowed to upload?
+      //
+      if (data['allow_upload']) {
+        //
+        //  Add the upload dialogue.
+        //
+        var mock_data = {
+          'user_id': userId
+        }
+        dialogue_div.html(template(mock_data));
+      } else {
+        dialogue_div.html('<p class="unavailable">not available</p>');
+      }
       //
       //  And open it.
       //
@@ -115,10 +153,14 @@ if ($('#file-selector-dialog').length) {
       currentlyOpen = true;
     }
 
+    function repopulate(data, textStatus, jqXHR) {
+      populateFiles(data['files']);
+    }
+
     that.init = function() {
       dialog = $('#file-selector-dialog').dialog({
         autoOpen: false,
-        height: 600,
+        height: 650,
         width: 700,
         modal: true,
         buttons: {
@@ -132,6 +174,8 @@ if ($('#file-selector-dialog').length) {
           }
         }
       });
+      template = _.template($('#file-upload-dialogue').html());
+      userId = dialog.data('user-id');
 
       window.openFileDialogue = function(event) {
         var contentsField = $('#note_contents');
@@ -150,12 +194,13 @@ if ($('#file-selector-dialog').length) {
         //  it exists.
         //
         if (contentsField) {
+          oldRange = contentsField.range();
           oldPos = contentsField.caret();
         } else {
           oldPos = null;
         }
         $.ajax({
-          url: '/user_files',
+          url: '/users/' + userId + '/user_files',
           type: 'GET',
           context: this,
           contentType: 'application/json',
@@ -172,6 +217,17 @@ if ($('#file-selector-dialog').length) {
           dialog.dialog('close');
           currentlyOpen = false;
         }
+      }
+
+      window.fileUploadComplete = function() {
+        $('#upload-dialogue-form').trigger('reset');
+        $.ajax({
+          url: '/users/' + userId + '/user_files',
+          type: 'GET',
+          context: this,
+          contentType: 'application/json',
+          dataType: 'json'
+        }).done(repopulate);
       }
 
       $(document).on('closed', '[data-reveal]', window.closeFileDialogue);

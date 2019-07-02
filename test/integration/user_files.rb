@@ -2,8 +2,10 @@ require 'test_helper'
 
 class UserFilesTest < ActionDispatch::IntegrationTest
   setup do
-    @api_user = FactoryBot.create(:user, :api, :editor, :noter)
-    @admin_user = FactoryBot.create(:user, :api, :editor, :noter, :admin)
+    @api_user =
+      FactoryBot.create(:user, :api, :editor, :noter, :files)
+    @admin_user =
+      FactoryBot.create(:user, :api, :editor, :noter, :admin, :files)
     @file1 = FactoryBot.create(:user_file, owner: @api_user)
     @file2 = FactoryBot.create(:user_file, owner: @api_user)
     @file3 = FactoryBot.create(:user_file, owner: @admin_user)
@@ -14,6 +16,9 @@ class UserFilesTest < ActionDispatch::IntegrationTest
     #
     @api_paths = PublicApi::Engine.routes.url_helpers
     @main_paths = Rails.application.routes.url_helpers
+    s = Setting.first
+    s.user_file_allowance = 10
+    s.save
   end
 
   test 'bug in url helpers' do
@@ -44,7 +49,9 @@ class UserFilesTest < ActionDispatch::IntegrationTest
     get @main_paths.user_files_path, format: :json
     assert_response :success
     response_data = unpack_response(response)
-    assert_equal 2, response_data.size
+    files = response_data['files']
+    assert_instance_of Array, files
+    assert_equal 2, files.size
   end
 
   test 'can list own files implicitly html' do
@@ -60,7 +67,9 @@ class UserFilesTest < ActionDispatch::IntegrationTest
     get @main_paths.user_user_files_path(@api_user), format: :json
     assert_response :success
     response_data = unpack_response(response)
-    assert_equal 2, response_data.size
+    files = response_data['files']
+    assert_instance_of Array, files
+    assert_equal 2, files.size
   end
 
   test 'can list users files html' do
@@ -76,7 +85,9 @@ class UserFilesTest < ActionDispatch::IntegrationTest
     get @main_paths.user_user_files_path(@api_user), format: :json
     assert_response :success
     response_data = unpack_response(response)
-    assert_equal 2, response_data.size
+    files = response_data['files']
+    assert_instance_of Array, files
+    assert_equal 2, files.size
   end
 
   test 'admin can list files of other user html' do
@@ -112,7 +123,11 @@ class UserFilesTest < ActionDispatch::IntegrationTest
 
   def unpack_response(response)
     response_data = JSON.parse(response.body)
-    assert_instance_of Array, response_data
+    assert_instance_of Hash, response_data
+    assert_not_nil response_data['allow_upload']
+    assert_not_nil response_data['allowance']
+    assert_not_nil response_data['total_size']
+    assert_not_nil response_data['files']
     response_data
   end
 

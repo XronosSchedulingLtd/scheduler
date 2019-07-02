@@ -178,6 +178,21 @@ class Seeder
       self
     end
 
+    #
+    #  If we have a concern with the indicated entity then de-select it.
+    #
+    def deselect(entity)
+      concern =
+        self.dbrecord.concerns.find_by({
+          element_id: entity.dbrecord.element.id
+        })
+      if concern
+        concern.visible = false
+        concern.save
+      end
+      self
+    end
+
     def user_id
       @dbrecord.id
     end
@@ -646,7 +661,12 @@ class Seeder
     @weekdates[:thursday]   = sunday + 4.days
     @weekdates[:friday]     = sunday + 5.days
     @weekdates[:saturday]   = sunday + 6.days
-    @weekdates[:nextmonday] = sunday + 8.days
+    @weekdates[:nextmonday]    = sunday + 8.days
+    @weekdates[:nexttuesday]   = sunday + 9.days
+    @weekdates[:nextwednesday] = sunday + 10.days
+    @weekdates[:nextthursday]  = sunday + 11.days
+    @weekdates[:nextfriday]    = sunday + 12.days
+    @weekdates[:nextsaturday]  = sunday + 13.days
 
     #
     #  What academic year are we notionally in?
@@ -859,7 +879,7 @@ class Seeder
     timing,
     owner = nil,
     organiser = nil,
-    modifiers = {})
+    endday = nil)
 
     unless eventcategory.instance_of?(Eventcategory)
       #
@@ -895,7 +915,11 @@ class Seeder
     case timing
     when :all_day
       starts = Time.zone.parse(@weekdates[day].to_s)
-      ends = Time.zone.parse((@weekdates[day] + 1.day).to_s)
+      if endday
+        ends = Time.zone.parse((@weekdates[endday] + 1.day).to_s)
+      else
+        ends = Time.zone.parse((@weekdates[day] + 1.day).to_s)
+      end
       extra[:all_day] = true
     when :five_days
       starts = Time.zone.parse(@weekdates[day].to_s)
@@ -903,23 +927,19 @@ class Seeder
       extra[:all_day] = true
     else
       starts = Time.zone.parse("#{@weekdates[day].to_s} #{timing[0]}")
-      ends   = Time.zone.parse("#{@weekdates[day].to_s} #{timing[1]}")
+      if endday
+        ends   = Time.zone.parse("#{@weekdates[endday].to_s} #{timing[1]}")
+      else
+        ends   = Time.zone.parse("#{@weekdates[day].to_s} #{timing[1]}")
+      end
     end
-    event = SeedEvent.new(
+    SeedEvent.new(
       eventcategory,
       @eventsources[:thisfile],
       title,
       starts,
       ends,
       extra)
-    modifiers.each do |key, data|
-      if data.instance_of?(Array)
-        event.send(key, *data)
-      else
-        event.send(key, data)
-      end
-    end
-    event
   end
 
   def subject(id, name)
