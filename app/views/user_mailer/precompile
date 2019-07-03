@@ -1,0 +1,11 @@
+#!/bin/bash
+FILENAME="_styling.html.erb"
+cat << EOF >$FILENAME
+<style type='text/css' media='screen'>
+EOF
+sass --style compact styling.css.scss >>$FILENAME
+sass --style compact ../../assets/stylesheets/localemails.css.scss >>$FILENAME
+cat << EOF >>$FILENAME
+</style>
+EOF
+

@@ -1,0 +1,23 @@
+//
+//  Local custom formatting for e-mails.
+//  This is empty by default, but you can add stuff to it to tweak the
+//  appearance of your e-mails.
+//
+//  Put all your extra stuff *within* the .scheduler-email-contents
+//  section.
+//
+//  If you modify this file you need to do:
+//
+//    . ~/etc/whichsystem
+//    cd $SCHEDULER_DIR
+//    rake assets:precompile
+//    cd app/views/user_mailer
+//    ../precompile
+//    cd $SCHEDULER_DIR
+//    touch tmp/restart.txt
+//
+//  for your changes to take effect.
+//
+
+.scheduler-email-contents {
+}

@@ -1,0 +1,30 @@
+At first sight, this directory seems a complex mess, but the idea
+is to allow an end user administrator to tweak the formatting and content of
+the e-mails which the system produces, without causing problems when
+the software is upgraded.
+
+If you simply edit a file which is held under the control of git,
+all will be well until you try to fetch a new version of the software
+which also changes that file.  Detecting that it's about to overwrite
+a locally modified version of a file, git will refuse to check out the
+new release.
+
+By putting all the actual files in a sub-directory - Originals - and
+then having symbolic links to them, we allow for local modification.
+
+If you want to modify one of these files, delete the corresponding
+symbolic link and instead put a copy of the file from the Originals
+sub-directory in its place.  Apply your modifications to this copy,
+leaving the original un-touched.
+
+If a later release modifies the original, you can examine the new
+version and apply such changes as you wish to your own version.
+
+If you want to modify the styling, then remove 2 symbolic links:
+
+  styling.css.scss
+  _styling.html.erb
+
+and take a copy of the styling.css.scss file from the Originals
+sub-directory.  Modify this, then run the precompile script
+to create your own local version of _styling.html.erb

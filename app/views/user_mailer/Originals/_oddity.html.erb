@@ -1,0 +1,15 @@
+<%
+  if oddity.effective_date != @current_oddity_date_html
+    @current_oddity_date_html = oddity.effective_date
+%>
+<tr><th colspan="5"><%= @current_oddity_date_html.strftime("%a %-d %b %y") %></th></tr>
+<%
+  end
+%>
+<tr>
+  <td><%= oddity.activity_text %></td>
+  <td><%= oddity.start_time %></td>
+  <td><%= oddity.end_time %></td>
+  <td><%= oddity.person %></td>
+  <td><%= oddity.problem %></td>
+</tr>

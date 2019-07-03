@@ -1,0 +1,18 @@
+<p>
+  <%= @approver %> has approved your request for:
+</p>
+<p class='indented'>
+<%= @element.name %>
+</p>
+<p>
+  for your event "<%=
+    @event.body
+  %>" on <%=
+    @event.starts_at.strftime("%d/%m/%Y")
+  %> at <%=
+    @event.starts_at.strftime("%H:%M")
+  %>.
+</p>
+<% if @complete %>
+  <p>Your event is now complete.</p>
+<% end %>
