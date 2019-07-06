@@ -2,7 +2,7 @@
 GENERAL_CONF=~/etc/whichsystem
 OUTPUT_NAME="_styling.html.erb"
 GENERAL_SOURCE="styling.css.scss"
-LOCAL_ADDITIONS="app/assets/stylesheets/localemails.css.scss"
+EMAIL_ADDITIONS="app/assets/stylesheets/emails.css.scss"
 
 if [ ! -f $GENERAL_CONF ]; then
   echo "This script is intended for use on a configured Scheduler system only."
@@ -42,11 +42,10 @@ if [ -L $OUTPUT_NAME ]; then
 fi
 
 #
-#  And finally make sure that the local supplementary file exists.
-#  Note that it should exist, even if empty.
+#  And finally make sure that the email-specific supplementary file exists.
 #
-if [ ! -f $SCHEDULER_DIR/$LOCAL_ADDITIONS ]; then
-  echo "$SCHEDULER_DIR/$LOCAL_ADDITIONS not found."
+if [ ! -f $SCHEDULER_DIR/$EMAIL_ADDITIONS ]; then
+  echo "$SCHEDULER_DIR/$EMAIL_ADDITIONS not found."
   exit 5
 fi
 
@@ -54,7 +53,7 @@ cat << EOF >$OUTPUT_NAME
 <style type='text/css' media='screen'>
 EOF
 sass --no-cache --style compact $GENERAL_SOURCE >>$OUTPUT_NAME
-sass --no-cache --style compact $SCHEDULER_DIR/$LOCAL_ADDITIONS >>$OUTPUT_NAME
+sass --no-cache --style compact $SCHEDULER_DIR/$EMAIL_ADDITIONS >>$OUTPUT_NAME
 cat << EOF >>$OUTPUT_NAME
 </style>
 EOF

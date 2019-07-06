@@ -1,0 +1,60 @@
+//
+//  Custom formatting for e-mails.  The stuff defined here works in
+//  addition to general application CSS formatting, and is specific
+//  to e-mails, whether viewed within the application or within
+//  a remote e-mail client.
+//
+//  You can tweak the appearance of e-mails by editing this file.
+//  If you want to do that, don't alter the original, which
+//  resides in app/views/user_mailer/Originals.  Instead remove
+//  the symbolic link to it which resides in app/assets/stylesheets,
+//  make a fresh copy of it there, and then edit that.
+//
+//  Put all your extra stuff *within* the .scheduler-email-contents
+//  section.  This ensures it won't affect any other part of the
+//  application.
+//
+//  If you modify this file you then need to do:
+//
+//    . ~/etc/whichsystem
+//    cd $SCHEDULER_DIR
+//    rake assets:precompile
+//    cd app/views/user_mailer
+//    ./precompile
+//    cd $SCHEDULER_DIR
+//    touch tmp/restart.txt
+//
+//  for your changes to take effect.
+//
+
+.scheduler-email-contents {
+  div {
+    text-align: center;
+    margin-top: 5px;
+    padding-top: 5px;
+    #um-email-body {
+      width: 600px;
+    }
+    #um-subject-text {
+      text-transform: uppercase;
+      font-size: 200%;
+      height: 35px;
+    }
+    #um-event-body {
+      font-weight: bold;
+    }
+    #um-event-timing {
+      margin-top: 0px;
+      padding-top: 0px;
+    }
+    #um-requested-element {
+      margin-top: 25px;
+      margin-bottom: 25px;
+      font-weight: bold;
+      font-size: 150%;
+    }
+    #um-reason {
+      font-style: italic;
+    }
+  }
+}

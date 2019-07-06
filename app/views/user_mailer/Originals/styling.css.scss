@@ -20,14 +20,21 @@
 //  give the same results in an e-mail viewed through a remote e-mail
 //  client as would be achieved when viewed locally.  They duplicate
 //  formatting which already exists within the rest of the application,
-//  and thus aren't used when an e-mail is view locally.
+//  and thus aren't used when an e-mail is viewed locally.
 //
 //  If you want to *change* the appearance of e-mails, this isn't
-//  the place to do it.  Instead edit:
+//  the place to do it.  Instead you want to change emails.css.scss.
 //
-//    app/assets/stylesheets/localemails.css.scss
+//  The original of emails.css.scss resides in app/views/user_mailer/Originals.
+//  Don't alter that one for local configuration.
 //
-//  and then run the aformentioned precompile script.
+//  What is actually used is a symbolic link to that file in
+//  app/assets/stylesheets.
+//
+//  Remove that symbolic link, copy the original there in its place,
+//  then edit the copy which you've just created.
+//
+//  Afterwards run the aformentioned precompile script.
 //
 
 body {
