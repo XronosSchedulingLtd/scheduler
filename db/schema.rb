@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190616071906) do
+ActiveRecord::Schema.define(version: 20190708095414) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -439,13 +439,14 @@ ActiveRecord::Schema.define(version: 20190616071906) do
   add_index "promptnotes", ["element_id"], name: "index_promptnotes_on_element_id", using: :btree
 
   create_table "properties", force: :cascade do |t|
-    t.string   "name",        limit: 255
+    t.string   "name",             limit: 255
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "make_public",             default: false
-    t.boolean  "auto_staff",              default: false
-    t.boolean  "auto_pupils",             default: false
-    t.boolean  "current",                 default: true
+    t.boolean  "make_public",                  default: false
+    t.boolean  "auto_staff",                   default: false
+    t.boolean  "auto_pupils",                  default: false
+    t.boolean  "current",                      default: true
+    t.boolean  "feed_as_category",             default: false
   end
 
   create_table "proto_commitments", force: :cascade do |t|

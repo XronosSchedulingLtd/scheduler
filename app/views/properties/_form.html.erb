@@ -12,14 +12,14 @@
   <% end %>
 
   <div class="row">
-    <div class="small-6 columns">
+    <div class="small-12 medium-4 columns">
       <div class="field">
         <%= f.label :name %><br>
         <%= f.text_field :name, :class => "focus_please" %>
       </div>
     </div>
     <%=
-      flag_group(f, 12, 6, "Flags",
+      flag_group(f, 12, 4, "Flags",
                  [
                    {
                      field: :current,
@@ -40,11 +40,25 @@
                      field: :auto_pupils,
                      prompt: "Auto pupils",
                      annotation: "Should new pupil users get these events shown by default?"
+                   },
+                   {
+                     field: :feed_as_category,
+                     prompt: "Feed as category",
+                     annotation: "When generating an ICAL feed, should this property be included in the list of categories sent for events to which it is attached?"
                    }
       ])
     %>
+    <div class='small-12 medium-4 columns'>
+      <%= f.label :edit_preferred_colour, "Preferred colour" %>
+      <%=
+        f.hidden_field(:edit_preferred_colour,
+                       :id => :colour_picker,
+                       "data-default-colour" => @property.edit_preferred_colour,
+                       "data-allow-empty" => true) %>
+    </div>
   </div>
   <div class="actions">
-    <%= f.submit @property.id ? "Update" : "Create", :class => "zfbutton tiny radius" %>
+    <%= f.submit @property.id ? "Update" : "Create", class: 'zfbutton tiny radius' %>
+    <%= link_to 'Cancel', properties_path, class: 'zfbutton tiny radius button-link' %>
   </div>
 <% end %>

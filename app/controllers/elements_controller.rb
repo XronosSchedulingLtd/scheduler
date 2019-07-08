@@ -640,6 +640,24 @@ class ElementsController < ApplicationController
               event.location = locations.collect {|l| l.friendly_name}.join(",")
             end
             event.uid = "e#{dbevent.id}@#{Setting.hostname}"
+            #
+            #  Potential for confusion here.  In Scheduler, each event
+            #  is in exactly one Category.  Categories are meant to tell
+            #  you what sort of event it is - Lesson, Sport, Meeting etc.
+            #
+            #  What an ical feed wants here is a list of groupings into
+            #  which the event might fall - what we call Properties.
+            #
+            #  Hence we gather up our properties which are flagged as
+            #  being suitable for the purpose, and feed in their
+            #  names as categories.
+            #
+            categories =
+              dbevent.properties.select {|p| p.feed_as_category}.
+                                 collect {|p| p.name}
+            unless categories.empty?
+              event.add_categories(categories)
+            end
             event.dtstamp = dtstamp
           end
         end

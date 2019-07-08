@@ -78,6 +78,8 @@ class PropertiesController < ApplicationController
                                        :current,
                                        :make_public,
                                        :auto_staff,
-                                       :auto_pupils)
+                                       :auto_pupils,
+                                       :feed_as_category,
+                                       :edit_preferred_colour)
     end
 end
