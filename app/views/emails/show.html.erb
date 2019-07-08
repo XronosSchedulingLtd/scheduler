@@ -4,9 +4,7 @@
 <h1>Contents of e-mail</h1>
 
 <% if @html %>
-  <div class='scheduler-email-contents'>
-    <%= @html.html_safe %>
-  </div>
+  <%= @html.html_safe %>
 <% else %>
   <pre><%= @text %></pre>
 <% end %>
