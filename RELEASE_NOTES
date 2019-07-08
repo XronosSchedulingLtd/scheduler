@@ -1,3 +1,44 @@
+v1.8.4   2019-07-08
+
+* List categories in ICAL feeds
+
+  The ICAL feed specification allows for a field CATEGORIES, which
+  lists all the categories into which an event falls.
+
+  Scheduler's idea of a category is a little different.  Each event
+  belongs to just one EventCategory, which gives you a general idea
+  of what's going on at the event - Lesson, Sport, Activity, Meeting,
+  Entertainment etc.  These do not map well on to the CATEGORIES
+  field of the ICAL feed, not least because each event belongs to
+  one and only one of them.
+
+  A better fit are Scheduler's Properties.  Each event may have zero
+  or more properties - things like "Public Calendar", "Sport Calendar",
+  "Music Calendar", "Key dates" and many others.
+
+  Only some of these properties are appropriate to put in an ICAL feed.
+  A new boolean field has therefore been added to the Property database
+  record - feed_as_category.
+
+  For each event in an ICAL feed, the feed generator will now look
+  at all the Properties attached to the event, filter to only those
+  with the feed_as_category bit set, and then pass a list of the names
+  of those Properties in the feed.
+
+  Note that the list is comma separated, and the ICAL spec doesn't
+  cover how commas within a name should be escaped.  Avoid therefore
+  creating a Property for this purpose with a comma in its name.
+
+* Allow editing of default colour for a property
+
+  Properties have long had the means to have a default colour specified.
+  Thus, for instance, everyone sees the school's public calendar in the
+  same colour.
+
+  This release provides an easy mean to edit these colours.  Previously
+  command line intervention was needed.
+
+
 v1.8.3   2019-07-02
 
 * Provide more details when a single event is queried through the API
