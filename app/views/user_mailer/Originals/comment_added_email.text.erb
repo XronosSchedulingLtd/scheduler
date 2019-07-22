@@ -1,0 +1,12 @@
+
+Comment from <%= @user.name %> about your request for "<%= @element.name %>"
+
+  <%= @comment.body %>
+
+The relevant event is "<%= @event.body %>"
+on <%= @event.start_date_text %> at <%= @event.start_time_text %>
+
+<% if @did_pushback %>
+The status of the corresponding form has thus changed from "Complete" to
+"Pending".  Please could you re-visit the form and make any necessary updates?
+<% end %>

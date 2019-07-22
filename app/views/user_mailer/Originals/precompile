@@ -1,0 +1,60 @@
+#!/bin/bash
+GENERAL_CONF=~/etc/whichsystem
+OUTPUT_NAME="_styling.html.erb"
+GENERAL_SOURCE="styling.css.scss"
+EMAIL_ADDITIONS="app/assets/stylesheets/emails.css.scss"
+
+if [ ! -f $GENERAL_CONF ]; then
+  echo "This script is intended for use on a configured Scheduler system only."
+  exit 1
+fi
+
+. $GENERAL_CONF
+
+if [ "a$SCHEDULER_DIR" == "a" ]; then
+  echo "Your scheduler configuration does not seem to define SCHEDULER_DIR"
+  exit 2
+fi
+
+#
+#  Check we seem to have been invoked in a suitable directory.  This could
+#  be one of two places, so we can't set it outselves.
+#
+if [ ! -e $GENERAL_SOURCE ]; then
+  echo "This script should be invoked either in:"
+  echo "  $SCHEDULER_DIR/app/views/user_mailer"
+  echo "for local configuration, or in:"
+  echo "  $SCHEDULER_DIR/app/views/user_mailer/Originals"
+  echo "if changing the master copy."
+  exit 3
+fi
+
+#
+#  And make sure we're not going to accidentally overwrite the wrong
+#  thing.
+#
+
+if [ -L $OUTPUT_NAME ]; then
+  echo "$OUTPUT_NAME is currently a symbolic link.  Please delete that"
+  echo "link before running this script to avoid overwriting its"
+  echo "target."
+  exit 4
+fi
+
+#
+#  And finally make sure that the email-specific supplementary file exists.
+#
+if [ ! -f $SCHEDULER_DIR/$EMAIL_ADDITIONS ]; then
+  echo "$SCHEDULER_DIR/$EMAIL_ADDITIONS not found."
+  exit 5
+fi
+
+cat << EOF >$OUTPUT_NAME
+<style type='text/css' media='screen'>
+EOF
+sass --no-cache --style compact $GENERAL_SOURCE >>$OUTPUT_NAME
+sass --no-cache --style compact $SCHEDULER_DIR/$EMAIL_ADDITIONS >>$OUTPUT_NAME
+cat << EOF >>$OUTPUT_NAME
+</style>
+EOF
+

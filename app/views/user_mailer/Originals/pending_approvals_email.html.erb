@@ -1,0 +1,19 @@
+<p>
+  The following resources in Scheduler currently have requests
+  awaiting your approval.
+</p>
+<% @queues.each do |queue| %>
+<div class='resource-chunk'>
+  <div class='flip-button'>
+    <%= mailer_resource_link("View requests", queue.element) %>
+  </div>
+<h3>
+  <%= queue.element.name %>
+</h3>
+<%   queue.sort.each do |commitment| %>
+<p>
+  <%= commitment.event.owners_initials %> proposes "<%= commitment.event.body %>" on <%= commitment.event.starts_at_text %>
+</p>
+<%   end %>
+</div>
+<% end %>

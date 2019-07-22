@@ -1,17 +1,1 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
-    <%= render partial: "styling" %>
-  </head>
-  <body>
-    <%= render partial: "header" %>
-    <p>
-    Predicted loading for resource "<%= @element.name %>" over the next <%= @data.size %> days.
-    </p>
-    <% if @num_overloads > 0 %>
-      <p class='warning'>There appear<%= @num_overloads == 1 ? "s" : "" %> to be <%= pluralize(@num_overloads, 'instance') %> of overloading.</p>
-    <% end %>
-<%= render @data %>
-  </body>
-</html>
+Originals/resource_loading_email.html.erb

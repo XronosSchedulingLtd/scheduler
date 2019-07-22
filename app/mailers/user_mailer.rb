@@ -45,8 +45,9 @@ class UserMailer < ActionMailer::Base
       email = appropriate_email(@event)
       if email
         @user = User.find_by(email: email)
+        @subject = "Resource request declined"
         parameters[:to] = email
-        parameters[:subject] = "Resource request declined"
+        parameters[:subject] = @subject
         parameters[:from] = Setting.from_email_address
         mail(parameters)
       else

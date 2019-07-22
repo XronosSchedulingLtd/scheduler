@@ -1,0 +1,125 @@
+//
+//  Sending nicely formatted HTML e-mails is a little tricky.  You
+//  can't link to stylesheets in the usual way because many e-mail
+//  clients simply ignore such links.  Instead you have to embed
+//  your CSS styles in the <head> part of your HTML.
+//
+//  Rails provides no support for this, apart from having you just
+//  write raw CSS there, and it can end up being large and messy.
+//
+//  Instead, we use this SCSS file, and a short script is provided
+//  to generate the necessary partial for inclusion.
+//
+//  If you edit this file, make sure to execute:
+//
+//  ./precompile
+//
+//  in the same directory to get your changes to take effect.
+//
+//  Note: the contents of this file are intended purely to
+//  give the same results in an e-mail viewed through a remote e-mail
+//  client as would be achieved when viewed locally.  They duplicate
+//  formatting which already exists within the rest of the application,
+//  and thus aren't used when an e-mail is viewed locally.
+//
+//  If you want to *change* the appearance of e-mails, this isn't
+//  the place to do it.  Instead you want to change emails.css.scss.
+//
+//  The original of emails.css.scss resides in app/views/user_mailer/Originals.
+//  Don't alter that one for local configuration.
+//
+//  What is actually used is a symbolic link to that file in
+//  app/assets/stylesheets.
+//
+//  Remove that symbolic link, copy the original there in its place,
+//  then edit the copy which you've just created.
+//
+//  Afterwards run the aformentioned precompile script.
+//
+
+body {
+  font-family: verdana, arial, helvetica, sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+
+}
+
+p.indented {
+  padding-left: 50px;
+}
+
+div.mail-header {
+  width: 100%;
+  color: white;
+  background-color: rgb(33, 45, 72);
+  line-height: 45px;
+  padding-left: 15px;
+  padding-right: 15px;
+  font-size: 17px;
+  font-weight: normal;
+}
+
+//
+//  Gmail alters our content in transit, injecting its own stylesheets
+//  which override our requirements.  You may think that the previous
+//  section is enough to give us white text, but no - Google's stylesheets
+//  will change it.
+//
+//  By increasing the specificity of our selector we can get our views
+//  to prevail.
+//
+div.mail-header a.schedlink {
+  color: white;
+  text-decoration: none;
+}
+
+.warning {
+  color: #C00000;
+}
+
+.zfbutton {
+  border-style: solid;
+  border-width: 0;
+  cursor: pointer;
+  font-family: "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+  font-weight: normal;
+  line-height: normal;
+  margin: 0 0 1.25rem;
+  position: relative;
+  text-decoration: none;
+  text-align: center;
+  -webkit-appearance: none;
+  border-radius: 3px;
+  display: inline-block;
+  background-color: #008cba;
+  border-color: #007095;
+  color: white;
+  transition: background-color 300ms ease-out;
+  padding-top: 0.625rem;
+  padding-right: 1.25rem;
+  padding-bottom: 0.6875rem;
+  padding-left: 1.25rem;
+  font-size: 0.6875rem;
+  :hover, :focus {
+    background-color: #007095;
+  }
+}
+
+//
+//  See earlier comment about Gmail
+//
+a.zfbutton.button-link {
+  color: white;
+  text-decoration: none;
+}
+
+.flip-button {
+  float: right;
+  margin-top: 10px;
+  margin-right: 40px;
+}
+
+.resource-chunk {
+  clear: both;
+}

@@ -1,0 +1,21 @@
+<h2>Possible invigilation issues - <%=
+  now = Time.zone.now
+  now.strftime("%a #{now.day.ordinalize} %b, %Y %H:%M") %>
+</h2>
+<p>
+  Automatic processing of the invigilation records has
+  thrown up the following possible clashes.
+</p>
+<table>
+  <tr>
+    <td>Staff</td>
+    <td></td>
+    <td>Slot</td>
+    <td>From</td>
+    <td>To</td>
+    <td>Clash</td>
+    <td>From</td>
+    <td>To</td>
+  </tr>
+  <%= render @clashes %>
+</table>

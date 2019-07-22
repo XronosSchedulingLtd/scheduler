@@ -1,0 +1,26 @@
+<%
+  if clash.cover_commitment.event.starts_at.to_date != @current_clash_date_html
+    @current_clash_date_html = clash.cover_commitment.event.starts_at.to_date
+%>
+<tr><th colspan="8"><%= @current_clash_date_html.strftime("%a %-d %b %y") %></th></tr>
+<%
+  end
+%>
+<tr>
+  <td><%= clash.cover_commitment.element.entity.initials %></td>
+  <% if clash.cover_commitment.covering %>
+    <td><%= clash.cover_commitment.covering.element.entity.initials %></td>
+  <% else %>
+    <td></td>
+  <% end %>
+  <td><%= clash.cover_commitment.event.body %></td>
+  <td><%= clash.cover_commitment.event.starts_at.strftime("%H:%M") %></td>
+  <td><%= clash.cover_commitment.event.ends_at.strftime("%H:%M") %></td>
+  <td><%= clash.clashing_commitment.event.body %></td>
+  <% if clash.clashing_commitment.event.all_day %>
+    <td colspan="2">All day</td>
+  <% else %>
+    <td><%= clash.clashing_commitment.event.starts_at.strftime("%H:%M") %></td>
+    <td><%= clash.clashing_commitment.event.ends_at.strftime("%H:%M") %></td>
+  <% end %>
+</tr>

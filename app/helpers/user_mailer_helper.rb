@@ -22,12 +22,13 @@ module UserMailerHelper
   #
   #  And do some of the more complicated link construction.
   #
-  def mailer_scheduler_link(event, text = "See event in Scheduler")
+  def mailer_scheduler_link(event, text = "See / edit event")
     link_to(
       text,
       schedule_show_url(
         date: event.jump_date_text,
         my_events: true,
+        andopen: event.id,
         protocol: schedulers_protocol,
         host: schedulers_host
       ),
@@ -81,5 +82,9 @@ module UserMailerHelper
   #
   def mailer_subject(event)
     "Re: \"#{event.body}\" on #{event.start_date_text}"
+  end
+
+  def mailer_action_name
+    action_name.gsub("_", "-")
   end
 end
