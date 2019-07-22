@@ -172,6 +172,15 @@ $(document).ready ->
   $('.dynamic-element').each (index) ->
     addEventSource($(this).data('cid'))
   activateUserColumn()
+  #
+  #  Do we want to open an event dialogue immediately?
+  #  Is it safe to do this before we've event fetched the events?
+  #
+  andopen = $('#fullcalendar').data('andopen')
+  if (andopen)
+    $('#eventModal').foundation('reveal',
+                                'open',
+                                '/events/' + andopen)
 
 newEventUrl = (starts_at, ends_at, precommit) ->
   #

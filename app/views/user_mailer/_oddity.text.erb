@@ -1,11 +1,1 @@
-<%
-  if oddity.effective_date != @current_oddity_date_txt
-    @current_oddity_date_txt = oddity.effective_date
-%>
-  <%= @current_oddity_date_txt.strftime("%a %-d %b %y") %>
-
-<%
-  end
-%>
-<%= oddity.activity_text %> from <%= oddity.start_time %> to <%= oddity.end_time %> by <%= oddity.person %> but <%= oddity.problem %>
-
+Originals/_oddity.text.erb

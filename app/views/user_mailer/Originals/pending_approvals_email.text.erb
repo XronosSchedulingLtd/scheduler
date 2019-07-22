@@ -1,0 +1,9 @@
+The following resources in Scheduler currently have requests
+awaiting your approval.
+
+<% @queues.each do |queue| %>
+  <%= queue.element.name %>
+<%   queue.each do |commitment| %>
+    <%= commitment.event.owners_initials %> proposes "<%= commitment.event.body %>" on <%= commitment.event.starts_at_text %>
+<%   end %>
+<% end %>

@@ -1,0 +1,8 @@
+
+Predicted loading for resource "<%= @element.name %>" over the next <%= @data.size %> days.
+
+<% if @num_overloads > 0 %>
+There appear<%= @num_overloads == 1 ? "s" : "" %> to be <%= pluralize(@num_overloads, 'instance') %> of overloading.
+<% end %>
+
+<%= render @data %>

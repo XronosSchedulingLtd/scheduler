@@ -108,6 +108,19 @@ class ScheduleController < ApplicationController
           current_user.save
         end
       end
+      #
+      #  If an andopen parameter has been specified, then preserve
+      #  it for next time.
+      #
+      andopen = params[:andopen]
+      Rails.logger.debug("Got andopen as parameter")
+      if andopen
+        session[:andopen] = andopen
+        Rails.logger.debug("Saved it in session")
+      else
+        session.delete(:andopen)
+        Rails.logger.debug("Deleted from session")
+      end
       redirect_to :root
     else
       #
@@ -135,6 +148,40 @@ class ScheduleController < ApplicationController
       @default_date = start_at.strftime("%Y-%m-%d")
       @show_jump = true
       @show_search = true
+      #
+      #  Do we want to open the dialogue for an event as well?
+      #  Note that currently we allow the andopen trick only if
+      #  a date is specified as well.  This would be the point to
+      #  add some extra code if we want to allow it to work without
+      #  a date.
+      #
+      andopen = session[:andopen]
+      if andopen
+        Rails.logger.debug("Found andopen in session")
+        #
+        #  Allowed only one go at this.
+        #
+        session.delete(:andopen)
+        #
+        #  And if you're not logged in you can't do it at all.
+        #
+        if known_user?
+          Rails.logger.debug("Known user")
+          #
+          #  Quick check that the requested event does actually
+          #  exist.  Avoids opening a window only to find that
+          #  the given id is rubbish.
+          #
+          #  Note that a logged in, known user can always look at
+          #  an event, but how much can be seen and whether editing
+          #  is possible is decided later.
+          #
+          if Event.find_by(id: andopen)
+            Rails.logger.debug("Found corresponding event")
+            @andopen = andopen
+          end
+        end
+      end
       respond_to do |format|
         format.html
       end
@@ -173,7 +220,8 @@ class ScheduleController < ApplicationController
       (action == 'show' &&
        !(params.has_key?(:concern_id) ||
          params.has_key?(:element_id) ||
-         params.has_key?(:my_events))) ||
+         params.has_key?(:my_events) ||
+         params.has_key?(:andopen))) ||
       (action == 'events')
     end
   end

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+    <%= render partial: "styling" %>
+  </head>
+  <body>
+    <div class='scheduler-email-contents <%= mailer_action_name %>'>
+      <%= render partial: "header" %>
+      <div id='um-email-body'>
+        <%= yield %>
+      </div>
+    </div>
+  </body>
+</html>
