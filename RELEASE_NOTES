@@ -1,3 +1,20 @@
+v1.8.4.1 2019-07-22
+
+A transitory release intended only for Abingdon School
+
+* Implement deep-linking into an individual event
+
+  It is now possible to have a link which takes a user into Scheduler's
+  calendar display and immediately opens a specific event for viewing
+  or editing.  Which you get depends on the individual user's permissions.
+
+* Re-format e-mails
+
+  The structure of outgoing e-mails has been changed to allow
+  local tweaking of their appearance.  This is still a work-in-progress
+  which is why this is a transitory release.
+
+
 v1.8.4   2019-07-08
 
 * List categories in ICAL feeds
