@@ -36,6 +36,8 @@ require_relative 'xmlclassroom'
 require_relative 'xmldepartment'
 require_relative 'xmlsubject'
 require_relative 'xmldslink'
+require_relative 'xmlset'
+require_relative 'xmlsetlist'
 
 TO_READ = [
   XMLUser,
@@ -49,7 +51,9 @@ TO_READ = [
   XMLClassroom,
   XMLDepartment,
   XMLSubject,
-  XMLDepartmentSubjectLink
+  XMLDepartmentSubjectLink,
+  XMLSet,
+  XMLSetList
 ]
 
 begin
@@ -103,6 +107,12 @@ begin
       xml.TeachingManager do
         xml.Departments do
           XMLDepartment.generate_xml(xml)
+        end
+        xml.SetLists do
+          XMLSetList.generate_xml(xml)
+        end
+        xml.Sets do
+          XMLSet.generate_xml(xml)
         end
       end
       xml.PupilManager do
