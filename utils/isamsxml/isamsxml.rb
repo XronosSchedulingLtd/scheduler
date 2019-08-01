@@ -33,6 +33,9 @@ require_relative 'xmlcustomgroup'
 require_relative 'xmlcustomgroupmembership'
 require_relative 'xmlbuilding'
 require_relative 'xmlclassroom'
+require_relative 'xmldepartment'
+require_relative 'xmlsubject'
+require_relative 'xmldslink'
 
 TO_READ = [
   XMLUser,
@@ -43,7 +46,10 @@ TO_READ = [
   XMLCustomGroup,
   XMLCustomGroupMembership,
   XMLBuilding,
-  XMLClassroom
+  XMLClassroom,
+  XMLDepartment,
+  XMLSubject,
+  XMLDepartmentSubjectLink
 ]
 
 begin
@@ -93,6 +99,11 @@ begin
       end
       xml.SchoolManager do
         XMLHouse.generate_xml(xml)
+      end
+      xml.TeachingManager do
+        xml.Departments do
+          XMLDepartment.generate_xml(xml)
+        end
       end
       xml.PupilManager do
         xml.CurrentPupils do
