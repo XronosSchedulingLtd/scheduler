@@ -4,12 +4,12 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class XMLSetList
-  FILE_NAME = 'TblTeachingManagerSetLists.csv'
+class XMLWeek
+  FILE_NAME = 'TblTimetableManagerWeeks.csv'
   REQUIRED_COLUMNS = [
-    Column['TblTeachingManagerSetListsID', :id,              :integer],
-    Column['intSetID',                     :set_id,          :integer],
-    Column['txtSchoolID',                  :pupil_school_id, :string]
+    Column['TblTimetableManagerWeeksID', :id,         :integer],
+    Column['txtName',                    :name,       :string],
+    Column['txtShortName',               :short_name, :string]
   ]
   include Slurper
 
@@ -18,29 +18,39 @@ class XMLSetList
   #  the array which is returned.
   #
   def adjust(accumulator)
-    pupil = accumulator[:pupils_by_school_id][self.pupil_school_id]
-    if pupil
-      @pupil_id = pupil.id
-    else
-      @pupil_id = nil
-    end
+    @days = []
   end
 
   #
   #  And we can stop them from being put in the array if we like.
   #
   def wanted?
-    @pupil_id != nil
+    true
+  end
+
+  def note_day(day)
+    @days << day
   end
 
   def generate_entry(xml)
-    xml.SetList(Id: self.id, SetId: self.set_id, PupilId: @pupil_id)
+    xml.Week(Id: self.id) do
+      xml.Name      self.name
+      xml.ShortName self.short_name
+      unless @days.empty?
+        xml.Days do
+          @days.each do |day|
+            day.generate_entry(xml)
+          end
+        end
+      end
+    end
   end
 
   def self.construct(accumulator, import_dir)
     records, message = self.slurp(accumulator, import_dir, false)
     if records
-      @@setlists = records
+      accumulator[:weeks_by_id] = records.collect {|r| [r.id, r]}.to_h
+      @@weeks = records
       true
     else
       puts message
@@ -49,8 +59,8 @@ class XMLSetList
   end
 
   def self.generate_xml(xml)
-    @@setlists.each do |setlist|
-      setlist.generate_entry(xml)
+    @@weeks.each do |week|
+      week.generate_entry(xml)
     end
   end
 

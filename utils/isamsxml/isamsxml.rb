@@ -38,6 +38,12 @@ require_relative 'xmlsubject'
 require_relative 'xmldslink'
 require_relative 'xmlset'
 require_relative 'xmlsetlist'
+require_relative 'xmlform'
+require_relative 'xmlweek'
+require_relative 'xmlday'
+require_relative 'xmlperiod'
+require_relative 'xmltimetable'
+require_relative 'xmlschedule'
 
 TO_READ = [
   XMLUser,
@@ -53,7 +59,13 @@ TO_READ = [
   XMLSubject,
   XMLDepartmentSubjectLink,
   XMLSet,
-  XMLSetList
+  XMLSetList,
+  XMLForm,
+  XMLWeek,
+  XMLDay,
+  XMLPeriod,
+  XMLTimetable,
+  XMLSchedule
 ]
 
 begin
@@ -103,6 +115,17 @@ begin
       end
       xml.SchoolManager do
         XMLHouse.generate_xml(xml)
+        xml.Forms do
+          XMLForm.generate_xml(xml)
+        end
+      end
+      xml.TimetableManager do
+        xml.PublishedTimetables do
+          XMLTimetable.generate_xml(xml)
+        end
+        xml.Structure do
+          XMLWeek.generate_xml(xml)
+        end
       end
       xml.TeachingManager do
         xml.Departments do

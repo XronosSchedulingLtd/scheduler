@@ -4,12 +4,6 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-#
-#  This one is slightly unusual because, despite the name, it doesn't
-#  actually produce any XML at the moment.  Instead it provides a lookup
-#  table for other modules to use.
-#
-
 class XMLSubject
   FILE_NAME = 'TblTeachingManagerSubjects.csv'
   REQUIRED_COLUMNS = [

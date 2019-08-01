@@ -4,12 +4,13 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class XMLSetList
-  FILE_NAME = 'TblTeachingManagerSetLists.csv'
+
+class XMLForm
+  FILE_NAME = 'TblSchoolManagementForms.csv'
   REQUIRED_COLUMNS = [
-    Column['TblTeachingManagerSetListsID', :id,              :integer],
-    Column['intSetID',                     :set_id,          :integer],
-    Column['txtSchoolID',                  :pupil_school_id, :string]
+    Column['txtForm',       :id,              :string],
+    Column['txtFormTutor',  :tutor_user_code, :string],
+    Column['intNCYear',     :year_id,         :integer]
   ]
   include Slurper
 
@@ -18,11 +19,11 @@ class XMLSetList
   #  the array which is returned.
   #
   def adjust(accumulator)
-    pupil = accumulator[:pupils_by_school_id][self.pupil_school_id]
-    if pupil
-      @pupil_id = pupil.id
+    staff = accumulator[:staff_by_user_code][self.tutor_user_code]
+    if staff
+      @tutor_id = staff.id
     else
-      @pupil_id = nil
+      @tutor_id = nil
     end
   end
 
@@ -30,17 +31,19 @@ class XMLSetList
   #  And we can stop them from being put in the array if we like.
   #
   def wanted?
-    @pupil_id != nil
+    @tutor_id != nil
   end
 
   def generate_entry(xml)
-    xml.SetList(Id: self.id, SetId: self.set_id, PupilId: @pupil_id)
+    xml.Form(Id: self.id, TutorId: @tutor_id, YearId: self.year_id) do
+      xml.Form self.id
+    end
   end
 
   def self.construct(accumulator, import_dir)
     records, message = self.slurp(accumulator, import_dir, false)
     if records
-      @@setlists = records
+      @@forms = records
       true
     else
       puts message
@@ -49,8 +52,8 @@ class XMLSetList
   end
 
   def self.generate_xml(xml)
-    @@setlists.each do |setlist|
-      setlist.generate_entry(xml)
+    @@forms.each do |form|
+      form.generate_entry(xml)
     end
   end
 
