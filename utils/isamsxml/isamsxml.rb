@@ -45,6 +45,10 @@ require_relative 'xmlperiod'
 require_relative 'xmltimetable'
 require_relative 'xmlschedule'
 require_relative 'xmlmeeting'
+require_relative 'xmltutorial'
+require_relative 'xmltutorialperiod'
+require_relative 'xmltutorialpupil'
+require_relative 'xmltutorialteacher'
 
 TO_READ = [
   XMLUser,
@@ -67,7 +71,11 @@ TO_READ = [
   XMLPeriod,
   XMLTimetable,
   XMLSchedule,
-  XMLMeeting
+  XMLMeeting,
+  XMLTutorial,
+  XMLTutorialPeriod,
+  XMLTutorialPupil,
+  XMLTutorialTeacher
 ]
 
 begin

@@ -20,6 +20,7 @@ class XMLTimetable
   def adjust(accumulator)
     @schedules = []
     @meetings = []
+    @tutorials = []
   end
 
   #
@@ -42,6 +43,10 @@ class XMLTimetable
     @meetings << meeting
   end
 
+  def note_tutorial(tutorial)
+    @tutorials << tutorial
+  end
+
   def generate_entry(xml)
     xml.Timetable(Id: self.id) do
       xml.Name      self.name
@@ -56,6 +61,13 @@ class XMLTimetable
         xml.StaffMeetings do
           @meetings.each do |meeting|
             meeting.generate_entry(xml)
+          end
+        end
+      end
+      unless @tutorials.empty?
+        xml.Tutorials do
+          @tutorials.each do |tutorial|
+            tutorial.generate_entry(xml)
           end
         end
       end

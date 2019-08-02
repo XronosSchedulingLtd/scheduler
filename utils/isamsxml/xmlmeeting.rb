@@ -4,10 +4,6 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-#
-#  This one is a bit of a misnomer - it's not a schedule, it's a schedule
-#  entry - one individual line, a whole bunch of which make a schedule.
-#
 class XMLMeeting
   FILE_NAME = 'TblTimetableManagerStaffMeetings.csv'
   REQUIRED_COLUMNS = [
@@ -55,7 +51,7 @@ class XMLMeeting
   end
 
   def self.construct(accumulator, import_dir)
-    records, message = self.slurp(accumulator, import_dir, false)
+    records, message = self.slurp(accumulator, import_dir, true)
     if records
       true
     else
