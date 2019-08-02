@@ -49,6 +49,7 @@ require_relative 'xmltutorial'
 require_relative 'xmltutorialperiod'
 require_relative 'xmltutorialpupil'
 require_relative 'xmltutorialteacher'
+require_relative 'xmltimetableallocation'
 
 TO_READ = [
   XMLUser,
@@ -75,7 +76,8 @@ TO_READ = [
   XMLTutorial,
   XMLTutorialPeriod,
   XMLTutorialPupil,
-  XMLTutorialTeacher
+  XMLTutorialTeacher,
+  XMLTimetableAllocation
 ]
 
 begin
@@ -135,6 +137,9 @@ begin
         end
         xml.Structure do
           XMLWeek.generate_xml(xml)
+        end
+        xml.TimetableAllocations do
+          XMLTimetableAllocation.generate_xml(xml)
         end
       end
       xml.TeachingManager do
