@@ -47,7 +47,9 @@ class XMLMeeting
       xml.PeriodId       self.period_id
       xml.TeacherId      self.teacher_id
       xml.MeetingGroupId self.meeting_id
-      xml.RoomId         self.room_id
+      if self.room_id
+        xml.RoomId         self.room_id
+      end
       xml.DisplayName    self.display_name
     end
   end

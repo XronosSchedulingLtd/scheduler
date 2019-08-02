@@ -44,6 +44,7 @@ require_relative 'xmlday'
 require_relative 'xmlperiod'
 require_relative 'xmltimetable'
 require_relative 'xmlschedule'
+require_relative 'xmlmeeting'
 
 TO_READ = [
   XMLUser,
@@ -65,7 +66,8 @@ TO_READ = [
   XMLDay,
   XMLPeriod,
   XMLTimetable,
-  XMLSchedule
+  XMLSchedule,
+  XMLMeeting
 ]
 
 begin
