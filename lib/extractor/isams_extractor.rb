@@ -82,8 +82,14 @@ tables = [
                         TbliSAMSManagerUsersID
                         txtUserCode
                       )
-                   )
-
+                   ),
+  DatabaseTable.new("TblActivityManagerEvent", :all),
+  DatabaseTable.new("TblActivityManagerEventOccurrence", :all),
+  DatabaseTable.new("TblActivityManagerEventPupilLink", :all),
+  DatabaseTable.new("TblActivityManagerEventTeacherLink", :all),
+  DatabaseTable.new("TblActivityManagerGroup", :all),
+  DatabaseTable.new("TblActivityManagerGroupPupilLink", :all),
+  DatabaseTable.new("TblCoverManagerCover", :all)
 ]
 options = Options.new
 
