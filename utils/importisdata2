@@ -54,7 +54,7 @@ VERBOSE="no"
 PREFETCH_DIR="PreFetched"
 ARCHIVE_DIR="Archive/`date +%Y/%m/%d`"
 
-TIME_COMMAND="time"
+TIME_COMMAND=""
 
 while getopts ":faip:tv" o; do
   case "${o}" in
