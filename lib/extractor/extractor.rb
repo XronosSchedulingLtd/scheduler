@@ -58,7 +58,7 @@ class DatabaseTable
     end
   end
 
-  def initialize(table_name, fields)
+  def initialize(table_name, fields, conditions = "")
     self.class.get_params_from_env
     @table_name = table_name
     @fields = []
@@ -76,6 +76,7 @@ class DatabaseTable
         raise "Can't cope with \"fields\" as a #{fields.class}"
       end
     end
+    @conditions = conditions
   end
 
   def columns
@@ -105,7 +106,7 @@ class DatabaseTable
         database: @@db_name)
     end
     detector = CharlockHolmes::EncodingDetector.new
-    result = client.execute("SELECT #{columns} FROM #{@table_name};")
+    result = client.execute("SELECT #{columns} FROM #{@table_name} #{@conditions};")
     fields = result.fields
     csv << fields
     result.each do |row|

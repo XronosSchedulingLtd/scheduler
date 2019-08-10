@@ -46,3 +46,9 @@
 #  And just the day's worth on each day of the week.
 #
 0 6 * * 1-5 /home/scheduler/Work/Coding/scheduler/utils/dailyinvig
+#
+#  Daily maintenance happens at 06:30
+#  Currently just marks expired groups as no longer current.
+#
+30 6 * * * /home/scheduler/Work/Coding/scheduler/utils/daily_maintenance
+

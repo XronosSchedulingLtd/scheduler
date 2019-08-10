@@ -95,3 +95,38 @@ It's not totally clear which is used for what, but this one seems to be needed i
 
 
 and then it magically works.
+
+==== Addition 30th July, 2019 ====
+
+Setting things up at Abingdon to access their in-house iSAMS database.  Some changes seem to have happened.  My tds.driver.template file is now:
+
+'''
+[FreeTDS]
+Description = FreeTDS with protocol 8.0
+Driver = /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so
+'''
+
+
+and my tds.datasource.template file is:
+
+'''
+[iSAMS]
+Driver = FreeTDS
+Description = Accessing iSAMS database
+Trace = No
+Server = isamssql.abingdon.io
+Port = 1433
+Database = iSAMS
+TDS_Version = 8.0
+'''
+
+
+and I then do seem to be able to connect with:
+
+'''
+. ~/etc/isauth
+isql -v iSAMS $ISAMS_DB_USER $ISAMS_DB_PASSWORD
+'''
+
+
+Good start.

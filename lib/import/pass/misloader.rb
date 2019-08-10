@@ -14,6 +14,7 @@ class PASS_PupilRecord
 
   REQUIRED_COLUMNS = [
     Column["PUPIL_ID",                   :pupil_id,                   :integer],
+    Column["NAME_ID",                    :name_id,                    :integer],
     Column["FORM",                       :form_code,                  :string],
     Column["FORM_DESCRIPTION",           :form_description,           :string],
     Column["FORM_TUTOR",                 :tutor_code,                 :string],

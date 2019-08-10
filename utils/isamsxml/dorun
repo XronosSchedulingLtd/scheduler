@@ -1,0 +1,2 @@
+#!/bin/bash
+./isamsxml.rb -d ~/Shared/Xronos/Abingdon/ProgramDumps
