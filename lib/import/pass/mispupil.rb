@@ -13,7 +13,14 @@ class MIS_Pupil
 
   def initialize(record)
     super
-    @source_id         = record.pupil_id
+    #
+    #  It seems logical to use the pupil_id as the single unique
+    #  identifier for each pupil.  Unfortunately, Pass changes the
+    #  pupil_id of each pupil each year.  To achieve continuity, we
+    #  need to use the name_id, which does at least appear to be
+    #  constant.
+    #
+    @source_id         = record.name_id
     @datasource_id     = @@primary_datasource_id
     if record.preferred_name.blank?
       @forename = record.first_names.split(" ")[0]

@@ -1,0 +1,195 @@
+#!/bin/bash
+#
+#  New import script for iSAMS which avoids use of the API entirely.
+#
+. /etc/profile
+#
+#  The next file contains confidential authentication information,
+#  specifically the apikey for the API and the password for direct
+#  d/b access.  In a separate file so we can commit this file
+#  to version control.
+#
+. ~/etc/isauth
+#
+#  Are we on development or live?  Where are our directories etc?
+#
+. ~/etc/whichsystem
+#
+#  And make sure we're using the right ruby.
+#
+. ~/.rvm/environments/scheduler
+#
+#
+#  Now some checks to make sure that at least the part of the
+#  environment which we need has been set.
+#
+if [ "a$SCHEDULER_DIR" == "a" ]; then
+  echo "SCHEDULER_DIR environment variable needs to be set."
+  exit 1
+fi
+if [ ! -d $SCHEDULER_DIR/import/isams ]; then
+  echo "$SCHEDULER_DIR/import/isams does not seem to be a directory."
+  exit 2
+fi
+
+#
+#  Parse command line options
+#
+
+usage() {
+  echo "Usage: $0 <options>" 1>&2;
+  echo "  -f           Fetch data from MIS or PreFetched" 1>&2;
+  echo "  -p <dirname> Specify pre-fetch directory (default PreFetched)" 1>&2;
+  echo "  -a           Assemble data ready for import" 1>&2;
+  echo "  -i           Import previously assembled data" 1>&2;
+  echo "  -t           Print timings (in seconds) for each stage" 1>&2;
+  echo "  -v           Be verbose" 1>&2;
+  echo "  -vv          Remove --quiet from utility option" 1>&2;
+  echo "  -vvv         Invoke the import utility verbosely too" 1>&2;
+  echo "Normal full run: $0 -fai" 1>&2;
+  exit 1;
+}
+
+FETCH="no"
+ASSEMBLE="no"
+IMPORT="no"
+VERBOSE="no"
+UTILITY_OPTION="--quiet"
+PREFETCH_DIR="PreFetched"
+ARCHIVE_DIR="Archive/`date +%Y/%m/%d`"
+
+#
+#  Note that when $TIME_COMMAND is used, it is necessary to precede
+#  it with eval, so that the bash internal time command is used.
+#  Two reasons for that:
+#
+#    1. The output is slightly cleaner.
+#    2. It's possible that the external time command might not be
+#       installed.  It isn't by default on a new Debian system.
+#
+#  All the usual warnings about using eval apply, but note that
+#  the only bit of user-supplied data which we're using in any
+#  of our commands is PREFETCH_DIR, and whilst a user could in theory
+#  inject some sort of malicious contents into that, they could equally
+#  type whatever they want to execute at the command line.  This
+#  utility isn't available for remote invocation, and doesn't have
+#  any privileges over and above those of the invoking user.
+#
+TIME_COMMAND=""
+
+while getopts ":faip:tv" o; do
+  case "${o}" in
+    f)
+      FETCH="yes"
+      ;;
+    p)
+      PREFETCH_DIR=${OPTARG}
+      ;;
+    a)
+      ASSEMBLE="yes"
+      ;;
+    t)
+      TIME_COMMAND="time"
+      ;;
+    v)
+      if [ "$VERBOSE" == "no" ]; then
+        VERBOSE="yes"
+      else
+        if [ "$UTILITY_OPTION" == "--quiet" ]; then
+          UTILITY_OPTION=""
+        else
+          UTILITY_OPTION="--verbose"
+        fi
+      fi
+      ;;
+    i)
+      IMPORT="yes"
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
+shift $((OPTIND-1))
+
+if [ "$FETCH" == "no" ] && [ "$ASSEMBLE" == "no" ] && [ "$IMPORT" == "no" ]; then
+  echo "You must specify at least one option" 1>&2;
+  usage
+fi
+
+#
+#  Now ready to start processing (probably)
+#
+cd $SCHEDULER_DIR/import/isams
+
+if [ "$FETCH" == "yes" ]; then
+  if [ "$VERBOSE" == "yes" ]; then
+    echo "Fetching data" 1>&2
+  fi
+  rm -f Incoming/*
+
+  #
+  #  We are using data retrieved directly from the iSAMS
+  #  database - again either doing it now or having done it earlier.
+  #
+
+  if [ -f $PREFETCH_DIR/TblActivityManagerEvent.csv ]; then
+    if [ "$VERBOSE" == "yes" ]; then
+      echo "Using pre-fetched csv files." 1>&2
+    fi
+    eval $TIME_COMMAND cp $PREFETCH_DIR/*.csv Incoming
+  else
+    if [ "$VERBOSE" == "yes" ]; then
+      echo "Doing direct d/b access." 1>&2
+    fi
+    eval $TIME_COMMAND $SCHEDULER_DIR/lib/extractor/isams_extractor.rb --target Incoming
+    if [ $? -ne 0 ]; then
+      echo "Failed to fetch data from iSAMS database."
+      exit 6
+    fi
+  fi
+fi
+
+
+if [ "$ASSEMBLE" == "yes" ]; then
+  if [ "$VERBOSE" == "yes" ]; then
+    echo "Assembling data" 1>&2
+  fi
+
+  #
+  #  Now attempt to merge some of the CSV files to form a data.xml file.
+  #
+  eval $TIME_COMMAND $SCHEDULER_DIR/utils/isamsxml/isamsxml.rb -d Incoming >Incoming/data.xml
+  if [ $? -ne 0 ]; then
+    echo "Failed to generate XML file."
+    exit 5
+  fi
+
+  #
+  #  We now appear to have a set of data files.  Move them to Current
+  #  and then archive them.
+  #
+  rm -f Current/*
+  mv Incoming/* Current
+  mkdir -p $ARCHIVE_DIR
+  cp Current/* $ARCHIVE_DIR
+  if [ "$USE_ISAMS_API" = true ]; then
+    bzip2 -f $ARCHIVE_DIR/*.xml
+  fi
+  if [ "$USE_ISAMS_DB" = true ]; then
+    bzip2 -f $ARCHIVE_DIR/*.csv
+  fi
+fi
+
+if [ "$IMPORT" == "yes" ]; then
+  if [ "$VERBOSE" == "yes" ]; then
+    echo "Importing" 1>&2
+  fi
+  #
+  #  And now invoke the import utility to bring the new data into Scheduler.
+  #
+  eval $TIME_COMMAND $SCHEDULER_DIR/lib/import/misimport.rb $UTILITY_OPTION --email | tee import.log
+  cp import.log $ARCHIVE_DIR
+  bzip2 -f $ARCHIVE_DIR/import.log
+fi
+
