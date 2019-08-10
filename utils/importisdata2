@@ -44,6 +44,8 @@ usage() {
   echo "  -i           Import previously assembled data" 1>&2;
   echo "  -t           Print timings (in seconds) for each stage" 1>&2;
   echo "  -v           Be verbose" 1>&2;
+  echo "  -vv          Invoke the import utility verbosely too" 1>&2;
+  echo "Normal full run: $0 -fai" 1>&2;
   exit 1;
 }
 
@@ -51,9 +53,27 @@ FETCH="no"
 ASSEMBLE="no"
 IMPORT="no"
 VERBOSE="no"
+UTILITY_VERBOSE="no"
 PREFETCH_DIR="PreFetched"
 ARCHIVE_DIR="Archive/`date +%Y/%m/%d`"
 
+#
+#  Note that when $TIME_COMMAND is used, it is necessary to precede
+#  it with eval, so that the bash internal time command is used.
+#  Two reasons for that:
+#
+#    1. The output is slightly cleaner.
+#    2. It's possible that the external time command might not be
+#       installed.  It isn't by default on a new Debian system.
+#
+#  All the usual warnings about using eval apply, but note that
+#  the only bit of user-supplied data which we're using in any
+#  of our commands is PREFETCH_DIR, and whilst a user could in theory
+#  inject some sort of malicious contents into that, they could equally
+#  type whatever they want to execute at the command line.  This
+#  utility isn't available for remote invocation, and doesn't have
+#  any privileges over and above those of the invoking user.
+#
 TIME_COMMAND=""
 
 while getopts ":faip:tv" o; do
@@ -69,10 +89,13 @@ while getopts ":faip:tv" o; do
       ;;
     t)
       TIME_COMMAND="time"
-      export TIME="%e seconds elapsed"
       ;;
     v)
-      VERBOSE="yes"
+      if [ "$VERBOSE" == "no" ]; then
+        VERBOSE="yes"
+      else
+        UTILITY_VERBOSE="yes"
+      fi
       ;;
     i)
       IMPORT="yes"
@@ -109,12 +132,12 @@ if [ "$FETCH" == "yes" ]; then
     if [ "$VERBOSE" == "yes" ]; then
       echo "Using pre-fetched csv files." 1>&2
     fi
-    $TIME_COMMAND cp $PREFETCH_DIR/*.csv Incoming
+    eval $TIME_COMMAND cp $PREFETCH_DIR/*.csv Incoming
   else
     if [ "$VERBOSE" == "yes" ]; then
       echo "Doing direct d/b access." 1>&2
     fi
-    $TIME_COMMAND $SCHEDULER_DIR/lib/extractor/isams_extractor.rb --target Incoming
+    eval $TIME_COMMAND $SCHEDULER_DIR/lib/extractor/isams_extractor.rb --target Incoming
     if [ $? -ne 0 ]; then
       echo "Failed to fetch data from iSAMS database."
       exit 6
@@ -131,7 +154,7 @@ if [ "$ASSEMBLE" == "yes" ]; then
   #
   #  Now attempt to merge some of the CSV files to form a data.xml file.
   #
-  $TIME_COMMAND $SCHEDULER_DIR/utils/isamsxml/isamsxml.rb -d Incoming >Incoming/data.xml
+  eval $TIME_COMMAND $SCHEDULER_DIR/utils/isamsxml/isamsxml.rb -d Incoming >Incoming/data.xml
   if [ $? -ne 0 ]; then
     echo "Failed to generate XML file."
     exit 5
@@ -160,7 +183,11 @@ if [ "$IMPORT" == "yes" ]; then
   #
   #  And now invoke the import utility to bring the new data into Scheduler.
   #
-  $TIME_COMMAND $SCHEDULER_DIR/lib/import/misimport.rb --quiet --email | tee import.log
+  if [ "$UTILITY_VERBOSE" == "yes" ]; then
+    eval $TIME_COMMAND $SCHEDULER_DIR/lib/import/misimport.rb --verbose --email | tee import.log
+  else
+    eval $TIME_COMMAND $SCHEDULER_DIR/lib/import/misimport.rb --quiet --email | tee import.log
+  fi
   cp import.log $ARCHIVE_DIR
   bzip2 -f $ARCHIVE_DIR/import.log
 fi
