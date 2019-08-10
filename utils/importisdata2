@@ -44,7 +44,8 @@ usage() {
   echo "  -i           Import previously assembled data" 1>&2;
   echo "  -t           Print timings (in seconds) for each stage" 1>&2;
   echo "  -v           Be verbose" 1>&2;
-  echo "  -vv          Invoke the import utility verbosely too" 1>&2;
+  echo "  -vv          Remove --quiet from utility option" 1>&2;
+  echo "  -vvv         Invoke the import utility verbosely too" 1>&2;
   echo "Normal full run: $0 -fai" 1>&2;
   exit 1;
 }
@@ -53,7 +54,7 @@ FETCH="no"
 ASSEMBLE="no"
 IMPORT="no"
 VERBOSE="no"
-UTILITY_VERBOSE="no"
+UTILITY_OPTION="--quiet"
 PREFETCH_DIR="PreFetched"
 ARCHIVE_DIR="Archive/`date +%Y/%m/%d`"
 
@@ -94,7 +95,11 @@ while getopts ":faip:tv" o; do
       if [ "$VERBOSE" == "no" ]; then
         VERBOSE="yes"
       else
-        UTILITY_VERBOSE="yes"
+        if [ "$UTILITY_OPTION" == "--quiet" ]; then
+          UTILITY_OPTION=""
+        else
+          UTILITY_OPTION="--verbose"
+        fi
       fi
       ;;
     i)
@@ -183,11 +188,7 @@ if [ "$IMPORT" == "yes" ]; then
   #
   #  And now invoke the import utility to bring the new data into Scheduler.
   #
-  if [ "$UTILITY_VERBOSE" == "yes" ]; then
-    eval $TIME_COMMAND $SCHEDULER_DIR/lib/import/misimport.rb --verbose --email | tee import.log
-  else
-    eval $TIME_COMMAND $SCHEDULER_DIR/lib/import/misimport.rb --quiet --email | tee import.log
-  fi
+  eval $TIME_COMMAND $SCHEDULER_DIR/lib/import/misimport.rb $UTILITY_OPTION --email | tee import.log
   cp import.log $ARCHIVE_DIR
   bzip2 -f $ARCHIVE_DIR/import.log
 fi
