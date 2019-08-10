@@ -1,3 +1,71 @@
+v1.8.5   2019-08-10
+
+Improved MIS imports in the run-up to end-of-year processing
+
+* Allow import from iSAMS without using their Batch API
+
+  The iSAMS Batch API has become thoroughly unreliable.  In a completely
+  unpredictable way it sometimes runs quickly and sometimes slowly,
+  timing itself out after 35 seconds.  It's not a question of the
+  quantity of data being requested - even the smallest possible
+  request will time out sometimes.  Running it on a very fast system
+  helps, but then it can also trip over its own database row locking,
+  and error out due to getting into a deadly embrace.
+
+  In the absence of a fix from iSAMS themselves, a new method of
+  data extraction has been added - direct database table access.
+  We are thus dependent only on the Microsoft database engine, which is
+  reliable.
+
+  For a full list of the tables and columns accessed, see:
+
+    lib/extractor/isams_extractor.rb
+
+  The iSAMS => Scheduler import process always has had the capability of
+  getting some data via direct d/b access (Cover and Activities) because
+  these are missing from the data made available by the Batch API.
+
+  This new extractor subsumes the previous functionality.
+
+  To use the new method of working, use utils/importisdata2 instead
+  of utils/importisdatamulti.
+
+  The importisdata2 script is more sophisticated than its predecessor,
+  accepting various run time options.  Invoke it with no options in
+  order to see these.  A normal full import run can be achieved
+  with:
+
+    utils/importisdata2 -f -a -i
+
+  The old import mechanism is still in place and can be used if
+  preferred.
+
+* Change pupil key when importing from WCBS/Pass
+
+  Scheduler needs an invariant key for each record which it imports
+  from an MIS, so it can match things up.  The obvious one to use for
+  pupils coming from WCBS/Pass is PUPIL_ID, but it has become apparent
+  that this changes with each new academic year.
+
+  The WCBS/Pass importer now uses NAME_ID from the pupil record instead
+  as this seems to remain constant.
+
+* Move daily maintenance to a separate cron job from daily reports
+
+  A small amount of routine maintenance is needed each night within
+  Scheduler, adjusting the "current" flag on groups as they reach their
+  expiry dates.
+
+  Previously this was done from the same cron job as the daily reports
+  (items awaiting attention), but whilst it can be desirable to stop
+  the latter over the summer, the maintenance tasks really need to
+  continue.
+
+  These have now been separated into two separate cron jobs - daily_report
+  and daily_maintenance.  On existing systems the installed crontab
+  should be adjusted when this release is installed.
+
+
 v1.8.4.1 2019-07-22
 
 A transitory release intended only for Abingdon School
