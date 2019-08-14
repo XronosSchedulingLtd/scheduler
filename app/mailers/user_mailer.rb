@@ -113,12 +113,14 @@ class UserMailer < ActionMailer::Base
       email = appropriate_email(@event)
       if email
         @user = User.find_by(email: email)
+        @subject = "Resource request approved"
+        @um_functional_styling = true
         parameters[:to] = email
-        parameters[:subject] = "Request approved"
+        parameters[:subject] = @subject
         parameters[:from] = Setting.from_email_address
         mail(parameters)
       else
-        Rails.logger.info("Unable to send request approved e-mail.  No-one to send to.")
+        Rails.logger.info("Unable to send commitment approved e-mail.  No-one to send to.")
       end
     end
   end
