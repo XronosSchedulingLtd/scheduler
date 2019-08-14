@@ -30,6 +30,12 @@
 .scheduler-email-contents.um-functional-styling {
   width: 600px;
   text-align: center;
+  //
+  //  But not the text in the header.
+  //
+  div.mail-header {
+    text-align: left;
+  }
   div.um-email-body {
     //
     //  All our contained divs want the following.
