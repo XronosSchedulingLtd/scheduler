@@ -68,11 +68,11 @@ class UserMailer < ActionMailer::Base
       @reason = commitment.reason
     end
     if commitment.by_whom
-      @noter = commitment.by_whom.name
+      @approver = commitment.by_whom.name
       parameters[:reply_to] = commitment.by_whom.email
-      @noter_email = commitment.by_whom.email
+      @approver_email = commitment.by_whom.email
     else
-      @noter = "the system"
+      @approver = "the system"
     end
     if @event && @element
       #
@@ -83,6 +83,7 @@ class UserMailer < ActionMailer::Base
       if email
         @user = User.find_by(email: email)
         @subject = 'Resource request noted'
+        @um_functional_styling = true
         parameters[:to] = email
         parameters[:subject] = @subject
         parameters[:from] = Setting.from_email_address
