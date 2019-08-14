@@ -46,6 +46,7 @@ class UserMailer < ActionMailer::Base
       if email
         @user = User.find_by(email: email)
         @subject = "Resource request declined"
+        @um_functional_styling = true
         parameters[:to] = email
         parameters[:subject] = @subject
         parameters[:from] = Setting.from_email_address

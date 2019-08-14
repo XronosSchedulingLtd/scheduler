@@ -27,34 +27,47 @@
 //  for your changes to take effect.
 //
 
-.scheduler-email-contents {
-  div {
-    text-align: center;
-    margin-top: 5px;
-    padding-top: 5px;
-    #um-email-body {
-      width: 600px;
-    }
-    #um-subject-text {
-      text-transform: uppercase;
-      font-size: 200%;
-      height: 35px;
-    }
-    #um-event-body {
-      font-weight: bold;
-    }
-    #um-event-timing {
-      margin-top: 0px;
-      padding-top: 0px;
-    }
-    #um-requested-element {
-      margin-top: 25px;
-      margin-bottom: 25px;
-      font-weight: bold;
-      font-size: 150%;
-    }
-    #um-reason {
-      font-style: italic;
+.scheduler-email-contents.um-functional-styling {
+  width: 600px;
+  text-align: center;
+  div.um-email-body {
+    //
+    //  All our contained divs want the following.
+    //
+    div {
+      margin-top: 5px;
+      padding-top: 5px;
+      //
+      //  And then stuff specific to each one.
+      //  Note the use of the ampersand.  Without that we would get:
+      //
+      //    div .um-subject-text
+      //
+      //  but with it we get:
+      //
+      //    div.um-subject-text
+      //
+      &.um-subject-text {
+        text-transform: uppercase;
+        font-size: 200%;
+        height: 35px;
+      }
+      &.um-event-body {
+        font-weight: bold;
+      }
+      &.um-event-timing {
+        margin-top: 0px;
+        padding-top: 0px;
+      }
+      &.um-requested-element {
+        margin-top: 25px;
+        margin-bottom: 25px;
+        font-weight: bold;
+        font-size: 150%;
+      }
+      &.um-reason {
+        font-style: italic;
+      }
     }
   }
 }

@@ -5,9 +5,15 @@
     <%= render partial: "styling" %>
   </head>
   <body>
-    <div class='scheduler-email-contents <%= mailer_action_name %>'>
+    <div class='scheduler-email-contents<%=
+          if @um_functional_styling
+            " um-functional-styling "
+          else
+            " "
+          end
+        %><%= mailer_action_name %>'>
       <%= render partial: "header" %>
-      <div id='um-email-body'>
+      <div class='um-email-body'>
         <%= yield %>
       </div>
     </div>
