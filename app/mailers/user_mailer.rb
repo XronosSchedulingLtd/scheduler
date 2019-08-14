@@ -31,11 +31,11 @@ class UserMailer < ActionMailer::Base
       @reason = commitment.reason
     end
     if commitment.by_whom
-      @rejecter = commitment.by_whom.name
+      @approver = commitment.by_whom.name
       parameters[:reply_to] = commitment.by_whom.email
-      @rejecter_email = commitment.by_whom.email
+      @approver_email = commitment.by_whom.email
     else
-      @rejecter = "the system"
+      @approver = "the system"
     end
     if @event && @element && @reason
       #
@@ -82,8 +82,9 @@ class UserMailer < ActionMailer::Base
       email = appropriate_email(@event)
       if email
         @user = User.find_by(email: email)
+        @subject = 'Resource request noted'
         parameters[:to] = email
-        parameters[:subject] = "Resource request noted"
+        parameters[:subject] = @subject
         parameters[:from] = Setting.from_email_address
         mail(parameters)
       else
