@@ -30,6 +30,10 @@ class ClashChecker
       @event = event
       @note = note
     end
+
+    def to_partial_path
+      'event_note'
+    end
   end
 
   CLASSES_TO_CHECK = [Pupil]
@@ -91,6 +95,7 @@ class ClashChecker
 
   def generate_text(resources, clashing_events)
     result = Array.new
+    all_clashers = Array.new
     clashing_events.each do |ce|
       result << "##### #{ce.body} (#{ce.duration_or_all_day_string})"
       ce_resources =
@@ -98,6 +103,7 @@ class ClashChecker
           CLASSES_TO_CHECK.include?(r.class)
         }
       clashing_resources = resources & ce_resources
+      all_clashers |= clashing_resources
       #
       #  We have a mixture of types of resources, which we can't actually
       #  sort, so sort their elements instead.
@@ -109,8 +115,8 @@ class ClashChecker
                 join(", ").
                 wrap(78).
                 indent(2)
-      result << "\n#{clashing_resources.size} missing out of #{resources.size}"
     end
+    result << "\n###### #{all_clashers.size} missing out of #{resources.size}"
     result.join("\n")
   end
 
