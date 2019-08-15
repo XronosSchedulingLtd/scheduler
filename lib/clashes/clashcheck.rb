@@ -277,7 +277,7 @@ class ClashChecker
   def send_emails
     @user_email_bodies.each do |key, texts|
       user = User.find(key)
-      UserMailer.clash_notification_email(user.email, texts.join("\n")).deliver_now
+      UserMailer.predicted_absences_email(user.email, texts.join("\n")).deliver_now
     end
   end
 
