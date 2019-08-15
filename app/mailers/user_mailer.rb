@@ -207,11 +207,18 @@ class UserMailer < ActionMailer::Base
          subject: "Pending event approvals")
   end
 
-  def predicted_absences_email(email, body_text)
-    @body_text = body_text
+  def predicted_absences_email(email, event_notes)
+    @subject = 'Predicted absences'
+    texts = Array.new
+    event_notes.each do |en|
+      texts << "Projected absences for #{en.event.body} on #{en.event.starts_at.strftime("%d/%m/%Y")}."
+      texts << en.note.contents.indent(2)
+    end
+    @body_text = texts.join("\n")
+    @um_functional_styling = true
     mail(to: email,
          from: Setting.from_email_address,
-         subject: "Predicted absences")
+         subject: @subject)
   end
 
   def resource_loading_email(email, item)
