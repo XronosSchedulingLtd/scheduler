@@ -1,13 +1,40 @@
-<p>
-Comment from <%= @user.name %> about your request for "<%= @element.name %>"
-</p>
+<div class='um-subject-text'>
+  <%= @subject %>
+</div>
 
-<p class='indented'><%= @comment.body %></p>
+<div class='um-event-body'>
+  <%= @event.body %>
+</div>
 
-<p>The relevant event is "<%= @event.body %>"
-on <%= @event.start_date_text %> at <%= @event.start_time_text %></p>
+<div class='um-event-timing'>
+<%= @event.starts_at.strftime('%d/%m/%Y') %> at <%= @event.starts_at.strftime('%H:%M') %>
+</div>
+
+<div class='um-preamble'>
+  <%= @commenter.name %> has added a comment to your request for
+</div>
+
+<div class='um-requested-element'>
+  <%= @element.name %>
+</div>
+
+<div class='um-reason'>
+  <%= @comment.body %>
+</div>
 
 <% if @did_pushback %>
-<p>The status of the corresponding form has thus changed from "Complete" to
-"Pending".  Please could you re-visit the form and make any necessary updates?</p>
+  <div class='um-postamble'>
+    The status of the corresponding form has thus changed from "Complete" to
+    "Pending".  Please could you re-visit the form and make any necessary
+    updates?
+  </div>
+  <div class='um-buttons'>
+    <%= mailer_scheduler_link(@event) %>
+    <%= mailer_mail_to_link(@commenter.email,
+                            @commenter.name,
+                            mailer_subject(@event)) %>
+    <% if @user %>
+      <%= mailer_user_events_link(@user) %>
+    <% end %>
+  </div>
 <% end %>

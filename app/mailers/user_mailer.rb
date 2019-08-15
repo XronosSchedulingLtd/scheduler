@@ -267,18 +267,21 @@ class UserMailer < ActionMailer::Base
     event,
     element,
     comment,
-    user,
+    commenter,
     did_pushback)
     @comment = comment
     @event = event
     @element = element
-    @user = user
+    @commenter = commenter
     @did_pushback = did_pushback
+    @subject = "Comment added to form"
+    @user = User.find_by(email: email)
+    @um_functional_styling = true
     mail(
       to: email,
       from: Setting.from_email_address,
-      reply_to: user.email,
-      subject: "#{user.name} has added a comment to one of your request forms")
+      reply_to: commenter.email,
+      subject: @subject)
   end
 
   private
