@@ -245,9 +245,11 @@ class UserMailer < ActionMailer::Base
   def reconfirm_requests_email(email, items, user)
     @items = items
     @user = user
+    @subject = 'Please reconfirm your requests'
+    @um_functional_styling = true
     mail(to: email,
          from: Setting.from_email_address,
-         subject: "Please re-confirm your resource requests in Scheduler")
+         subject: @subject)
   end
 
   def prompt_for_staff_email(email, items, user)
