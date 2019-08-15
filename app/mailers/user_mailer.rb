@@ -127,18 +127,6 @@ class UserMailer < ActionMailer::Base
     end
   end
 
-  def event_complete_email(event)
-    @event = event
-    email = appropriate_email(@event)
-    if email
-      mail(to: email,
-           from: Setting.from_email_address,
-           subject: "Event now complete")
-    else
-      Rails.logger.info("Unable to send event complete e-mail.  No-one to send to.")
-    end
-  end
-
   def do_resource_email(owner, resource, event, user, cancelled)
     @resource = resource
     @event = event
