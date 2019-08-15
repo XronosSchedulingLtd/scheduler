@@ -255,9 +255,11 @@ class UserMailer < ActionMailer::Base
   def prompt_for_staff_email(email, items, user)
     @items = items
     @user = user
+    @subject = 'Please add staff to your events'
+    @um_functional_styling = true
     mail(to: email,
          from: Setting.from_email_address,
-         subject: "Some of your events need staff to go with resources")
+         subject: @subject)
   end
 
   def comment_added_email(
