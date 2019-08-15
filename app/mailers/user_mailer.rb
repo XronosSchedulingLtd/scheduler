@@ -235,9 +235,11 @@ class UserMailer < ActionMailer::Base
   def forms_overdue_email(email, items, user)
     @items = items
     @user = user
+    @subject = 'There are forms awaiting your input'
+    @um_functional_styling = true
     mail(to: email,
          from: Setting.from_email_address,
-         subject: "There are forms awaiting your input in Scheduler")
+         subject: @subject)
   end
 
   def reconfirm_requests_email(email, items, user)
