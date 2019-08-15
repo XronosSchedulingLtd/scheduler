@@ -211,10 +211,12 @@ class UserMailer < ActionMailer::Base
     @subject = 'Predicted absences'
     texts = Array.new
     event_notes.each do |en|
-      texts << "Projected absences for #{en.event.body} on #{en.event.starts_at.strftime("%d/%m/%Y")}."
+      title = "Projected absences for #{en.event.body} on #{en.event.starts_at.strftime("%d/%m/%Y")}."
+      texts << title
       texts << en.note.contents.indent(2)
     end
     @body_text = texts.join("\n")
+    @event_notes = event_notes
     @um_functional_styling = true
     mail(to: email,
          from: Setting.from_email_address,

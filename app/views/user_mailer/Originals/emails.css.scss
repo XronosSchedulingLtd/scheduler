@@ -78,6 +78,27 @@
       &.um-reason {
         font-style: italic;
       }
+      &.um-absences {
+        text-align: left;
+        h4 {
+          font-size: 1.2em;
+          margin-top: 0.5em;
+        }
+        h5 {
+          text-indent: 25px;
+          font-size: 1.0em;
+        }
+        h6 {
+          font-size: 1.0em;
+          font-style: italic;
+          margin-bottom: 20px;
+          text-indent: 10px;
+        }
+        p {
+          text-indent: 50px;
+          margin-bottom: 10px;
+        }
+      }
     }
   }
 }
