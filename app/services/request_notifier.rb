@@ -323,24 +323,21 @@ class RequestNotifier
         resource.owners.each do |owner|
           if owner.immediate_notification
             UserMailer.commitment_request_cancelled_email(owner,
-                                                        resource,
-                                                        event,
-                                                        user).deliver_now
+                                                          resource,
+                                                          event,
+                                                          user).deliver_now
           end
         end
       end
-      event.requests.constraining.each do |request|
+      event.requests.each do |request|
         resource = request.element
         resource.owners.each do |owner|
-          #
-          #  This is a slightly different case.  Someone is cancelling
-          #  a request for a managed resource after the resource has
-          #  been allocated.  Send the e-mail regardless.
-          #
-          UserMailer.commitment_request_cancelled_email(owner,
-                                                      resource,
-                                                      event,
-                                                      user).deliver_now
+          if owner.immediate_notification
+            UserMailer.commitment_request_cancelled_email(owner,
+                                                          resource,
+                                                          event,
+                                                          user).deliver_now
+          end
         end
       end
     else

@@ -162,13 +162,13 @@ class UserMailer < ActionMailer::Base
     do_commitment_email(owner, resource, event, user, true)
   end
 
-  def request_adjusted_email(owner, resource, event, record, user = nil)
+  def do_request_email(subject, owner, resource, event, record, user = nil)
     @resource = resource
     @event = event
     parameters = {
       to:      owner.email,
       from:    Setting.from_email_address,
-      subject: "Request for #{resource.name} adjusted after allocation"
+      subject: subject
     }
     if @event.organiser
       parameters[:reply_to] = @event.organiser.entity.email
@@ -184,6 +184,24 @@ class UserMailer < ActionMailer::Base
     @new_quantity      = record.current_quantity
     @num_allocated     = record.num_allocated
     mail(parameters)
+  end
+
+  def request_adjusted_email(owner, resource, event, record, user = nil)
+    do_request_email("Request for #{resource.name} adjusted",
+                     owner,
+                     resource,
+                     event,
+                     record,
+                     user)
+  end
+
+  def request_created_email(owner, resource, event, record, user = nil)
+    do_request_email("New request for #{resource.name}",
+                     owner,
+                     resource,
+                     event,
+                     record,
+                     user)
   end
 
   def resource_batch_email(owner, resource, record, user, general_title)

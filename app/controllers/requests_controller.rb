@@ -60,29 +60,20 @@ class RequestsController < ApplicationController
   def destroy
     @event = @request.event
     if current_user.can_delete?(@request)
-      #
-      #  Should add:
-      #    Notifications
-      #
       @event.journal_resource_request_destroyed(@request, current_user)
-      #
-      #  We notify only if allocation has already started.
-      #
-      if @request.num_allocated > 0
-        if request.format.html?
-          #
-          #  A standalone request - not part of an editing session
-          #
-          RequestNotifier.new.
-                          request_destroyed(@request).
-                          send_notifications_for(current_user, @event)
-        else
-          #
-          #  Should be part of an editing session.
-          #
-          if session[:request_notifier]
-            session[:request_notifier].request_destroyed(@request)
-          end
+      if request.format.html?
+        #
+        #  A standalone request - not part of an editing session
+        #
+        RequestNotifier.new.
+                        request_destroyed(@request).
+                        send_notifications_for(current_user, @event)
+      else
+        #
+        #  Should be part of an editing session.
+        #
+        if session[:request_notifier]
+          session[:request_notifier].request_destroyed(@request)
         end
       end
       @request.destroy
@@ -103,13 +94,8 @@ class RequestsController < ApplicationController
       @request.reload
       @amended_request_id = @request.id
       @event.journal_resource_request_incremented(@request, current_user)
-      #
-      #  We notify only if allocation has already started.
-      #
-      if @request.num_allocated > 0
-        if session[:request_notifier]
-          session[:request_notifier].request_incremented(@request)
-        end
+      if session[:request_notifier]
+        session[:request_notifier].request_incremented(@request)
       end
       @resourcewarning = false
     end
@@ -126,13 +112,8 @@ class RequestsController < ApplicationController
       @request.reload
       @amended_request_id = @request.id
       @event.journal_resource_request_decremented(@request, current_user)
-      #
-      #  We notify only if allocation has already started.
-      #
-      if @request.num_allocated > 0
-        if session[:request_notifier]
-          session[:request_notifier].request_decremented(@request)
-        end
+      if session[:request_notifier]
+        session[:request_notifier].request_decremented(@request)
       end
       @resourcewarning = false
     end
