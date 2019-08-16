@@ -127,7 +127,7 @@ class UserMailer < ActionMailer::Base
     end
   end
 
-  def do_resource_email(owner, resource, event, user, cancelled)
+  def do_commitment_email(owner, resource, event, user, cancelled)
     @resource = resource
     @event = event
     parameters = {
@@ -154,12 +154,12 @@ class UserMailer < ActionMailer::Base
   #  getting different e-mails.  The names of these actions dictate
   #  the names of the view templates to use.
   #
-  def resource_requested_email(owner, resource, event, user = nil)
-    do_resource_email(owner, resource, event, user, false)
+  def commitment_requested_email(owner, resource, event, user = nil)
+    do_commitment_email(owner, resource, event, user, false)
   end
 
-  def resource_request_cancelled_email(owner, resource, event, user = nil)
-    do_resource_email(owner, resource, event, user, true)
+  def commitment_request_cancelled_email(owner, resource, event, user = nil)
+    do_commitment_email(owner, resource, event, user, true)
   end
 
   def request_adjusted_email(owner, resource, event, record, user = nil)
