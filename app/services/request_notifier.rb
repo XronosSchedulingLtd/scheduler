@@ -333,10 +333,12 @@ class RequestNotifier
         resource = request.element
         resource.owners.each do |owner|
           if owner.immediate_notification
-            UserMailer.commitment_request_cancelled_email(owner,
-                                                          resource,
-                                                          event,
-                                                          user).deliver_now
+            record = RequestRecord.new(request, request.quantity)
+            UserMailer.request_deleted_email(owner,
+                                             resource,
+                                             event,
+                                             record,
+                                             user).deliver_now
           end
         end
       end
@@ -362,10 +364,11 @@ class RequestNotifier
         resource = Element.find_by(id: record.element_id)
         if resource
           resource.owners.each do |owner|
-            UserMailer.commitment_request_cancelled_email(owner,
-                                                        resource,
-                                                        event,
-                                                        user).deliver_now
+            UserMailer.request_deleted_email(owner,
+                                             resource,
+                                             event,
+                                             record,
+                                             user).deliver_now
           end
         end
       end

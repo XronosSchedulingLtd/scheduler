@@ -204,6 +204,15 @@ class UserMailer < ActionMailer::Base
                      user)
   end
 
+  def request_deleted_email(owner, resource, event, record, user = nil)
+    do_request_email("Request for #{resource.name} deleted",
+                     owner,
+                     resource,
+                     event,
+                     record,
+                     user)
+  end
+
   def resource_batch_email(owner, resource, record, user, general_title)
     @resource      = resource
     @record        = record

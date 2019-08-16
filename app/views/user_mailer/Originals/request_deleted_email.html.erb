@@ -1,0 +1,12 @@
+<h3>Request for <%= @resource.name %> <em>cancelled</em></h3>
+<p><%= @user_name %> has cancelled a request for <%=
+  pluralize(@previous_quantity, @resource.name)
+%></p>
+<ul>
+  <li>Event: <%= @event.body %></li>
+  <li>Starting: <%= @event.starts_at_text %></li>
+  <li>Duration: <%= @event.duration_text %></li>
+  <li>Cancelled by: <%= @user_name %></li>
+  <li>Event owner: <%= @owner_name %></li>
+  <li>Event organiser: <%= @organiser_name %></li>
+</ul>
