@@ -1,3 +1,65 @@
+v1.8.6   2019-08-21
+
+* Re-style customer-facing e-mails to allow customisation
+
+  All e-mails which are sent to end users (as opposed to resource
+  administrators) have been re-styled in a customizable way.
+  System administrators can edit the CSS on their individual
+  systems to give the e-mails an in-house look.
+
+  Previously e-mails contained mark-up like <h1> and <p class='indent'>
+  but now they just use divs of specified classes - e.g.
+  <div class='um-event-timing'> so it's entirely up to the CSS how the
+  message is displayed.
+
+  If you wish to customize these e-mails on your system, look first
+  at app/views/user_mailer/Originals/emails.css.scss for instructions
+  and examples.
+
+* Re-work e-mail specific CSS.
+
+  The custom e-mail specific CSS was introduced in v1.8.4.1 but
+  was not then well structured.  This release re-works it for
+  better maintenance.  In particular, the CSS previously used
+  element IDs, but now uses element classes.
+
+* Immediate notification of resource requests/cancellations etc.
+
+  Previously the system gave immediate notifications of request
+  alterations and cancellations only if allocation of the requested
+  resource had started.  Now the resource administrator can opt to
+  receive immediate notification of all requests, alterations and
+  cancellations.
+
+* Batch notification for resource requests
+
+  The event repetition facility can cause a large number of resource
+  requests to be created, updated or deleted all in one go.  Each such
+  repetition will now cause at most one e-mail to the resource
+  administrator.  The single e-mail will list the dates and times
+  of all the affected events.
+
+* Add "request adjusted" journal message
+
+  When event repetition is used, an event's request for a resource
+  can move in one step from a quantity of, say, 1 to a quantity of 3.
+  A journal message has been added to allow this to be recorded.
+
+* Absence projection notes re-formatted
+
+  When the system detects that pupils are going to be missing from
+  a lesson due to a clashing activity (trips, etc.) it attaches
+  a note to the affected lesson giving details of the absentees.
+
+  If more than one event is causing absences from the same lesson,
+  the system now does a calculation of the overall number of absentees,
+  rather than listing them for each event separately.
+
+  Thus, if A, B, C and D are meant to be in a lesson, but A and B
+  are on a trip, and B and C are playing in a concert (it happens!)
+  then the system will summarize with the message "3 missing out of 4".
+
+
 v1.8.5   2019-08-10
 
 Improved MIS imports in the run-up to end-of-year processing
