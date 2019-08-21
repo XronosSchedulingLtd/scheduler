@@ -83,41 +83,87 @@
 class RequestNotifier
 
   #
-  #  Object to record all the updates involving commitments to a given element.
+  #  Object to record all the updates involving commitments to
+  #  or requests for a given element.
   #
   #  This object is used solely for the batch processing.
   #  
   #
-  class ElementRecord
+  class ElementUpdateBatch
 
-    attr_reader :events_added_to,
-                :events_removed_from
+    class ElementUpdateInstance
+      attr_reader :header_text, :event_texts
+
+      def initialize(header_text)
+        @header_text = header_text
+        @event_texts = Array.new
+      end
+
+      def add(event_text)
+        @event_texts << event_text
+      end
+
+      def empty?
+        @event_texts.empty?
+      end
+    end
 
     def initialize(element, event)
-      #
-      #  In each of these, we will store simply the starts_at field,
-      #  and index by event id.
-      #
-      @events_added_to = Hash.new
-      @events_removed_from = Hash.new
+      @instances = Hash.new
+      @instances[:commitment_added] =
+        ElementUpdateInstance.new("Commitment added at these times")
+      @instances[:commitment_removed] =
+        ElementUpdateInstance.new("Commitment removed at these times")
+      @instances[:request_added] =
+        ElementUpdateInstance.new("Request added at these times")
+      @instances[:request_amended] =
+        ElementUpdateInstance.new("Request amended as shown")
+      @instances[:request_removed] =
+        ElementUpdateInstance.new("Request removed at these times")
     end
 
     def commitment_added(commitment)
-      unless @events_removed_from.delete(commitment.event_id)
-        @events_added_to[commitment.event_id] = commitment.event.starts_at_text
-      end
+      @instances[:commitment_added].add(commitment.event.starts_at_text)
     end
 
     def commitment_removed(commitment)
-      unless @events_added_to.delete(commitment.event_id)
-        @events_removed_from[commitment.event_id] = commitment.event.starts_at_text
-      end
+      @instances[:commitment_removed].add(commitment.event.starts_at_text)
+    end
+
+    def request_added(request)
+      @instances[:request_added].add(
+        "#{request.quantity} for #{request.event.starts_at_text}"
+      )
+    end
+
+    def request_amended(request)
+      @instances[:request_amended].add(
+        "From #{request.previous_quantity} to #{request.quantity} for #{request.event.starts_at_text}"
+      )
+    end
+
+    def request_removed(request)
+      @instances[:request_removed].add(
+        "#{request.quantity} for #{request.event.starts_at_text}"
+      )
     end
 
     def empty?
-      @events_added_to.empty? && @events_removed_from.empty?
+      #
+      #  For our whole record to be empty, all the instances need to
+      #  be empty.  We want:
+      #
+      #  i1.empty? && i2.empty? && i3.empty? && ... && true
+      #
+      #  The && true at the end does not change the logic, but it
+      #  makes it easier to use inject.
+      #
+      @instances.values.inject(true) {|r, instance| r && instance.empty?}
     end
 
+    def non_empty_instances
+      @instances.values.select {|r| !r.empty?}
+    end
   end
 
   #
@@ -153,7 +199,19 @@ class RequestNotifier
   #  New processing - doing a batch.
   #
   #=================================================================
- 
+
+  private
+
+  def ensure_element_record(linker)
+    #
+    #  linker might be either a request or a commitment.
+    #
+    @element_records[linker.element_id] ||=
+      ElementUpdateBatch.new(linker.element, linker.event)
+  end
+
+  public
+
   #
   #  It is a requirement that the commitment is already linked to
   #  the event and resource before we get it, although it may not
@@ -161,20 +219,26 @@ class RequestNotifier
   #
   def batch_commitment_added(commitment)
     if commitment.tentative?
-      element_record =
-        @element_records[commitment.element_id] ||=
-          ElementRecord.new(commitment.element, commitment.event)
-      element_record.commitment_added(commitment)
+      ensure_element_record(commitment).commitment_added(commitment)
     end
   end
 
   def batch_commitment_removed(commitment)
     if commitment.tentative? && !commitment.rejected?
-      element_record =
-        @element_records[commitment.element_id] ||=
-          ElementRecord.new(commitment.element, commitment.event)
-      element_record.commitment_removed(commitment)
+      ensure_element_record(commitment).commitment_removed(commitment)
     end
+  end
+
+  def batch_request_added(request)
+    ensure_element_record(request).request_added(request)
+  end
+
+  def batch_request_amended(request)
+    ensure_element_record(request).request_amended(request)
+  end
+
+  def batch_request_removed(request)
+    ensure_element_record(request).request_removed(request)
   end
 
   def send_batch_notifications(by_user)

@@ -50,9 +50,12 @@ class ClonersController < ApplicationController
           current_user,
           base_params.merge(instance.cloning_params(@event)),
         ) do |item|
-          if item.instance_of?(Commitment)
+          case item
+          when Commitment
             set_appropriate_approval_status(item)
             request_notifier.commitment_added(item)
+          when Request
+            request_notifier.request_added(item)
           end
         end
         request_notifier.send_notifications_for(current_user, new_event)
