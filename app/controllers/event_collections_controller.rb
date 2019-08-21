@@ -67,9 +67,14 @@ class EventCollectionsController < ApplicationController
           #
           #  The only action which makes any sense here is :added.
           #
-          if action == :added && item.instance_of?(Commitment)
-            set_appropriate_approval_status(item)
-            request_notifier.batch_commitment_added(item)
+          if action == :added
+            case item
+            when Commitment
+              set_appropriate_approval_status(item)
+              request_notifier.batch_commitment_added(item)
+            when Request
+              request_notifier.batch_request_added(item)
+            end
           end
         end
         request_notifier.send_batch_notifications(current_user)
@@ -132,19 +137,30 @@ class EventCollectionsController < ApplicationController
                                           @event_collection,
                                           @event) do |action, item|
             #
-            #  As we're updating, we may get both adds and removes.
+            #  As we're updating, we may get add, adjust or remove.
             #
             case action
 
             when :added
-              if item.instance_of?(Commitment)
+              case item
+              when Commitment
                 set_appropriate_approval_status(item)
                 request_notifier.batch_commitment_added(item)
+              when Request
+                request_notifier.batch_request_added(item)
+              end
+
+            when :adjusted
+              if item.instance_of?(Request)
+                request_notifier.batch_request_amended(item)
               end
 
             when :removed
-              if item.instance_of?(Commitment)
+              case item
+              when Commitment
                 request_notifier.batch_commitment_removed(item)
+              when Request
+                request_notifier.batch_request_removed(item)
               end
             end
 
@@ -209,6 +225,9 @@ class EventCollectionsController < ApplicationController
           event.journal_event_destroyed(current_user)
           event.commitments.each do |c|
             request_notifier.batch_commitment_removed(c)
+          end
+          event.requests.each do |r|
+            request_notifier.batch_request_removed(r)
           end
           event.destroy
         end

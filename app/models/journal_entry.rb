@@ -32,7 +32,8 @@ class JournalEntry < ActiveRecord::Base
     :resource_request_decremented,
     :resource_request_allocated,
     :resource_request_deallocated,
-    :resource_request_reconfirmed
+    :resource_request_reconfirmed,
+    :resource_request_adjusted
   ]
   NEATER_TEXTS = [
     "Event created",
@@ -62,7 +63,8 @@ class JournalEntry < ActiveRecord::Base
     "Resource request decremented",
     "Resource allocated",
     "Resource deallocated",
-    "Resource request reconfirmed"
+    "Resource request reconfirmed",
+    "Resource request quantity changed"
   ]
   ELEMENT_TEXTS = {
     resource_added:      "Added",

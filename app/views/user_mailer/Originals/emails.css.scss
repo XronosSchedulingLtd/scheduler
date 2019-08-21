@@ -27,34 +27,82 @@
 //  for your changes to take effect.
 //
 
-.scheduler-email-contents {
-  div {
-    text-align: center;
-    margin-top: 5px;
-    padding-top: 5px;
-    #um-email-body {
-      width: 600px;
-    }
-    #um-subject-text {
-      text-transform: uppercase;
-      font-size: 200%;
-      height: 35px;
-    }
-    #um-event-body {
-      font-weight: bold;
-    }
-    #um-event-timing {
-      margin-top: 0px;
-      padding-top: 0px;
-    }
-    #um-requested-element {
-      margin-top: 25px;
-      margin-bottom: 25px;
-      font-weight: bold;
-      font-size: 150%;
-    }
-    #um-reason {
-      font-style: italic;
+//
+//  All e-mails get the "scheduler-email-contents" class, but only
+//  new format ones get "um-functional-styling".
+//
+.scheduler-email-contents.um-functional-styling {
+  width: 600px;
+  text-align: center;
+  //
+  //  But not the text in the header.
+  //
+  div.mail-header {
+    text-align: left;
+  }
+  div.um-email-body {
+    //
+    //  All our contained divs want the following.
+    //
+    div {
+      margin-top: 5px;
+      padding-top: 5px;
+      //
+      //  And then stuff specific to each one.
+      //  Note the use of the ampersand.  Without that we would get:
+      //
+      //    div .um-subject-text
+      //
+      //  but with it we get:
+      //
+      //    div.um-subject-text
+      //
+      &.um-subject-text {
+        text-transform: uppercase;
+        font-size: 200%;
+        height: 35px;
+      }
+      &.um-event-body {
+        font-weight: bold;
+      }
+      &.um-event-timing {
+        margin-top: 0px;
+        padding-top: 0px;
+      }
+      &.um-requested-element {
+        margin-top: 25px;
+        margin-bottom: 25px;
+        font-weight: bold;
+        font-size: 150%;
+      }
+      &.um-request-description {
+        font-style: italic;
+        font-size: 120%;
+      }
+      &.um-reason {
+        font-style: italic;
+      }
+      &.um-absences {
+        text-align: left;
+        h4 {
+          font-size: 1.2em;
+          margin-top: 0.5em;
+        }
+        h5 {
+          text-indent: 25px;
+          font-size: 1.0em;
+        }
+        h6 {
+          font-size: 1.0em;
+          font-style: italic;
+          margin-bottom: 20px;
+          text-indent: 10px;
+        }
+        p {
+          text-indent: 50px;
+          margin-bottom: 10px;
+        }
+      }
     }
   }
 }

@@ -1,37 +1,41 @@
-<p>
-  For your event "<%=
-    @event.body
-  %>" on <%=
-    @event.starts_at.strftime("%d/%m/%Y")
-  %> at <%=
-    @event.starts_at.strftime("%H:%M")
-  %> you have requested:
-</p>
-<p class="indented">
-<%= @element.name %>
-</p>
-<p>
-  <%= @noter %> has acknowledged your request and is waiting
-  for more information in order to be able to approve it.
-</p>
+<div class='um-subject-text'>
+  <%= @subject %>
+</div>
+<div class='um-event-body'>
+  <%= @event.body %>
+</div>
+<div class='um-event-timing'>
+<%= @event.starts_at.strftime('%d/%m/%Y') %> at <%= @event.starts_at.strftime('%H:%M') %>
+</div>
+<div class='um-preamble'>
+  <%= @approver %> has acknowledged your request for:
+</div>
+<div class='um-requested-element'>
+  <%= @element.name %>
+</div>
+<div class='um-midamble'>
+  and is waiting for more information in order to be able to approve it.
+</div>
 <% if @reason %>
-  <p>Additional information:</p>
-  <p class="indented">
-  <%= @reason %>
-  </p>
+  <div class='um-reason'>
+    <%= @reason %>
+  </div>
 <% end %>
-<p>
-You can provide the additional information either by filling
-in the appropriate form, or by e-mailing <%= @noter %> directly.
-</p>
-<p>
+<div class='um-postamble'>
+  You can provide the additional information either by filling
+  in the appropriate form, or by e-mailing <%= @approver %> directly.
+</div>
 <% if @user %>
-  <%= mailer_user_events_link(@user) %>
+<div class='um-postamble'>
+  <p>Please use the buttons below to adjust your request as necessary.</p>
+</div>
+<div class='um-buttons'>
   <%= mailer_scheduler_link(@event) %>
-  <% if @noter_email %>
-    <%= mailer_mail_to_link(@noter_email,
-                            @noter,
+  <% if @approver_email %>
+    <%= mailer_mail_to_link(@approver_email,
+                            @approver,
                             mailer_subject(@event)) %>
   <% end %>
+  <%= mailer_user_events_link(@user) %>
+</div>
 <% end %>
-</p>

@@ -1,0 +1,12 @@
+New request for <%= @resource.name %>
+
+<%= @user_name %> has entered a request for <%=
+  pluralize(@new_quantity, @resource.name)
+%>
+
+  Event: <%= @event.body %>
+  Starting: <%= @event.starts_at_text %>
+  Duration: <%= @event.duration_text %>
+  Originator: <%= @user_name %>
+  Event owner: <%= @owner_name %>
+  Event organiser: <%= @organiser_name %>

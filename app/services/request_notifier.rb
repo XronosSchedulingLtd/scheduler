@@ -1,5 +1,6 @@
+#
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2017 John Winters
+# Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -11,12 +12,30 @@
 #  to keep track of and then send any e-mails needed as a result of
 #  the user requesting or cancelling a request for a controlled resource.
 #
-#
 #  The above assumes a single event is being edited, and that it's an
 #  ongoing user session - that is, we aren't doing all our processing
 #  in one go, but having a multi-request dialogue with the user.  Hence
 #  the need to store in the session, but also the assumption that only
 #  the one event is involved.
+#
+#  We have a record relating to *one* event, and we keep track of
+#  the changes made to resources for that event.
+#
+#    * Commitments may be added or removed.
+#    * Requests may be added, incremented, decremented or removed.
+#
+#  Because our data structure is to be stored in the session, it is
+#  important to keep the size of data small and easily serializable.
+#
+#  For commitments being amended (added/removed) it is enough to keep
+#  track of the corresponding element id.  Indeed, we're not particularly
+#  interested in the commitment id, because an original commitment might
+#  be deleted and a fresh one created, in which case we regard ourselves
+#  as being back where we started.
+#
+#  For requests, we need to store more - both the request id and the
+#  element id, plus the original quantity.
+#
 #
 #  A later requirement has now arisen.
 #
@@ -31,12 +50,17 @@
 #  by the server.  We process a whole batch as the result of a single
 #  request from the user's browser.  We thus don't need to be stored
 #  in the session, but we do need to create a single e-mail (per
-#  resource) and the end.
+#  resource) at the end.
 #
-#  We thus need a new data structure.  We need to keep track of
-#  which resources we are working on, and then for each resource we
-#  need to keep track of all the events to which it has been added
-#  or taken away.
+#  We thus need new data structures.
+#
+#  * We need to keep track of which resources have had commitments added
+#    or removed, and then for each resource we need to keep track of all
+#    the events to which it has been added or taken away.
+#
+#  * We also need to keep track of resources which can have requests,
+#    and for these we need to make a list of all events where a request
+#    has been added, adjusted or removed.
 #
 #  This is the opposite way around from the original processing, where
 #  we assumed that there was just the one event, and kept track of
@@ -47,47 +71,105 @@
 #  event, although I don't think it will actually arise given the current
 #  repeating event processing.
 #
+#  New entry points:
 #
-#  Let's have a couple of new entry points - batch_commitment_added
-#  and batch_commitment_removed.
+#  * batch_commitment_added
+#  * batch_commitment_removed
+#  * batch_request_added
+#  * batch_request_adjusted
+#  * batch_request_removed
 #
+
 class RequestNotifier
 
   #
-  #  Record to record all the updates for a given element.
+  #  Object to record all the updates involving commitments to
+  #  or requests for a given element.
   #
-  class ElementRecord
+  #  This object is used solely for the batch processing.
+  #  
+  #
+  class ElementUpdateBatch
 
-    attr_reader :events_added_to,
-                :events_removed_from
+    class ElementUpdateInstance
+      attr_reader :header_text, :event_texts
+
+      def initialize(header_text)
+        @header_text = header_text
+        @event_texts = Array.new
+      end
+
+      def add(event_text)
+        @event_texts << event_text
+      end
+
+      def empty?
+        @event_texts.empty?
+      end
+    end
 
     def initialize(element, event)
-      #
-      #  In each of these, we will store simply the starts_at field,
-      #  and index by event id.
-      #
-      @events_added_to = Hash.new
-      @events_removed_from = Hash.new
+      @instances = Hash.new
+      @instances[:commitment_added] =
+        ElementUpdateInstance.new("Commitment added at these times")
+      @instances[:commitment_removed] =
+        ElementUpdateInstance.new("Commitment removed at these times")
+      @instances[:request_added] =
+        ElementUpdateInstance.new("Request added at these times")
+      @instances[:request_amended] =
+        ElementUpdateInstance.new("Request amended as shown")
+      @instances[:request_removed] =
+        ElementUpdateInstance.new("Request removed at these times")
     end
 
     def commitment_added(commitment)
-      unless @events_removed_from.delete(commitment.event_id)
-        @events_added_to[commitment.event_id] = commitment.event.starts_at_text
-      end
+      @instances[:commitment_added].add(commitment.event.starts_at_text)
     end
 
     def commitment_removed(commitment)
-      unless @events_added_to.delete(commitment.event_id)
-        @events_removed_from[commitment.event_id] = commitment.event.starts_at_text
-      end
+      @instances[:commitment_removed].add(commitment.event.starts_at_text)
+    end
+
+    def request_added(request)
+      @instances[:request_added].add(
+        "#{request.quantity} for #{request.event.starts_at_text}"
+      )
+    end
+
+    def request_amended(request)
+      @instances[:request_amended].add(
+        "From #{request.previous_quantity} to #{request.quantity} for #{request.event.starts_at_text}"
+      )
+    end
+
+    def request_removed(request)
+      @instances[:request_removed].add(
+        "#{request.quantity} for #{request.event.starts_at_text}"
+      )
     end
 
     def empty?
-      @events_added_to.empty? && @events_removed_from.empty?
+      #
+      #  For our whole record to be empty, all the instances need to
+      #  be empty.  We want:
+      #
+      #  i1.empty? && i2.empty? && i3.empty? && ... && true
+      #
+      #  The && true at the end does not change the logic, but it
+      #  makes it easier to use inject.
+      #
+      @instances.values.inject(true) {|r, instance| r && instance.empty?}
     end
 
+    def non_empty_instances
+      @instances.values.select {|r| !r.empty?}
+    end
   end
 
+  #
+  #  This item is used to keep track of adjustments to requests in the
+  #  course of an editing session.
+  #
   class RequestRecord
     attr_reader :original_quantity, :description, :element_id, :num_allocated
     attr_accessor :current_quantity
@@ -117,7 +199,19 @@ class RequestNotifier
   #  New processing - doing a batch.
   #
   #=================================================================
- 
+
+  private
+
+  def ensure_element_record(linker)
+    #
+    #  linker might be either a request or a commitment.
+    #
+    @element_records[linker.element_id] ||=
+      ElementUpdateBatch.new(linker.element, linker.event)
+  end
+
+  public
+
   #
   #  It is a requirement that the commitment is already linked to
   #  the event and resource before we get it, although it may not
@@ -125,20 +219,26 @@ class RequestNotifier
   #
   def batch_commitment_added(commitment)
     if commitment.tentative?
-      element_record =
-        @element_records[commitment.element_id] ||=
-          ElementRecord.new(commitment.element, commitment.event)
-      element_record.commitment_added(commitment)
+      ensure_element_record(commitment).commitment_added(commitment)
     end
   end
 
   def batch_commitment_removed(commitment)
     if commitment.tentative? && !commitment.rejected?
-      element_record =
-        @element_records[commitment.element_id] ||=
-          ElementRecord.new(commitment.element, commitment.event)
-      element_record.commitment_removed(commitment)
+      ensure_element_record(commitment).commitment_removed(commitment)
     end
+  end
+
+  def batch_request_added(request)
+    ensure_element_record(request).request_added(request)
+  end
+
+  def batch_request_amended(request)
+    ensure_element_record(request).request_amended(request)
+  end
+
+  def batch_request_removed(request)
+    ensure_element_record(request).request_removed(request)
   end
 
   def send_batch_notifications(by_user)
@@ -230,6 +330,15 @@ class RequestNotifier
     end
   end
 
+  #
+  #  This should be called after the request has been saved to the
+  #  database so it has an id number.
+  #
+  def request_added(request)
+    request_adjusted(request, 0)
+    self
+  end
+
   def request_incremented(request)
     request_adjusted(request, request.quantity - 1)
     self
@@ -247,8 +356,15 @@ class RequestNotifier
     else
       original_quantity = request.quantity
     end
-    @requests_destroyed[request.id] =
-      RequestRecord.new(request, original_quantity)
+    #
+    #  If the original quantity was 0, then the request was created
+    #  during this editing session so we don't need to tell anyone
+    #  about it.
+    #
+    unless original_quantity == 0
+      @requests_destroyed[request.id] =
+        RequestRecord.new(request, original_quantity)
+    end
     self
   end
 
@@ -270,25 +386,24 @@ class RequestNotifier
         resource = c.element
         resource.owners.each do |owner|
           if owner.immediate_notification
-            UserMailer.resource_request_cancelled_email(owner,
-                                                        resource,
-                                                        event,
-                                                        user).deliver_now
+            UserMailer.commitment_request_cancelled_email(owner,
+                                                          resource,
+                                                          event,
+                                                          user).deliver_now
           end
         end
       end
-      event.requests.constraining.each do |request|
+      event.requests.each do |request|
         resource = request.element
         resource.owners.each do |owner|
-          #
-          #  This is a slightly different case.  Someone is cancelling
-          #  a request for a managed resource after the resource has
-          #  been allocated.  Send the e-mail regardless.
-          #
-          UserMailer.resource_request_cancelled_email(owner,
-                                                      resource,
-                                                      event,
-                                                      user).deliver_now
+          if owner.immediate_notification
+            record = RequestRecord.new(request, request.quantity)
+            UserMailer.request_deleted_email(owner,
+                                             resource,
+                                             event,
+                                             record,
+                                             user).deliver_now
+          end
         end
       end
     else
@@ -301,7 +416,7 @@ class RequestNotifier
         if resource
           resource.owners.each do |owner|
             if owner.immediate_notification
-              UserMailer.resource_request_cancelled_email(owner,
+              UserMailer.commitment_request_cancelled_email(owner,
                                                           resource,
                                                           event,
                                                           user).deliver_now
@@ -313,10 +428,11 @@ class RequestNotifier
         resource = Element.find_by(id: record.element_id)
         if resource
           resource.owners.each do |owner|
-            UserMailer.resource_request_cancelled_email(owner,
-                                                        resource,
-                                                        event,
-                                                        user).deliver_now
+            UserMailer.request_deleted_email(owner,
+                                             resource,
+                                             event,
+                                             record,
+                                             user).deliver_now
           end
         end
       end
@@ -328,10 +444,10 @@ class RequestNotifier
         if resource
           resource.owners.each do |owner|
             if owner.immediate_notification
-              UserMailer.resource_requested_email(owner,
-                                                  resource,
-                                                  event,
-                                                  user).deliver_now
+              UserMailer.commitment_requested_email(owner,
+                                                    resource,
+                                                    event,
+                                                    user).deliver_now
             end
           end
         end
@@ -343,11 +459,19 @@ class RequestNotifier
         resource = Element.find_by(id: record.element_id)
         if resource
           resource.owners.each do |owner|
-            UserMailer.request_adjusted_email(owner,
-                                              resource,
-                                              event,
-                                              record,
-                                              user).deliver_now
+            if record.original_quantity == 0
+              UserMailer.request_created_email(owner,
+                                               resource,
+                                               event,
+                                               record,
+                                               user).deliver_now
+            else
+              UserMailer.request_adjusted_email(owner,
+                                                resource,
+                                                event,
+                                                record,
+                                                user).deliver_now
+            end
           end
         end
       end

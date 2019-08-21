@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2016 John Winters
+# Copyright (C) 2016-19 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -17,18 +17,24 @@ require_relative '../../config/environment'
 
 require_relative 'options'
 
-class String
-  def wrap(width = 78)
-    self.gsub(/(.{1,#{width}})(\s+|\Z)/, "\\1\n")
-  end
-
-  def indent(spaces = 2)
-    padding = " " * spaces
-    padding + self.gsub("\n", "\n#{padding}").rstrip
-  end
-end
-
 class ClashChecker
+
+  #
+  #  Holds one instance of an event + note about which we need to
+  #  send an e-mail.
+  #
+  class EventNote
+    attr_reader :event, :note
+
+    def initialize(event, note)
+      @event = event
+      @note = note
+    end
+
+    def to_partial_path
+      'event_note'
+    end
+  end
 
   CLASSES_TO_CHECK = [Pupil]
 
@@ -73,7 +79,7 @@ class ClashChecker
       puts "No event categories are flagged for clash checking."
       exit
     end
-    @user_email_bodies = Hash.new
+    @user_event_notes = Hash.new
     if block_given?
       yield self
     end
@@ -89,6 +95,7 @@ class ClashChecker
 
   def generate_text(resources, clashing_events)
     result = Array.new
+    all_clashers = Array.new
     clashing_events.each do |ce|
       result << "##### #{ce.body} (#{ce.duration_or_all_day_string})"
       ce_resources =
@@ -96,6 +103,7 @@ class ClashChecker
           CLASSES_TO_CHECK.include?(r.class)
         }
       clashing_resources = resources & ce_resources
+      all_clashers |= clashing_resources
       #
       #  We have a mixture of types of resources, which we can't actually
       #  sort, so sort their elements instead.
@@ -107,8 +115,8 @@ class ClashChecker
                 join(", ").
                 wrap(78).
                 indent(2)
-      result << "\n#{clashing_resources.size} missing out of #{resources.size}"
     end
+    result << "\n###### #{all_clashers.size} missing out of #{resources.size}"
     result.join("\n")
   end
 
@@ -117,7 +125,7 @@ class ClashChecker
   #  notifications.  Note that we don't actually send them at this point,
   #  just accumulate them.
   #
-  def notify_users(event, note_text)
+  def notify_users(event, note)
     #
     #  We notify only staff who are directly involved - i.e. taking
     #  the lesson.  Any included via a group will not be notified.
@@ -129,9 +137,8 @@ class ClashChecker
     event.staff.each do |staff|
       user = staff.corresponding_user
       if user && user.clash_immediate
-        @user_email_bodies[user.id] ||= Array.new
-        @user_email_bodies[user.id] << "Projected absences for #{event.body} on #{event.starts_at.strftime("%d/%m/%Y")}."
-        @user_email_bodies[user.id] << note_text.indent(2)
+        event_notes = (@user_event_notes[user.id] ||= Array.new)
+        event_notes << EventNote.new(event, note)
       end
     end
   end
@@ -209,7 +216,7 @@ class ClashChecker
                 puts "Amending note on #{event.body}" if @options.verbose
                 note.contents = note_text
                 note.save
-                notify_users(event, note_text)
+                notify_users(event, note)
               end
               unless event.has_clashes
                 event.has_clashes = true
@@ -237,7 +244,7 @@ class ClashChecker
               note.note_type = :clashes
               if note.save
                 puts "Added note to #{event.body} on #{date}." if @options.verbose
-                notify_users(event, note_text)
+                notify_users(event, note)
               else
                 puts "Failed to save note on #{event.body}."
               end
@@ -275,9 +282,10 @@ class ClashChecker
   #  Do the actual sending of the queued up e-mails.
   #
   def send_emails
-    @user_email_bodies.each do |key, texts|
+    puts "#{@user_event_notes.count} users with event notes." if @options.verbose
+    @user_event_notes.each do |key, event_notes|
       user = User.find(key)
-      UserMailer.clash_notification_email(user.email, texts.join("\n")).deliver_now
+      UserMailer.predicted_absences_email(user.email, event_notes).deliver_now
     end
   end
 
@@ -302,9 +310,8 @@ class ClashChecker
             user = staff.corresponding_user
             if user &&
                (user.clash_daily || (user.clash_weekly && @options.weekly))
-              @user_email_bodies[user.id] ||= Array.new
-              @user_email_bodies[user.id] << "Projected absences for #{event.body} on #{event.starts_at.strftime("%d/%m/%Y")}."
-              @user_email_bodies[user.id] << note.contents.indent(2)
+              event_notes = (@user_event_notes[user.id] ||= Array.new)
+              event_notes << EventNote.new(event, note)
             end
           end
         end

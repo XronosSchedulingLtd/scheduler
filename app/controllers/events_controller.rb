@@ -385,10 +385,10 @@ class EventsController < ApplicationController
           element: element,
           quantity: 1
         })
+        if session[:request_notifier]
+          session[:request_notifier].request_added(r)
+        end
         event.journal_resource_request_created(r, current_user)
-        #
-        #  TODO add notifications
-        #
         did_add = true
       else
         #
