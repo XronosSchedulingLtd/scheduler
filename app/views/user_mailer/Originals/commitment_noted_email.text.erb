@@ -1,6 +1,5 @@
 
-Unfortunately, <%= @rejecter %> has identified a problem with your
-request to use:
+<%= @approver %> has noted your request to use:
 
   <%= @element.name %>
   
@@ -8,8 +7,16 @@ for:
 
   "<%= @event.body %>" on <%= @event.starts_at.strftime("%d/%m/%Y") %>
   
-giving the following reason:
+and is waiting for more information in order to be able to approve it.
+
+<% if @reason %>
+
+Additional information:
 
   <%= @reason %>
 
-Is it possible to adjust your requirements?
+<% end %>
+
+You can provide the additional information either by filling
+in the appropriate form, or by e-mailing <%= @approver %> directly.
+

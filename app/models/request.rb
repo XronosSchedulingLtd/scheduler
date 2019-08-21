@@ -84,6 +84,14 @@ class Request < ActiveRecord::Base
   attr_reader :updated_nominee
 
   #
+  #  When asked to do a change to our quantity, we keep track of the
+  #  previous quantity.  Note, this does not get saved to the database.
+  #  It is valid only whilst in memory and only after getting back
+  #  true from one of the quantity adjustment methods.
+  #
+  attr_reader :previous_quantity
+
+  #
   #  Call-backs.
   #
   after_save    :update_corresponding_event
@@ -268,6 +276,7 @@ class Request < ActiveRecord::Base
 
   def increment_and_save
     if self.quantity < max_quantity
+      @previous_quantity = self.quantity
       self.quantity += 1
       set_status_flags(true)
       true
@@ -278,7 +287,21 @@ class Request < ActiveRecord::Base
 
   def decrement_and_save
     if self.quantity > 1
+      @previous_quantity = self.quantity
       self.quantity -= 1
+      set_status_flags(true)
+      true
+    else
+      false
+    end
+  end
+
+  def set_quantity_and_save(new_quantity)
+    if new_quantity > 0 &&
+        new_quantity <= max_quantity &&
+        new_quantity != self.quantity
+      @previous_quantity = self.quantity
+      self.quantity = new_quantity
       set_status_flags(true)
       true
     else

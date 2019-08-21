@@ -1,0 +1,15 @@
+Request for <%= @resource.name %> adjusted
+
+The quantity requested has been adjusted.
+
+Previously the quantity was <%= @previous_quantity %> but now
+the requested quantity is <%= @new_quantity %>.
+
+The number currently allocated is <%= @num_allocated %>
+
+  Event: <%= @event.body %>
+  Starting: <%= @event.starts_at_text %>
+  Duration: <%= @event.duration_text %>
+  Originator: <%= @user_name %>
+  Event owner: <%= @owner_name %>
+  Event organiser: <%= @organiser_name %>

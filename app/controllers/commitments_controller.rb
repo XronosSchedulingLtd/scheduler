@@ -108,13 +108,8 @@ class CommitmentsController < ApplicationController
         @amended_request_id = @request.id
         @request.event.journal_resource_request_incremented(@request,
                                                             current_user)
-        #
-        #  We notify only if allocation has already started.
-        #
-        if @request.num_allocated > 0
-          if session[:request_notifier]
-            session[:request_notifier].request_incremented(@request)
-          end
+        if session[:request_notifier]
+          session[:request_notifier].request_incremented(@request)
         end
       else
         @request = Request.new(commitment_params.merge({quantity: 1}))
@@ -122,11 +117,11 @@ class CommitmentsController < ApplicationController
           @request.reload
           @amended_request_id = @request.id
           #
-          #  Should:
-          #    Add it to the request notifier
-          #
           @request.event.journal_resource_request_created(@request,
                                                           current_user)
+          if session[:request_notifier]
+            session[:request_notifier].request_added(@request)
+          end
         end
       end
       @event = @request.event

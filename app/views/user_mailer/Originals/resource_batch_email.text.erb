@@ -1,0 +1,14 @@
+<%= @resource.name %>
+
+<%= @user_name %> has entered, updated or deleted a repeating
+event in Scheduler entitled "<%= @general_title %>"
+resulting in the following changes to requests or commitments
+for <%= @resource.name %>.
+
+<% @record.non_empty_instances.each do |instance| %>
+<%= instance.header_text %>
+<% instance.event_texts.each do |text| %>
+  <%= text %>
+<% end %>
+
+<% end %>

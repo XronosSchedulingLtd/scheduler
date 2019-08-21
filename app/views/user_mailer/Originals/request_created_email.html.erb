@@ -1,8 +1,8 @@
-<h3>Request for <%= @resource.name %> adjusted</h3>
-<p>The quantity requested has been adjusted.</p>
-<p>Previously the quantity was <%= @previous_quantity %> but now
-the requested quantity is <%= @new_quantity %>.</p>
-<p>The number currently allocated is <%= @num_allocated %></p>
+<h3>New request for <%= @resource.name %></h3>
+<p><%= @user_name %> has entered a request for <%=
+  pluralize(@new_quantity, @resource.name)
+%></p>
+
 <ul>
   <li>Event: <%= @event.body %></li>
   <li>Starting: <%= @event.starts_at_text %></li>

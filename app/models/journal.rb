@@ -260,32 +260,56 @@ class Journal < ActiveRecord::Base
     })
   end
 
-  def resource_request_created(request, by_user)
-    entry_for_request(:resource_request_created, request, by_user)
+  def resource_request_created(request, by_user, repeating = false)
+    entry_for_request(:resource_request_created, request, by_user, repeating)
   end
 
-  def resource_request_destroyed(request, by_user)
-    entry_for_request(:resource_request_destroyed, request, by_user)
+  def resource_request_destroyed(request, by_user, repeating = false)
+    entry_for_request(:resource_request_destroyed, request, by_user, repeating)
   end
 
   def resource_request_incremented(request, by_user)
-    entry_for_request(:resource_request_incremented, request, by_user)
+    entry_for_request(:resource_request_incremented,
+                      request,
+                      by_user,
+                      false,
+                      request.quantity - 1)
   end
 
   def resource_request_decremented(request, by_user)
-    entry_for_request(:resource_request_decremented, request, by_user)
+    entry_for_request(:resource_request_decremented,
+                      request,
+                      by_user,
+                      false,
+                      request.quantity + 1)
+  end
+
+  def resource_request_adjusted(request, old_quantity, by_user)
+    entry_for_request(:resource_request_adjusted,
+                      request,
+                      by_user,
+                      true,
+                      old_quantity)
   end
 
   def resource_request_allocated(request, by_user, element)
-    entry_for_request(:resource_request_allocated, request, by_user, element)
+    entry_for_request(:resource_request_allocated,
+                      request,
+                      by_user,
+                      false,
+                      element)
   end
 
   def resource_request_deallocated(request, by_user, element)
-    entry_for_request(:resource_request_deallocated, request, by_user, element)
+    entry_for_request(:resource_request_deallocated,
+                      request,
+                      by_user,
+                      false,
+                      element)
   end
 
   def resource_request_reconfirmed(request, by_user)
-    entry_for_request(:resource_request_reconfirmed, request, by_user)
+    entry_for_request(:resource_request_reconfirmed, request, false, by_user)
   end
 
   def format_timing
@@ -294,16 +318,16 @@ class Journal < ActiveRecord::Base
 
   private
 
-  def request_description(entry_type, request, element)
+  def request_description(entry_type, request, old_quantity, element)
     case entry_type
     when :resource_request_created,
          :resource_request_destroyed,
          :resource_request_reconfirmed
       "Quantity: #{request.quantity}"
-    when :resource_request_incremented
-      "From #{request.quantity - 1} to #{request.quantity}"
-    when :resource_request_decremented
-      "From #{request.quantity + 1} to #{request.quantity}"
+    when :resource_request_incremented,
+         :resource_request_decremented,
+         :resource_request_adjusted
+      "From #{old_quantity} to #{request.quantity}"
     when :resource_request_allocated, :resource_request_deallocated
       "#{element ? element.name : "Unknown"}"
     else
@@ -311,13 +335,22 @@ class Journal < ActiveRecord::Base
     end
   end
 
-  def entry_for_request(entry_type, request, by_user, element = nil)
+  def entry_for_request(entry_type,
+                        request,
+                        by_user,
+                        repeating,
+                        old_quantity = nil,
+                        element = nil)
     self.journal_entries.create({
       event:      self.event,
       user:       by_user,
       entry_type: entry_type,
+      repeating:  repeating,
       element:    request.element,
-      details:    request_description(entry_type, request, element)
+      details:    request_description(entry_type,
+                                      request,
+                                      old_quantity,
+                                      element)
     })
   end
 

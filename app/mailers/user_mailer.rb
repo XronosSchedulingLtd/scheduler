@@ -31,11 +31,11 @@ class UserMailer < ActionMailer::Base
       @reason = commitment.reason
     end
     if commitment.by_whom
-      @rejecter = commitment.by_whom.name
+      @approver = commitment.by_whom.name
       parameters[:reply_to] = commitment.by_whom.email
-      @rejecter_email = commitment.by_whom.email
+      @approver_email = commitment.by_whom.email
     else
-      @rejecter = "the system"
+      @approver = "the system"
     end
     if @event && @element && @reason
       #
@@ -46,6 +46,7 @@ class UserMailer < ActionMailer::Base
       if email
         @user = User.find_by(email: email)
         @subject = "Resource request declined"
+        @um_functional_styling = true
         parameters[:to] = email
         parameters[:subject] = @subject
         parameters[:from] = Setting.from_email_address
@@ -67,11 +68,11 @@ class UserMailer < ActionMailer::Base
       @reason = commitment.reason
     end
     if commitment.by_whom
-      @noter = commitment.by_whom.name
+      @approver = commitment.by_whom.name
       parameters[:reply_to] = commitment.by_whom.email
-      @noter_email = commitment.by_whom.email
+      @approver_email = commitment.by_whom.email
     else
-      @noter = "the system"
+      @approver = "the system"
     end
     if @event && @element
       #
@@ -81,8 +82,10 @@ class UserMailer < ActionMailer::Base
       email = appropriate_email(@event)
       if email
         @user = User.find_by(email: email)
+        @subject = 'Resource request noted'
+        @um_functional_styling = true
         parameters[:to] = email
-        parameters[:subject] = "Resource request noted"
+        parameters[:subject] = @subject
         parameters[:from] = Setting.from_email_address
         mail(parameters)
       else
@@ -112,29 +115,19 @@ class UserMailer < ActionMailer::Base
       email = appropriate_email(@event)
       if email
         @user = User.find_by(email: email)
+        @subject = "Resource request approved"
+        @um_functional_styling = true
         parameters[:to] = email
-        parameters[:subject] = "Request approved"
+        parameters[:subject] = @subject
         parameters[:from] = Setting.from_email_address
         mail(parameters)
       else
-        Rails.logger.info("Unable to send request approved e-mail.  No-one to send to.")
+        Rails.logger.info("Unable to send commitment approved e-mail.  No-one to send to.")
       end
     end
   end
 
-  def event_complete_email(event)
-    @event = event
-    email = appropriate_email(@event)
-    if email
-      mail(to: email,
-           from: Setting.from_email_address,
-           subject: "Event now complete")
-    else
-      Rails.logger.info("Unable to send event complete e-mail.  No-one to send to.")
-    end
-  end
-
-  def do_resource_email(owner, resource, event, user, cancelled)
+  def do_commitment_email(owner, resource, event, user, cancelled)
     @resource = resource
     @event = event
     parameters = {
@@ -161,21 +154,21 @@ class UserMailer < ActionMailer::Base
   #  getting different e-mails.  The names of these actions dictate
   #  the names of the view templates to use.
   #
-  def resource_requested_email(owner, resource, event, user = nil)
-    do_resource_email(owner, resource, event, user, false)
+  def commitment_requested_email(owner, resource, event, user = nil)
+    do_commitment_email(owner, resource, event, user, false)
   end
 
-  def resource_request_cancelled_email(owner, resource, event, user = nil)
-    do_resource_email(owner, resource, event, user, true)
+  def commitment_request_cancelled_email(owner, resource, event, user = nil)
+    do_commitment_email(owner, resource, event, user, true)
   end
 
-  def request_adjusted_email(owner, resource, event, record, user = nil)
+  def do_request_email(subject, owner, resource, event, record, user = nil)
     @resource = resource
     @event = event
     parameters = {
       to:      owner.email,
       from:    Setting.from_email_address,
-      subject: "Request for #{resource.name} adjusted after allocation"
+      subject: subject
     }
     if @event.organiser
       parameters[:reply_to] = @event.organiser.entity.email
@@ -191,6 +184,33 @@ class UserMailer < ActionMailer::Base
     @new_quantity      = record.current_quantity
     @num_allocated     = record.num_allocated
     mail(parameters)
+  end
+
+  def request_adjusted_email(owner, resource, event, record, user = nil)
+    do_request_email("Request for #{resource.name} adjusted",
+                     owner,
+                     resource,
+                     event,
+                     record,
+                     user)
+  end
+
+  def request_created_email(owner, resource, event, record, user = nil)
+    do_request_email("New request for #{resource.name}",
+                     owner,
+                     resource,
+                     event,
+                     record,
+                     user)
+  end
+
+  def request_deleted_email(owner, resource, event, record, user = nil)
+    do_request_email("Request for #{resource.name} deleted",
+                     owner,
+                     resource,
+                     event,
+                     record,
+                     user)
   end
 
   def resource_batch_email(owner, resource, record, user, general_title)
@@ -214,11 +234,20 @@ class UserMailer < ActionMailer::Base
          subject: "Pending event approvals")
   end
 
-  def clash_notification_email(email, body_text)
-    @body_text = body_text
+  def predicted_absences_email(email, event_notes)
+    @subject = 'Predicted absences'
+    texts = Array.new
+    event_notes.each do |en|
+      title = "Projected absences for #{en.event.body} on #{en.event.starts_at.strftime("%d/%m/%Y")}."
+      texts << title
+      texts << en.note.contents.indent(2)
+    end
+    @body_text = texts.join("\n")
+    @event_notes = event_notes
+    @um_functional_styling = true
     mail(to: email,
          from: Setting.from_email_address,
-         subject: "Predicted absences")
+         subject: @subject)
   end
 
   def resource_loading_email(email, item)
@@ -233,25 +262,31 @@ class UserMailer < ActionMailer::Base
   def forms_overdue_email(email, items, user)
     @items = items
     @user = user
+    @subject = 'There are forms awaiting your input'
+    @um_functional_styling = true
     mail(to: email,
          from: Setting.from_email_address,
-         subject: "There are forms awaiting your input in Scheduler")
+         subject: @subject)
   end
 
   def reconfirm_requests_email(email, items, user)
     @items = items
     @user = user
+    @subject = 'Please reconfirm your requests'
+    @um_functional_styling = true
     mail(to: email,
          from: Setting.from_email_address,
-         subject: "Please re-confirm your resource requests in Scheduler")
+         subject: @subject)
   end
 
   def prompt_for_staff_email(email, items, user)
     @items = items
     @user = user
+    @subject = 'Please add staff to your events'
+    @um_functional_styling = true
     mail(to: email,
          from: Setting.from_email_address,
-         subject: "Some of your events need staff to go with resources")
+         subject: @subject)
   end
 
   def comment_added_email(
@@ -259,18 +294,21 @@ class UserMailer < ActionMailer::Base
     event,
     element,
     comment,
-    user,
+    commenter,
     did_pushback)
     @comment = comment
     @event = event
     @element = element
-    @user = user
+    @commenter = commenter
     @did_pushback = did_pushback
+    @subject = "Comment added to form"
+    @user = User.find_by(email: email)
+    @um_functional_styling = true
     mail(
       to: email,
       from: Setting.from_email_address,
-      reply_to: user.email,
-      subject: "#{user.name} has added a comment to one of your request forms")
+      reply_to: commenter.email,
+      subject: @subject)
   end
 
   private

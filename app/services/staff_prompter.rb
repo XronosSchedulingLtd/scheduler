@@ -29,7 +29,8 @@ class StaffPrompter
         end
 
         def request_description
-          "#{@num_staff} staff attached to the event out of #{@num_needed} apparently needed"
+          "#{@num_needed} staff needed (currently #{@num_staff})"
+#          "#{@num_staff} staff attached to the event out of #{@num_needed} apparently needed"
         end
 
         def to_partial_path

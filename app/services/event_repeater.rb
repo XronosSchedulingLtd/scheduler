@@ -99,6 +99,9 @@ class EventRepeater
                 event.commitments.each do |c|
                   yield :removed, c
                 end
+                event.requests.each do |r|
+                  yield :removed, r
+                end
               end
               event.destroy
             end

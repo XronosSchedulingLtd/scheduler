@@ -1539,7 +1539,7 @@ class Event < ActiveRecord::Base
           yield r
         end
       end
-      new_self.journal_resource_request_created(r, by_user)
+      new_self.journal_resource_request_created(r, by_user, repeating)
     end
     #
     #  And make sure flags are set appropriately.
@@ -1665,15 +1665,26 @@ class Event < ActiveRecord::Base
     end
     #
     #  And do much the same for requests.  Note that we only attempt
-    #  to get requests for the same thing.  We don't adjust quantities
-    #  or allocatedness.
+    #  to get requests for the same quantity of the same thing.
+    #  We don't adjust allocatedness.
     #
     our_requests = self.requests.to_a
     donor_event.requests.each do |dr|
       existing = our_requests.detect {|r| r.element_id == dr.element_id}
       if existing
         #
-        #  This is where we would adjust it if we were doing that.
+        #  The worker method Request#set_quantity_and_save will
+        #  tell us whether the quantity has actually been changed.
+        #
+        old_quantity = existing.quantity
+        if existing.set_quantity_and_save(dr.quantity)
+          if block_given?
+            yield :adjusted, existing
+          end
+          self.journal_resource_request_adjusted(existing,
+                                                 old_quantity,
+                                                 by_user)
+        end
         #
         #  Note that the next line is merely removing it from our list,
         #  not deleting it.
@@ -1685,11 +1696,11 @@ class Event < ActiveRecord::Base
             yield :added, r
           end
         end
-        self.journal_resource_request_created(r, by_user)
+        self.journal_resource_request_created(r, by_user, true)
       end
     end
     our_requests.each do |request|
-      self.journal_resource_request_destroyed(request, by_user)
+      self.journal_resource_request_destroyed(request, by_user, true)
       if block_given?
         yield :removed, request
       end
@@ -1908,14 +1919,14 @@ class Event < ActiveRecord::Base
     self.journal.repeated_from(by_user)
   end
 
-  def journal_resource_request_created(request, by_user)
+  def journal_resource_request_created(request, by_user, repeating = false)
     ensure_journal
-    self.journal.resource_request_created(request, by_user)
+    self.journal.resource_request_created(request, by_user, repeating)
   end
 
-  def journal_resource_request_destroyed(request, by_user)
+  def journal_resource_request_destroyed(request, by_user, repeating = false)
     ensure_journal
-    self.journal.resource_request_destroyed(request, by_user)
+    self.journal.resource_request_destroyed(request, by_user, repeating)
   end
 
   def journal_resource_request_incremented(request, by_user)
@@ -1926,6 +1937,11 @@ class Event < ActiveRecord::Base
   def journal_resource_request_decremented(request, by_user)
     ensure_journal
     self.journal.resource_request_decremented(request, by_user)
+  end
+
+  def journal_resource_request_adjusted(request, old_quantity, by_user)
+    ensure_journal
+    self.journal.resource_request_adjusted(request, old_quantity, by_user)
   end
 
   def journal_resource_request_allocated(request, by_user, element)

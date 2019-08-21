@@ -1,18 +1,22 @@
-<p>
-  <%= @approver %> has approved your request for:
-</p>
-<p class='indented'>
-<%= @element.name %>
-</p>
-<p>
-  for your event "<%=
-    @event.body
-  %>" on <%=
-    @event.starts_at.strftime("%d/%m/%Y")
-  %> at <%=
-    @event.starts_at.strftime("%H:%M")
-  %>.
-</p>
+<div class='um-subject-text'>
+  <%= @subject %>
+</div>
+<div class='um-event-body'>
+  <%= @event.body %>
+</div>
+<div class='um-event-timing'>
+<%= @event.starts_at.strftime('%d/%m/%Y') %> at <%= @event.starts_at.strftime('%H:%M') %>
+</div>
+<div class='um-preamble'>
+  <span class='um-approver-name'><%=
+    @approver
+    %></span> has confirmed your request for:
+</div>
+<div class='um-requested-element'>
+  <%= @element.name %>
+</div>
 <% if @complete %>
-  <p>Your event is now complete.</p>
+  <div class='um-postamble'>
+    Your event is now complete.
+  </div>
 <% end %>
