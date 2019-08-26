@@ -4,7 +4,7 @@
 <% if note.any_attachments? %>
   <div class='row collapse'>
     <div class='small-9 columns'>
-      <div class='note_contents'><%= note.formatted_contents.html_safe %></div>
+      <div class='note-html-contents'><%= note.formatted_contents.html_safe %></div>
     </div>
     <div class="small-3 columns">
       <div class='note-attachments'>
@@ -17,7 +17,7 @@
     </div>
   </div>
 <% else %>
-  <div class='note_contents'><%= note.formatted_contents.html_safe %></div>
+  <div class='note-html-contents'><%= note.formatted_contents.html_safe %></div>
 <% end %>
 <% if current_user && current_user.can_delete?(note) %>
   <div class="delete_link">
