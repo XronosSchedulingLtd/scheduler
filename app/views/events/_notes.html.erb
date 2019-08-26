@@ -7,9 +7,20 @@
     <% end %>
     </div>
 <% if current_user && current_user.can_add_notes? %>
-    <div class="note_link">
+  <div class="note_link">
       <%=
-        link_to "Add note / file", new_event_note_path(@event), remote: true
+        link_to("Add note",
+                new_event_note_path(@event),
+                remote: true,
+                class: 'zfbutton teensy button-link')
+      %>
+        /
+      <%=
+        link_to("Attach file",
+                new_event_note_path(@event,
+                                    file_only: true),
+                remote: true,
+                class: 'zfbutton teensy button-link')
       %>
     </div>
     <hr/>

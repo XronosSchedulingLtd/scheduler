@@ -10,6 +10,7 @@ if ($('#file-selector-dialog').length) {
     var oldRange;
     var currentlyOpen = false;
     var userId;
+    var callbackFunction;
 
     function insertText(field, position, range, text) {
       //
@@ -89,6 +90,9 @@ if ($('#file-selector-dialog').length) {
           insertText(contentsField, oldPos, oldRange, textToInject);
         }
       }
+      if (callbackFunction instanceof Function) {
+        callbackFunction(textToInject.length > 0);
+      }
     }
 
     function fileClickHandler(event) {
@@ -164,12 +168,15 @@ if ($('#file-selector-dialog').length) {
         width: 700,
         modal: true,
         buttons: {
-          'Generate': doSelect,
+          Add: doSelect,
           Cancel: function() {
             dialog.dialog('close');
             currentlyOpen = false;
             if (oldPos !== null) {
               $('#note_contents').focus().caret(oldPos);
+            }
+            if (callbackFunction instanceof Function) {
+              callbackFunction(false);
             }
           }
         }
@@ -177,7 +184,16 @@ if ($('#file-selector-dialog').length) {
       template = _.template($('#file-upload-dialogue').html());
       userId = dialog.data('user-id');
 
-      window.openFileDialogue = function(event) {
+      window.openFileDialogue = function(callback = null) {
+        //
+        //  We call the callback function to tell our caller whether
+        //  the user clicked OK and we have done something, or cancel
+        //  and we've just had enough.
+        //
+        //  Note that clicking OK without entering anything also returns
+        //  false.  Basically it's "Did we inject any text?"
+        //
+        callbackFunction = callback;
         var contentsField = $('#note_contents');
         //
         //  We have a problem here, in that we would like also to check

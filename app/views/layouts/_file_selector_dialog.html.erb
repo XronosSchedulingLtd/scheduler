@@ -1,12 +1,13 @@
 <div id='file-selector-dialog'
-     title='Generate file link'
+     title='Add file'
      style='display:none;'
      data-user-id='<%= current_user ? current_user.id : 0 %>'>
-  <div class='row collapse'>
-    <form>
+   <div class='row collapse'>
+     <form>
       <fieldset>
+        <h5>File to add</h5>
         <div class='small-12 columns'>
-          <label for='fsd-textoflink'>Link text</label>
+          <label for='fsd-textoflink'>File description</label>
           <input type='text'
                  name='fsd-textoflink'
                  id='fsd-textoflink'
@@ -33,13 +34,14 @@
   </div>
   <div class='row collapse'>
     <div id='fsd-listing'>
-      <p>Click on a file below to auto-fill the fields above.</p>
+      <h5>Existing files</h5>
+      <p><span class='tinytext'>Click on a file below to auto-fill the fields above.</span></p>
       <div id='fsd-filelist'>
       </div>
     </div>
   </div>
   <div class='row collapse' id='file-upload-area'>
-    <p>File upload</p>
+    <h5>File upload</h5>
     <div class='small-12 columns'>
       <div class='row collapse' id='for-upload-dialogue'>
       </div>
