@@ -1,5 +1,10 @@
 <tr>
   <td><%= user_file.original_file_name %></td>
+  <td>
+    <% if user_file.thumbnail_exists? %>
+      <img src='<%= user_file.thumbnail_relative_path_name %>' />
+    <% end %>
+  </td>
   <td><%= number_to_human_size(user_file.file_size) %></td>
   <td><%= user_file.created_at.to_s(:hmsdmy) %></td>
   <td><%=

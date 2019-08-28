@@ -1,11 +1,11 @@
 <div id='file-selector-dialog'
-     title='Add file'
+     title='Attach file'
      style='display:none;'
      data-user-id='<%= current_user ? current_user.id : 0 %>'>
    <div class='row collapse'>
      <form>
       <fieldset>
-        <h5>File to add</h5>
+        <h5>File to attach</h5>
         <div class='small-12 columns'>
           <label for='fsd-textoflink'>File description</label>
           <input type='text'
@@ -34,7 +34,7 @@
   </div>
   <div class='row collapse'>
     <div id='fsd-listing'>
-      <h5>Existing files</h5>
+      <h5>Your files within Scheduler</h5>
       <p><span class='tinytext'>Click on a file below to auto-fill the fields above.</span></p>
       <div id='fsd-filelist'>
       </div>
@@ -69,6 +69,13 @@
            class='zfbutton teensy radius'>
   </div>
 </form>
+</script>
+
+<script type='text/template' id='file-upload-file'>
+<div class='fsd-file' title='<%%= original_file_name %>' data-nanoid='<%%= nanoid %>'>
+  <img src='<%%= thumbnail_path %>'/>
+  <%%= short_name %>
+</div>
 </script>
 
 

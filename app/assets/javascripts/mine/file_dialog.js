@@ -5,7 +5,8 @@ if ($('#file-selector-dialog').length) {
   var file_dialog = function() {
     var that = {};
     var dialog;
-    var template;
+    var uploadTemplate;
+    var fileTemplate;
     var oldPos;
     var oldRange;
     var currentlyOpen = false;
@@ -96,13 +97,13 @@ if ($('#file-selector-dialog').length) {
     }
 
     function fileClickHandler(event) {
-      var target = event['target'];
+      var target = event['currentTarget'];
       var nanoid = $(target).data('nanoid');
       if (nanoid.length) {
         $('#fsd-url').val('/user_files/' + nanoid);
       }
 
-      var fileName = $(target).text();
+      var fileName = $(target).attr('title');
       if (fileName.length) {
         $('#fsd-filename').val(fileName);
       }
@@ -113,12 +114,12 @@ if ($('#file-selector-dialog').length) {
 
       list.empty();
       files.forEach(function(item) {
-        list.append('<span data-nanoid="' + item['nanoid'] + '">' + item['original_file_name'] + '</span> ');
+        list.append(fileTemplate(item));
       });
       //
       //  And set up click handlers for each of them.
       //
-      list.find('span').click(fileClickHandler);
+      list.find('div.fsd-file').click(fileClickHandler);
     }
 
     function populateAndOpen(data, textStatus, jqXHR) {
@@ -146,7 +147,7 @@ if ($('#file-selector-dialog').length) {
         var mock_data = {
           'user_id': userId
         }
-        dialogue_div.html(template(mock_data));
+        dialogue_div.html(uploadTemplate(mock_data));
       } else {
         dialogue_div.html('<p class="unavailable">not available</p>');
       }
@@ -168,7 +169,7 @@ if ($('#file-selector-dialog').length) {
         width: 700,
         modal: true,
         buttons: {
-          Add: doSelect,
+          Attach: doSelect,
           Cancel: function() {
             dialog.dialog('close');
             currentlyOpen = false;
@@ -181,7 +182,8 @@ if ($('#file-selector-dialog').length) {
           }
         }
       });
-      template = _.template($('#file-upload-dialogue').html());
+      uploadTemplate = _.template($('#file-upload-dialogue').html());
+      fileTemplate = _.template($('#file-upload-file').html());
       userId = dialog.data('user-id');
 
       window.openFileDialogue = function(callback = null) {

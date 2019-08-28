@@ -15,6 +15,8 @@ class UserFile < ActiveRecord::Base
 
   validates :nanoid, uniqueness: true
 
+  MAX_SHORT_FILENAME_LEN = 10
+
   def file_info=(incoming_data)
     self.original_file_name = incoming_data.original_filename
     self.file_size = incoming_data.size
@@ -31,6 +33,10 @@ class UserFile < ActiveRecord::Base
     #
   end
 
+  #
+  #  These next two are for when we want to access the files/thumbnails
+  #  from within our code.  Here we need the full absolute path.
+  #
   def file_full_path_name
     Rails.root.join(Setting.user_files_dir,
                     "#{self.owner_id}",
@@ -38,9 +44,45 @@ class UserFile < ActiveRecord::Base
   end
 
   def thumbnail_full_path_name
-    Rails.root.join(Setting.user_files_dir,
-                    "#{self.owner_id}",
-                    "#{self.id}.png")
+    Rails.root.join('public/thumbnails',
+                    "#{self.nanoid}.png")
+  end
+
+  def thumbnail_exists?
+    File.exists?(thumbnail_full_path_name)
+  end
+
+  #
+  #  And these next two give the relative path for referring to a thumbnail
+  #  within a web page.  The path given will be sent to the web server
+  #  to retrieve the required item.
+  #
+  #  This is where the thumbnail *would* be, if it exists.
+  #  Calling code is responsible for checking that it does.
+  #
+  def thumbnail_relative_path_name
+    "/thumbnails/#{self.nanoid}.png"
+  end
+
+  #
+  #  For use in a JSON response
+  #  We give the path to a thumbnail if it exists, or to a default
+  #  blank if it doesn't.
+  #
+  def thumbnail_path
+    if thumbnail_exists?
+      thumbnail_relative_path_name
+    else
+      '/thumbnails/blank48.png'
+    end
+  end
+
+  def short_name
+    if original_file_name.size > MAX_SHORT_FILENAME_LEN
+      "#{original_file_name[0, MAX_SHORT_FILENAME_LEN - 3]}..."
+    else
+      original_file_name
+    end
   end
 
   #
@@ -72,6 +114,15 @@ class UserFile < ActiveRecord::Base
     ensure_directory
     File.open(file_full_path_name, 'wb') do |file|
       file.write(file_info.read)
+    end
+    #
+    #  And can we add a thumbnail?  May not succeed.
+    #
+    unless Thumbnailer.create(file_full_path_name, thumbnail_full_path_name)
+      #
+      #  Might have got as far as creating the thumbnail file.
+      #
+      unlink_if_exists(thumbnail_full_path_name)
     end
   end
 

@@ -15,7 +15,7 @@ json.total_size   @total_size
 json.allowance    @allowance
 json.files do
   json.array!(@user_files) do |user_file|
-    json.extract! user_file, :id, :original_file_name, :nanoid
+    json.extract! user_file, :id, :original_file_name, :short_name, :nanoid, :thumbnail_path
   end
 end
 
