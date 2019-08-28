@@ -48,6 +48,14 @@ class UserFile < ActiveRecord::Base
                     "#{self.nanoid}.png")
   end
 
+  #
+  #  It's just possible that our underlying file might disappear from
+  #  the filing system for one reason or another.
+  #
+  def file_exists?
+    File.exists?(file_full_path_name)
+  end
+
   def thumbnail_exists?
     File.exists?(thumbnail_full_path_name)
   end

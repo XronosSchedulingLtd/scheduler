@@ -52,7 +52,7 @@ class UserFilesController < ApplicationController
     #  Webrick gets marginally upset if we don't set the file
     #  size in the header for it.
     #
-    if @user_file
+    if @user_file && @user_file.file_exists?
       response.headers['Content-Length'] = @user_file.file_size.to_s
       send_file(@user_file.file_full_path_name,
                 filename: @user_file.original_file_name)
