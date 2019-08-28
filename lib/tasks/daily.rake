@@ -29,4 +29,9 @@ namespace :daily do
   task adjust_currency_flags: :environment do
     Group.adjust_currency_flags
   end
+
+  desc 'Check user files.'
+  task check_user_files: :environment do
+    UserFile.check_for_missing
+  end
 end

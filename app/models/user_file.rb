@@ -100,6 +100,29 @@ class UserFile < ActiveRecord::Base
     Rails.root.join(Setting.user_files_dir)
   end
 
+  #
+  #  Invoked by a cron job to check for instances of our underlying
+  #  files going away.  If any like that are found, the corresponding
+  #  database record needs to be removed too.
+  #
+  #  We deliberately generate output if we find one which has.
+  #
+  def self.check_for_missing
+    to_delete = Array.new
+    UserFile.find_each do |uf|
+      unless uf.file_exists?
+        to_delete << uf
+      end
+    end
+    unless to_delete.empty?
+      puts "Found #{to_delete.count} UserFiles missing their underlying files"
+      to_delete.each do |uf|
+        puts "  #{uf.original_file_name} belonging to #{uf.owner.name}."
+        uf.destroy
+      end
+    end
+  end
+
   private
 
   def ensure_directory
