@@ -34,4 +34,9 @@ namespace :daily do
   task check_user_files: :environment do
     UserFile.check_for_missing
   end
+
+  desc 'Purge old emails.'
+  task purge_emails: :environment do
+    EmailPurger.do_purge
+  end
 end

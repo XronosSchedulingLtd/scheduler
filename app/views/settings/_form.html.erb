@@ -417,6 +417,16 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= f.label :email_keep_days, "How many days to keep emails", class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.number_field :email_keep_days %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       &nbsp;
     </div>
     <div class="small-6 columns">
