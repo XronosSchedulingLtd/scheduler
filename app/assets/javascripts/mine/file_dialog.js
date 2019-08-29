@@ -107,6 +107,11 @@ if ($('#file-selector-dialog').length) {
       if (fileName.length) {
         $('#fsd-filename').val(fileName);
       }
+
+      var thumbnail = $(target).find('img')
+      if (thumbnail) {
+        $('#fsd-icon-preview').html(thumbnail.clone());
+      }
     }
 
     function populateFiles(files) {
@@ -138,6 +143,15 @@ if ($('#file-selector-dialog').length) {
       $('#fsd-url').val('');
       $('#fsd-filename').val('');
       //
+      //  This is weird, but it seems that if you have an empty span
+      //  with a specified height, it gains 4 extra pixels vertically
+      //  somehow.  Our span is defined as being 48 pixels, but if
+      //  completely empty it occupies 52 pixels.  As long as it's not
+      //  empty (e.g. one character in it) the height comes back down
+      //  to the specified 48 pixels.  Love to know why.
+      //
+      $('#fsd-icon-preview').html('&nbsp;');
+      //
       //  Is this user allowed to upload?
       //
       if (data['allow_upload']) {
@@ -165,7 +179,7 @@ if ($('#file-selector-dialog').length) {
     that.init = function() {
       dialog = $('#file-selector-dialog').dialog({
         autoOpen: false,
-        height: 650,
+        height: 660,
         width: 700,
         modal: true,
         buttons: {
