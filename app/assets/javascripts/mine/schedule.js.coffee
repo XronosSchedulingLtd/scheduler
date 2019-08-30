@@ -398,12 +398,15 @@ activateViewSwitch = ->
   $('div#view-switch').click(viewClicked)
 
 fileDialogueComplete = (result) ->
-  if that.adding_file_directly && result
-    #
-    #  Need to simulate the user pressing the OK button on our
-    #  hidden note form.
-    #
-    $('#new_note').submit()
+  if that.adding_file_directly
+    if result
+      #
+      #  Need to simulate the user pressing the OK button on our
+      #  hidden note form.
+      #
+      $('#new_note').submit()
+    else
+      showCloser()
 
 embedButtonClicked = (event) ->
   window.openFileDialogue(fileDialogueComplete)
