@@ -84,7 +84,9 @@
 
 <script type='text/template' id='file-upload-file'>
 <div class='fsd-file' title='<%%= original_file_name %>' data-nanoid='<%%= nanoid %>'>
-  <img src='<%%= thumbnail_path %>'/>
+  <div class='fsd-file-thumbnail-holder'>
+    <img src='<%%= thumbnail_path %>'/>
+  </div>
   <%%= short_name %>
 </div>
 </script>

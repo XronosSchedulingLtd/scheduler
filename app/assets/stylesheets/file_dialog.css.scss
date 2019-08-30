@@ -61,10 +61,10 @@ div#fsd-filelist {
     &:hover {
       background-color: rgb(200,200,200);
     }
-    img {
-      display: block;
+    div.fsd-file-thumbnail-holder {
       width: 48px;
       height: 48px;
+      display: block;
       margin-left: auto;
       margin-right: auto;
     }
