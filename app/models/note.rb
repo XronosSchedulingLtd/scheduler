@@ -128,42 +128,113 @@ class Note < ActiveRecord::Base
 
   def check_for_attachments
     #
-    #  Get rid of all existing attachment records.
-    #  We will re-construct any that are still relevant.
+    #  If we're in the middle of dealing with an attachment telling
+    #  us that a userfile is going away, don't try to recreate our
+    #  attachment set.
     #
-    self.attachments.destroy_all
-    unless self.formatted_contents.blank?
-      doc = Nokogiri::HTML::DocumentFragment.parse(self.formatted_contents)
-      doc.css('a').each do |link|
-        #
-        #  Is this a link to a file within our system?  If so, then
-        #  we need to create a corresponding attachment record.
-        #
-        uri = URI.parse(link[:href])
-        #
-        #  Is it on our host?
-        #
-        if uri.relative? || uri.host == Setting.dns_domain_name
+    unless @userfile_going
+      #
+      #  Get rid of all existing attachment records.
+      #  We will re-construct any that are still relevant.
+      #
+      self.attachments.destroy_all
+      unless self.formatted_contents.blank?
+        doc = Nokogiri::HTML::DocumentFragment.parse(self.formatted_contents)
+        doc.css('a').each do |link|
           #
-          #  Seems to be our host at least.
-          #  Is it a link to a user file?
+          #  Is this a link to a file within our system?  If so, then
+          #  we need to create a corresponding attachment record.
           #
-          if uri.path =~ /^\/user_files\//
+          uri = URI.parse(link[:href])
+          #
+          #  Is it on our host?
+          #
+          if uri.relative? || uri.host == Setting.dns_domain_name
             #
-            #  Looking hopeful.  Now need to extract the last part.
+            #  Seems to be our host at least.
+            #  Is it a link to a user file?
             #
-            leaf = Pathname.new(uri.path).basename.to_s
-            #
-            #  And does that match one of our files?
-            #
-            user_file = UserFile.find_by(nanoid: leaf)
-            if user_file
-              self.attachments.create(user_file: user_file)
+            if uri.path =~ /^\/user_files\//
+              #
+              #  Looking hopeful.  Now need to extract the last part.
+              #
+              leaf = Pathname.new(uri.path).basename.to_s
+              #
+              #  And does that match one of our files?
+              #
+              user_file = UserFile.find_by(nanoid: leaf)
+              if user_file
+                self.attachments.create(user_file: user_file)
+              end
             end
           end
         end
       end
     end
+  end
+
+  #
+  #  Called to let us know that a UserFile is going away.  We should
+  #  check our body text for references to either the file itself
+  #  ("/user_files/<nanoid>") or its thumbnail ("/thumbnails/<nanoid>.png").
+  #
+  #  Thumbnail references are simply expunged.  References to the file
+  #  are turned back from links to plain text with "(deleted)" added.
+  #
+  def userfile_going(nanoid)
+    #
+    #  Need to set a flag so that if we save ourselves we don't
+    #  trigger the processing in the check_for_attachments method.
+    #
+    @userfile_going = true
+    working = self.contents
+    #
+    #  First expunge any reference to the thumbnail.  This will be of
+    #  the form:
+    #
+    #    [Thumbnail](/thumbnails/<nanoid>.png...)
+    #
+    #  There may or may not be text replacing the ellipsis. It is
+    #  important that we actually match against our individual nanoid,
+    #  because there could be more than one link in our text.
+    #
+    #  There is an interesting bijou bugette here, in that if there
+    #  are any blank thumbnails in our text they will go, even if they
+    #  don't relate to the file for which we are looking.
+    #
+    #  It's quite an edge case.  It requires two or more files linked
+    #  within the note, where one has been set up with
+    #  a thumbnail, even though it has no thumbnail.  What we lose
+    #  is a blank thumbnail.  Arguably it should never have been
+    #  there.  I'll live with it.
+    #
+    matcher1 = /!\[Thumbnail\]\(\/thumbnails\/(#{nanoid}|blank48)\.png.*?\)/
+    working = working.gsub(matcher1, '')
+    #
+    #  And now the actual file link
+    #
+    #  This should be of the form
+    #
+    #    [Some text](/user_files/<nanoid>)
+    #
+    #  and we want to keep "Some text" for later use.
+    #
+    #  Note the danger of having two such file links on the same line
+    #  and searching for the second one.  We would match the initial
+    #  '[' from the first one, and then the end of the second one.
+    #  For that reason, our non-greedy matcher needs to exclude ']'
+    #  as an acceptable character.
+    #
+    #    [^\]]*?  means "zero or more instances of any character
+    #                    other than ], in a non-greedy way"
+    #
+    matcher2 = /\[([^\]]*?)\]\(\/user_files\/#{nanoid}\)/
+    working = working.sub(matcher2, '\1 (File deleted)')
+    if working != self.contents
+      self.contents = working
+      self.save
+    end
+    @userfile_going = false
   end
 
   def self.format_all_contents

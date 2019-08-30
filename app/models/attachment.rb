@@ -11,6 +11,8 @@ class Attachment < ActiveRecord::Base
   validates :parent, presence: true
   validates :user_file, presence: true
 
+  before_destroy :adjust_note_contents
+
   def name
     if user_file
       user_file.original_file_name
@@ -26,4 +28,21 @@ class Attachment < ActiveRecord::Base
     end
     candidate
   end
+
+  private
+
+  #
+  #  If we're being destroyed, then we'd prefer not to leave behind any
+  #  broken links.
+  #
+  def adjust_note_contents
+    if user_file && parent && parent.respond_to?(:userfile_going)
+      parent.userfile_going(self.user_file.nanoid)
+    end
+    #
+    #  Must return true or we cancel our destruction.
+    #
+    return true
+  end
+
 end
