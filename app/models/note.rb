@@ -134,10 +134,9 @@ class Note < ActiveRecord::Base
     #
     unless @userfile_going
       #
-      #  Get rid of all existing attachment records.
-      #  We will re-construct any that are still relevant.
+      #  An array of UserFiles to which we should be linked.
       #
-      self.attachments.destroy_all
+      should_link_to = Array.new
       unless self.formatted_contents.blank?
         doc = Nokogiri::HTML::DocumentFragment.parse(self.formatted_contents)
         doc.css('a').each do |link|
@@ -164,11 +163,33 @@ class Note < ActiveRecord::Base
               #
               user_file = UserFile.find_by(nanoid: leaf)
               if user_file
-                self.attachments.create(user_file: user_file)
+                should_link_to << user_file
               end
             end
           end
         end
+      end
+      #
+      #  Now have a list of what we *should* be linked to.  Compare
+      #  with reality, and adjust reality.
+      #
+      current_attachments = self.attachments.all.to_a # Force d/b hit
+      current_attachments.each do |attachment|
+        if should_link_to.include?(attachment.user_file)
+          #
+          #  This next line merely removes the user_file from the array.
+          #
+          should_link_to.delete(attachment.user_file)
+        else
+          attachment.destroy
+        end
+      end
+      #
+      #  And anything left in the should_link_to array needs to
+      #  be added.
+      #
+      should_link_to.each do |user_file|
+        self.attachments.create(user_file: user_file)
       end
     end
   end
