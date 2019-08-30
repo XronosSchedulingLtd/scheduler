@@ -29,7 +29,15 @@ class UserFilesController < ApplicationController
       might_allow_upload = false
     end
     if @user
-      @user_files = @user.user_files.order(:original_file_name)
+      #
+      #  For a json request, it makes sense to show the most recently
+      #  uploaded first.  Easier to find.
+      #
+      if request.format.json?
+        @user_files = @user.user_files.order(created_at: :desc)
+      else
+        @user_files = @user.user_files.order(:original_file_name)
+      end
       if might_allow_upload
         @allow_upload, @total_size, @allowance = @user.can_upload_with_figures?
       else
