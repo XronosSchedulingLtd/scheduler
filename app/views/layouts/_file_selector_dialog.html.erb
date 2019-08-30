@@ -6,7 +6,7 @@
      <form>
       <fieldset>
         <h5>File to attach</h5>
-        <div class='small-10 columns'>
+        <div class='small-9 columns'>
           <label for='fsd-textoflink'>File description</label>
           <input type='text'
                  name='fsd-textoflink'
@@ -16,7 +16,14 @@
         </div>
         <div class='small-2 columns'>
           <label>Thumbnail</label>
-          <span id='fsd-icon-preview'></span>
+          <span id='fsd-thumbnail-preview'></span>
+        </div>
+        <div class='small-1 columns'>
+          <label>Use</label>
+          <input type='checkbox'
+                 name='fsd-use-thumbnail'
+                 id='fsd-use-thumbnail'
+                 title='Should this thumbnail be used as part of the file link?' />
         </div>
         <div class='small-6 columns'>
           <label for='fsd-url'>URL</label>

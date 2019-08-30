@@ -55,30 +55,71 @@ if ($('#file-selector-dialog').length) {
       //
       //  We make no attempt to validate it.
       //
-      //  2. A URL, plus a file name, but no text.
+      //  2. A URL, plus a file name, but no text or thumbnail tick.
       //
       //  Inject "[file name](http://banana.com)"
+      //
+      //  Given text overrides the file name.
       //
       //  3. A URL, plus text, regardless of file name.
       //
       //  Inject "[text](http://banana.com)"
       //
-      //  Given text overrides the file name.
+      //  4. If we have a thumbnail URL and it's ticked, then we append
+      //     the thumbnail to whatever text we would otherwise have produced.
+      //
+      //
+      //  When we see the thumbnail tick, we check first that we actually
+      //  have a thumbnail URL in our field.  If not, then we behave as
+      //  if the tick was not there.
       //
       var textOfLink = $('#fsd-textoflink').val();
       var url = $('#fsd-url').val();
       var fileName = $('#fsd-filename').val();
+      //
+      //  There may be no image in the thumbnail preview.
+      //
+      var useThumbnail;
+      var thumbnailPath = "";
+      var thumbnailChunk = "";
+      var thumbnailImage = $('#fsd-thumbnail-preview img');
+      var useChecked = $('#fsd-use-thumbnail').prop('checked');
+      if (thumbnailImage.length === 1 && useChecked) {
+        thumbnailPath = thumbnailImage.attr('src');
+        if (fileName.length) {
+          thumbnailChunk = '![Thumbnail]('.concat(thumbnailPath,
+                                                  ' "',
+                                                  fileName,
+                                                  '")')
+        } else {
+          thumbnailChunk = '![Thumbnail]('.concat(thumbnailPath, ')')
+        }
+        useThumbnail = true;
+      } else {
+        useThumbnail = false;
+      }
+      //
       var textToInject = "";
 
       if (url.length) {
+        var visiblePart = "";
         if (textOfLink.length) {
-          textToInject = "[" + textOfLink + "](" + url + ")";
+          //
+          //  We have some fancy stuff to replace the filename or URL.
+          //
+          visiblePart = textOfLink;
         } else {
           if (fileName.length) {
-            textToInject = "[" + escapeMarkdown(fileName) + "](" + url + ")";
-          } else {
-            textToInject = url;
+            visiblePart = escapeMarkdown(fileName);
           }
+        }
+        if (useThumbnail) {
+          visiblePart = visiblePart + ' ' + thumbnailChunk;
+        }
+        if (visiblePart.length) {
+          textToInject = '[' + visiblePart + '](' + url + ')';
+        } else {
+          textToInject = url;
         }
       }
 
@@ -110,7 +151,7 @@ if ($('#file-selector-dialog').length) {
 
       var thumbnail = $(target).find('img')
       if (thumbnail) {
-        $('#fsd-icon-preview').html(thumbnail.clone());
+        $('#fsd-thumbnail-preview').html(thumbnail.clone());
       }
     }
 
@@ -142,6 +183,7 @@ if ($('#file-selector-dialog').length) {
       }
       $('#fsd-url').val('');
       $('#fsd-filename').val('');
+      $('#fsd-use-thumbnail').prop('checked', false);
       //
       //  This is weird, but it seems that if you have an empty span
       //  with a specified height, it gains 4 extra pixels vertically
@@ -150,7 +192,7 @@ if ($('#file-selector-dialog').length) {
       //  empty (e.g. one character in it) the height comes back down
       //  to the specified 48 pixels.  Love to know why.
       //
-      $('#fsd-icon-preview').html('&nbsp;');
+      $('#fsd-thumbnail-preview').html('&nbsp;');
       //
       //  Is this user allowed to upload?
       //
