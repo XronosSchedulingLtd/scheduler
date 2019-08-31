@@ -1,3 +1,12 @@
+v1.8.7.1 2019-08-31
+
+* Remove accidental use of ECMAScript 6 feature
+
+  In final release testing, compilation of the JavaScript failed in
+  the Production environment because of the use of an EC6 feature.
+  This has now been removed.
+
+
 v1.8.7   2019-08-31
 
 * Streamlined file attachment to events
