@@ -2,12 +2,13 @@
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
-div.note_contents {
+div.note-html-contents {
   overflow: auto;
   border: 1px solid black;
   background-color: #f0f0f0;
   padding-left: 4px;
   padding-right: 4px;
+  margin-bottom: 5px;
   a {
     color: rgb(0,140,186);
   }

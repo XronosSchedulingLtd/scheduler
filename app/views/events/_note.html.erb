@@ -4,7 +4,7 @@
 <% if note.any_attachments? %>
   <div class='row collapse'>
     <div class='small-9 columns'>
-      <div class='note_contents'><%= note.formatted_contents.html_safe %></div>
+      <div class='note-html-contents'><%= note.formatted_contents.html_safe %></div>
     </div>
     <div class="small-3 columns">
       <div class='note-attachments'>
@@ -12,21 +12,28 @@
         <ul>
           <%= render note.attachments %>
         </ul>
-        <p class='annotation'>Click name to download</p>
       </div>
     </div>
   </div>
 <% else %>
-  <div class='note_contents'><%= note.formatted_contents.html_safe %></div>
+  <div class='note-html-contents'><%= note.formatted_contents.html_safe %></div>
 <% end %>
 <% if current_user && current_user.can_delete?(note) %>
   <div class="delete_link">
-    <%= link_to "Delete", note, method: :delete, remote: true, data: { confirm: 'Are you sure you want to delete this note?' } %>
+    <%= link_to("Delete",
+                note,
+                method: :delete,
+                remote: true,
+                data: { confirm: 'Are you sure you want to delete this note?' },
+                class: 'zfbutton teensy button-link') %>
   </div>
 <% end %>
 <div class="edit_link">
   <% if current_user && current_user.can_edit?(note) %>
-    <%= link_to "Edit", edit_note_path(note), remote: true %>
+    <%= link_to("Edit",
+                edit_note_path(note),
+                remote: true,
+                class: 'zfbutton teensy button-link') %>
   <% else %>
     <%= note.owner && !note.promptnote ? note.owner.initials : "" %>
   <% end %>

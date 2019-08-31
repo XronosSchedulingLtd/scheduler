@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190708095414) do
+ActiveRecord::Schema.define(version: 20190828111618) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -608,6 +608,8 @@ ActiveRecord::Schema.define(version: 20190708095414) do
     t.string   "busy_string",                      limit: 255,   default: "Busy"
     t.string   "user_files_dir",                   limit: 255,   default: "UserFiles"
     t.integer  "user_file_allowance",              limit: 4,     default: 0
+    t.integer  "email_keep_days",                  limit: 4,     default: 0
+    t.integer  "event_keep_years",                 limit: 4,     default: 0
   end
 
   create_table "staffs", force: :cascade do |t|

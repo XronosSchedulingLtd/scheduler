@@ -1,21 +1,32 @@
 class NotesController < ApplicationController
 
+  before_action :find_event, only: [:new, :create]
+
   #
   #  Needs to be called in the context of a parent - currently just an
   #  event.
   #
   def new
-    @event = Event.find(params[:event_id])
     @note = Note.new
     @note.parent = @event
     @note.owner = current_user
+    @file_only = (params[:file_only] == 'true')
     respond_to do |format|
       format.js
     end
   end
 
   def create
-    @event = Event.find(params[:event_id])
+    #
+    #  Should this not be:
+    #
+    #  @note = @event.notes.new(note_params)?
+    #
+    #  How does the not get linked to its parent event?
+    #
+    #  It seems that the necessary info is in hidden fields within
+    #  the note.  Is this a good idea?
+    #
     @note = Note.new(note_params)
     respond_to do |format|
       if @note.save
@@ -102,6 +113,10 @@ class NotesController < ApplicationController
   end
 
   private
+
+  def find_event
+    @event = Event.find(params[:event_id])
+  end
 
   def authorized?(action = action_name, resource = nil)
     #

@@ -35,22 +35,38 @@ div#fsd-filelist {
   padding-left: 5px;
   padding-right: 5px;
   line-height: 30px;
-  height: 230px;
+  height: 200px;
   overflow-y: scroll;
-  span {
-    border: 1px solid rgb(0,112,149);
-    padding: 3px 5px 3px 3px;
-    border-radius: 4px;
-    margin-left: 2px;
-    margin-right: 2px;
-    color: white;
-    background-color: rgb(0,140,186);
+  //
+  //  And this gives us an attempt at something like a file browser.
+  //  We're being really prescriptive about its shape.
+  //
+  //
+  div.fsd-file {
+    border: 1px solid rgb(192,192,192);
+    border-radius: 5px;
+    background-color: rgb(220, 220, 220);
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-bottom: 8px;
+    padding: 2px 2px 2px 2px;
+    width: 70px;
+    height: 75px;
+    text-align: center;
     font-family: "Helvetica Neue", Helvetica;
     font-size: 12px;
-    transition: background-color 300ms ease-out;
-    white-space:nowrap;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    float: left;
     &:hover {
-      background-color: #007095;
+      background-color: rgb(200,200,200);
+    }
+    div.fsd-file-thumbnail-holder {
+      width: 48px;
+      height: 48px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
   }
 }
@@ -60,4 +76,9 @@ div#file-upload-area {
   margin-top: 5px;
   padding: 5px;
 
+}
+
+span#fsd-thumbnail-preview {
+  height: 48px;
+  display: inline-block;
 }
