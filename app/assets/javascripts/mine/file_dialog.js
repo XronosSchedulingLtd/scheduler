@@ -242,7 +242,7 @@ if ($('#file-selector-dialog').length) {
       fileTemplate = _.template($('#file-upload-file').html());
       userId = dialog.data('user-id');
 
-      window.openFileDialogue = function(callback = null) {
+      window.openFileDialogue = function(callback) {
         //
         //  We call the callback function to tell our caller whether
         //  the user clicked OK and we have done something, or cancel
