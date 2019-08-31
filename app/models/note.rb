@@ -10,7 +10,15 @@ class Note < ActiveRecord::Base
 #  belongs_to :commitments, -> { where( notes: { parent_type: 'Commitment' } ).includes(:notes) }, foreign_key: 'parent_id'
   belongs_to :owner, class_name: :User
   belongs_to :promptnote
-  has_many :attachments, as: :parent, dependent: :destroy
+  #
+  #  Note that we use dependent: :delete_all here deliberately, in preference
+  #  to dependent: :destroy.  This is because we don't want to the
+  #  attachments calling us back to tell us they're going.
+  #
+  #  The only callback in the Attachment model is to update its
+  #  parent Note, and if we're going too then we're not interested.
+  #
+  has_many :attachments, as: :parent, dependent: :delete_all
   has_many :user_files, through: :attachments
 
   validates :parent, presence: true
@@ -181,7 +189,12 @@ class Note < ActiveRecord::Base
           #
           should_link_to.delete(attachment.user_file)
         else
-          attachment.destroy
+          #
+          #  If we call Attachment#destroy() here then it will cause a
+          #  call on Note#userfile_going() for our own instance.  
+          #  We don't want this, so use Attachment#delete() instead.
+          #
+          attachment.delete
         end
       end
       #
@@ -203,6 +216,8 @@ class Note < ActiveRecord::Base
   #  are turned back from links to plain text with "(deleted)" added.
   #
   def userfile_going(nanoid)
+    Rails.logger.debug("Entering userfile_going")
+    Rails.logger.debug("self.object_id = #{self.object_id}")
     #
     #  Need to set a flag so that if we save ourselves we don't
     #  trigger the processing in the check_for_attachments method.
@@ -269,4 +284,5 @@ class Note < ActiveRecord::Base
       note.save
     end
   end
+
 end

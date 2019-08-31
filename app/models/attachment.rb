@@ -11,6 +11,14 @@ class Attachment < ActiveRecord::Base
   validates :parent, presence: true
   validates :user_file, presence: true
 
+  #
+  #  Note that the Note class has dependent: :delete_all on its connection
+  #  to attachments.  This is specifically so the following callback won't
+  #  fire.
+  #
+  #  If you add any more callbacks to this model, you might need to take
+  #  that into account.
+  #
   before_destroy :adjust_note_contents
 
   def name
