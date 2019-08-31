@@ -49,7 +49,13 @@ class SettingsController < ApplicationController
         format.html { redirect_to @setting, notice: 'Setting was successfully updated.' }
         format.json { render :show, status: :ok, location: @setting }
       else
-        format.html { render :edit }
+        format.html {
+          #
+          #  Call the edit method afresh to set up environment bits
+          #
+          edit()
+          render :edit
+        }
         format.json { render json: @setting.errors, status: :unprocessable_entity }
       end
     end
@@ -101,6 +107,8 @@ class SettingsController < ApplicationController
                     :tt_prep_letter,
                     :tt_store_start,
                     :busy_string,
-                    :user_file_allowance)
+                    :user_file_allowance,
+                    :email_keep_days,
+                    :event_keep_years)
     end
 end

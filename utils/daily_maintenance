@@ -3,3 +3,6 @@
 . ~/etc/whichsystem
 cd $SCHEDULER_DIR
 ~/.rvm/wrappers/scheduler/rake daily:adjust_currency_flags
+~/.rvm/wrappers/scheduler/rake daily:check_user_files
+~/.rvm/wrappers/scheduler/rake daily:purge_emails
+

@@ -1,17 +1,29 @@
 <div id='file-selector-dialog'
-     title='Generate file link'
+     title='Attach file'
      style='display:none;'
      data-user-id='<%= current_user ? current_user.id : 0 %>'>
-  <div class='row collapse'>
-    <form>
+   <div class='row collapse'>
+     <form>
       <fieldset>
-        <div class='small-12 columns'>
-          <label for='fsd-textoflink'>Link text</label>
+        <h5>File to attach</h5>
+        <div class='small-9 columns'>
+          <label for='fsd-textoflink'>File description</label>
           <input type='text'
                  name='fsd-textoflink'
                  id='fsd-textoflink'
                  placeholder='optional'
                  title='If given, this text will appear in place of the filename as part of your note.'/>
+        </div>
+        <div class='small-2 columns'>
+          <label>Thumbnail</label>
+          <span id='fsd-thumbnail-preview'></span>
+        </div>
+        <div class='small-1 columns'>
+          <label>Use</label>
+          <input type='checkbox'
+                 name='fsd-use-thumbnail'
+                 id='fsd-use-thumbnail'
+                 title='Should this thumbnail be used as part of the file link?' />
         </div>
         <div class='small-6 columns'>
           <label for='fsd-url'>URL</label>
@@ -33,13 +45,14 @@
   </div>
   <div class='row collapse'>
     <div id='fsd-listing'>
-      <p>Click on a file below to auto-fill the fields above.</p>
+      <h5>Your files within Scheduler</h5>
+      <p><span class='tinytext'>Click on a file below to auto-fill the fields above.</span></p>
       <div id='fsd-filelist'>
       </div>
     </div>
   </div>
   <div class='row collapse' id='file-upload-area'>
-    <p>File upload</p>
+    <h5>File upload</h5>
     <div class='small-12 columns'>
       <div class='row collapse' id='for-upload-dialogue'>
       </div>
@@ -67,6 +80,15 @@
            class='zfbutton teensy radius'>
   </div>
 </form>
+</script>
+
+<script type='text/template' id='file-upload-file'>
+<div class='fsd-file' title='<%%= original_file_name %>' data-nanoid='<%%= nanoid %>'>
+  <div class='fsd-file-thumbnail-holder'>
+    <img src='<%%= thumbnail_path %>'/>
+  </div>
+  <%%= short_name %>
+</div>
 </script>
 
 

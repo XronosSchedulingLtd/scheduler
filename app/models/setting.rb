@@ -29,6 +29,10 @@ class Setting < ActiveRecord::Base
   validates :current_era, :presence => true
   validates :perpetual_era, :presence => true
   validate :no_more_than_one
+  validates :email_keep_days, numericality: {
+    only_integer: true,
+    greater_than_or_equal_to: 0
+  }
 
   enum auth_type: [:google_auth, :google_demo_auth]
 

@@ -167,6 +167,7 @@ GEM
     redcarpet (3.4.0)
     remotipart (1.4.3)
     ri_cal (0.8.8)
+    rmagick (4.0.0)
     ruby-prof (0.15.1)
     safely_block (0.2.1)
       errbase
@@ -237,6 +238,7 @@ DEPENDENCIES
   redcarpet
   remotipart
   ri_cal
+  rmagick
   ruby-prof
   sass (~> 3.3.0)
   sass-rails (~> 5.0.6)

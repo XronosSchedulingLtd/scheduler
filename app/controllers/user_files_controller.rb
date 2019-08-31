@@ -29,7 +29,15 @@ class UserFilesController < ApplicationController
       might_allow_upload = false
     end
     if @user
-      @user_files = @user.user_files.order(:original_file_name)
+      #
+      #  For a json request, it makes sense to show the most recently
+      #  uploaded first.  Easier to find.
+      #
+      if request.format.json?
+        @user_files = @user.user_files.order(created_at: :desc)
+      else
+        @user_files = @user.user_files.order(:original_file_name)
+      end
       if might_allow_upload
         @allow_upload, @total_size, @allowance = @user.can_upload_with_figures?
       else
@@ -52,7 +60,7 @@ class UserFilesController < ApplicationController
     #  Webrick gets marginally upset if we don't set the file
     #  size in the header for it.
     #
-    if @user_file
+    if @user_file && @user_file.file_exists?
       response.headers['Content-Length'] = @user_file.file_size.to_s
       send_file(@user_file.file_full_path_name,
                 filename: @user_file.original_file_name)

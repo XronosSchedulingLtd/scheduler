@@ -12,6 +12,7 @@
 #  out by the CoffeeScript compiler.
 #
 that = {}
+that.adding_file_directly = false
 $(document).ready ->
   $('#datepicker').datepicker
     showOtherMonths: true
@@ -396,8 +397,22 @@ activateFilterSwitch = ->
 activateViewSwitch = ->
   $('div#view-switch').click(viewClicked)
 
+fileDialogueComplete = (result) ->
+  if that.adding_file_directly
+    if result
+      #
+      #  Need to simulate the user pressing the OK button on our
+      #  hidden note form.
+      #
+      $('#new_note').submit()
+    else
+      showCloser()
+
+embedButtonClicked = (event) ->
+  window.openFileDialogue(fileDialogueComplete)
+
 activateEmbedButton = ->
-  $('#embed-button').click(window.openFileDialogue)
+  $('#embed-button').click(embedButtonClicked)
 
 activateUserColumn = ->
   activateCheckboxes()
@@ -525,11 +540,28 @@ window.beginEditingConcernSet = (body_text) ->
 window.endEditingConcernSet = (body_text) ->
   $('#view-dialogue').html(body_text)
 
-window.beginNoteEditing = (body_text) ->
-  $('#event-notes').html(body_text)
-  $('#note_contents').focus()
-  activateEmbedButton();
+window.beginNoteEditing = (body_text, file_only) ->
   hideCloser()
+  if file_only
+    #
+    #  We still need all the fields for note editing, but we put
+    #  them in a hidden div, leaving the existing display untouched.
+    #
+    $('#hidden-event-note').html(body_text)
+    window.openFileDialogue(fileDialogueComplete)
+    that.adding_file_directly = true
+  else
+    #
+    #  Because we sometimes put the input form into the hidden-event-note
+    #  div above, we need to make sure that is empty before putting it
+    #  into the visible div.  Otherwise we end up with two instances
+    #  of each of the items within the form.
+    #
+    $('#hidden-event-note').empty()
+    $('#event-notes').html(body_text)
+    $('#note_contents').focus()
+    activateEmbedButton();
+    that.adding_file_directly = false
 
 window.endNoteEditing = (new_note_text, new_shown_commitments) ->
   $('#event-notes').html(new_note_text)
