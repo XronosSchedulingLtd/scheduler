@@ -1,3 +1,100 @@
+v1.8.7   2019-08-31
+
+* Streamlined file attachment to events
+
+  Since version 1.8.2 it has been possible to store files within Scheduler
+  and embed links to them in notes attached to events.  A helper is
+  provided to generate the necessary Markdown link text.
+
+  In this release, a shortcut way of doing this is added.  A new button
+  is available in the "Show event" dialogue labelled "Attach file".
+  Clicking this button takes you straight to the file selection
+  dialogue, and if you select a file and click OK then the file
+  is immediately attached to the event without having to go through
+  the note editing process.
+
+  (The file is still actually embedded in a note, so it is possible
+  to edit it later and add more if required.)
+
+* Add thumbnails for image files
+
+  Scheduler will now create thumbnails for any image files (including
+  PDF and PostScript) which are uploaded to it.
+
+* Improved file listing in file attachment dialogue
+
+  When a user is attaching a file to an event (or embedding one
+  in a Note) they are shown a pop-up selection dialogue, with the
+  means to pick one to use.  The display of files in this dialogue
+  has been improved to look more like a normal graphical file listing.
+
+  Where a file has a thumbnail, it is included in this file listing.
+
+* Facilitate thumbnails in file attachments
+
+  The file attachment dialogue now allows the user to tick a checkbox
+  which will cause the corresponding thumbnail to be included as part
+  of the link to the file.  This is in addition to any file description
+  or file name which the user provides.
+
+* Most recent files shown first in attachment dialogue
+
+  When a user is attaching a file to an event, it is more likely that the
+  most recently uploaded files will be the one wanted.  The files
+  in the dialogue are thus shown with the most recent one first.
+  
+* Maintenance job to remove orphaned UserFile records
+
+  When a user uploads a file to Scheduler, the file itself is stored
+  on disk and a UserFile record is created in the database to keep
+  meta-data about it.
+
+  Under exceptional circumstances, it is possible that someone with
+  privileged access to the system could delete the underlying disk file
+  without updating the database.  This would then result in a "File not
+  found" error page each time someone clicked on a link to that file.
+
+  A cron job has been added which runs each night and removes any
+  UserFile database records which have lost their underlying disk files,
+  which in turn triggers the processing described next...
+
+* Deleting a UserFile removes any corresponding links attached to events
+
+  Scheduler is not intended as a large scale file store.  Users have
+  a limited amount of disk space and they will probably want to remove
+  old files once their utility has passed to free up space for new ones.
+
+  Each time a UserFile is deleted, Scheduler now updates any affected
+  Notes and removes all links to the deleted file.
+
+  A link like this:
+
+    <a href='/user_files/12345678'>My lovely document</a>
+
+  will become:
+
+    My lovely document (File deleted)
+
+* Automatic purging of old e-mails (configurable)
+
+  In a similar vein, Scheduler keeps copies of all the e-mails which
+  it sends.  The quantity stored increases quite quickly and it may be
+  desired to keep them under control.
+
+  A new setting field has been added - "How many days to keep emails".
+  By default it has a value of 0, which means "Keep forever", but if
+  the value is set to something above 0 then all e-mails more than
+  that many days old will be purged by a nightly cron job.
+
+  A value between 30 and 90 might be a useful one to set.
+
+* Fix indenting of email paragraphs
+
+  The CSS for styling emails in the previous release had a mistake
+  in that only the first line of some paragraphs was being indented
+  when the intention was to indent the whole paragraph.  Fixed.
+
+
 v1.8.6   2019-08-21
 
 * Re-style customer-facing e-mails to allow customisation
