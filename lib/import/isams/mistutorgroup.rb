@@ -101,7 +101,15 @@ class MIS_Tutorgroup
       if tg
         tg.add_pupil(pupil)
       else
-        puts "Can't find tutor group \"#{pupil.form_name}\" for #{pupil.name}."
+        #
+        #  An unfortunate mis-feature of iSAMS is that pupils are linked
+        #  to their tutor groups by name rather than by ID as they should
+        #  be.  This means that you can end up with pupils with
+        #  no matching tutor group if you aren't disciplined about
+        #  entering your data.  It happens a lot at some schools,
+        #  so log it only if we're not in quiet mode.
+        #
+        puts "Can't find tutor group \"#{pupil.form_name}\" for #{pupil.name}." unless loader.options.quiet
       end
     end
     tgs.each do |tg|

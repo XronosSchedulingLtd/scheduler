@@ -451,7 +451,11 @@ class ISAMS_MeetingEntry < MIS_ScheduleEntry
   end
 
   def self.construct(loader, inner_data)
-    meetings = self.slurp(inner_data)
+    #
+    #  There may well not be any meetings.  Don't complain if there
+    #  aren't.
+    #
+    meetings = self.slurp(inner_data, false)
     #
     #  iSAMS provides one entry per teacher at a meeting.  Need to merge
     #  these to create on entry per meeting.
@@ -846,7 +850,11 @@ class ISAMS_TutorialEntry < MIS_ScheduleEntry
 
   def self.construct(loader, inner_data)
     @loader = loader
-    events = self.slurp(inner_data)
+    #
+    #  There may well not be any tutorials.  Don't complain if there
+    #  aren't.
+    #
+    events = self.slurp(inner_data, false)
   end
 
   def self.loader
