@@ -49,7 +49,6 @@ module Elemental
   #  This method makes sure we keep our element record.
   #
   def update_element
-    Rails.logger.debug("@new_viewable = #{@new_viewable} (#{@new_viewable.class})")
     if self.element
       if self.active
         do_save = false
