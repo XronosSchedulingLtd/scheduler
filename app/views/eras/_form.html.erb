@@ -37,7 +37,7 @@
     </div>
     <div class="small-6 columns">
       <%= f.text_field(:starts_on,
-                       value: @era.starts_on.to_formatted_s(:dmy),
+                       value: @era.formatted_starts_on,
                        autocomplete: 'off',
                        class: :datepicker) %>
     </div>
@@ -50,7 +50,7 @@
     </div>
     <div class="small-6 columns">
       <%= f.text_field(:ends_on,
-                       value: @era.ends_on.to_formatted_s(:dmy),
+                       value: @era.formatted_ends_on,
                        autocomplete: 'off',
                        class: :datepicker) %>
     </div>
@@ -69,7 +69,8 @@
   </div>
   <div class="row collapse">
     <div class="small-9 small-offset-3 columns">
-      <%= f.submit "Update", :class => "zfbutton tiny radius" %>
+      <%= f.submit "Update", class: 'zfbutton tiny radius' %>
+      <%= link_to 'Cancel', eras_path, class: 'zfbutton tiny radius button-link' %>
     </div>
   </div>
 <% end %>
