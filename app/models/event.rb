@@ -1020,12 +1020,24 @@ class Event < ActiveRecord::Base
     end
   end
 
+  #
+  #  Returns staff initials for this event if it makes any sense.
+  #  It doesn't make sense to do it if there are lots of staff
+  #  involved.
+  #
+  #  If we have one member of staff we return "ABC"
+  #  If we have two members of staff we return "ABC/DEF"
+  #  Otherwise we return nil, because either there are no
+  #  staff or there are too many.
+  #
   def staff_initials
     the_staff = self.staff
-    if the_staff.size > 0
+    if the_staff.size == 1
       the_staff[0].initials
+    elsif the_staff.size == 2
+      the_staff.collect {|s| s.initials}.join("/")
     else
-      ""
+      nil
     end
   end
 
