@@ -2,6 +2,7 @@ require 'test_helper'
 
 class CommentsControllerTest < ActionController::TestCase
   setup do
+    UserProfile.ensure_basic_profiles
     @user_form_response = FactoryBot.create(:user_form_response)
     @ordinary_user = FactoryBot.create(:user)
     @admin_user    = FactoryBot.create(:user, :admin)

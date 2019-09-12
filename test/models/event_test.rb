@@ -2,6 +2,7 @@ require 'test_helper'
 
 class EventTest < ActiveSupport::TestCase
   setup do
+    UserProfile.ensure_basic_profiles
     @eventcategory = FactoryBot.create(:eventcategory)
     @eventsource   = FactoryBot.create(:eventsource)
     @confidential_ec = FactoryBot.create(:eventcategory, confidential: true)

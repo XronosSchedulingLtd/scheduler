@@ -2,6 +2,7 @@ require 'test_helper'
 
 class UserFilesTest < ActionDispatch::IntegrationTest
   setup do
+    UserProfile.ensure_basic_profiles
     @api_user =
       FactoryBot.create(:user, :api, :editor, :noter, :files)
     @admin_user =
