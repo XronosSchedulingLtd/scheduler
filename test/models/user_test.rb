@@ -14,11 +14,27 @@ class UserTest < ActiveSupport::TestCase
     assert_equal user.corresponding_staff, staff
   end
 
+  test "don't link to non-current staff" do
+    staff = FactoryBot.create(:staff, email: 'able@baker.com', current: false)
+    user = FactoryBot.create(:user, email: 'able@baker.com')
+    assert user.valid?
+    assert_equal UserProfile.guest_profile, user.user_profile
+    assert_nil user.corresponding_staff
+  end
+
   test "can create a pupil user" do
     pupil = FactoryBot.create(:pupil, email: 'student@baker.com')
     user = FactoryBot.create(:user, email: 'student@baker.com')
     assert user.valid?
     assert_equal UserProfile.pupil_profile, user.user_profile
+  end
+
+  test "don't link to non-current pupil" do
+    pupil = FactoryBot.create(:pupil, email: 'student@baker.com', current: false)
+    user = FactoryBot.create(:user, email: 'student@baker.com')
+    assert user.valid?
+    assert_equal UserProfile.guest_profile, user.user_profile
+    assert_nil user.corresponding_staff
   end
 
   test "can create a guest user" do

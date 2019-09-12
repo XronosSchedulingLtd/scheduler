@@ -123,7 +123,7 @@ FactoryBot.define do
     end
 
     firstday { 0 }
-    user_profile
+    user_profile { UserProfile.guest_profile }
 
     permissions do
       #

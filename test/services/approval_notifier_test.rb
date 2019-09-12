@@ -3,6 +3,7 @@ require 'test_helper'
 class ApprovalNotifierTest < ActiveSupport::TestCase
 
   setup do
+    UserProfile.ensure_basic_profiles
     #
     #  Need an owned resource
     #

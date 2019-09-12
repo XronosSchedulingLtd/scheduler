@@ -962,7 +962,7 @@ class User < ActiveRecord::Base
           })
         end
       end
-      pupil = Pupil.find_by_email(self.email)
+      pupil = Pupil.current.find_by_email(self.email)
       if pupil
         got_something = true
         self.user_profile = UserProfile.pupil_profile
