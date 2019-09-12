@@ -37,6 +37,15 @@ class UserTest < ActiveSupport::TestCase
     assert_nil user.corresponding_staff
   end
 
+  test "prefer staff record to pupil one" do
+    staff = FactoryBot.create(:staff, email: 'able@baker.com')
+    pupil = FactoryBot.create(:pupil, email: 'able@baker.com')
+    user = FactoryBot.create(:user, email: 'able@baker.com')
+    assert user.valid?
+    assert_equal UserProfile.staff_profile, user.user_profile
+    assert_equal user.corresponding_staff, staff
+  end
+
   test "can create a guest user" do
     user = FactoryBot.create(:user, email: 'guest@baker.com')
     assert user.valid?

@@ -961,26 +961,34 @@ class User < ActiveRecord::Base
             colour:   "#225599"
           })
         end
-      end
-      pupil = Pupil.current.find_by_email(self.email)
-      if pupil
-        got_something = true
-        self.user_profile = UserProfile.pupil_profile
-        concern = self.concern_with(pupil.element)
-        if concern
-          unless concern.equality
-            concern.equality = true
-            concern.save!
+      else
+        #
+        #  Look for a pupil record only if we've failed to
+        #  find a staff one.  It's just possible that both exist,
+        #  but staff get more privileges, and they can always
+        #  choose to look at the corresponding pupil record
+        #  if they want to.
+        #
+        pupil = Pupil.current.find_by_email(self.email)
+        if pupil
+          got_something = true
+          self.user_profile = UserProfile.pupil_profile
+          concern = self.concern_with(pupil.element)
+          if concern
+            unless concern.equality
+              concern.equality = true
+              concern.save!
+            end
+          else
+            self.concerns.create!({
+              element:  pupil.element,
+              equality: true,
+              owns:     false,
+              visible:  true,
+              auto_add: true,
+              colour:   "#225599"
+            })
           end
-        else
-          self.concerns.create!({
-            element:  pupil.element,
-            equality: true,
-            owns:     false,
-            visible:  true,
-            auto_add: true,
-            colour:   "#225599"
-          })
         end
       end
       if got_something
