@@ -2,7 +2,6 @@ require 'test_helper'
 
 class ApiTest < ActionDispatch::IntegrationTest
   setup do
-    UserProfile.ensure_basic_profiles
     @api_user = FactoryBot.create(:user, :api, :editor, :noter)
     @other_api_user = FactoryBot.create(:user, :api, :editor, :noter)
     @api_user_no_edit = FactoryBot.create(:user, :api)

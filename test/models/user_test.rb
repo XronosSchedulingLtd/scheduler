@@ -2,10 +2,6 @@ require 'test_helper'
 
 class UserTest < ActiveSupport::TestCase
 
-  setup do
-    UserProfile.ensure_basic_profiles
-  end
-
   test "can create a staff user" do
     staff = FactoryBot.create(:staff, email: 'able@baker.com')
     user = FactoryBot.create(:user, email: 'able@baker.com')

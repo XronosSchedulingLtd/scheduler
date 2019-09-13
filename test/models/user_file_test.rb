@@ -2,7 +2,6 @@ require 'test_helper'
 
 class UserFileTest < ActiveSupport::TestCase
   setup do
-    UserProfile.ensure_basic_profiles
     @user = FactoryBot.create(:user)
     @file_info = DummyFileInfo.new
     @valid_params = {

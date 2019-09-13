@@ -69,6 +69,12 @@ class UserProfile < ActiveRecord::Base
     #  Anything which we don't set will default to 0,
     #  or PermissionFlags::PERMISSION_NO.
     #
+    #  If you change any of these, make sure you change
+    #
+    #    test/fixtures/user_profiles.yml
+    #
+    #  to match.
+    #
     unless UserProfile.find_by(name: 'Staff')
       self.create!({
         name: 'Staff',

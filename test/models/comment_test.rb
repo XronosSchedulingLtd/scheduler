@@ -2,7 +2,6 @@ require 'test_helper'
 
 class CommentTest < ActiveSupport::TestCase
   setup do
-    UserProfile.ensure_basic_profiles
     @user_form_response = FactoryBot.create(:user_form_response)
     @user = FactoryBot.create(:user)
     @valid_params = {
