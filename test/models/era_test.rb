@@ -26,11 +26,6 @@ class EraTest < ActiveSupport::TestCase
     assert_not era.valid?
   end
 
-  test 'era requires an end date' do
-    era = Era.new(@valid_attributes.except(:ends_on))
-    assert_not era.valid?
-  end
-
   test 'end date cannot be before start date' do
     era = Era.new(@valid_attributes.merge({ends_on: Date.yesterday}))
     assert_not era.valid?

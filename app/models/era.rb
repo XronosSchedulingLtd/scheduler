@@ -24,7 +24,6 @@ class Era < ActiveRecord::Base
            :dependent => :nullify
 
   validates :starts_on, presence: true
-  validates :ends_on, presence: true
   validates :name,      presence: true
   validate :not_backwards
 
