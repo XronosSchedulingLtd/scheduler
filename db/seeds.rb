@@ -85,8 +85,13 @@ seeder.subject(:pe,        "Physical Education")
 seeder.subject(:spanish,   "Spanish")
 seeder.subject(:sport,     "Sport")
 
-sjp = seeder.new_staff("Mr",  "Simon",    "Philpotts", "SJP", [:maths, :fm],
-                       "sjrphilpotts@gmail.com")
+sjp = seeder.new_staff("Mr",
+                       "Simon",
+                       "Philpotts",
+                       "SJP",
+                       [:maths, :fm],
+                       "sjrphilpotts@gmail.com",
+                       "0e1a44bd-0830-4dfc-878c-4da974fc11e2")
 ced = seeder.new_staff("Mrs", "Claire",   "Dunwoody",  "CED", [:french])
 
 medical = seeder.new_service("Medical")

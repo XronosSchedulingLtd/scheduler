@@ -14,6 +14,12 @@ module Elemental
     after_save :update_element
 
     #
+    #  Solely for the demo environment, we allow the specification
+    #  of a pre-selected UUID.
+    #
+    attr_writer :preferred_uuid
+
+    #
     #  An entity which wants to change the display columns for itself
     #  can either define DISPLAY_COLUMNS before including elemental,
     #  or it can override the display_columns() method below.
@@ -108,6 +114,9 @@ module Elemental
         end
         if @new_preferred_colour
           creation_hash[:preferred_colour] = @new_preferred_colour
+        end
+        if @preferred_uuid
+          creation_hash[:preferred_uuid] = @preferred_uuid
         end
         if instance_variable_defined?(:@new_viewable)
           creation_hash[:viewable] = @new_viewable

@@ -2,8 +2,20 @@ require 'test_helper'
 
 class PropertyTest < ActiveSupport::TestCase
   test "creating a property should create an element" do
-    property = Property.create(name: "Google")
+    property = FactoryBot.create(:property)
     assert_not_nil property.element
+  end
+
+  test "can dictate the UUID" do
+    chosen_uuid = "Banana fritters"
+    property = FactoryBot.create(:property, preferred_uuid: chosen_uuid)
+    assert_equal chosen_uuid, property.element.uuid
+  end
+
+  test "can dictate the preferred colour" do
+    chosen_colour = "blue"
+    property = FactoryBot.create(:property, edit_preferred_colour: chosen_colour)
+    assert_equal chosen_colour, property.element.preferred_colour
   end
 
 end

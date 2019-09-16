@@ -21,6 +21,13 @@ class Property < ActiveRecord::Base
     name
   end
 
+  #
+  #  I think - but am not sure - that these next three are redundant.
+  #  The functionality has been added to app/models/concerns/elemental.rb
+  #  and these don't seem to be used any more.
+  #
+  #  TODO: Check and remove
+  #
   def preferred_colour
     @preferred_colour
   end
