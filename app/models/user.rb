@@ -549,14 +549,6 @@ class User < ActiveRecord::Base
     end
   end
 
-  def can_modify?(item)
-    if item.instance_of?(Request)
-      self.can_edit?(item.event)
-    else
-      false
-    end
-  end
-
   #
   #  And specifically for events, can the user re-time the event?
   #  Sometimes users can edit, but not re-time.
