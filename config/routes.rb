@@ -282,4 +282,6 @@ Rails.application.routes.draw do
   root 'schedule#show'
 
   mount PublicApi::Engine, at: :api
+
+  match '*path', via: :all, to: 'pages#error_404'
 end
