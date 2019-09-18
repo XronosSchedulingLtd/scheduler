@@ -454,39 +454,36 @@ class EventAssembler
         #  is listed here first.
         #
         #
-        watched_elements =
-          @current_user.concerns.visible.collect {|concern| concern.element}
-        if @current_user.show_owned
-          my_owned_events =
-            @current_user.events_on(@start_date,
-                                   @end_date,
-                                   nil,
-                                   nil,
-                                   true)
-          my_organised_events =
-            Event.events_on(@start_date,
-                            @end_date,
-                            nil,
-                            nil,
-                            nil,
-                            nil,
-                            true,
-                            @current_user.own_element) - my_owned_events
+        if @current_user.current_concern_set
           #
-          #  Now I want to subtract from my owned events, the list of
+          #  User is looking at a specific concern set
+          #
+          selector = @current_user.current_concern_set.concerns.visible
+        else
+          #
+          #  User is on his default concern set
+          #
+          selector = @current_user.concerns.default_view.visible
+        end
+        watched_elements = selector.collect {|concern| concern.element}
+        if @current_user.show_owned
+          my_events = Event.events_belonging_to(@current_user,
+                                                @start_date,
+                                                @end_date)
+          #
+          #  Now I want to subtract from my events, the list of
           #  events involving elements which I am currently watching by
           #  another means.
           #
           #  Currently this is only going to work for direct involvement,
           #  not involvement via a group.
           #
-          my_owned_events =
-            my_owned_events.select { |e|
+          my_events =
+            my_events.select { |e|
               !e.eventcategory.visible || !e.involves_any?(watched_elements)
             }
         else
-          my_owned_events = []
-          my_organised_events = []
+          my_events = []
         end
         selector = Eventcategory.schoolwide
         unless @current_user.suppressed_eventcategories.empty?
@@ -503,17 +500,10 @@ class EventAssembler
             Event.events_on(@start_date,
                             @end_date,
                             schoolwide_categories) -
-                            (my_owned_events + my_organised_events)
+                            my_events
         end
         resulting_events =
-          my_owned_events.collect {|e|
-            ScheduleEvent.new(@start_date,
-                              e,
-                              nil,
-                              @current_user,
-                              @current_user.colour_not_involved)
-          } +
-          my_organised_events.collect {|e|
+          my_events.collect {|e|
             ScheduleEvent.new(@start_date,
                               e,
                               nil,
