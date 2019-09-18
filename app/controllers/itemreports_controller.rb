@@ -14,6 +14,7 @@ class ItemreportsController < ApplicationController
       if concern.itemreport
         item_report = concern.itemreport
         item_report.update(itemreport_params)
+        item_report.note_type(params[:commit])
       else
         item_report = Itemreport.new(itemreport_params)
         item_report.note_type(params[:commit])
