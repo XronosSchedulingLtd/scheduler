@@ -85,8 +85,13 @@ seeder.subject(:pe,        "Physical Education")
 seeder.subject(:spanish,   "Spanish")
 seeder.subject(:sport,     "Sport")
 
-sjp = seeder.new_staff("Mr",  "Simon",    "Philpotts", "SJP", [:maths, :fm],
-                       "sjrphilpotts@gmail.com")
+sjp = seeder.new_staff("Mr",
+                       "Simon",
+                       "Philpotts",
+                       "SJP",
+                       [:maths, :fm],
+                       "sjrphilpotts@gmail.com",
+                       "0e1a44bd-0830-4dfc-878c-4da974fc11e2")
 ced = seeder.new_staff("Mrs", "Claire",   "Dunwoody",  "CED", [:french])
 
 medical = seeder.new_service("Medical")
@@ -236,7 +241,7 @@ seeder.add_event(:sportsfixture,
        involving(calendarproperty, sjp).
        add_note(
          "",
-         "Refreshments will be provided in the school marquee.\n\nThe location of Dorney Lake can be found on [Google Maps](https://goo.gl/maps/zyw6KdVL8t8fY8GUA).\n\nWith any luck we should be able to manage some [early morning rowing](/user_files/#{sjps_file.nanoid}).\n\n_Please could parents not attempt to take rowers away before the end of the last event._",
+         "Refreshments will be provided in the school marquee.\n\nThe location of Dorney Lake can be found on [Google Maps](https://goo.gl/maps/zyw6KdVL8t8fY8GUA).\n\nWith any luck we should be able to manage some [early morning rowing. ![Thumbnail](/thumbnails/#{sjps_file.nanoid}.png \"Rowing.jpg\")](/user_files/#{sjps_file.nanoid})\n\n_Please could parents not attempt to take rowers away before the end of the last event._",
          {
            visible_guest: true,
            owner: sjp_user.dbrecord

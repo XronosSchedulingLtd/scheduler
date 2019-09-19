@@ -2,7 +2,7 @@ require 'test_helper'
 
 class UserProfilesControllerTest < ActionController::TestCase
   setup do
-    @user_profile = user_profiles(:one)
+    @user_profile = user_profiles(:staff)
     session[:user_id] = users(:admin).id
     @permission_flags = PermissionFlags.new
     @permission_flags[:editor] = true

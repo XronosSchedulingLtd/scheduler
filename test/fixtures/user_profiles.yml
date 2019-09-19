@@ -1,19 +1,43 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  name: MyString
+#
+#  I'm not totally happy with this.  These would normally be created
+#  as part of system installation by a function in the UserProfile
+#  model.  The existence of these is a pre-requisite for a functioning
+#  Scheduler installation.
+#
+#  I've yet to find a good way to run that function as part of setup
+#  for the tests, so I'm using some fixtures instead.  For these
+#  particular items, fixtures are more appropriate than factories.
+#
+#  It is necessary to keep the values here in step with those set
+#  by the UserProfile model.
+#
+guest:
+  name: 'Guest'
+
+pupil:
+  name: 'Pupil'
   permissions: <%=
     pf = PermissionFlags.new
     pf[:editor] = 1
-    pf[:can_has_groups] = 1
     pf.to_yaml.inspect
     %>
 
-two:
-  name: MyString
+staff:
+  name: 'Staff'
   permissions: <%=
     pf = PermissionFlags.new
     pf[:editor] = 1
+    pf[:can_repeat_events] = 1
+    pf[:can_add_resources] = 1
+    pf[:can_add_notes] = 1
     pf[:can_has_groups] = 1
+    pf[:public_groups] = 1
+    pf[:can_find_free] = 1
+    pf[:can_add_concerns] = 1
+    pf[:can_roam] = 1
+    pf[:can_has_files] = 1
     pf.to_yaml.inspect
     %>
+

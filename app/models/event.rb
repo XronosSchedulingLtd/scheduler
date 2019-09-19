@@ -1020,12 +1020,24 @@ class Event < ActiveRecord::Base
     end
   end
 
+  #
+  #  Returns staff initials for this event if it makes any sense.
+  #  It doesn't make sense to do it if there are lots of staff
+  #  involved.
+  #
+  #  If we have one member of staff we return "ABC"
+  #  If we have two members of staff we return "ABC/DEF"
+  #  Otherwise we return nil, because either there are no
+  #  staff or there are too many.
+  #
   def staff_initials
     the_staff = self.staff
-    if the_staff.size > 0
+    if the_staff.size == 1
       the_staff[0].initials
+    elsif the_staff.size == 2
+      the_staff.collect {|s| s.initials}.join("/")
     else
-      ""
+      nil
     end
   end
 
@@ -1244,6 +1256,59 @@ class Event < ActiveRecord::Base
       # Rails.logger.debug("Executing the query")
       eventer.where(query_string_parts.join(" and "), query_hash)
     end
+  end
+
+  #
+  #  A cut down version, specifically designed to get all the
+  #  events owned by or organised by a nominated user.
+  #
+  #  Used by the event_assembler service.
+  #
+  def self.events_belonging_to(user, startdate, enddate)
+    #
+    #  For this one, startdate and endate must already be a TimeWithZone
+    #  or similar.
+    #
+    startdate = startdate.to_date
+    dateafter = enddate.to_date + 1.day
+
+    query_hash = {}
+    query_string_parts = []
+    #
+    #  We have to specify a start and end date.  The way the dates are
+    #  used here may look a trifle odd, but think about it the other
+    #  way around.  We *don't* want events which end before the beginning
+    #  of our date range, or those which start after the end of our
+    #  date range.  The selection for events to exclude would therefore
+    #  be:
+    #
+    #    If starts_at >= dateafter || ends_at <= startdate
+    #
+    #  and if you negate that then by De Morgan's law you get:
+    #
+    #    If starts_at < dateafter && ends_at > startdate
+    #
+    query_string_parts << "starts_at < :dateafter"
+    query_hash[:dateafter] = Time.zone.parse("00:00:00", dateafter)
+    query_string_parts << "ends_at > :startdate"
+    query_hash[:startdate] = Time.zone.parse("00:00:00", startdate)
+    if user.own_element
+      #
+      #  We can go for an organiser as well.
+      #
+      query_string_parts <<
+        "(owner_id = :owner_id OR organiser_id = :organiser_id)"
+      query_hash[:owner_id]     = user.id
+      query_hash[:organiser_id] = user.own_element.id
+    else
+      query_string_parts << "owner_id = :owner_id"
+      query_hash[:owner_id]     = user.id
+    end
+    #
+    #  And now for the actual database hit.
+    #
+    # Rails.logger.debug("Executing the query")
+    Event.where(query_string_parts.join(" and "), query_hash)
   end
 
   def colour

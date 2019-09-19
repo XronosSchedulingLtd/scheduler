@@ -21,4 +21,16 @@ class StaffTest < ActiveSupport::TestCase
     staff = FactoryBot.create(:staff, edit_viewable: "1")
     assert staff.element.viewable?
   end
+
+  test "gets given a UUID" do
+    staff = FactoryBot.create(:staff)
+    assert_not_nil staff.element.uuid
+  end
+
+  test "can dictate the UUID" do
+    chosen_uuid = "Banana fritters"
+    staff = FactoryBot.create(:staff, preferred_uuid: chosen_uuid)
+    assert_equal chosen_uuid, staff.element.uuid
+  end
+
 end

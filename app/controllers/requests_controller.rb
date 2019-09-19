@@ -89,7 +89,7 @@ class RequestsController < ApplicationController
 
   def increment
     @event = @request.event
-    if current_user.can_modify?(@request)
+    if current_user.can_subedit?(@request)
       @request.increment_and_save
       @request.reload
       @amended_request_id = @request.id
@@ -107,7 +107,7 @@ class RequestsController < ApplicationController
 
   def decrement
     @event = @request.event
-    if current_user.can_modify?(@request)
+    if current_user.can_subedit?(@request)
       @request.decrement_and_save
       @request.reload
       @amended_request_id = @request.id

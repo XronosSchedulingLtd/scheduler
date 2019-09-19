@@ -292,6 +292,8 @@ class EventAssembler
   end
 
   #
+  #  ScheduleRequest
+  #
   #  We also want to be able to display requests for events.  Here we focus
   #  more on the individual request rather than the event.  Because a request
   #  can specify more than one instance of a resource, we display one
@@ -304,7 +306,12 @@ class EventAssembler
     include ColourManipulation
     include DisplayHelpers
 
-    def initialize(main_display, element, request, index, view_start = nil)
+    def initialize(main_display,
+                   element,
+                   request,
+                   index,
+                   view_start = nil,
+                   via_concern = nil)
       #
       #  The same request may appear several times, so need to generate
       #  a unique event id.
@@ -331,7 +338,14 @@ class EventAssembler
       @resource_id      = element.id
       @request_id       = request.id
       @event_id         = request.event_id
-      if element.preferred_colour
+      if via_concern
+        #
+        #  We use the concern's colour.
+        #  There's only a concern involved if we are in the main
+        #  schedule display, not in the allocation screen.
+        #
+        @colour = via_concern.colour
+      elsif element.preferred_colour
         if main_display || request.no_forms_outstanding?
           @colour = element.preferred_colour
         else
@@ -454,39 +468,36 @@ class EventAssembler
         #  is listed here first.
         #
         #
-        watched_elements =
-          @current_user.concerns.visible.collect {|concern| concern.element}
-        if @current_user.show_owned
-          my_owned_events =
-            @current_user.events_on(@start_date,
-                                   @end_date,
-                                   nil,
-                                   nil,
-                                   true)
-          my_organised_events =
-            Event.events_on(@start_date,
-                            @end_date,
-                            nil,
-                            nil,
-                            nil,
-                            nil,
-                            true,
-                            @current_user.own_element) - my_owned_events
+        if @current_user.current_concern_set
           #
-          #  Now I want to subtract from my owned events, the list of
+          #  User is looking at a specific concern set
+          #
+          selector = @current_user.current_concern_set.concerns.visible
+        else
+          #
+          #  User is on his default concern set
+          #
+          selector = @current_user.concerns.default_view.visible
+        end
+        watched_elements = selector.collect {|concern| concern.element}
+        if @current_user.show_owned
+          my_events = Event.events_belonging_to(@current_user,
+                                                @start_date,
+                                                @end_date)
+          #
+          #  Now I want to subtract from my events, the list of
           #  events involving elements which I am currently watching by
           #  another means.
           #
           #  Currently this is only going to work for direct involvement,
           #  not involvement via a group.
           #
-          my_owned_events =
-            my_owned_events.select { |e|
+          my_events =
+            my_events.select { |e|
               !e.eventcategory.visible || !e.involves_any?(watched_elements)
             }
         else
-          my_owned_events = []
-          my_organised_events = []
+          my_events = []
         end
         selector = Eventcategory.schoolwide
         unless @current_user.suppressed_eventcategories.empty?
@@ -503,17 +514,10 @@ class EventAssembler
             Event.events_on(@start_date,
                             @end_date,
                             schoolwide_categories) -
-                            (my_owned_events + my_organised_events)
+                            my_events
         end
         resulting_events =
-          my_owned_events.collect {|e|
-            ScheduleEvent.new(@start_date,
-                              e,
-                              nil,
-                              @current_user,
-                              @current_user.colour_not_involved)
-          } +
-          my_organised_events.collect {|e|
+          my_events.collect {|e|
             ScheduleEvent.new(@start_date,
                               e,
                               nil,
@@ -633,7 +637,7 @@ class EventAssembler
           #  entity.  The method quickly returns an empty array if
           #  the entity is not eligible for requests.
           #
-          requests = requests_for(element.entity, true, @start_date)
+          requests = requests_for(element.entity, true, @start_date, concern)
           unless requests.empty?
             resulting_events += requests
           end
@@ -705,7 +709,10 @@ class EventAssembler
   #
   #  We default to doing it for the allocation display.
   #
-  def requests_for(entity, main_display = false, start_date = nil)
+  def requests_for(entity,
+                   main_display = false,
+                   start_date = nil,
+                   via_concern = nil)
     result = []
     if entity.can_have_requests?
       entity.element.
@@ -718,7 +725,8 @@ class EventAssembler
                                         entity.element,
                                         r,
                                         r.quantity,
-                                        start_date)
+                                        start_date,
+                                        via_concern)
         else
           r.num_outstanding.times do |i|
             result << ScheduleRequest.new(main_display,

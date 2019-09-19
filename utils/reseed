@@ -30,6 +30,15 @@ if [ -d $SCHEDULER_DIR ]; then
   rake db:schema:load >/dev/null
   rm -rf UserFiles/*
   mkdir UserFiles/Test
+  cat << EOF >UserFiles/Test/.gitignore
+*
+!.gitignore
+EOF
+  #
+  #  Erase only dynamically created thumbnails.  They all have exactly
+  #  12 characters in the first part of the filename.
+  #
+  rm -rf public/thumbnails/????????????.png
   rake db:seed
   ./lib/clashes/clashcheck.rb --weeks 1 --start `./lib/clashes/sundate.rb`
 else
