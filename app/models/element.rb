@@ -536,6 +536,14 @@ class Element < ActiveRecord::Base
   end
 
   #
+  #  But in special circumstances it can at creation time request
+  #  a particular uuid
+  #
+  def preferred_uuid=(value)
+    @preferred_uuid = value
+  end
+
+  #
   #  This method is called as the element record is about to be
   #  created in the database.
   #
@@ -544,7 +552,19 @@ class Element < ActiveRecord::Base
     #  In theory we shouldn't get here if the record isn't valid, but...
     #
     if self.valid?
-      generate_uuid
+      #
+      #  It is possible that the entity has its own idea about what
+      #  our UUID should be.  If so, accept that, at least to begin
+      #  with.
+      #
+      #  Note that this processing is not used in normal live code.
+      #  It is solely for use in seeding the demonstration system.
+      #
+      if @preferred_uuid
+        write_attribute(:uuid, @preferred_uuid)
+      else
+        generate_uuid
+      end
       #
       #  This seems really stupid, but surely we should have some
       #  code to cope with the possibility of a clash?

@@ -58,7 +58,7 @@ class Seeder
 
     attr_reader :dbrecord
 
-    def initialize(name, make_public = false)
+    def initialize(name, make_public = false, preferred_uuid = nil)
       @dbrecord = Property.create!({
         name:        name,
         make_public: make_public,
@@ -67,7 +67,8 @@ class Seeder
         #  also be shown by default to both staff and pupils.
         #
         auto_staff:  make_public,
-        auto_pupils: make_public
+        auto_pupils: make_public,
+        preferred_uuid: preferred_uuid
       })
       @dbrecord.reload
     end
@@ -107,20 +108,22 @@ class Seeder
       forename,
       surname,
       initials,
-      email = nil)
+      email = nil,
+      preferred_uuid = nil)
       @initials = initials
       unless email
         email = "#{forename.downcase}.#{surname.downcase}@xronos.uk"
       end
       @dbrecord = Staff.create!({
-        name:     "#{forename} #{surname}",
-        initials: initials,
-        surname:  surname,
-        title:    title,
-        forename: forename,
-        email:    email,
-        active:   true,
-        current:  true
+        name:           "#{forename} #{surname}",
+        initials:       initials,
+        surname:        surname,
+        title:          title,
+        forename:       forename,
+        email:          email,
+        preferred_uuid: preferred_uuid,
+        active:         true,
+        current:        true
       })
       #
       #  Should have acquired an element, so re-load
@@ -723,6 +726,7 @@ class Seeder
         user_file_allowance: 10                 # MiB
       })
     end
+    @dns_domain_name = dns_domain_name
     #
     #  And some space to record stuff which comes later.
     #
@@ -756,8 +760,15 @@ class Seeder
     #
     #  Properties
     #
-    @properties[:calendarproperty] =
-      SeedProperty.new("Calendar", true).set_preferred_colour("#1f94bc")
+    if @dns_domain_name == 'schedulerdemo.xronos.uk'
+      @properties[:calendarproperty] =
+        SeedProperty.new("Calendar",
+                         true,
+                         "4892a290-140b-4212-8faa-3bc1e9f35a48").set_preferred_colour("#1f94bc")
+    else
+      @properties[:calendarproperty] =
+        SeedProperty.new("Calendar", true).set_preferred_colour("#1f94bc")
+    end
     @properties[:gapproperty] =
       SeedProperty.new("Gap")
     @properties[:suspensionproperty] =
@@ -952,10 +963,11 @@ class Seeder
     surname,
     initials,
     subject_ids,
-    email = nil)
+    email = nil,
+    preferred_uuid = nil)
 
     key = initials.downcase.to_sym
-    rec = SeedStaff.new(title, forename, surname, initials, email)
+    rec = SeedStaff.new(title, forename, surname, initials, email, preferred_uuid)
     subject_ids.each do |sid|
       subject = @subjects[sid]
       unless subject

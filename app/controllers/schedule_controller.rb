@@ -113,13 +113,10 @@ class ScheduleController < ApplicationController
       #  it for next time.
       #
       andopen = params[:andopen]
-      Rails.logger.debug("Got andopen as parameter")
       if andopen
         session[:andopen] = andopen
-        Rails.logger.debug("Saved it in session")
       else
         session.delete(:andopen)
-        Rails.logger.debug("Deleted from session")
       end
       redirect_to :root
     else
@@ -157,7 +154,6 @@ class ScheduleController < ApplicationController
       #
       andopen = session[:andopen]
       if andopen
-        Rails.logger.debug("Found andopen in session")
         #
         #  Allowed only one go at this.
         #
@@ -166,7 +162,6 @@ class ScheduleController < ApplicationController
         #  And if you're not logged in you can't do it at all.
         #
         if known_user?
-          Rails.logger.debug("Known user")
           #
           #  Quick check that the requested event does actually
           #  exist.  Avoids opening a window only to find that
@@ -177,7 +172,6 @@ class ScheduleController < ApplicationController
           #  is possible is decided later.
           #
           if Event.find_by(id: andopen)
-            Rails.logger.debug("Found corresponding event")
             @andopen = andopen
           end
         end

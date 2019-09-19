@@ -240,6 +240,40 @@ class ApiTest < ActionDispatch::IntegrationTest
     assert_response 201         # Created
   end
 
+  test "can specify an organiser when creating an event" do
+    do_valid_login
+    post @api_paths.events_path(
+      event: @valid_event_params.merge({
+        organiser_id: @staff1.element.id
+      })), format: :json
+    assert_response 201         # Created
+    #
+    #  And check that the organiser did indeed get set.  This requires
+    #  us to query the new event.
+    #
+    response_data = unpack_response(response, 'Created')
+    #
+    #  Check for failures - there should be none.
+    #
+    failures = response_data['failures']
+    assert_instance_of Array, failures
+    assert_empty failures
+    #
+    #  Now query the event to see who the organiser is.
+    #
+    event = response_data['event']
+    assert_instance_of Hash, event
+    event_id = event['id']
+    get @api_paths.event_path(event_id), format: :json
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    event = response_data['event']
+    assert_instance_of Hash, event
+    organiser = event['organiser']
+    assert_not_nil organiser
+    assert_equal @staff1.element.id, organiser['id']
+  end
+
   test "unauthorized user can't create event" do
     do_valid_login(@api_user_no_edit)
     post @api_paths.events_path(event: @valid_event_params), format: :json

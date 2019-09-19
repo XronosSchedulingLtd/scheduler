@@ -23,6 +23,10 @@ class Era < ActiveRecord::Base
            :foreign_key => :perpetual_era_id,
            :dependent => :nullify
 
+  validates :starts_on, presence: true
+  validates :name,      presence: true
+  validate :not_backwards
+
   def teachinggroups
     self.groups.teachinggroups
   end
@@ -51,6 +55,24 @@ class Era < ActiveRecord::Base
   #
   def <=>(other)
     self.starts_on <=> other.starts_on
+  end
+
+  def formatted_starts_on
+    self.starts_on ? self.starts_on.to_formatted_s(:dmy) : ''
+  end
+
+  def formatted_ends_on
+    self.ends_on ? self.ends_on.to_formatted_s(:dmy) : ''
+  end
+
+  private
+
+  def not_backwards
+    if self.ends_on &&
+       self.starts_on &&
+       self.ends_on < self.starts_on
+      errors.add(:ends_on, "(#{self.ends_on.to_s}) must be no earlier than start date (#{self.starts_on.to_s}).")
+    end
   end
 
 end

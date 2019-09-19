@@ -445,10 +445,28 @@ class ElementsController < ApplicationController
       if params[:start_date]
         any_params = true
         starts_on  = Date.parse(params[:start_date])
+      #
+      #  Or perhaps a number of days in the past?
+      #
+      elsif params[:past_days]
+        any_params = true
+        #
+        #  Gibberish passed at this point will result in 0 past
+        #  days.  "banana".to_i == 0 in Ruby.
+        #
+        starts_on = Date.today - params[:past_days].to_i.days
       end
       if params[:end_date]
         any_params = true
         ends_on    = Date.parse(params[:end_date])
+      #
+      #  Or perhaps a number of days in the future?
+      #  Here we take 0 to mean no /future/ days, but we still
+      #  have today.
+      #
+      elsif params[:future_days]
+        any_params = true
+        ends_on = Date.today + params[:future_days].to_i.days
       end
   #    Rails.logger.debug("include_cover = #{include_cover}.  include_non_cover = #{include_non_cover}.")
       if params[:categories]

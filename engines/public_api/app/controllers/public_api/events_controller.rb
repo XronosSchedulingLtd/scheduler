@@ -208,7 +208,8 @@ module PublicApi
                                     :all_day_field,
                                     :starts_at,
                                     :ends_at,
-                                    :all_day)
+                                    :all_day,
+                                    :organiser_id)
     end
 
     #
