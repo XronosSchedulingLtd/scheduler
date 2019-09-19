@@ -292,6 +292,8 @@ class EventAssembler
   end
 
   #
+  #  ScheduleRequest
+  #
   #  We also want to be able to display requests for events.  Here we focus
   #  more on the individual request rather than the event.  Because a request
   #  can specify more than one instance of a resource, we display one
@@ -304,7 +306,12 @@ class EventAssembler
     include ColourManipulation
     include DisplayHelpers
 
-    def initialize(main_display, element, request, index, view_start = nil)
+    def initialize(main_display,
+                   element,
+                   request,
+                   index,
+                   view_start = nil,
+                   via_concern = nil)
       #
       #  The same request may appear several times, so need to generate
       #  a unique event id.
@@ -331,7 +338,14 @@ class EventAssembler
       @resource_id      = element.id
       @request_id       = request.id
       @event_id         = request.event_id
-      if element.preferred_colour
+      if via_concern
+        #
+        #  We use the concern's colour.
+        #  There's only a concern involved if we are in the main
+        #  schedule display, not in the allocation screen.
+        #
+        @colour = via_concern.colour
+      elsif element.preferred_colour
         if main_display || request.no_forms_outstanding?
           @colour = element.preferred_colour
         else
@@ -623,7 +637,7 @@ class EventAssembler
           #  entity.  The method quickly returns an empty array if
           #  the entity is not eligible for requests.
           #
-          requests = requests_for(element.entity, true, @start_date)
+          requests = requests_for(element.entity, true, @start_date, concern)
           unless requests.empty?
             resulting_events += requests
           end
@@ -695,7 +709,10 @@ class EventAssembler
   #
   #  We default to doing it for the allocation display.
   #
-  def requests_for(entity, main_display = false, start_date = nil)
+  def requests_for(entity,
+                   main_display = false,
+                   start_date = nil,
+                   via_concern = nil)
     result = []
     if entity.can_have_requests?
       entity.element.
@@ -708,7 +725,8 @@ class EventAssembler
                                         entity.element,
                                         r,
                                         r.quantity,
-                                        start_date)
+                                        start_date,
+                                        via_concern)
         else
           r.num_outstanding.times do |i|
             result << ScheduleRequest.new(main_display,
