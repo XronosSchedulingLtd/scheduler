@@ -178,8 +178,8 @@ module ApplicationHelper
       self << "</li>"
     end
 
-    def item(title, link)
-      self << "<li>#{link_to(title, link)}</li>"
+    def item(title, link, method = :get)
+      self << "<li>#{link_to(title, link, method: method)}</li>"
     end
 
     def result
@@ -291,6 +291,9 @@ module ApplicationHelper
           m.item('E-mails', new_notifier_path)
           m.item('Clashes', notifiers_path)
         end
+      end
+      if user_can_revert?
+        m.item('Revert su', '/sessions/revert', :put)
       end
     end
     m.result

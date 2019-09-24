@@ -100,6 +100,8 @@ Rails.application.routes.draw do
  
   put 'sessions/become/:user_id' => 'sessions#become', as: :become
 
+  put 'sessions/revert' => 'sessions#revert', as: :revert
+
   get '/ical/:id' => 'elements#ical'
 
   resources :locationaliases

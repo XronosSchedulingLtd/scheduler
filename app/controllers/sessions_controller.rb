@@ -82,19 +82,41 @@ class SessionsController < ApplicationController
   end
 
   #
-  #  A request to chage the user id for this session.  A testing tool.
-  #  Should perhaps restrict it to the development environment only.
+  #  A request to change the user id for this session.
   #
   def become
-    if current_user.can_su
+    #
+    #  We need permission, and we can't do nested su.
+    #
+    if user_can_su?
       user_id = params[:user_id]
-      if user_id
+      if user_id && user_id.to_i != current_user.id
         new_user = User.find_by(id: user_id)
         if new_user
+          original_user = current_user
           reset_session
+          @current_user = nil
           session[:user_id] = new_user.id
+          session[:original_user_id] = original_user.id
         end
       end
+    end
+    redirect_to :root
+  end
+
+  #
+  #  A request to go back to the previous user id after an su
+  #  Note that we can only go back by one.
+  #
+  def revert
+    original_user_id = session[:original_user_id]
+    if original_user_id
+      #
+      #  The request to revert does at least have some meaning.
+      #
+      reset_session
+      @current_user = nil
+      session[:user_id] = original_user_id
     end
     redirect_to :root
   end

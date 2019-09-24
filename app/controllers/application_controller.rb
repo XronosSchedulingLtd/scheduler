@@ -12,6 +12,8 @@ class ApplicationController < ActionController::Base
                 :user_can_roam?,
                 :user_can_drag?,
                 :user_can_view_forms?,
+                :user_can_su?,
+                :user_can_revert?,
                 :admin_user?,
                 :known_user?,
                 :public_groups_user?
@@ -117,6 +119,17 @@ class ApplicationController < ActionController::Base
 
   def user_can_view_forms?
     current_user && current_user.can_view_forms?
+  end
+
+  #
+  #  Can only su if a) have permission and b) not already su'ed.
+  #
+  def user_can_su?
+    current_user && current_user.can_su? && !session[:original_user_id]
+  end
+
+  def user_can_revert?
+    !!session[:original_user_id]
   end
 
   #

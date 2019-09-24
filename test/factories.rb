@@ -93,6 +93,7 @@ FactoryBot.define do
       permissions_api        { false }
       permissions_noter      { false }
       permissions_files      { false }
+      permissions_su         { false }
     end
 
     #
@@ -122,6 +123,10 @@ FactoryBot.define do
       permissions_files { true }
     end
 
+    trait :su do
+      permissions_su { true }
+    end
+
     firstday { 0 }
     user_profile { UserProfile.guest_profile }
 
@@ -148,6 +153,9 @@ FactoryBot.define do
       end
       if permissions_files
         hash[:can_has_files] = true
+      end
+      if permissions_su
+        hash[:can_su] = true
       end
       hash
     end
