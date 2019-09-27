@@ -174,7 +174,7 @@ class Concern < ActiveRecord::Base
       self.element.update_ownedness(false)
     end
     if self.user
-      self.user.update_owningness(false)
+      self.user.concern_changed(true, self)
     end
   end
 
@@ -183,7 +183,7 @@ class Concern < ActiveRecord::Base
       self.element.update_ownedness(self.owns)
     end
     if self.user
-      self.user.update_owningness(self.owns)
+      self.user.concern_changed(false, self)
     end
   end
 

@@ -121,12 +121,11 @@ class User < ActiveRecord::Base
   before_create :add_uuid
   before_destroy :being_destroyed
   before_save :update_legacy_permission_flags
-  after_save :find_matching_resources
 
   self.per_page = 15
 
   def known?
-    @known ||= (self.own_element != nil)
+    self.own_element != nil
   end
 
   def staff?
@@ -134,8 +133,7 @@ class User < ActiveRecord::Base
   end
 
   def pupil?
-    @pupil ||= (self.own_element != nil &&
-                self.own_element.entity.class == Pupil)
+    self.own_element != nil && self.own_element.entity.class == Pupil
   end
 
   #
@@ -220,28 +218,76 @@ class User < ActiveRecord::Base
   end
 
   #
-  #  The hint tells us whether the invoking concern is an owning
-  #  concern.  If it is, then we are definitely owned.  If it is
-  #  not then we might not be owned any more.
+  #  Called when one of our concerns has changed/gone.
   #
-  def update_owningness(hint)
+  def concern_changed(destroyed, concern)
+    #
+    #  If we are going ourselves, then don't bother.
+    #
     unless @being_destroyed || self.destroyed?
-      if hint
-        unless self.element_owner
-          self.element_owner = true
-          self.save!
+      #
+      #  If the concern has been destroyed.
+      #
+      if destroyed
+        do_save = false
+        #
+        #  The concern has gone away.
+        #
+        if self.concerns.owned.count == 0
+          self.element_owner = false
+          do_save = true
         end
-      else
-        if self.element_owner
-          #
-          #  It's possible our last remaining ownership just went away.
-          #  This is the most expensive case to check.
-          #
-          if self.concerns.owned.count == 0
-            self.element_owner = false
-            self.save!
+        #
+        #  It might have been our corresponding staff member.
+        #
+        if concern.equality
+          element = concern.element
+          if element && element.entity == self.corresponding_staff
+            self.corresponding_staff = nil
+            reset_cache
+            do_save = true
           end
         end
+      else
+        #
+        #  The concern has merely been updated (or indeed, created)
+        #
+        if concern.owns?
+          unless self.element_owner = true
+            self.element_owner = true
+            do_save = true
+          end
+        else
+          if self.concerns.owned.count == 0
+            self.element_owner = false
+            do_save = true
+          end
+        end
+        if concern.equality
+          #
+          #  Might need to set it as our corresponding staff member
+          #
+          unless self.corresponding_staff
+            element = concern.element
+            if element && element.entity_type == 'Staff'
+              self.corresponding_staff = concern.element.entity
+              do_save = true
+            end
+          end
+        else
+          #
+          #  Might need to remove it as our corresponding staff member
+          #
+          element = concern.element
+          if element && element.entity == self.corresponding_staff
+            self.corresponding_staff = nil
+            do_save = true
+          end
+          reset_cache
+        end
+      end
+      if do_save
+        self.save!
       end
     end
   end
@@ -596,9 +642,6 @@ class User < ActiveRecord::Base
         self.concerns.
              select { |c| c.equality? || c.assistant_to? }.
              collect {|c| c.element_id}
-        Rails.logger.debug("Confidentiality elements of #{self.name} are #{
-                           @confidentiality_elements.join(",")
-        }")
     end
     @confidentiality_elements
   end
@@ -909,21 +952,6 @@ class User < ActiveRecord::Base
                     self,
                     include_nonexistent)
   end
-  #
-  #  Create a new user record to match an omniauth authentication.
-  #
-  #  Anyone can have a user record, but only people with known Abingdon
-  #  school e-mail addresses get any further than that.
-  #
-  def self.create_from_omniauth(auth)
-    create! do |user|
-      user.provider = auth["provider"]
-      user.uid      = auth["uid"]
-      user.name     = auth["info"]["name"]
-      user.email    = auth["info"]["email"].downcase
-      user.user_profile = UserProfile.guest_profile
-    end
-  end
 
   def find_matching_resources
     if self.email && !self.known?
@@ -935,7 +963,6 @@ class User < ActiveRecord::Base
       end
       if staff
         got_something = true
-        self.corresponding_staff = staff
         self.user_profile = UserProfile.staff_profile
         concern = self.concern_with(staff.element)
         if concern
@@ -1020,6 +1047,24 @@ class User < ActiveRecord::Base
         self.save!
       end
     end
+  end
+
+  #
+  #  Create a new user record to match an omniauth authentication.
+  #
+  #  Anyone can have a user record, but only people with some sort
+  #  of Staff or Pupil record get futher than that.
+  #
+  def self.create_from_omniauth(auth)
+    new_user = create! do |user|
+      user.provider = auth["provider"]
+      user.uid      = auth["uid"]
+      user.name     = auth["info"]["name"]
+      user.email    = auth["info"]["email"].downcase
+      user.user_profile = UserProfile.guest_profile
+    end
+    new_user.find_matching_resources
+    new_user
   end
 
   def initials
@@ -1370,6 +1415,13 @@ class User < ActiveRecord::Base
 
   def being_destroyed
     @being_destroyed = true
+  end
+
+  #
+  #  Reset all the things which we keep cached.
+  #
+  def reset_cache
+    @own_element = nil
   end
 
   #

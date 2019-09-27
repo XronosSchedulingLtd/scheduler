@@ -161,6 +161,18 @@ FactoryBot.define do
     end
 
     factory :admin_user, traits: [:admin]
+    #
+    #  In order to behave like the session controller when creating
+    #  a new user record we need to call find_matching_resources too.
+    #
+    after(:create) do |u|
+      u.find_matching_resources
+    end
+  end
+
+  factory :concern_set do
+    association :owner, factory: :user
+    sequence(:name) { |n| "Concern set #{n}" }
   end
 
   factory :concern do

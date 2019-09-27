@@ -121,12 +121,11 @@ class Staff < ActiveRecord::Base
   #  Returns the corresponding user record, or nil if none exists.
   #
   def corresponding_user
-    if self.element &&
-       self.element.concerns.me.size > 0
-      self.element.concerns.me[0].user
-    else
-      nil
-    end
+    #
+    #  Note that if the corresponding_users array is empty then this
+    #  will return nil, which is what we want.
+    #
+    self.corresponding_users[0]
   end
 
   #
