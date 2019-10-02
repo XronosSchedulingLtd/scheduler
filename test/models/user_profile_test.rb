@@ -22,6 +22,10 @@ class UserProfileTest < ActiveSupport::TestCase
     check_permission_set(UserProfile.staff_profile, staff_should_have)
   end
 
+  test "staff profile is known" do
+    assert UserProfile.staff_profile.known?
+  end
+
   test "pupil profile has correct permissions" do
     pupil_should_have = [
       :editor
@@ -29,10 +33,18 @@ class UserProfileTest < ActiveSupport::TestCase
     check_permission_set(UserProfile.pupil_profile, pupil_should_have)
   end
 
+  test "pupil profile is known" do
+    assert UserProfile.pupil_profile.known?
+  end
+
   test "guest profile has correct permissions" do
     guest_should_have = [
     ]
     check_permission_set(UserProfile.guest_profile, guest_should_have)
+  end
+
+  test "guest profile is unknown" do
+    assert_not UserProfile.guest_profile.known?
   end
 
   private

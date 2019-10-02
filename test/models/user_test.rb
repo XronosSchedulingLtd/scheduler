@@ -8,6 +8,7 @@ class UserTest < ActiveSupport::TestCase
     assert user.valid?
     assert_equal UserProfile.staff_profile, user.user_profile
     assert_equal user.corresponding_staff, staff
+    assert user.known?
   end
 
   test "new staff user gets correct permissions" do
@@ -60,6 +61,7 @@ class UserTest < ActiveSupport::TestCase
     pupil = FactoryBot.create(:pupil, email: 'able@baker.com')
     user = FactoryBot.create(:user, email: 'able@baker.com')
     assert user.editor?
+    assert user.known?
 
     assert_not user.can_repeat_events?
     assert_not user.can_add_resources?
@@ -95,6 +97,7 @@ class UserTest < ActiveSupport::TestCase
     #  real systems.  I have yet to find a way to unify these two.
     #
     user = FactoryBot.create(:user, email: 'able@baker.com')
+    assert_not user.known?
 
     assert_not user.editor?
     assert_not user.can_repeat_events?
@@ -123,9 +126,65 @@ class UserTest < ActiveSupport::TestCase
   test "can add specific permission for new user" do
     staff = FactoryBot.create(:staff, email: 'able@baker.com')
     user = FactoryBot.create(:user, :admin, email: 'able@baker.com')
+    check_no(user.user_profile.permissions[:admin])
     assert user.admin?
-    assert_equal PermissionFlags::PERMISSION_NO,
-                 user.user_profile.permissions[:admin]
+  end
+
+  test "can remove specific permission for new user" do
+    staff = FactoryBot.create(:staff, email: 'able@baker.com')
+    user = FactoryBot.create(:user, email: 'able@baker.com')
+    check_yes user.user_profile.permissions[:editor]
+    check_dont_care user.permissions[:editor]
+    assert user.editor?
+    user.permissions[:editor] = PermissionFlags::PERMISSION_NO
+    user.save!
+    check_yes user.user_profile.permissions[:editor]
+    check_no user.permissions[:editor]
+    assert_not user.editor?
+  end
+
+  test "adding permission to profile adds it to user" do
+    staff = FactoryBot.create(:staff, email: 'able@baker.com')
+    user = FactoryBot.create(:user, email: 'able@baker.com')
+    check_no user.user_profile.permissions[:admin]
+    check_dont_care user.permissions[:admin]
+    assert_not user.admin?
+    user.user_profile.permissions[:admin] = true
+    user.user_profile.save
+    user.reload
+    check_yes user.user_profile.permissions[:admin]
+    check_dont_care user.permissions[:admin]
+    assert user.admin?
+  end
+
+  test "removing permission from profile removes it from user" do
+    staff = FactoryBot.create(:staff, email: 'able@baker.com')
+    user = FactoryBot.create(:user, email: 'able@baker.com')
+    check_yes user.user_profile.permissions[:editor]
+    check_dont_care user.permissions[:editor]
+    assert user.editor?
+    user.user_profile.permissions[:editor] = false
+    user.user_profile.save
+    user.reload
+    check_no user.user_profile.permissions[:editor]
+    check_dont_care user.permissions[:editor]
+    assert_not user.admin?
+  end
+
+  test "but not if the user has it explicitly" do
+    staff = FactoryBot.create(:staff, email: 'able@baker.com')
+    user = FactoryBot.create(:user, email: 'able@baker.com')
+    check_yes user.user_profile.permissions[:editor]
+    check_dont_care user.permissions[:editor]
+    assert user.editor?
+    user.permissions[:editor] = true
+    user.save
+    user.user_profile.permissions[:editor] = false
+    user.user_profile.save
+    user.reload
+    check_no user.user_profile.permissions[:editor]
+    check_yes user.permissions[:editor]
+    assert user.editor?
   end
 
   test "don't link to non-current staff" do
@@ -169,6 +228,7 @@ class UserTest < ActiveSupport::TestCase
     user = FactoryBot.create(:user, email: 'able@baker.com')
     assert user.valid?
     assert_equal UserProfile.guest_profile, user.user_profile
+    assert_not user.known?
     assert_nil user.corresponding_staff
     staff = FactoryBot.create(:staff, email: 'able@baker.com')
     #
@@ -180,18 +240,21 @@ class UserTest < ActiveSupport::TestCase
     user.find_matching_resources
     assert_equal UserProfile.staff_profile, user.user_profile
     assert_equal user.corresponding_staff, staff
+    assert user.known?
   end
 
   test "can create pupil after user" do
     user = FactoryBot.create(:user, email: 'student@baker.com')
     assert user.valid?
     assert_equal UserProfile.guest_profile, user.user_profile
+    assert_not user.known?
     assert_nil user.corresponding_staff
     pupil = FactoryBot.create(:pupil, email: 'student@baker.com')
     user.find_matching_resources
     assert user.valid?
     assert_equal UserProfile.pupil_profile, user.user_profile
     assert_nil user.corresponding_staff
+    assert user.known?
   end
 
   test "new user gets UUID" do
@@ -206,4 +269,19 @@ class UserTest < ActiveSupport::TestCase
                              initial_uuid: forced_uuid)
     assert_equal forced_uuid, user.uuid
   end
+
+  private
+
+  def check_yes(value)
+    assert_equal PermissionFlags::PERMISSION_YES, value
+  end
+
+  def check_no(value)
+    assert_equal PermissionFlags::PERMISSION_NO, value
+  end
+
+  def check_dont_care(value)
+    assert_equal PermissionFlags::PERMISSION_DONT_CARE, value
+  end
+
 end

@@ -15,6 +15,7 @@
 #
 guest:
   name: 'Guest'
+  known: false
 
 pupil:
   name: 'Pupil'

@@ -101,7 +101,6 @@ class ConcernTest < ActiveSupport::TestCase
   #  And now to do with logins.
   #
   test "Creating equality concern for staff member creates link" do
-    assert_not @user1.known?
     assert_equal UserProfile.guest_profile, @user1.user_profile
     c = Concern.create({
       user: @user1,
@@ -112,7 +111,6 @@ class ConcernTest < ActiveSupport::TestCase
     assert_equal @staff, @user1.corresponding_staff
     @staff.reload
     assert_equal @user1, @staff.corresponding_user
-    assert @user1.known?
     assert @user1.staff?
     #
     #  Note that the auto callbacks do not set the profile.
@@ -123,7 +121,6 @@ class ConcernTest < ActiveSupport::TestCase
   end
 
   test "But a general staff concern does not" do
-    assert_not @user1.known?
     c = Concern.create({
       user: @user1,
       element: @staff.element,
@@ -132,12 +129,10 @@ class ConcernTest < ActiveSupport::TestCase
     assert_nil @user1.corresponding_staff
     @staff.reload
     assert_nil @staff.corresponding_user
-    assert_not @user1.known?
     assert_not @user1.staff?
   end
 
   test "Setting equality flag adds link" do
-    assert_not @user1.known?
     c = Concern.create({
       user: @user1,
       element: @staff.element,
@@ -146,19 +141,16 @@ class ConcernTest < ActiveSupport::TestCase
     assert_nil @user1.corresponding_staff
     @staff.reload
     assert_nil @staff.corresponding_user
-    assert_not @user1.known?
     assert_not @user1.staff?
     c.equality = true
     c.save!
     assert_equal @staff, @user1.corresponding_staff
     @staff.reload
     assert_equal @user1, @staff.corresponding_user
-    assert @user1.known?
     assert @user1.staff?
   end
 
   test "Removing equality flag removes link" do
-    assert_not @user1.known?
     assert_equal UserProfile.guest_profile, @user1.user_profile
     c = Concern.create({
       user: @user1,
@@ -169,20 +161,17 @@ class ConcernTest < ActiveSupport::TestCase
     assert_equal @staff, @user1.corresponding_staff
     @staff.reload
     assert_equal @user1, @staff.corresponding_user
-    assert @user1.known?
     assert @user1.staff?
     c.equality = false
     c.save!
     assert_nil @user1.corresponding_staff
     @staff.reload
     assert_nil @staff.corresponding_user
-    assert_not @user1.known?
     assert_not @user1.staff?
 
   end
 
   test "Creating equality concern for pupil creates link" do
-    assert_not @user1.known?
     assert_equal UserProfile.guest_profile, @user1.user_profile
     c = Concern.create({
       user: @user1,
@@ -190,26 +179,22 @@ class ConcernTest < ActiveSupport::TestCase
       colour: 'red',
       equality: true
     })
-    assert @user1.known?
     assert @user1.pupil?
     assert_equal UserProfile.guest_profile, @user1.user_profile
   end
 
   test "But a general pupil concern does not" do
-    assert_not @user1.known?
     assert_equal UserProfile.guest_profile, @user1.user_profile
     c = Concern.create({
       user: @user1,
       element: @pupil.element,
       colour: 'red'
     })
-    assert_not @user1.known?
     assert_not @user1.pupil?
     assert_equal UserProfile.guest_profile, @user1.user_profile
   end
 
   test "Removing pupil equality flag removes link" do
-    assert_not @user1.known?
     assert_equal UserProfile.guest_profile, @user1.user_profile
     c = Concern.create({
       user: @user1,
@@ -217,11 +202,9 @@ class ConcernTest < ActiveSupport::TestCase
       colour: 'red',
       equality: true
     })
-    assert @user1.known?
     assert @user1.pupil?
     c.equality = false
     c.save!
-    assert_not @user1.known?
     assert_not @user1.pupil?
   end
 
@@ -229,8 +212,6 @@ class ConcernTest < ActiveSupport::TestCase
     staff = FactoryBot.create(:staff, email: "same@myschool.org.uk")
     user1 = FactoryBot.create(:user, email: "same@myschool.org.uk")
     user2 = FactoryBot.create(:user, email: "same@myschool.org.uk")
-    assert user1.known?
-    assert user2.known?
     assert user1.staff?
     assert user2.staff?
     assert_equal UserProfile.staff_profile, user1.user_profile
