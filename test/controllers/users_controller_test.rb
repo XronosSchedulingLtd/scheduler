@@ -2,9 +2,9 @@ require 'test_helper'
 
 class UsersControllerTest < ActionController::TestCase
   setup do
-    @ordinary_user = FactoryBot.create(:user)
-    @admin_user = FactoryBot.create(:user, :admin)
-    @su_user = FactoryBot.create(:user, :admin, :su)
+    @ordinary_user = FactoryBot.create(:user, user_profile: UserProfile.staff_profile)
+    @admin_user = FactoryBot.create(:user, :admin, user_profile: UserProfile.staff_profile)
+    @su_user = FactoryBot.create(:user, :admin, :su, user_profile: UserProfile.staff_profile)
   end
 
   test "ordinary user cannot list users" do

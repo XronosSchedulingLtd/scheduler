@@ -23,104 +23,35 @@ class UserTest < ActiveSupport::TestCase
     #
     staff = FactoryBot.create(:staff, email: 'able@baker.com')
     user = FactoryBot.create(:user, email: 'able@baker.com')
-    assert user.editor?
-    assert user.can_repeat_events?
-    assert user.can_add_resources?
-    assert user.can_add_notes?
-    assert user.can_has_groups?
-    assert user.public_groups?
-    assert user.can_find_free?
-    assert user.can_add_concerns?
-    assert user.can_roam?
-    assert user.can_has_files?
-
-    assert_not user.admin?
-    assert_not user.edit_all_events?
-    assert_not user.subedit_all_events?
-    assert_not user.privileged?
-    assert_not user.can_has_forms?
-    assert_not user.can_su?
-    assert_not user.exams?
-    assert_not user.can_relocate_lessons?
-    assert_not user.can_view_forms?
-    assert_not user.can_view_unconfirmed?
-    assert_not user.can_edit_memberships?
-    assert_not user.can_api?
+    check_staff_permissions(user)
   end
 
   test "new pupil user gets correct permissions" do
-    #
-    #  Note that here we're really just checking that the user
-    #  has been linked to the right profile, and then that the
-    #  permissions have propagated through in the correct way.
-    #
-    #  The flags in the profiles are set up by a fixture when
-    #  in test mode, and by code in the UserProfile model for
-    #  real systems.  I have yet to find a way to unify these two.
-    #
     pupil = FactoryBot.create(:pupil, email: 'able@baker.com')
     user = FactoryBot.create(:user, email: 'able@baker.com')
-    assert user.editor?
-    assert user.known?
-
-    assert_not user.can_repeat_events?
-    assert_not user.can_add_resources?
-    assert_not user.can_add_notes?
-    assert_not user.can_has_groups?
-    assert_not user.public_groups?
-    assert_not user.can_find_free?
-    assert_not user.can_add_concerns?
-    assert_not user.can_roam?
-    assert_not user.can_has_files?
-    assert_not user.admin?
-    assert_not user.edit_all_events?
-    assert_not user.subedit_all_events?
-    assert_not user.privileged?
-    assert_not user.can_has_forms?
-    assert_not user.can_su?
-    assert_not user.exams?
-    assert_not user.can_relocate_lessons?
-    assert_not user.can_view_forms?
-    assert_not user.can_view_unconfirmed?
-    assert_not user.can_edit_memberships?
-    assert_not user.can_api?
+    check_pupil_permissions(user)
   end
 
   test "new guest user gets correct permissions" do
-    #
-    #  Note that here we're really just checking that the user
-    #  has been linked to the right profile, and then that the
-    #  permissions have propagated through in the correct way.
-    #
-    #  The flags in the profiles are set up by a fixture when
-    #  in test mode, and by code in the UserProfile model for
-    #  real systems.  I have yet to find a way to unify these two.
-    #
     user = FactoryBot.create(:user, email: 'able@baker.com')
-    assert_not user.known?
+    check_guest_permissions(user)
+  end
 
-    assert_not user.editor?
-    assert_not user.can_repeat_events?
-    assert_not user.can_add_resources?
-    assert_not user.can_add_notes?
-    assert_not user.can_has_groups?
-    assert_not user.public_groups?
-    assert_not user.can_find_free?
-    assert_not user.can_add_concerns?
-    assert_not user.can_roam?
-    assert_not user.can_has_files?
-    assert_not user.admin?
-    assert_not user.edit_all_events?
-    assert_not user.subedit_all_events?
-    assert_not user.privileged?
-    assert_not user.can_has_forms?
-    assert_not user.can_su?
-    assert_not user.exams?
-    assert_not user.can_relocate_lessons?
-    assert_not user.can_view_forms?
-    assert_not user.can_view_unconfirmed?
-    assert_not user.can_edit_memberships?
-    assert_not user.can_api?
+  test "changing user to guest user removes permissions" do
+    staff = FactoryBot.create(:staff, email: 'able@baker.com')
+    user = FactoryBot.create(:user, email: 'able@baker.com')
+    check_staff_permissions(user)
+    user.user_profile = UserProfile.guest_profile
+    user.save
+    check_guest_permissions(user)
+  end
+
+  test "changing user to staff user adds permissions" do
+    user = FactoryBot.create(:user, email: 'able@baker.com')
+    check_guest_permissions(user)
+    user.user_profile = UserProfile.staff_profile
+    user.save
+    check_staff_permissions(user)
   end
 
   test "can add specific permission for new user" do
@@ -185,6 +116,25 @@ class UserTest < ActiveSupport::TestCase
     check_no user.user_profile.permissions[:editor]
     check_yes user.permissions[:editor]
     assert user.editor?
+  end
+
+  test "removing known from profile removes it from user" do
+    staff = FactoryBot.create(:staff, email: 'able@baker.com')
+    user = FactoryBot.create(:user, email: 'able@baker.com')
+    assert user.known?
+    user.user_profile.known = false
+    user.user_profile.save
+    user.reload
+    assert_not user.known?
+  end
+
+  test "adding known to profile adds it to user" do
+    user = FactoryBot.create(:user, email: 'able@baker.com')
+    assert_not user.known?
+    user.user_profile.known = true
+    user.user_profile.save
+    user.reload
+    assert user.known?
   end
 
   test "don't link to non-current staff" do
@@ -282,6 +232,86 @@ class UserTest < ActiveSupport::TestCase
 
   def check_dont_care(value)
     assert_equal PermissionFlags::PERMISSION_DONT_CARE, value
+  end
+
+  def check_staff_permissions(user)
+    assert user.editor?
+    assert user.can_repeat_events?
+    assert user.can_add_resources?
+    assert user.can_add_notes?
+    assert user.can_has_groups?
+    assert user.public_groups?
+    assert user.can_find_free?
+    assert user.can_add_concerns?
+    assert user.can_roam?
+    assert user.can_has_files?
+
+    assert_not user.admin?
+    assert_not user.edit_all_events?
+    assert_not user.subedit_all_events?
+    assert_not user.privileged?
+    assert_not user.can_has_forms?
+    assert_not user.can_su?
+    assert_not user.exams?
+    assert_not user.can_relocate_lessons?
+    assert_not user.can_view_forms?
+    assert_not user.can_view_unconfirmed?
+    assert_not user.can_edit_memberships?
+    assert_not user.can_api?
+  end
+
+  def check_pupil_permissions(user)
+    assert user.editor?
+    assert user.known?
+
+    assert_not user.can_repeat_events?
+    assert_not user.can_add_resources?
+    assert_not user.can_add_notes?
+    assert_not user.can_has_groups?
+    assert_not user.public_groups?
+    assert_not user.can_find_free?
+    assert_not user.can_add_concerns?
+    assert_not user.can_roam?
+    assert_not user.can_has_files?
+    assert_not user.admin?
+    assert_not user.edit_all_events?
+    assert_not user.subedit_all_events?
+    assert_not user.privileged?
+    assert_not user.can_has_forms?
+    assert_not user.can_su?
+    assert_not user.exams?
+    assert_not user.can_relocate_lessons?
+    assert_not user.can_view_forms?
+    assert_not user.can_view_unconfirmed?
+    assert_not user.can_edit_memberships?
+    assert_not user.can_api?
+  end
+
+  def check_guest_permissions(user)
+    assert_not user.known?
+
+    assert_not user.editor?
+    assert_not user.can_repeat_events?
+    assert_not user.can_add_resources?
+    assert_not user.can_add_notes?
+    assert_not user.can_has_groups?
+    assert_not user.public_groups?
+    assert_not user.can_find_free?
+    assert_not user.can_add_concerns?
+    assert_not user.can_roam?
+    assert_not user.can_has_files?
+    assert_not user.admin?
+    assert_not user.edit_all_events?
+    assert_not user.subedit_all_events?
+    assert_not user.privileged?
+    assert_not user.can_has_forms?
+    assert_not user.can_su?
+    assert_not user.exams?
+    assert_not user.can_relocate_lessons?
+    assert_not user.can_view_forms?
+    assert_not user.can_view_unconfirmed?
+    assert_not user.can_edit_memberships?
+    assert_not user.can_api?
   end
 
 end

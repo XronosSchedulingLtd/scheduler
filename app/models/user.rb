@@ -117,16 +117,14 @@ class User < ActiveRecord::Base
   scope :exams, lambda { where(exams: true) }
   scope :administrators, lambda { where(admin: true) }
   scope :demo_user, lambda { where(demo_user: true) }
+  scope :known, -> { where(known: true) }
+  scope :guest, -> { where(known: false) }
 
   before_create :add_uuid
   before_destroy :being_destroyed
-  before_save :update_legacy_permission_flags
+  before_save :update_from_profile
 
   self.per_page = 15
-
-  def known?
-    self.own_element != nil
-  end
 
   def staff?
     self.corresponding_staff != nil
@@ -134,6 +132,10 @@ class User < ActiveRecord::Base
 
   def pupil?
     self.own_element != nil && self.own_element.entity.class == Pupil
+  end
+
+  def guest?
+    !self.known?
   end
 
   #
@@ -148,11 +150,14 @@ class User < ActiveRecord::Base
   end
 
   def own_element
-    unless @own_element
+    unless @checked_own_element
       my_own_concern = self.concerns.me[0]
       if my_own_concern
         @own_element = my_own_concern.element
+      else
+        @own_element = nil
       end
+      @checked_own_element = true
     end
     @own_element
   end
@@ -209,12 +214,13 @@ class User < ActiveRecord::Base
   #  Can this user meaningfully see the menu in the top bar?
   #
   def sees_menu?
-    self.admin ||
-    self.editor ||
-    self.can_has_groups ||
-    self.can_find_free ||
-    self.element_owner ||
-    self.exams
+    self.known? &&
+    (self.admin ||
+     self.editor ||
+     self.can_has_groups ||
+     self.can_find_free ||
+     self.element_owner ||
+     self.exams)
   end
 
   #
@@ -711,7 +717,7 @@ class User < ActiveRecord::Base
   end
 
   def can_view_forms_for?(element)
-    self.can_view_forms? || self.owns?(element)
+    self.known? && (self.can_view_forms? || self.owns?(element))
   end
 
   def can_view_journal_for?(object)
@@ -1249,7 +1255,9 @@ class User < ActiveRecord::Base
   #  flags (those used at run-time to decide permissions) with a calculated
   #  value from the profile and new permission flags.
   #
-  def update_legacy_permission_flags
+  #  We also check whether our profile is a "known" one.
+  #
+  def update_from_profile
     PermissionFlags.permitted_keys.each do |pk|
       if self.permissions[pk] == PermissionFlags::PERMISSION_DONT_CARE
         value = self.user_profile.permissions[pk]
@@ -1268,6 +1276,10 @@ class User < ActiveRecord::Base
         Rails.logger.debug("Calculated permission value for #{pk} for #{self.name} is #{value}")
       end
     end
+    if self.user_profile
+      self.known = self.user_profile.known
+    end
+    true
   end
 
   #
@@ -1330,6 +1342,7 @@ class User < ActiveRecord::Base
       return "Modified #{changed_count} colours for #{self.name}."
     else
       return nil
+
     end
   end
 
@@ -1421,6 +1434,7 @@ class User < ActiveRecord::Base
   #  Reset all the things which we keep cached.
   #
   def reset_cache
+    @checked_own_element = false
     @own_element = nil
   end
 

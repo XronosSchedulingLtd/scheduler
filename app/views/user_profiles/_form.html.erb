@@ -11,16 +11,27 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :name %><br>
-    <% if @user_profile.can_rename? %>
-      <%= f.text_field :name %>
-    <% else %>
-      <%= f.text_field :name, disabled: true %>
-    <% end %>
+  <div class='row collapse'>
+    <div class='small-9 columns'>
+      <div class="field">
+        <%= f.label :name %>
+        <% if @user_profile.can_rename? %>
+          <%= f.text_field :name %>
+        <% else %>
+          <%= f.text_field :name, disabled: true %>
+        <% end %>
+      </div>
+    </div>
+    <div class='small-2 offset-1 columns'>
+      <div class="field">
+        <%= f.label :known %>
+        <%= f.check_box :known %>
+      </div>
+    </div>
   </div>
   <%= tscb_group(f, @user_profile, :permissions, 12, 6, "Permissions", PermissionFlags.permitted_keys) %>
   <div class="actions">
     <%= f.submit nil, class: "zfbutton tiny radius" %>
+    <%= link_to 'Cancel', user_profiles_path, class: "zfbutton tiny radius button-link" %>
   </div>
 <% end %>

@@ -94,11 +94,11 @@ class ApplicationController < ActionController::Base
   #  logged on user.
   #
   def user_can_roam?
-    current_user && current_user.can_roam
+    current_user && current_user.known? && current_user.can_roam
   end
 
   def admin_user?
-    current_user && current_user.admin?
+    current_user && current_user.known? && current_user.admin?
   end
 
   def known_user?
@@ -106,26 +106,29 @@ class ApplicationController < ActionController::Base
   end
 
   def public_groups_user?
-    current_user && current_user.public_groups?
+    current_user && current_user.known? && current_user.public_groups?
   end
 
   def relocating_user?
-    current_user && current_user.can_relocate_lessons?
+    current_user && current_user.known? && current_user.can_relocate_lessons?
   end
 
   def user_can_drag?(concern)
-    current_user && current_user.can_drag?(concern)
+    current_user && current_user.known? && current_user.can_drag?(concern)
   end
 
   def user_can_view_forms?
-    current_user && current_user.can_view_forms?
+    current_user && current_user.known? && current_user.can_view_forms?
   end
 
   #
   #  Can only su if a) have permission and b) not already su'ed.
   #
   def user_can_su?
-    current_user && current_user.can_su? && !session[:original_user_id]
+    current_user &&
+      current_user.known? &&
+      current_user.can_su? &&
+      !session[:original_user_id]
   end
 
   def user_can_revert?
