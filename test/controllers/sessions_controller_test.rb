@@ -2,11 +2,16 @@ require 'test_helper'
 
 class SessionsControllerTest < ActionController::TestCase
   setup do
-    @ordinary_user = FactoryBot.create(:user, user_profile: UserProfile.staff_profile)
-    @admin_user = FactoryBot.create(:user, :admin, user_profile: UserProfile.staff_profile)
-    @api_user = FactoryBot.create(:user, :api, user_profile: UserProfile.staff_profile)
-    @su_user = FactoryBot.create(:user, :su, user_profile: UserProfile.staff_profile)
-    @su_user2 = FactoryBot.create(:user, :su, user_profile: UserProfile.staff_profile)
+    @ordinary_user =
+      FactoryBot.create(:user, user_profile: UserProfile.staff_profile)
+    @admin_user =
+      FactoryBot.create(:user, :admin, user_profile: UserProfile.staff_profile)
+    @api_user =
+      FactoryBot.create(:user, :api, user_profile: UserProfile.staff_profile)
+    @su_user =
+      FactoryBot.create(:user, :su, user_profile: UserProfile.staff_profile)
+    @su_user2 =
+      FactoryBot.create(:user, :su, user_profile: UserProfile.staff_profile)
   end
 
   test "should get new" do
@@ -110,6 +115,12 @@ class SessionsControllerTest < ActionController::TestCase
     #
     assert_equal @su_user.id, session[:user_id]
     assert_nil session[:original_user_id]
+  end
+
+  test "can login via test mechanism" do
+    put :test_login, user_id: @ordinary_user.id
+    assert_redirected_to '/'
+    assert @ordinary_user.id, session[:user_id]
   end
 
 end

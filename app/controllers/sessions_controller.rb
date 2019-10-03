@@ -116,6 +116,21 @@ class SessionsController < ApplicationController
     redirect_to :root
   end
 
+  if Rails.env.test?
+    def test_login
+      if params[:user_id]
+        user = User.find_by(id: params[:user_id])
+        if user
+          reset_session
+          @current_user = nil
+          session[:user_id] = user.id
+          Rails.logger.info("User #{user.email} signed in (test mode).")
+        end
+      end
+      redirect_to :root
+    end
+  end
+
   private
 
   def authorized?(action = action_name, resource = nil)
@@ -123,7 +138,8 @@ class SessionsController < ApplicationController
       action == 'new' ||
       action == 'create' ||
       action == 'failure' ||
-      action == 'demo_login'
+      action == 'demo_login' ||
+      action == 'test_login'
   end
 
 end

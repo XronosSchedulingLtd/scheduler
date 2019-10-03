@@ -285,5 +285,14 @@ Rails.application.routes.draw do
 
   mount PublicApi::Engine, at: :api
 
+  #
+  #  Extra route for test environment only.  Allows quick login
+  #  for integration tests where we're not actually testing
+  #  the login functionality.
+  #
+  if Rails.env.test?
+    put 'sessions/test_login' => 'sessions#test_login', as: :test_login
+  end
+
   match '*path', via: :all, to: 'pages#error_404'
 end
