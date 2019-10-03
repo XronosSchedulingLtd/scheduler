@@ -330,8 +330,30 @@ class GroupsController < ApplicationController
   end
 
   private
+    ALLOCATION_REQUESTS = [
+      'schedule',
+      'scheduleresources',
+      'scheduleevents'
+    ]
+
     def authorized?(action = action_name, resource = nil)
-      known_user? && current_user.can_has_groups?
+      if known_user?
+        if ALLOCATION_REQUESTS.include?(action)
+          #
+          #  All users can access these screens - although they aren't
+          #  given links to reach them - they just can't do anything
+          #  to them.
+          #
+          #  Evaluating the right to edit them is quite costly, so we
+          #  wait until the user actually attempts it.
+          #
+          true
+        else
+          current_user.can_has_groups?
+        end
+      else
+        false
+      end
     end
 
     # Use callbacks to share common setup or constraints between actions.
