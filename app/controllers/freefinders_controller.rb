@@ -91,7 +91,7 @@ class FreefindersController < ApplicationController
   end
 
   def authorized?(action = action_name, resource = nil)
-    logged_in? && current_user.can_find_free
+    known_user? && current_user.can_find_free
   end
 
   # Never trust parameters from the scary internet, only allow the white list through.

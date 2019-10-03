@@ -44,6 +44,7 @@ FactoryBot.define do
     #
     starts_on     { Date.today }
     add_attribute(:persona_class) { 'Vanillagrouppersona' }
+    current { true }
   end
 
   factory :location do

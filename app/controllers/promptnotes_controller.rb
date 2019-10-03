@@ -56,7 +56,7 @@ class PromptnotesController < ApplicationController
   private
 
   def authorized?(action = action_name, resource = nil)
-    (logged_in? && current_user.known?)
+    known_user?
   end
 
   def promptnote_params

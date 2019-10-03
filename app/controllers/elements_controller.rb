@@ -751,8 +751,7 @@ class ElementsController < ApplicationController
   end
 
   def authorized?(action = action_name, resource = nil)
-    (logged_in? && current_user.known?) ||
-    action == 'ical'
+    known_user? || action == 'ical'
   end
 
   private

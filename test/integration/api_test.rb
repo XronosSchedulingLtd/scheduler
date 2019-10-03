@@ -2,11 +2,26 @@ require 'test_helper'
 
 class ApiTest < ActionDispatch::IntegrationTest
   setup do
-    @api_user = FactoryBot.create(:user, :api, :editor, :noter)
-    @other_api_user = FactoryBot.create(:user, :api, :editor, :noter)
-    @api_user_no_edit = FactoryBot.create(:user, :api)
-    @privileged_api_user = FactoryBot.create(:user, :api, :editor, :privileged)
-    @ordinary_user = FactoryBot.create(:user)
+    @api_user =
+      FactoryBot.create(
+        :user, :api, :editor, :noter,
+        user_profile: UserProfile.staff_profile)
+    @other_api_user =
+      FactoryBot.create(
+        :user, :api, :editor, :noter,
+        user_profile: UserProfile.staff_profile)
+    @api_user_no_edit =
+      FactoryBot.create(
+        :user, :api,
+        user_profile: UserProfile.guest_profile)
+    @privileged_api_user =
+      FactoryBot.create(
+        :user, :api, :editor, :privileged,
+        user_profile: UserProfile.staff_profile)
+    @ordinary_user =
+      FactoryBot.create(
+        :user,
+        user_profile: UserProfile.staff_profile)
     @staff1 = FactoryBot.create(
       :staff, {name: "Able Baker Charlie", initials: "ABC"})
     @pupil1 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Maximus")

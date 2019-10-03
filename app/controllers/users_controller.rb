@@ -130,8 +130,7 @@ class UsersController < ApplicationController
   #      as if it was a modal.
   #
   def edit
-    if current_user.known? &&
-       (current_user.admin? || current_user.id == @user.id)
+    if (current_user.admin? || current_user.id == @user.id)
       tt = DayShapeManager.template_type
       if tt
         @day_shapes = tt.rota_templates
@@ -216,10 +215,10 @@ class UsersController < ApplicationController
 
   private
     def authorized?(action = action_name, resource = nil)
-      logged_in? && (current_user.admin ||
-                     action == 'edit' ||
-                     action == 'update' ||
-                     action == 'pp')
+      known_user? && (current_user.admin ||
+                      action == 'edit' ||
+                      action == 'update' ||
+                      action == 'pp')
     end
 
     # Use callbacks to share common setup or constraints between actions.

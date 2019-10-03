@@ -127,7 +127,7 @@ class UserFilesController < ApplicationController
   end
 
   def authorized?(action = action_name, resource = nil)
-    if current_user
+    if known_user?
       case action
       when 'index'
         #
