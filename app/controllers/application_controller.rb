@@ -93,32 +93,36 @@ class ApplicationController < ActionController::Base
   #  user, taking account of the fact that there might not be a currently
   #  logged on user.
   #
+  #  The !! in front of current_user is so that we always return true
+  #  or false, rather than sometimes returning nil (which is falsy,
+  #  but let's be tidy).
+  #
   def user_can_roam?
-    current_user && current_user.known? && current_user.can_roam
+    !!current_user && current_user.known? && current_user.can_roam?
   end
 
   def admin_user?
-    current_user && current_user.known? && current_user.admin?
+    !!current_user && current_user.known? && current_user.admin?
   end
 
   def known_user?
-    current_user && current_user.known?
+    !!current_user && current_user.known?
   end
 
   def public_groups_user?
-    current_user && current_user.known? && current_user.public_groups?
+    !!current_user && current_user.known? && current_user.public_groups?
   end
 
   def relocating_user?
-    current_user && current_user.known? && current_user.can_relocate_lessons?
+    !!current_user && current_user.known? && current_user.can_relocate_lessons?
   end
 
   def user_can_drag?(concern)
-    current_user && current_user.known? && current_user.can_drag?(concern)
+    !!current_user && current_user.known? && current_user.can_drag?(concern)
   end
 
   def user_can_view_forms?
-    current_user && current_user.known? && current_user.can_view_forms?
+    !!current_user && current_user.known? && current_user.can_view_forms?
   end
 
   #

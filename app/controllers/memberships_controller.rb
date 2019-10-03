@@ -161,7 +161,7 @@ class MembershipsController < ApplicationController
     #  Default to no
     #
     result = false
-    if logged_in? && current_user.create_groups?
+    if known_user? && current_user.can_has_groups?
       #
       #  Further checking depends on the type of the request.
       #

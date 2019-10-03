@@ -331,7 +331,7 @@ class GroupsController < ApplicationController
 
   private
     def authorized?(action = action_name, resource = nil)
-      logged_in? && (current_user.create_groups? || action == 'index')
+      known_user? && current_user.can_has_groups?
     end
 
     # Use callbacks to share common setup or constraints between actions.

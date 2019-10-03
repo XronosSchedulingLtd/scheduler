@@ -343,11 +343,7 @@ class User < ActiveRecord::Base
   end
 
   def create_events?
-    self.editor || self.admin
-  end
-
-  def create_groups?
-    self.staff? || self.admin
+    self.known? && self.editor?
   end
 
   def can_trigger_cover_check?
