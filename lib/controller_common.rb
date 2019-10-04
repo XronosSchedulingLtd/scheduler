@@ -74,10 +74,12 @@ module ControllerCommon
   #  already in an su state.
   #
   def su_to(new_user)
-    original_user = current_user
+    saved_user = current_user
     reset_session_and_purge_cache
     session[:user_id] = new_user.id
-    session[:original_user_id] = original_user.id
+    @current_user = new_user
+    session[:original_user_id] = saved_user.id
+    @original_user = saved_user
   end
 
   #
@@ -127,6 +129,16 @@ module ControllerCommon
     #
     @current_user ||=
       User.includes(:concerns).find_by(id: session[:user_id]) if session[:user_id]
+  end
+
+  #
+  #  Likewise for the original user, if any.
+  #
+  #  Note - returns nil if we are not in an su session.
+  #
+  def original_user
+    @original_user ||=
+      User.find_by(id: session[:original_user_id]) if session[:original_user_id]
   end
 
   #

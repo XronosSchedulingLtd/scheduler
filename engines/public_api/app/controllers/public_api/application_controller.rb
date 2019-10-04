@@ -380,13 +380,32 @@ module PublicApi
       end
     end
 
+    #
+    #  Check whether, given the current state of login/su, use of
+    #  the API is permitted.
+    #
+    def we_can_api?
+      #
+      #  If we are in an su'ed state, then it's the original user
+      #  who needs to have su permission.
+      #
+      if known_user?
+        if original_user
+          original_user.can_api?
+        else
+          current_user.can_api?
+        end
+      else
+        false
+      end
+    end
+
     def authorized?(action = action_name, resource = nil)
       #
       #  Note that when su is in effect, it's the original user
       #  who needs to have the "can_api?" permission.
       #
-      known_user? && request.format == 'json' &&
-        current_user.can_api?
+      request.format == 'json' && we_can_api?
     end
 
     def set_appropriate_approval_status(commitment)
