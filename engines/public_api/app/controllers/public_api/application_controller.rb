@@ -6,6 +6,8 @@
 module PublicApi
   class ApplicationController < ActionController::Base
 
+    include ControllerCommon
+
     class FailureRecord < Hash
 
       def initialize(item, index, element_id)
@@ -357,15 +359,6 @@ module PublicApi
       StatusTexts[code]
     end
 
-    def current_user
-      @current_user ||=
-        User.find_by(id: session[:user_id]) if session[:user_id]
-    end
-
-    def logged_in?
-      !!current_user
-    end
-
     def login_required
       authorized? || access_denied
     end
@@ -388,7 +381,12 @@ module PublicApi
     end
 
     def authorized?(action = action_name, resource = nil)
-      logged_in? && current_user.can_api? && request.format == 'json'
+      #
+      #  Note that when su is in effect, it's the original user
+      #  who needs to have the "can_api?" permission.
+      #
+      known_user? && request.format == 'json' &&
+        current_user.can_api?
     end
 
     def set_appropriate_approval_status(commitment)

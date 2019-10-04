@@ -5,23 +5,33 @@ class ApiTest < ActionDispatch::IntegrationTest
     @api_user =
       FactoryBot.create(
         :user, :api, :editor, :noter,
-        user_profile: UserProfile.staff_profile)
+        user_profile: UserProfile.staff_profile,
+        email: "api_user@myschool.org.uk")
     @other_api_user =
       FactoryBot.create(
         :user, :api, :editor, :noter,
-        user_profile: UserProfile.staff_profile)
+        user_profile: UserProfile.staff_profile,
+        email: "other_api_user@myschool.org.uk")
     @api_user_no_edit =
       FactoryBot.create(
-        :user, :api,
-        user_profile: UserProfile.guest_profile)
+        :user, :api, :not_editor,
+        user_profile: UserProfile.staff_profile,
+        email: "api_user_no_edit@myschool.org.uk")
     @privileged_api_user =
       FactoryBot.create(
         :user, :api, :editor, :privileged,
-        user_profile: UserProfile.staff_profile)
+        user_profile: UserProfile.staff_profile,
+        email: "privileged_api_user@myschool.org.uk")
+    @api_user_with_su =
+      FactoryBot.create(
+        :user, :api, :editor, :su,
+        user_profile: UserProfile.staff_profile,
+        email: "api_user_with_su@myschool.org.uk")
     @ordinary_user =
       FactoryBot.create(
         :user,
-        user_profile: UserProfile.staff_profile)
+        user_profile: UserProfile.staff_profile,
+        email: "ordinary_user@myschool.org.uk")
     @staff1 = FactoryBot.create(
       :staff, {name: "Able Baker Charlie", initials: "ABC"})
     @pupil1 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Maximus")
@@ -922,6 +932,44 @@ class ApiTest < ActionDispatch::IntegrationTest
     assert_response :missing
   end
 
+  test 'ordinary api user cannot list users' do
+    do_valid_login
+    get @api_paths.users_path, format: :json
+    assert_response :forbidden
+  end
+
+  test 'su api user can list users' do
+    do_valid_login(@api_user_with_su)
+    get @api_paths.users_path, format: :json
+    assert_response :success
+    response_data = unpack_response(response, "OK")
+    users = response_data['users']
+    assert_instance_of Array, users
+    #
+    #  But it's empty because we gave no criteria
+    #
+    assert_empty users
+  end
+
+  test 'invalid email produces empty list' do
+    do_valid_login(@api_user_with_su)
+    get @api_paths.users_path(email: "able.baker@charlie"), format: :json
+    assert_response :missing
+    response_data = unpack_response(response, "Not found")
+    users = response_data['users']
+    assert_instance_of Array, users
+    assert_empty users
+  end
+
+  test 'valid email produces array of size 1' do
+    do_valid_login(@api_user_with_su)
+    get @api_paths.users_path(email: "api_user@myschool.org.uk"), format: :json
+    assert_response :success
+    response_data = unpack_response(response, "OK")
+    users = response_data['users']
+    assert_instance_of Array, users
+    assert_equal 1, users.size
+  end
 
   private
 

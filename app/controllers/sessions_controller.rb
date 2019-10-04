@@ -35,8 +35,7 @@ class SessionsController < ApplicationController
       user = User.create_from_omniauth(auth)
     end
     url_requested = session[:url_requested]
-    reset_session
-    session[:user_id] = user.id
+    set_logged_in_as(user)
     Rails.logger.info("User #{user.email} signed in.")
     redirect_to url_requested || root_url, :notice => "Signed in"
   end
@@ -53,16 +52,14 @@ class SessionsController < ApplicationController
     if Setting.demo_system? && params[:user_id] &&
       (user = User.find_by(id: params[:user_id])) &&
       (user.demo_user?)
-      reset_session
-      session[:user_id] = user.id
+      set_logged_in_as(user)
       Rails.logger.info("User #{user.email} signed in (demo mode).")
     end
     redirect_to root_url
   end
 
   def destroy
-    session[:user_id] = nil
-    @current_user = nil
+    set_logged_out
     redirect_to root_url, :notice => "Signed out"
   end
 
@@ -88,10 +85,7 @@ class SessionsController < ApplicationController
         new_user = User.find_by(id: user_id)
         if new_user
           original_user = current_user
-          reset_session
-          @current_user = nil
-          session[:user_id] = new_user.id
-          session[:original_user_id] = original_user.id
+          su_to(new_user)
           Rails.logger.info("User #{original_user.email} su'ed to #{new_user.email}.")
         end
       end
@@ -104,14 +98,8 @@ class SessionsController < ApplicationController
   #  Note that we can only go back by one.
   #
   def revert
-    original_user_id = session[:original_user_id]
-    if original_user_id
-      #
-      #  The request to revert does at least have some meaning.
-      #
-      reset_session
-      @current_user = nil
-      session[:user_id] = original_user_id
+    if user_can_revert?
+      revert_su
     end
     redirect_to :root
   end
@@ -121,9 +109,7 @@ class SessionsController < ApplicationController
       if params[:user_id]
         user = User.find_by(id: params[:user_id])
         if user
-          reset_session
-          @current_user = nil
-          session[:user_id] = user.id
+          set_logged_in_as(user)
           Rails.logger.info("User #{user.email} signed in (test mode).")
         end
       end

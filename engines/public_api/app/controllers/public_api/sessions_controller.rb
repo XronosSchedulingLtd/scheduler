@@ -12,8 +12,7 @@ module PublicApi
     def login
       uuid = params[:uuid] || params[:uid]
       if uuid && (user = User.find_by(uuid: uuid)) && user.can_api?
-        reset_session
-        session[:user_id] = user.id
+        set_logged_in_as(user)
         render json: { status: 'OK' }
       else
         access_denied
@@ -21,8 +20,7 @@ module PublicApi
     end
 
     def logout
-      reset_session
-      session[:user_id] = nil
+      set_logged_out
       render json: { status: 'OK' }
     end
 

@@ -95,6 +95,14 @@ FactoryBot.define do
       permissions_noter      { false }
       permissions_files      { false }
       permissions_su         { false }
+      #
+      #  Getting slightly odd.
+      #
+      #  The thing to understand here is that if you don't specify
+      #  either editor or not_editor then the user's edit permission
+      #  will be inherited from the user profile.
+      #
+      permissions_not_editor { false }
     end
 
     #
@@ -106,6 +114,10 @@ FactoryBot.define do
 
     trait :editor do
       permissions_editor { true }
+    end
+
+    trait :not_editor do
+      permissions_not_editor { true }
     end
 
     trait :privileged do
@@ -142,6 +154,14 @@ FactoryBot.define do
       end
       if permissions_editor
         hash[:editor] = true
+      end
+      #
+      #  Leaving hash[:editor] unset is not the same thing as
+      #  setting it to false.  Unset means "inherit from profile"
+      #  whilst false means "override profile - not an editor".
+      #
+      if permissions_not_editor
+        hash[:editor] = false
       end
       if permissions_privileged
         hash[:privileged] = true

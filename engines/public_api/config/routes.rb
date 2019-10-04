@@ -2,6 +2,10 @@ PublicApi::Engine.routes.draw do
   get '/login', to: 'sessions#login'
   get '/logout', to: 'sessions#logout'
 
+  get 'sessions/become/:user_id' => 'sessions#become'
+
+  get 'sessions/revert' => 'sessions#revert'
+
   resources :elements, only: [:index, :show] do
     resources :requests, only: [:index]
     resources :commitments, only: [:index]
@@ -18,5 +22,6 @@ PublicApi::Engine.routes.draw do
   resources :requests, only: [:destroy]
   resources :eventcategories, only: [:index, :show]
 
-#  resources :pupils, only: [:index]
+  resources :users, only: [:index]
+
 end
