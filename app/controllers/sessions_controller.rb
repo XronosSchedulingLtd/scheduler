@@ -84,7 +84,6 @@ class SessionsController < ApplicationController
       if user_id && user_id.to_i != current_user.id
         new_user = User.find_by(id: user_id)
         if new_user
-          original_user = current_user
           su_to(new_user)
           Rails.logger.info("User #{original_user.email} su'ed to #{new_user.email}.")
         end
