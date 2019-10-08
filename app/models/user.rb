@@ -794,6 +794,31 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Is this user as privileged (in the admin-ey sense) as another
+  #  user?
+  #
+  #  Although this method is invoked by the view code it is arguably
+  #  useless there because currently if a user isn't an admin then he or she
+  #  can't access the relevant user listing pages anyway.
+  #
+  #  We may however choose to add a specific path which allows a
+  #  user with "can_su?" privileges to make use of them.
+  #
+  def as_privileged_as?(other_user)
+    #
+    #  Only one case which fails - when we are not an admin but
+    #  the other user is.
+    #
+    #  Could be written as:
+    #
+    #    !(!self.admin? && other_user.admin?)
+    #
+    #  but that simplifies to:
+    #
+    self.admin? || !other_user.admin?
+  end
+
+  #
   #  Another thing which it is useful to cache for efficiency.
   #
   def owned_concerns

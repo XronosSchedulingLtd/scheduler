@@ -4,12 +4,12 @@ class ApiTest < ActionDispatch::IntegrationTest
   setup do
     @api_user =
       FactoryBot.create(
-        :user, :api, :editor, :noter,
+        :user, :api,
         user_profile: UserProfile.staff_profile,
         email: "api_user@myschool.org.uk")
     @other_api_user =
       FactoryBot.create(
-        :user, :api, :editor, :noter,
+        :user, :api,
         user_profile: UserProfile.staff_profile,
         email: "other_api_user@myschool.org.uk")
     @api_user_no_edit =
@@ -19,14 +19,19 @@ class ApiTest < ActionDispatch::IntegrationTest
         email: "api_user_no_edit@myschool.org.uk")
     @privileged_api_user =
       FactoryBot.create(
-        :user, :api, :editor, :privileged,
+        :user, :api, :privileged,
         user_profile: UserProfile.staff_profile,
         email: "privileged_api_user@myschool.org.uk")
     @api_user_with_su =
       FactoryBot.create(
-        :user, :api, :editor, :su,
+        :user, :api, :su,
         user_profile: UserProfile.staff_profile,
         email: "api_user_with_su@myschool.org.uk")
+    @admin_user =
+      FactoryBot.create(
+        :user, :admin,
+        user_profile: UserProfile.staff_profile,
+        email: "admin_user@myschool.org.uk")
     @ordinary_user =
       FactoryBot.create(
         :user,
@@ -1005,6 +1010,12 @@ class ApiTest < ActionDispatch::IntegrationTest
     #  have permission, it should still work.
     #
     check_i_am(@ordinary_user)
+  end
+
+  test 'api user with su cannot su to admin' do
+    do_valid_login(@api_user_with_su)
+    put @api_paths.become_path(user_id: @admin_user.id), format: :json
+    assert_response :forbidden
   end
 
   test 'su to invalid id produces error' do

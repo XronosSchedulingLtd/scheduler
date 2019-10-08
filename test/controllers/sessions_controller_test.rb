@@ -10,6 +10,9 @@ class SessionsControllerTest < ActionController::TestCase
       FactoryBot.create(:user, :api, user_profile: UserProfile.staff_profile)
     @su_user =
       FactoryBot.create(:user, :su, user_profile: UserProfile.staff_profile)
+    @su_admin_user =
+      FactoryBot.create(:user, :admin, :su,
+                        user_profile: UserProfile.staff_profile)
     @su_user2 =
       FactoryBot.create(:user, :su, user_profile: UserProfile.staff_profile)
   end
@@ -115,6 +118,28 @@ class SessionsControllerTest < ActionController::TestCase
     #
     assert_equal @su_user.id, session[:user_id]
     assert_nil session[:original_user_id]
+  end
+
+  test 'cannot su to admin if not admin' do
+    session[:user_id] = @su_user.id
+    put :become, user_id: @admin_user.id
+    assert_redirected_to '/'
+    #
+    #  User should not have changed.
+    #
+    assert_equal @su_user.id, session[:user_id]
+    assert_nil session[:original_user_id]
+  end
+
+  test 'can su to admin if already admin' do
+    session[:user_id] = @su_admin_user.id
+    put :become, user_id: @admin_user.id
+    assert_redirected_to '/'
+    #
+    #  User should have changed.
+    #
+    assert_equal @admin_user.id, session[:user_id]
+    assert_equal @su_admin_user.id, session[:original_user_id]
   end
 
   test "can login via test mechanism" do

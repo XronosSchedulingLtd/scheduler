@@ -28,8 +28,15 @@ module PublicApi
       if user_can_su?
         user_id = params[:user_id]
         if user_id && (user = User.find_by(id: user_id))
-          su_to(user)
-          status = :ok
+          #
+          #  Don't allow acquisition of admin privilege.
+          #
+          if current_user.as_privileged_as?(user)
+            su_to(user)
+            status = :ok
+          else
+            status = :forbidden
+          end
         else
           status = :not_found
         end

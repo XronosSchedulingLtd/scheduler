@@ -81,9 +81,15 @@ class SessionsController < ApplicationController
     #
     if user_can_su?
       user_id = params[:user_id]
+      #
+      #  Cannot su to oneself
+      #
       if user_id && user_id.to_i != current_user.id
         new_user = User.find_by(id: user_id)
-        if new_user
+        #
+        #  Cannot gain admin if we don't already have it.
+        #
+        if new_user && current_user.as_privileged_as?(new_user)
           su_to(new_user)
           Rails.logger.info("User #{original_user.email} su'ed to #{new_user.email}.")
         end
