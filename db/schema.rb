@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191001135028) do
+ActiveRecord::Schema.define(version: 20191013084517) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -791,6 +791,7 @@ ActiveRecord::Schema.define(version: 20191001135028) do
     t.boolean  "can_has_files",                             default: false
     t.boolean  "loading_notification",                      default: true
     t.boolean  "known",                                     default: false
+    t.boolean  "can_view_journals",                         default: false
   end
 
   add_index "users", ["uuid"], name: "index_users_on_uuid", unique: true, using: :btree

@@ -2,6 +2,16 @@ require 'test_helper'
 
 class UserTest < ActiveSupport::TestCase
 
+  setup do
+    @test_user_profile = FactoryBot.create(:user_profile)
+    @test_user = FactoryBot.create(:user, user_profile: @test_user_profile)
+    #
+    #  It seems that we can end up with the cached copy of the
+    #  test user profile not realising that it has a user attached.
+    #
+    @test_user_profile.reload
+  end
+
   test "can create a staff user" do
     staff = FactoryBot.create(:staff, email: 'able@baker.com')
     user = FactoryBot.create(:user, email: 'able@baker.com')
@@ -86,6 +96,21 @@ class UserTest < ActiveSupport::TestCase
     check_yes user.user_profile.permissions[:admin]
     check_dont_care user.permissions[:admin]
     assert user.admin?
+  end
+
+  test "all permission bits propagate" do
+    assert_equal @test_user_profile, @test_user.user_profile
+    PermissionFlags::KNOWN_PERMISSIONS.each do |pf|
+      check_no(@test_user_profile.permissions[pf])
+      check_dont_care(@test_user.permissions[pf])
+      assert_not @test_user.send("#{pf}?")
+      @test_user_profile.permissions[pf] = true
+      @test_user_profile.save
+      @test_user.reload
+      check_yes(@test_user_profile.permissions[pf])
+      check_dont_care(@test_user.permissions[pf])
+      assert @test_user.send("#{pf}?"), "Testing #{pf}"
+    end
   end
 
   test "removing permission from profile removes it from user" do
@@ -258,6 +283,7 @@ class UserTest < ActiveSupport::TestCase
     assert_not user.can_view_unconfirmed?
     assert_not user.can_edit_memberships?
     assert_not user.can_api?
+    assert_not user.can_view_journals?
   end
 
   def check_pupil_permissions(user)
@@ -285,6 +311,7 @@ class UserTest < ActiveSupport::TestCase
     assert_not user.can_view_unconfirmed?
     assert_not user.can_edit_memberships?
     assert_not user.can_api?
+    assert_not user.can_view_journals?
   end
 
   def check_guest_permissions(user)
@@ -312,6 +339,7 @@ class UserTest < ActiveSupport::TestCase
     assert_not user.can_view_unconfirmed?
     assert_not user.can_edit_memberships?
     assert_not user.can_api?
+    assert_not user.can_view_journals?
   end
 
 end
