@@ -63,7 +63,10 @@ class User < ActiveRecord::Base
     can_add_notes: "Can this user add notes to events?",
     can_view_forms: "Can this user view all the forms attached to an event?",
     can_view_unconfirmed: "Can this user see events in the context of resources which have not yet been confirmed for the event?",
-    can_edit_memberships: "Can this user edit membership records directly, rather than implicitly by editing the group?"
+    can_edit_memberships: "Can this user edit membership records directly, rather than implicitly by editing the group?",
+    can_api: "Can this user make direct use of the API?",
+    can_has_files: "Can this user upload files to the server?",
+    can_view_journals: "Can this user view the modification journal for events?"
   }
   FIELD_TITLE_TEXTS.default = ""
 
