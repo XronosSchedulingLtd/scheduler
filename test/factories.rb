@@ -75,6 +75,21 @@ FactoryBot.define do
 
   factory :user_profile do
     sequence(:name) { |n| "User profile #{n}" }
+    transient do
+      godlike_permissions { false }
+    end
+    trait :godlike do
+      godlike_permissions { true }
+    end
+    permissions do
+      hash = {}
+      if godlike_permissions
+        PermissionFlags::KNOWN_PERMISSIONS.each do |pf|
+          hash[pf] = true
+        end
+      end
+      hash
+    end
   end
 
   factory :user do

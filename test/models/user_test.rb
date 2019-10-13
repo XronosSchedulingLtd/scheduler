@@ -10,6 +10,14 @@ class UserTest < ActiveSupport::TestCase
     #  test user profile not realising that it has a user attached.
     #
     @test_user_profile.reload
+    @godlike_user_profile = FactoryBot.create(:user_profile, :godlike)
+#    PermissionFlags::KNOWN_PERMISSIONS.each do |pf|
+#      @godlike_user_profile.permissions[pf] = true
+#    end
+#    @godlike_user_profile.save!
+    @godlike_user = FactoryBot.create(:user,
+                                      user_profile: @godlike_user_profile)
+    @godlike_user_profile.reload
   end
 
   test "can create a staff user" do
@@ -110,6 +118,34 @@ class UserTest < ActiveSupport::TestCase
       check_yes(@test_user_profile.permissions[pf])
       check_dont_care(@test_user.permissions[pf])
       assert @test_user.send("#{pf}?"), "Testing #{pf}"
+    end
+  end
+
+  test "all permission bits can be set for individual users" do
+    assert_equal @test_user_profile, @test_user.user_profile
+    PermissionFlags::KNOWN_PERMISSIONS.each do |pf|
+      check_no(@test_user_profile.permissions[pf])
+      check_dont_care(@test_user.permissions[pf])
+      assert_not @test_user.send("#{pf}?")
+      @test_user.permissions[pf] = true
+      @test_user.save
+      check_no(@test_user_profile.permissions[pf])
+      check_yes(@test_user.permissions[pf])
+      assert @test_user.send("#{pf}?"), "Testing #{pf}"
+    end
+  end
+
+  test "all permission bits can be removed for individual users" do
+    assert_equal @godlike_user_profile, @godlike_user.user_profile
+    PermissionFlags::KNOWN_PERMISSIONS.each do |pf|
+      check_yes(@godlike_user_profile.permissions[pf])
+      check_dont_care(@godlike_user.permissions[pf])
+      assert @godlike_user.send("#{pf}?")
+      @godlike_user.permissions[pf] = false
+      @godlike_user.save
+      check_yes(@godlike_user_profile.permissions[pf])
+      check_no(@godlike_user.permissions[pf])
+      assert_not @godlike_user.send("#{pf}?"), "Testing #{pf}"
     end
   end
 
