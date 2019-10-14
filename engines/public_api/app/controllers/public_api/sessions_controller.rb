@@ -12,8 +12,7 @@ module PublicApi
     def login
       uuid = params[:uuid] || params[:uid]
       if uuid && (user = User.find_by(uuid: uuid)) && user.can_api?
-        reset_session
-        session[:user_id] = user.id
+        set_logged_in_as(user)
         render json: { status: 'OK' }
       else
         access_denied
@@ -21,9 +20,61 @@ module PublicApi
     end
 
     def logout
-      reset_session
-      session[:user_id] = nil
+      set_logged_out
       render json: { status: 'OK' }
+    end
+
+    def become
+      if user_can_su?
+        user_id = params[:user_id]
+        if user_id && (user = User.find_by(id: user_id))
+          #
+          #  Don't allow acquisition of admin privilege.
+          #
+          if current_user.as_privileged_as?(user)
+            su_to(user)
+            status = :ok
+          else
+            status = :forbidden
+          end
+        else
+          status = :not_found
+        end
+      else
+        status = :forbidden
+      end
+      render json: { status: status_text(status) }, status: status
+    end
+
+    #
+    #  Like logout, this always works.
+    #
+    def revert
+      if user_can_revert?
+        revert_su
+      end
+      status = :ok
+      render json: { status: status_text(status) }, status: status
+    end
+
+    #
+    #  For users who can su, the means to check their current user
+    #  id.
+    #
+    def whoami
+      #
+      #  Another case where we may inherit the necessary permission
+      #  from our original user.
+      #
+      #  Note also that here we specifically want to check the user's
+      #  permission bit - not whether an su is feasible.
+      #
+      check_as = original_user || current_user
+      if check_as.can_su?
+        render json: { status: status_text(:ok), user_id: current_user.id }, status: :ok
+      else
+        render json: { status: status_text(:forbidden) }, status: :forbidden
+      end
     end
 
     private
@@ -34,7 +85,19 @@ module PublicApi
       #  or out.  If you are not logged in, you can still logout.
       #
       request.format == 'json' &&
-      (action == 'login' || action == 'logout')
+      (
+        action == 'login' ||
+        action == 'logout' ||
+        (
+          known_user? &&
+          we_can_api? &&
+          (
+            action == 'become' ||
+            action == 'revert' ||
+            action == 'whoami'
+          )
+        )
+      )
     end
 
   end

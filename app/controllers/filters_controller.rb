@@ -30,7 +30,7 @@ class FiltersController < ApplicationController
   #  Others can edit only their own.
   #
   def authorized?(action = action_name, resource = nil)
-    logged_in? && current_user.known? &&
+    known_user? &&
       (current_user.admin || params[:user_id].to_i == current_user.id)
   end
 

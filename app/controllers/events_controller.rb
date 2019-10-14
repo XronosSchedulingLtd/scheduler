@@ -718,8 +718,8 @@ class EventsController < ApplicationController
   private
 
   def authorized?(action = action_name, resource = nil)
-    (logged_in? && current_user.create_events?) ||
-    (logged_in? && action == 'coverrooms') ||
+    (known_user? && current_user.create_events?) ||
+    (known_user? && action == 'coverrooms') ||
     action == 'show' || action == "search"
   end
 

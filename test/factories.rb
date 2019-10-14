@@ -44,6 +44,7 @@ FactoryBot.define do
     #
     starts_on     { Date.today }
     add_attribute(:persona_class) { 'Vanillagrouppersona' }
+    current { true }
   end
 
   factory :location do
@@ -74,6 +75,21 @@ FactoryBot.define do
 
   factory :user_profile do
     sequence(:name) { |n| "User profile #{n}" }
+    transient do
+      godlike_permissions { false }
+    end
+    trait :godlike do
+      godlike_permissions { true }
+    end
+    permissions do
+      hash = {}
+      if godlike_permissions
+        PermissionFlags::KNOWN_PERMISSIONS.each do |pf|
+          hash[pf] = true
+        end
+      end
+      hash
+    end
   end
 
   factory :user do
@@ -93,6 +109,15 @@ FactoryBot.define do
       permissions_api        { false }
       permissions_noter      { false }
       permissions_files      { false }
+      permissions_su         { false }
+      #
+      #  Getting slightly odd.
+      #
+      #  The thing to understand here is that if you don't specify
+      #  either editor or not_editor then the user's edit permission
+      #  will be inherited from the user profile.
+      #
+      permissions_not_editor { false }
     end
 
     #
@@ -104,6 +129,10 @@ FactoryBot.define do
 
     trait :editor do
       permissions_editor { true }
+    end
+
+    trait :not_editor do
+      permissions_not_editor { true }
     end
 
     trait :privileged do
@@ -122,6 +151,10 @@ FactoryBot.define do
       permissions_files { true }
     end
 
+    trait :su do
+      permissions_su { true }
+    end
+
     firstday { 0 }
     user_profile { UserProfile.guest_profile }
 
@@ -137,6 +170,14 @@ FactoryBot.define do
       if permissions_editor
         hash[:editor] = true
       end
+      #
+      #  Leaving hash[:editor] unset is not the same thing as
+      #  setting it to false.  Unset means "inherit from profile"
+      #  whilst false means "override profile - not an editor".
+      #
+      if permissions_not_editor
+        hash[:editor] = false
+      end
       if permissions_privileged
         hash[:privileged] = true
       end
@@ -149,10 +190,25 @@ FactoryBot.define do
       if permissions_files
         hash[:can_has_files] = true
       end
+      if permissions_su
+        hash[:can_su] = true
+      end
       hash
     end
 
     factory :admin_user, traits: [:admin]
+    #
+    #  In order to behave like the session controller when creating
+    #  a new user record we need to call find_matching_resources too.
+    #
+    after(:create) do |u|
+      u.find_matching_resources
+    end
+  end
+
+  factory :concern_set do
+    association :owner, factory: :user
+    sequence(:name) { |n| "Concern set #{n}" }
   end
 
   factory :concern do

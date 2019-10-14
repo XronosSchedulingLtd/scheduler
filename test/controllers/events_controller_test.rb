@@ -2,8 +2,10 @@ require 'test_helper'
 
 class EventsControllerTest < ActionController::TestCase
   setup do
-    @event = events(:one)
-    session[:user_id] = users(:admin).id
+    @event = FactoryBot.create(:event)
+    staff = FactoryBot.create(:staff, email: 'able@baker.com')
+    user = FactoryBot.create(:user, :admin, email: 'able@baker.com')
+    session[:user_id] = user.id
   end
 
   test "should get index" do

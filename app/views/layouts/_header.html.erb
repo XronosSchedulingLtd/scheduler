@@ -37,7 +37,14 @@
         <li class="divider"></li>
 
 <% if current_user %>
-  <%  if current_user.sees_menu? %>
+  <%
+    #
+    #  There is one very exceptional circumstance when a user can see
+    #  the menu even though he wouldn't normally be able to - when
+    #  the session is actually su'ed to being that user.  The menu
+    #  is needed to allow the su to be reverted.
+    #
+      if current_user.sees_menu? || user_can_revert? %>
     <%= menu_for(current_user) %>
     <li class='divider'>
   <%  end %>

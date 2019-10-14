@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190828111618) do
+ActiveRecord::Schema.define(version: 20191013084517) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -64,6 +64,7 @@ ActiveRecord::Schema.define(version: 20190828111618) do
     t.integer  "status",              limit: 4,   default: 0
   end
 
+  add_index "commitments", ["by_whom_id"], name: "index_commitments_on_by_whom_id", using: :btree
   add_index "commitments", ["covering_id"], name: "index_commitments_on_covering_id", using: :btree
   add_index "commitments", ["element_id"], name: "index_commitments_on_element_id", using: :btree
   add_index "commitments", ["event_id"], name: "index_commitments_on_event_id", using: :btree
@@ -172,6 +173,8 @@ ActiveRecord::Schema.define(version: 20190828111618) do
     t.boolean  "preserve_later",                    default: false
     t.boolean  "preserve_historical",               default: true
   end
+
+  add_index "event_collections", ["requesting_user_id"], name: "index_event_collections_on_requesting_user_id", using: :btree
 
   create_table "eventcategories", force: :cascade do |t|
     t.string   "name",          limit: 255
@@ -723,6 +726,7 @@ ActiveRecord::Schema.define(version: 20190828111618) do
     t.text     "permissions", limit: 65535
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "known",                     default: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -786,6 +790,8 @@ ActiveRecord::Schema.define(version: 20190828111618) do
     t.boolean  "can_api",                                   default: false
     t.boolean  "can_has_files",                             default: false
     t.boolean  "loading_notification",                      default: true
+    t.boolean  "known",                                     default: false
+    t.boolean  "can_view_journals",                         default: false
   end
 
   add_index "users", ["uuid"], name: "index_users_on_uuid", unique: true, using: :btree

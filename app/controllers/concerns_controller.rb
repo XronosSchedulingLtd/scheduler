@@ -350,7 +350,7 @@ class ConcernsController < ApplicationController
     id_param = params[:id]
     new_state = params[:state] == "on" ? true : false
     @status = :ok
-    if current_user && current_user.known?
+    if known_user?
       #
       #  May be being asked to turn the user's own events on and off.
       #  This isn't a real Concern.

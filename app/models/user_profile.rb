@@ -102,8 +102,35 @@ class UserProfile < ActiveRecord::Base
     end
     unless UserProfile.find_by(name: 'Guest')
       self.create!({
-        name: "Guest"
+        name: "Guest",
+        known: false
       })
     end
   end
+
+  #
+  #  To be run once, just after "known" fields are added.
+  #  Not for subsequent use.
+  #
+  def self.setup_knowns
+    UserProfile.all.each do |up|
+      if up == UserProfile.guest_profile
+        #
+        #  The database default is true.
+        #
+        up.known = false
+        #
+        #  This save will cause relevant users to be updated.
+        #
+        up.save!
+      else
+        #
+        #  As we haven't changed this user_profile we need to
+        #  trigger the update explicitly.
+        #
+        up.update_users
+      end
+    end
+  end
+
 end

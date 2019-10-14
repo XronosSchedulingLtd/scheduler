@@ -2,6 +2,12 @@ PublicApi::Engine.routes.draw do
   get '/login', to: 'sessions#login'
   get '/logout', to: 'sessions#logout'
 
+  put 'sessions/become/:user_id' => 'sessions#become', as: :become
+
+  put 'sessions/revert' => 'sessions#revert', as: :revert
+
+  get 'sessions/whoami' => 'sessions/whoami', as: :whoami
+
   resources :elements, only: [:index, :show] do
     resources :requests, only: [:index]
     resources :commitments, only: [:index]
@@ -18,5 +24,6 @@ PublicApi::Engine.routes.draw do
   resources :requests, only: [:destroy]
   resources :eventcategories, only: [:index, :show]
 
-#  resources :pupils, only: [:index]
+  resources :users, only: [:index]
+
 end

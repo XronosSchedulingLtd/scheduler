@@ -188,7 +188,10 @@
       %>
   </div>
   <div class="small-4 columns">
-    <% if current_user.can_su && !@modal && current_user.id != @user.id %>
+    <% if user_can_su? &&
+        !@modal &&
+        current_user.id != @user.id &&
+        current_user.as_privileged_as?(@user) %>
       <div align="center">
          <%= link_to 'su', become_path(@user), :method => :put, class: "tiny zfbutton radius button-link" %>
       </div>
