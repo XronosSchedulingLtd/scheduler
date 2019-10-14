@@ -88,19 +88,26 @@ class MIS_Teachinggroup
     tgs_hash = Hash.new
     mis_data[:set_records].each do |sr|
       group_set = (tgs_hash[sr.set_code] ||= Hash.new)
-      pupil = loader.pupil_hash[sr.pupil_id]
+      #
+      #  Due to stupidity in the Pass design, we need to get there
+      #  in two stages.
+      #
+      pass_pupil = mis_data[:pupils_by_id][sr.pupil_id]
       #
       #  We occasionally get pupils listed as being in teaching groups
       #  who have in fact left, and thus aren't in the pupil hash.
       #
-      if pupil
-        unless group_set[pupil.nc_year]
-          tg = MIS_Teachinggroup.new(sr, pupil.nc_year)
-          tg.note_subject(mis_data[:subjects_by_code])
-          tgs << tg
-          group_set[pupil.nc_year] = tg
+      if pass_pupil
+        pupil = loader.pupil_hash[pass_pupil.name_id]
+        if pupil
+          unless group_set[pupil.nc_year]
+            tg = MIS_Teachinggroup.new(sr, pupil.nc_year)
+            tg.note_subject(mis_data[:subjects_by_code])
+            tgs << tg
+            group_set[pupil.nc_year] = tg
+          end
+          group_set[pupil.nc_year].add_pupil(pupil)
         end
-        group_set[pupil.nc_year].add_pupil(pupil)
       end
     end
     #
