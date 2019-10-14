@@ -13,7 +13,8 @@ class MIS_Cover
 
   def suitable_match?(pe, lesson)
     lesson.taught_by?(pe.covered_staff_id) &&
-      lesson.period_time.starts_at == @starts_at &&
+      (lesson.period_time.starts_at == @starts_at ||
+       lesson.period_time.starts_at == "08:30" && @starts_at == "23:00") &&
       #
       #  What the timetable entries call a SET_CODE, the cover
       #  entries call a TASK_CODE.  This is Pass being silly,

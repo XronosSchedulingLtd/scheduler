@@ -1,3 +1,150 @@
+v1.8.9   2019-10-14
+
+* Add un-su ability
+
+  Scheduler has long allowed a suitably privileged user to "su" to being
+  a different user.  This is very useful for system administrators to test
+  things from the point of view of an ordinary user.
+
+  The system now keeps track of such an administrators original user id,
+  and adds a "Revert su" option to the main menu.  Selecting this takes
+  the user back to being him or herself.
+
+* Add su ability to API
+
+  It is now also possible for a suitably privileged user to execute
+  the equivalent of an "su" through the API.  This is potentially useful
+  if it is desired to create events on behalf of another user.
+
+* Prevent gaining of privileges via su
+
+  It is just possible that a user using the API might have su privilege
+  but not admin privilege.  In that case, the user cannot su to being
+  any user with admin privileges.
+
+  The same is true through the GUI, but the user wouldn't be presented
+  with that option in any case, since only admin users can view user
+  listings in order to effect an su.
+
+* Re-work handling of user permissions
+
+  A large, but not very apparent piece of work.
+
+  In the beginning, Scheduler simply recognized staff, pupils and guests.
+  Staff had a certain number of hard-coded privileges, pupils a smaller
+  number and guests none.
+
+  Since then, permission bits have been added, along with user profiles
+  to allow the permissions to be applied to users en masse.
+
+  A few areas of code had not been updated to reference these new bits,
+  and quite a lot of tests were done on whether a user was "known" - that
+  is, a staff member or a pupil.
+
+  A new bit has been added to the user profile records called "known", and
+  this then affects all the users with that profile.  By default, staff
+  and pupils are known and guests are not, but the system admin can add
+  as many more user profiles as are needed with the known flag set or
+  not as required.
+
+  For instance, one could add a user profile for PTA members, with the
+  known flag set, and then assign users to that to give them a selected
+  small range of permissions.  It is no longer necessary to give them a
+  dummy staff record for them to have access to the system.
+
+  Similarly, one could create a user profile called "Ex staff" with
+  the known flag unset, and then move staff members to it as they left
+  the school.  This would immediately revoke their access to Scheduler,
+  rather than waiting for the authentication through Google to be
+  removed.
+
+  If it was desired to block access to all pupils, it would be enough
+  to set the known flag on the pupil user profile to false, and then
+  all students would be blocked.
+
+  More details will be found in the Scheduler Admin Guide at
+
+     https://xronos.uk/admin/
+
+  Any user who is not "known" will be treated as a guest.  If a user
+  is "known" then all the other permission bits become effective.
+
+* More tests on user permissions
+
+  A large number of tests have been added to the test suite covering
+  the area of user permissions.
+
+* Fix test for user access in resource allocation screen
+
+  The test for whether a user could do allocation of resources (e.g.
+  Minibuses) was simply wrong.  For a user to be able to access that
+  screen, he or she needed permission to create groups.  This has
+  been fixed.
+
+* Add special login for test suite
+
+  In order to implement integration tests within the test framework
+  it is necessary for the test user to be able to login to Scheduler.
+  A special test login facility has been added, which is available
+  only when Scheduler is running in the test environment.
+
+* Rationalise session manipulation to common code
+
+  There was duplicate code for manipulating the user's session in the
+  main application and in the API.  This has been extracted and put
+  into a common code module.
+
+* Permission bits for event journals
+
+  An extra permission bit has been added to allow users to access
+  event journals.  Previously only admin users could see these journals,
+  but now any user who has been given the appropriate permission can
+  do it.
+
+* Fixes to Pass import process
+
+  In release 1.8.5 a change was made to the way in which pupils are
+  identified when importing from Pass.  The obvious "Pupil ID" field
+  in the Pass record turns out not to be suitable because it changes
+  every year (!).  Instead the importer uses the "Name ID" field
+  from the same record which is apparently constant.
+
+  This change led to a problem in populating teaching groups, which
+  has now been fixed.
+
+* Allow multiple teaching groups when merging Pass lessons
+
+  Pass suffers from a problem apparently common to most MISs.  It
+  can't cope with more than one teacher per lesson.  Sport lessons
+  and the like often have more than one teacher.
+
+  The workaround in Pass is to have several pretty much identical
+  lesson records, with different teachers in each one.  The Scheduler
+  importer then merges these back to form a single lesson event.
+
+  Sometimes it is necessary to merge such lessons where each has a
+  separate teaching group attached.  Scheduler now attaches all
+  the teaching groups to the new merged lesson.
+
+* Code specific to one school for adjusting tutor group times
+
+  School-specific code has been added to adjust some tutor group
+  times from 23:00 back to the right time.
+
+* Two upgraded gems.
+
+  Two gems have been updated to the latest versions
+
+  Nokogiri has been updated to 1.10.4 to fix a security issue.
+  Scheduler was not actually affected by the security issue
+  (CVE-2019-5477) because it didn't use the relevant code, but
+  best upgraded.
+
+  Charlock_holmes has been updated to 0.7.6 so that it will build
+  on later systems - specifically to allow Scheduler to be run on
+  a Raspberry Pi 4.
+
+
 v1.8.8   2019-09-19
 
 A large collection of small fixes and tweaks.

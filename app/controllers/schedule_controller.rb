@@ -102,7 +102,7 @@ class ScheduleController < ApplicationController
       #  And it's possible that the URL specifies that we should
       #  turn on the user's own events.
       #
-      if params.has_key?(:my_events) && current_user && current_user.known?
+      if params.has_key?(:my_events) && known_user?
         unless current_user.show_owned
           current_user.show_owned = true
           current_user.save
@@ -124,7 +124,7 @@ class ScheduleController < ApplicationController
       #  We should decide here what exactly gets shown in the way
       #  of columns, user information and concerns - *not* in the view.
       #
-      if (current_user && current_user.known?) ||
+      if known_user? ||
          Property.public_ones.count > 1
         @show_lhs     = true
       else

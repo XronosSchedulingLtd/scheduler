@@ -63,7 +63,10 @@ class User < ActiveRecord::Base
     can_add_notes: "Can this user add notes to events?",
     can_view_forms: "Can this user view all the forms attached to an event?",
     can_view_unconfirmed: "Can this user see events in the context of resources which have not yet been confirmed for the event?",
-    can_edit_memberships: "Can this user edit membership records directly, rather than implicitly by editing the group?"
+    can_edit_memberships: "Can this user edit membership records directly, rather than implicitly by editing the group?",
+    can_api: "Can this user make direct use of the API?",
+    can_has_files: "Can this user upload files to the server?",
+    can_view_journals: "Can this user view the modification journal for events?"
   }
   FIELD_TITLE_TEXTS.default = ""
 
@@ -117,25 +120,25 @@ class User < ActiveRecord::Base
   scope :exams, lambda { where(exams: true) }
   scope :administrators, lambda { where(admin: true) }
   scope :demo_user, lambda { where(demo_user: true) }
+  scope :known, -> { where(known: true) }
+  scope :guest, -> { where(known: false) }
 
   before_create :add_uuid
   before_destroy :being_destroyed
-  before_save :update_legacy_permission_flags
-  after_save :find_matching_resources
+  before_save :update_from_profile
 
   self.per_page = 15
-
-  def known?
-    @known ||= (self.own_element != nil)
-  end
 
   def staff?
     self.corresponding_staff != nil
   end
 
   def pupil?
-    @pupil ||= (self.own_element != nil &&
-                self.own_element.entity.class == Pupil)
+    self.own_element != nil && self.own_element.entity.class == Pupil
+  end
+
+  def guest?
+    !self.known?
   end
 
   #
@@ -150,11 +153,14 @@ class User < ActiveRecord::Base
   end
 
   def own_element
-    unless @own_element
+    unless @checked_own_element
       my_own_concern = self.concerns.me[0]
       if my_own_concern
         @own_element = my_own_concern.element
+      else
+        @own_element = nil
       end
+      @checked_own_element = true
     end
     @own_element
   end
@@ -211,37 +217,86 @@ class User < ActiveRecord::Base
   #  Can this user meaningfully see the menu in the top bar?
   #
   def sees_menu?
-    self.admin ||
-    self.editor ||
-    self.can_has_groups ||
-    self.can_find_free ||
-    self.element_owner ||
-    self.exams
+    self.known? &&
+    (self.admin ||
+     self.editor ||
+     self.can_has_groups ||
+     self.can_find_free ||
+     self.element_owner ||
+     self.exams)
   end
 
   #
-  #  The hint tells us whether the invoking concern is an owning
-  #  concern.  If it is, then we are definitely owned.  If it is
-  #  not then we might not be owned any more.
+  #  Called when one of our concerns has changed/gone.
   #
-  def update_owningness(hint)
+  def concern_changed(destroyed, concern)
+    #
+    #  If we are going ourselves, then don't bother.
+    #
     unless @being_destroyed || self.destroyed?
-      if hint
-        unless self.element_owner
-          self.element_owner = true
-          self.save!
+      #
+      #  If the concern has been destroyed.
+      #
+      if destroyed
+        do_save = false
+        #
+        #  The concern has gone away.
+        #
+        if self.concerns.owned.count == 0
+          self.element_owner = false
+          do_save = true
         end
-      else
-        if self.element_owner
-          #
-          #  It's possible our last remaining ownership just went away.
-          #  This is the most expensive case to check.
-          #
-          if self.concerns.owned.count == 0
-            self.element_owner = false
-            self.save!
+        #
+        #  It might have been our corresponding staff member.
+        #
+        if concern.equality
+          element = concern.element
+          if element && element.entity == self.corresponding_staff
+            self.corresponding_staff = nil
+            reset_cache
+            do_save = true
           end
         end
+      else
+        #
+        #  The concern has merely been updated (or indeed, created)
+        #
+        if concern.owns?
+          unless self.element_owner = true
+            self.element_owner = true
+            do_save = true
+          end
+        else
+          if self.concerns.owned.count == 0
+            self.element_owner = false
+            do_save = true
+          end
+        end
+        if concern.equality
+          #
+          #  Might need to set it as our corresponding staff member
+          #
+          unless self.corresponding_staff
+            element = concern.element
+            if element && element.entity_type == 'Staff'
+              self.corresponding_staff = concern.element.entity
+              do_save = true
+            end
+          end
+        else
+          #
+          #  Might need to remove it as our corresponding staff member
+          #
+          element = concern.element
+          if element && element.entity == self.corresponding_staff
+            self.corresponding_staff = nil
+            do_save = true
+          end
+          reset_cache
+        end
+      end
+      if do_save
+        self.save!
       end
     end
   end
@@ -291,11 +346,7 @@ class User < ActiveRecord::Base
   end
 
   def create_events?
-    self.editor || self.admin
-  end
-
-  def create_groups?
-    self.staff? || self.admin
+    self.known? && self.editor?
   end
 
   def can_trigger_cover_check?
@@ -596,9 +647,6 @@ class User < ActiveRecord::Base
         self.concerns.
              select { |c| c.equality? || c.assistant_to? }.
              collect {|c| c.element_id}
-        Rails.logger.debug("Confidentiality elements of #{self.name} are #{
-                           @confidentiality_elements.join(",")
-        }")
     end
     @confidentiality_elements
   end
@@ -668,25 +716,26 @@ class User < ActiveRecord::Base
   end
 
   def can_view_forms_for?(element)
-    self.can_view_forms? || self.owns?(element)
+    self.known? && (self.can_view_forms? || self.owns?(element))
   end
 
   def can_view_journal_for?(object)
+    self.can_view_journals?
     #
     #  For now it's just the admin users, but we may add more fine-grained
     #  control later.
     #
-    if object.instance_of?(Element)
-      self.admin
-    elsif object.instance_of?(Event)
-      self.admin
-    elsif object == :elements
-      self.admin
-    elsif object == :events
-      self.admin
-    else
-      false
-    end
+#    if object.instance_of?(Element)
+#      self.admin
+#    elsif object.instance_of?(Event)
+#      self.admin
+#    elsif object == :elements
+#      self.admin
+#    elsif object == :events
+#      self.admin
+#    else
+#      false
+#    end
   end
 
   def can_add_comments_to?(item)
@@ -746,6 +795,31 @@ class User < ActiveRecord::Base
   def needs_permission_for?(element)
     Setting.enforce_permissions? && element.owned &&
     (!self.can_commit?(element) || element.user_form)
+  end
+
+  #
+  #  Is this user as privileged (in the admin-ey sense) as another
+  #  user?
+  #
+  #  Although this method is invoked by the view code it is arguably
+  #  useless there because currently if a user isn't an admin then he or she
+  #  can't access the relevant user listing pages anyway.
+  #
+  #  We may however choose to add a specific path which allows a
+  #  user with "can_su?" privileges to make use of them.
+  #
+  def as_privileged_as?(other_user)
+    #
+    #  Only one case which fails - when we are not an admin but
+    #  the other user is.
+    #
+    #  Could be written as:
+    #
+    #    !(!self.admin? && other_user.admin?)
+    #
+    #  but that simplifies to:
+    #
+    self.admin? || !other_user.admin?
   end
 
   #
@@ -909,21 +983,6 @@ class User < ActiveRecord::Base
                     self,
                     include_nonexistent)
   end
-  #
-  #  Create a new user record to match an omniauth authentication.
-  #
-  #  Anyone can have a user record, but only people with known Abingdon
-  #  school e-mail addresses get any further than that.
-  #
-  def self.create_from_omniauth(auth)
-    create! do |user|
-      user.provider = auth["provider"]
-      user.uid      = auth["uid"]
-      user.name     = auth["info"]["name"]
-      user.email    = auth["info"]["email"].downcase
-      user.user_profile = UserProfile.guest_profile
-    end
-  end
 
   def find_matching_resources
     if self.email && !self.known?
@@ -935,7 +994,6 @@ class User < ActiveRecord::Base
       end
       if staff
         got_something = true
-        self.corresponding_staff = staff
         self.user_profile = UserProfile.staff_profile
         concern = self.concern_with(staff.element)
         if concern
@@ -1020,6 +1078,24 @@ class User < ActiveRecord::Base
         self.save!
       end
     end
+  end
+
+  #
+  #  Create a new user record to match an omniauth authentication.
+  #
+  #  Anyone can have a user record, but only people with some sort
+  #  of Staff or Pupil record get futher than that.
+  #
+  def self.create_from_omniauth(auth)
+    new_user = create! do |user|
+      user.provider = auth["provider"]
+      user.uid      = auth["uid"]
+      user.name     = auth["info"]["name"]
+      user.email    = auth["info"]["email"].downcase
+      user.user_profile = UserProfile.guest_profile
+    end
+    new_user.find_matching_resources
+    new_user
   end
 
   def initials
@@ -1204,7 +1280,9 @@ class User < ActiveRecord::Base
   #  flags (those used at run-time to decide permissions) with a calculated
   #  value from the profile and new permission flags.
   #
-  def update_legacy_permission_flags
+  #  We also check whether our profile is a "known" one.
+  #
+  def update_from_profile
     PermissionFlags.permitted_keys.each do |pk|
       if self.permissions[pk] == PermissionFlags::PERMISSION_DONT_CARE
         value = self.user_profile.permissions[pk]
@@ -1223,6 +1301,10 @@ class User < ActiveRecord::Base
         Rails.logger.debug("Calculated permission value for #{pk} for #{self.name} is #{value}")
       end
     end
+    if self.user_profile
+      self.known = self.user_profile.known
+    end
+    true
   end
 
   #
@@ -1285,6 +1367,7 @@ class User < ActiveRecord::Base
       return "Modified #{changed_count} colours for #{self.name}."
     else
       return nil
+
     end
   end
 
@@ -1370,6 +1453,14 @@ class User < ActiveRecord::Base
 
   def being_destroyed
     @being_destroyed = true
+  end
+
+  #
+  #  Reset all the things which we keep cached.
+  #
+  def reset_cache
+    @checked_own_element = false
+    @own_element = nil
   end
 
   #

@@ -90,6 +90,7 @@ class EventAssembler
         if mine &&
            current_user &&
            current_user.known? &&
+           current_user.own_element &&
            (event.covered_by?(current_user.own_element) ||
             event.eventcategory_id == Event.invigilation_category.id)
           @colour = "red"

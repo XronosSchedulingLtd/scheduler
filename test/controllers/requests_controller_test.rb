@@ -3,17 +3,17 @@ require 'test_helper'
 class RequestsControllerTest < ActionController::TestCase
   setup do
     @organiser_staff =
-      FactoryBot.create(:staff, email: 'staff@xronos.uk')
+      FactoryBot.create(:staff, email: 'staff@myschool.org.uk')
     @organiser_user =
-      FactoryBot.create(:user, email: 'staff@xronos.uk')
+      FactoryBot.create(:user, email: 'staff@myschool.org.uk')
     @owning_staff =
-      FactoryBot.create(:staff, email: 'owner@xronos.uk')
+      FactoryBot.create(:staff, email: 'owner@myschool.org.uk')
     @owning_user    =
-      FactoryBot.create(:user, email: 'owner@xronos.uk')
+      FactoryBot.create(:user, email: 'owner@myschool.org.uk')
     @other_staff =
-      FactoryBot.create(:staff, email: 'other@xronos.uk')
+      FactoryBot.create(:staff, email: 'other@myschool.org.uk')
     @other_user    =
-      FactoryBot.create(:user, email: 'other@xronos.uk')
+      FactoryBot.create(:user, email: 'other@myschool.org.uk')
     @resourcegroup = FactoryBot.create(:resourcegroup)
     @allocating_user = FactoryBot.create(:user)
     @concern = FactoryBot.create(:concern,

@@ -4,6 +4,21 @@
 # for more information.
 
 class PASS_PeriodTime
+  #
+  #  We're overriding the standard implementation here to fix a couple of
+  #  wrong times.
+  #
+  def initialize(textual_period_time)
+    splut = textual_period_time.split(" ")
+    starts_at = splut[0][0,5]
+    ends_at = splut[2][0,5]
+    if starts_at == "23:00" && ends_at == "23:30"
+      starts_at = "08:30"
+      ends_at   = "09:00"
+    end
+    super(starts_at, ends_at)
+  end
+
   def ends_at=(value)
     @ends_at = value
   end

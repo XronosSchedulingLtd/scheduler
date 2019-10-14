@@ -2,11 +2,41 @@ require 'test_helper'
 
 class ApiTest < ActionDispatch::IntegrationTest
   setup do
-    @api_user = FactoryBot.create(:user, :api, :editor, :noter)
-    @other_api_user = FactoryBot.create(:user, :api, :editor, :noter)
-    @api_user_no_edit = FactoryBot.create(:user, :api)
-    @privileged_api_user = FactoryBot.create(:user, :api, :editor, :privileged)
-    @ordinary_user = FactoryBot.create(:user)
+    @api_user =
+      FactoryBot.create(
+        :user, :api,
+        user_profile: UserProfile.staff_profile,
+        email: "api_user@myschool.org.uk")
+    @other_api_user =
+      FactoryBot.create(
+        :user, :api,
+        user_profile: UserProfile.staff_profile,
+        email: "other_api_user@myschool.org.uk")
+    @api_user_no_edit =
+      FactoryBot.create(
+        :user, :api, :not_editor,
+        user_profile: UserProfile.staff_profile,
+        email: "api_user_no_edit@myschool.org.uk")
+    @privileged_api_user =
+      FactoryBot.create(
+        :user, :api, :privileged,
+        user_profile: UserProfile.staff_profile,
+        email: "privileged_api_user@myschool.org.uk")
+    @api_user_with_su =
+      FactoryBot.create(
+        :user, :api, :su,
+        user_profile: UserProfile.staff_profile,
+        email: "api_user_with_su@myschool.org.uk")
+    @admin_user =
+      FactoryBot.create(
+        :user, :admin,
+        user_profile: UserProfile.staff_profile,
+        email: "admin_user@myschool.org.uk")
+    @ordinary_user =
+      FactoryBot.create(
+        :user,
+        user_profile: UserProfile.staff_profile,
+        email: "ordinary_user@myschool.org.uk")
     @staff1 = FactoryBot.create(
       :staff, {name: "Able Baker Charlie", initials: "ABC"})
     @pupil1 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Maximus")
@@ -907,6 +937,139 @@ class ApiTest < ActionDispatch::IntegrationTest
     assert_response :missing
   end
 
+  test 'ordinary api user cannot list users' do
+    do_valid_login
+    get @api_paths.users_path, format: :json
+    assert_response :forbidden
+  end
+
+  test 'su api user can list users' do
+    do_valid_login(@api_user_with_su)
+    get @api_paths.users_path, format: :json
+    assert_response :success
+    response_data = unpack_response(response, "OK")
+    users = response_data['users']
+    assert_instance_of Array, users
+    #
+    #  But it's empty because we gave no criteria
+    #
+    assert_empty users
+  end
+
+  test 'invalid email produces empty list' do
+    do_valid_login(@api_user_with_su)
+    get @api_paths.users_path(email: "able.baker@charlie"), format: :json
+    assert_response :missing
+    response_data = unpack_response(response, "Not found")
+    users = response_data['users']
+    assert_instance_of Array, users
+    assert_empty users
+  end
+
+  test 'valid email produces array of size 1' do
+    do_valid_login(@api_user_with_su)
+    get @api_paths.users_path(email: "api_user@myschool.org.uk"), format: :json
+    assert_response :success
+    response_data = unpack_response(response, "OK")
+    users = response_data['users']
+    assert_instance_of Array, users
+    assert_equal 1, users.size
+  end
+
+  test 'api user with su can find current user id' do
+    do_valid_login(@api_user_with_su)
+    get @api_paths.whoami_path, format: :json
+    assert_response :ok
+    response_data = unpack_response(response, 'OK')
+    assert_equal @api_user_with_su.id, response_data['user_id'].to_i
+  end
+
+  test 'ordinary api user cannot find own user id' do
+    do_valid_login
+    get @api_paths.whoami_path, format: :json
+    assert_response :forbidden
+    response_data = unpack_response(response, 'Permission denied')
+    assert_nil response_data['user_id']
+  end
+
+  test 'ordinary api user cannot su' do
+    do_valid_login
+    put @api_paths.become_path(user_id: @ordinary_user.id), format: :json
+    assert_response :forbidden
+  end
+
+  test 'api user with su can su' do
+    do_valid_login(@api_user_with_su)
+    put @api_paths.become_path(user_id: @ordinary_user.id), format: :json
+    assert_response :ok
+    response_data = unpack_response(response, 'OK')
+    #
+    #  Note that at this point we're issuing an API request, even though
+    #  we are logged in as a user who doesn't have API permission.  However,
+    #  since we are su'ed to being that user and our original user does
+    #  have permission, it should still work.
+    #
+    check_i_am(@ordinary_user)
+  end
+
+  test 'api user with su cannot su to admin' do
+    do_valid_login(@api_user_with_su)
+    put @api_paths.become_path(user_id: @admin_user.id), format: :json
+    assert_response :forbidden
+  end
+
+  test 'su to invalid id produces error' do
+    do_valid_login(@api_user_with_su)
+    put @api_paths.become_path(user_id: 999), format: :json
+    assert_response :not_found
+    response_data = unpack_response(response, 'Not found')
+    check_i_am(@api_user_with_su)
+  end
+
+  test 'having su-ed we can revert' do
+    do_valid_login(@api_user_with_su)
+    put @api_paths.become_path(user_id: @ordinary_user.id), format: :json
+    assert_response :ok
+    response_data = unpack_response(response, 'OK')
+    check_i_am(@ordinary_user)
+    put @api_paths.revert_path, format: :json
+    assert_response :ok
+    response_data = unpack_response(response, 'OK')
+    check_i_am(@api_user_with_su)
+  end
+
+  test 'can su and then create event as new user' do
+    do_valid_login(@api_user_with_su)
+    become(@ordinary_user)
+    post @api_paths.events_path(event: @valid_event_params), format: :json
+    assert_response 201         # Created
+    response_data = unpack_response(response, "Created")
+    event = response_data['event']
+    assert_instance_of Hash, event
+    event_id = event['id']
+    get @api_paths.event_path(event_id), format: :json
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    event = response_data['event']
+    assert_instance_of Hash, event
+    owner = event['owner']
+    assert_instance_of Hash, owner
+    assert_equal @ordinary_user.id, owner['id'].to_i
+    #
+    #  And then if we revert we shouldn't be able to delete it.
+    #
+    revert_to_being(@api_user_with_su)
+    #
+    delete @api_paths.event_path(event_id), format: :json
+    assert_response :forbidden
+    #
+    #  But as the ordinary user again, we can.
+    #
+    become(@ordinary_user)
+    delete @api_paths.event_path(event_id), format: :json
+    assert_response :ok
+
+  end
 
   private
 
@@ -917,6 +1080,27 @@ class ApiTest < ActionDispatch::IntegrationTest
       assert_equal expected_status, response_data['status']
     end
     response_data
+  end
+
+  def check_i_am(user)
+    get @api_paths.whoami_path, format: :json
+    assert_response :ok
+    response_data = unpack_response(response, 'OK')
+    assert_equal user.id, response_data['user_id'].to_i
+  end
+
+  def become(user)
+    put @api_paths.become_path(user_id: user.id), format: :json
+    assert_response :ok
+    response_data = unpack_response(response, 'OK')
+    check_i_am(user)
+  end
+
+  def revert_to_being(original_user)
+    put @api_paths.revert_path, format: :json
+    assert_response :ok
+    response_data = unpack_response(response, 'OK')
+    check_i_am(original_user)
   end
 
   def do_valid_login(user = @api_user)

@@ -56,6 +56,7 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
     @lesson_ids = [@lesson_id]
     @staff_ids  = [@staff_id]
     @room_ids   = [@room_id]
+    @set_codes  = [@set_code]
     #
     #  So that later, given a lesson id, we can work out who the
     #  teacher of that particular instance is.
@@ -77,14 +78,16 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
         @rooms << room
       end
     end
-    if @set_code
-      groups = mis_data[:tgs_hash][@set_code]
-      if groups
-        groups.each do |nc_year, group|
-          @groups << group
-          @subject = group.subject
-          if @subject
-            @subjects << @subject unless @subjects.include?(@subject)
+    @set_codes.each do |set_code|
+      if set_code
+        groups = mis_data[:tgs_hash][set_code]
+        if groups
+          groups.each do |nc_year, group|
+            @groups << group
+            @subject = group.subject
+            if @subject
+              @subjects << @subject unless @subjects.include?(@subject)
+            end
           end
         end
       end
@@ -144,6 +147,7 @@ class PASS_ScheduleEntry < MIS_ScheduleEntry
     @staff_ids  << other.staff_id
     @lesson_ids << other.lesson_id
     @room_ids   << other.room_id
+    @set_codes  << other.set_code
     #
     #  It's just possible that the two lessons have different lesson
     #  descriptions (if the hash_key method has been overridden).

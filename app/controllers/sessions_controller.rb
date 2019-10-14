@@ -14,7 +14,6 @@ class SessionsController < ApplicationController
       #  This is an explicit login attempt.  Scrub any previous
       #  redirection information.
       #
-#      Rails.logger.debug("Explicit login")
       session.delete(:url_requested)
     end
     redirect_to '/auth/google_oauth2'
@@ -22,27 +21,21 @@ class SessionsController < ApplicationController
 
   def create
     auth = request.env["omniauth.auth"]
-#    raise auth.inspect
     user = User.find_by(provider: auth["provider"],
                         uid:      auth["uid"])
     if user
-      #
-      #  We have a user record but it doesn't seem to be connected
-      #  to a staff or pupil record.  Do a dummy save, so that
-      #  if one has sprung into existence we will get connected
-      #  to it.
-      #
       unless user.known?
-        user.save
+        #
+        #  If a user is not known, we check each time to see whether
+        #  he or she has become known.
+        #
+        user.find_matching_resources
       end
     else
       user = User.create_from_omniauth(auth)
     end
-#    user = User.find_by_provider_and_uid(auth["provider"], auth["uid"]) ||
-#           User.create_from_omniauth(auth)
     url_requested = session[:url_requested]
-    reset_session
-    session[:user_id] = user.id
+    set_logged_in_as(user)
     Rails.logger.info("User #{user.email} signed in.")
     redirect_to url_requested || root_url, :notice => "Signed in"
   end
@@ -59,16 +52,14 @@ class SessionsController < ApplicationController
     if Setting.demo_system? && params[:user_id] &&
       (user = User.find_by(id: params[:user_id])) &&
       (user.demo_user?)
-      reset_session
-      session[:user_id] = user.id
+      set_logged_in_as(user)
       Rails.logger.info("User #{user.email} signed in (demo mode).")
     end
     redirect_to root_url
   end
 
   def destroy
-    session[:user_id] = nil
-    @current_user = nil
+    set_logged_out
     redirect_to root_url, :notice => "Signed out"
   end
 
@@ -82,21 +73,53 @@ class SessionsController < ApplicationController
   end
 
   #
-  #  A request to chage the user id for this session.  A testing tool.
-  #  Should perhaps restrict it to the development environment only.
+  #  A request to change the user id for this session.
   #
   def become
-    if current_user.can_su
+    #
+    #  We need permission, and we can't do nested su.
+    #
+    if user_can_su?
       user_id = params[:user_id]
-      if user_id
+      #
+      #  Cannot su to oneself
+      #
+      if user_id && user_id.to_i != current_user.id
         new_user = User.find_by(id: user_id)
-        if new_user
-          reset_session
-          session[:user_id] = new_user.id
+        #
+        #  Cannot gain admin if we don't already have it.
+        #
+        if new_user && current_user.as_privileged_as?(new_user)
+          su_to(new_user)
+          Rails.logger.info("User #{original_user.email} su'ed to #{new_user.email}.")
         end
       end
     end
     redirect_to :root
+  end
+
+  #
+  #  A request to go back to the previous user id after an su
+  #  Note that we can only go back by one.
+  #
+  def revert
+    if user_can_revert?
+      revert_su
+    end
+    redirect_to :root
+  end
+
+  if Rails.env.test?
+    def test_login
+      if params[:user_id]
+        user = User.find_by(id: params[:user_id])
+        if user
+          set_logged_in_as(user)
+          Rails.logger.info("User #{user.email} signed in (test mode).")
+        end
+      end
+      redirect_to :root
+    end
   end
 
   private
@@ -106,7 +129,8 @@ class SessionsController < ApplicationController
       action == 'new' ||
       action == 'create' ||
       action == 'failure' ||
-      action == 'demo_login'
+      action == 'demo_login' ||
+      action == 'test_login'
   end
 
 end

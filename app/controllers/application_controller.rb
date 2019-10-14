@@ -4,6 +4,9 @@
 # for more information.
 
 class ApplicationController < ActionController::Base
+
+  include ControllerCommon
+
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
@@ -12,6 +15,8 @@ class ApplicationController < ActionController::Base
                 :user_can_roam?,
                 :user_can_drag?,
                 :user_can_view_forms?,
+                :user_can_su?,
+                :user_can_revert?,
                 :admin_user?,
                 :known_user?,
                 :public_groups_user?
@@ -69,15 +74,6 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  def current_user
-    @current_user ||=
-      User.includes(:concerns).find_by(id: session[:user_id]) if session[:user_id]
-  end
-
-  def logged_in?
-    !!current_user
-  end
-
   #
   #  All actions required admin privilege by default.  Override this method
   #  in the individual controller to lower the privilege requirements.
@@ -92,31 +88,27 @@ class ApplicationController < ActionController::Base
   #  logged on user.
   #
   def user_can_roam?
-    current_user && current_user.can_roam
+    known_user? && current_user.can_roam?
   end
 
   def admin_user?
-    current_user && current_user.admin?
-  end
-
-  def known_user?
-    current_user && current_user.known?
+    known_user? && current_user.admin?
   end
 
   def public_groups_user?
-    current_user && current_user.public_groups?
+    known_user? && current_user.public_groups?
   end
 
   def relocating_user?
-    current_user && current_user.can_relocate_lessons?
+    known_user? && current_user.can_relocate_lessons?
   end
 
   def user_can_drag?(concern)
-    current_user && current_user.can_drag?(concern)
+    known_user? && current_user.can_drag?(concern)
   end
 
   def user_can_view_forms?
-    current_user && current_user.can_view_forms?
+    known_user? && current_user.can_view_forms?
   end
 
   #
