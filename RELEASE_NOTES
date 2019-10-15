@@ -1,3 +1,20 @@
+v1.8.9.1 2019-10-15
+
+* Re-work the API su interface slightly
+
+  On writing the documentation for the new API facilities it was
+  realised that although the new features worked, they weren't
+  as logically implemented as they could have been.
+
+  The API calls have been re-done slightly to make them more logical.
+
+* Tweak seed data for demo system
+
+  The seed data for the demonstration system has been tweaked to
+  allow the new features of the API to be used.  Specifically the
+  user Simon Philpotts now has su permission.
+
+
 v1.8.9   2019-10-14
 
 * Add un-su ability

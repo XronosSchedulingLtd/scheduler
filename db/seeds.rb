@@ -181,8 +181,6 @@ lb << seeder.location(:l109, "L109")
 lb << seeder.location(:l110, "L110")
 lb << seeder.location(:l111, "L111")
 
-seeder.location(:sh,   "Sports Hall")
-
 gb = Seeder::SeedGroup.new("Grace Building", seeder.eras[:current_era])
 
 gb << seeder.location(:g21, "G21")
@@ -612,7 +610,7 @@ seeder.lesson(:dpr, :g11ger2,   :l105, :monday, 4)
 seeder.lesson(:prw, :g11his4,   :l106, :monday, 6)
 
 seeder.lesson(:dpr, :g11ita1,   :l102, :tuesday, 1)
-seeder.lesson(:efl, :g11pe2,    :sh,   :tuesday, 2)
+seeder.lesson(:efl, :g11pe2,    :sportshall,   :tuesday, 2)
 seeder.lesson(:prw, :g11his4,   :l106, :tuesday, 4)
 seeder.lesson(:dlj, :g11dra1,   :l102, :tuesday, 6)
 
@@ -629,7 +627,7 @@ seeder.add_event(:lesson,
 
 seeder.lesson(:psl, :g11geo4,   :l104, :thursday, 1)
 seeder.lesson(:prw, :g11his4,   :l106, :thursday, 3)
-seeder.lesson(:efl, :g11pe2 ,   :sh,   :thursday, 4)
+seeder.lesson(:efl, :g11pe2 ,   :sportshall,   :thursday, 4)
 seeder.lesson(:dlj, :g11dra1,   :l102, :thursday, 5)
 
 seeder.lesson(:dpr, :g11ger2,   :l102, :friday, 1)
