@@ -24,9 +24,9 @@ module PublicApi
       render json: { status: 'OK' }
     end
 
-    def become
+    def update
+      user_id = session_params[:user_id]
       if user_can_su?
-        user_id = params[:user_id]
         if user_id && (user = User.find_by(id: user_id))
           #
           #  Don't allow acquisition of admin privilege.
@@ -40,6 +40,11 @@ module PublicApi
         else
           status = :not_found
         end
+      elsif original_user &&
+            user_id &&
+            original_user.id == user_id.to_i
+        revert_su
+        status = :ok
       else
         status = :forbidden
       end
@@ -92,12 +97,16 @@ module PublicApi
           known_user? &&
           we_can_api? &&
           (
-            action == 'become' ||
+            action == 'update' ||
             action == 'revert' ||
             action == 'whoami'
           )
         )
       )
+    end
+
+    def session_params
+      params.require(:session).permit(:user_id)
     end
 
   end

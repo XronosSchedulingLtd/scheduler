@@ -978,7 +978,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'api user with su can find current user id' do
     do_valid_login(@api_user_with_su)
-    get @api_paths.whoami_path, format: :json
+    get @api_paths.whoami_session_path(id: 1), format: :json
     assert_response :ok
     response_data = unpack_response(response, 'OK')
     assert_equal @api_user_with_su.id, response_data['user_id'].to_i
@@ -986,7 +986,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'ordinary api user cannot find own user id' do
     do_valid_login
-    get @api_paths.whoami_path, format: :json
+    get @api_paths.whoami_session_path(id: 1), format: :json
     assert_response :forbidden
     response_data = unpack_response(response, 'Permission denied')
     assert_nil response_data['user_id']
@@ -994,13 +994,21 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'ordinary api user cannot su' do
     do_valid_login
-    put @api_paths.become_path(user_id: @ordinary_user.id), format: :json
+    put @api_paths.session_path(
+      id: 1,
+      session: {
+        user_id: @ordinary_user.id
+      }), format: :json
     assert_response :forbidden
   end
 
   test 'api user with su can su' do
     do_valid_login(@api_user_with_su)
-    put @api_paths.become_path(user_id: @ordinary_user.id), format: :json
+    put @api_paths.session_path(
+      id: 1,
+      session: {
+        user_id: @ordinary_user.id
+      }), format: :json
     assert_response :ok
     response_data = unpack_response(response, 'OK')
     #
@@ -1014,13 +1022,21 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'api user with su cannot su to admin' do
     do_valid_login(@api_user_with_su)
-    put @api_paths.become_path(user_id: @admin_user.id), format: :json
+    put @api_paths.session_path(
+      id: 1,
+      session: {
+        user_id: @admin_user.id
+      }), format: :json
     assert_response :forbidden
   end
 
   test 'su to invalid id produces error' do
     do_valid_login(@api_user_with_su)
-    put @api_paths.become_path(user_id: 999), format: :json
+    put @api_paths.session_path(
+      id: 1,
+      session: {
+        user_id: 999
+      }), format: :json
     assert_response :not_found
     response_data = unpack_response(response, 'Not found')
     check_i_am(@api_user_with_su)
@@ -1028,14 +1044,28 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'having su-ed we can revert' do
     do_valid_login(@api_user_with_su)
-    put @api_paths.become_path(user_id: @ordinary_user.id), format: :json
-    assert_response :ok
-    response_data = unpack_response(response, 'OK')
-    check_i_am(@ordinary_user)
-    put @api_paths.revert_path, format: :json
+    #
+    #  Having already tested that this works, we now delegate it
+    #  to a help method.
+    #
+    become(@ordinary_user)
+    #
+    #  This is what we are actually testing now.
+    #
+    put @api_paths.revert_session_path(id: 1), format: :json
     assert_response :ok
     response_data = unpack_response(response, 'OK')
     check_i_am(@api_user_with_su)
+  end
+
+  test 'can revert using become functionality' do
+    do_valid_login(@api_user_with_su)
+    #
+    #  Having already tested that this works, we now delegate it
+    #  to a help method.
+    #
+    become(@ordinary_user)
+    become(@api_user_with_su)
   end
 
   test 'can su and then create event as new user' do
@@ -1083,21 +1113,25 @@ class ApiTest < ActionDispatch::IntegrationTest
   end
 
   def check_i_am(user)
-    get @api_paths.whoami_path, format: :json
+    get @api_paths.whoami_session_path(id: 1), format: :json
     assert_response :ok
     response_data = unpack_response(response, 'OK')
     assert_equal user.id, response_data['user_id'].to_i
   end
 
   def become(user)
-    put @api_paths.become_path(user_id: user.id), format: :json
+    put @api_paths.session_path(
+      id: 1,
+      session: {
+        user_id: user.id
+      }), format: :json
     assert_response :ok
     response_data = unpack_response(response, 'OK')
     check_i_am(user)
   end
 
   def revert_to_being(original_user)
-    put @api_paths.revert_path, format: :json
+    put @api_paths.revert_session_path(id: 1), format: :json
     assert_response :ok
     response_data = unpack_response(response, 'OK')
     check_i_am(original_user)
