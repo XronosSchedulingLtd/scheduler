@@ -387,7 +387,7 @@ module PublicApi
     def we_can_api?
       #
       #  If we are in an su'ed state, then it's the original user
-      #  who needs to have su permission.
+      #  who needs to have api permission.
       #
       if known_user?
         if original_user

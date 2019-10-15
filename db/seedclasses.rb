@@ -145,25 +145,29 @@ class Seeder
     attr_reader :dbrecord
 
     def initialize(corresponding_staff_or_pupil, uuid = nil)
-      if corresponding_staff_or_pupil.instance_of?(SeedStaff)
-        profile = UserProfile.staff_profile
-      else
-        profile = UserProfile.pupil_profile
-      end
       day_shape = Setting.default_display_day_shape
       raise "Ouch!" unless day_shape
       @dbrecord = User.create!({
         name:         corresponding_staff_or_pupil.dbrecord.name,
         email:        corresponding_staff_or_pupil.dbrecord.email,
-        user_profile: profile,
+        user_profile: UserProfile.guest_profile,
         day_shape:    day_shape,
         demo_user:    true,
         initial_uuid: uuid
       })
       if uuid
+        #
+        #  The one user to whom we give a fixed UUID (SJP) can also
+        #  have API and su permission.
+        #
+        #  This is to allow people to try out the API against the
+        #  demo server.
+        #
         @dbrecord.permissions[:can_api] = true
+        @dbrecord.permissions[:can_su] = true
         @dbrecord.save!
       end
+      @dbrecord.find_matching_resources
     end
 
     def controls(entity)
