@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191013084517) do
+ActiveRecord::Schema.define(version: 20191101132537) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -254,6 +254,7 @@ ActiveRecord::Schema.define(version: 20191013084517) do
     t.datetime "updated_at"
     t.integer  "default_group_element_id", limit: 4
     t.integer  "default_quantity",         limit: 4,   default: 5
+    t.integer  "selector_element_id",      limit: 4
   end
 
   create_table "freefinders", force: :cascade do |t|
@@ -370,11 +371,12 @@ ActiveRecord::Schema.define(version: 20191013084517) do
   add_index "locationaliases", ["location_id"], name: "index_locationaliases_on_location_id", using: :btree
 
   create_table "locations", force: :cascade do |t|
-    t.string   "name",       limit: 255
+    t.string   "name",             limit: 255
     t.boolean  "active"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "current",                default: false
+    t.boolean  "current",                      default: false
+    t.integer  "num_invigilators", limit: 4,   default: 1
   end
 
   create_table "memberships", force: :cascade do |t|

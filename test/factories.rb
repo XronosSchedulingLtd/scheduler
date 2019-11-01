@@ -52,6 +52,10 @@ FactoryBot.define do
     active { true }
   end
 
+  factory :locationalias do
+    sequence(:name) { |n| "Location alias #{n}" }
+  end
+
   factory :staff do
     sequence(:name) { |n| "Staff member #{n}" }
     sequence(:initials) { |n| "SM#{n}" }

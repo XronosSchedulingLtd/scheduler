@@ -6,6 +6,7 @@
 class Location < ActiveRecord::Base
 
   validates :name, presence: true
+  validates :num_invigilators, presence: true
 
   has_many :locationaliases, :dependent => :nullify
 

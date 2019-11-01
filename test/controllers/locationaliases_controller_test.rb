@@ -2,7 +2,7 @@ require 'test_helper'
 
 class LocationaliasesControllerTest < ActionController::TestCase
   setup do
-    @locationalias = locationaliases(:one)
+    @locationalias = FactoryBot.create(:locationalias)
     session[:user_id] = users(:admin).id
   end
 
