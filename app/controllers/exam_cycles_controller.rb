@@ -78,6 +78,8 @@ class ExamCyclesController < ApplicationController
                                          :default_group_element_id,
                                          :default_group_element_name,
                                          :default_quantity,
+                                         :selector_element_id,
+                                         :selector_element_name,
                                          :starts_on_text,
                                          :ends_on_text)
     end

@@ -11,8 +11,13 @@ class Element < ActiveRecord::Base
   has_many :requested_events, through: :requests, source: :event
   has_many :proto_commitments, :dependent => :destroy
   has_many :proto_requests, :dependent => :destroy
-  has_many :exam_cycles,
+  has_many :exam_cycles_as_default_group,
+           :class_name => 'ExamCycle',
            :foreign_key => :default_group_element_id,
+           :dependent => :nullify
+  has_many :exam_cycles_as_selector,
+           :class_name => 'ExamCycle',
+           :foreign_key => :selector_element_id,
            :dependent => :nullify
   has_many :concerns,    :dependent => :destroy
   has_many :freefinders, :dependent => :destroy

@@ -293,5 +293,21 @@ FactoryBot.define do
     file_info { DummyFileInfo.new }
   end
 
+  factory :rota_template_type do
+    sequence(:name) { |n| "Rota template type #{n}" }
+  end
+
+  factory :rota_template do
+    sequence(:name) { |n| "Rota template #{n}" }
+    rota_template_type
+  end
+
+  factory :exam_cycle do
+    sequence(:name) { |n| "Exam cycle #{n}" }
+    starts_on { Date.today }
+    association :default_rota_template, factory: :rota_template
+    default_group_element { create(:group).element }
+  end
+
 end
 
