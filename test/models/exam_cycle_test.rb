@@ -11,6 +11,7 @@ class ExamCycleTest < ActiveSupport::TestCase
     @valid_params = {
       name: "An exam cycle",
       starts_on: Date.today,
+      ends_on: Date.tomorrow,
       default_rota_template: @default_rota_template,
       default_group_element: @default_group_element
     }
@@ -30,6 +31,11 @@ class ExamCycleTest < ActiveSupport::TestCase
 
   test "starts_on is required" do
     ec = ExamCycle.create(@valid_params.except(:starts_on))
+    assert_not ec.valid?
+  end
+
+  test "ends_on is required" do
+    ec = ExamCycle.create(@valid_params.except(:ends_on))
     assert_not ec.valid?
   end
 

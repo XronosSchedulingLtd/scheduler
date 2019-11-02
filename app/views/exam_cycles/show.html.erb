@@ -4,6 +4,13 @@
       Exam cycle: <%= @exam_cycle.name %>
     </h3>
   </div>
+  <% if @show_scan_button %>
+    <%=
+      link_to('Scan for rooms',
+              scan_rooms_exam_cycle_path(@exam_cycle),
+              method: :put,
+              class: 'zfbutton tiny radius button-link') %>
+  <% end %>
   <h4>Rooms</h4>
   <table id='ec-table' class='zftable ec-table'>
     <thead>

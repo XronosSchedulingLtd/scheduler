@@ -23,6 +23,7 @@ class ExamCyclesControllerTest < ActionController::TestCase
         default_rota_template_id: @exam_cycle.default_rota_template_id,
         name: @exam_cycle.name,
         starts_on_text: @exam_cycle.starts_on,
+        ends_on_text: @exam_cycle.ends_on,
         default_group_element_id: @exam_cycle.default_group_element_id
       }
     end

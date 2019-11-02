@@ -305,6 +305,7 @@ FactoryBot.define do
   factory :exam_cycle do
     sequence(:name) { |n| "Exam cycle #{n}" }
     starts_on { Date.today }
+    ends_on { Date.tomorrow }
     association :default_rota_template, factory: :rota_template
     default_group_element { create(:group).element }
   end

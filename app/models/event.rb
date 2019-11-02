@@ -777,6 +777,10 @@ class Event < ActiveRecord::Base
     self.elements.collect {|e| e.entity}
   end
 
+  def resources_even_tentative
+    self.elements_even_tentative.collect {|e| e.entity}
+  end
+
   #
   #  Trying this a slightly different way.
   #
@@ -965,6 +969,10 @@ class Event < ActiveRecord::Base
     else
       self.resources.select {|r| r.instance_of?(Location)}
     end
+  end
+
+  def locations_even_tentative
+    self.resources_even_tentative.select {|r| r.instance_of?(Location)}
   end
 
   #

@@ -8,6 +8,7 @@ class ExamCycle < ActiveRecord::Base
 
   validates :name, :presence => true
   validates :starts_on, :presence => true
+  validates :ends_on, :presence => true
   validates :default_rota_template, :presence => true
   validates :default_group_element, :presence => true
 
