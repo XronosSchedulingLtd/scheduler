@@ -307,35 +307,44 @@ class ProtoEvent < ActiveRecord::Base
   #
   def ensure_required_events
     if self.rota_template
-      self.starts_on.upto(self.ends_on) do |date|
-        existing_events = self.events.events_on(date)
-        self.rota_template.slots_for(date) do |slot|
-          existing = existing_events.detect {|e| e.source_id == slot.id}
-          ensure_event(date, slot, existing)
-          if existing
-            existing_events = existing_events - [existing]
+      #
+      #  The location_id is sadly misnamed.  It is really the
+      #  location_element_id
+      #
+      location_element = Element.find_by(id: self.location_id)
+      if location_element
+        location = location_element.entity
+        erm = ExamRoomManager.new(self.generator)
+        self.starts_on.upto(self.ends_on) do |date|
+          existing_events = self.events.events_on(date)
+          erm.slots_for(date, location) do |slot|
+            existing = existing_events.detect {|e| e.source_id == slot.id}
+            ensure_event(date, slot, existing)
+            if existing
+              existing_events = existing_events - [existing]
+            end
+          end
+          #
+          #  Any events left in the existing_events array must be no
+          #  longer required.
+          #
+          existing_events.each do |e|
+            e.destroy
           end
         end
         #
-        #  Any events left in the existing_events array must be no
-        #  longer required.
+        #  It's possible that our start or end date has changed and there
+        #  are events in the d/b either before our new start date or
+        #  after our new end date.  Those need to go too.
         #
-        existing_events.each do |e|
+        too_earlies = self.events.before(self.starts_on)
+        too_earlies.each do |e|
           e.destroy
         end
-      end
-      #
-      #  It's possible that our start or end date has changed and there
-      #  are events in the d/b either before our new start date or
-      #  after our new end date.  Those need to go too.
-      #
-      too_earlies = self.events.before(self.starts_on)
-      too_earlies.each do |e|
-        e.destroy
-      end
-      too_lates = self.events.after(self.ends_on)
-      too_lates.each do |e|
-        e.destroy
+        too_lates = self.events.after(self.ends_on)
+        too_lates.each do |e|
+          e.destroy
+        end
       end
     else
       #
