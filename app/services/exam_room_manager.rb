@@ -379,7 +379,7 @@ class ExamRoomManager
       #  Without a selector element, the best we can do is provide
       #  the slots direct from the rota template.
       #
-      @exam_cycle.rota_template.slots_for(date) do |s|
+      @exam_cycle.default_rota_template.slots_for(date) do |s|
         yield s
       end
     end
