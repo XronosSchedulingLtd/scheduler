@@ -246,6 +246,14 @@ class ProtoEvent < ActiveRecord::Base
   end
 
   #
+  #  Functionally the same as the previous one, but with a different
+  #  meaning.  They might diverge in the future.
+  #
+  def un_generated?
+    self.events.count == 0
+  end
+
+  #
   #  Ensure a single event, as dictated by self, a date and a rota slot.
   #
   def ensure_event(date, rota_slot, existing)

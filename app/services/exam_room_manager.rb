@@ -239,7 +239,7 @@ class ExamRoomManager
     end
 
     def each_room
-      @rooms.each do |id, room_record|
+      @rooms_by_location_id.each do |id, room_record|
         yield room_record
       end
     end

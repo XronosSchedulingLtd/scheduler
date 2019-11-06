@@ -1,5 +1,10 @@
 class ExamCyclesController < ApplicationController
-  before_action :set_exam_cycle, only: [:show, :edit, :update, :destroy, :scan_rooms]
+  before_action :set_exam_cycle, only: [:show,
+                                        :edit,
+                                        :update,
+                                        :destroy,
+                                        :scan_rooms,
+                                        :generate_all]
 
   # GET /exam_cycles
   # GET /exam_cycles.json
@@ -92,6 +97,21 @@ class ExamCyclesController < ApplicationController
             num_staff:     room_record.location.num_invigilators.to_s
           })
         end
+      end
+    end
+    redirect_to exam_cycle_path(@exam_cycle)
+  end
+
+  # PUT /exam_cycles/1/generate_all
+  #
+  def generate_all
+    #
+    #  Do a "generate" for all our rooms which currently have not been
+    #  generated.  Do not do a "re-generate" for any.
+    #
+    @exam_cycle.proto_events.each do |proto_event|
+      if proto_event.un_generated?
+        proto_event.ensure_required_events
       end
     end
     redirect_to exam_cycle_path(@exam_cycle)
