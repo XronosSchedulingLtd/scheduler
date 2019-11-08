@@ -326,7 +326,7 @@ class ExamRoomManager
   #
   #  Note that this works only for an exam related proto_event.
   #
-  def slots_for(date, location)
+  def slots_for(proto_event, date, location)
     selector_element = @exam_cycle.selector_element
     if selector_element
       #
@@ -369,7 +369,7 @@ class ExamRoomManager
       masking_slots = SlotSet.from_event_records(masking_events)
       our_slots =
         SlotSet.from_rota_slots(
-          @exam_cycle.default_rota_template.slots_for(date))
+          proto_event.rota_template.slots_for(date))
       resulting_slots = our_slots.mask_with(masking_slots)
       resulting_slots.each do |rs|
         yield rs
@@ -379,7 +379,7 @@ class ExamRoomManager
       #  Without a selector element, the best we can do is provide
       #  the slots direct from the rota template.
       #
-      @exam_cycle.default_rota_template.slots_for(date) do |s|
+      proto_event.rota_template.slots_for(date) do |s|
         yield s
       end
     end

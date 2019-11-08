@@ -325,7 +325,7 @@ class ProtoEvent < ActiveRecord::Base
         erm = ExamRoomManager.new(self.generator)
         self.starts_on.upto(self.ends_on) do |date|
           existing_events = self.events.events_on(date)
-          erm.slots_for(date, location) do |slot|
+          erm.slots_for(self, date, location) do |slot|
             existing = existing_events.detect {|e| e.source_id == slot.id}
             ensure_event(date, slot, existing)
             if existing
