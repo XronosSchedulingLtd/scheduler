@@ -313,7 +313,7 @@ class ProtoEvent < ActiveRecord::Base
   #  the model contains a validation requiring one, it's possible it
   #  has subsequently been deleted and thus we can't continue.
   #
-  def ensure_required_events
+  def ensure_required_events(erm = nil)
     if self.rota_template
       #
       #  The location_id is sadly misnamed.  It is really the
@@ -322,7 +322,7 @@ class ProtoEvent < ActiveRecord::Base
       location_element = Element.find_by(id: self.location_id)
       if location_element
         location = location_element.entity
-        erm = ExamRoomManager.new(self.generator)
+        erm ||= ExamRoomManager.new(self.generator)
         self.starts_on.upto(self.ends_on) do |date|
           existing_events = self.events.events_on(date)
           erm.slots_for(self, date, location) do |slot|

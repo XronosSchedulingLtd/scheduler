@@ -109,9 +109,12 @@ class ExamCyclesController < ApplicationController
     #  Do a "generate" for all our rooms which currently have not been
     #  generated.  Do not do a "re-generate" for any.
     #
+    #  Use the same ExamRoomManager for all for efficiency.
+    #
+    erm = ExamRoomManager.new(@exam_cycle)
     @exam_cycle.proto_events.each do |proto_event|
       if proto_event.un_generated?
-        proto_event.ensure_required_events
+        proto_event.ensure_required_events(erm)
       end
     end
     redirect_to exam_cycle_path(@exam_cycle)
