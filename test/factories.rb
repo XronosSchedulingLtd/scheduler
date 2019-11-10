@@ -366,5 +366,14 @@ FactoryBot.define do
     default_group_element { create(:group).element }
   end
 
+  #
+  #  I cannot find a way to get FactoryBot to let me assign an extra
+  #  value to the thing which I am creating.  It tries to second
+  #  guess me and doesn't do it.  Hence no factory for ProtoEvent.
+  #
+  #factory :proto_event do
+  #  persona     { "Invigilation" }  # This is the thing it won't assign.
+  #  association :generator, factory: :exam_cycle
+  #end
 end
 
