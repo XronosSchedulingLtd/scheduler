@@ -4,7 +4,8 @@ class ProtoEventsControllerTest < ActionController::TestCase
   setup do
     @proto_event = proto_events(:fourthexamspe)
     @generator = exam_cycles(:fourthyearexams)
-    @location = elements(:roomoneelement)
+    location = FactoryBot.create(:location)
+    @location_element = location.element
     @rota_template = rota_templates(:internalexams)
     session[:user_id] = users(:admin).id
   end
@@ -21,12 +22,11 @@ class ProtoEventsControllerTest < ActionController::TestCase
            format: :json,
            exam_cycle_id: @generator.id,
            proto_event: {
-             body: @proto_event.body,
              rota_template_id: @rota_template.id,
              starts_on_text: @proto_event.starts_on,
              ends_on_text: @proto_event.ends_on,
              num_staff: "1",
-             location_id: @location.id
+             location_id: @location_element.id
            }
     end
     assert_response :success
@@ -38,11 +38,10 @@ class ProtoEventsControllerTest < ActionController::TestCase
           exam_cycle_id: @generator.id,
           id: @proto_event,
           proto_event: {
-            body: @proto_event.body,
             starts_on_text: @proto_event.starts_on,
             ends_on_text: @proto_event.ends_on,
              num_staff: "1",
-             location_id: @location.id
+             location_id: @location_element.id
           }
     assert_response :success
   end

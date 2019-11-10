@@ -22,10 +22,6 @@ class ExamRoomManagerTest < ActiveSupport::TestCase
       ["15:40", "16:30"],         # 7
       ["16:30", "17:00"]          # For really long exams
     ]
-    #
-    #  This rota template will pick up the default number of
-    #  slots
-    #
     @selector_property = FactoryBot.create(:property)
     @rota_template = FactoryBot.create(:rota_template,
                                        slots: @our_rota_slot_times)
@@ -75,7 +71,10 @@ class ExamRoomManagerTest < ActiveSupport::TestCase
       @location2 => []
     }
     #
-    #  Now we need some events defining exam slots.
+    #  Now we need some events defining exam sessions.
+    #
+    #  Location 1 is used today in the am and pm, and tomorrow pm
+    #  Location 2 is used today in the am and pm
     #
     @event1 =
       FactoryBot.create(
@@ -96,6 +95,13 @@ class ExamRoomManagerTest < ActiveSupport::TestCase
         ends_at: Tod::TimeOfDay.parse("16:00").on(Date.tomorrow),
         resources: [@selector_property, @location1])
     @erm = ExamRoomManager.new(@exam_cycle)
+    @eventsource = Eventsource.find_by(name: "RotaSlot")
+    @eventcategory = Eventcategory.cached_category("Invigilation")
+  end
+
+  test "have source and category" do
+    assert_not_nil @eventsource
+    assert_not_nil @eventcategory
   end
 
   test "can create erm" do
@@ -126,11 +132,7 @@ class ExamRoomManagerTest < ActiveSupport::TestCase
   end
 
   test "can generate proto events" do
-    eventsource = Eventsource.find_by(name: "RotaSlot")
-    assert_not_nil eventsource
-    eventcategory = Eventcategory.cached_category("Invigilation")
-    assert_not_nil eventcategory
-    @erm.generate_proto_events(eventcategory, eventsource)
+    @erm.generate_proto_events(@eventcategory, @eventsource)
     #
     #  One proto event per room which we've used.
     #
@@ -149,20 +151,20 @@ class ExamRoomManagerTest < ActiveSupport::TestCase
     end
   end
 
-  test "can generate invigilation slots" do
-    eventsource = Eventsource.find_by(name: "RotaSlot")
-    assert_not_nil eventsource
-    eventcategory = Eventcategory.cached_category("Invigilation")
-    assert_not_nil eventcategory
-    @erm.generate_proto_events(eventcategory, eventsource)
+  test "erm generates correct event timing" do
+    @erm.generate_proto_events(@eventcategory, @eventsource)
     @exam_cycle.proto_events.each do |pe|
       slots_seen = 0
       @erm.slots_for(pe, Date.today) do |slot|
+        assert timing_in_list?(@resulting_times_today[pe.location],
+                               slot)
         slots_seen += 1
       end
       assert_equal @resulting_times_today[pe.location].size, slots_seen
       slots_seen = 0
       @erm.slots_for(pe, Date.tomorrow) do |slot|
+        assert timing_in_list?(@resulting_times_tomorrow[pe.location],
+                               slot)
         slots_seen += 1
       end
       assert_equal @resulting_times_tomorrow[pe.location].size, slots_seen
@@ -172,13 +174,176 @@ class ExamRoomManagerTest < ActiveSupport::TestCase
   test "erm copes if rota template has been deleted" do
     @rota_template.destroy
     @exam_cycle.reload
-    eventsource = Eventsource.find_by(name: "RotaSlot")
-    assert_not_nil eventsource
-    eventcategory = Eventcategory.cached_category("Invigilation")
-    assert_not_nil eventcategory
-    @erm.generate_proto_events(eventcategory, eventsource)
+    @erm.generate_proto_events(@eventcategory, @eventsource)
     assert_equal 0, @exam_cycle.proto_events.count
   end
 
+  test "overlapping exam sessions are merged in creating timings" do
+    #
+    #  This event overlaps with @event3.  The end result should be to
+    #  produce a single set of invigilation slots running from
+    #  the start of event4 (12:00) to the end of event @event3 (16:00)
+    #
+    event4 =
+      FactoryBot.create(
+        :event,
+        starts_at: Tod::TimeOfDay.parse("12:00").on(Date.tomorrow),
+        ends_at: Tod::TimeOfDay.parse("14:00").on(Date.tomorrow),
+        resources: [@selector_property, @location1])
+    extended_afternoon_times = [
+      ["12:00", "12:20"],
+      ["12:25", "13:15"],
+      ["13:15", "14:00"],
+      ["14:00", "14:45"],
+      ["14:50", "15:35"],
+      ["15:40", "16:00"]
+    ]
+    #
+    #  Need a new erm because we've created an extra event.
+    #
+    erm = ExamRoomManager.new(@exam_cycle)
+    erm.generate_proto_events(@eventcategory, @eventsource)
+    @exam_cycle.proto_events.each do |pe|
+      if pe.location == @location1
+        slots_seen = 0
+        erm.slots_for(pe, Date.tomorrow) do |slot|
+          assert timing_in_list?(extended_afternoon_times, slot)
+          slots_seen += 1
+        end
+        assert_equal extended_afternoon_times.size, slots_seen
+      end
+    end
+  end
+
+  test "can get 3 invigilation slots from one original slot" do
+    our_rota_slot_times = [
+      ["14:00", "14:45"]    # Just the one
+    ]
+    rota_template = FactoryBot.create(:rota_template,
+                                      slots: our_rota_slot_times)
+    #
+    #  Use a completely blank day.
+    #
+    date = Date.today + 2.days
+    exam_cycle =
+      FactoryBot.create(
+        :exam_cycle,
+        default_rota_template: rota_template,
+        selector_element: @selector_property.element,
+        starts_on: date,
+        ends_on: date)
+    event1 =
+      FactoryBot.create(
+        :event,
+        starts_at: Tod::TimeOfDay.parse("13:50").on(date),
+        ends_at: Tod::TimeOfDay.parse("14:10").on(date),
+        resources: [@selector_property, @location1])
+    event2 =
+      FactoryBot.create(
+        :event,
+        starts_at: Tod::TimeOfDay.parse("14:15").on(date),
+        ends_at: Tod::TimeOfDay.parse("14:30").on(date),
+        resources: [@selector_property, @location1])
+    event3 =
+      FactoryBot.create(
+        :event,
+        starts_at: Tod::TimeOfDay.parse("14:35").on(date),
+        ends_at: Tod::TimeOfDay.parse("15:00").on(date),
+        resources: [@selector_property, @location1])
+    resulting_times = [
+      ["14:00", "14:10"],
+      ["14:15", "14:30"],
+      ["14:35", "14:45"]
+    ]
+    erm = ExamRoomManager.new(exam_cycle)
+    erm.generate_proto_events(@eventcategory, @eventsource)
+    exam_cycle.proto_events.each do |pe|
+      if pe.location == @location1
+        slots_seen = 0
+        erm.slots_for(pe, date) do |slot|
+          assert timing_in_list?(resulting_times, slot)
+          slots_seen += 1
+        end
+        assert_equal resulting_times.size, slots_seen
+      end
+    end
+  end
+
+  test "overlapping rota slots produce duplicates" do
+    our_rota_slot_times = [
+      ["14:00", "14:45"],
+      ["14:30", "15:00"]
+    ]
+    rota_template = FactoryBot.create(:rota_template,
+                                      slots: our_rota_slot_times)
+    #
+    #  Use a completely blank day.
+    #
+    date = Date.today + 2.days
+    exam_cycle =
+      FactoryBot.create(
+        :exam_cycle,
+        default_rota_template: rota_template,
+        selector_element: @selector_property.element,
+        starts_on: date,
+        ends_on: date)
+    event1 =
+      FactoryBot.create(
+        :event,
+        starts_at: Tod::TimeOfDay.parse("13:50").on(date),
+        ends_at: Tod::TimeOfDay.parse("14:10").on(date),
+        resources: [@selector_property, @location1])
+    event2 =
+      FactoryBot.create(
+        :event,
+        starts_at: Tod::TimeOfDay.parse("14:15").on(date),
+        ends_at: Tod::TimeOfDay.parse("14:30").on(date),
+        resources: [@selector_property, @location1])
+    event3 =
+      FactoryBot.create(
+        :event,
+        starts_at: Tod::TimeOfDay.parse("14:35").on(date),
+        ends_at: Tod::TimeOfDay.parse("15:20").on(date),
+        resources: [@selector_property, @location1])
+    resulting_times = [
+      ["14:00", "14:10"],
+      ["14:15", "14:30"],
+      ["14:35", "14:45"],
+      ["14:35", "15:00"]
+    ]
+    erm = ExamRoomManager.new(exam_cycle)
+    erm.generate_proto_events(@eventcategory, @eventsource)
+    exam_cycle.proto_events.each do |pe|
+      if pe.location == @location1
+        slots_seen = 0
+        erm.slots_for(pe, date) do |slot|
+          assert timing_in_list?(resulting_times, slot)
+          slots_seen += 1
+        end
+        assert_equal resulting_times.size, slots_seen
+      end
+    end
+  end
+
+  private
+
+  def timing_in_list?(timings, item)
+    #
+    #  Hard to do this efficiently because the list is of pairs of
+    #  strings, whilst the item will have two TimeOfDay items.
+    #
+    starts_at_str = item.starts_at_tod.strftime("%H:%M")
+    ends_at_str   = item.ends_at_tod.strftime("%H:%M")
+    #puts "Checking #{starts_at_str} to #{ends_at_str}"
+    #
+    #  Double negative to turn it into a boolean.
+    #
+    entry = timings.detect {|t| t[0] == starts_at_str && t[1] == ends_at_str}
+    unless entry
+      puts "Can't find #{starts_at_str} to #{ends_at_str}"
+    end
+
+    !!entry
+  end
 
 end

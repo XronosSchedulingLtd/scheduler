@@ -13,12 +13,19 @@ class ExamRoomManager
     #
 
     class Slot
-      attr_reader :starts_at, :ends_at, :id
+      #
+      #  We are emulating a rota_slot, which exposes its timing via
+      #  starts_at and ends_at as strings ("09:00") and starts_at_tod
+      #  and ends_at_tod as TimeOfDay objects.
+      #
+      attr_reader :starts_at_tod, :ends_at_tod, :id
 
-      def initialize(starts_at, ends_at, id = 0) # Both Tod::TimeOfDay objects
-        @starts_at = starts_at
-        @ends_at   = ends_at
-        @id        = id
+      def initialize(starts_at_tod,
+                     ends_at_tod,
+                     id = 0) # Both Tod::TimeOfDay objects
+        @starts_at_tod = starts_at_tod
+        @ends_at_tod   = ends_at_tod
+        @id            = id
       end
 
       def self.from_event(event)
@@ -29,7 +36,8 @@ class ExamRoomManager
       #  Does this slot overlap with another one?
       #
       def overlaps?(other)
-        @starts_at < other.ends_at && @ends_at > other.starts_at
+        @starts_at_tod < other.ends_at_tod &&
+          @ends_at_tod > other.starts_at_tod
       end
 
       #
@@ -42,11 +50,13 @@ class ExamRoomManager
           #  We want the later of the two start times, and the earlier
           #  of the two end times.
           #
-          starts_at =
-            @starts_at > other.starts_at ? @starts_at : other.starts_at
-          ends_at =
-            @ends_at < other.ends_at ? @ends_at : other.ends_at
-          Slot.new(starts_at, ends_at, self.id)
+          calculated_starts_at_tod =
+            @starts_at_tod > other.starts_at_tod ?
+            @starts_at_tod : other.starts_at_tod
+          calculated_ends_at_tod =
+            @ends_at_tod < other.ends_at_tod ?
+            @ends_at_tod : other.ends_at_tod
+          Slot.new(calculated_starts_at_tod, calculated_ends_at_tod, self.id)
         else
           Rails.logger.debug("Doesn't overlap")
           nil
@@ -54,20 +64,20 @@ class ExamRoomManager
       end
 
       def merge_times(other)
-        if other.starts_at < @starts_at
-          @starts_at = other.starts_at
+        if other.starts_at_tod < @starts_at_tod
+          @starts_at_tod = other.starts_at_tod
         end
-        if other.ends_at > @ends_at
-          @ends_at = other.ends_at
+        if other.ends_at_tod > @ends_at_tod
+          @ends_at_tod = other.ends_at_tod
         end
       end
 
       def <=>(other)
         if other.instance_of?(Slot)
-          if self.starts_at == other.starts_at
-            self.ends_at <=> other.ends_at
+          if self.starts_at_tod == other.starts_at_tod
+            self.ends_at_tod <=> other.ends_at_tod
           else
-            self.starts_at <=> other.starts_at
+            self.starts_at_tod <=> other.starts_at_tod
           end
         else
           nil
@@ -75,7 +85,11 @@ class ExamRoomManager
       end
 
       def timings_for(date)
-        return [@starts_at.on(date), @ends_at.on(date)]
+        return [@starts_at_tod.on(date), @ends_at_tod.on(date)]
+      end
+
+      def do_dump(prefix)
+        puts "#{prefix}From: #{@starts_at_tod.strftime("%H:%M")} to: #{@ends_at_tod.strftime("%H:%M")}"
       end
 
     end
@@ -108,7 +122,7 @@ class ExamRoomManager
       #
       @slots.each do |existing_slot|
         if new_slot.overlaps?(existing_slot)
-          new_slot.merge(existing_slot)
+          new_slot.merge_times(existing_slot)
         end
       end
       #
@@ -136,6 +150,13 @@ class ExamRoomManager
         end
       end
       new_set
+    end
+
+    def do_dump(suffix = "")
+      puts "Slot set #{suffix}"
+      @slots.each do |slot|
+        slot.do_dump("  ")
+      end
     end
 
     #
@@ -394,9 +415,11 @@ class ExamRoomManager
       #
       masking_events = @room_store.events_on_for(date, location)
       masking_slots = SlotSet.from_event_records(masking_events)
+      #masking_slots.do_dump("Masking")
       our_slots =
         SlotSet.from_rota_slots(
           proto_event.rota_template.slots_for(date))
+      #our_slots.do_dump("Our")
       resulting_slots = our_slots.mask_with(masking_slots)
       resulting_slots.each do |rs|
         yield rs
