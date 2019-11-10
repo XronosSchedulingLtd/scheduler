@@ -240,11 +240,23 @@ FactoryBot.define do
   end
 
   factory :event do
+    transient do
+      resources { [] }
+    end
+
     sequence(:body) { |n| "Event #{n}" }
     eventcategory
     eventsource
     starts_at { Time.now }
     ends_at   { Time.now + 1.hour }
+
+    after(:create) do |event, evaluator|
+      evaluator.resources.each do |resource|
+        event.commitments.create({
+          element: resource.element
+        })
+      end
+    end
   end
 
   factory :note do
@@ -298,8 +310,52 @@ FactoryBot.define do
   end
 
   factory :rota_template do
+    transient do
+      with_slots { true }
+      slots {
+        [
+          ["08:30", "09:00"],         # Preparation
+          ["09:00", "09:20"],         # Assembly
+          ["09:25", "10:15"],         # 1
+          ["10:20", "11:10"],         # 2
+          ["11:10", "11:30"],         # Break
+          ["11:30", "12:20"],         # 3
+          ["12:25", "13:15"],         # 4
+          ["13:15", "14:00"],         # Lunch
+          ["14:00", "14:45"],         # 5
+          ["14:50", "15:35"],         # 6
+          ["15:40", "16:30"],         # 7
+          ["16:30", "17:00"]          # For really long exams
+        ]
+      }
+
+    end
+    trait :no_slots do
+      with_slots { false }
+    end
+
     sequence(:name) { |n| "Rota template #{n}" }
     rota_template_type
+    after(:create) do |rota_template, evaluator|
+      if evaluator.with_slots
+        #
+        #  We can't add rota slots until after it's been created.
+        #
+        evaluator.slots.each do |slot|
+          rota_template.rota_slots.create({
+            starts_at: slot[0],
+            ends_at:   slot[1],
+            days: [true, true, true, true, true, true, true]
+          })
+        end
+      end
+    end
+  end
+
+  factory :rota_slot do
+    rota_template
+    starts_at { Tod::TimeOfDay.parse("09:00") }
+    ends_at   { Tod::TimeOfDay.parse("10:00") }
   end
 
   factory :exam_cycle do

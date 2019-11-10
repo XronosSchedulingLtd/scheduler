@@ -78,26 +78,11 @@ class ExamCyclesController < ApplicationController
     #  We generate room records only for those rooms which don't already
     #  have one.  Each room gets at most one room record.
     #
-    if @exam_cycle.selector_element
-      eventsource = Eventsource.find_by(name: "RotaSlot")
-      erm = ExamRoomManager.new(@exam_cycle)
-      erm.each_room_record do |room_record|
-        unless erm.existing_rooms.include?(room_record.location)
-          #
-          #  Need a new proto event.
-          #
-          @exam_cycle.proto_events.create!({
-            body:          "Invigilation",
-            starts_on:     room_record.first_date,
-            ends_on:       room_record.last_date,
-            eventcategory: Eventcategory.cached_category("Invigilation"),
-            eventsource:   eventsource,
-            rota_template: @exam_cycle.default_rota_template,
-            location_id:   room_record.location.element.id,
-            num_staff:     room_record.location.num_invigilators.to_s
-          })
-        end
-      end
+    if @exam_cycle.selector_element &&
+      (eventsource = Eventsource.find_by(name: "RotaSlot")) &&
+      (eventcategory = Eventcategory.cached_category("Invigilation"))
+      ExamRoomManager.new(@exam_cycle).
+                      generate_proto_events(eventcategory, eventsource)
     end
     redirect_to exam_cycle_path(@exam_cycle)
   end

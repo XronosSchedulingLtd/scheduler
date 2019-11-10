@@ -9,6 +9,13 @@ class ExamCycle < ActiveRecord::Base
   validates :name, :presence => true
   validates :starts_on, :presence => true
   validates :ends_on, :presence => true
+  #
+  #  Note that, although we have a validation here to ensure we
+  #  have a default rota template, it's possible that said template
+  #  might subsequently have been deleted.  The action in the rota_template
+  #  model is to nullify our reference, so we end up with a nil item
+  #  here.  Always check before using it.
+  #
   validates :default_rota_template, :presence => true
   validates :default_group_element, :presence => true
 

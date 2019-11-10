@@ -94,6 +94,10 @@ class ExamRoomManager
       end
     end
 
+    def size
+      @slots.size
+    end
+
     def add_with_merge(new_slot)
       #
       #  It's tempting to delete all the overlapping slots as we
@@ -319,6 +323,28 @@ class ExamRoomManager
     @existing_rooms
   end
 
+  def generate_proto_events(eventcategory, eventsource)
+    if @exam_cycle.default_rota_template
+      each_room_record do |room_record|
+        unless existing_rooms.include?(room_record.location)
+          #
+          #  Need a new proto event.
+          #
+          @exam_cycle.proto_events.create!({
+            body:          "Invigilation",
+            starts_on:     room_record.first_date,
+            ends_on:       room_record.last_date,
+            eventcategory: eventcategory,
+            eventsource:   eventsource,
+            rota_template: @exam_cycle.default_rota_template,
+            location_id:   room_record.location.element.id,
+            num_staff:     room_record.location.num_invigilators.to_s
+          })
+        end
+      end
+    end
+  end
+
   #
   #  Calculate the slots for a given date, making use of both the
   #  exam template and any configured selector element on the
@@ -326,9 +352,10 @@ class ExamRoomManager
   #
   #  Note that this works only for an exam related proto_event.
   #
-  def slots_for(proto_event, date, location)
+  def slots_for(proto_event, date)
     selector_element = @exam_cycle.selector_element
-    if selector_element
+    location = proto_event.location
+    if selector_element && location
       #
       #  We need all relevant events for this selector element in the
       #  indicated day, and then we will mask the rota slots against

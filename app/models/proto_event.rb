@@ -7,11 +7,27 @@
 #
 module ProtoEventInvigilationPersona
 
+  #
+  #  The location_id item here is sadly misnamed.  It should be called
+  #  location_element_id.
+  #
   attr_accessor :num_staff, :location_id
   attr_reader :room
 
   def get_location_commitment
     self.proto_commitments.find {|pc| pc.element.entity_type == "Location"}
+  end
+
+  def location
+    pc = get_location_commitment
+    if pc
+      pc.element.entity
+    else
+      #
+      #  This shouldn't really happen
+      #
+      nil
+    end
   end
 
   def prepare
@@ -204,6 +220,13 @@ class ProtoEvent < ActiveRecord::Base
   belongs_to :generator, :polymorphic => true
 
   validates :body, :presence => true
+  #
+  #  Note that, although we have a validation here to ensure we
+  #  have a rota template, it's possible that said template
+  #  might subsequently have been deleted.  The action in the rota_template
+  #  model is to nullify our reference, so we end up with a nil item
+  #  here.  Always check before using it.
+  #
   validates :rota_template, :presence => true
   validates_with ProtoEventValidator
 
@@ -325,7 +348,7 @@ class ProtoEvent < ActiveRecord::Base
         erm ||= ExamRoomManager.new(self.generator)
         self.starts_on.upto(self.ends_on) do |date|
           existing_events = self.events.events_on(date)
-          erm.slots_for(self, date, location) do |slot|
+          erm.slots_for(self, date) do |slot|
             existing = existing_events.detect {|e| e.source_id == slot.id}
             ensure_event(date, slot, existing)
             if existing
