@@ -75,6 +75,16 @@ class ProtoEventTest < ActiveSupport::TestCase
     assert_not pe.valid?
   end
 
+  test "must have an eventcategory" do
+    pe = ProtoEvent.create(@valid_params.except(:eventcategory))
+    assert_not pe.valid?
+  end
+    
+  test "must have an eventsource" do
+    pe = ProtoEvent.create(@valid_params.except(:eventsource))
+    assert_not pe.valid?
+  end
+    
   test "needs a generator" do
     #
     #  This one actually raises an exception because it doesn't know

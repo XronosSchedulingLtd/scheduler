@@ -219,7 +219,9 @@ class ProtoEvent < ActiveRecord::Base
   belongs_to :rota_template
   belongs_to :generator, :polymorphic => true
 
-  validates :body, :presence => true
+  validates :body, presence: true
+  validates :eventcategory, presence: true
+  validates :eventsource, presence: true
   #
   #  Note that, although we have a validation here to ensure we
   #  have a rota template, it's possible that said template
@@ -280,7 +282,10 @@ class ProtoEvent < ActiveRecord::Base
   #  Ensure a single event, as dictated by self, a date and a rota slot.
   #
   def ensure_event(date, rota_slot, existing)
+    Rails.logger.debug("Entering ensure_event")
     starts_at, ends_at = rota_slot.timings_for(date)
+    Rails.logger.debug("Starts_at #{starts_at}")
+    Rails.logger.debug("Ends at #{ends_at}")
     if existing
       event = existing
       if event.body != self.body
@@ -381,6 +386,7 @@ class ProtoEvent < ActiveRecord::Base
       #
       #  Raise an error, or just log it?
       #
+      Rails.logger.debug("No rota template")
     end
   end
 
