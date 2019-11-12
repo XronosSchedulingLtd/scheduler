@@ -1,3 +1,24 @@
+v1.8.10  2019-11-12
+
+* Enhance the working of invigilations
+
+  The code has been improved to do more of the routine work of
+  setting up invigilation slots prior to populating them.
+
+  Major changes:
+
+  * The system can auto-generate your room records (ProtoEvents) from
+    some simple events specifying when you want to have exams.
+
+  * The system will mask the specified exams against your defined
+    invigilation periods to produce invigilation slots of exactly
+    the right length.
+
+  For full details see the documentation at:
+
+    https://xronos.uk/advanced/invigilation.html
+
+
 v1.8.9.1 2019-10-15
 
 * Re-work the API su interface slightly

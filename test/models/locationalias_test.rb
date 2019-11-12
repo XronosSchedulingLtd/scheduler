@@ -3,8 +3,7 @@ require 'test_helper'
 class LocationaliasTest < ActiveSupport::TestCase
 
   setup do
-    @location1   = locations(:roomone)
-    @la1         = locationaliases(:one)
+    @location1 = FactoryBot.create(:location)
   end
 
   test "should require a name" do

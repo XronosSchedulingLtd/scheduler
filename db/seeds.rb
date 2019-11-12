@@ -104,7 +104,9 @@ ced_user = seeder.new_user(ced).
        controls(seeder.properties[:calendarproperty]).
        controls(catering).
        controls(medical).
-       deselect(seeder.properties[:calendarproperty])
+       deselect(seeder.properties[:calendarproperty]).
+       grant(:exams).grant(:privileged)
+
 catering.add_form(
   seeder.new_form("Catering request",
                   ced_user,
@@ -159,7 +161,7 @@ pepupils  = seeder.new_group(:pepupils,  "PE pupils", :current_era)
 spapupils = seeder.new_group(:spapupils, "Spanish pupils", :current_era)
 sptpupils = seeder.new_group(:sptpupils, "Sport pupils", :current_era)
 
-seeder.location(:mainhall, "MH", "Main Hall")
+seeder.location(:mainhall, "MH", "Main Hall").set_num_invigilators(2)
 seeder.location(:gks, "GKS", "Genghis Khan Suite")
 seeder.location(:headsgarden, "CHG", "Head's Garden")
 seeder.location(:shop, "Clothing store")
@@ -654,6 +656,28 @@ seeder.lesson(:afg, :g11eng3,   :l103, :nextmonday, 2, {non_existent: true})
 seeder.lesson(:psl, :g11geo4,   :l104, :nextmonday, 3, {non_existent: true})
 seeder.lesson(:dpr, :g11ger2,   :l105, :nextmonday, 4, {non_existent: true})
 seeder.lesson(:prw, :g11his4,   :l106, :nextmonday, 6, {non_existent: true})
+
+#
+#  These are the same as the periods, but with the gaps filled in.
+#
+seeder.configure_invigilation_slots(
+  [
+    ["08:30", "09:00"],
+    ["09:00", "09:20"],         # 0 - Assembly
+    ["09:25", "10:15"],         # 1
+    ["10:20", "11:10"],         # 2
+    ["11:10", "11:30"],         # Break
+    ["11:30", "12:20"],         # 3
+    ["12:25", "13:15"],         # 4
+    ["13:15", "14:00"],         # Lunch
+    ["14:00", "14:45"],         # 5
+    ["14:50", "15:35"],         # 6
+    ["15:40", "16:30"],         # 7
+    ["16:30", "17:00"]
+  ]
+)
+
+Seeder::SeedProperty.new("Year 11 exams").set_preferred_colour("#0b5805")
 
 #
 #  And a resource group for mini-buses.

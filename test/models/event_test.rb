@@ -5,6 +5,13 @@ class EventTest < ActiveSupport::TestCase
     @eventcategory = FactoryBot.create(:eventcategory)
     @eventsource   = FactoryBot.create(:eventsource)
     @confidential_ec = FactoryBot.create(:eventcategory, confidential: true)
+    @property = FactoryBot.create(:property)
+    @location = FactoryBot.create(:location)
+  end
+
+  test "event factory can add resources" do
+    event = FactoryBot.create(:event, resources: [@property, @location])
+    assert_equal 2, event.resources.count
   end
 
   test "should have a confidential flag" do

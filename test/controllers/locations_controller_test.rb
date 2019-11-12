@@ -2,7 +2,7 @@ require 'test_helper'
 
 class LocationsControllerTest < ActionController::TestCase
   setup do
-    @location = locations(:roomone)
+    @location = FactoryBot.create(:location)
     session[:user_id] = users(:admin).id
   end
 
