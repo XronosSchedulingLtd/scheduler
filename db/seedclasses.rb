@@ -200,6 +200,18 @@ class Seeder
       self
     end
 
+    def grant(permission)
+      @dbrecord.permissions[permission] = true
+      @dbrecord.save!
+      self
+    end
+
+    def revoke(permission)
+      @dbrecord.permissions[permission] = false
+      @dbrecord.save!
+      self
+    end
+
     def user_id
       @dbrecord.id
     end
@@ -329,6 +341,12 @@ class Seeder
 
     def element_id
       @dbrecord.element.id
+    end
+
+    def set_num_invigilators(num)
+      @dbrecord.num_invigilators = num
+      @dbrecord.save!
+      self
     end
 
   end
@@ -760,6 +778,10 @@ class Seeder
       Eventcategory.create!(ECH.new({name: "Duty", privileged: true}).hash)
     @eventcategories[:invigilation] =
       Eventcategory.create!(ECH.new({name: "Invigilation", privileged: true}).hash)
+    @eventcategories[:exam_session] =
+      Eventcategory.create!(ECH.new({name: "Exam session",
+                                     privileged: true,
+                                     busy: false}).hash)
 
     #
     #  Properties
@@ -778,7 +800,7 @@ class Seeder
     @properties[:suspensionproperty] =
       SeedProperty.new("Suspension")
     @properties[:invigilationproperty] =
-      SeedProperty.new("Invigilation")
+      SeedProperty.new("Invigilation").set_preferred_colour("#111160")
     @properties[:coveredproperty] =
       SeedProperty.new("Covered")
     @properties[:relocatedproperty] =
@@ -1033,6 +1055,19 @@ class Seeder
     s.default_display_day_shape = rt
     s.default_free_finder_day_shape = rt
     s.save!
+  end
+
+  def configure_invigilation_slots(times)
+    rt = InvigilationManager.template_type.rota_templates.create!({
+      name: "Exam invigilation slots"
+    })
+    times.each_with_index do |time, i|
+      rt.rota_slots.create!({
+        starts_at: time[0],
+        ends_at:   time[1],
+        days:      [false, true, true, i < 7, true, true, false]
+      })
+    end
   end
 
   def location(id, name, aliasname = nil, display = true, friendly = true)

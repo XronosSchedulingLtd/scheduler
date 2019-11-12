@@ -7,11 +7,27 @@
 #
 module ProtoEventInvigilationPersona
 
+  #
+  #  The location_id item here is sadly misnamed.  It should be called
+  #  location_element_id.
+  #
   attr_accessor :num_staff, :location_id
   attr_reader :room
 
   def get_location_commitment
     self.proto_commitments.find {|pc| pc.element.entity_type == "Location"}
+  end
+
+  def location
+    pc = get_location_commitment
+    if pc
+      pc.element.entity
+    else
+      #
+      #  This shouldn't really happen
+      #
+      nil
+    end
   end
 
   def prepare
@@ -203,7 +219,16 @@ class ProtoEvent < ActiveRecord::Base
   belongs_to :rota_template
   belongs_to :generator, :polymorphic => true
 
-  validates :body, :presence => true
+  validates :body, presence: true
+  validates :eventcategory, presence: true
+  validates :eventsource, presence: true
+  #
+  #  Note that, although we have a validation here to ensure we
+  #  have a rota template, it's possible that said template
+  #  might subsequently have been deleted.  The action in the rota_template
+  #  model is to nullify our reference, so we end up with a nil item
+  #  here.  Always check before using it.
+  #
   validates :rota_template, :presence => true
   validates_with ProtoEventValidator
 
@@ -242,6 +267,14 @@ class ProtoEvent < ActiveRecord::Base
   #  Don't allow ourselves to be destroyed if we have active events.
   #
   def can_destroy?
+    self.events.count == 0
+  end
+
+  #
+  #  Functionally the same as the previous one, but with a different
+  #  meaning.  They might diverge in the future.
+  #
+  def un_generated?
     self.events.count == 0
   end
 
@@ -305,42 +338,52 @@ class ProtoEvent < ActiveRecord::Base
   #  the model contains a validation requiring one, it's possible it
   #  has subsequently been deleted and thus we can't continue.
   #
-  def ensure_required_events
+  def ensure_required_events(erm = nil)
     if self.rota_template
-      self.starts_on.upto(self.ends_on) do |date|
-        existing_events = self.events.events_on(date)
-        self.rota_template.slots_for(date) do |slot|
-          existing = existing_events.detect {|e| e.source_id == slot.id}
-          ensure_event(date, slot, existing)
-          if existing
-            existing_events = existing_events - [existing]
+      #
+      #  The location_id is sadly misnamed.  It is really the
+      #  location_element_id
+      #
+      location_element = Element.find_by(id: self.location_id)
+      if location_element
+        location = location_element.entity
+        erm ||= ExamRoomManager.new(self.generator)
+        self.starts_on.upto(self.ends_on) do |date|
+          existing_events = self.events.events_on(date)
+          erm.slots_for(self, date) do |slot|
+            existing = existing_events.detect {|e| e.source_id == slot.id}
+            ensure_event(date, slot, existing)
+            if existing
+              existing_events = existing_events - [existing]
+            end
+          end
+          #
+          #  Any events left in the existing_events array must be no
+          #  longer required.
+          #
+          existing_events.each do |e|
+            e.destroy
           end
         end
         #
-        #  Any events left in the existing_events array must be no
-        #  longer required.
+        #  It's possible that our start or end date has changed and there
+        #  are events in the d/b either before our new start date or
+        #  after our new end date.  Those need to go too.
         #
-        existing_events.each do |e|
+        too_earlies = self.events.before(self.starts_on)
+        too_earlies.each do |e|
           e.destroy
         end
-      end
-      #
-      #  It's possible that our start or end date has changed and there
-      #  are events in the d/b either before our new start date or
-      #  after our new end date.  Those need to go too.
-      #
-      too_earlies = self.events.before(self.starts_on)
-      too_earlies.each do |e|
-        e.destroy
-      end
-      too_lates = self.events.after(self.ends_on)
-      too_lates.each do |e|
-        e.destroy
+        too_lates = self.events.after(self.ends_on)
+        too_lates.each do |e|
+          e.destroy
+        end
       end
     else
       #
       #  Raise an error, or just log it?
       #
+      Rails.logger.debug("No rota template")
     end
   end
 

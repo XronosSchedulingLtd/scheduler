@@ -48,9 +48,13 @@ class RotaTemplate < ActiveRecord::Base
   #  Provide all of our slots which apply on the relevant date.
   #
   def slots_for(date)
-    self.rota_slots.select{|rs| rs.applies_on?(date)}.each do |rs|
-      yield rs
+    relevant_slots = self.rota_slots.select{|rs| rs.applies_on?(date)}
+    if block_given?
+      relevant_slots.each do |rs|
+        yield rs
+      end
     end
+    relevant_slots
   end
 
   #
@@ -83,25 +87,6 @@ class RotaTemplate < ActiveRecord::Base
     self.rota_slots.each do |rs|
       rs.periods(&block)
     end
-  end
-
-  #
-  #  A maintenance method to update all existing rota templates and
-  #  link them to a type.  They are all Invigilation ones.
-  #
-  def self.make_all_invigilation
-    rtt = RotaTemplateType.find_by(name: "Invigilation")
-    if rtt
-      RotaTemplate.all.each do |rt|
-        unless rt.rota_template_type
-          rt.rota_template_type = rtt
-          rt.save!
-        end
-      end
-    else
-      puts "Can't find RotaTemplateType \"Invigilation\"."
-    end
-    nil
   end
 
 end

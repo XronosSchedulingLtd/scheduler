@@ -1,15 +1,23 @@
 class ExamCyclesController < ApplicationController
-  before_action :set_exam_cycle, only: [:show, :edit, :update, :destroy]
+  before_action :set_exam_cycle, only: [:show,
+                                        :edit,
+                                        :update,
+                                        :destroy,
+                                        :scan_rooms,
+                                        :generate_all]
 
   # GET /exam_cycles
   # GET /exam_cycles.json
   def index
-    @exam_cycles = ExamCycle.page(params[:page]).order('starts_on').reverse_order
+    @exam_cycles = ExamCycle.page(params[:page]).
+                             order('starts_on').
+                             reverse_order
   end
 
   # GET /exam_cycles/1
   # GET /exam_cycles/1.json
   def show
+    @show_scan_button = !!@exam_cycle.selector_element
   end
 
   # GET /exam_cycles/new
@@ -61,6 +69,42 @@ class ExamCyclesController < ApplicationController
     end
   end
 
+  # PUT /exam_cycles/1/scan_rooms
+  def scan_rooms
+    #
+    #  We are being asked to generate a set of room records (actually
+    #  ProtoEvents) to match our linked events.
+    #
+    #  We generate room records only for those rooms which don't already
+    #  have one.  Each room gets at most one room record.
+    #
+    if @exam_cycle.selector_element &&
+      (eventsource = Eventsource.find_by(name: "RotaSlot")) &&
+      (eventcategory = Eventcategory.cached_category("Invigilation"))
+      ExamRoomManager.new(@exam_cycle).
+                      generate_proto_events(eventcategory, eventsource)
+    end
+    redirect_to exam_cycle_path(@exam_cycle)
+  end
+
+  # PUT /exam_cycles/1/generate_all
+  #
+  def generate_all
+    #
+    #  Do a "generate" for all our rooms which currently have not been
+    #  generated.  Do not do a "re-generate" for any.
+    #
+    #  Use the same ExamRoomManager for all for efficiency.
+    #
+    erm = ExamRoomManager.new(@exam_cycle)
+    @exam_cycle.proto_events.each do |proto_event|
+      if proto_event.un_generated?
+        proto_event.ensure_required_events(erm)
+      end
+    end
+    redirect_to exam_cycle_path(@exam_cycle)
+  end
+
   private
     def authorized?(action = action_name, resource = nil)
       logged_in? && (current_user.admin || current_user.exams?)
@@ -78,6 +122,8 @@ class ExamCyclesController < ApplicationController
                                          :default_group_element_id,
                                          :default_group_element_name,
                                          :default_quantity,
+                                         :selector_element_id,
+                                         :selector_element_name,
                                          :starts_on_text,
                                          :ends_on_text)
     end

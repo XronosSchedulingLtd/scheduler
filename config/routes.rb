@@ -44,6 +44,10 @@ Rails.application.routes.draw do
   end
 
   resources :exam_cycles do
+    member do
+      put :scan_rooms
+      put :generate_all
+    end
     resources :proto_events do
       member do
         post :generate
