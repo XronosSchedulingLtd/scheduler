@@ -282,10 +282,7 @@ class ProtoEvent < ActiveRecord::Base
   #  Ensure a single event, as dictated by self, a date and a rota slot.
   #
   def ensure_event(date, rota_slot, existing)
-    Rails.logger.debug("Entering ensure_event")
     starts_at, ends_at = rota_slot.timings_for(date)
-    Rails.logger.debug("Starts_at #{starts_at}")
-    Rails.logger.debug("Ends at #{ends_at}")
     if existing
       event = existing
       if event.body != self.body

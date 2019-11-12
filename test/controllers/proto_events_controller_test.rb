@@ -2,6 +2,8 @@ require 'test_helper'
 
 class ProtoEventsControllerTest < ActionController::TestCase
   setup do
+    @eventsource = Eventsource.find_by(name: "RotaSlot")
+    @eventcategory = Eventcategory.cached_category("Invigilation")
     @rota_template = FactoryBot.create(:rota_template)
     @exam_cycle    = FactoryBot.create(:exam_cycle,
                                        default_rota_template: @rota_template)
@@ -13,7 +15,9 @@ class ProtoEventsControllerTest < ActionController::TestCase
       starts_on_text:   "2017-05-01",
       ends_on_text:     "2017-05-07",
       num_staff:        "1",
-      location_id:      @location_element.id
+      location_id:      @location_element.id,
+      eventcategory:    @eventcategory,
+      eventsource:      @eventsource
     }
     #
     #  There is an apparent limitation in FactoryBot which prevents
@@ -61,7 +65,21 @@ class ProtoEventsControllerTest < ActionController::TestCase
       delete :destroy, format: :json, exam_cycle_id: @exam_cycle.id, id: @existing_proto_event
     end
     assert_response :success
+  end
 
+  test "can generate events from proto event" do
+    assert_equal 0, @existing_proto_event.events.count
+    put :generate,
+        format: :json,
+        exam_cycle_id: @exam_cycle.id,
+        id: @existing_proto_event
+    assert_response :success
+    #
+    #  And did we get some events?
+    #
+    #  7 days at 12 events per day
+    #
+    assert_equal 84, @existing_proto_event.events.count
   end
 
 end
