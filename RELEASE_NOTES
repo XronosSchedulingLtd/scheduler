@@ -1,3 +1,11 @@
+v1.8.10.1 2019-11-13
+
+* Fix to group editing
+
+  An error introduced in v1.8.9 prevented the correct evaluation of
+  permissions when a user tried to edit a group.  Fixed.
+
+
 v1.8.10  2019-11-12
 
 * Enhance the working of invigilations

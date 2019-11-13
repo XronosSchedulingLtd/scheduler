@@ -432,7 +432,7 @@ class User < ActiveRecord::Base
       (self.create_events? && item.involves_any?(self.elements_giving_edit, true))
     elsif item.instance_of?(Group)
       self.admin ||
-      (self.create_groups? &&
+      (self.can_has_groups? &&
        item.owner_id == self.id &&
        item.user_editable?)
     elsif item.instance_of?(Concern)
