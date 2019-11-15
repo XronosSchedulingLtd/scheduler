@@ -11,18 +11,30 @@ class UserTest < ActiveSupport::TestCase
     #
     @test_user_profile.reload
     @godlike_user_profile = FactoryBot.create(:user_profile, :godlike)
-#    PermissionFlags::KNOWN_PERMISSIONS.each do |pf|
-#      @godlike_user_profile.permissions[pf] = true
-#    end
-#    @godlike_user_profile.save!
     @godlike_user = FactoryBot.create(:user,
                                       user_profile: @godlike_user_profile)
     @godlike_user_profile.reload
+    
+    @staff = FactoryBot.create(:staff, email: 'staff@myschool.org.uk')
+    @staff_user = FactoryBot.create(:user, email: 'staff@myschool.org.uk')
+    @other_staff =
+      FactoryBot.create(:staff, email: 'other_staff@myschool.org.uk')
+    @other_staff_user =
+      FactoryBot.create(:user, email: 'other_staff@myschool.org.uk')
+    @admin_user = FactoryBot.create(:user, :admin,
+                                    email: "admin@myschool.co.uk")
+    @owned_group = FactoryBot.create(:group, owner: @staff_user)
+    @system_group = FactoryBot.create(:group)
+
+    @owned_event = FactoryBot.create(:event,
+                                     owner: @staff_user,
+                                     organiser: @other_staff.element)
+    @system_event = FactoryBot.create(:event)
   end
 
   test "can create a staff user" do
-    staff = FactoryBot.create(:staff, email: 'able@baker.com')
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     assert user.valid?
     assert_equal UserProfile.staff_profile, user.user_profile
     assert_equal user.corresponding_staff, staff
@@ -39,25 +51,25 @@ class UserTest < ActiveSupport::TestCase
     #  in test mode, and by code in the UserProfile model for
     #  real systems.  I have yet to find a way to unify these two.
     #
-    staff = FactoryBot.create(:staff, email: 'able@baker.com')
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     check_staff_permissions(user)
   end
 
   test "new pupil user gets correct permissions" do
-    pupil = FactoryBot.create(:pupil, email: 'able@baker.com')
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    pupil = FactoryBot.create(:pupil, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     check_pupil_permissions(user)
   end
 
   test "new guest user gets correct permissions" do
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     check_guest_permissions(user)
   end
 
   test "changing user to guest user removes permissions" do
-    staff = FactoryBot.create(:staff, email: 'able@baker.com')
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     check_staff_permissions(user)
     user.user_profile = UserProfile.guest_profile
     user.save
@@ -65,7 +77,7 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "changing user to staff user adds permissions" do
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     check_guest_permissions(user)
     user.user_profile = UserProfile.staff_profile
     user.save
@@ -73,15 +85,15 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "can add specific permission for new user" do
-    staff = FactoryBot.create(:staff, email: 'able@baker.com')
-    user = FactoryBot.create(:user, :admin, email: 'able@baker.com')
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, :admin, email: 'able@myschool.org.uk')
     check_no(user.user_profile.permissions[:admin])
     assert user.admin?
   end
 
   test "can remove specific permission for new user" do
-    staff = FactoryBot.create(:staff, email: 'able@baker.com')
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     check_yes user.user_profile.permissions[:editor]
     check_dont_care user.permissions[:editor]
     assert user.editor?
@@ -93,8 +105,8 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "adding permission to profile adds it to user" do
-    staff = FactoryBot.create(:staff, email: 'able@baker.com')
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     check_no user.user_profile.permissions[:admin]
     check_dont_care user.permissions[:admin]
     assert_not user.admin?
@@ -150,8 +162,8 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "removing permission from profile removes it from user" do
-    staff = FactoryBot.create(:staff, email: 'able@baker.com')
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     check_yes user.user_profile.permissions[:editor]
     check_dont_care user.permissions[:editor]
     assert user.editor?
@@ -164,8 +176,8 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "but not if the user has it explicitly" do
-    staff = FactoryBot.create(:staff, email: 'able@baker.com')
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     check_yes user.user_profile.permissions[:editor]
     check_dont_care user.permissions[:editor]
     assert user.editor?
@@ -180,8 +192,8 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "removing known from profile removes it from user" do
-    staff = FactoryBot.create(:staff, email: 'able@baker.com')
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     assert user.known?
     user.user_profile.known = false
     user.user_profile.save
@@ -190,7 +202,7 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "adding known to profile adds it to user" do
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     assert_not user.known?
     user.user_profile.known = true
     user.user_profile.save
@@ -199,49 +211,49 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "don't link to non-current staff" do
-    staff = FactoryBot.create(:staff, email: 'able@baker.com', current: false)
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk', current: false)
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     assert user.valid?
     assert_equal UserProfile.guest_profile, user.user_profile
     assert_nil user.corresponding_staff
   end
 
   test "can create a pupil user" do
-    pupil = FactoryBot.create(:pupil, email: 'student@baker.com')
-    user = FactoryBot.create(:user, email: 'student@baker.com')
+    pupil = FactoryBot.create(:pupil, email: 'student@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'student@myschool.org.uk')
     assert user.valid?
     assert_equal UserProfile.pupil_profile, user.user_profile
   end
 
   test "don't link to non-current pupil" do
-    pupil = FactoryBot.create(:pupil, email: 'student@baker.com', current: false)
-    user = FactoryBot.create(:user, email: 'student@baker.com')
+    pupil = FactoryBot.create(:pupil, email: 'student@myschool.org.uk', current: false)
+    user = FactoryBot.create(:user, email: 'student@myschool.org.uk')
     assert user.valid?
     assert_equal UserProfile.guest_profile, user.user_profile
     assert_nil user.corresponding_staff
   end
 
   test "prefer staff record to pupil one" do
-    staff = FactoryBot.create(:staff, email: 'able@baker.com')
-    pupil = FactoryBot.create(:pupil, email: 'able@baker.com')
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
+    pupil = FactoryBot.create(:pupil, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     assert user.valid?
     assert_equal UserProfile.staff_profile, user.user_profile
     assert_equal user.corresponding_staff, staff
   end
 
   test "can create a guest user" do
-    user = FactoryBot.create(:user, email: 'guest@baker.com')
+    user = FactoryBot.create(:user, email: 'guest@myschool.org.uk')
     assert user.valid?
   end
 
   test "can create staff member after user" do
-    user = FactoryBot.create(:user, email: 'able@baker.com')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     assert user.valid?
     assert_equal UserProfile.guest_profile, user.user_profile
     assert_not user.known?
     assert_nil user.corresponding_staff
-    staff = FactoryBot.create(:staff, email: 'able@baker.com')
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
     #
     #  We do an explicit call on find_matching_resources here to
     #  emulate the case of the user logging in for a second time,
@@ -255,12 +267,12 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "can create pupil after user" do
-    user = FactoryBot.create(:user, email: 'student@baker.com')
+    user = FactoryBot.create(:user, email: 'student@myschool.org.uk')
     assert user.valid?
     assert_equal UserProfile.guest_profile, user.user_profile
     assert_not user.known?
     assert_nil user.corresponding_staff
-    pupil = FactoryBot.create(:pupil, email: 'student@baker.com')
+    pupil = FactoryBot.create(:pupil, email: 'student@myschool.org.uk')
     user.find_matching_resources
     assert user.valid?
     assert_equal UserProfile.pupil_profile, user.user_profile
@@ -269,16 +281,51 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "new user gets UUID" do
-    user = FactoryBot.create(:user, email: 'chap@baker.com')
+    user = FactoryBot.create(:user, email: 'chap@myschool.org.uk')
     assert_not_nil user.uuid
   end
 
   test "we can force a chosen UUID" do
     forced_uuid = "Banana fritters"
     user = FactoryBot.create(:user,
-                             email: 'chap@baker.com',
+                             email: 'chap@myschool.org.uk',
                              initial_uuid: forced_uuid)
     assert_equal forced_uuid, user.uuid
+  end
+
+  test "permissions to edit groups are correctly calculated" do
+    assert @admin_user.can_edit?(@system_group)
+    assert @admin_user.can_edit?(@owned_group)
+    assert @staff_user.can_edit?(@owned_group)
+    assert_not @staff_user.can_edit?(@system_group)
+  end
+
+  test "permissions to edit events are correctly calculated" do
+    assert     @admin_user.can_edit?(@system_event)
+    assert_not @staff_user.can_edit?(@system_event)
+    assert     @admin_user.can_edit?(@owned_event)
+    assert     @staff_user.can_edit?(@owned_event)
+    assert_not @other_staff_user.can_edit?(@owned_event)
+    #
+    #  But he can with more permissions.
+    #
+    @staff_user.permissions[:edit_all_events] = true
+    @staff_user.save!
+    assert @staff_user.can_edit?(@system_event)
+  end
+
+  test "permissions to sub edit events are correctly calculated" do
+    assert     @admin_user.can_subedit?(@system_event)
+    assert_not @staff_user.can_subedit?(@system_event)
+    assert     @admin_user.can_subedit?(@owned_event)
+    assert     @staff_user.can_subedit?(@owned_event)
+    assert     @other_staff_user.can_subedit?(@owned_event)
+    #
+    #  But he can with more permissions.
+    #
+    @staff_user.permissions[:subedit_all_events] = true
+    @staff_user.save!
+    assert @staff_user.can_subedit?(@system_event)
   end
 
   private
