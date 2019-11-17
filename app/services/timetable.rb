@@ -20,6 +20,7 @@ module Timetable
 
     def initialize(item)
       @has_prep = false
+      @background_slot = false
       if item.instance_of?(Event)
         prep_suffix = Setting.prep_suffix
         unless prep_suffix.blank?
@@ -51,6 +52,7 @@ module Timetable
         end
         @body_text = body_text.html_safe
       elsif item.instance_of?(RotaSlot)
+        @background_slot = true
         @body_text = nil
         @filled    = false
         @start_time_tod = item.starts_at_tod
@@ -73,6 +75,15 @@ module Timetable
 
     def show_times?
       @filled && duration >= 20
+    end
+
+    def identical_times?(other)
+      @start_time_tod == other.start_time_tod &&
+        @end_time_tod == other.end_time_tod
+    end
+
+    def background_slot?
+      @background_slot
     end
 
     #
@@ -136,18 +147,35 @@ module Timetable
     def initialize(parent, day_no)
       @periods = Array.new
       @parent = parent
+      @day_no = day_no
       @day_name = Date::ABBR_DAYNAMES[day_no]
+    end
+
+    def clashes?(period)
+      !!@periods.detect {|p| p.identical_times?(period) && !p.background_slot?}
     end
 
     def <<(item)
       period = Period.new(item)
       @parent.note_period(period)
-      @periods << period
+      #
+      #  Don't put in two periods with precisely the same timing.
+      #  This shouldn't happen, but it does and then the timetable
+      #  looks a mess.
+      #
+      unless clashes?(period)
+        @periods << period
+      end
     end
 
     def to_partial_path
       "timetable_day"
     end
+
+    def active?
+      Setting.timetable_day?(@day_no)
+    end
+
   end
 
   class WeekGap
@@ -204,11 +232,16 @@ module Timetable
       @timings = Hash.new
       @durations = Hash.new
       @preps = Hash.new
-      14.times do |index|
+      @weeks = Setting.tt_cycle_weeks
+      if @weeks == 2
+        num_days = 14
+      else
+        num_days = 7
+      end
+      num_days.times do |index|
         @days << Day.new(self, index % 7)
       end
       @week_headers = ["Week A", "Week B"]
-      @weeks = Setting.tt_cycle_weeks
       #
       #  Do we have a set of background periods specified?
       #
@@ -223,7 +256,9 @@ module Timetable
           #
           rs.periods do |index, starts_at, ends_at|
             @days[index] << rs
-            @days[index + 7] << rs
+            if @weeks == 2
+              @days[index + 7] << rs
+            end
           end
         end
       end
@@ -296,6 +331,18 @@ module Timetable
       ((Setting.last_tt_day - Setting.first_tt_day) + 1) * 95
     end
 
+    def self.timetable_width
+      weeks = Setting.tt_cycle_weeks
+      #
+      #  We currently cope with only 1 or 2 weeks.
+      #
+      if weeks == 1
+        week_width
+      else
+        (week_width * 2) + 20
+      end
+    end
+
     def self.periods_css(timings, durations, preps)
       contents = []
       timings.each do |key, timing|
@@ -330,6 +377,12 @@ module Timetable
         contents << "  font-weight: bold;"
         contents << "}"
       end
+      #
+      #  Calculate the full width of the timetable.
+      #
+      contents << ".timetable {"
+      contents << "  width: #{timetable_width}px;"
+      contents << "}"
       #
       #  And something to allow us to put week headings over each
       #  week.
