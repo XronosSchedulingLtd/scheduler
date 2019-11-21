@@ -170,6 +170,11 @@ else
           end
         end
         #
+        #  It's just possible something might have been specified
+        #  twice somehow.
+        #
+        element_ids.uniq!
+        #
         #  And ensure them.
         #
         #  Note that we put a dummy value in the source_id for each
@@ -236,6 +241,9 @@ else
       end
     end
     puts "#{events_created} events created and #{events_deleted} events deleted." if options.verbose
+    if options.list_missing
+      location_engine.list_missing
+    end
   end
 end
 

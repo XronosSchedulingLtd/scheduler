@@ -17,7 +17,8 @@ class Options
               :event_category_name,
               :merge_type,
               :allow_timeless,
-              :default_duration
+              :default_duration,
+              :list_missing
 
 
   def initialize(element_engine)
@@ -28,6 +29,7 @@ class Options
     @merge_type          = nil
     @default_duration    = 0
     @allow_timeless      = false
+    @list_missing        = false
     @attached_elements   = Array.new
     parser = OptionParser.new do |opts|
       opts.banner = "Usage: socsimport.rb [options]"
@@ -93,6 +95,12 @@ class Options
               "have merely a date and no time specified.",
               "They will be loaded as all-day events.") do
         @allow_timeless = true
+      end
+
+      opts.on("-l", "--list-missing",
+              "List all locations which were referenced",
+              "in the data files but not found.") do
+        @list_missing = true
       end
 
       opts.on("-h", "--help",

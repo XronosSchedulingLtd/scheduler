@@ -45,5 +45,19 @@ class LocationEngine
     end
   end
 
+  #
+  #  List all the locations which we were asked to find and couldn't.
+  #
+  def list_missing
+    any_missing = false
+    @known_locations.each do |key, element|
+      unless element
+        puts "Missing locations:" unless any_missing
+        puts "  #{key}"
+        any_missing = true
+      end
+    end
+    puts "No locations missing" unless any_missing
+  end
 end
 
