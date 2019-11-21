@@ -6,6 +6,94 @@
 #
 
 class SocsFixture
+
+  #
+  #  Given an array of team names, produce a neat bit of summary text.
+  #
+  module TeamNameSummarizer
+    TeamNameTypes = [
+      :ordinal,               # 1st, 2nd
+      :ordinal_soccer,        # 1st XI, 2nd XI
+      :ordinal_rugby,         # 1st XV, 2nd XV
+      :age_group,             # Junior/Inter/Senior Boys
+      :underNNX,              # U18A, U13B, Mixed-U13A, Boys-U12A etc.
+      :other
+    ]
+
+    def self.format_age_group_teams(teams)
+      #
+      #  Teams are all "Junior Boys", "Inter Boys"
+      #
+      "#{teams.join("/")} Boys"
+    end
+
+    def self.format_soccer(teams)
+      "#{teams.join(", ")} XI"
+    end
+
+    def self.format_rugby(teams)
+      "#{teams.join(", ")} XV"
+    end
+
+    def self.format_underNN(teams)
+      grouped = Hash.new
+      teams.sort.each do |team|
+        m = team.match(/^(U\d+) ([A-Z])$/)
+        if m
+          (grouped[m[1]] ||= Array.new) << m[2]
+        end
+      end
+      output = []
+      grouped.each do |key, suffixes|
+        output << "#{key} #{suffixes.join("/")}"
+      end
+      output.join(", ")
+    end
+
+    #
+    #  Passed an array of team names (straight from SOCS), sort them
+    #  into types and then pass back some summary text.
+    #
+    def self.summary_text(teams)
+      #
+      #  Start by sorting all the team names into types.
+      #
+      sorted_teams = Hash.new
+      teams.each do |team|
+        if m = team.match(/^(Junior|Inter|Senior) Boys/)
+          (sorted_teams[:age_group] ||= Array.new) << m[1]
+        elsif m = team.match(/^(1st|2nd|3rd|\dth) XI/)
+          (sorted_teams[:ordinal_soccer] ||= Array.new) << m[1]
+        elsif m = team.match(/^(1st|2nd|3rd|\dth) XV/)
+          (sorted_teams[:ordinal_rugby] ||= Array.new) << m[1]
+        elsif m = team.match(/^(U\d\d)\s?([A-Z])/)
+          #
+          #  Pass through a regularized version
+          #
+          (sorted_teams[:underNNX] ||= Array.new) << "#{m[1]} #{m[2]}"
+        else
+          (sorted_teams[:other] ||= Array.new) << team
+        end
+      end
+      chunks = Array.new
+      sorted_teams.each do |key, teams|
+        case key
+        when :age_group
+          chunks << format_age_group_teams(teams)
+        when :ordinal_soccer
+          chunks << format_soccer(teams)
+        when :ordinal_rugby
+          chunks << format_rugby(teams)
+        when :underNNX
+          chunks << format_underNN(teams)
+        else          # :other (and indeed, :ordinal)
+          chunks += teams
+        end
+      end
+      chunks.join(", ")
+    end
+  end
+
   SELECTOR = "fixtures fixture"
   REQUIRED_FIELDS = [
     XmlField["eventid",        :socs_id,          :data, :integer],
@@ -55,10 +143,10 @@ class SocsFixture
       #
       @home_locations = []
     end
-    @teams     = [@opposition_team]
+    @teams     = [@team]
     @team_urls = []
-    unless @opposition_team.blank? || @url.blank?
-      @team_urls << "[#{@opposition_team}](#{@url})"
+    unless @team.blank? || @url.blank?
+      @team_urls << "[#{@team}](#{@url})"
     end
     #
     #  Let's sort out the timing as best we can from the texts which
@@ -120,6 +208,10 @@ class SocsFixture
   #  Actually - not sure I want this.  Leave for now.
   #
   def melded_team_text
+    TeamNameSummarizer.summary_text(@teams)
+  end
+
+  def old_melded_team_text
     grouped = Hash.new
     others = Array.new
     @teams.sort.each do |team|
