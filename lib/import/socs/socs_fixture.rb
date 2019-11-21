@@ -71,6 +71,11 @@ class SocsFixture
           #  Pass through a regularized version
           #
           (sorted_teams[:underNNX] ||= Array.new) << "#{m[1]} #{m[2]}"
+        elsif m = team.match(/^(Boys|Mixed)-(U\d\d)([A-Z])/)
+          #
+          #  Pass through a regularized version
+          #
+          (sorted_teams[:underNNX] ||= Array.new) << "#{m[2]} #{m[3]}"
         else
           (sorted_teams[:other] ||= Array.new) << team
         end
