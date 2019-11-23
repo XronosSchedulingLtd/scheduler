@@ -62,7 +62,7 @@ cp Current/* $TARGET_DIR
 #
 #  And now invoke the import utility to bring the new data into Scheduler.
 #
-$SCHEDULER_DIR/lib/import/socsimport.rb --attach "Sport calendar" --duration 180 --merge both | tee import.log
+$SCHEDULER_DIR/lib/import/socsimport.rb "${SOCS_OPTS[@]}" | tee import.log
 cp import.log $TARGET_DIR
 bzip2 -f $TARGET_DIR/import.log
 

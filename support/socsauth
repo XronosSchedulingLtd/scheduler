@@ -1,0 +1,30 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2019 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
+#
+#  This file contains the API key for accessing SOCS, and any SOCS options
+#  which you may want to use in the import.
+#
+#  Copy it from $SCHEDULER_DIR/support/socsopts to ~/etc/socsopts and
+#  then edit the copy to suit your needs.
+
+SOCS_API_URL='https://www.schoolssports.com/school/xml/fixturecalendar.ashx'
+SOCS_APIKEY=''
+
+#
+#  As well as the authorization stuff, put the options here too.
+#  Note the use of an array, and element ids in order to avoid
+#  problems with spaces.
+#
+#  You will want to change the 123 and 456 element IDs to suit
+#  your system.
+#
+
+SOCS_OPTS=( --attach=123 --attach=456 --duration=180 --merge=both --notime --verbose )
+
+export SOCS_API_URL SOCS_API_KEY SOCS_OPTS
+
