@@ -43,6 +43,10 @@ class Options
       opts.on("-s", "--start-date [DATE]", Date,
               "Specify an over-riding start date",
               "for loading events.  Defaults to today.") do |date|
+        if date < Date.today
+          puts "Start date specified (#{date.to_s(:dmy)}) is now in the past."
+          puts "Time to update your settings?"
+        end
         @start_date = date
       end
 
