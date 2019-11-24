@@ -18,7 +18,8 @@ class Options
               :merge_type,
               :allow_timeless,
               :default_duration,
-              :list_missing
+              :list_missing,
+              :user_id
 
 
   def initialize(element_engine)
@@ -31,6 +32,7 @@ class Options
     @allow_timeless      = false
     @list_missing        = false
     @attached_elements   = Array.new
+    @user_id             = nil
     parser = OptionParser.new do |opts|
       opts.banner = "Usage: socsimport.rb [options]"
 
@@ -103,6 +105,16 @@ class Options
         @list_missing = true
       end
 
+      opts.on("-u", "--user [USERID]", Integer,
+              "Specify the user id of a user who will be",
+              "used as the owner for any created events",
+              "If none specified then all the events will",
+              "be loaded as system events (no owner).",
+              "If one is specified, then permissions for",
+              "commitments will be sought in accordance",
+              "with that user's privileges.") do |id|
+        @user_id = id
+      end
       opts.on("-h", "--help",
               "Show this message") do
         puts opts
