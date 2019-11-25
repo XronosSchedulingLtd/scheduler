@@ -29,9 +29,28 @@ class Setting < ActiveRecord::Base
   validates :current_era, :presence => true
   validates :perpetual_era, :presence => true
   validate :no_more_than_one
+  validate :non_negative_timetable
   validates :email_keep_days, numericality: {
     only_integer: true,
     greater_than_or_equal_to: 0
+  }
+
+  validates :tt_cycle_weeks, numericality: {
+    only_integer: true,
+    greater_than_or_equal_to: 1,
+    less_than_or_equal_to: 2
+  }
+
+  validates :first_tt_day, numericality: {
+    only_integer: true,
+    greater_than_or_equal_to: 0,
+    less_than_or_equal_to: 6
+  }
+
+  validates :last_tt_day, numericality: {
+    only_integer: true,
+    greater_than_or_equal_to: 0,
+    less_than_or_equal_to: 6
   }
 
   enum auth_type: [:google_auth, :google_demo_auth]
@@ -509,6 +528,15 @@ class Setting < ActiveRecord::Base
     self.auth_type == "google_demo_auth"
   end
 
+  def self.timetable_day?(day_no)
+    @@setting ||= Setting.first
+    if @@setting
+      (day_no >= @@setting.first_tt_day) && (day_no <= @@setting.last_tt_day)
+    else
+      false
+    end
+  end
+
   #
   #  One off method to move existing titles from the environment.
   #
@@ -549,6 +577,12 @@ class Setting < ActiveRecord::Base
     existing = Setting.first
     if (existing) && (existing.id != self.id)
       errors.add(:base, "No more than one settings record allowed.")
+    end
+  end
+
+  def non_negative_timetable
+    if self.first_tt_day > self.last_tt_day
+      errors.add(:last_tt_day, "cannot be before first tt day")
     end
   end
 end

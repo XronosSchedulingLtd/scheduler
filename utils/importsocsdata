@@ -1,0 +1,68 @@
+#!/bin/bash
+. /etc/profile
+#
+#  The next file contains confidential authentication information,
+#  specifically the apikey for the API.
+#
+. ~/etc/socsauth
+#
+#  Are we on development or live?  Where are our directories etc?
+#
+. ~/etc/whichsystem
+#
+#  And make sure we're using the right ruby.
+#
+. ~/.rvm/environments/scheduler
+#
+#
+#  Now some checks to make sure that at least the part of the
+#  environment which we need has been set.
+#
+if [ "a$SCHEDULER_DIR" == "a" ]; then
+  echo "SCHEDULER_DIR environment variable needs to be set."
+  exit 1
+fi
+if [ ! -d $SCHEDULER_DIR/import/socs ]; then
+  echo "$SCHEDULER_DIR/import/socs does not seem to be a directory."
+  exit 2
+fi
+
+cd $SCHEDULER_DIR/import/socs
+rm -f Incoming/*
+
+if [ -f PreFetched/data.xml ]; then
+  echo "Using pre-fetched data.xml"
+  cp PreFetched/data.xml Incoming
+else
+  if [ "a$SOCS_API_URL" == "a" ]; then
+    echo "SOCS_API_URL environment variable needs to be set."
+    exit 3
+  fi
+  if [ "a$SOCS_APIKEY" == "a" ]; then
+    echo "SOCS_APIKEY environment variable needs to be set."
+    exit 4
+  fi
+  curl --silent $SOCS_API_URL?ID=2\&key={$SOCS_APIKEY} --output Incoming/data.xml
+  if [ $? -ne 0 ]; then
+    echo "Failed to fetch SOCS API data."
+    exit 5
+  fi
+fi
+
+#
+#  We now appear to have a set of data files.  Move them to Current
+#  and then archive them.
+#
+rm -f Current/*
+mv Incoming/* Current
+TARGET_DIR="Archive/`date +%Y/%m/%d`"
+mkdir -p $TARGET_DIR
+cp Current/* $TARGET_DIR
+
+#
+#  And now invoke the import utility to bring the new data into Scheduler.
+#
+$SCHEDULER_DIR/lib/import/socsimport.rb "${SOCS_OPTS[@]}" | tee import.log
+cp import.log $TARGET_DIR
+bzip2 -f $TARGET_DIR/import.log
+

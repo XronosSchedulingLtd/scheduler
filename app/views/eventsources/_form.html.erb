@@ -20,6 +20,8 @@
     </div>
   </div>
   <div class="small-9 small-offset-3 columns">
-    <%= f.submit %>
+    <%= f.submit(@eventsource.new_record? ? 'Create' : "Update",
+                 class: 'zfbutton tiny radius') %>
+    <%= link_to 'Cancel', eventsources_path, class: 'zfbutton tiny radius button-link' %>
   </div>
 <% end %>

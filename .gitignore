@@ -72,7 +72,7 @@
 #  Slightly cleaner for pass?
 #
 !/import/pass
-
+!/import/socs
 #
 #  School-specific bits of the import process get quite interesting.
 #

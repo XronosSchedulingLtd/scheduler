@@ -2,9 +2,9 @@ require 'test_helper'
 
 class GroupsControllerTest < ActionController::TestCase
   setup do
-    @group = FactoryBot.create(:group)
     staff = FactoryBot.create(:staff, email: 'able@baker.com')
-    user = FactoryBot.create(:user, :admin, email: 'able@baker.com')
+    user = FactoryBot.create(:user, email: 'able@baker.com')
+    @group = FactoryBot.create(:group, owner: user)
     session[:user_id] = user.id
   end
 

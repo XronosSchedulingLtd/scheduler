@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191101132537) do
+ActiveRecord::Schema.define(version: 20191120120124) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -231,6 +231,7 @@ ActiveRecord::Schema.define(version: 20191101132537) do
   add_index "events", ["ends_at"], name: "index_events_on_ends_at", using: :btree
   add_index "events", ["event_collection_id"], name: "index_events_on_event_collection_id", using: :btree
   add_index "events", ["eventcategory_id"], name: "index_events_on_eventcategory_id", using: :btree
+  add_index "events", ["eventsource_id"], name: "index_events_on_eventsource_id", using: :btree
   add_index "events", ["has_clashes"], name: "index_events_on_has_clashes", using: :btree
   add_index "events", ["organiser_id"], name: "index_events_on_organiser_id", using: :btree
   add_index "events", ["owner_id"], name: "index_events_on_owner_id", using: :btree
