@@ -318,6 +318,22 @@ class Commitment < ActiveRecord::Base
     end
   end
 
+  #
+  #  Set the initial approval status of this commitment to one appropriate
+  #  for the indicated user.  Should be called only just after creating
+  #  a commitment.
+  #
+  def set_appropriate_approval_status_for(user)
+    if self.element
+      if user.needs_permission_for?(self.element)
+        self.status = :requested
+      else
+        self.status = :uncontrolled
+      end
+    else
+      self.status = :uncontrolled
+    end
+  end
 
   #
   #  This is intended for use explicitly by the results of calling

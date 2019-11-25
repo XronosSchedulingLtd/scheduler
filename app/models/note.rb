@@ -25,7 +25,7 @@ class Note < ActiveRecord::Base
 
   scope :visible_guest, -> { where(visible_guest: true) }
 
-  enum note_type: [ :ordinary, :clashes, :yaml ]
+  enum note_type: [ :ordinary, :clashes, :yaml, :socs ]
 
   before_save :format_contents
   after_save :check_for_attachments, if: :contents_changed?

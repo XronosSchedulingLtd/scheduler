@@ -1,10 +1,6 @@
-<div class='timetable-week'>
-  <%= timetable_contents.week_headers[0] %>
-</div>
 <% if timetable_contents.weeks == 2 %>
-<div class='week-gap'>&nbsp;</div>
-<div class='timetable-week'>
-  <%= timetable_contents.week_headers[1] %>
-</div>
+  <div class='timetable-week'><%= timetable_contents.week_headers[0] %></div>
+  <div class='week-gap'>&nbsp;</div>
+  <div class='timetable-week'><%= timetable_contents.week_headers[1] %></div>
 <% end %>
 <%= render timetable_contents.days %>
