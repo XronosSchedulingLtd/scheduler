@@ -1,3 +1,36 @@
+v1.9.0    2019-11-25
+
+* Add SOCS import facility
+
+  SOCS is an external package which allows schools to arrange
+  sports fixtures cooperatively between themselves.  Each fixture
+  need be entered only once, and then appears for both relevant
+  schools.  SOCS makes the resulting information available through
+  web pages and via an XML feed tailored to each school.
+
+  A facility has been added to Scheduler to use the XML feed to
+  import the fixture information and add it to the school's general
+  scheduling information.
+
+* Fix timetables for 12 day fortnight
+
+  Scheduler can produce printed timetables for staff and students,
+  integrating all the information held from various sources.  The
+  timetables are configurable for a one or two week cycle, and for
+  5 or 6 days in the week.
+
+  Previously, for a school with a 12 day fortnight (school on Mon
+  to Sat and a 2 week cycle) the formatting of the printed timetable
+  went wrong as not all the periods would fit in the available width.
+
+  The formatting is now done dynamically and the 12 day fortnight
+  appears correctly.
+
+* More automated tests
+
+  More tests have been added to the automated test suite.
+
+
 v1.8.10.1 2019-11-13
 
 * Fix to group editing
