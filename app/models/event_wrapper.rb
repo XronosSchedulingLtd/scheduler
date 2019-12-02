@@ -29,7 +29,9 @@ class EventWrapper
               :after_duration,
               :resources,
               :before_title,
-              :after_title
+              :after_title,
+              :single_wrapper,
+              :single_title
 
   #
   #  We are passed an array of strings, the last of which is empty.
@@ -74,6 +76,10 @@ class EventWrapper
     @after_title = new_title unless new_title.empty?
   end
 
+  def single_title=(new_title)
+    @single_title = new_title unless new_title.empty?
+  end
+
   def wrap_before=(val)
     @wrap_before = (val == "1")
   end
@@ -82,12 +88,20 @@ class EventWrapper
     @wrap_after = (val == "1")
   end
 
+  def single_wrapper=(val)
+    @single_wrapper = (val == "1")
+  end
+
   def wrap_before?
     @wrap_before
   end
 
   def wrap_after?
     @wrap_after
+  end
+
+  def single_wrapper?
+    @single_wrapper
   end
 
   def organiser_id
@@ -114,11 +128,13 @@ class EventWrapper
     #  Set default values first.
     #
     @event           = event
+    @single_wrapper  = false
     @wrap_before     = true
     @before_duration = Setting.wrapping_before_mins
     @before_title    = "Set-up for \"#{@event.body}\""
     @wrap_after      = true
-    @after_title    = "Clear-up for \"#{@event.body}\""
+    @after_title     = "Clear-up for \"#{@event.body}\""
+    @single_title    = "Arrangements for \"#{@event.body}\""
     @after_duration  = Setting.wrapping_after_mins
     @eventcategory   = Setting.wrapping_eventcategory
     @organiser       = @event.organiser
@@ -158,4 +174,15 @@ class EventWrapper
     params[:organiser]     = @organiser if @organiser
     params
   end
+
+  def single_params
+    params = {}
+    params[:starts_at]     = @event.starts_at - @before_duration.minutes
+    params[:ends_at]       = @event.ends_at + @after_duration.minutes
+    params[:body]          = @single_title
+    params[:eventcategory] = @eventcategory if @eventcategory
+    params[:organiser]     = @organiser if @organiser
+    params
+  end
+
 end
