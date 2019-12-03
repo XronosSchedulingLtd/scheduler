@@ -19,8 +19,21 @@
       away.</p>
     </div>
     <hr/>
-<%= form_for(@event_wrapper, remote: @minimal) do |f| %>
-    <div class="small-6 columns">
+  <%= form_for(@event_wrapper, remote: @minimal) do |f| %>
+    <div class="small-2 columns">
+      <label>Single wrapper</label>
+      <%= f.check_box :single_wrapper %>
+    </div>
+    <div class="small-10 columns">
+      <p>By default, the wrapping code allows the creation of two new
+      events - one before and one after the existing event.  These
+      are intended as set-up and clear-up time.  Alternatively,
+      you can create a single wrapping event which completely encompasses
+      the original event.  This is useful for, for instance, a sports
+      fixture when you want to allow for travel time.</p>
+    </div>
+    <hr/>
+    <div class="small-6 columns wrapper-twin-fields">
       <div class="row">
         <div class="small-4 columns">
           <label>Set-up time</label>
@@ -38,7 +51,7 @@
         </div>
       </div>
     </div>
-    <div class="small-6 columns">
+    <div class="small-6 columns wrapper-twin-fields">
       <div class="row">
         <div class="small-4 columns">
           <label>Clear-up time</label>
@@ -53,6 +66,22 @@
         <div class="small-12 columns">
           <label>Description</label>
           <%= f.text_field :after_title, class: 'compressed' %>
+        </div>
+      </div>
+    </div>
+    <div class="small-12 columns wrapper-single-fields">
+      <div class="row">
+        <div class="small-6 columns">
+          <label>Time before (mins)</label>
+          <%= f.number_field :before_duration, class: 'compressed' %>
+        </div>
+        <div class="small-6 columns">
+          <label>Time after (mins)</label>
+          <%= f.number_field :after_duration, class: 'compressed' %>
+        </div>
+        <div class="small-12 columns">
+          <label>Description</label>
+          <%= f.text_field :single_title, class: 'compressed' %>
         </div>
       </div>
     </div>
