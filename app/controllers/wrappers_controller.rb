@@ -33,7 +33,7 @@ class WrappersController < ApplicationController
     else
       respond_to do |format|
         format.html { redirect_to root_path }
-        format.js { render 'not_permitted' }
+        format.js { render nothing: true, status: :forbidden }
       end
     end
   end

@@ -79,6 +79,7 @@ FactoryBot.define do
 
   factory :user_profile do
     sequence(:name) { |n| "User profile #{n}" }
+    known { true }
     transient do
       godlike_permissions { false }
     end
