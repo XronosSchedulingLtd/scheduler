@@ -612,6 +612,7 @@ window.beginWrapping = (contents) ->
   primeCloser()
   $('.pw-action').click(pwActionClicked)
   window.cloningRowHandler.init()
+  window.wrappingTypeHandler.init()
 
 window.redisplayEvent = (contents) ->
   window.refreshNeeded()

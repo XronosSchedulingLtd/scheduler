@@ -19,20 +19,22 @@ class Options
               :allow_timeless,
               :default_duration,
               :list_missing,
-              :user_id
+              :user_id,
+              :intelligent_ownerships
 
 
   def initialize(element_engine)
-    @verbose             = false
-    @start_date          = Date.today
-    @end_date            = nil
-    @event_category_name = "Sport"
-    @merge_type          = nil
-    @default_duration    = 0
-    @allow_timeless      = false
-    @list_missing        = false
-    @attached_elements   = Array.new
-    @user_id             = nil
+    @verbose                = false
+    @start_date             = Date.today
+    @end_date               = nil
+    @event_category_name    = "Sport"
+    @merge_type             = nil
+    @default_duration       = 0
+    @allow_timeless         = false
+    @list_missing           = false
+    @attached_elements      = Array.new
+    @user_id                = nil
+    @intelligent_ownerships = false
     parser = OptionParser.new do |opts|
       opts.banner = "Usage: socsimport.rb [options]"
 
@@ -119,6 +121,17 @@ class Options
               "with that user's privileges.") do |id|
         @user_id = id
       end
+
+      opts.on("-i", "--intelligent",
+              "Try to assign ownership of individual",
+              "fixtures to the corresponding member",
+              "of staff who controls the sport.",
+              "If none found, then assign the event",
+              "to the user specified above, if not",
+              "given, make it a system event.") do |i|
+        @intelligent_ownerships = true
+      end
+
       opts.on("-h", "--help",
               "Show this message") do
         puts opts

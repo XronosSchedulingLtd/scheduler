@@ -43,7 +43,7 @@ window.cloningRowHandler = function () {
     //  This function is called blindly when the dialogue box opens.
     //  It's up to us to check whether we're actually needed.
     //
-    cloner_instances = $('#cloner-instances')
+    cloner_instances = $('#cloner-instances');
     if (cloner_instances.length) {
       //
       //  We're on.  Activate the adding button.

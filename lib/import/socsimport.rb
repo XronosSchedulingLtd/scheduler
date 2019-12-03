@@ -47,13 +47,13 @@ unless eventcategory
 end
 
 if options.user_id
-  owner = User.find_by(id: options.user_id)
-  unless owner
+  default_owner = User.find_by(id: options.user_id)
+  unless default_owner
     puts "No user with id #{options.user_id} can be found"
     exit 3
   end
 else
-  owner = nil
+  default_owner = nil
 end
 
 #
@@ -110,6 +110,16 @@ else
 #      puts "Wanted   - #{wanted.collect {|f| f.socs_id}.sort.join(",")}"
       global_element_ids = options.attached_elements.collect {|e| e.id}
       wanted.each do |fixture|
+        #
+        #  We need to find the property_element immediately because
+        #  it can affect the ownership of the event.
+        #
+        property_element = property_engine.find(fixture.sport)
+        if property_element && property_element.owned?
+          calculated_owner = property_element.owners.first || default_owner
+        else
+          calculated_owner = default_owner
+        end
         existing_event =
           existing_events.detect {|e| e.source_id == fixture.socs_id}
         if existing_event
@@ -137,7 +147,7 @@ else
             existing_event.all_day = fixture.all_day
             do_save = true
           end
-          if existing_event.owner != owner
+          if existing_event.owner != calculated_owner
             #
             #  Note that we change the owner without going back and
             #  rethinking any of the permissions.  This is deliberate.
@@ -145,7 +155,7 @@ else
             #  (bypassing checks) but then set all the events to a
             #  particular owner for all future processing.
             #
-            existing_event.owner = owner
+            existing_event.owner = calculated_owner
             do_save = true
           end
           if do_save
@@ -168,7 +178,7 @@ else
             ends_at:       fixture.ends_at,
             all_day:       fixture.all_day,
             source_id:     fixture.socs_id,
-            owner:         owner
+            owner:         calculated_owner
           })
           events_created += 1
           existing_event = new_event
@@ -181,7 +191,6 @@ else
         #  3. Any identified home locations.
         #
         element_ids = global_element_ids.dup
-        property_element = property_engine.find(fixture.sport)
         if property_element
           element_ids << property_element.id
         end
@@ -222,8 +231,8 @@ else
               element_id: ei,
               source_id:  DUMMY_SOURCE_ID_VALUE
             })
-            if owner
-              new_commitment.set_appropriate_approval_status_for(owner)
+            if calculated_owner
+              new_commitment.set_appropriate_approval_status_for(calculated_owner)
             end
             new_commitment.save!
           end
