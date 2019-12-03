@@ -1,3 +1,45 @@
+v1.9.1    2019-12-03
+
+* Add intelligent event ownership to SOCS import
+
+  The SOCS import utility acquires a new option - --intelligent.  If
+  specified then the importer will check each fixture's indicated
+  sport and if that sport has an owner on Scheduler (given by a
+  user having "Controls" privilege over the sport's fixtures) then
+  it will make that user the owner of any fixture events for that
+  sport.
+
+  Thus, if "Able Baker" controls the "Rugby fixture" property, then
+  he will gain ownership of all Rugby fixture events too.
+
+  Fixtures for sports without an owner will continue to be owned by
+  the user specified on the command line, or be system events if
+  no-one is specified.
+
+* Add single-event wrapping
+
+  Scheduler has long had a facility for wrapping events to create
+  times for set-up and tear-down.  Thus, if a concert is scheduled
+  in the theatre for 14:30 to 16:00 (which is how it should be shown
+  in the public calendar) then it is easy to add some non-public
+  events before and after for the time needed for setting things
+  up and clearing things away in the theatre.
+
+  For sports fixtures, having two separate wrapping events is less
+  appropriate.  Like the concert, a fixture might be scheduled to
+  last from 14:30 to 16:00, but one might need a mini-bus from 13:00
+  to 17:30.  It's not a case of needing a mini-bus for a little while
+  before and a little while after - it's needed throughout.
+  
+  An extra tick-box has been added to the wrapping dialogue - "Single
+  event" - and if ticked then one encompassing wrapping event is
+  created rather than two separate ones.
+
+* Additional tests for wrapping controller
+
+  More test have been added to exercise the wrapping controller.
+
+
 v1.9.0    2019-11-25
 
 * Add SOCS import facility
