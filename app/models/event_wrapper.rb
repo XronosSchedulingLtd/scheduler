@@ -31,7 +31,9 @@ class EventWrapper
               :before_title,
               :after_title,
               :single_wrapper,
-              :single_title
+              :single_title,
+              :single_before_duration,
+              :single_after_duration
 
   #
   #  We are passed an array of strings, the last of which is empty.
@@ -66,6 +68,14 @@ class EventWrapper
 
   def after_duration=(val)
     @after_duration = val.to_i
+  end
+
+  def single_before_duration=(val)
+    @single_before_duration = val.to_i
+  end
+
+  def single_after_duration=(val)
+    @single_after_duration = val.to_i
   end
 
   def before_title=(new_title)
@@ -127,17 +137,19 @@ class EventWrapper
     #
     #  Set default values first.
     #
-    @event           = event
-    @single_wrapper  = false
-    @wrap_before     = true
-    @before_duration = Setting.wrapping_before_mins
-    @before_title    = "Set-up for \"#{@event.body}\""
-    @wrap_after      = true
-    @after_title     = "Clear-up for \"#{@event.body}\""
-    @single_title    = "Arrangements for \"#{@event.body}\""
-    @after_duration  = Setting.wrapping_after_mins
-    @eventcategory   = Setting.wrapping_eventcategory
-    @organiser       = @event.organiser
+    @event                  = event
+    @single_wrapper         = false
+    @wrap_before            = true
+    @before_duration        = Setting.wrapping_before_mins
+    @single_before_duration = Setting.wrapping_before_mins
+    @before_title           = "Set-up for \"#{@event.body}\""
+    @wrap_after             = true
+    @after_title            = "Clear-up for \"#{@event.body}\""
+    @single_title           = "Arrangements for \"#{@event.body}\""
+    @after_duration         = Setting.wrapping_after_mins
+    @single_after_duration  = Setting.wrapping_after_mins
+    @eventcategory          = Setting.wrapping_eventcategory
+    @organiser              = @event.organiser
     @resources = []
     #
     #  Need to see what resources the indicated event has, and
@@ -177,8 +189,8 @@ class EventWrapper
 
   def single_params
     params = {}
-    params[:starts_at]     = @event.starts_at - @before_duration.minutes
-    params[:ends_at]       = @event.ends_at + @after_duration.minutes
+    params[:starts_at]     = @event.starts_at - @single_before_duration.minutes
+    params[:ends_at]       = @event.ends_at + @single_after_duration.minutes
     params[:body]          = @single_title
     params[:eventcategory] = @eventcategory if @eventcategory
     params[:organiser]     = @organiser if @organiser
