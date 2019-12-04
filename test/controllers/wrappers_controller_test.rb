@@ -112,8 +112,8 @@ class WrappersControllerTest < ActionController::TestCase
             single_wrapper: '1',
             wrap_before: '1',
             wrap_after: '1',
-            before_duration: '84',
-            after_duration: '99',
+            single_before_duration: '84',
+            single_after_duration: '99',
             single_title: 'That is it'
           }
       assert_response :success

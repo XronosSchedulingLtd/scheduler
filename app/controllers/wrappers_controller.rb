@@ -114,6 +114,8 @@ class WrappersController < ApplicationController
                                           :after_duration,
                                           :after_title,
                                           :single_title,
+                                          :single_before_duration,
+                                          :single_after_duration,
                                           :organiser_id,
                                           :organiser_name,
                                           enabled_ids: [])
