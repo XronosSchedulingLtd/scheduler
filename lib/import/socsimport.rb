@@ -128,6 +128,9 @@ else
           #
           do_save = false
           if existing_event.body != fixture.event_body
+            if options.verbose
+              puts "Changing \"#{existing_event.body}\" to \"#{fixture.event_body}\""
+            end
             existing_event.body = fixture.event_body
             do_save = true
           end
