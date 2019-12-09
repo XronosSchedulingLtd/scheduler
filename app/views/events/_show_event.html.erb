@@ -196,12 +196,15 @@
         </div>
       </div>
     <% end %>
-    <% if current_user && @event.repeating_event? && current_user.could_repeat?(@event) %>
+    <% if known_user? && @event.repeating_event? %>
       <div id='repeating-message'>
         This event is one instance of a
         <a target="_blank" href="https://xronos.uk/repeating.html">repeating event</a>
-        set.  If you edit it, you may wish to
+        set.
+        <% if current_user.could_repeat?(@event) %>
+        If you edit it, you may wish to
         consider propagating your changes to the rest of the set.
+        <% end %>
       </div>
     <% end %>
 <% if false %>
