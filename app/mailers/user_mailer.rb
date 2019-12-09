@@ -94,12 +94,19 @@ class UserMailer < ActionMailer::Base
     end
   end
 
-  def commitment_approved_email(commitment, complete)
+  def commitment_approved_email(commitment)
     parameters = Hash.new
     @event      = commitment.event
     @element    = commitment.element
     @commitment = commitment
-    @complete   = complete
+    @complete   = @event.complete
+    unless @complete
+      #
+      #  Prepare a list of the elements for which approval is still
+      #  pending.
+      #
+      @pending_elements = @event.commitments.tentative.collect {|c| c.element}
+    end
     if commitment.by_whom
       @approver = commitment.by_whom.name
       parameters[:reply_to] = commitment.by_whom.email

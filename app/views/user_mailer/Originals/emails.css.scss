@@ -103,6 +103,12 @@
           margin-bottom: 10px;
         }
       }
+      &.um-postamble {
+        ul {
+          list-style-type: none;
+          font-style: italic;
+        }
+      }
     }
   }
 }

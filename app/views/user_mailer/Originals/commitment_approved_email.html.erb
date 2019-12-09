@@ -19,4 +19,14 @@
   <div class='um-postamble'>
     Your event is now complete.
   </div>
+<% else %>
+  <div class='um-postamble'>
+    The following items requested for your event are still awaiting
+    approval:
+    <ul>
+      <% @pending_elements.each do |e| %>
+        <li><%= e.name %></li>
+      <% end %>
+    </ul>
+  </div>
 <% end %>
