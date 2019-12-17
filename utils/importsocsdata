@@ -58,6 +58,7 @@ mv Incoming/* Current
 TARGET_DIR="Archive/`date +%Y/%m/%d`"
 mkdir -p $TARGET_DIR
 cp Current/* $TARGET_DIR
+bzip2 -f $TARGET_DIR/*.xml
 
 #
 #  And now invoke the import utility to bring the new data into Scheduler.
