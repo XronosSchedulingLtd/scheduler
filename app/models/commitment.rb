@@ -895,6 +895,39 @@ class Commitment < ActiveRecord::Base
     end
   end
 
+  #
+  #  Similar to the above, but gives a score out of 3.
+  #
+  def approval_score
+    case self.status.to_sym
+
+    when :uncontrolled, :confirmed
+      3
+
+    when :requested
+      if ufr = self.user_form_response
+        if ufr.complete?
+          2
+        elsif ufr.partial?
+          1
+        else
+          0
+        end
+      else
+        2
+      end
+
+    when :rejected
+      0
+
+    when :noted
+      1
+
+    else
+      0
+    end
+  end
+
   def self.populate_statuses
     raise "Last version containing working Commitment::populate_statuses is 1.3.1"
   end

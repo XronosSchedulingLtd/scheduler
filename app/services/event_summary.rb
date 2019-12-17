@@ -159,4 +159,40 @@ class EventSummary
     end
   end
 
+  #
+  #  Returns a string (like "22.7%") suitable for indicating how complete
+  #  the event is.  Each commitment counts as three points, and each request
+  #  counts as 2 + N points, where N is the number of the item requested.
+  #
+  #  Un-controlled resources do not count.
+  #
+  #  Commitment:
+  #
+  #  0 - form still to be filled in, or rejected
+  #  1 - form partially filled in
+  #  2 - form filled in, or no form
+  #  3 - approved
+  #
+  #  Request:
+  #
+  #  0 - form still to be filled in
+  #  1 - form partially filled in
+  #  2 - form filled in, or no form
+  #  
+  #  then one more point for each allocated resource.
+  #
+  def percentage_complete
+    potential_score =
+      (@controlled_commitments.count * 3) +
+      (@requests.inject(0) {|sum, request| sum + 2 + request.quantity })
+    actual_score = 0
+    @controlled_commitments.each do |cc|
+      actual_score += cc.approval_score
+    end
+    @requests.each do |request|
+      actual_score += request.allocation_score
+    end
+    percentage = (actual_score.to_f * 100.0) / potential_score.to_f
+    "#{'%.1f' % percentage}%"
+  end
 end

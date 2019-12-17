@@ -461,6 +461,27 @@ class Request < ActiveRecord::Base
     end
   end
 
+  def allocation_score
+    if self.num_allocated == 0
+      #
+      #  Is there a form, and if so how is it?
+      #
+      if ufr = self.user_form_response
+        if ufr.complete?
+          2
+        elsif ufr.partial?
+          1
+        else
+          0
+        end
+      else
+        2
+      end
+    else
+      2 + self.num_allocated
+    end
+  end
+
   #
   #  We count as confirmed if all have been allocated.
   #

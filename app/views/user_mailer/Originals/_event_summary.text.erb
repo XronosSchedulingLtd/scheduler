@@ -1,5 +1,7 @@
 Event resource summary
 
+  <%= event_summary.percentage_complete %> complete.
+
 <% unless event_summary.controlled_commitments.empty? %>
   Controlled resources
 <% event_summary.each_controlled_commitment do |element, status| %>

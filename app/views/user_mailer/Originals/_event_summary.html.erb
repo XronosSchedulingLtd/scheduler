@@ -2,6 +2,8 @@
   <div class='um-event-summary-inner'>
     <h3>Event resource summary</h3>
 
+    <p><%= event_summary.percentage_complete %> complete.</p>
+
     <% unless event_summary.controlled_commitments.empty? %>
       <h4>Controlled resources</h4>
       <ul>
