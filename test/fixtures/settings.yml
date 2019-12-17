@@ -3,4 +3,5 @@
 one:
   current_era: eraone
   perpetual_era: perpetual
+  enforce_permissions: true
 

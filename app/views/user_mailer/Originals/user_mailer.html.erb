@@ -15,6 +15,9 @@
       <%= render partial: "header" %>
       <div class='um-email-body'>
         <%= yield %>
+        <% if @event_summary %>
+          <%= render @event_summary %>
+        <% end %>
       </div>
     </div>
   </body>

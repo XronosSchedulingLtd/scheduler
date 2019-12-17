@@ -1,0 +1,38 @@
+<div class='um-event-summary-outer'>
+  <div class='um-event-summary-inner'>
+    <h3>Event resource summary</h3>
+
+    <% unless event_summary.controlled_commitments.empty? %>
+      <h4>Controlled resources</h4>
+      <ul>
+        <% event_summary.each_controlled_commitment do |element, status| %>
+          <li>
+            <%= element.name %> -
+            <span class='um-commitment-status'><%= status %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+    <% unless event_summary.requests.empty? %>
+      <h4>Pool resources</h4>
+      <ul>
+        <% event_summary.each_request do |element, quantity, status| %>
+          <li>
+            <%= pluralize(quantity, element.name) %> -
+            <span class='um-commitment-status'><%= status %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+    <% unless event_summary.other_commitments.empty? %>
+      <h4>Other resources</h4>
+      <ul>
+        <% event_summary.each_other_commitment do |element| %>
+          <li>
+            <%= element.name %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+</div>

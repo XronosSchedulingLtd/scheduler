@@ -10,9 +10,5 @@ for:
 <% if @complete %>
 Your event is now complete.
 <% else %>
-The following items requested for your event are still awaiting
-approval:
-<% @pending_elements.each do |e| %>
-  <%= e.name %>
-<% end %>
+but your event is not yet complete.
 <% end %>

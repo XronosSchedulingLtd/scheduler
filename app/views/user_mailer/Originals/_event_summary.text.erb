@@ -1,0 +1,24 @@
+Event resource summary
+
+<% unless event_summary.controlled_commitments.empty? %>
+  Controlled resources
+<% event_summary.each_controlled_commitment do |element, status| %>
+    <%= element.name %> - <%= status %>
+<% end %>
+
+<% end %>
+<% unless event_summary.requests.empty? %>
+  Pool resources
+<% event_summary.each_request do |element, quantity, status| %>
+    <%= pluralize(quantity, element.name) %> - <%= status %>
+<% end %>
+
+<% end %>
+<% unless event_summary.other_commitments.empty? %>
+  Other resources
+<% event_summary.each_other_commitment do |element| %>
+    <%= element.name %>
+<% end %>
+
+<% end %>
+

@@ -52,6 +52,10 @@ FactoryBot.define do
 #  the models and shove stuff in the database directly.
 #
   factory :group do
+    transient do
+      chosen_persona { 'Vanillagrouppersona' }
+    end
+
     sequence(:name) { |n| "Group number #{n}" }
     era
     #
@@ -61,7 +65,7 @@ FactoryBot.define do
     #  or maybe it's just not documented.
     #
     starts_on     { Date.today }
-    add_attribute(:persona_class) { 'Vanillagrouppersona' }
+    add_attribute(:persona_class) { chosen_persona }
     current { true }
   end
 

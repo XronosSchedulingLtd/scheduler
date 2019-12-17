@@ -23,6 +23,7 @@ class UserMailer < ActionMailer::Base
   def commitment_rejected_email(commitment)
     parameters = Hash.new
     @event = commitment.event
+    @event_summary = EventSummary.new(@event)
     @element = commitment.element
     @commitment = commitment
     if commitment.reason.blank?
@@ -60,6 +61,7 @@ class UserMailer < ActionMailer::Base
   def commitment_noted_email(commitment)
     parameters = Hash.new
     @event = commitment.event
+    @event_summary = EventSummary.new(@event)
     @element = commitment.element
     @commitment = commitment
     if commitment.reason.blank?
@@ -97,16 +99,10 @@ class UserMailer < ActionMailer::Base
   def commitment_approved_email(commitment)
     parameters = Hash.new
     @event      = commitment.event
+    @event_summary = EventSummary.new(@event)
     @element    = commitment.element
     @commitment = commitment
     @complete   = @event.complete
-    unless @complete
-      #
-      #  Prepare a list of the elements for which approval is still
-      #  pending.
-      #
-      @pending_elements = @event.commitments.tentative.collect {|c| c.element}
-    end
     if commitment.by_whom
       @approver = commitment.by_whom.name
       parameters[:reply_to] = commitment.by_whom.email
@@ -305,6 +301,7 @@ class UserMailer < ActionMailer::Base
     did_pushback)
     @comment = comment
     @event = event
+    @event_summary = EventSummary.new(@event)
     @element = element
     @commenter = commenter
     @did_pushback = did_pushback
