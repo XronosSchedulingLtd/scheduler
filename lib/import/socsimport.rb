@@ -115,7 +115,9 @@ else
         #  it can affect the ownership of the event.
         #
         property_element = property_engine.find(fixture.sport)
-        if property_element && property_element.owned?
+        if options.intelligent_ownerships &&
+            property_element &&
+            property_element.owned?
           calculated_owner = property_element.owners.first || default_owner
         else
           calculated_owner = default_owner
