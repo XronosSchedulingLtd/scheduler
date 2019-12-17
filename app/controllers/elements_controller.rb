@@ -219,7 +219,7 @@ class ElementsController < ApplicationController
   #
   #autocomplete :element, :name, :scopes => [:current, :mine_or_system], :full => true
 
-  def do_autocomplete(selector, org_term)
+  def do_autocomplete(selector, org_term, add_suffix = false)
     term = org_term.split(" ").join("%")
     elements =
       selector.current.
@@ -228,17 +228,26 @@ class ElementsController < ApplicationController
               order("LENGTH(elements.name)").
               order(:name).
               all
+    #
+    #  I would quite like at this point to format the entity type,
+    #  perhaps smaller and in italic font, but it seems that that
+    #  needs to be done in JavaScript.  Leave it for another day.
+    #
+    # "#{element.name} - <span class='entity-type'>#{element.entity_type}</span>" :
+    #
     render json: elements.map { |element|
       {
         id:    element.id,
-        label: element.name,
+        label: add_suffix ?
+               "#{element.name} - #{element.entity_type}" :
+               element.name,
         value: element.name
       }
     }
   end
 
   def autocomplete_element_name
-    do_autocomplete(Element, params[:term])
+    do_autocomplete(Element, params[:term], true)
   end
 
   def autocomplete_staff_element_name
@@ -258,11 +267,11 @@ class ElementsController < ApplicationController
   end
 
   def autocomplete_direct_add_element_name
-    do_autocomplete(Element.add_directly, params[:term])
+    do_autocomplete(Element.add_directly, params[:term], true)
   end
 
   def autocomplete_viewable_element_name
-    do_autocomplete(Element.viewable, params[:term])
+    do_autocomplete(Element.viewable, params[:term], true)
   end
 
   #
