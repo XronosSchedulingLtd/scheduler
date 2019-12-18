@@ -273,7 +273,7 @@ else
       #  And any left now in the "existing" array are surplus.
       #
       unless existing_events.count == 0
-        puts "Deleting #{existing_events.count} events on #{date.to_s(:dmy)}"
+        puts "Deleting #{existing_events.count} events on #{date.to_s(:dmy)}" if options.verbose
         events_deleted += existing_events.count
         existing_events.each do |event|
           event.destroy
