@@ -482,6 +482,10 @@ class Request < ActiveRecord::Base
     end
   end
 
+  def max_allocation_score
+    2 + self.quantity
+  end
+
   #
   #  We count as confirmed if all have been allocated.
   #

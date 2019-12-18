@@ -183,15 +183,11 @@ class EventSummary
   #
   def percentage_complete
     potential_score =
-      (@controlled_commitments.count * 3) +
-      (@requests.inject(0) {|sum, request| sum + 2 + request.quantity })
-    actual_score = 0
-    @controlled_commitments.each do |cc|
-      actual_score += cc.approval_score
-    end
-    @requests.each do |request|
-      actual_score += request.allocation_score
-    end
+      @controlled_commitments.sum(&:max_approval_score) +
+      @requests.sum(&:max_allocation_score)
+    actual_score =
+      @controlled_commitments.sum(&:approval_score) +
+      @requests.sum(&:allocation_score)
     percentage = (actual_score.to_f * 100.0) / potential_score.to_f
     "#{'%.1f' % percentage}%"
   end

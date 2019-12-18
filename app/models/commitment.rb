@@ -928,6 +928,10 @@ class Commitment < ActiveRecord::Base
     end
   end
 
+  def max_approval_score
+    3
+  end
+
   def self.populate_statuses
     raise "Last version containing working Commitment::populate_statuses is 1.3.1"
   end
