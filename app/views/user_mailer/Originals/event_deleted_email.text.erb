@@ -1,0 +1,21 @@
+<%= @subject %>
+
+<%= @event.body %>
+
+<%= @event.starts_at.strftime('%d/%m/%Y') %> at <%= @event.starts_at.strftime('%H:%M') %>
+
+<%= @user_name %> has completely deleted this event from
+Scheduler meaning that <% if @quantity.nil? -%>
+the previously approved request for
+<% else -%>
+the request for
+<% end %>
+
+    <%= @quantity.nil? ? @resource.name : pluralize(@quantity, @resource.name) %>
+
+<% if @quantity.nil? -%>
+has gone away.
+<% else -%>
+has been cancelled after <%= @allocated %> had been allocated.
+<% end -%>
+

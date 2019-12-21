@@ -216,6 +216,30 @@ class UserMailer < ActionMailer::Base
                      user)
   end
 
+  def event_deleted_email(
+    owner,        # The owner of the resource
+    resource,     # The resource - an element
+    event,        # The event being deleted
+    quantity,     # The quantity requested, or nil
+    allocated,    # The number already allocated
+    user)         # The person who did the deed
+
+    @resource      = resource
+    @event         = event
+    @event_summary = EventSummary.new(@event)
+    @subject       = "Event using #{@resource.name} deleted"
+    @quantity      = quantity
+    @allocated     = allocated
+    @user_name     = user.name
+    @um_functional_styling = true
+    parameters = {
+      to:      owner.email,
+      from:    Setting.from_email_address,
+      subject: @subject
+    }
+    mail(parameters)
+  end
+
   def resource_batch_email(owner, resource, record, user, general_title)
     @resource      = resource
     @record        = record

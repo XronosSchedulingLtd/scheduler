@@ -393,7 +393,16 @@ class RequestNotifier
           end
         end
       end
-      event.requests.each do |request|
+      #
+      #  If any requested resources have been allocated to
+      #  the event then the resource controllers are going to
+      #  get the "Event deleted" e-mail regardless.
+      #
+      #  It therefore does not make sense to send them the elective
+      #  one as well.  Send the elective e-mail only for those
+      #  where nothing has yet been allocated.
+      #
+      event.requests.none_allocated.each do |request|
         resource = request.element
         resource.owners.each do |owner|
           if owner.immediate_notification
@@ -406,9 +415,46 @@ class RequestNotifier
           end
         end
       end
+      #
+      #  Are there any commitments which have been approved, or requests
+      #  for which resources have been allocated.  If so, then send an
+      #  e-mail to all relevant administrators telling them about it.
+      #
+      #  This should be an exceptional circumstance and they need to
+      #  know about it.
+      #
+      #  For commitments, "constraining" means it has been approved.
+      #  For requests, "constraining" means at least one has been allocated
+      #
+      event.commitments.constraining.each do |c|
+        resource = c.element
+        resource.owners.each do |owner|
+          #
+          #  Note that we don't do the "immediate_notification" check
+          #  here.  You can't opt out of these ones.
+          #
+          UserMailer.event_deleted_email(owner,
+                                         resource,
+                                         event,
+                                         nil,
+                                         nil,
+                                         user).deliver_now
+        end
+      end
+      event.requests.constraining.each do |r|
+        resource = r.element
+        resource.owners.each do |owner|
+          UserMailer.event_deleted_email(owner,
+                                         resource,
+                                         event,
+                                         r.quantity,
+                                         r.num_allocated,
+                                         user).deliver_now
+        end
+      end
     else
       #
-      #  Has the user deleted any signficant elements in the course
+      #  Has the user deleted any significant elements in the course
       #  of this editing session?
       #
       @elements_removed.each do |er|
