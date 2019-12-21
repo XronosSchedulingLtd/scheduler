@@ -298,5 +298,7 @@ Rails.application.routes.draw do
     put 'sessions/test_login' => 'sessions#test_login', as: :test_login
   end
 
-  match '*path', via: :all, to: 'pages#error_404'
+  if Rails.env.production?
+    match '*path', via: :all, to: 'pages#error_404'
+  end
 end
