@@ -39,4 +39,8 @@ class LocationTest < ActiveSupport::TestCase
     location = Location.create(name: "Googol", num_invigilators: nil)
     assert_not location.valid?
   end
+
+  test "each location has a weighting (default 100)" do
+    assert_equal 100, @location1.weighting
+  end
 end
