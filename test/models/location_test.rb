@@ -43,4 +43,15 @@ class LocationTest < ActiveSupport::TestCase
   test "each location has a weighting (default 100)" do
     assert_equal 100, @location1.weighting
   end
+
+  test "weighting must be present" do
+    @location1.weighting = nil
+    assert_not @location1.valid?
+  end
+
+  test "weighting must be numerical" do
+    @location1.weighting = "fred"
+    assert_not @location1.valid?
+  end
+
 end

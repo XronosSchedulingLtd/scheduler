@@ -7,6 +7,8 @@ class Location < ActiveRecord::Base
 
   validates :name, presence: true
   validates :num_invigilators, presence: true
+  validates :weighting, presence: true
+  validates :weighting, numericality: true
 
   has_many :locationaliases, :dependent => :nullify
 
