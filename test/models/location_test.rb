@@ -54,4 +54,18 @@ class LocationTest < ActiveSupport::TestCase
     assert_not @location1.valid?
   end
 
+  test "can't be subsidiary to itself" do
+    @location1.subsidiary_to = @location1
+    assert_not @location1.valid?
+  end
+
+  test "can't have a subsidiary loop" do
+    location2 = FactoryBot.create(:location, subsidiary_to: @location1)
+    assert location2.valid?
+    location3 = FactoryBot.create(:location, subsidiary_to: @location2)
+    assert location3.valid?
+    @location1.subsidiary_to = location3
+    assert_not @location1.valid?
+  end
+
 end

@@ -1,16 +1,41 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
+class SubsidiaryValidator < ActiveModel::Validator
+
+  def validate(record)
+    #
+    #  Can't have a circular hierarchy of subsidiaries.
+    #
+    if record.subsidiary_to
+      if record.subsidiary_to == record
+        record.errors[:subsidiary_to] << "can't be subsidiary to itself" 
+      end
+      #
+      #  Should go on and check for a more complicated loop.
+      #
+    end
+  end
+
+end
+
 class Location < ActiveRecord::Base
+
+  has_many :locationaliases, :dependent => :nullify
+
+  #
+  #  Locations can have a hierarchy of subsidiaries.
+  #
+  has_many :subsidiaries, foreign_key: :subsidiary_to_id, class_name: :Location
+  belongs_to :subsidiary_to, class_name: :Location
 
   validates :name, presence: true
   validates :num_invigilators, presence: true
   validates :weighting, presence: true
   validates :weighting, numericality: true
-
-  has_many :locationaliases, :dependent => :nullify
+  validates_with SubsidiaryValidator
 
   include Elemental
 

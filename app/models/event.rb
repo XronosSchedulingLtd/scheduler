@@ -979,12 +979,28 @@ class Event < ActiveRecord::Base
   #  Provide a list of the locations explicitly attached to this
   #  event, in the order in which they were attached.
   #
-  def sorted_locations
-    self.firm_commitments.
+  #  Filter them according to the spread if given.
+  #
+  #  If spread is nil, we want them all.  If spread is numeric
+  #  then we go for the highest weighted location, plus all others
+  #  whose weightings fall within the indicated spread.
+  #
+  #  The range is inclusive.  Given a max weighting of 150 and a
+  #  spread of 20, a location with a weighting of 130 will be included.
+  #
+  def locations_for_ical(spread)
+    locations = self.firm_commitments.
          sort_by {|c| c.id}.
          collect {|c| c.element}.
          select {|e| e.entity_type == "Location"}.
          collect {|e| e.entity}
+    unless locations.empty?
+      if spread
+        max_weighting = locations.max_by(&:weighting).weighting
+        locations = locations.select {|l| l.weighting >= max_weighting - spread}
+      end
+    end
+    locations
   end
 
   #

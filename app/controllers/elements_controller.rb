@@ -429,6 +429,7 @@ class ElementsController < ApplicationController
       include_cover = true
       include_non_cover = true
       customer_categories = nil
+      spread              = nil
       remove_categories = []
       era = Setting.previous_era || Setting.current_era
       starts_on = era.starts_on
@@ -518,6 +519,15 @@ class ElementsController < ApplicationController
           end
         end
         #raise customer_categories.inspect
+      end
+      #
+      #  A requirement has arisen to limit the locations put
+      #  out on some ical feeds.  Where a public event involves
+      #  a lot of locations, typically we don't want to list
+      #  them all in the feed.
+      #
+      if params[:spread]
+        spread = params[:spread].to_i
       end
       #
       #  That concludes processing relating to modifiers to the
@@ -662,7 +672,7 @@ class ElementsController < ApplicationController
               event.dtstart = dbevent.starts_at
               event.dtend   = dbevent.ends_at
             end
-            locations = dbevent.sorted_locations
+            locations = dbevent.locations_for_ical(spread)
             if locations.size > 0
               event.location = locations.collect {|l| l.friendly_name}.join(",")
             end
