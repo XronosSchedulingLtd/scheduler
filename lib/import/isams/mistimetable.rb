@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2018 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -527,9 +527,11 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
     #  It assumes that the data coming from iSAMS will be correct.
     #  Needs reinforcing.
     #
-    group = loader.oh_groups_hash[@group.ident]
-    if group
-      @groups << group
+    if @group
+      group = loader.oh_groups_hash[@group.ident]
+      if group
+        @groups << group
+      end
     end
     @teacher_ids.each do |teacher_id|
       staff = loader.secondary_staff_hash[teacher_id]

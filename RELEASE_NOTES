@@ -1,3 +1,14 @@
+v1.9.1.2  2020-01-03
+
+* Hotfix to iSAMS data import
+
+  A problem became apparent in the import of activity data from iSAMS.
+  An activity group was deleted but the corresponding events still
+  existed, causing the Scheduler import process to trip out.
+
+  The importer has been fixed to cope with this anomaly.
+
+
 v1.9.1.1  2019-12-04
 
 * Fix to traditional twin-wrapping of events.
