@@ -12,10 +12,9 @@ class SubsidiaryValidator < ActiveModel::Validator
     if record.subsidiary_to
       if record.subsidiary_to == record
         record.errors[:subsidiary_to] << "can't be subsidiary to itself" 
+      elsif record.superiors.include?(record)
+        record.errors[:subsidiary_to] << "creates a subsidiary loop" 
       end
-      #
-      #  Should go on and check for a more complicated loop.
-      #
     end
   end
 
@@ -28,7 +27,10 @@ class Location < ActiveRecord::Base
   #
   #  Locations can have a hierarchy of subsidiaries.
   #
-  has_many :subsidiaries, foreign_key: :subsidiary_to_id, class_name: :Location
+  has_many :subsidiaries,
+           foreign_key: :subsidiary_to_id,
+           class_name: :Location,
+           dependent: :nullify
   belongs_to :subsidiary_to, class_name: :Location
 
   validates :name, presence: true
@@ -215,6 +217,33 @@ class Location < ActiveRecord::Base
       puts message
     end
     nil
+  end
+
+  def subsidiary?
+    !!self.subsidiary_to
+  end
+
+  #
+  #  Assemble a list of locations superior to this one.
+  #
+  #  Note that, although we don't allow loops, this method
+  #  is used in the validation code to check for loops so it
+  #  must cope with temporary loops.
+  #
+  #  Clients are not expected to pass in a parameter.  That's
+  #  there for recursion purposes.
+  #
+  #  Note that Ruby passes arrays by reference, so modifications
+  #  within a recursive call still get back to the caller.
+  #
+  def superiors(working = [])
+    if self.subsidiary_to
+      unless working.include?(self.subsidiary_to)
+        working << self.subsidiary_to
+        self.subsidiary_to.superiors(working)
+      end
+    end
+    working
   end
 
 end

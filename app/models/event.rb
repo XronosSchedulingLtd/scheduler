@@ -995,6 +995,20 @@ class Event < ActiveRecord::Base
          select {|e| e.entity_type == "Location"}.
          collect {|e| e.entity}
     unless locations.empty?
+      #
+      #  First get rid of any subsidiary locations.
+      #  For each location, find all its superiors and if any of those
+      #  is also in the list of locations then we don't want this
+      #  location.
+      #
+      #  Note that we don't modify the locations array until we've
+      #  processed all its members.
+      #
+      non_subs = locations.select {|l| (l.superiors & locations).empty?}
+      locations = non_subs
+      #
+      #  Then handle any requested spread.
+      #
       if spread
         max_weighting = locations.max_by(&:weighting).weighting
         locations = locations.select {|l| l.weighting >= max_weighting - spread}

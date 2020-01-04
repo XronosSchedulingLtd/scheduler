@@ -8,8 +8,8 @@ class ElementTest < ActiveSupport::TestCase
     @location3 = FactoryBot.create(:location, weighting: 130)
     @location4 = FactoryBot.create(:location, weighting: 129)
     @all_locations = [@location1, @location2, @location3, @location4]
-    @included_locations = [@location1, @location3]
-    @excluded_locations = [@location2, @location4]
+    @heavy_locations = [@location1, @location3]
+    @light_locations = [@location2, @location4]
 
     @event = FactoryBot.create(:event, commitments_to: @all_locations)
   end
@@ -29,13 +29,22 @@ class ElementTest < ActiveSupport::TestCase
 
   test "locations_for_ical should observe weighting and spread" do
     locations = @event.locations_for_ical(20)
-    assert_equal @included_locations.size, locations.size
-    @included_locations.each do |l|
+    assert_equal @heavy_locations.size, locations.size
+    @heavy_locations.each do |l|
       assert locations.include?(l)
     end
-    @excluded_locations.each do |l|
+    @light_locations.each do |l|
       assert_not locations.include?(l)
     end
+  end
+
+  test "locations_for_ical should observe subsidiarity" do
+    @location2.subsidiary_to = @location1
+    @location2.save
+    @location4.subsidiary_to = @location1
+    @location4.save
+    locations = @event.locations_for_ical(nil)
+    assert_equal 2, locations.size
   end
 
 end

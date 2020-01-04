@@ -3,7 +3,7 @@ require 'test_helper'
 class LocationTest < ActiveSupport::TestCase
 
   setup do
-    @location1 = FactoryBot.create(:location)
+    @location1 = FactoryBot.create(:location, name: "Location 1")
     @inactive_location = FactoryBot.create(:location, active: false)
   end
 
@@ -29,6 +29,16 @@ class LocationTest < ActiveSupport::TestCase
     @location1.name = "Banana"
     @location1.save
     assert_not_equal org_name, @location1.element.name
+  end
+
+  test "must have a name" do
+    @location1.name = nil
+    assert_not @location1.valid?
+  end
+
+  test "must have a non-blank name" do
+    @location1.name = ""
+    assert_not @location1.valid?
   end
 
   test "number of invigilators defaults to one" do
@@ -60,12 +70,48 @@ class LocationTest < ActiveSupport::TestCase
   end
 
   test "can't have a subsidiary loop" do
-    location2 = FactoryBot.create(:location, subsidiary_to: @location1)
+    location2 = FactoryBot.create(:location,
+                                  name: "Location 2",
+                                  subsidiary_to: @location1)
     assert location2.valid?
-    location3 = FactoryBot.create(:location, subsidiary_to: @location2)
+    assert location2.subsidiary?
+    location3 = FactoryBot.create(:location,
+                                  name: "Location 3",
+                                  subsidiary_to: location2)
     assert location3.valid?
+    assert location3.subsidiary?
     @location1.subsidiary_to = location3
     assert_not @location1.valid?
   end
+
+  test "deleting superior removes subsidiarity" do
+    location2 = FactoryBot.create(:location,
+                                  name: "Location 2",
+                                  subsidiary_to: @location1)
+    assert location2.valid?
+    assert location2.subsidiary?
+    @location1.destroy
+    location2.reload
+    assert location2.valid?
+    assert_not location2.subsidiary?
+  end
+
+  test "superiors method returns correct list" do
+    location2 = FactoryBot.create(:location,
+                                  name: "Location 2",
+                                  subsidiary_to: @location1)
+    assert location2.valid?
+    assert location2.subsidiary?
+    location3 = FactoryBot.create(:location,
+                                  name: "Location 3",
+                                  subsidiary_to: location2)
+    assert location3.valid?
+    assert location3.subsidiary?
+    superiors = location3.superiors
+    assert_not superiors.include?(location3)
+    assert superiors.include?(location2)
+    assert superiors.include?(@location1)
+  end
+
 
 end
