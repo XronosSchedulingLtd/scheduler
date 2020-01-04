@@ -235,15 +235,23 @@ class Location < ActiveRecord::Base
   #
   #  Note that Ruby passes arrays by reference, so modifications
   #  within a recursive call still get back to the caller.
+  #  That means that our "seen" parameter may have been changed
+  #  when we return from a recursive call, but that doesn't matter
+  #  as we consult it only before the call.
   #
-  def superiors(working = [])
-    if self.subsidiary_to
-      unless working.include?(self.subsidiary_to)
-        working << self.subsidiary_to
-        self.subsidiary_to.superiors(working)
+  #  If we ever modify this code to allow more than one subsidiary_to,
+  #  then some use of dup will be required to rewind the changes.
+  #
+  def superiors(seen = [])
+    result = []
+    unless seen.include?(self)
+      seen << self
+      if self.subsidiary_to
+        result << self.subsidiary_to
+        result += self.subsidiary_to.superiors(seen)
       end
     end
-    working
+    result
   end
 
 end
