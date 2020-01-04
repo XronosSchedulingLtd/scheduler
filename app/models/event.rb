@@ -1004,7 +1004,26 @@ class Event < ActiveRecord::Base
       #  Note that we don't modify the locations array until we've
       #  processed all its members.
       #
-      non_subs = locations.select {|l| (l.superiors & locations).empty?}
+      location_ids = locations.collect(&:id)
+      non_subs = locations.select { |l|
+        #
+        #  Need to return true if this location is *not* subsidiary
+        #  to any of the others in the event.
+        #
+        #  This is a very slight optimisation.  If we already have
+        #  the subsidiary_to_id in our list then the answer is
+        #  very quickly arrived at without any need of any database
+        #  hits.
+        #
+        if location_ids.include?(l.subsidiary_to_id)
+          false
+        else
+          #
+          #  Need to do the hard work.
+          #
+          (l.superiors & locations).empty?
+        end
+      }
       locations = non_subs
       #
       #  Then handle any requested spread.
