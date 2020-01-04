@@ -47,4 +47,16 @@ class ElementTest < ActiveSupport::TestCase
     assert_equal 2, locations.size
   end
 
+  test "subsidiarity check works even if non-continuous" do
+    @location2.subsidiary_to = @location1
+    @location2.save
+    @location3.subsidiary_to = @location2
+    @location3.save
+    local_event = FactoryBot.create(:event,
+                                    commitments_to: [@location1, @location3])
+    locations = local_event.locations_for_ical(nil)
+    assert_equal 1, locations.size
+    assert locations.include?(@location1)
+  end
+
 end
