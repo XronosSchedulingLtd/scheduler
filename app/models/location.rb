@@ -223,6 +223,20 @@ class Location < ActiveRecord::Base
     !!self.subsidiary_to
   end
 
+  def subsidiary_to_name
+    if self.subsidiary_to
+      self.subsidiary_to.element_name
+    else
+      ""
+    end
+  end
+
+  def subsidiary_to_name=(name)
+    #
+    #  Ignore
+    #
+  end
+
   #
   #  Assemble a list of locations superior to this one.
   #

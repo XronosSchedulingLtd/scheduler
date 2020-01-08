@@ -139,6 +139,7 @@ Rails.application.routes.draw do
   resources :tutorgroups
 
   resources :locations do
+    get :autocomplete_location_name, :on => :collection
     resources :locationaliases, only: [:new, :create]
   end
 
