@@ -452,6 +452,17 @@ class RequestNotifier
                                          user).deliver_now
         end
       end
+      #
+      #  One other person who should be told is the owner of the event.
+      #
+      if event.owner && (event.owner != user)
+        UserMailer.event_deleted_email(event.owner,
+                                       nil,
+                                       event,
+                                       nil,
+                                       nil,
+                                       user).deliver_now
+      end
     else
       #
       #  Has the user deleted any significant elements in the course

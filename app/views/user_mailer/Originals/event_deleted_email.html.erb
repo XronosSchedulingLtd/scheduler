@@ -9,6 +9,7 @@
 </div>
 <div class='um-preamble'>
   <%= @user_name %> has completely deleted this event from Scheduler
+<% if @resource %>
   meaning that
   <% if @quantity.nil? %>
     the previously approved request for
@@ -25,4 +26,5 @@
   <% else %>
     has been cancelled after <%= @allocated %> had been allocated.
   <% end %>
+<% end %>
 </div>

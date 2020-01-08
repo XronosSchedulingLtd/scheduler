@@ -218,7 +218,7 @@ class UserMailer < ActionMailer::Base
 
   def event_deleted_email(
     owner,        # The owner of the resource
-    resource,     # The resource - an element
+    resource,     # The resource - an element.  May be nil.
     event,        # The event being deleted
     quantity,     # The quantity requested, or nil
     allocated,    # The number already allocated
@@ -227,7 +227,11 @@ class UserMailer < ActionMailer::Base
     @resource      = resource
     @event         = event
     @event_summary = EventSummary.new(@event)
-    @subject       = "Event using #{@resource.name} deleted"
+    if @resource
+      @subject       = "Event using #{@resource.name} deleted"
+    else
+      @subject       = "Event deleted"
+    end
     @quantity      = quantity
     @allocated     = allocated
     @user_name     = user.name
