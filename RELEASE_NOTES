@@ -1,3 +1,165 @@
+v1.9.2    2020-01-11
+
+* Add extra decode for faulty SOCS string
+
+  It was observed that some of the strings coming from SOCS seem to be
+  double-encoded.  The SOCS feed is XML so an ampersand (&) should be
+  transmitted as "&amp;".  Instead it was being sent as "&amp;amp;"
+
+  The best guess is that it has been encoded once so it can be displayed
+  quickly in an HTML page (which also requires encoding), and then again
+  for transmission as XML.
+
+  The import utility now applies a second decoding step to affected strings.
+
+* Two Gems updated for minor vulnerabilities
+
+  The Loofah Gem has been updated to version 2.3.1.  CVE-2019-15587
+    As a side effect, the Crass Gem has been updated to 1.0.5 and
+    the Nokogiri Gem has been updates to 1.10.6
+
+  The Rack Gem has been updated to version 1.6.12.  CVE-2019-16782
+
+* Show "Repeating event" message to all users
+
+  When you open the dialogue box for additional details of an event,
+  users with edit privilege for that event were shown a message,
+  "This event is one instance of a repeating set.  If you edit it..."
+
+  This message is now shown to all known users, but the "If you edit it..."
+  part appears only if you have edit permission.
+
+* Small fix to SOCS import utility
+
+  One of the options to the SOCS import utility is "--intelligent".  This
+  causes the utility to try to assign ownership of each fixture to the
+  relevant member of staff.
+
+  The utility was actually ignoring this option and behaving as if it
+  had been specified all the time, meaning you couldn't do a non-intelligent
+  import.  Fixed.
+
+* Add entity type to predictive text box
+
+  When a user is typing the name of an element, you can end up with
+  two different elements of the same name but different types (e.g.
+  Subject and Group).  The predictive text code now appends the type
+  of the element to the name being displayed in the menu to ease
+  the selection.
+
+  The type does not then appear in the value auto-filled into the
+  predictive text input field.
+
+* Compress SOCS import file after archiving
+
+  Each time an import utility runs it archives the data files for later
+  analysis if needed.  The SOCS script was archiving its input file
+  but not compressing it.  Fixed.
+
+* Add event summary to relevant e-mails
+
+  The system generates various e-mails to users when significant things
+  happen to their events (resource approved, resource allocated, etc.)
+
+  Some users were apparently assuming that because they had had one
+  resource request approved, that implied the event was all complete.
+  To try to counter this, all such e-mails now include an event summary
+  saying exactly what resources have been requested and the status
+  of each request.
+
+  There is also a numerical percentage completion figure, and only when all
+  requested items are approved/allocated does the percentage reach 100%.
+
+* Make deletion message in SOCS importer conditional on verbosity
+
+  The SOCS import process was logging event deletion even when the
+  "--verbose" option was not specified, resulting in unnecessary
+  notifications.  This message is now conditional on verbosity.
+
+* New "Event deleted" e-mail
+
+  Scheduler has long had the option to send immediate e-mails to
+  resource controllers about new or cancelled requests for their
+  resources.  For controllers who have opted to receive these
+  e-mails, they are sent every time a fresh request is entered, or
+  a pending request is removed.
+ 
+  A new and slightly different case for sending the e-mail has been
+  added.  If a request for a controlled resource has been confirmed,
+  or pooled resources (mini-buses) have been allocated, then the
+  controller gets the e-mail regardless.
+
+  Also, if an event is deleted by anyone other than the owner of the
+  event then the owner gets the e-mail.
+
+* Suppressing locations in a public calendar feed.
+
+  Two mechanisms have been added to allow for some locations to be
+  suppressed when using the ical interface to provide a public
+  calendar feed.  This is to cope with events which are making use
+  of a large number of locations, but where only some of those
+  locations should be included in the public description.
+
+  * Location weighting
+
+    Each location now has a numeric weighting - default 100.
+    This can be edited by a system administrator.
+
+    When taking an ical feed, one can now add a modifier "spread=NN"
+    and then for each event in the feed the ical generator will
+    find the location with the highest weighting and then exclude
+    all locations whose weighting is more than the spread value
+    less than that.
+
+    Thus given a location with a weighting of 150 and a specified
+    of 20, none of the locations with the default weighting of 100
+    would be included for that event.
+
+  * Subsidiary locations
+
+    Each location record also gains a field "subsidiary to".
+    By default this is blank but it can be set to be any other
+    location.
+
+    Again, when assembling details of an event for an ical feed,
+    the generator will look at all the listed locations, and omit
+    any which are subsidiary to any other location attached to
+    the event.
+
+    The "subsidiary to" property is transitive.  If A is subsidiary
+    to B, and B is subsidiary to C, then A is subsidiary to C.
+
+    The location editor will not allow any kind of circular
+    relationship to be set up.
+
+* Add "?clip" option to ical feeds
+
+  In ical feeds (as in any kind of calendar event handling) end
+  dates/datetimes are defined as being *exclusive*.  That is, the
+  end date/datetime given is not itself part of the event.
+
+  At least one piece of client software has been find which does not
+  implement this correctly, and considers an event ending at exactly
+  midnight to extend into the next day.
+
+  Since it isn't apparently possible to fix the client code, a
+  workaround has been added to Scheduler's ical feeds.  If the
+  client specifies "?clip" as part of the URL used, then the
+  ical generator will modify the end time for any timed event of
+  non-zero duration which ends at exactly midnight.  It will
+  chop of one second and end the event instead at 23:59:59.
+
+  Using this option should be regarded as a purely interim measure
+  until the client software can be fixed.  It may well have
+  undesirable knock-on effects if anyone tries, for instance, to
+  calculate the duration of such an event.
+
+* More tests
+
+  A large number of additional tests have been added to the automated
+  test suite.
+
+
 v1.9.1.2  2020-01-03
 
 * Hotfix to iSAMS data import

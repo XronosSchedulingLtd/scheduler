@@ -154,6 +154,24 @@ class SocsFixture
       @team_urls << "[#{@team}](#{@url})"
     end
     #
+    #  SOCS sends at least some fields double-encoded.  They need to
+    #  be encoded to pass through XML, but SOCS does it twice.
+    #
+    #  Thus "&" gets turned into not "&amp;" as it should be but
+    #  into "&amp;amp;".  The XML library which we're using copes
+    #  with the first level, but quite correctly does not attempt
+    #  to recurse.
+    #
+    #  I suspect it's because they have encoded the text for display
+    #  as HTML, then forgotten it was like that before sending it
+    #  out on the feed.
+    #
+    #  In any case, try to decode it.
+    #
+    unless @opposition.blank?
+      @opposition = Nokogiri::HTML.parse(@opposition).text
+    end
+    #
     #  Let's sort out the timing as best we can from the texts which
     #  we've been given.  Currently they are just text, but we want
     #  TimeWithZone objects.

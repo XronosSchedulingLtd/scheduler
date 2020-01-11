@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191120120124) do
+ActiveRecord::Schema.define(version: 20200102153120) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -378,6 +378,8 @@ ActiveRecord::Schema.define(version: 20191120120124) do
     t.datetime "updated_at"
     t.boolean  "current",                      default: false
     t.integer  "num_invigilators", limit: 4,   default: 1
+    t.integer  "weighting",        limit: 4,   default: 100
+    t.integer  "subsidiary_to_id", limit: 4
   end
 
   create_table "memberships", force: :cascade do |t|

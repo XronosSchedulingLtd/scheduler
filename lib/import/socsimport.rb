@@ -115,7 +115,9 @@ else
         #  it can affect the ownership of the event.
         #
         property_element = property_engine.find(fixture.sport)
-        if property_element && property_element.owned?
+        if options.intelligent_ownerships &&
+            property_element &&
+            property_element.owned?
           calculated_owner = property_element.owners.first || default_owner
         else
           calculated_owner = default_owner
@@ -128,6 +130,9 @@ else
           #
           do_save = false
           if existing_event.body != fixture.event_body
+            if options.verbose
+              puts "Changing \"#{existing_event.body}\" to \"#{fixture.event_body}\""
+            end
             existing_event.body = fixture.event_body
             do_save = true
           end
@@ -268,7 +273,7 @@ else
       #  And any left now in the "existing" array are surplus.
       #
       unless existing_events.count == 0
-        puts "Deleting #{existing_events.count} events on #{date.to_s(:dmy)}"
+        puts "Deleting #{existing_events.count} events on #{date.to_s(:dmy)}" if options.verbose
         events_deleted += existing_events.count
         existing_events.each do |event|
           event.destroy
