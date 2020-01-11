@@ -9,9 +9,15 @@ class EventTest < ActiveSupport::TestCase
     @location = FactoryBot.create(:location)
   end
 
-  test "event factory can add resources" do
-    event = FactoryBot.create(:event, resources: [@property, @location])
+  test "event factory can add commitments" do
+    event = FactoryBot.create(:event, commitments_to: [@property, @location])
     assert_equal 2, event.resources.count
+  end
+
+  test "event factory can add requests" do
+    event = FactoryBot.create(:event, requests_for: { @property => 2 })
+    assert_equal 1, event.requests.count
+    assert_equal 2, event.requests[0].quantity
   end
 
   test "should have a confidential flag" do

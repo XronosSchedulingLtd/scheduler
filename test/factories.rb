@@ -12,7 +12,25 @@ FactoryBot.define do
   end
 
   factory :property do
+    transient do
+      owner { nil }
+    end
+
     sequence(:name) { |n| "Property number #{n}" }
+    after(:create) do |property, evaluator|
+      if evaluator.owner
+        #
+        #  The requester would like this to be an owned property,
+        #  which means creating a Concern linking it to the indicated
+        #  owner.
+        #
+        property.element.concerns.create!({
+          user: evaluator.owner,
+          owns: true,
+          colour: evaluator.owner.free_colour
+        })
+      end
+    end
   end
 
 #
@@ -34,6 +52,10 @@ FactoryBot.define do
 #  the models and shove stuff in the database directly.
 #
   factory :group do
+    transient do
+      chosen_persona { 'Vanillagrouppersona' }
+    end
+
     sequence(:name) { |n| "Group number #{n}" }
     era
     #
@@ -43,7 +65,7 @@ FactoryBot.define do
     #  or maybe it's just not documented.
     #
     starts_on     { Date.today }
-    add_attribute(:persona_class) { 'Vanillagrouppersona' }
+    add_attribute(:persona_class) { chosen_persona }
     current { true }
   end
 
@@ -242,19 +264,45 @@ FactoryBot.define do
 
   factory :event do
     transient do
-      resources { [] }
+      #
+      #  To add resources to your new event, pass them in to
+      #  these two.
+      #
+      #  For commitments, pass an array of entities (not elements).
+      #  For requests, pass a hash of entity + quantity.
+      #
+      #  E.g. { Minibus => 2, Mobile phone => 1 }
+      #
+      #  A bit odd to use a whole ActiveRecord object as the key,
+      #  but this only a test harness.  As long as it works,...
+      #  and apparently it does.
+      #
+      commitments_to { [] }
+      requests_for { {} }
     end
 
     sequence(:body) { |n| "Event #{n}" }
     eventcategory
     eventsource
+    owner     { nil }   # System event by default
     starts_at { Time.now }
     ends_at   { Time.now + 1.hour }
 
     after(:create) do |event, evaluator|
-      evaluator.resources.each do |resource|
+      evaluator.commitments_to.each do |resource|
         event.commitments.create({
           element: resource.element
+        }) do |commitment|
+          if evaluator.owner
+            commitment.set_appropriate_approval_status_for(
+              evaluator.owner)
+          end
+        end
+      end
+      evaluator.requests_for.each do |resource, quantity|
+        event.requests.create({
+          element: resource.element,
+          quantity: quantity
         })
       end
     end

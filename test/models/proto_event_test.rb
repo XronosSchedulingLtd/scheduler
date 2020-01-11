@@ -26,7 +26,7 @@ class ProtoEventTest < ActiveSupport::TestCase
         :event,
         starts_at: Tod::TimeOfDay.parse("13:30").on(Date.today),
         ends_at: Tod::TimeOfDay.parse("16:00").on(Date.today),
-        resources: [selector, @location])
+        commitments_to: [selector, @location])
   end
 
   test "have source and category" do

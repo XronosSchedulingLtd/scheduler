@@ -397,11 +397,10 @@ class Request < ActiveRecord::Base
   end
 
   def form_status
-    if self.user_form_response
+    if ufr = self.user_form_response
       #
       #  Currently cope with only one.
       #
-      ufr = self.user_form_response
       if self.commitments.empty?
         if ufr.complete?
           "Complete"
@@ -416,6 +415,75 @@ class Request < ActiveRecord::Base
     else
       "None"
     end
+  end
+
+  def allocated_resource_elements
+    self.commitments.collect {|c| c.element}
+  end
+
+  def allocation_status
+    if self.num_allocated == 0
+      #
+      #  Is there a form, and if so how is it?
+      #
+      if ufr = self.user_form_response
+        if ufr.complete?
+          "form completed - awaiting allocation"
+        elsif ufr.partial?
+          "form partially completed"
+        else
+          "form neeeds filling in"
+        end
+      else
+        "awaiting allocation"
+      end
+    else
+      if self.num_outstanding == 0
+        #
+        #  All is hunky.
+        #
+        "allocated, #{
+          self.allocated_resource_elements.
+               collect { |re| re.name }.
+               join(",")
+         }"
+      else
+        #
+        #  Some, but not all, have been allocated.
+        #
+        "#{self.num_allocated} allocated, #{
+          self.allocated_resource_elements.
+               collect { |re| re.name }.
+               join(",")
+         }"
+        
+      end
+    end
+  end
+
+  def allocation_score
+    if self.num_allocated == 0
+      #
+      #  Is there a form, and if so how is it?
+      #
+      if ufr = self.user_form_response
+        if ufr.complete?
+          2
+        elsif ufr.partial?
+          1
+        else
+          0
+        end
+      else
+        2
+      end
+    else
+      2 + self.num_allocated
+    end
+  end
+
+  def max_allocation_score
+    2 + self.quantity
   end
 
   #

@@ -65,6 +65,10 @@ class Commitment < ActiveRecord::Base
                                       Commitment.statuses[:rejected]) }
   scope :constraining, -> { where("commitments.status = ?",
                                   Commitment.statuses[:confirmed]) }
+  scope :uncontrolled, -> { where("commitments.status = ?",
+                                  Commitment.statuses[:uncontrolled]) }
+  scope :controlled, -> { where.not("commitments.status = ?",
+                                  Commitment.statuses[:uncontrolled]) }
   scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}
   #
   #  The next one is for the overnight notification code.
@@ -856,6 +860,76 @@ class Commitment < ActiveRecord::Base
     else
       "None"
     end
+  end
+
+  def approval_status
+    case self.status.to_sym
+
+    when :uncontrolled
+      "no approval needed"
+
+    when :confirmed
+      "approved"
+
+    when :requested
+      if ufr = self.user_form_response
+        if ufr.complete?
+          "form completed - awaiting approval"
+        elsif ufr.partial?
+          "form partially completed"
+        else
+          "form needs filling in"
+        end
+      else
+        "awaiting approval"
+      end
+
+    when :rejected
+      "rejected"
+
+    when :noted
+      "noted"
+
+    else
+      "Other"
+    end
+  end
+
+  #
+  #  Similar to the above, but gives a score out of 3.
+  #
+  def approval_score
+    case self.status.to_sym
+
+    when :uncontrolled, :confirmed
+      3
+
+    when :requested
+      if ufr = self.user_form_response
+        if ufr.complete?
+          2
+        elsif ufr.partial?
+          1
+        else
+          0
+        end
+      else
+        2
+      end
+
+    when :rejected
+      0
+
+    when :noted
+      1
+
+    else
+      0
+    end
+  end
+
+  def max_approval_score
+    3
   end
 
   def self.populate_statuses

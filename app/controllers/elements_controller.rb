@@ -219,7 +219,7 @@ class ElementsController < ApplicationController
   #
   #autocomplete :element, :name, :scopes => [:current, :mine_or_system], :full => true
 
-  def do_autocomplete(selector, org_term)
+  def do_autocomplete(selector, org_term, add_suffix = false)
     term = org_term.split(" ").join("%")
     elements =
       selector.current.
@@ -228,17 +228,26 @@ class ElementsController < ApplicationController
               order("LENGTH(elements.name)").
               order(:name).
               all
+    #
+    #  I would quite like at this point to format the entity type,
+    #  perhaps smaller and in italic font, but it seems that that
+    #  needs to be done in JavaScript.  Leave it for another day.
+    #
+    # "#{element.name} - <span class='entity-type'>#{element.entity_type}</span>" :
+    #
     render json: elements.map { |element|
       {
         id:    element.id,
-        label: element.name,
+        label: add_suffix ?
+               "#{element.name} - #{element.entity_type}" :
+               element.name,
         value: element.name
       }
     }
   end
 
   def autocomplete_element_name
-    do_autocomplete(Element, params[:term])
+    do_autocomplete(Element, params[:term], true)
   end
 
   def autocomplete_staff_element_name
@@ -258,11 +267,11 @@ class ElementsController < ApplicationController
   end
 
   def autocomplete_direct_add_element_name
-    do_autocomplete(Element.add_directly, params[:term])
+    do_autocomplete(Element.add_directly, params[:term], true)
   end
 
   def autocomplete_viewable_element_name
-    do_autocomplete(Element.viewable, params[:term])
+    do_autocomplete(Element.viewable, params[:term], true)
   end
 
   #
@@ -414,12 +423,14 @@ class ElementsController < ApplicationController
       any_params    = false
       by_initials   = false
       everything    = false
+      do_clip       = false
       prefix = "notset"
       calendar_name = "notset"
       calendar_description = "notset"
       include_cover = true
       include_non_cover = true
       customer_categories = nil
+      spread              = nil
       remove_categories = []
       era = Setting.previous_era || Setting.current_era
       starts_on = era.starts_on
@@ -509,6 +520,32 @@ class ElementsController < ApplicationController
           end
         end
         #raise customer_categories.inspect
+      end
+      #
+      #  A requirement has arisen to limit the locations put
+      #  out on some ical feeds.  Where a public event involves
+      #  a lot of locations, typically we don't want to list
+      #  them all in the feed.
+      #
+      if params[:spread]
+        any_params = true
+        spread = params[:spread].to_i
+      end
+      #
+      #  Some client code fails to process correctly timed events
+      #  which end at exactly midnight.  Given an event on, say,
+      #  2020-01-05 which ends at exactly midnight the end time
+      #  is 2020-01-06 00:00:00.  This is an exclusive end time
+      #  so the event should not be seen as occurring on the 6th,
+      #  but some clients get this wrong.
+      #
+      #  If you have a faulty client like this then specify
+      #  ?clip on your URL and such events will have their end
+      #  times amended to be 23:59:59 instead.
+      #
+      if params.has_key?(:clip)
+        any_params = true
+        do_clip = true
       end
       #
       #  That concludes processing relating to modifiers to the
@@ -651,9 +688,19 @@ class ElementsController < ApplicationController
               event.dtend   = dbevent.ends_at.to_date
             else
               event.dtstart = dbevent.starts_at
-              event.dtend   = dbevent.ends_at
+              #
+              #  We clip only if the end time is midnight and the
+              #  event has non-zero duration.
+              #
+              if do_clip &&
+                 dbevent.ends_at.midnight? &&
+                 (dbevent.ends_at > dbevent.starts_at)
+                event.dtend = dbevent.ends_at - 1.second
+              else
+                event.dtend   = dbevent.ends_at
+              end
             end
-            locations = dbevent.sorted_locations
+            locations = dbevent.locations_for_ical(spread)
             if locations.size > 0
               event.location = locations.collect {|l| l.friendly_name}.join(",")
             end

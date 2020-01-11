@@ -979,12 +979,61 @@ class Event < ActiveRecord::Base
   #  Provide a list of the locations explicitly attached to this
   #  event, in the order in which they were attached.
   #
-  def sorted_locations
-    self.firm_commitments.
+  #  Filter them according to the spread if given.
+  #
+  #  If spread is nil, we want them all.  If spread is numeric
+  #  then we go for the highest weighted location, plus all others
+  #  whose weightings fall within the indicated spread.
+  #
+  #  The range is inclusive.  Given a max weighting of 150 and a
+  #  spread of 20, a location with a weighting of 130 will be included.
+  #
+  def locations_for_ical(spread)
+    locations = self.firm_commitments.
          sort_by {|c| c.id}.
          collect {|c| c.element}.
          select {|e| e.entity_type == "Location"}.
          collect {|e| e.entity}
+    unless locations.empty?
+      #
+      #  First get rid of any subsidiary locations.
+      #  For each location, find all its superiors and if any of those
+      #  is also in the list of locations then we don't want this
+      #  location.
+      #
+      #  Note that we don't modify the locations array until we've
+      #  processed all its members.
+      #
+      location_ids = locations.collect(&:id)
+      non_subs = locations.select { |l|
+        #
+        #  Need to return true if this location is *not* subsidiary
+        #  to any of the others in the event.
+        #
+        #  This is a very slight optimisation.  If we already have
+        #  the subsidiary_to_id in our list then the answer is
+        #  very quickly arrived at without any need of any database
+        #  hits.
+        #
+        if location_ids.include?(l.subsidiary_to_id)
+          false
+        else
+          #
+          #  Need to do the hard work.
+          #
+          (l.superiors & locations).empty?
+        end
+      }
+      locations = non_subs
+      #
+      #  Then handle any requested spread.
+      #
+      if spread
+        max_weighting = locations.max_by(&:weighting).weighting
+        locations = locations.select {|l| l.weighting >= max_weighting - spread}
+      end
+    end
+    locations
   end
 
   #

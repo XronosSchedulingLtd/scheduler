@@ -1,14 +1,43 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
+class SubsidiaryValidator < ActiveModel::Validator
+
+  def validate(record)
+    #
+    #  Can't have a circular hierarchy of subsidiaries.
+    #
+    if record.subsidiary_to
+      if record.subsidiary_to == record
+        record.errors[:subsidiary_to] << "can't be subsidiary to itself" 
+      elsif record.superiors.include?(record)
+        record.errors[:subsidiary_to] << "creates a subsidiary loop" 
+      end
+    end
+  end
+
+end
+
 class Location < ActiveRecord::Base
+
+  has_many :locationaliases, :dependent => :nullify
+
+  #
+  #  Locations can have a hierarchy of subsidiaries.
+  #
+  has_many :subsidiaries,
+           foreign_key: :subsidiary_to_id,
+           class_name: :Location,
+           dependent: :nullify
+  belongs_to :subsidiary_to, class_name: :Location
 
   validates :name, presence: true
   validates :num_invigilators, presence: true
-
-  has_many :locationaliases, :dependent => :nullify
+  validates :weighting, presence: true
+  validates :weighting, numericality: true
+  validates_with SubsidiaryValidator
 
   include Elemental
 
@@ -188,6 +217,55 @@ class Location < ActiveRecord::Base
       puts message
     end
     nil
+  end
+
+  def subsidiary?
+    !!self.subsidiary_to
+  end
+
+  def subsidiary_to_name
+    if self.subsidiary_to
+      self.subsidiary_to.element_name
+    else
+      ""
+    end
+  end
+
+  def subsidiary_to_name=(name)
+    #
+    #  Ignore
+    #
+  end
+
+  #
+  #  Assemble a list of locations superior to this one.
+  #
+  #  Note that, although we don't allow loops, this method
+  #  is used in the validation code to check for loops so it
+  #  must cope with temporary loops.
+  #
+  #  Clients are not expected to pass in a parameter.  That's
+  #  there for recursion purposes.
+  #
+  #  Note that Ruby passes arrays by reference, so modifications
+  #  within a recursive call still get back to the caller.
+  #  That means that our "seen" parameter may have been changed
+  #  when we return from a recursive call, but that doesn't matter
+  #  as we consult it only before the call.
+  #
+  #  If we ever modify this code to allow more than one subsidiary_to,
+  #  then some use of dup will be required to rewind the changes.
+  #
+  def superiors(seen = [])
+    result = []
+    unless seen.include?(self)
+      seen << self
+      if self.subsidiary_to
+        result << self.subsidiary_to
+        result += self.subsidiary_to.superiors(seen)
+      end
+    end
+    result
   end
 
 end

@@ -81,19 +81,19 @@ class ExamRoomManagerTest < ActiveSupport::TestCase
         :event,
         starts_at: Tod::TimeOfDay.parse("08:45").on(Date.today),
         ends_at: Tod::TimeOfDay.parse("12:00").on(Date.today),
-        resources: [@selector_property, @location1, @location2])
+        commitments_to: [@selector_property, @location1, @location2])
     @event2 =
       FactoryBot.create(
         :event,
         starts_at: Tod::TimeOfDay.parse("13:30").on(Date.today),
         ends_at: Tod::TimeOfDay.parse("16:00").on(Date.today),
-        resources: [@selector_property, @location1, @location2])
+        commitments_to: [@selector_property, @location1, @location2])
     @event3 =
       FactoryBot.create(
         :event,
         starts_at: Tod::TimeOfDay.parse("13:30").on(Date.tomorrow),
         ends_at: Tod::TimeOfDay.parse("16:00").on(Date.tomorrow),
-        resources: [@selector_property, @location1])
+        commitments_to: [@selector_property, @location1])
     @erm = ExamRoomManager.new(@exam_cycle)
     @eventsource = Eventsource.find_by(name: "RotaSlot")
     @eventcategory = Eventcategory.cached_category("Invigilation")
@@ -189,7 +189,7 @@ class ExamRoomManagerTest < ActiveSupport::TestCase
         :event,
         starts_at: Tod::TimeOfDay.parse("12:00").on(Date.tomorrow),
         ends_at: Tod::TimeOfDay.parse("14:00").on(Date.tomorrow),
-        resources: [@selector_property, @location1])
+        commitments_to: [@selector_property, @location1])
     extended_afternoon_times = [
       ["12:00", "12:20"],
       ["12:25", "13:15"],
@@ -237,19 +237,19 @@ class ExamRoomManagerTest < ActiveSupport::TestCase
         :event,
         starts_at: Tod::TimeOfDay.parse("13:50").on(date),
         ends_at: Tod::TimeOfDay.parse("14:10").on(date),
-        resources: [@selector_property, @location1])
+        commitments_to: [@selector_property, @location1])
     event2 =
       FactoryBot.create(
         :event,
         starts_at: Tod::TimeOfDay.parse("14:15").on(date),
         ends_at: Tod::TimeOfDay.parse("14:30").on(date),
-        resources: [@selector_property, @location1])
+        commitments_to: [@selector_property, @location1])
     event3 =
       FactoryBot.create(
         :event,
         starts_at: Tod::TimeOfDay.parse("14:35").on(date),
         ends_at: Tod::TimeOfDay.parse("15:00").on(date),
-        resources: [@selector_property, @location1])
+        commitments_to: [@selector_property, @location1])
     resulting_times = [
       ["14:00", "14:10"],
       ["14:15", "14:30"],
@@ -292,19 +292,19 @@ class ExamRoomManagerTest < ActiveSupport::TestCase
         :event,
         starts_at: Tod::TimeOfDay.parse("13:50").on(date),
         ends_at: Tod::TimeOfDay.parse("14:10").on(date),
-        resources: [@selector_property, @location1])
+        commitments_to: [@selector_property, @location1])
     event2 =
       FactoryBot.create(
         :event,
         starts_at: Tod::TimeOfDay.parse("14:15").on(date),
         ends_at: Tod::TimeOfDay.parse("14:30").on(date),
-        resources: [@selector_property, @location1])
+        commitments_to: [@selector_property, @location1])
     event3 =
       FactoryBot.create(
         :event,
         starts_at: Tod::TimeOfDay.parse("14:35").on(date),
         ends_at: Tod::TimeOfDay.parse("15:20").on(date),
-        resources: [@selector_property, @location1])
+        commitments_to: [@selector_property, @location1])
     resulting_times = [
       ["14:00", "14:10"],
       ["14:15", "14:30"],

@@ -193,7 +193,7 @@ class CommitmentsController < ApplicationController
       @commitment.approve_and_save!(current_user)
       @event.reload
       @event.journal_commitment_approved(@commitment, current_user)
-      UserMailer.commitment_approved_email(@commitment, @event.complete?).
+      UserMailer.commitment_approved_email(@commitment).
                  deliver_now
       true
     else

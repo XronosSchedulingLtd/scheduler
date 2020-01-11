@@ -23,6 +23,7 @@ class UserMailer < ActionMailer::Base
   def commitment_rejected_email(commitment)
     parameters = Hash.new
     @event = commitment.event
+    @event_summary = EventSummary.new(@event)
     @element = commitment.element
     @commitment = commitment
     if commitment.reason.blank?
@@ -60,6 +61,7 @@ class UserMailer < ActionMailer::Base
   def commitment_noted_email(commitment)
     parameters = Hash.new
     @event = commitment.event
+    @event_summary = EventSummary.new(@event)
     @element = commitment.element
     @commitment = commitment
     if commitment.reason.blank?
@@ -94,12 +96,13 @@ class UserMailer < ActionMailer::Base
     end
   end
 
-  def commitment_approved_email(commitment, complete)
+  def commitment_approved_email(commitment)
     parameters = Hash.new
     @event      = commitment.event
+    @event_summary = EventSummary.new(@event)
     @element    = commitment.element
     @commitment = commitment
-    @complete   = complete
+    @complete   = @event.complete
     if commitment.by_whom
       @approver = commitment.by_whom.name
       parameters[:reply_to] = commitment.by_whom.email
@@ -213,6 +216,34 @@ class UserMailer < ActionMailer::Base
                      user)
   end
 
+  def event_deleted_email(
+    owner,        # The owner of the resource
+    resource,     # The resource - an element.  May be nil.
+    event,        # The event being deleted
+    quantity,     # The quantity requested, or nil
+    allocated,    # The number already allocated
+    user)         # The person who did the deed
+
+    @resource      = resource
+    @event         = event
+    @event_summary = EventSummary.new(@event)
+    if @resource
+      @subject       = "Event using #{@resource.name} deleted"
+    else
+      @subject       = "Event deleted"
+    end
+    @quantity      = quantity
+    @allocated     = allocated
+    @user_name     = user.name
+    @um_functional_styling = true
+    parameters = {
+      to:      owner.email,
+      from:    Setting.from_email_address,
+      subject: @subject
+    }
+    mail(parameters)
+  end
+
   def resource_batch_email(owner, resource, record, user, general_title)
     @resource      = resource
     @record        = record
@@ -298,6 +329,7 @@ class UserMailer < ActionMailer::Base
     did_pushback)
     @comment = comment
     @event = event
+    @event_summary = EventSummary.new(@event)
     @element = element
     @commenter = commenter
     @did_pushback = did_pushback

@@ -13,7 +13,7 @@ class ExamCyclesControllerTest < ActionController::TestCase
         :event,
         starts_at: Tod::TimeOfDay.parse("08:45").on(Date.today),
         ends_at: Tod::TimeOfDay.parse("12:00").on(Date.today),
-        resources: [selector_entity, location1, location2])
+        commitments_to: [selector_entity, location1, location2])
     #
     #  The above event should give 6 invigilation slots per room.
     #

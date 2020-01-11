@@ -139,6 +139,7 @@ Rails.application.routes.draw do
   resources :tutorgroups
 
   resources :locations do
+    get :autocomplete_location_name, :on => :collection
     resources :locationaliases, only: [:new, :create]
   end
 
@@ -298,5 +299,7 @@ Rails.application.routes.draw do
     put 'sessions/test_login' => 'sessions#test_login', as: :test_login
   end
 
-  match '*path', via: :all, to: 'pages#error_404'
+  if Rails.env.production?
+    match '*path', via: :all, to: 'pages#error_404'
+  end
 end
