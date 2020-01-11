@@ -423,6 +423,7 @@ class ElementsController < ApplicationController
       any_params    = false
       by_initials   = false
       everything    = false
+      do_clip       = false
       prefix = "notset"
       calendar_name = "notset"
       calendar_description = "notset"
@@ -527,7 +528,24 @@ class ElementsController < ApplicationController
       #  them all in the feed.
       #
       if params[:spread]
+        any_params = true
         spread = params[:spread].to_i
+      end
+      #
+      #  Some client code fails to process correctly timed events
+      #  which end at exactly midnight.  Given an event on, say,
+      #  2020-01-05 which ends at exactly midnight the end time
+      #  is 2020-01-06 00:00:00.  This is an exclusive end time
+      #  so the event should not be seen as occurring on the 6th,
+      #  but some clients get this wrong.
+      #
+      #  If you have a faulty client like this then specify
+      #  ?clip on your URL and such events will have their end
+      #  times amended to be 23:59:59 instead.
+      #
+      if params.has_key?(:clip)
+        any_params = true
+        do_clip = true
       end
       #
       #  That concludes processing relating to modifiers to the
@@ -670,7 +688,17 @@ class ElementsController < ApplicationController
               event.dtend   = dbevent.ends_at.to_date
             else
               event.dtstart = dbevent.starts_at
-              event.dtend   = dbevent.ends_at
+              #
+              #  We clip only if the end time is midnight and the
+              #  event has non-zero duration.
+              #
+              if do_clip &&
+                 dbevent.ends_at.midnight? &&
+                 (dbevent.ends_at > dbevent.starts_at)
+                event.dtend = dbevent.ends_at - 1.second
+              else
+                event.dtend   = dbevent.ends_at
+              end
             end
             locations = dbevent.locations_for_ical(spread)
             if locations.size > 0
