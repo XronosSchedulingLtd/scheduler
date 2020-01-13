@@ -1010,18 +1010,26 @@ class Event < ActiveRecord::Base
         #  Need to return true if this location is *not* subsidiary
         #  to any of the others in the event.
         #
-        #  This is a very slight optimisation.  If we already have
-        #  the subsidiary_to_id in our list then the answer is
-        #  very quickly arrived at without any need of any database
-        #  hits.
+        #  First check whether it is subsidiary to anything at all.
+        #  If not, then there's not point in any further checks.
         #
-        if location_ids.include?(l.subsidiary_to_id)
-          false
+        if l.subsidiary?
+          #
+          #  This is a very slight optimisation.  If we already have
+          #  the subsidiary_to_id in our list then the answer is
+          #  very quickly arrived at without any need of any database
+          #  hits.
+          #
+          if location_ids.include?(l.subsidiary_to_id)
+            false
+          else
+            #
+            #  Need to do the hard work.
+            #
+            (l.superiors & locations).empty?
+          end
         else
-          #
-          #  Need to do the hard work.
-          #
-          (l.superiors & locations).empty?
+          true
         end
       }
       locations = non_subs
