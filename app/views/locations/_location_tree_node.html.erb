@@ -1,0 +1,13 @@
+<li>
+  <%=
+    link_to(
+      location_tree_node.location.element.name,
+      edit_location_path(location_tree_node.location)
+    )
+    %>
+  <% unless location_tree_node.children.empty? %>
+    <ul class='tree-list'>
+      <%= render location_tree_node.children %>
+    </ul>
+  <% end %>
+</li>

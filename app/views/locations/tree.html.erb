@@ -1,0 +1,9 @@
+<h1>Location tree view</h1>
+
+<% if @location_tree_nodes.empty? %>
+  None
+<% else %>
+  <ul class='tree-list'>
+  <%= render @location_tree_nodes %>
+  </ul>
+<% end %>
