@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20200102153120) do
+ActiveRecord::Schema.define(version: 20200116122918) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -225,6 +225,7 @@ ActiveRecord::Schema.define(version: 20200102153120) do
     t.string   "flagcolour",          limit: 255
     t.integer  "event_collection_id", limit: 4
     t.boolean  "confidential",                      default: false
+    t.boolean  "locked",                            default: false
   end
 
   add_index "events", ["complete"], name: "index_events_on_complete", using: :btree
@@ -455,6 +456,7 @@ ActiveRecord::Schema.define(version: 20200102153120) do
     t.boolean  "auto_pupils",                  default: false
     t.boolean  "current",                      default: true
     t.boolean  "feed_as_category",             default: false
+    t.boolean  "locking",                      default: false
   end
 
   create_table "proto_commitments", force: :cascade do |t|
