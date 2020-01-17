@@ -112,6 +112,24 @@ class Commitment < ActiveRecord::Base
   end
 
   #
+  #  Note that in order for this commitment to decide whether it
+  #  is locking or not, it will need to consult its element, which in
+  #  turn will need to consult its entity.  For efficiency, if you're
+  #  going to call this a lot, it makes sense to preload them.
+  #
+  #  Commitment.includes(element: :entity).whatever
+  #
+  #  It'll still work if you don't do that, but it will take longer.
+  #
+  def locking?
+    #
+    #  Check our tentativeness first, because that's quick and if
+    #  we're tentative then there's no point in going any further.
+    #
+    !self.tentative? && self.element && self.element.can_lock?
+  end
+
+  #
   #  Is this commitment cloneable?  We may be passed a list of element
   #  ids of elements to have their commitments cloned.
   #
@@ -940,13 +958,15 @@ class Commitment < ActiveRecord::Base
 
   def update_event_after_save
     if self.event
-      self.event.update_from_contributors(self.tentative, self.constraining?)
+      self.event.update_from_contributors(self.tentative?,
+                                          self.constraining?,
+                                          self.locking?)
     end
   end
 
   def update_event_after_destroy
     if self.event
-      self.event.update_from_contributors(false, false)
+      self.event.update_from_contributors(false, false, false)
     end
   end
 

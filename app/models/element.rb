@@ -152,6 +152,13 @@ class Element < ActiveRecord::Base
   end
 
   #
+  #  We delegate this to our entity.
+  #
+  def can_lock?
+    self.entity && self.entity.can_lock?
+  end
+
+  #
   #  The start of complete re-work of how we find commitments.
   #
   #  The purpose of this method is to find a list of all the groups

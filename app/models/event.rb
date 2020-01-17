@@ -262,7 +262,11 @@ class Event < ActiveRecord::Base
   #  If it is tentative, then we can't be complete.  If it's not
   #  tentative, then we might be complete.
   #
-  def update_from_contributors(contributor_tentative, contributor_constraining)
+  def update_from_contributors(
+    contributor_tentative,
+    contributor_constraining,
+    contributor_locking = false)
+
     unless @being_destroyed || self.destroyed? || @informing_contributors
       do_save = false
       if contributor_tentative
@@ -292,6 +296,29 @@ class Event < ActiveRecord::Base
         if self.constrained
           if self.commitments.constraining.count == 0
             self.constrained = false
+            do_save = true
+          end
+        end
+      end
+      if contributor_locking
+        unless self.locked?
+          self.locked = true
+          do_save = true
+        end
+      else
+        if self.locked?
+          #
+          #  We could do a clever scope here, which selects
+          #  commitments, joined with their elements and entities
+          #  but since each event is likely to have only of the order
+          #  of 10 commitments at most we might as well just load them
+          #  and then look.
+          #
+          lockers = self.commitments.
+                         includes(element: :entity).
+                         select {|c| c.locking?}
+          if lockers.empty?
+            self.locked = false
             do_save = true
           end
         end
