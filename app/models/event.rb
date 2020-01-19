@@ -236,6 +236,8 @@ class Event < ActiveRecord::Base
   scope :confidential, lambda { where(confidential: true) }
   scope :non_confidential, lambda { where.not(confidential: true) }
 
+  scope :locked, -> { where(locked: true) }
+
   def self.owned_or_organised_by(user)
     if user.corresponding_staff
       staff_element = user.corresponding_staff.element
@@ -327,6 +329,46 @@ class Event < ActiveRecord::Base
         self.save!
       end
     end
+  end
+
+  #
+  #  A cut-down version of the previous function.
+  #
+  #  Completeness and constrainedness depend solely on the individual
+  #  commitments, but lockedness depends also on the element beyond.
+  #
+  #  It is therefore possible for an update to an element to cause
+  #  a bulk change to events and their lockedness, but not to the
+  #  other two.  Don't waste time checking them (and such checks can
+  #  be quite expensive) if all that's changed is the locking quality
+  #  of an element.
+  #
+  def update_lockedness(contributor_locking)
+    do_save = false
+    if contributor_locking
+      unless self.locked?
+        self.locked = true
+        do_save = true
+      end
+    else
+      if self.locked?
+        lockers = self.commitments.
+                       includes(element: :entity).
+                       select {|c| c.locking?}
+        if lockers.empty?
+          self.locked = false
+          do_save = true
+        end
+      end
+    end
+    if do_save
+      self.save!
+    end
+  end
+
+  def lock_and_save!
+    self.locked = true
+    self.save!
   end
 
   def update_flag_colour

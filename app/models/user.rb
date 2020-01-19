@@ -449,6 +449,15 @@ class User < ActiveRecord::Base
   end
 
   #
+  #  Basically, can the user edit the event, plus if the event is locked
+  #  is the user one of the privileged few?
+  #
+  def can_edit_body_of?(event)
+    self.can_edit?(event) &&
+      (!event.locked? || self.can_override_locking_of?(event))
+  end
+
+  #
   #  Currently, sub-editing applies only to events and requests.
   #  You can sub-edit if you are the organizer of the event.
   #
@@ -527,6 +536,20 @@ class User < ActiveRecord::Base
     staff && staff.element && (staff.element.id == event.organiser_id)
   end
 
+  def can_override_locking_of?(event)
+    #
+    #  For a locked event, see whether there are any locking
+    #  commitments which we don't have control over.  If there
+    #  are, then we can't override the locking.
+    #
+    event.commitments.
+          includes(element: :entity).
+          firm.
+          select { |c|
+            c.locking? && !self.can_delete?(c)
+          }.empty?
+  end
+
   #
   #  Can this user delete the indicated item?
   #  We can only delete our own, and sometimes not even then.
@@ -571,10 +594,33 @@ class User < ActiveRecord::Base
       element = item.element
       if event && element
         if item.request.nil?
-          self.can_edit?(event) ||
-            (self.can_subedit?(event) &&
-             !item.constraining? &&
-             !(element.owned? && item.uncontrolled?))
+          if self.can_edit?(event) ||
+               (self.can_subedit?(event) &&
+                !item.constraining? &&
+                !(element.owned? && item.uncontrolled?))
+            #
+            #  Looking hopeful, but is it a locking commitment?
+            #  We can render this slightly more efficient by checking
+            #  the event first.  It has a simple flag to say whether it
+            #  is locked or not, and if it is not locked then there
+            #  isn't a problem.  Checking the item is more expensive.
+            #
+            if event.locked? && item.locking?
+              #
+              #  Yes.  In this case we impose a further requirement that
+              #  the user is either a controller of the resource, or
+              #  at least has the "skip_permissions" flag for that resource.
+              #
+              #  Or, in other words, to be able to delete the commitment
+              #  you need to be able to create it without assistance.
+              #
+              self.could_commit?(element)
+            else
+              true
+            end
+          else
+            false
+          end
         else
           false
         end
@@ -592,7 +638,15 @@ class User < ActiveRecord::Base
     elsif item.instance_of?(Comment)
       (item.user_id == self.id) || self.admin?
     elsif item.instance_of?(Event)
-      self.can_edit?(item)
+      if self.can_edit?(item)
+        #
+        #  In principle, yes, but it might be locked
+        #  in which case we need to be more privileged.
+        #
+        !item.locked? || self.can_override_locking_of?(item)
+      else
+        false
+      end
     elsif item.instance_of?(UserFile)
       self.admin? || self.id == @user_file.owner_id
     else
@@ -701,8 +755,19 @@ class User < ActiveRecord::Base
   #  commitment.  Some users can bypass permissions, but don't actually
   #  have authority for approvals.
   #
+  #  Takes account of whether the user has temporarily turned off
+  #  his or her permission by setting the seek_permission bit.
+  #
   def can_commit?(element)
     !!concerns.can_commit.detect {|c| (c.element_id == element.id)}
+  end
+
+  #
+  #  *Could* this user commit, if he or she had not fiddled with
+  #  the seek_permission bit.
+  #
+  def could_commit?(element)
+    !!concerns.could_commit.detect {|c| (c.element_id == element.id)}
   end
 
   #

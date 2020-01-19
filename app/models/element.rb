@@ -734,6 +734,37 @@ class Element < ActiveRecord::Base
            memberships_transferred
   end
 
+  #
+  #  Not sure yet whether this will be just a maintenance method,
+  #  or called automatically when our entity is updated.  It
+  #  depends on how long it takes to run.
+  #
+  #  The idea is that it runs when the entity's "can_lock" field
+  #  is updated.  The code assumes that it *has* been changed.
+  #  That is - if it is true now then it was false before, and
+  #  vice versa.
+  #
+  def update_potentially_locked_events
+    #
+    #  Only firm commitments (:uncontrolled or :confirmed) can
+    #  influence locked-ness, so they're the only ones we need
+    #  to check.
+    #
+    #  We preload the eventcategory because if we later save the
+    #  event then a callback needs to find the eventcategory.
+    #
+    #  Likewise the eventsource, although I'm not sure why that's
+    #  needed.  If we don't pre-load it, they all get loaded individually
+    #  later.
+    #
+    self.commitments.
+         firm.
+         includes(event: [:eventcategory, :eventsource]).
+         find_each do |commitment|
+      commitment.event.update_lockedness(self.can_lock?)
+    end
+  end
+
   protected
 
   def being_destroyed
