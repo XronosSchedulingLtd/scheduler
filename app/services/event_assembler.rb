@@ -586,7 +586,12 @@ class EventAssembler
           #  * The commitment is firm (the usual case)
           #  * The current user owns the element.
           #  * The current user has the can_view_unconfirmed? flag set
+          #    and the event still has a chance of being confirmed (pending
+          #    or noted).  Rejected events are not shown by this bit.
           #  * The current user owns the event.
+          #
+          #  All of these checks are simple flags, so we do them in order
+          #  of likelihood in order to do as few as possible.
           #
           #  Tentative events (those awaiting approval) thus aren't shown
           #  in the context of the un-approved item, except to a select few.
@@ -617,10 +622,12 @@ class EventAssembler
             end
             resulting_events =
                       selector.
-                      select {|c| concern.owns ||
-                                  @current_user.can_view_unconfirmed? ||
-                                  !c.tentative? ||
-                                  c.event.owner_id == @current_user.id }.
+                      select { |c|
+                        !c.tentative? ||
+                        concern.owns? ||
+                        c.event.owner_id == @current_user.id ||
+                        (@current_user.can_view_unconfirmed? && !c.rejected?)
+                      }.
                       collect {|c| c.event}.
                       uniq.
                       collect {|e|

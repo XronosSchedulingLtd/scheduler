@@ -259,6 +259,14 @@ class Event < ActiveRecord::Base
   end
 
   #
+  #  Is this a manually entered event - as opposed to one from
+  #  another EventSource?
+  #
+  def manual?
+    self.eventsource_id == Eventsource.manual_source_id
+  end
+
+  #
   #  We are being asked to check whether we are complete or not.  The
   #  hint indicates whether or not the calling commitment is tentative.
   #  If it is tentative, then we can't be complete.  If it's not
