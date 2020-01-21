@@ -18,7 +18,7 @@
   <div class="row">
     <div class="small-9 columns">
       <label>Description</label>
-      <% if current_user.can_edit?(@event) &&
+      <% if current_user.can_edit_body_of?(@event) &&
             current_user.can_see_body_of?(@event) %>
         <%= f.text_field :real_body,
                          :id => "first_field",
@@ -74,15 +74,7 @@
           %>
       <% end %>
     </div>
-    <% if current_user.can_retime?(@event) %>
-      <%= flag_group(f, 4, 4, "Flags", [
-                     {field: :all_day_field,
-                      prompt: "All day",
-                      annotation: "The event lasts all day.  Time fields will be ignored."}]) %>
-    <% else %>
-      <div class="small-6 columns">
-      </div>
-    <% end %>
+    <%= flags_for(f, current_user, @event) %>
 
   </div>
   <div class="row">

@@ -12,6 +12,7 @@
       <th>Owners</th>
       <th>Public</th>
       <th>Current</th>
+      <th>Locking</th>
       <th colspan="2"></th>
     </tr>
   </thead>
@@ -23,6 +24,7 @@
         <td><%= property.owners_initials %></td>
         <td><%= boolean_icon(property.make_public?) %></td>
         <td><%= boolean_icon(property.current?) %></td>
+        <td><%= boolean_icon(property.locking?) %></td>
         <td><%= link_to 'Edit', edit_property_path(property) %></td>
         <td>
           <% if property.can_destroy? %>

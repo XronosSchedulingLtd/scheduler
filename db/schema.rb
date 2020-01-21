@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20200102153120) do
+ActiveRecord::Schema.define(version: 20200116122918) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -225,6 +225,7 @@ ActiveRecord::Schema.define(version: 20200102153120) do
     t.string   "flagcolour",          limit: 255
     t.integer  "event_collection_id", limit: 4
     t.boolean  "confidential",                      default: false
+    t.boolean  "locked",                            default: false
   end
 
   add_index "events", ["complete"], name: "index_events_on_complete", using: :btree
@@ -233,6 +234,7 @@ ActiveRecord::Schema.define(version: 20200102153120) do
   add_index "events", ["eventcategory_id"], name: "index_events_on_eventcategory_id", using: :btree
   add_index "events", ["eventsource_id"], name: "index_events_on_eventsource_id", using: :btree
   add_index "events", ["has_clashes"], name: "index_events_on_has_clashes", using: :btree
+  add_index "events", ["non_existent"], name: "index_events_on_non_existent", using: :btree
   add_index "events", ["organiser_id"], name: "index_events_on_organiser_id", using: :btree
   add_index "events", ["owner_id"], name: "index_events_on_owner_id", using: :btree
   add_index "events", ["proto_event_id"], name: "index_events_on_proto_event_id", using: :btree
@@ -455,6 +457,7 @@ ActiveRecord::Schema.define(version: 20200102153120) do
     t.boolean  "auto_pupils",                  default: false
     t.boolean  "current",                      default: true
     t.boolean  "feed_as_category",             default: false
+    t.boolean  "locking",                      default: false
   end
 
   create_table "proto_commitments", force: :cascade do |t|
@@ -797,6 +800,7 @@ ActiveRecord::Schema.define(version: 20200102153120) do
     t.boolean  "loading_notification",                      default: true
     t.boolean  "known",                                     default: false
     t.boolean  "can_view_journals",                         default: false
+    t.boolean  "can_make_shadows",                          default: false
   end
 
   add_index "users", ["uuid"], name: "index_users_on_uuid", unique: true, using: :btree

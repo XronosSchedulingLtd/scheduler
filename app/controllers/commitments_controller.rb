@@ -193,8 +193,10 @@ class CommitmentsController < ApplicationController
       @commitment.approve_and_save!(current_user)
       @event.reload
       @event.journal_commitment_approved(@commitment, current_user)
-      UserMailer.commitment_approved_email(@commitment).
-                 deliver_now
+      if @event.manual?
+        UserMailer.commitment_approved_email(@commitment).
+                   deliver_now
+      end
       true
     else
       false
@@ -233,7 +235,9 @@ class CommitmentsController < ApplicationController
       @commitment.reject_and_save!(current_user, params[:reason])
       @event.reload
       @event.journal_commitment_rejected(@commitment, current_user)
-      UserMailer.commitment_rejected_email(@commitment).deliver_now
+      if @event.manual?
+        UserMailer.commitment_rejected_email(@commitment).deliver_now
+      end
       if @commitment.user_form_response &&
          @commitment.user_form_response.complete?
         @commitment.user_form_response.status = :partial
@@ -276,7 +280,9 @@ class CommitmentsController < ApplicationController
       @commitment.noted_and_save!(current_user, params[:reason])
       @event.reload
       @event.journal_commitment_noted(@commitment, current_user)
-      UserMailer.commitment_noted_email(@commitment).deliver_now
+      if @event.manual?
+        UserMailer.commitment_noted_email(@commitment).deliver_now
+      end
       if @commitment.user_form_response &&
          @commitment.user_form_response.complete?
         @commitment.user_form_response.status = :partial

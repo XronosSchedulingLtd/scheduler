@@ -236,6 +236,8 @@ class Event < ActiveRecord::Base
   scope :confidential, lambda { where(confidential: true) }
   scope :non_confidential, lambda { where.not(confidential: true) }
 
+  scope :locked, -> { where(locked: true) }
+
   def self.owned_or_organised_by(user)
     if user.corresponding_staff
       staff_element = user.corresponding_staff.element
@@ -257,12 +259,24 @@ class Event < ActiveRecord::Base
   end
 
   #
+  #  Is this a manually entered event - as opposed to one from
+  #  another EventSource?
+  #
+  def manual?
+    self.eventsource_id == Eventsource.manual_source_id
+  end
+
+  #
   #  We are being asked to check whether we are complete or not.  The
   #  hint indicates whether or not the calling commitment is tentative.
   #  If it is tentative, then we can't be complete.  If it's not
   #  tentative, then we might be complete.
   #
-  def update_from_contributors(contributor_tentative, contributor_constraining)
+  def update_from_contributors(
+    contributor_tentative,
+    contributor_constraining,
+    contributor_locking = false)
+
     unless @being_destroyed || self.destroyed? || @informing_contributors
       do_save = false
       if contributor_tentative
@@ -296,10 +310,73 @@ class Event < ActiveRecord::Base
           end
         end
       end
+      if contributor_locking
+        unless self.locked?
+          self.locked = true
+          do_save = true
+        end
+      else
+        if self.locked?
+          #
+          #  We could do a clever scope here, which selects
+          #  commitments, joined with their elements and entities
+          #  but since each event is likely to have only of the order
+          #  of 10 commitments at most we might as well just load them
+          #  and then look.
+          #
+          lockers = self.commitments.
+                         includes(element: :entity).
+                         select {|c| c.locking?}
+          if lockers.empty?
+            self.locked = false
+            do_save = true
+          end
+        end
+      end
       if do_save
         self.save!
       end
     end
+  end
+
+  #
+  #  A cut-down version of the previous function.
+  #
+  #  Completeness and constrainedness depend solely on the individual
+  #  commitments, but lockedness depends also on the element beyond.
+  #
+  #  It is therefore possible for an update to an element to cause
+  #  a bulk change to events and their lockedness, but not to the
+  #  other two.  Don't waste time checking them (and such checks can
+  #  be quite expensive) if all that's changed is the locking quality
+  #  of an element.
+  #
+  def update_lockedness(contributor_locking)
+    do_save = false
+    if contributor_locking
+      unless self.locked?
+        self.locked = true
+        do_save = true
+      end
+    else
+      if self.locked?
+        lockers = self.commitments.
+                       includes(element: :entity).
+                       select {|c| c.locking?}
+        if lockers.empty?
+          self.locked = false
+          do_save = true
+        end
+      end
+    end
+    if do_save
+      self.save!
+    end
+  end
+
+  def lock_and_save!
+    self.locked = true
+    self.save!
   end
 
   def update_flag_colour
@@ -1010,18 +1087,26 @@ class Event < ActiveRecord::Base
         #  Need to return true if this location is *not* subsidiary
         #  to any of the others in the event.
         #
-        #  This is a very slight optimisation.  If we already have
-        #  the subsidiary_to_id in our list then the answer is
-        #  very quickly arrived at without any need of any database
-        #  hits.
+        #  First check whether it is subsidiary to anything at all.
+        #  If not, then there's not point in any further checks.
         #
-        if location_ids.include?(l.subsidiary_to_id)
-          false
+        if l.subsidiary?
+          #
+          #  This is a very slight optimisation.  If we already have
+          #  the subsidiary_to_id in our list then the answer is
+          #  very quickly arrived at without any need of any database
+          #  hits.
+          #
+          if location_ids.include?(l.subsidiary_to_id)
+            false
+          else
+            #
+            #  Need to do the hard work.
+            #
+            (l.superiors & locations).empty?
+          end
         else
-          #
-          #  Need to do the hard work.
-          #
-          (l.superiors & locations).empty?
+          true
         end
       }
       locations = non_subs

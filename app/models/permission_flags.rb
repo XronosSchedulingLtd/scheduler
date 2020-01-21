@@ -23,7 +23,8 @@ class PermissionFlags < Hash
     :can_edit_memberships,
     :can_api,
     :can_has_files,
-    :can_view_journals
+    :can_view_journals,
+    :can_make_shadows
   ]
 
   NICER_TEXT = {
@@ -49,7 +50,8 @@ class PermissionFlags < Hash
     can_edit_memberships: "Edit members",
     can_api:              "Can use API",
     can_has_files:        "Can upload files",
-    can_view_journals:    "Journals"
+    can_view_journals:    "Journals",
+    can_make_shadows:     "Shadow events"
   }
   NICER_TEXT.default = "Pass"
 

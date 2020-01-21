@@ -194,7 +194,10 @@ class ApprovalNotifier
         #
         #  Don't keep sending e-mails about it.
         #
-        unless element.a_person?
+        #  Likewise, we don't send nagging e-mails for any event
+        #  which was not manually entered.
+        #
+        if c.event.manual? && !element.a_person?
           email = requester_email(c)
           if email
             @rs.recipient(email).note_rejection(c)

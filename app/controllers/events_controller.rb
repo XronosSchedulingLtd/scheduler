@@ -4,9 +4,11 @@
 # for more information.
 
 class EventsController < ApplicationController
+#  before_action :set_event_plus,
+#                only: [:edit]
   before_action :set_event,
-                only: [:show,
-                       :edit,
+                only: [:edit,
+                       :show,
                        :update,
                        :moved,
                        :clone,
@@ -614,7 +616,7 @@ class EventsController < ApplicationController
   # DELETE /events/1
   # DELETE /events/1.json
   def destroy
-    if current_user.can_edit?(@event)
+    if current_user.can_delete?(@event)
       RequestNotifier.new.send_notifications_for(current_user, @event, true)
       @event.journal_event_destroyed(current_user)
       @event.destroy
@@ -726,6 +728,10 @@ class EventsController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def set_event
     @event = Event.find(params[:id])
+  end
+  
+  def set_event_plus
+    @event = Event.includes(commitments: {element: :entity}).find(params[:id])
   end
 
   # Never trust parameters from the scary internet, only allow the white list through.

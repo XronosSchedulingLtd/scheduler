@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2015 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -68,6 +68,15 @@ class Property < ActiveRecord::Base
   #
   def can_destroy?
     self.element.commitments.count == 0
+  end
+
+  #
+  #  This has a slightly different name from the database field because
+  #  it's provided by the elemental concern.  We override it because
+  #  we do actually have a locking field, whilst most entities don't.
+  #
+  def can_lock?
+    self.locking?
   end
 
 end

@@ -1,3 +1,116 @@
+v1.9.3    2020-01-21
+
+* Prevent NaN% in event resource summary.
+
+  For an event with no controlled resources, the percentage completeness
+  was coming out as NaN%.  Now shows 100%
+
+* Add tree view for locations
+
+  The previous release added the means to make locations subsidiary
+  to each other in a tree-structured way.  This release adds the means
+  to view this tree when editing.  Menu => Admin => Models => Locations =>
+  Tree view.
+
+  Locations can be edited directly from the tree view by clicking on
+  their names.
+
+* Don't repeat resource name in "event deleted" e-mail.
+
+  In the event deleted e-mail, the resource name was being added
+  to the first header in the e-mail, resulting in messy word-wrap.
+
+  It also appears further down in the body, so it's been removed
+  from the header.  It is still in the subject line.
+
+* Add the concept of locked events.
+
+  It is now possible to lock certain events in the system to prevent
+  them being edited, even by their owners.
+
+  Each event carries a "locked" flag, and this gets set when a locking
+  Property is attached to the event (either via the approvals system, or
+  directly if the Property does not require approval).
+
+  Once an event is locked, the owner can still add and remove other
+  resources (although not the locking Property) but cannot change
+  the title or delete the event.
+
+  (Any approved property already prevents the event being re-scheduled.)
+
+  The controller of the locking Property will need to be consulted
+  to remove it again.  He or she can delete it.
+
+  The idea is to allow users to submit events for inclusion in,
+  for instance, a public calendar, but once they're in there then
+  the users won't be able to arbitrarily remove them again.
+
+  Note that it doesn't really make sense to have a locking Property
+  which does not require approval.  If you create one, then users will
+  be able to add it to their events, but will never be able to remove
+  it.
+
+  If the "locking" flag is set on an existing Property it will affect
+  all events entered in the future but not those which already have
+  the property.  If it is desired to lock all the existing events
+  then the following command can be used at the Rails console:
+
+    Element.find_by(name: "whatever...").update_potentially_locked_events
+
+  It can take a minute or so to complete.
+
+* Implement some tweaks for the SOCS feed
+
+  A new requirement arose to cope with events arriving from SOCS which
+  aren't really wanted in the Scheduler database.  Typically these are
+  fixtures which have been entered by someone at the other school.
+
+  To assist in coping with them, a few changes have been made to
+  the way Scheduler handles rejected commitments.
+
+  1.  If a commitment for an event from SOCS is rejected, no
+      e-mail is generated to the events owner.
+
+  2.  Likewise, if the commitment is left in the rejected state
+      the owner won't get nightly nagging e-mails about it.
+
+  3.  Rejected events (as opposed to those awaiting approval) no
+      longer appear in the context of the rejected resource to users -
+      even users with the "View unconfirmed" permission bit set.
+      They are visible only to the event owner and the controllers
+      of the resource.
+
+  Note that Scheduler needs to retain them in its database, because
+  it needs to know that they're not wanted.  If they were simply
+  deleted then the next time the SOCS feed ran, they would be imported
+  afresh.  Likewise they need to remain visible to some users because
+  otherwise there would be no way to manage them.
+
+  Such events can thus remain in the Scheduler database, but make no
+  appearance in the public calendars.
+
+* Allow editing of the non_existent flag on events
+
+  Each event in the Scheduler database has long had a flag called
+  "non_existent".  Typically this is set to false, but if it is set to
+  true then the event is considered as not really existing.  It can
+  be seen, but it is permanently shaded out.  It won't appear in any
+  feeds.
+
+  Historically the only way this could be set was via the importer
+  from the MIS.  The importer uses Scheduler's idea of suspension intervals
+  to mark appropriate lessons in those intervals as non_existent,
+  meaning the staff and pupils are freed up for other things.  Typically
+  this happens during exams, and the invigilation component takes
+  account of these suspensions when suggesting staff to do invigilation.
+
+  Suitably privileged users can now edit this bit directly.  If an
+  event is marked as non existing (called a "Shadow event" in the UI) then
+  it is shaded out and the resources are not regarded as busy.
+
+  It may be desired to add more effects as this facility is used.
+
+
 v1.9.2    2020-01-11
 
 * Add extra decode for faulty SOCS string
