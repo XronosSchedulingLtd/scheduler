@@ -66,7 +66,8 @@ class User < ActiveRecord::Base
     can_edit_memberships: "Can this user edit membership records directly, rather than implicitly by editing the group?",
     can_api: "Can this user make direct use of the API?",
     can_has_files: "Can this user upload files to the server?",
-    can_view_journals: "Can this user view the modification journal for events?"
+    can_view_journals: "Can this user view the modification journal for events?",
+    can_make_shadows: "Can this user set the shadow flag when editing events?"
   }
   FIELD_TITLE_TEXTS.default = ""
 
@@ -454,6 +455,15 @@ class User < ActiveRecord::Base
   #
   def can_edit_body_of?(event)
     self.can_edit?(event) &&
+      (!event.locked? || self.can_override_locking_of?(event))
+  end
+
+  #
+  #  Firstly the user must have the relevant permission bit, but also
+  #  he might not be able to if the event is locked.
+  #
+  def can_beshadow?(event)
+    self.can_make_shadows? &&
       (!event.locked? || self.can_override_locking_of?(event))
   end
 

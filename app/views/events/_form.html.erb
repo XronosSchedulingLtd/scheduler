@@ -74,15 +74,7 @@
           %>
       <% end %>
     </div>
-    <% if current_user.can_retime?(@event) %>
-      <%= flag_group(f, 4, 4, "Flags", [
-                     {field: :all_day_field,
-                      prompt: "All day",
-                      annotation: "The event lasts all day.  Time fields will be ignored."}]) %>
-    <% else %>
-      <div class="small-6 columns">
-      </div>
-    <% end %>
+    <%= flags_for(f, current_user, @event) %>
 
   </div>
   <div class="row">
