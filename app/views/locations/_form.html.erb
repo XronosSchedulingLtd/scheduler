@@ -91,7 +91,11 @@
     <div class="small-9 small-offset-3 columns">
       <div class="actions">
         <%= f.submit @location.id ? "Update" : "Create", class: "zfbutton tiny radius" %>
-        <%= link_to "Cancel", locations_path, class: "zfbutton tiny radius button-link" %>
+        <%=
+          link_to("Cancel",
+                  @cancel_to ? @cancel_to : locations_path,
+                  class: "zfbutton tiny radius button-link")
+                %>
       </div>
     </div>
   </div>

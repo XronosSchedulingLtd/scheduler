@@ -188,7 +188,14 @@ class EventSummary
     actual_score =
       @controlled_commitments.sum(&:approval_score) +
       @requests.sum(&:allocation_score)
-    percentage = (actual_score.to_f * 100.0) / potential_score.to_f
+    if potential_score == 0
+      #
+      #  Avoid NaN
+      #
+      percentage = 100.0
+    else
+      percentage = (actual_score.to_f * 100.0) / potential_score.to_f
+    end
     "#{'%.1f' % percentage}%"
   end
 end

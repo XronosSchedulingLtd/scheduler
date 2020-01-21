@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2018 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -17,6 +17,16 @@ class LocationsController < ApplicationController
     end
   end
 
+  # GET /locations/tree
+  #
+  # A bit like index, but show only those in a subsidiary relationship
+  # and show them in tree form.
+  #
+  def tree
+    @location_tree_nodes =
+      LocationTreeNode.generate(Location.current.includes(:element).all)
+  end
+
   # GET /locations/1
   # GET /locations/1.json
   def show
@@ -25,12 +35,14 @@ class LocationsController < ApplicationController
   # GET /locations/new
   def new
     session[:new_location_from] = request.env['HTTP_REFERER']
+    @cancel_to = request.env['HTTP_REFERER']
     @location = Location.new
   end
 
   # GET /locations/1/edit
   def edit
     session[:editing_location_from] = request.env['HTTP_REFERER']
+    @cancel_to = request.env['HTTP_REFERER']
   end
 
   # POST /locations

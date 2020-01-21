@@ -91,20 +91,22 @@
         </div>
         <% if current_user.can_edit?(@event) %>
         <div class="small-12 columns">
-          <div class="delete_link">
-            <%=
-              link_to(
-                "Delete event entirely",
-                @event,
-                remote: @minimal,
-                method: :delete,
-                class: 'zfbutton teensy button-link',
-                data: {
-                  confirm: @event.deletion_warning_message
-                }
-              )
-            %>
-          </div>
+          <% if current_user.can_delete?(@event) %> 
+            <div class="delete_link">
+              <%=
+                link_to(
+                  "Delete event entirely",
+                  @event,
+                  remote: @minimal,
+                  method: :delete,
+                  class: 'zfbutton teensy button-link',
+                  data: {
+                    confirm: @event.deletion_warning_message
+                  }
+                )
+              %>
+            </div>
+          <% end %>
           <div class='clone_link'>
             <% if @just_cloned %>
               <span id='clone_button' style='display:none'>

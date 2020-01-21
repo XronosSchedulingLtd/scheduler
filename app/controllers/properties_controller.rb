@@ -80,6 +80,7 @@ class PropertiesController < ApplicationController
                                        :auto_staff,
                                        :auto_pupils,
                                        :feed_as_category,
-                                       :edit_preferred_colour)
+                                       :edit_preferred_colour,
+                                       :locking)
     end
 end

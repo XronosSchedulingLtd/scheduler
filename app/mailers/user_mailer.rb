@@ -232,6 +232,7 @@ class UserMailer < ActionMailer::Base
     else
       @subject       = "Event deleted"
     end
+    @body_subject  = "Event deleted"
     @quantity      = quantity
     @allocated     = allocated
     @user_name     = user.name

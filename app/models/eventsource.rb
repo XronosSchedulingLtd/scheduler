@@ -11,6 +11,8 @@ class Eventsource < ActiveRecord::Base
    has_many :events, dependent: :destroy
    has_many :proto_events, dependent: :destroy
 
+   @@manual_source_id = nil
+
    def <=>(other)
      self.name <=> other.name
    end
@@ -38,5 +40,20 @@ class Eventsource < ActiveRecord::Base
        event.destroy
      end
      nil
+   end
+
+   #
+   #  Cache and pass back the id of the manual event source.
+   #  This is set up in the initial seed data and should not
+   #  change thereafter.
+   #
+   def self.manual_source_id
+     unless @@manual_source_id
+       manual_source = Eventsource.find_by(name: "Manual")
+       if manual_source
+         @@manual_source_id = manual_source.id
+       end
+     end
+     @@manual_source_id
    end
 end

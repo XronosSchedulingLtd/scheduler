@@ -19,7 +19,7 @@
       </div>
     </div>
     <%=
-      flag_group(f, 12, 4, "Flags",
+      flag_group(f, 12, 5, "Flags",
                  [
                    {
                      field: :current,
@@ -45,10 +45,15 @@
                      field: :feed_as_category,
                      prompt: "Feed as category",
                      annotation: "When generating an ICAL feed, should this property be included in the list of categories sent for events to which it is attached?"
+                   },
+                   {
+                     field: :locking,
+                     prompt: "Locking",
+                     annotation: "If a request for this property is approved, should that then lock the parent event?"
                    }
       ])
     %>
-    <div class='small-12 medium-4 columns'>
+    <div class='small-12 medium-3 columns'>
       <%= f.label :edit_preferred_colour, "Preferred colour" %>
       <%=
         f.hidden_field(:edit_preferred_colour,

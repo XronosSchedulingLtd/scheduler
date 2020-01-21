@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 module ApplicationHelper
 
   #
@@ -210,6 +217,7 @@ module ApplicationHelper
                 m.item('Sources', eventsources_path)
               end
               m.dropdown('Locations', locations_path) do
+                m.item('Tree view', tree_locations_path)
                 m.item('Aliases', locationaliases_path)
                 m.item('Owned', locations_path(owned: true))
               end

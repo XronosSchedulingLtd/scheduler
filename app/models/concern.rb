@@ -68,7 +68,18 @@ class Concern < ActiveRecord::Base
   #
   #  ActiveRecord scopes are not good at OR conditions, so resort to SQL.
   #
+  #  Note that the following is used to check whether the user
+  #  can currently shove a commitment straight in.  The user may
+  #  have opted to go through the permissions process by way
+  #  of setting the seek_permission bit.
+  #
   scope :can_commit, -> {where("(owns = ? OR skip_permissions = ?) AND seek_permission = ?", true, true, false)}
+  #
+  #  And this next one tests whether the user *could* commit.  I.e.
+  #  does he or she have the necessary permission, regardless of whether
+  #  it's currently turned off.
+  #
+  scope :could_commit, -> {where("owns = ? OR skip_permissions = ?", true, true)}
 
   scope :visible, -> { where(visible: true) }
 

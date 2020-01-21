@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -212,6 +212,14 @@ module Elemental
   #  Overridden in entities which can in fact have requests.
   #
   def can_have_requests?
+    false
+  end
+
+  #
+  #  Most entities don't effect locking, but ones which might should
+  #  override this.
+  #
+  def can_lock?
     false
   end
 
