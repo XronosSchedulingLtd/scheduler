@@ -2325,8 +2325,12 @@ class Event < ActiveRecord::Base
   #  commitments.
   #
   def updated_at_for_ical
+    #
+    #  Some very old commitments have a nil updated_at field, so
+    #  discard them.
+    #
     candidates = [self.updated_at] +
-                 self.firm_commitments.collect {|fc| fc.updated_at}
+                 self.firm_commitments.collect {|fc| fc.updated_at}.compact
     candidates.max
   end
 
