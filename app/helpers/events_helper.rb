@@ -223,26 +223,22 @@ module EventsHelper
   def flags_for(f, user, event)
     can_retime = user.can_retime?(event)
     can_beshadow = user.can_beshadow?(event)
-    if can_retime || can_beshadow
-      fields = Array.new
-      if can_retime
-        fields << {
-          field: :all_day_field,
-          prompt: "All day",
-          annotation: "The event lasts all day.  Time fields will be ignored."
-        }
-      end
-      if can_beshadow
-        fields << {
-          field: :non_existent,
-          prompt: "Shadow event",
-          annotation: "The event doesn't really exist. It is merely a placeholder."
-        }
-      end
-      flag_group(f, 6, 6, "Flags", fields)
-    else
-      "<div class='small-6 columns'></div>".html_safe
+    fields = [
+      {
+        field: :all_day_field,
+        prompt: "All day",
+        annotation: "The event lasts all day.  Time fields will be ignored.",
+        disabled: !can_retime
+      }
+    ]
+    if can_beshadow
+      fields << {
+        field: :non_existent,
+        prompt: "Shadow event",
+        annotation: "The event doesn't really exist. It is merely a placeholder."
+      }
     end
+    flag_group(f, 6, 6, "Flags", fields)
   end
 
 end
