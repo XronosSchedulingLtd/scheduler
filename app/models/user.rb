@@ -674,16 +674,25 @@ class User < ActiveRecord::Base
   #  allow it.  This is intentional.
   #
   def can_retime?(event)
-    if event.id == nil
+    can_retime = false
+    if event.id == nil || self.admin || self.edit_all_events?
       can_retime = true
-    elsif self.admin || self.edit_all_events? ||
-       (self.create_events? &&
-        event.involves_any?(self.elements_giving_edit, true))
-      can_retime = true
-    elsif self.create_events? && event.owner_id == self.id
-      can_retime = !event.constrained
-    else
-      can_retime = false
+    elsif self.can_edit?(event)
+      if event.constrained?
+        if event.locked?
+          can_retime = self.can_override_locking_of?(event)
+        end
+        #
+        #  We could at this point work out whether the user is
+        #  a controller of all the constraining resources, in which
+        #  case he or she could retime the event.
+        #
+        #  For now, leave it that they need to release the resources
+        #  in order to retime.
+        #
+      else
+        can_retime = true
+      end
     end
     can_retime
   end

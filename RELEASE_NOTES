@@ -1,3 +1,44 @@
+v1.9.4    2020-02-02
+
+* Update images for GitHub README.
+
+  The images shown on GitHub to browsers were a couple of years out
+  of date.  New ones installed.
+
+* Tweak to the logic of User#can_retime?
+
+  Under the old system of constrained events, users with an approved
+  resource request could not change the timing of their event, but any
+  resource controller potentially could.
+
+  With the addition of locked events, this isn't quite enough.  Only
+  the lock controller should be able to re-time the event.  The logic
+  of User#can_retime? has been changed to implement this.
+
+* Disable "all-day" field rather than hiding it.
+
+  When a user lacks permission to re-time an event, the "all-day" flag
+  field is now disabled rather than hidden.
+
+* Two new options for ical feeds - lm and zulu
+
+  Two new options have been added to the ical feeds.
+
+  * lm - or last modified.  If specified this will cause each event
+    to carry the ical-standard specified LAST-MODIFIED field.  The value
+    in it will be calculated from the event record and all its attached
+    commitment records.  The one of them which was modified last provides
+    the datetime stamp.
+
+  * zulu - Zulu time.  The start and end times of events will be given in
+    Zulu time (UTC) rather than the local time usually provided.  It is
+    then up to the client program to adjust these times for presentation.
+
+    In particular, note that if Daylight Saving Time is in effect on the
+    date of any given event, the client code will have to add the necessary
+    adjustment.
+
+
 v1.9.3    2020-01-21
 
 * Prevent NaN% in event resource summary.

@@ -424,6 +424,8 @@ class ElementsController < ApplicationController
       by_initials   = false
       everything    = false
       do_clip       = false
+      do_lm         = false    # Provide "last modified" datetime.
+      do_zulu       = false    # Provide start and end times as GMT
       prefix = "notset"
       calendar_name = "notset"
       calendar_description = "notset"
@@ -547,6 +549,14 @@ class ElementsController < ApplicationController
         any_params = true
         do_clip = true
       end
+      if params.has_key?(:lm)
+        any_params = true
+        do_lm = true
+      end
+      if params.has_key?(:zulu)
+        any_params = true
+        do_zulu = true
+      end
       #
       #  That concludes processing relating to modifiers to the
       #  request.  Now we turn to the request itself - what item
@@ -613,7 +623,7 @@ class ElementsController < ApplicationController
                                 eventcategory: basic_categories,
                                 effective_date: Setting.current_era.starts_on).
                  firm.
-                 includes(event: {elements: :entity}).collect {|c| c.event} +
+                 includes(event: {firm_commitments: {elements: :entity}}).collect {|c| c.event} +
                Event.events_on(starts_on, ends_on, extra_categories).
                      includes(elements: :entity)).uniq
             got_something = true
@@ -687,7 +697,11 @@ class ElementsController < ApplicationController
               event.dtstart = dbevent.starts_at.to_date
               event.dtend   = dbevent.ends_at.to_date
             else
-              event.dtstart = dbevent.starts_at
+              if do_zulu
+                event.dtstart = dbevent.starts_at.gmtime
+              else
+                event.dtstart = dbevent.starts_at
+              end
               #
               #  We clip only if the end time is midnight and the
               #  event has non-zero duration.
@@ -695,9 +709,14 @@ class ElementsController < ApplicationController
               if do_clip &&
                  dbevent.ends_at.midnight? &&
                  (dbevent.ends_at > dbevent.starts_at)
-                event.dtend = dbevent.ends_at - 1.second
+                effective_end = dbevent.ends_at - 1.second
               else
-                event.dtend   = dbevent.ends_at
+                effective_end = dbevent.ends_at
+              end
+              if do_zulu
+                event.dtend = effective_end.gmtime
+              else
+                event.dtend = effective_end
               end
             end
             locations = dbevent.locations_for_ical(spread)
@@ -724,6 +743,9 @@ class ElementsController < ApplicationController
               event.add_categories(categories)
             end
             event.dtstamp = dtstamp
+            if do_lm
+              event.last_modified = dbevent.updated_at_for_ical
+            end
           end
         end
       end.export
