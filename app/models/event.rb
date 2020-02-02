@@ -2320,6 +2320,16 @@ class Event < ActiveRecord::Base
     end
   end
 
+  #
+  #  Find the last modification date for either us or our firm
+  #  commitments.
+  #
+  def updated_at_for_ical
+    candidates = [self.updated_at] +
+                 self.firm_commitments.collect {|fc| fc.updated_at}
+    candidates.max
+  end
+
   private
 
   def become_all_day
