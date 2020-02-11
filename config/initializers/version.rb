@@ -1,1 +1,1 @@
-SOFTWARE_VERSION = "Version 1.9.4.1"
+SOFTWARE_VERSION = "Version 1.9.4.2"

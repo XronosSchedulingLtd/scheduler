@@ -1,3 +1,12 @@
+v1.9.4.2  2020-02-11
+
+* Another fix to v1.9.4.
+
+  A typo had crept in to the Elements controller with the result that
+  requesting an ical feed using a staff member's initials (an archaic
+  and deprecated method) no longer worked.  Fixed.
+
+
 v1.9.4.1  2020-02-11
 
 * Fix to logic of User#can_retime?
