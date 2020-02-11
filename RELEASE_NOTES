@@ -1,3 +1,25 @@
+v1.9.4.1  2020-02-11
+
+* Fix to logic of User#can_retime?
+
+  A problem was discovered with the changes made to User#can_retime?
+  in the previous release.
+
+  Given an event with a locking property attached, but where the
+  event was not actually locked (because it was created before the
+  relevant property acquired its locking attribute) the can_retime?
+  function would return false for everyone - even the owner of the
+  locking property.
+
+  This meant that no-one could re-time the event.
+
+  This release restores the previous behaviour in this particular instance,
+  which is that any controller of an attached resource can re-time the event.
+
+  For similar events which *are* locked, only controllers of the locking
+  resource can re-time the event.
+
+
 v1.9.4    2020-02-02
 
 * Update images for GitHub README.
