@@ -681,15 +681,17 @@ class User < ActiveRecord::Base
       if event.constrained?
         if event.locked?
           can_retime = self.can_override_locking_of?(event)
+        else
+          #
+          #  We could at this point work out whether the user is
+          #  a controller of all the constraining resources, in which
+          #  case he or she could retime the event.
+          #
+          #  For now, those who acquire edit privilege via one of the
+          #  resources can retime it.
+          #
+          can_retime = event.involves_any?(self.elements_giving_edit, true)
         end
-        #
-        #  We could at this point work out whether the user is
-        #  a controller of all the constraining resources, in which
-        #  case he or she could retime the event.
-        #
-        #  For now, leave it that they need to release the resources
-        #  in order to retime.
-        #
       else
         can_retime = true
       end
