@@ -623,7 +623,7 @@ class ElementsController < ApplicationController
                                 eventcategory: basic_categories,
                                 effective_date: Setting.current_era.starts_on).
                  firm.
-                 includes(event: {firm_commitments: {elements: :entity}}).collect {|c| c.event} +
+                 includes(event: {elements: :entity}).collect {|c| c.event} +
                Event.events_on(starts_on, ends_on, extra_categories).
                      includes(elements: :entity)).uniq
             got_something = true
