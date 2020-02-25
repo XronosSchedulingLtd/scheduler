@@ -108,7 +108,7 @@ GEM
     multipart-post (2.0.0)
     mysql2 (0.4.10)
     nanoid (2.0.0)
-    nokogiri (1.10.6)
+    nokogiri (1.10.8)
       mini_portile2 (~> 2.4.0)
     numerizer (0.1.1)
     oauth2 (1.4.1)
