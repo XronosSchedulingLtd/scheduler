@@ -1,6 +1,6 @@
 #
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2019 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
@@ -26,5 +26,7 @@ SOCS_APIKEY=''
 
 SOCS_OPTS=( --attach=123 --attach=456 --duration=180 --merge=both --notime --verbose )
 
-export SOCS_API_URL SOCS_API_KEY SOCS_OPTS
+ENDDATE=`/bin/date --date='+7 months' "+%d %b %Y"`
+
+export SOCS_API_URL SOCS_API_KEY SOCS_OPTS ENDDATE
 

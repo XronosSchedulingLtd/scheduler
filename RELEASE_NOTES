@@ -1,3 +1,27 @@
+v1.9.5    2020-03-10
+
+* Specify how far in the future to import SOCS events.
+
+  By default the SOCS package exports events for the next 100 days.
+  Sometimes this is not enough for planning purposes.  It is now
+  possible to specify an explicit future duration in the ~/etc/socsauth
+  file.  A sample will be found in the support/socsauth file.
+
+* Fix bug in identifying home fixtures from SOCS
+
+  The SOCS importer was checking for the prefix "Home:" in order
+  to identify home fixtures coming from SOCS.  This is normally OK, but
+  just occasionally the feed contains "Home" instead, without the colon.
+
+  The importer now looks for just "Home".
+
+* Two gems have been upgraded for minor security issues:
+
+  * Nokogiri has been upgraded to 1.10.9.  Fixes CVE-2020-7595
+
+  * Rake has been upgraded to 13.0.1.  Fixes CVE-2020-8130
+
+
 v1.9.4.2  2020-02-11
 
 * Another fix to v1.9.4.

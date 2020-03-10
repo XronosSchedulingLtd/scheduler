@@ -26,6 +26,16 @@ if [ ! -d $SCHEDULER_DIR/import/socs ]; then
   echo "$SCHEDULER_DIR/import/socs does not seem to be a directory."
   exit 2
 fi
+#
+#  If the config hasn't set an end date, then set it to the SOCS
+#  default of 100 days.
+#
+#  If you want something else, don't change it here but put
+#  a similar line in your ~/etc/socsauth file.
+#
+if [ "a$ENDDATE" == "a" ]; then
+  ENDDATE=`/bin/date --date='+100 days' "+%d %b %Y"`
+fi
 
 cd $SCHEDULER_DIR/import/socs
 rm -f Incoming/*
@@ -42,7 +52,11 @@ else
     echo "SOCS_APIKEY environment variable needs to be set."
     exit 4
   fi
-  curl --silent $SOCS_API_URL?ID=2\&key={$SOCS_APIKEY} --output Incoming/data.xml
+  curl -G --silent $SOCS_API_URL \
+     --data ID=2 \
+     --data key={$SOCS_APIKEY} \
+     --data-urlencode enddate="$ENDDATE" \
+     --output Incoming/data.xml
   if [ $? -ne 0 ]; then
     echo "Failed to fetch SOCS API data."
     exit 5
