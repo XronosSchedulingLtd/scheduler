@@ -26,5 +26,7 @@ SOCS_APIKEY=''
 
 SOCS_OPTS=( --attach=123 --attach=456 --duration=180 --merge=both --notime --verbose )
 
-export SOCS_API_URL SOCS_API_KEY SOCS_OPTS
+ENDDATE=`/bin/date --date='+7 months' "+%d %b %Y"`
+
+export SOCS_API_URL SOCS_API_KEY SOCS_OPTS ENDDATE
 
