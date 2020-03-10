@@ -126,7 +126,7 @@ class SocsFixture
   end
 
   def adjust
-    if @location.match(/^Home:/)
+    if @location.match(/^Home/)
       @home = true
     else
       @home = false
