@@ -109,7 +109,8 @@ class StaffsController < ApplicationController
                                     :active,
                                     :current,
                                     :multicover,
-                                    :edit_viewable)
+                                    :edit_viewable,
+                                    :zoom_id)
     end
 
     def authorized?(action = action_name, resource = nil)

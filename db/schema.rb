@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20200116122918) do
+ActiveRecord::Schema.define(version: 20200312090509) do
 
   create_table "ahoy_messages", force: :cascade do |t|
     t.integer  "user_id",   limit: 4
@@ -621,6 +621,8 @@ ActiveRecord::Schema.define(version: 20200116122918) do
     t.integer  "user_file_allowance",              limit: 4,     default: 0
     t.integer  "email_keep_days",                  limit: 4,     default: 0
     t.integer  "event_keep_years",                 limit: 4,     default: 0
+    t.string   "zoom_link_text",                   limit: 255
+    t.string   "zoom_link_base_url",               limit: 255
   end
 
   create_table "staffs", force: :cascade do |t|
@@ -639,6 +641,7 @@ ActiveRecord::Schema.define(version: 20200116122918) do
     t.boolean  "does_cover"
     t.integer  "datasource_id", limit: 4
     t.boolean  "multicover",                default: false
+    t.string   "zoom_id",       limit: 255
   end
 
   add_index "staffs", ["datasource_id"], name: "index_staffs_on_datasource_id", using: :btree
