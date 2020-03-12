@@ -1,0 +1,18 @@
+<div id='mainContainer'>
+  <div class='row collapse calendarbit'>
+    <div class='small-12 columns fillup'>
+      <div id='personal-agenda' class='flag-refreshes' data-dorefresh='0'></div>
+    </div>
+  </div>
+  <div class='bottomrighttext'>
+    <% if admin_user? %>
+      <span title="<%= Setting.rr_versions %>"><%= SOFTWARE_VERSION %></span>
+    <% else %>
+      <%= SOFTWARE_VERSION %>
+    <% end %>
+  </div>
+  <div class='bottomtext'>
+    <a href="https://xronos.uk/" target="_blank">Xronos Scheduler</a>
+  </div>
+</div>
+
