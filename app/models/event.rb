@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2019 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -2332,6 +2332,29 @@ class Event < ActiveRecord::Base
     candidates = [self.updated_at] +
                  self.firm_commitments.collect {|fc| fc.updated_at}.compact
     candidates.max
+  end
+
+  #
+  #  Find a single zoom id for the event.
+  #
+  def relevant_single_zoom_id
+    candidates = self.staff.select {|s| !s.zoom_id.blank?}
+    if candidates.size == 0
+      ""
+    elsif candidates.size == 1
+      candidates[0].zoom_id
+    else
+      #
+      #  More than one.  Take covering staff for preference.
+      #  If no-one covering, take the first one.
+      #
+      coverer = candidates.detect {|c| self.covered_by?(c)}
+      if coverer
+        coverer.zoom_id
+      else
+        candidates[0].zoom_id
+      end
+    end
   end
 
   private

@@ -11,6 +11,19 @@ class AgendasController < ApplicationController
   # GET /agenda
   #
   def show
+    #
+    #  Do we want zoom links?
+    #
+    if Setting.current.zoom_link_text.blank? ||
+        Setting.current.zoom_link_base_url.blank?
+      @do_zoom_links = 0
+      @zoom_link_text = ''
+      @zoom_link_base_url = ''
+    else
+      @do_zoom_links = 1
+      @zoom_link_text = Setting.current.zoom_link_text
+      @zoom_link_base_url = Setting.current.zoom_link_base_url
+    end
   end
 
   # GET /agenda/events.json

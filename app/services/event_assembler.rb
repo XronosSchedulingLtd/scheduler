@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2018 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -72,9 +72,11 @@ class EventAssembler
                    current_user = nil,
                    colour = nil,
                    mine = false,
-                   list_teachers = false)
+                   list_teachers = false,
+                   include_zoom_id = false)
       @event   = event
       @event_id = event.id
+      @include_zoom_id = include_zoom_id
       if via_element
         @sort_by = "#{via_element.id} #{event.body}"
       else
@@ -253,6 +255,13 @@ class EventAssembler
       }
       if @prefix
         result[:prefix] = @prefix
+      end
+      if @include_zoom_id
+        Rails.logger.debug("Trying to include zoom id")
+        rszi = @event.relevant_single_zoom_id
+        unless rszi.blank?
+          result[:zoomId] = rszi
+        end
       end
       result
     end
@@ -724,10 +733,10 @@ class EventAssembler
             schoolwide_categories
           ).collect { |e|
             ScheduleEvent.new(
-              @start_date,
-              e,
-              nil,
-              @current_user
+              @start_date,      # View start
+              e,                # Event
+              nil,              # Via element
+              @current_user     # Current user
             )
           }
       end
@@ -798,7 +807,8 @@ class EventAssembler
                                         @current_user,
                                         concern.colour,
                                         concern.equality,
-                                        concern.list_teachers)
+                                        concern.list_teachers,
+                                        true)
                     }
         end
       end

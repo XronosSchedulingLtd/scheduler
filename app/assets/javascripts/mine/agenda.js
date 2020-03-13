@@ -22,6 +22,17 @@ if ($('#personal-agenda').length) {
 
     that.init = function() {
       that.myDiv = $('#personal-agenda');
+      var zoomFlag = that.myDiv.data('do-zoom-links');
+      if (zoomFlag == "1") {
+        that.doZoomLinks = true;
+        that.zoomLinkText = that.myDiv.data('zoom-link-text');
+        that.zoomLinkBaseUrl = that.myDiv.data('zoom-link-base-url');
+      } else {
+        that.doZoomLinks = false;
+        that.zoomLinkText = "";
+        that.zoomLinkBaseUrl = "";
+      }
+
       var fcParams = {
         schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
         height: 'parent',
@@ -48,7 +59,11 @@ if ($('#personal-agenda').length) {
     };
 
     that.handleClick = function(event, jsEvent, view) {
-      alert("Ouch");
+      if (that.doZoomLinks) {
+        if (event.zoomId.length) {
+          window.open(that.zoomLinkBaseUrl + event.zoomId, '_blank');
+        }
+      }
     };
 
     return that;
