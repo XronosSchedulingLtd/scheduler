@@ -44,18 +44,7 @@ module CSVImport
       #  Try to coerce everything to utf-8 at point of entry to avoid
       #  problems later.
       #
-#      raw_contents = File.read(file_name)
-#      detection = CharlockHolmes::EncodingDetector.detect(raw_contents)
-#      utf8_encoded_raw_contents =
-#        CharlockHolmes::Converter.convert(raw_contents,
-#                                          detection[:encoding],
-#                                          'UTF-8')
-#      contents = CSV.parse(utf8_encoded_raw_contents)
-      #
-      # The following is horrible, but I need something working quickly.
-      #
-      raw_contents = File.read(file_name)
-      raw_contents.sub!("\xEF\xBB\xBF", '')
+      raw_contents = File.read(file_name, encoding: 'bom|utf-8')
       contents = CSV.parse(raw_contents)
 #      puts "Read in #{contents.size} lines."
 #      puts contents[0].inspect
