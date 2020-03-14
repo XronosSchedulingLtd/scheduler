@@ -14,6 +14,7 @@ class AgendasController < ApplicationController
     #
     #  Do we want zoom links?
     #
+    @default_date = Date.today.strftime("%Y-%m-%d")
     if Setting.current.zoom_link_text.blank? ||
         Setting.current.zoom_link_base_url.blank?
       @do_zoom_links = 0
