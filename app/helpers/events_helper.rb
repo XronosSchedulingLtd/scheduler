@@ -241,4 +241,7 @@ module EventsHelper
     flag_group(f, 6, 6, "Flags", fields)
   end
 
+  def zoom_link(text, base_url, zl)
+    "<a href='#{base_url}#{zl.id}' target='_blank' class='zfbutton teensy tiny button-link' title='#{zl.name}'>#{text}</a>".html_safe
+  end
 end

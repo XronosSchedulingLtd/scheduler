@@ -126,6 +126,8 @@ class EventsController < ApplicationController
     end
   end
 
+  ZoomLink = Struct.new(:id, :name)
+
   def assemble_event_info
     @notes = @event.all_notes_for(current_user)
     if current_user && current_user.exams
@@ -191,6 +193,23 @@ class EventsController < ApplicationController
       end
     else
       @element_connections_with_forms = nil
+    end
+    #
+    #  Might be able to show some zoom links
+    #
+    if known_user? &&
+        !Setting.current.zoom_link_text.blank? &&
+        !Setting.current.zoom_link_base_url.blank?
+      @zoom_links = []
+      @zoom_link_text = Setting.current.zoom_link_text
+      @zoom_link_base_url = Setting.current.zoom_link_base_url
+      @event.staff.each do |staff|
+        unless staff.zoom_id.blank?
+          @zoom_links << ZoomLink.new(staff.zoom_id, staff.name)
+        end
+      end
+    else
+      @zoom_links = nil
     end
   end
 

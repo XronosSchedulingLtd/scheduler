@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2018 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -113,6 +113,24 @@ class Setting < ActiveRecord::Base
     else
       "Scheduler"
     end
+  end
+
+  #
+  #  Historically I have provided a lot of helper methods for each
+  #  individual field.  Some of these are genuinely useful in that
+  #  they provide some sort of default value, but most of them
+  #  could be discarded.  Use this next function instead, then
+  #  reference the field which you want.
+  #
+  def self.current
+    unless @@setting ||= Setting.first
+      #
+      #  This is really weird, but we don't seem to have a settings
+      #  record.  Create one.  It probably won't help much, but still...
+      #
+      @@setting = Setting.create
+    end
+    @@setting
   end
 
   def self.public_title_text
