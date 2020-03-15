@@ -109,6 +109,8 @@ class SettingsController < ApplicationController
                     :busy_string,
                     :user_file_allowance,
                     :email_keep_days,
-                    :event_keep_years)
+                    :event_keep_years,
+                    :zoom_link_text,
+                    :zoom_link_base_url)
     end
 end

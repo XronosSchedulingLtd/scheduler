@@ -209,6 +209,13 @@
         <% end %>
       </div>
     <% end %>
+    <% unless @zoom_links.blank? %>
+      <div id='zoom-links'>
+        <% @zoom_links.each do |zl| %>
+          <%= zoom_link(@zoom_link_text, @zoom_link_base_url, zl) %>
+        <% end %>
+      </div>
+    <% end %>
 <% if false %>
     <div id="attached_files">
       <%= render partial: "attachments/attached_files", object: @files %>

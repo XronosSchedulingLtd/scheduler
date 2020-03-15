@@ -289,6 +289,9 @@ Rails.application.routes.draw do
 
   resources :emails, only: [:index, :show]
 
+  get 'agenda' => 'agendas#show'
+  get 'agenda/events' => 'agendas#events'
+
   root 'schedule#show'
 
   mount PublicApi::Engine, at: :api

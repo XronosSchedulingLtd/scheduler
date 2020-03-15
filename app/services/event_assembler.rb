@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2018 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -72,9 +72,11 @@ class EventAssembler
                    current_user = nil,
                    colour = nil,
                    mine = false,
-                   list_teachers = false)
+                   list_teachers = false,
+                   include_zoom_id = false)
       @event   = event
       @event_id = event.id
+      @include_zoom_id = include_zoom_id
       if via_element
         @sort_by = "#{via_element.id} #{event.body}"
       else
@@ -253,6 +255,13 @@ class EventAssembler
       }
       if @prefix
         result[:prefix] = @prefix
+      end
+      if @include_zoom_id
+        Rails.logger.debug("Trying to include zoom id")
+        rszi = @event.relevant_single_zoom_id
+        unless rszi.blank?
+          result[:zoomId] = rszi
+        end
       end
       result
     end
@@ -700,6 +709,111 @@ class EventAssembler
       end
     end
     return resulting_events
+  end
+
+  #
+  #  Produce the agenda events for the current user, if any.
+  #
+  #  This is the events involving that user, plus anything marked
+  #  as breakthrough - typically the week letters.
+  #
+  def agenda_events
+    if @current_user && @current_user.known?
+      #
+      #  First the schoolwide events
+      #
+      schoolwide_categories = Eventcategory.schoolwide.to_a
+      if schoolwide_categories.empty?
+        schoolwide_events = []
+      else
+        schoolwide_events =
+          Event.events_on(
+            @start_date,
+            @end_date,
+            schoolwide_categories
+          ).collect { |e|
+            ScheduleEvent.new(
+              @start_date,      # View start
+              e,                # Event
+              nil,              # Via element
+              @current_user     # Current user
+            )
+          }
+      end
+      #
+      #  And now events relating to the current user.
+      #
+      concern = @current_user.concerns.detect {|c| c.equality?}
+      if concern
+        element = concern.element
+        selector = Eventcategory.not_schoolwide.visible
+        unless @current_user.suppressed_eventcategories.empty?
+          selector =
+            selector.exclude(@current_user.suppressed_eventcategories)
+        end
+        #
+        #  The .to_a forces the lambda to be evaluated now.  We don't
+        #  want the database being queried again and again for the
+        #  same answer.
+        #
+        event_categories = selector.to_a
+        #
+        #  Does the user have any extra event categories listed?
+        #
+        #  Note that we make no attempt here to check whether the
+        #  user is allowed to have any extra - that's done at
+        #  the stage of updating the user's record.
+        #
+        unless @current_user.extra_eventcategories.empty?
+          extra_categories =
+            Eventcategory.where(id: @current_user.extra_eventcategories)
+          unless extra_categories.empty?
+            event_categories = (event_categories + extra_categories).uniq
+          end
+        end
+        if event_categories.empty?
+          #
+          #  If the user has suppressed all his event categories
+          #  then the underlying code would treat an empty array
+          #  as meaning "no restriction" and you'd be back to seeing
+          #  them all again.
+          #
+          element_events = []
+        else
+          selector =
+            element.commitments_on(startdate:           @start_date,
+                                   enddate:             @end_date,
+                                   eventcategory:       event_categories,
+                                   include_nonexistent: true)
+          if concern.list_teachers
+            selector = selector.preload(event: {staff_elements: :entity})
+          else
+            selector = selector.preload(:event)
+          end
+          element_events =
+                    selector.
+                    select { |c|
+                      !c.tentative? ||
+                      concern.owns? ||
+                      c.event.owner_id == @current_user.id ||
+                      (@current_user.can_view_unconfirmed? && !c.rejected?)
+                    }.
+                    collect {|c| c.event}.
+                    uniq.
+                    collect {|e|
+                      ScheduleEvent.new(@start_date,
+                                        e,
+                                        element,
+                                        @current_user,
+                                        concern.colour,
+                                        concern.equality,
+                                        concern.list_teachers,
+                                        true)
+                    }
+        end
+      end
+    end
+    return schoolwide_events + element_events
   end
 
   #

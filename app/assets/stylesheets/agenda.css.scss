@@ -1,0 +1,14 @@
+.zoom-link {
+  float: right;
+  color: gray;
+  background-color: #f8f8f8;
+  border-style: solid;
+  border-width: 0;
+  padding: 1px 5px 1px 3px;
+  border-radius: 4px;
+  font-size: 12px;
+  &.zl-active {
+    color: white;
+    background-color: #008cba;
+  }
+}
