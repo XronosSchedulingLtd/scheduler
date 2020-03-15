@@ -47,9 +47,9 @@ if ($('#personal-agenda').length) {
 
       if (time_now.isAfter(effective_start) &&
           time_now.isBefore(effective_end)) {
-        console.log("Starts at " + event.start.format());
-        console.log("Ends at   " + event.end.format());
-        console.log("Now       " + time_now.format());
+//        console.log("Starts at " + event.start.format());
+//        console.log("Ends at   " + event.end.format());
+//        console.log("Now       " + time_now.format());
         return true;
       } else {
         return false;
@@ -103,18 +103,18 @@ if ($('#personal-agenda').length) {
     }
 
     var handleTimer = function() {
-      console.log("Tick");
+//      console.log("Tick");
       that.elementList.forEach(updateActiveness);
     }
 
     var stopTimer = function() {
-      console.log("Stopping timer.");
+//      console.log("Stopping timer.");
       window.clearInterval(that.timerID);
       that.elementList = [];
     }
 
     var startTimer = function() {
-      console.log("Starting timer.");
+//      console.log("Starting timer.");
       that.timerID = window.setInterval(handleTimer, 60000);
       window.addEventListener("beforeunload", stopTimer);
     }
