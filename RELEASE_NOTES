@@ -1,3 +1,34 @@
+v1.10.0   2020-03-15
+
+* Add a new Agenda view
+
+  The software now has a completely new view, available to logged in
+  users only and intended to be compatible with mobile devices.  It
+  has no options and simply shows the user his or her agenda for the
+  coming week.
+
+  It is accessed via the URL https://scheduler.myschool.org.uk/agenda
+
+  If a user is not already logged in, he or she will be prompted to
+  log in.
+
+* Add links for launching video-conferencing sessions
+
+  It is now possible to add configurable links for launching video-
+  conferencing sessions.  Each staff record has an extra field
+  for an individual-specific code.  The system settings gain two
+  extra fields - one for the link text and one for the URL to use.
+
+  These links are then available in two places - in the modal dialogue
+  box showing event details to a logged in user, and in the agenda
+  view mentioned above.
+
+  Within the agenda view, the currently relevant sessions will be
+  highlighted.  All the links will work (even those not highlighted)
+  but the system uses the current time to highlight those which should
+  be relevant.
+
+
 v1.9.5    2020-03-10
 
 * Specify how far in the future to import SOCS events.
