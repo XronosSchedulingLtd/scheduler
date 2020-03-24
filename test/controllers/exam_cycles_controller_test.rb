@@ -81,7 +81,7 @@ class ExamCyclesControllerTest < ActionController::TestCase
 
   test "can scan rooms and create proto_events" do
     assert_equal 0, @exam_cycle.proto_events.count
-    put :scan_rooms, id: @exam_cycle
+    put :scan_rooms, params: { id: @exam_cycle }
     assert_redirected_to exam_cycle_path(@exam_cycle)
     #
     #  One proto event per room.
@@ -90,9 +90,9 @@ class ExamCyclesControllerTest < ActionController::TestCase
   end
 
   test "can generate invigilation slots" do
-    put :scan_rooms, id: @exam_cycle
+    put :scan_rooms, params: { id: @exam_cycle }
     assert_redirected_to exam_cycle_path(@exam_cycle)
-    put :generate_all, id: @exam_cycle
+    put :generate_all, params: { id: @exam_cycle }
     assert_redirected_to exam_cycle_path(@exam_cycle)
     @exam_cycle.reload
     num_proto_events = 0

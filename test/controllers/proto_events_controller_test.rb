@@ -74,9 +74,11 @@ class ProtoEventsControllerTest < ActionController::TestCase
   test "can generate events from proto event" do
     assert_equal 0, @existing_proto_event.events.count
     put :generate,
-        format: :json,
-        exam_cycle_id: @exam_cycle.id,
-        id: @existing_proto_event
+        params: {
+          format: :json,
+          exam_cycle_id: @exam_cycle.id,
+          id: @existing_proto_event
+        }
     assert_response :success
     #
     #  And did we get some events?

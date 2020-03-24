@@ -30,7 +30,7 @@ class SessionsControllerTest < ActionController::TestCase
 
   test "ordinary user cannot su" do
     session[:user_id] = @ordinary_user.id
-    put :become, user_id: @api_user.id
+    put :become, params: { user_id: @api_user.id }
     assert_redirected_to '/'
     #
     #  User should not have changed.
@@ -41,7 +41,7 @@ class SessionsControllerTest < ActionController::TestCase
 
   test "privileged user can su" do
     session[:user_id] = @su_user.id
-    put :become, user_id: @api_user.id
+    put :become, params: { user_id: @api_user.id }
     assert_redirected_to '/'
     #
     #  User should have changed.
@@ -52,7 +52,7 @@ class SessionsControllerTest < ActionController::TestCase
 
   test "can revert after su" do
     session[:user_id] = @su_user.id
-    put :become, user_id: @api_user.id
+    put :become, params: { user_id: @api_user.id }
     assert_redirected_to '/'
     #
     #  User should have changed.
@@ -78,7 +78,7 @@ class SessionsControllerTest < ActionController::TestCase
 
   test "second su should not succeed" do
     session[:user_id] = @su_user.id
-    put :become, user_id: @su_user2.id
+    put :become, params: { user_id: @su_user2.id }
     assert_redirected_to '/'
     #
     #  User should have changed.
@@ -89,7 +89,7 @@ class SessionsControllerTest < ActionController::TestCase
     #  And now try to su again.  We have permission, but it should
     #  fail because we are already su'ed.
     #
-    put :become, user_id: @api_user.id
+    put :become, params: { user_id: @api_user.id }
     assert_redirected_to '/'
     #
     #  User should not have changed.
@@ -100,7 +100,7 @@ class SessionsControllerTest < ActionController::TestCase
 
   test "cannot su to oneself" do
     session[:user_id] = @su_user.id
-    put :become, user_id: @su_user.id
+    put :become, params: { user_id: @su_user.id }
     assert_redirected_to '/'
     #
     #  User should not have changed.
@@ -111,7 +111,7 @@ class SessionsControllerTest < ActionController::TestCase
 
   test "cannot su to non-existent user" do
     session[:user_id] = @su_user.id
-    put :become, user_id: 999
+    put :become, params: { user_id: 999 }
     assert_redirected_to '/'
     #
     #  User should not have changed.
@@ -122,7 +122,7 @@ class SessionsControllerTest < ActionController::TestCase
 
   test 'cannot su to admin if not admin' do
     session[:user_id] = @su_user.id
-    put :become, user_id: @admin_user.id
+    put :become, params: { user_id: @admin_user.id }
     assert_redirected_to '/'
     #
     #  User should not have changed.
@@ -133,7 +133,7 @@ class SessionsControllerTest < ActionController::TestCase
 
   test 'can su to admin if already admin' do
     session[:user_id] = @su_admin_user.id
-    put :become, user_id: @admin_user.id
+    put :become, params: { user_id: @admin_user.id }
     assert_redirected_to '/'
     #
     #  User should have changed.
@@ -143,7 +143,7 @@ class SessionsControllerTest < ActionController::TestCase
   end
 
   test "can login via test mechanism" do
-    put :test_login, user_id: @ordinary_user.id
+    put :test_login, params: { user_id: @ordinary_user.id }
     assert_redirected_to '/'
     assert @ordinary_user.id, session[:user_id]
   end

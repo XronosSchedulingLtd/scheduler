@@ -356,10 +356,6 @@ class GroupsController < ApplicationController
       end
     end
 
-  def authorized?(action = action_name, resource = nil)
-    logged_in? && (current_user.create_groups? || action == 'index')
-  end
-
   # Use callbacks to share common setup or constraints between actions.
   def set_group
     @group = Group.find(params[:id])

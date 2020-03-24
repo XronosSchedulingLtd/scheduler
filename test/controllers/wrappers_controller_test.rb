@@ -29,14 +29,14 @@ class WrappersControllerTest < ActionController::TestCase
   test 'unauthorized attempt refused' do
     session[:user_id] = @ordinary_user.id
     assert_not @ordinary_user.can_subedit?(@existing_event)
-    xhr :get, :new, event_id: @existing_event.id
+    get :new, params: { event_id: @existing_event.id }, xhr: true
     assert_response :forbidden
   end
 
   test 'authorized attempt gets form' do
     session[:user_id] = @owning_user.id
     assert @owning_user.can_subedit?(@existing_event)
-    xhr :get, :new, event_id: @existing_event.id
+    get :new, params: { event_id: @existing_event.id }, xhr: true
     assert_response :success
     #
     #  Not going to check the whole of the form, but make sure it
@@ -48,16 +48,18 @@ class WrappersControllerTest < ActionController::TestCase
   test 'can have just a before wrapper' do
     session[:user_id] = @owning_user.id
     assert_difference 'Event.count', 1 do
-      xhr :post,
-          :create,
-          event_id: @existing_event.id,
-          event_wrapper: {
-            single_wrapper: '0',
-            wrap_before: '1',
-            wrap_after: '0',
-            before_duration: '25',
-            before_title: 'Able stable'
-          }
+      post :create,
+           params: {
+             event_id: @existing_event.id,
+             event_wrapper: {
+               single_wrapper: '0',
+               wrap_before: '1',
+               wrap_after: '0',
+               before_duration: '25',
+               before_title: 'Able stable'
+             }
+           },
+           xhr: true
       assert_response :success
     end
     new_event = Event.last
@@ -69,16 +71,18 @@ class WrappersControllerTest < ActionController::TestCase
   test 'can have just an after wrapper' do
     session[:user_id] = @owning_user.id
     assert_difference 'Event.count', 1 do
-      xhr :post,
-          :create,
-          event_id: @existing_event.id,
-          event_wrapper: {
-            single_wrapper: '0',
-            wrap_before: '0',
-            wrap_after: '1',
-            after_duration: '38',
-            after_title: 'Boogle flip'
-          }
+      post :create,
+           params: {
+             event_id: @existing_event.id,
+             event_wrapper: {
+               single_wrapper: '0',
+               wrap_before: '0',
+               wrap_after: '1',
+               after_duration: '38',
+               after_title: 'Boogle flip'
+             }
+           },
+           xhr: true
       assert_response :success
     end
     new_event = Event.last
@@ -90,14 +94,16 @@ class WrappersControllerTest < ActionController::TestCase
   test 'can have both wrappers' do
     session[:user_id] = @owning_user.id
     assert_difference 'Event.count', 2 do
-      xhr :post,
-          :create,
-          event_id: @existing_event.id,
-          event_wrapper: {
-            single_wrapper: '0',
-            wrap_before: '1',
-            wrap_after: '1'
-          }
+      post :create,
+            params: {
+              event_id: @existing_event.id,
+              event_wrapper: {
+                single_wrapper: '0',
+                wrap_before: '1',
+                wrap_after: '1'
+              }
+            },
+            xhr: true
       assert_response :success
     end
   end
@@ -105,17 +111,19 @@ class WrappersControllerTest < ActionController::TestCase
   test 'can have a single wrapping event' do
     session[:user_id] = @owning_user.id
     assert_difference 'Event.count', 1 do
-      xhr :post,
-          :create,
-          event_id: @existing_event.id,
-          event_wrapper: {
-            single_wrapper: '1',
-            wrap_before: '1',
-            wrap_after: '1',
-            single_before_duration: '84',
-            single_after_duration: '99',
-            single_title: 'That is it'
-          }
+      post :create,
+            params: {
+              event_id: @existing_event.id,
+              event_wrapper: {
+                single_wrapper: '1',
+                wrap_before: '1',
+                wrap_after: '1',
+                single_before_duration: '84',
+                single_after_duration: '99',
+                single_title: 'That is it'
+              }
+            },
+            xhr: true
       assert_response :success
     end
     new_event = Event.last
