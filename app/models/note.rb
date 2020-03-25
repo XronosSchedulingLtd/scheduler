@@ -28,7 +28,7 @@ class Note < ApplicationRecord
   enum note_type: [ :ordinary, :clashes, :yaml, :socs ]
 
   before_save :format_contents
-  after_save :check_for_attachments, if: :contents_changed?
+  after_save :check_for_attachments, if: :saved_change_to_contents?
 
   #
   #  Visibility values

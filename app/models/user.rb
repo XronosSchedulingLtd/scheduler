@@ -91,8 +91,8 @@ class User < ApplicationRecord
 
   has_many :messages, class_name: 'Ahoy::Message', as: :user
   has_many :comments, dependent: :destroy
-  belongs_to :preferred_event_category, class_name: Eventcategory
-  belongs_to :day_shape, class_name: RotaTemplate
+  belongs_to :preferred_event_category, class_name: 'Eventcategory'
+  belongs_to :day_shape, class_name: 'RotaTemplate'
   belongs_to :corresponding_staff, class_name: "Staff"
   belongs_to :user_profile
   belongs_to :current_concern_set, class_name: "ConcernSet"

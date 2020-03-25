@@ -17,7 +17,7 @@ class Eventcategory < ApplicationRecord
 
   has_many :users, foreign_key: :preferred_event_category_id, :dependent => :nullify
   after_save :flush_cache
-  after_save :update_dependent_events, if: :confidential_changed?
+  after_save :update_dependent_events, if: :saved_change_to_confidential?
 
   scope :publish,          lambda { where(publish: true) }
   scope :name_starts_with, lambda { |prefix| where("name LIKE :prefix",
