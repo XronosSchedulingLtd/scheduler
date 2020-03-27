@@ -15,9 +15,9 @@ class Commitment < ApplicationRecord
 
   belongs_to :event
   belongs_to :element
-  belongs_to :proto_commitment
-  belongs_to :request, counter_cache: true
-  belongs_to :by_whom, class_name: "User"
+  belongs_to :proto_commitment, optional: true
+  belongs_to :request, counter_cache: true, optional: true
+  belongs_to :by_whom, class_name: "User", optional: true
   has_many :notes, as: :parent, dependent: :destroy
   has_one :user_form_response, as: :parent, dependent: :destroy
 
@@ -37,7 +37,7 @@ class Commitment < ApplicationRecord
   #
   #  if commitment.covered
   #
-  belongs_to :covering, :class_name => 'Commitment'
+  belongs_to :covering, :class_name => 'Commitment', optional: true
 
   # If this commitment is being covered and this commitment gets deleted
   # then the covering commitment should be deleted too.

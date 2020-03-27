@@ -8,8 +8,8 @@ require 'uri'
 class Note < ApplicationRecord
   belongs_to :parent, polymorphic: true
 #  belongs_to :commitments, -> { where( notes: { parent_type: 'Commitment' } ).includes(:notes) }, foreign_key: 'parent_id'
-  belongs_to :owner, class_name: :User
-  belongs_to :promptnote
+  belongs_to :owner, class_name: :User, optional: true
+  belongs_to :promptnote, optional: true
   #
   #  Note that we use dependent: :delete_all here deliberately, in preference
   #  to dependent: :destroy.  This is because we don't want to the

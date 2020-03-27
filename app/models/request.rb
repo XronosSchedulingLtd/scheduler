@@ -31,7 +31,7 @@ class Request < ApplicationRecord
 
   belongs_to :element
   belongs_to :event
-  belongs_to :proto_request
+  belongs_to :proto_request, optional: true
 
   has_many :commitments, :dependent => :destroy
   has_one :user_form_response, as: :parent, dependent: :destroy

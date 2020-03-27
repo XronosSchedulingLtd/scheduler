@@ -1,7 +1,7 @@
 class UserForm < ApplicationRecord
 
-  belongs_to :created_by_user, class_name: :User
-  belongs_to :edited_by_user, class_name: :User
+  belongs_to :created_by_user, class_name: :User, optional: true
+  belongs_to :edited_by_user, class_name: :User, optional: true
 
   has_many :user_form_responses, dependent: :destroy
   has_many :elements, dependent: :nullify

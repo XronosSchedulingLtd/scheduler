@@ -12,16 +12,16 @@ class Setting < ApplicationRecord
   @@rr_versions = nil
 
   belongs_to :current_era, class_name: :Era
-  belongs_to :next_era, class_name: :Era
-  belongs_to :previous_era, class_name: :Era
+  belongs_to :next_era, class_name: :Era, optional: true
+  belongs_to :previous_era, class_name: :Era, optional: true
   belongs_to :perpetual_era, class_name: :Era
-  belongs_to :room_cover_group_element, class_name: :Element
-  belongs_to :wrapping_eventcategory, class_name: :Eventcategory
+  belongs_to :room_cover_group_element, class_name: :Element, optional: true
+  belongs_to :wrapping_eventcategory, class_name: :Eventcategory, optional: true
 
-  belongs_to :default_display_day_shape, class_name: :RotaTemplate
-  belongs_to :default_free_finder_day_shape, class_name: :RotaTemplate
+  belongs_to :default_display_day_shape, class_name: :RotaTemplate, optional: true
+  belongs_to :default_free_finder_day_shape, class_name: :RotaTemplate, optional: true
 
-  belongs_to :prep_property_element, class_name: :Element
+  belongs_to :prep_property_element, class_name: :Element, optional: true
 
   before_save :update_html
   after_save :flush_cache

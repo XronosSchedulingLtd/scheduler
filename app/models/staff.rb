@@ -18,7 +18,7 @@ class Staff < ApplicationRecord
     true
   end
 
-  belongs_to :datasource
+  belongs_to :datasource, optional: true
   #
   #  Has only one per year, but in terms of data structues, has many.
   #

@@ -7,18 +7,18 @@ require 'csv'
 
 class Group < ApplicationRecord
   belongs_to :era
-  belongs_to :owner, :class_name => :User
-  belongs_to :persona, :polymorphic => true, :dependent => :destroy
-  belongs_to :datasource
+  belongs_to :owner, :class_name => :User, optional: true
+  belongs_to :persona, :polymorphic => true, :dependent => :destroy, optional: true
+  belongs_to :datasource, optional: true
   #
   #  Since we can't do joins on polymorphic relationships, we need
   #  explicit ones too.  These should really be defined elsewhere, but
   #  I'm not sure how just yet.
   #
-  belongs_to :tutorgrouppersona, -> { where(groups: {persona_type: 'Tutorgrouppersona'}).includes(:group) }, foreign_key: :persona_id
-  belongs_to :teachinggrouppersona, -> { where(groups: {persona_type: 'Teachinggrouppersona'}).includes(:group) }, foreign_key: :persona_id
-  belongs_to :taggrouppersona, -> { where(groups: {persona_type: 'Taggrouppersona'}).includes(:group) }, foreign_key: :persona_id
-  belongs_to :otherhalfgrouppersona, -> { where(groups: {persona_type: 'Otherhalfgrouppersona'}).includes(:group) }, foreign_key: :persona_id
+  belongs_to :tutorgrouppersona, -> { where(groups: {persona_type: 'Tutorgrouppersona'}).includes(:group) }, foreign_key: :persona_id, optional: true
+  belongs_to :teachinggrouppersona, -> { where(groups: {persona_type: 'Teachinggrouppersona'}).includes(:group) }, foreign_key: :persona_id, optional: true
+  belongs_to :taggrouppersona, -> { where(groups: {persona_type: 'Taggrouppersona'}).includes(:group) }, foreign_key: :persona_id, optional: true
+  belongs_to :otherhalfgrouppersona, -> { where(groups: {persona_type: 'Otherhalfgrouppersona'}).includes(:group) }, foreign_key: :persona_id, optional: true
 
   has_many :memberships, :dependent => :destroy
 

@@ -3,8 +3,8 @@ class ExamCycle < ApplicationRecord
   include Generator
 
   belongs_to :default_rota_template, class_name: "RotaTemplate"
-  belongs_to :default_group_element, class_name: "Element"
-  belongs_to :selector_element,      class_name: "Element"
+  belongs_to :default_group_element, class_name: "Element", optional: true
+  belongs_to :selector_element,      class_name: "Element", optional: true
 
   validates :name, :presence => true
   validates :starts_on, :presence => true

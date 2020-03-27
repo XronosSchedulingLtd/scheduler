@@ -34,7 +34,7 @@ class UserFormResponse < ApplicationRecord
 
   belongs_to :user_form
   belongs_to :parent, polymorphic: true
-  belongs_to :user
+  belongs_to :user, optional: true
 
   has_many :comments, as: :parent, dependent: :destroy
 

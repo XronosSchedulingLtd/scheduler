@@ -43,7 +43,7 @@ class Concern < ApplicationRecord
   }
   belongs_to :user
   belongs_to :element
-  belongs_to :concern_set       # May be nil
+  belongs_to :concern_set, optional: true       # May be nil
   has_one    :itemreport, :dependent => :destroy
 
   validates_presence_of :user

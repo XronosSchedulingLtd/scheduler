@@ -110,7 +110,7 @@ class Event < ApplicationRecord
 
   belongs_to :eventcategory
   belongs_to :eventsource
-  belongs_to :event_collection
+  belongs_to :event_collection, optional: true
   has_many :commitments, :dependent => :destroy
   has_many :requests, :dependent => :destroy
   has_many :requested_elements, through: :requests, source: :element
@@ -137,11 +137,11 @@ class Event < ApplicationRecord
   has_many :cover_locations, -> { where(elements: {entity_type: "Location"}) }, class_name: "Element", :source => :element, :through => :covering_commitments
 
   has_one :journal, :dependent => :nullify
-  belongs_to :owner, :class_name => :User
+  belongs_to :owner, :class_name => :User, optional: true
 
-  belongs_to :organiser, :class_name => :Element
+  belongs_to :organiser, :class_name => :Element, optional: true
 
-  belongs_to :proto_event
+  belongs_to :proto_event, optional: true
 
   validates :body, presence: true
   validates :eventcategory, presence: true

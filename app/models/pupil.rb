@@ -16,7 +16,7 @@ class Pupil < ApplicationRecord
     true
   end
 
-  belongs_to :datasource
+  belongs_to :datasource, optional: true
 
   self.per_page = 15
 

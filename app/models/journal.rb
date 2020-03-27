@@ -5,9 +5,9 @@
 #
 class Journal < ApplicationRecord
   belongs_to :event
-  belongs_to :event_eventcategory, class_name: :Eventcategory
-  belongs_to :event_owner,         class_name: :User
-  belongs_to :event_organiser,     class_name: :Element
+  belongs_to :event_eventcategory, class_name: :Eventcategory, optional: true
+  belongs_to :event_owner,         class_name: :User, optional: true
+  belongs_to :event_organiser,     class_name: :Element, optional: true
 
   has_many   :journal_entries, :dependent => :destroy
 

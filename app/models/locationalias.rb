@@ -6,8 +6,8 @@
 class Locationalias < ApplicationRecord
 
   validates :name, presence: true
-  belongs_to :location
-  belongs_to :datasource
+  belongs_to :location, optional: true
+  belongs_to :datasource, optional: true
 
   after_create :create_corresponding_location
   after_save :update_location

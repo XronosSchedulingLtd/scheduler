@@ -31,7 +31,7 @@ class Location < ApplicationRecord
            foreign_key: :subsidiary_to_id,
            class_name: :Location,
            dependent: :nullify
-  belongs_to :subsidiary_to, class_name: :Location
+  belongs_to :subsidiary_to, class_name: :Location, optional: true
 
   validates :name, presence: true
   validates :num_invigilators, presence: true
