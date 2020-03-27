@@ -167,7 +167,7 @@ class User < ApplicationRecord
   end
 
   def concern_with(element)
-    possibles = self.concerns.default_view.concerning(element)
+    possibles = self.concerns.default_view.concerned_with(element)
     if possibles.size == 1
       possibles[0]
     else

@@ -65,8 +65,6 @@ class Commitment < ApplicationRecord
                                       Commitment.statuses[:rejected]) }
   scope :constraining, -> { where("commitments.status = ?",
                                   Commitment.statuses[:confirmed]) }
-  scope :uncontrolled, -> { where("commitments.status = ?",
-                                  Commitment.statuses[:uncontrolled]) }
   scope :controlled, -> { where.not("commitments.status = ?",
                                   Commitment.statuses[:uncontrolled]) }
   scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}

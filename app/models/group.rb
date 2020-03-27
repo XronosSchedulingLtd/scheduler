@@ -59,7 +59,7 @@ class Group < ApplicationRecord
   #
   # scope :belonging_to, ->(target_user) { joins(element: {ownerships: :user}).where(users: {id: target_user.id} ) }
   scope :belonging_to, ->(target_user) { where(owner_id: target_user.id) }
-  scope :system, -> { where(owner_id: nil) }
+  scope :no_owner, -> { where(owner_id: nil) }
   scope :has_owner, -> { where.not(owner_id: nil) }
 
   #
