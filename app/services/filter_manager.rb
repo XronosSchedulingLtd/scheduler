@@ -204,6 +204,12 @@ class FilterManager
       "filterset"
     end
 
+    #
+    #  This is necessary to make the model look like it has already
+    #  been saved to the database.  Without it it's treated as a new
+    #  record, so you can't get a path to edit it, and attempts
+    #  to save a form generate a POST rather than a PUT.
+    #
     def persisted?
       true
     end
