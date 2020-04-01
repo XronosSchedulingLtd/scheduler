@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '5.1.7'
+gem 'rails', '5.2.4.2'
 gem 'rails-html-sanitizer', '~> 1.0.4'
 # Use sqlite3 as the database for Active Record
 #gem 'sqlite3'
@@ -40,6 +40,8 @@ gem 'spring',        group: :development
 
 # Use debugger
 # gem 'debugger', group: [:development, :test]
+
+gem 'bootsnap'
 
 gem 'foundation-rails', '5.5.0.0'
 gem 'jquery-ui-rails'
