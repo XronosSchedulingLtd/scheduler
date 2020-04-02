@@ -82,7 +82,7 @@ class EventCollection < ApplicationRecord
 
   belongs_to :era
   has_many :events, dependent: :nullify
-  belongs_to :requesting_user, class_name: :User
+  belongs_to :requesting_user, class_name: :User, optional: true
 
   validates :repetition_start_date, presence: true
   validates :repetition_end_date, presence: true
