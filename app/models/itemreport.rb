@@ -1,14 +1,17 @@
+#
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
+
 require 'uri'
 
 class Itemreport < ApplicationRecord
   belongs_to :concern
   belongs_to :excluded_element,
-             :class_name => :Element
+             class_name: :Element,
+             optional: true
 
   #
   #  Note that the concept of my_notes here relates to the item.  It's
