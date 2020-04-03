@@ -16,6 +16,9 @@ class Subject < ApplicationRecord
 
   scope :current, -> { where(current: true) }
 
+  validates :name, presence: true
+  validates :name, uniqueness: true
+
   def teachinggroups
     self.teachinggrouppersonae.preload(:group).collect { |tgp| tgp.group }
   end
