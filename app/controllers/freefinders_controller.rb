@@ -37,7 +37,7 @@ class FreefindersController < ApplicationController
     elsif params[:create] == "Create group"
       group_id = @freefinder.create_group(current_user)
       if group_id
-        redirect_to edit_group_path(group_id)
+        redirect_to edit_group_path(group_id, just_created: true)
       else
         render :new
       end

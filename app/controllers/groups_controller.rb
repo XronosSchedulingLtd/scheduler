@@ -144,7 +144,9 @@ class GroupsController < ApplicationController
 
   # GET /groups/1/edit
   def edit
-    unless params[:just_created]
+    if params[:just_created]
+      session[:go_back_to] = groups_path(mine: true)
+    else
       session[:go_back_to] = request.env['HTTP_REFERER']
     end
     if current_user.can_edit?(@group)
