@@ -1,3 +1,4 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
@@ -110,8 +111,6 @@ class User < ApplicationRecord
 
   validates :firstday, :presence => true
   validates :firstday, :numericality => true
-
-  validates :user_profile, :presence => true
 
   validates :uuid, uniqueness: true
 
@@ -658,7 +657,7 @@ class User < ApplicationRecord
         false
       end
     elsif item.instance_of?(UserFile)
-      self.admin? || self.id == @user_file.owner_id
+      self.admin? || self.id == item.owner_id
     else
       false
     end

@@ -1,3 +1,4 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2017 John Winters
 # See COPYING and LICENCE in the root directory of the application
@@ -10,8 +11,6 @@ class Journal < ApplicationRecord
   belongs_to :event_organiser,     class_name: :Element, optional: true
 
   has_many   :journal_entries, :dependent => :destroy
-
-  validates :event, presence: true
 
   self.per_page = 18
 

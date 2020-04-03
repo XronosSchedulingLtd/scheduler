@@ -1,3 +1,4 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
@@ -20,8 +21,6 @@ class Note < ApplicationRecord
   #
   has_many :attachments, as: :parent, dependent: :delete_all
   has_many :user_files, through: :attachments
-
-  validates :parent, presence: true
 
   scope :visible_guest, -> { where(visible_guest: true) }
 

@@ -7,6 +7,13 @@ class EventTest < ActiveSupport::TestCase
     @confidential_ec = FactoryBot.create(:eventcategory, confidential: true)
     @property = FactoryBot.create(:property)
     @location = FactoryBot.create(:location)
+    @valid_params = {
+      body: "A test event",
+      eventcategory: @eventcategory,
+      eventsource: @eventsource,
+      starts_at: Time.zone.now,
+      ends_at: Time.zone.now + 1.hour
+    }
   end
 
   test "event factory can add commitments" do
@@ -33,14 +40,28 @@ class EventTest < ActiveSupport::TestCase
   end
 
   test "can create an event" do
-    e = Event.create({
-      body: "A test event",
-      eventcategory: @eventcategory,
-      eventsource: @eventsource,
-      starts_at: Time.zone.now,
-      ends_at: Time.zone.now + 1.hour
-    })
+    e = Event.create(@valid_params)
     assert e.valid?
+  end
+
+  test "must have a body" do
+    e = Event.create(@valid_params.except(:body))
+    assert_not e.valid?
+  end
+
+  test "must have an eventcategory" do
+    e = Event.create(@valid_params.except(:eventcategory))
+    assert_not e.valid?
+  end
+
+  test "must have an eventsource" do
+    e = Event.create(@valid_params.except(:eventsource))
+    assert_not e.valid?
+  end
+
+  test "must have a starts_at" do
+    e = Event.create(@valid_params.except(:starts_at))
+    assert_not e.valid?
   end
 
   test "beginning scope has correct cut off" do

@@ -1,11 +1,15 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 class ProtoRequest < ApplicationRecord
   belongs_to :element
   belongs_to :proto_event
 
   has_many :requests, :dependent => :nullify
-
-  validates :element,     :presence => true
-  validates :proto_event, :presence => true
 
   def ensure_request(event)
     #

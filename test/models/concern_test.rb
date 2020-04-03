@@ -13,87 +13,54 @@ class ConcernTest < ActiveSupport::TestCase
     @element1 = FactoryBot.create(:element)
     @element2 = FactoryBot.create(:element)
     @extra_set = FactoryBot.create(:concern_set, owner: @user1)
-  end
-
-  test "Can create a concern" do
-    c = Concern.create({
+    @valid_params = {
       element: @element1,
       user:    @user1,
       colour:  "red"
-    })
+    }
+  end
+
+  test "Can create a concern" do
+    c = Concern.create(@valid_params)
     assert c.valid?
   end
 
   test "Each concern must belong to a user" do
-    c = Concern.create({
-      element: @element1,
-      colour:  "red"
-    })
+    c = Concern.create(@valid_params.except(:user))
     assert_not c.valid?
   end
 
   test "Each concern must have an element" do
-    c = Concern.create({
-      user:    @user1,
-      colour:  "red"
-    })
+    c = Concern.create(@valid_params.except(:element))
     assert_not c.valid?
   end
 
   test "Each concern must have a colour" do
-    c = Concern.create({
-      element: @element1,
-      user:    @user1
-    })
+    c = Concern.create(@valid_params.except(:colour))
     assert_not c.valid?
   end
 
   test "Can't create two identical concerns in the default set" do
-    c1 = Concern.create({
-      element: @element1,
-      user:    @user1,
-      colour:  "red"
-    })
-    c2 = Concern.create({
-      element: @element1,
-      user:    @user1,
-      colour:  "red"
-    })
+    c1 = Concern.create(@valid_params)
+    c2 = Concern.create(@valid_params)
     assert c1.valid?
     assert_not c2.valid?
   end
 
   test "Can create two identical concerns in different sets" do
-    c1 = Concern.create({
-      element: @element1,
-      user:    @user1,
-      colour:  "red"
-    })
-    c2 = Concern.create({
-      element: @element1,
-      user:    @user1,
-      colour:  "red",
-      concern_set: @extra_set
-    })
+    c1 = Concern.create(@valid_params)
+    c2 = Concern.create(@valid_params.merge(concern_set: @extra_set))
     assert c1.valid?
     assert c2.valid?
   end
 
   test "Each concern has an assistant_to flag" do
-    c = Concern.create({
-      element: @element1,
-      user:    @user1,
-      colour:  "red"
-    })
+    c = Concern.create(@valid_params)
     assert c.respond_to?(:assistant_to?)
   end
 
   test "Assistant_to defaults to false" do
-    c = Concern.create({
-      element: @element1,
-      user:    @user1,
-      colour:  "red"
-    })
+    c = Concern.create(@valid_params)
     assert_not c.assistant_to?
   end
 

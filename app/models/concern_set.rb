@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 class ConcernSet < ApplicationRecord
 
   DefaultViewName = 'Default'
@@ -11,7 +18,6 @@ class ConcernSet < ApplicationRecord
   belongs_to :owner, class_name: "User"
 
   validates_presence_of :name
-  validates_presence_of :owner
 
   attribute :copy_concerns, :boolean, default: true
   attribute :and_hide,      :boolean, default: false

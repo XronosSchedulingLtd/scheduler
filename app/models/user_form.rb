@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 class UserForm < ApplicationRecord
 
   belongs_to :created_by_user, class_name: :User, optional: true

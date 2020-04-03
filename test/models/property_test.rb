@@ -1,6 +1,36 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 require 'test_helper'
 
 class PropertyTest < ActiveSupport::TestCase
+
+  setup do
+    @valid_params = {
+      name: "A property"
+    }
+  end
+
+  test "can create a property" do
+    property = Property.new(@valid_params)
+    assert property.valid?
+  end
+
+  test "name is required" do
+    property = Property.new(@valid_params.except(:name))
+    assert_not property.valid?
+  end
+
+  test "name must be unique" do
+    property1 = Property.create(@valid_params)
+    assert property1.valid?
+    property2 = Property.create(@valid_params)
+    assert_not property2.valid?
+  end
 
   test "creating a property should create an element" do
     property = FactoryBot.create(:property)

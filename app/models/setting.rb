@@ -1,3 +1,4 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
@@ -26,8 +27,6 @@ class Setting < ApplicationRecord
   before_save :update_html
   after_save :flush_cache
 
-  validates :current_era, :presence => true
-  validates :perpetual_era, :presence => true
   validate :no_more_than_one
   validate :non_negative_timetable
   validates :email_keep_days, numericality: {

@@ -30,6 +30,7 @@ class UserTest < ActiveSupport::TestCase
                                      owner: @staff_user,
                                      organiser: @other_staff.element)
     @system_event = FactoryBot.create(:event)
+    @odd_property = FactoryBot.create(:property)
   end
 
   test "can create a staff user" do
@@ -39,6 +40,14 @@ class UserTest < ActiveSupport::TestCase
     assert_equal UserProfile.staff_profile, user.user_profile
     assert_equal user.corresponding_staff, staff
     assert user.known?
+  end
+
+  test "user must have user profile" do
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
+    assert user.valid?
+    user.user_profile = nil
+    assert_not user.valid?
   end
 
   test "new staff user gets correct permissions" do
@@ -326,6 +335,46 @@ class UserTest < ActiveSupport::TestCase
     @staff_user.permissions[:subedit_all_events] = true
     @staff_user.save!
     assert @staff_user.can_subedit?(@system_event)
+  end
+
+  test "permissions to delete concerns are correctly calculated" do
+    concern = FactoryBot.create(
+      :concern,
+      user:    @staff_user,
+      element: @odd_property.element
+    )
+    assert @staff_user.can_delete?(concern)
+    assert @admin_user.can_delete?(concern)
+    assert_not @other_staff_user.can_delete?(concern)
+  end
+
+  test "permissions to delete notes are correctly calculated" do
+    note = FactoryBot.create(
+      :note,
+      owner: @staff_user,
+      parent: @owned_event)
+    assert @staff_user.can_delete?(note)
+    assert_not @other_staff_user.can_delete?(note)
+    assert_not @admin_user.can_delete?(note)
+    commitment = FactoryBot.create(:commitment)
+    #
+    #  If a note is attached to a commitment, then we can't delete
+    #  it even if we own it.  We have to delete the commitment instead.
+    #
+    other_note = FactoryBot.create(
+      :note,
+      owner: @staff_user,
+      parent: commitment)
+    assert_not @staff_user.can_delete?(other_note)
+  end
+
+  test "permissions to delete user files are correctly calculated" do
+    user_file = FactoryBot.create(
+      :user_file,
+      owner: @staff_user)
+    assert @staff_user.can_delete?(user_file)
+    assert_not @other_staff_user.can_delete?(user_file)
+    assert @admin_user.can_delete?(user_file)
   end
 
   private

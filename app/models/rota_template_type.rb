@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 class RotaTemplateType < ApplicationRecord
 
   has_many :rota_templates, :dependent => :destroy

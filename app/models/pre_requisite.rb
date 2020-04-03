@@ -1,3 +1,4 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
@@ -6,8 +7,6 @@
 
 class PreRequisite < ApplicationRecord
   belongs_to :element
-
-  validates :element, presence: true
 
   scope :pre_creation, -> { where(pre_creation: true) }
   scope :quick_button, -> { where(quick_button: true) }

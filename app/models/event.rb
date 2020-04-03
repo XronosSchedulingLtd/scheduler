@@ -1,3 +1,4 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
@@ -137,6 +138,7 @@ class Event < ApplicationRecord
   has_many :cover_locations, -> { where(elements: {entity_type: "Location"}) }, class_name: "Element", :source => :element, :through => :covering_commitments
 
   has_one :journal, :dependent => :nullify
+
   belongs_to :owner, :class_name => :User, optional: true
 
   belongs_to :organiser, :class_name => :Element, optional: true
@@ -144,8 +146,6 @@ class Event < ApplicationRecord
   belongs_to :proto_event, optional: true
 
   validates :body, presence: true
-  validates :eventcategory, presence: true
-  validates :eventsource, presence: true
   validates :starts_at, presence: true
   validates_with DurationValidator
   #

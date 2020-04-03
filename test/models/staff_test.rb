@@ -1,6 +1,29 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 require 'test_helper'
 
 class StaffTest < ActiveSupport::TestCase
+
+  setup do
+    @valid_params = {
+      name: "Hello there - I'm staff"
+    }
+  end
+
+  test "can create a staff record" do
+    staff = Staff.new(@valid_params)
+    assert staff.valid?
+  end
+
+  test "name is required" do
+    staff = Staff.new(@valid_params.except(:name))
+    assert_not staff.valid?
+  end
 
   test "viewable should default to true" do
     staff = FactoryBot.create(:staff)

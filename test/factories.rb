@@ -415,6 +415,10 @@ FactoryBot.define do
     default_group_element { create(:group).element }
   end
 
+  factory :journal do
+    event
+  end
+
   #
   #  I cannot find a way to get FactoryBot to let me assign an extra
   #  value to the thing which I am creating.  It tries to second

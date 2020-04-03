@@ -1,5 +1,6 @@
+#
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2018 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -24,7 +25,6 @@ class Group < ApplicationRecord
 
   validates :starts_on, presence: true
   validates :name,      presence: true
-  validates :era,       presence: true
 
   validate :not_backwards
   validate :persona_specified

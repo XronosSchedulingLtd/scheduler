@@ -38,8 +38,6 @@ class UserFormResponse < ApplicationRecord
 
   has_many :comments, as: :parent, dependent: :destroy
 
-  validates :user_form, :parent, presence: true
-
   scope :incomplete, -> { where.not("user_form_responses.status = ?",
                                     UserFormResponse.statuses[:complete]) }
   #

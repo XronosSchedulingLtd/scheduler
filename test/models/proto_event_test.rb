@@ -45,11 +45,6 @@ class ProtoEventTest < ActiveSupport::TestCase
     assert_not pe.body.blank?
   end
 
-  test "needs a rota template" do
-    pe = ProtoEvent.create(@valid_params.except(:rota_template))
-    assert_not pe.valid?
-  end
-
   test "needs a starts_on" do
     pe = ProtoEvent.create(@valid_params.except(:starts_on))
     assert_not pe.valid?

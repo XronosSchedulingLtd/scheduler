@@ -1,3 +1,4 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
@@ -46,8 +47,6 @@ class Concern < ApplicationRecord
   belongs_to :concern_set, optional: true       # May be nil
   has_one    :itemreport, :dependent => :destroy
 
-  validates_presence_of :user
-  validates_presence_of :element
   validates_presence_of :colour
   validates_uniqueness_of :element_id, scope: [:user_id, :concern_set_id]
 

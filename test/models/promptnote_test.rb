@@ -7,7 +7,7 @@
 
 require 'test_helper'
 
-class PreRequisiteTest < ActiveSupport::TestCase
+class PromptnoteTest < ActiveSupport::TestCase
   setup do
     @element = FactoryBot.create(:element)
     @valid_params = {
@@ -15,14 +15,14 @@ class PreRequisiteTest < ActiveSupport::TestCase
     }
   end
 
-  test "can create pre-requisite" do
-    pr = PreRequisite.new(@valid_params)
-    assert pr.valid?
+  test "can create prompt note" do
+    pn = Promptnote.new(@valid_params)
+    assert pn.valid?
   end
 
   test "must have an element" do
-    pr = PreRequisite.new(@valid_params.except(:element))
-    assert_not pr.valid?
+    pn = Promptnote.new(@valid_params.except(:element))
+    assert_not pn.valid?
   end
 
 end

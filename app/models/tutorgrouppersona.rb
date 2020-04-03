@@ -1,11 +1,10 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2014 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
 class Tutorgrouppersona < ApplicationRecord
-
-  validates :staff, presence: true
 
   belongs_to :staff
   has_one    :group

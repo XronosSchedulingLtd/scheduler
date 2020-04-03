@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 
 #
 #  This module exists to hold any methods relating to a proto event
@@ -216,20 +223,14 @@ class ProtoEvent < ApplicationRecord
   #  We don't really *belong* to the rota_template, but we point at
   #  it so this is how ActiveRecord phrases it.
   #
-  belongs_to :rota_template
+  #  Although we are created with a rota_template, it is possible that
+  #  it may subsequently have been deleted, and the action in that case
+  #  is to nullify our reference.  Always check before dereferencing it.
+  #
+  belongs_to :rota_template, optional: true
   belongs_to :generator, :polymorphic => true
 
   validates :body, presence: true
-  validates :eventcategory, presence: true
-  validates :eventsource, presence: true
-  #
-  #  Note that, although we have a validation here to ensure we
-  #  have a rota template, it's possible that said template
-  #  might subsequently have been deleted.  The action in the rota_template
-  #  model is to nullify our reference, so we end up with a nil item
-  #  here.  Always check before using it.
-  #
-  validates :rota_template, :presence => true
   validates_with ProtoEventValidator
 
   attr_reader :org_starts_on, :org_ends_on

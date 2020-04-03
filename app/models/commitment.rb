@@ -23,8 +23,6 @@ class Commitment < ApplicationRecord
 
   include WithForms
 
-  validates_presence_of :event, :element
-
   validates :element_id, uniqueness: { scope: [:event_id, :covering_id] }
 
   # Note naming here.  If this commitment is covering another commitment
