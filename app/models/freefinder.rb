@@ -1,5 +1,6 @@
+#
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
@@ -19,7 +20,7 @@ require 'csv'
 #
 class Freefinder < ApplicationRecord
 
-  belongs_to :element
+  belongs_to :element, optional: true
 
   attr_reader :free_elements, :done_search, :original_membership_size
 
