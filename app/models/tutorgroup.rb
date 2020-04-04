@@ -15,6 +15,15 @@ class Tutorgroup
     Group.create!(myparams.merge(params))
   end
 
+  #
+  #  This method is used from the application, and from the MIS Import
+  #  stuff, in a very dynamic-code sort of way.
+  #
+  #  MIS_TutorGroup inherits from MIS_Group inherits from MIS_Record
+  #
+  #  The actual code which does the call is in the MIS_Record bit,
+  #  but it uses extra information provided by its inheritors.
+  #  
   def self.new(params_hash = nil)
     g = Group.new
     g.persona_class = Tutorgrouppersona
