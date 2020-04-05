@@ -1,4 +1,4 @@
-class AddLocking < ActiveRecord::Migration
+class AddLocking < ActiveRecord::Migration[4.2]
   def change
     add_column :properties, :locking, :boolean, default: false
     add_column :events, :locked, :boolean, default: false
