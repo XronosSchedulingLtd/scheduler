@@ -9,19 +9,66 @@ require 'test_helper'
 
 class PupilTest < ActiveSupport::TestCase
   setup do
+    @entity_class = Pupil
     @valid_params = {
       name: "Hi there - I'm a pupil"
     }
   end
 
-  test "can create pupil" do
-    pupil = Pupil.new(@valid_params)
-    assert pupil.valid?
-  end
+  include CommonEntityTests
 
-  test "must have a name" do
-    pupil = Pupil.new(@valid_params.except(:name))
-    assert_not pupil.valid?
+  #
+  #  The Pupil model overrides the sorting method (<=>) and so needs
+  #  its own separate sorting test.
+  #
+
+  test "pupils sort by year surname forename" do
+    pupils = []
+    pupils << Pupil.create(
+      @valid_params.merge(
+        {
+          start_year: 2015,
+          surname: "Wilson",
+          forename: "Able"
+        }
+      )
+    )
+    pupils << Pupil.create(
+      @valid_params.merge(
+        {
+          start_year: 2015,
+          surname: "Smith",
+          forename: "Bert"
+        }
+      )
+    )
+    pupils << Pupil.create(
+      @valid_params.merge(
+        {
+          start_year: 2015,
+          surname: "Smith",
+          forename: "Able"
+        }
+      )
+    )
+    #
+    #  This chap should come first, by dint of his start year
+    #  making him younger than anyone else.
+    #
+    pupils << Pupil.create(
+      @valid_params.merge(
+        {
+          start_year: 2018,
+          surname: "Zebedee",
+          forename: "Zacariah"
+        }
+      )
+    )
+    sorted = pupils.sort
+    assert_equal pupils[0], sorted[3]
+    assert_equal pupils[1], sorted[2]
+    assert_equal pupils[2], sorted[1]
+    assert_equal pupils[3], sorted[0]
   end
 
 end

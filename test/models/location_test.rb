@@ -3,43 +3,16 @@ require 'test_helper'
 class LocationTest < ActiveSupport::TestCase
 
   setup do
+    @entity_class = Location
+    @valid_params = {
+      name: "Googol",
+      active: true
+    }
     @location1 = FactoryBot.create(:location, name: "Location 1")
     @inactive_location = FactoryBot.create(:location, active: false)
   end
 
-  test "creating an active location should create an element" do
-    location = Location.create(name: "Googol", active: true)
-    assert_not_nil location.element
-  end
-
-  test "creating an inactive location should not create an element" do
-    location = Location.create(name: "Googol", active: false)
-    assert_nil location.element
-  end
-
-  test "changing location to active should create element" do
-    assert_nil @inactive_location.element
-    @inactive_location.active = true
-    @inactive_location.save!
-    assert_not_nil @inactive_location.element
-  end
-
-  test "modifying location name should change element name" do
-    org_name = @location1.element.name
-    @location1.name = "Banana"
-    @location1.save
-    assert_not_equal org_name, @location1.element.name
-  end
-
-  test "must have a name" do
-    @location1.name = nil
-    assert_not @location1.valid?
-  end
-
-  test "must have a non-blank name" do
-    @location1.name = ""
-    assert_not @location1.valid?
-  end
+  include CommonEntityTests
 
   test "number of invigilators defaults to one" do
     assert_equal 1, @location1.num_invigilators
@@ -112,6 +85,5 @@ class LocationTest < ActiveSupport::TestCase
     assert superiors.include?(location2)
     assert superiors.include?(@location1)
   end
-
 
 end

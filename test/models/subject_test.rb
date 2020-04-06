@@ -9,23 +9,12 @@ require 'test_helper'
 
 class SubjectTest < ActiveSupport::TestCase
   setup do
+    @entity_class = Subject
     @valid_params = {
       name: "A subject"
     }
   end
 
-  test "can create a subject" do
-    subject = Subject.create(@valid_params)
-    assert subject.valid?
-  end
+  include CommonEntityTests
 
-  test "must have a name" do
-    subject = Subject.create(@valid_params.except(:name))
-    assert_not subject.valid?
-  end
-
-  test "should acquire an element record" do
-    subject = Subject.create(@valid_params)
-    assert_not_nil subject.element
-  end
 end
