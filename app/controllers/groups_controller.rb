@@ -193,14 +193,14 @@ class GroupsController < ApplicationController
     #
     #  And round to edit it.
     #
-    redirect_to edit_group_path(@new_group)
+    redirect_to edit_group_path(@new_group, just_created: true)
   end
 
   # POST /groups/1/flatten
   def flatten
     @new_group = @group.do_clone
     @new_group.flatten
-    redirect_to edit_group_path(@new_group)
+    redirect_to edit_group_path(@new_group, just_created: true)
   end
 
   # PATCH/PUT /groups/1

@@ -33,8 +33,33 @@ class GroupsControllerTest < ActionController::TestCase
         }
       )
     end
-
     assert_redirected_to edit_group_path(assigns(:group), just_created: true)
+  end
+
+  test "should clone group" do
+    assert_difference('Group.count') do
+      post(
+        :do_clone,
+        params: {
+          id: @group
+        }
+      )
+    end
+    assert_redirected_to edit_group_path(assigns(:new_group),
+                                         just_created: true)
+  end
+
+  test "should flatten group" do
+    assert_difference('Group.count') do
+      post(
+        :flatten,
+        params: {
+          id: @group
+        }
+      )
+    end
+    assert_redirected_to edit_group_path(assigns(:new_group),
+                                         just_created: true)
   end
 
   test "should show group" do
