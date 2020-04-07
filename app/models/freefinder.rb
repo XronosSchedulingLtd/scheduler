@@ -187,7 +187,7 @@ class Freefinder < ApplicationRecord
       @free_elements.each do |fe|
         new_group.add_member(fe)
       end
-      new_group.id
+      new_group
     else
       errors.add(:overall, "Must find some results to create a group")
       nil
