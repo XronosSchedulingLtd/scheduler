@@ -5,7 +5,14 @@
 # for more information.
 #
 class Journal < ApplicationRecord
-  belongs_to :event
+  #
+  #  Although a journal needs to belong to an event when it is created,
+  #  the event may later be deleted and the journal then hangs about.
+  #
+  #  The action in the event model is to nullify the connection, so
+  #  we need optional: true here.
+  #
+  belongs_to :event, optional: true
   belongs_to :event_eventcategory, class_name: :Eventcategory, optional: true
   belongs_to :event_owner,         class_name: :User, optional: true
   belongs_to :event_organiser,     class_name: :Element, optional: true
@@ -296,6 +303,7 @@ class Journal < ApplicationRecord
                       request,
                       by_user,
                       false,
+                      nil,
                       element)
   end
 
@@ -304,11 +312,15 @@ class Journal < ApplicationRecord
                       request,
                       by_user,
                       false,
+                      nil,
                       element)
   end
 
   def resource_request_reconfirmed(request, by_user)
-    entry_for_request(:resource_request_reconfirmed, request, false, by_user)
+    entry_for_request(:resource_request_reconfirmed,
+                      request,
+                      by_user,
+                      false)
   end
 
   def format_timing
