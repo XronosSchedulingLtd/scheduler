@@ -2,6 +2,7 @@ require 'test_helper'
 
 class EventTest < ActiveSupport::TestCase
   setup do
+    @user = FactoryBot.create(:user)
     @eventcategory = FactoryBot.create(:eventcategory)
     @eventsource   = FactoryBot.create(:eventsource)
     @confidential_ec = FactoryBot.create(:eventcategory, confidential: true)
@@ -14,6 +15,22 @@ class EventTest < ActiveSupport::TestCase
       starts_at: Time.zone.now,
       ends_at: Time.zone.now + 1.hour
     }
+    # Event For Journaling
+    # 
+    # Use a separate eventsource to avoid clashes.
+    #
+    @efj_eventsource = FactoryBot.create(:eventsource)
+    @efj = FactoryBot.create(
+      :event,
+      @valid_params.merge({
+        eventsource: @efj_eventsource
+      })
+    )
+    @commitment = FactoryBot.create(:commitment, event: @efj)
+    @resource = FactoryBot.create(:service)
+    @request = FactoryBot.create(:request, event: @efj)
+    @note = FactoryBot.create(:note)
+    @ufr = FactoryBot.create(:user_form_response)
   end
 
   test "event factory can add commitments" do
@@ -74,9 +91,9 @@ class EventTest < ActiveSupport::TestCase
       ends_at: tomorrow_midnight
     })
     assert e.valid?
-    assert_equal 1, Event.beginning(Date.today).count
-    assert_equal 1, Event.beginning(Date.tomorrow).count
-    assert_equal 0, Event.beginning(Date.today + 2.days).count
+    assert_equal 1, @eventsource.events.beginning(Date.today).count
+    assert_equal 1, @eventsource.events.beginning(Date.tomorrow).count
+    assert_equal 0, @eventsource.events.beginning(Date.today + 2.days).count
   end
 
   test "can add simple commitments" do
@@ -250,11 +267,168 @@ class EventTest < ActiveSupport::TestCase
     assert_equal 2, new_request.num_outstanding
 
     assert new_event.commitments.empty?
+  end
 
+  #
+  #  Tests relating to journaling.  Notice that we do not test what
+  #  kind of entry has been created or what it contains - that's up
+  #  to the model tests for the Journal model.  What we're testing
+  #  here is that the shims in the Event model work.
+  #
+
+  test "no journal by default" do
+    assert_nil @efj.journal
+  end
+
+  test "can explicitly add journal" do
+    @efj.ensure_journal
+    assert_not_nil @efj.journal
+  end
+
+  test "can journal event created" do
+    @efj.journal_event_created(@user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal event updated" do
+    #
+    #  Here we do have to make an actual change to the event, otherwise
+    #  nothing will be journaled.
+    #
+    #  The journal must exist before the change is made too.
+    #
+    @efj.ensure_journal
+    @efj.body = "Modified body text"
+    @efj.ends_at = @efj.ends_at + 1.hour
+    @efj.journal_event_updated(@user)
+    assert_not_nil @efj.journal
+    #
+    #  Two things changed, so two journal entries.
+    #
+    assert_equal 2, @efj.journal.journal_entries.count
+  end
+
+  test "can journal event destroyed" do
+    @efj.journal_event_destroyed(@user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal commitment added" do
+    @efj.journal_commitment_added(@commitment, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal commitment removed" do
+    @efj.journal_commitment_removed(@commitment, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal commitment approved" do
+    @efj.journal_commitment_approved(@commitment, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal commitment rejected" do
+    @efj.journal_commitment_rejected(@commitment, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal commitment noted" do
+    @efj.journal_commitment_noted(@commitment, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal commitment reset" do
+    @efj.journal_commitment_reset(@commitment, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal note added" do
+    @efj.journal_note_added(@note, @commitment, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal note updated" do
+    @efj.journal_note_updated(@note, @commitment, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal form completed" do
+    @efj.journal_form_completed(@ufr, @commitment, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal repeated from" do
+    @efj.journal_repeated_from(@user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal resource request created" do
+    @efj.journal_resource_request_created(@request, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal resource request destroyed" do
+    @efj.journal_resource_request_destroyed(@request, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal resource request incremented" do
+    @efj.journal_resource_request_incremented(@request, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal resource request decremented" do
+    @efj.journal_resource_request_decremented(@request, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal resource request adjusted" do
+    @efj.journal_resource_request_adjusted(@request, 2, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal resource request allocated" do
+    @efj.journal_resource_request_allocated(@request, @user, @resource.element)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal resource request deallocated" do
+    @efj.journal_resource_request_deallocated(
+      @request, @user, @resource.element)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
+  end
+
+  test "can journal resource request reconfirmed" do
+    @efj.journal_resource_request_reconfirmed(@request, @user)
+    assert_not_nil @efj.journal
+    assert_equal 1, @efj.journal.journal_entries.count
   end
 
   #
   #  Leave this test at the end.  It needs investigating at some point.
+  #
+  #  Now commented out because the bug seems to have been fixed in Rails
+  #  5.  This test now fails - as it should.
   #
 #  test "odd bug in ActiveRecord" do
     #
