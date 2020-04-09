@@ -32,7 +32,7 @@ class NotesController < ApplicationController
       if @note.save
         @note.reload
         if @note.parent.instance_of?(Commitment)
-          @event.journal_note_created(@note, @note.parent, current_user)
+          @event.journal_note_added(@note, @note.parent, current_user)
         end
         @notes = @event.all_notes_for(current_user)
         format.js
