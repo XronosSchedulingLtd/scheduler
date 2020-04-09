@@ -2044,6 +2044,11 @@ class Event < ApplicationRecord
 
   def ensure_journal
     unless self.journal
+      #
+      #  Because we have already been saved to the database, the action
+      #  of assigning the newly created journal as our journal saves
+      #  that too. (Coz it's a has_one relationship.)
+      #
       self.journal = Journal.new.populate_from_event(self)
     end
   end
