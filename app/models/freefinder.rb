@@ -171,7 +171,7 @@ class Freefinder < ApplicationRecord
   end
 
   #
-  #  Create a new group from this search, and return its id.
+  #  Create a new group from this search, and return it.
   #  Returns nil if we haven't created one.
   #
   def create_group(user)
