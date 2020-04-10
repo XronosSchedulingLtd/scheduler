@@ -24,6 +24,18 @@ class PupilTest < ActiveSupport::TestCase
 
   test "pupils sort by year surname forename" do
     pupils = []
+    #
+    #  This chap comes right at the end because, although he has
+    #  an aaaa name, he has no start year.
+    #
+    pupils << Pupil.create(
+      @valid_params.merge(
+        {
+          surname: "Aaaaa",
+          forename: "Aaaaa"
+        }
+      )
+    )
     pupils << Pupil.create(
       @valid_params.merge(
         {
@@ -64,11 +76,23 @@ class PupilTest < ActiveSupport::TestCase
         }
       )
     )
+    #
+    #  But this one even earlier, because he has no names.
+    #
+    pupils << Pupil.create(
+      @valid_params.merge(
+        {
+          start_year: 2018
+        }
+      )
+    )
     sorted = pupils.sort
-    assert_equal pupils[0], sorted[3]
-    assert_equal pupils[1], sorted[2]
-    assert_equal pupils[2], sorted[1]
-    assert_equal pupils[3], sorted[0]
+    assert_equal pupils[0], sorted[5]
+    assert_equal pupils[1], sorted[4]
+    assert_equal pupils[2], sorted[3]
+    assert_equal pupils[3], sorted[2]
+    assert_equal pupils[4], sorted[1]
+    assert_equal pupils[5], sorted[0]
   end
 
 end

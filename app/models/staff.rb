@@ -107,12 +107,28 @@ class Staff < ApplicationRecord
     end
   end
 
+  def compare_names(own, other)
+    if own.blank?
+      if other.blank?
+        0
+      else
+        -1
+      end
+    else
+      if other.blank?
+        1
+      else
+        own <=> other
+      end
+    end
+  end
+
   def <=>(other)
     result = sort_by_entity_type(other)
     if result == 0
-      result = self.surname <=> other.surname
+      result = compare_names(self.surname, other.surname)
       if result == 0
-        result = self.forename <=> other.forename
+        result = compare_names(self.forename, other.forename)
       end
     end
     result

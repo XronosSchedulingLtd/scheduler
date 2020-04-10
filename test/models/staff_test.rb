@@ -50,10 +50,15 @@ class StaffTest < ActiveSupport::TestCase
         }
       )
     )
+    #
+    #  Blank names should put this one right at the beginning.
+    #
+    staffs << Staff.create(@valid_params)
     sorted = staffs.sort
-    assert_equal staffs[0], sorted[2]
-    assert_equal staffs[1], sorted[1]
-    assert_equal staffs[2], sorted[0]
+    assert_equal staffs[0], sorted[3]
+    assert_equal staffs[1], sorted[2]
+    assert_equal staffs[2], sorted[1]
+    assert_equal staffs[3], sorted[0]
   end
 
 end
