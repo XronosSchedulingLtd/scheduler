@@ -419,6 +419,10 @@ FactoryBot.define do
     event
   end
 
+  factory :promptnote do
+    element
+  end
+
   #
   #  I cannot find a way to get FactoryBot to let me assign an extra
   #  value to the thing which I am creating.  It tries to second
