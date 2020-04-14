@@ -18,14 +18,14 @@ class PropertyTest < ActiveSupport::TestCase
 
   include CommonEntityTests
 
-  test "name must be unique" do
+  test 'name must be unique' do
     property1 = Property.create(@valid_params)
     assert property1.valid?
     property2 = Property.create(@valid_params)
     assert_not property2.valid?
   end
 
-  test "properties can be made locking" do
+  test 'properties can be made locking' do
     property = FactoryBot.create(:property, locking: true)
     assert property.can_lock?
   end

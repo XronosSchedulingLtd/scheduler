@@ -423,6 +423,12 @@ FactoryBot.define do
     element
   end
 
+  factory :event_collection do
+    era { Setting.current_era }
+    repetition_start_date { Date.today }
+    repetition_end_date   { Date.today + 1.month }
+  end
+
   #
   #  I cannot find a way to get FactoryBot to let me assign an extra
   #  value to the thing which I am creating.  It tries to second
