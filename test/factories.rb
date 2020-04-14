@@ -429,6 +429,17 @@ FactoryBot.define do
     repetition_end_date   { Date.today + 1.month }
   end
 
+  factory :membership do
+    group
+    element
+    starts_on { Date.today }
+    inverse { false }
+  end
+
+#  factory :proto_event do
+#    association :generator, factory: :exam_cycle
+#  end
+
   #
   #  I cannot find a way to get FactoryBot to let me assign an extra
   #  value to the thing which I am creating.  It tries to second
