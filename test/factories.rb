@@ -436,18 +436,16 @@ FactoryBot.define do
     inverse { false }
   end
 
-#  factory :proto_event do
-#    association :generator, factory: :exam_cycle
-#  end
+  factory :proto_event do
+    sequence(:body) { |n| "Proto event #{n}" }
+    association :generator, factory: :exam_cycle
+    eventcategory
+    eventsource
+    starts_on { Date.today }
+    ends_on { Date.tomorrow }
+    location
+    num_staff { "2" }
+  end
 
-  #
-  #  I cannot find a way to get FactoryBot to let me assign an extra
-  #  value to the thing which I am creating.  It tries to second
-  #  guess me and doesn't do it.  Hence no factory for ProtoEvent.
-  #
-  #factory :proto_event do
-  #  persona     { "Invigilation" }  # This is the thing it won't assign.
-  #  association :generator, factory: :exam_cycle
-  #end
 end
 
