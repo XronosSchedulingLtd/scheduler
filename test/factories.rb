@@ -419,6 +419,12 @@ FactoryBot.define do
     event
   end
 
+  factory :journal_entry do
+    journal
+    user
+    element
+  end
+
   factory :promptnote do
     element
   end
@@ -447,5 +453,42 @@ FactoryBot.define do
     num_staff { "2" }
   end
 
+  factory :proto_commitment do
+    #
+    #  ProtoCommitments need to be unique between event and element -
+    #  you can't have two with the same event and element.
+    #
+    #  For this reason, even if we build() a proto_commitment, force
+    #  automatic associations to be create()ed.
+    #
+    association :proto_event, factory: :proto_event, strategy: :create
+    element
+  end
+
+  factory :proto_request do
+    proto_event
+    element
+    quantity { 1 }
+  end
+
+  factory :freefinder do
+  end
+
+  factory :itemreport do
+    #
+    #  I would normally have here just:
+    #
+    #    concern
+    #
+    #  but Rails defines a method of this name.
+    #
+    #  You can also write:
+    #
+    #    add_attribute(:concern) { ...block of code... }
+    #
+    #  to avoid this kind of name clash.
+    #
+    association :concern, factory: :concern
+  end
 end
 

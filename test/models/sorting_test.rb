@@ -22,7 +22,7 @@ class SortingTest < ActiveSupport::TestCase
     @shuffled = @entities.shuffle
   end
 
-  test "it should be possible to sort mixed elements" do
+  test "it should be possible to sort mixed entities" do
     pupils = Pupil.all.to_a
     staff = Staff.all.to_a
     everything = pupils + staff
