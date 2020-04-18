@@ -23,6 +23,33 @@ class MembershipTest < ActiveSupport::TestCase
     assert membership.valid?
   end
 
+  test "must reference a group" do
+    membership = Membership.new({
+      element:   @element2,
+      starts_on: @group1.starts_on,
+      inverse:   false
+    })
+    assert_not membership.valid?
+  end
+
+  test "must reference an element" do
+    membership = Membership.new({
+      group:     @group1,
+      starts_on: @group1.starts_on,
+      inverse:   false
+    })
+    assert_not membership.valid?
+  end
+
+  test "must have a start date" do
+    membership = Membership.new({
+      element:   @element2,
+      group:     @group1,
+      inverse:   false
+    })
+    assert_not membership.valid?
+  end
+
   test "reverse dates are rejected" do
     membership = Membership.new({
       element:   @element2,

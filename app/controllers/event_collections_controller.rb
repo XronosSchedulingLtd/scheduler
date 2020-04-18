@@ -239,7 +239,7 @@ class EventCollectionsController < ApplicationController
       end
     end
     respond_to do |format|
-      format.html { redirect_to :back }
+      format.html { redirect_back fallback_location: root_path }
       format.js
     end
   end
@@ -269,7 +269,7 @@ class EventCollectionsController < ApplicationController
     if admin_user?
       @event_collection = EventCollection.find(params[:id])
       @event_collection.reset
-      redirect_to :back
+      redirect_back fallback_location: root_path
     else
       redirect_to :root
     end

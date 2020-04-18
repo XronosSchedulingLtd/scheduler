@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 class RepeatDatesValidator < ActiveModel::Validator
 
   def validate(event_collection)
@@ -58,7 +65,7 @@ class RepeatDatesValidator < ActiveModel::Validator
 
 end
 
-class EventCollection < ActiveRecord::Base
+class EventCollection < ApplicationRecord
 
   class DaynameWithIndex
     attr_reader :name, :index
@@ -82,11 +89,10 @@ class EventCollection < ActiveRecord::Base
 
   belongs_to :era
   has_many :events, dependent: :nullify
-  belongs_to :requesting_user, class_name: :User
+  belongs_to :requesting_user, class_name: :User, optional: true
 
   validates :repetition_start_date, presence: true
   validates :repetition_end_date, presence: true
-  validates :era, presence: true
   validates_with RepeatDatesValidator
 
   #

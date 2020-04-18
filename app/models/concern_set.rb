@@ -1,4 +1,11 @@
-class ConcernSet < ActiveRecord::Base
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
+class ConcernSet < ApplicationRecord
 
   DefaultViewName = 'Default'
 
@@ -11,10 +18,9 @@ class ConcernSet < ActiveRecord::Base
   belongs_to :owner, class_name: "User"
 
   validates_presence_of :name
-  validates_presence_of :owner
 
-  attribute :copy_concerns, Type::Boolean.new, default: true
-  attribute :and_hide,      Type::Boolean.new, default: false
+  attribute :copy_concerns, :boolean, default: true
+  attribute :and_hide,      :boolean, default: false
 
   #
   #  This exists as a method because it needs to be able to work out

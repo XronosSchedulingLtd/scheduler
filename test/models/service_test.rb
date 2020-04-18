@@ -1,62 +1,35 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 require 'test_helper'
 
 class ServiceTest < ActiveSupport::TestCase
   setup do
+    @entity_class = Service
     @service1   = services(:one)
     @service2   = services(:two)
+    @valid_params = {
+      name:    "Random service",
+      current: true
+    }
   end
 
-  test "creating a service should create a corresponding element" do
-    service = Service.create({
-      name: "Random service",
-      current:  true,
-      add_directly: true
-    })
+  include CommonEntityTests
+
+  test "add_directly defaults to true" do
+    service = Service.create(@valid_params)
     service.reload
-    assert_not_nil service.element
+    assert service.element.add_directly?
   end
 
-  test "created element should not have preferred colour by default" do
-    service = Service.create({
-      name: "Random service",
-      current:  true,
-      add_directly: true
-    })
+  test "add_directly can be set to false" do
+    service = Service.create(@valid_params.merge({add_directly: false}))
     service.reload
-    assert_nil service.element.preferred_colour
+    assert_not service.element.add_directly?
   end
 
-  test "specifying a preferred colour should add it to element" do
-    service = Service.create({
-      name: "Random service",
-      current:  true,
-      add_directly: true,
-      edit_preferred_colour: "red"
-    })
-    service.reload
-    assert_equal "red", service.element.preferred_colour
-  end
-
-  test "updating entity should not change element colour" do
-    org_colour = @service1.element.preferred_colour
-    @service1.name = "Banana"
-    @service1.save
-    @service1.reload
-    assert_equal org_colour, @service1.element.preferred_colour
-  end
-
-  test "explicitly changing colour should change element colour" do
-    org_colour = @service1.element.preferred_colour
-    @service1.edit_preferred_colour = "Banana"
-    @service1.save
-    @service1.reload
-    assert_not_equal org_colour, @service1.element.preferred_colour
-  end
-
-  test "can remove preferred colour" do
-    @service1.edit_preferred_colour = ""
-    @service1.save
-    @service1.reload
-    assert_nil @service1.element.preferred_colour
-  end
 end

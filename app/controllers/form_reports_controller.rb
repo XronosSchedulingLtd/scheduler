@@ -25,10 +25,10 @@ class FormReportsController < ApplicationController
                   filename: "#{@element.short_name} forms.csv",
                   type: "application/csv")
       else
-        redirect_to :back
+        redirect_back fallback_location: root_path
       end
     else
-      redirect_to :back
+      redirect_back fallback_location: root_path
     end
   end
 

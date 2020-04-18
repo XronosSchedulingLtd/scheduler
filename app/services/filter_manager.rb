@@ -134,7 +134,10 @@ class FilterManager
   #  values to fields.  Each of these needs to be delegated to the
   #  correct subsidiary record.
   #
-  class FilterSet < FakeActiveRecord
+  class FilterSet
+    include ActiveModel::Model
+    include ActiveModel::Validations
+
     attr_reader :positives, :negatives, :id
 
     def initialize(user)
@@ -199,6 +202,16 @@ class FilterManager
 
     def to_partial_path
       "filterset"
+    end
+
+    #
+    #  This is necessary to make the model look like it has already
+    #  been saved to the database.  Without it it's treated as a new
+    #  record, so you can't get a path to edit it, and attempts
+    #  to save a form generate a POST rather than a PUT.
+    #
+    def persisted?
+      true
     end
 
   end

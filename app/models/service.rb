@@ -1,9 +1,10 @@
-# Xronos Scheduler - structured scheduling program.
+#
+## Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2015 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Service < ActiveRecord::Base
+class Service < ApplicationRecord
 
   validates :name, presence: true
 

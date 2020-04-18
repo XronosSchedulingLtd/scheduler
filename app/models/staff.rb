@@ -1,9 +1,10 @@
+#
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Staff < ActiveRecord::Base
+class Staff < ApplicationRecord
 
   validates :name, presence: true
 
@@ -18,7 +19,7 @@ class Staff < ActiveRecord::Base
     true
   end
 
-  belongs_to :datasource
+  belongs_to :datasource, optional: true
   #
   #  Has only one per year, but in terms of data structues, has many.
   #
@@ -106,12 +107,28 @@ class Staff < ActiveRecord::Base
     end
   end
 
+  def compare_names(own, other)
+    if own.blank?
+      if other.blank?
+        0
+      else
+        -1
+      end
+    else
+      if other.blank?
+        1
+      else
+        own <=> other
+      end
+    end
+  end
+
   def <=>(other)
     result = sort_by_entity_type(other)
     if result == 0
-      result = self.surname <=> other.surname
+      result = compare_names(self.surname, other.surname)
       if result == 0
-        result = self.forename <=> other.forename
+        result = compare_names(self.forename, other.forename)
       end
     end
     result

@@ -19,30 +19,57 @@ class EventcategoriesControllerTest < ActionController::TestCase
 
   test "should create eventcategory" do
     assert_difference('Eventcategory.count') do
-      post :create, eventcategory: { for_users: @eventcategory.for_users, name: "Charlie", pecking_order: @eventcategory.pecking_order, public: @eventcategory.public, publish: @eventcategory.publish, schoolwide: @eventcategory.schoolwide, unimportant: @eventcategory.unimportant }
+      post(
+        :create,
+        params: {
+          eventcategory: {
+            for_users: @eventcategory.for_users,
+            name: "Charlie",
+            pecking_order: @eventcategory.pecking_order,
+            public: @eventcategory.public,
+            publish: @eventcategory.publish,
+            schoolwide: @eventcategory.schoolwide,
+            unimportant: @eventcategory.unimportant
+          }
+        }
+      )
     end
 
     assert_redirected_to eventcategories_path
   end
 
   test "should show eventcategory" do
-    get :show, id: @eventcategory
+    get :show, params: {id: @eventcategory}
     assert_response :success
   end
 
   test "should get edit" do
-    get :edit, id: @eventcategory
+    get :edit, params: {id: @eventcategory}
     assert_response :success
   end
 
   test "should update eventcategory" do
-    patch :update, id: @eventcategory, eventcategory: { for_users: @eventcategory.for_users, name: @eventcategory.name, pecking_order: @eventcategory.pecking_order, public: @eventcategory.public, publish: @eventcategory.publish, schoolwide: @eventcategory.schoolwide, unimportant: @eventcategory.unimportant }
+    patch(
+      :update,
+      params: {
+        id: @eventcategory,
+        eventcategory: {
+          for_users: @eventcategory.for_users,
+          name: @eventcategory.name,
+          pecking_order: @eventcategory.pecking_order,
+          public: @eventcategory.public,
+          publish: @eventcategory.publish,
+          schoolwide: @eventcategory.schoolwide,
+          unimportant: @eventcategory.unimportant
+        }
+      }
+    )
     assert_redirected_to eventcategories_path
   end
 
   test "should destroy eventcategory" do
     assert_difference('Eventcategory.count', -1) do
-      delete :destroy, id: @eventcategory
+      delete :destroy, params: {id: @eventcategory}
     end
 
     assert_redirected_to eventcategories_path

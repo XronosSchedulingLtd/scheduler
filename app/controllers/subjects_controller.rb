@@ -58,11 +58,11 @@ class SubjectsController < ApplicationController
     if @subject.can_destroy?
       @subject.destroy
       respond_to do |format|
-        format.html { redirect_to :back }
+        format.html { redirect_back fallback_location: root_path }
         format.json { head :no_content }
       end
     else
-      redirect_to :back
+      redirect_back fallback_location: root_path
     end
   end
 

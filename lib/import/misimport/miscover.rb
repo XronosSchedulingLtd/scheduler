@@ -40,8 +40,6 @@ class MIS_Cover
 
     attr_reader :cover_commitment, :clashing_commitment
 
-    require_relative '../school/permitted_overloads'
-
     def initialize(cover_commitment, clashing_commitment)
       @cover_commitment    = cover_commitment
       @clashing_commitment = clashing_commitment

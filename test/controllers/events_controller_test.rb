@@ -21,30 +21,65 @@ class EventsControllerTest < ActionController::TestCase
 
   test "should create event" do
     assert_difference('Event.count') do
-      post :create, event: { approximate: @event.approximate, body: @event.body, ends_at: @event.ends_at, eventcategory_id: @event.eventcategory_id, eventsource_id: @event.eventsource_id, non_existent: @event.non_existent, owner_id: @event.owner_id, private: @event.private, reference_id: @event.reference_id, reference_type: @event.reference_type, starts_at_text: @event.starts_at }
+      post(
+        :create,
+        params: {
+          event: {
+            approximate: @event.approximate,
+            body: @event.body,
+            ends_at: @event.ends_at,
+            eventcategory_id: @event.eventcategory_id,
+            eventsource_id: @event.eventsource_id,
+            non_existent: @event.non_existent,
+            owner_id: @event.owner_id,
+            private: @event.private,
+            reference_id: @event.reference_id,
+            reference_type: @event.reference_type,
+            starts_at_text: @event.starts_at
+          }
+        }
+      )
     end
 
     assert_redirected_to events_path
   end
 
   test "should show event" do
-    get :show, id: @event
+    get :show, params: { id: @event }
     assert_response :success
   end
 
   test "should get edit" do
-    get :edit, id: @event
+    get :edit, params: { id: @event }
     assert_response :success
   end
 
   test "should update event" do
-    patch :update, id: @event, event: { approximate: @event.approximate, body: @event.body, ends_at: @event.ends_at, eventcategory_id: @event.eventcategory_id, eventsource_id: @event.eventsource_id, non_existent: @event.non_existent, owner_id: @event.owner_id, private: @event.private, reference_id: @event.reference_id, reference_type: @event.reference_type, starts_at_text: @event.starts_at }
+    patch(
+      :update,
+      params: {
+        id: @event,
+        event: {
+          approximate: @event.approximate,
+          body: @event.body,
+          ends_at: @event.ends_at,
+          eventcategory_id: @event.eventcategory_id,
+          eventsource_id: @event.eventsource_id,
+          non_existent: @event.non_existent,
+          owner_id: @event.owner_id,
+          private: @event.private,
+          reference_id: @event.reference_id,
+          reference_type: @event.reference_type,
+          starts_at_text: @event.starts_at
+        }
+      }
+    )
     assert_redirected_to events_path
   end
 
   test "should destroy event" do
     assert_difference('Event.count', -1) do
-      delete :destroy, id: @event
+      delete :destroy, params: { id: @event }
     end
 
     assert_redirected_to events_path

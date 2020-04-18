@@ -32,12 +32,16 @@ class CommentsControllerTest < ActionController::TestCase
     session[:user_id] = @admin_user.id
     request.env['HTTP_REFERER'] = user_form_response_path(@user_form_response)
     assert_difference('Comment.count') do
-      post :create,
-        user_form_response_id: @user_form_response.id,
-        user_id: @admin_user.id,
-        comment: {
-          body: "Hello there - I'm a comment!"
+      post(
+        :create,
+        params: {
+          user_form_response_id: @user_form_response.id,
+          user_id: @admin_user.id,
+          comment: {
+            body: "Hello there - I'm a comment!"
+          }
         }
+      )
     end
 
     assert_redirected_to user_form_response_path(@user_form_response)
@@ -47,7 +51,7 @@ class CommentsControllerTest < ActionController::TestCase
     session[:user_id] = @admin_user.id
     request.env['HTTP_REFERER'] = user_form_response_path(@user_form_response)
     assert_difference('Comment.count', -1) do
-      delete :destroy, id: @existing_comment
+      delete :destroy, params: { id: @existing_comment }
     end
 
     assert_redirected_to user_form_response_path(@user_form_response)
@@ -57,12 +61,16 @@ class CommentsControllerTest < ActionController::TestCase
     session[:user_id] = @ordinary_user.id
     request.env['HTTP_REFERER'] = user_form_response_path(@user_form_response)
     assert_no_difference('Comment.count') do
-      post :create,
-        user_form_response_id: @user_form_response.id,
-        user_id: @ordinary_user.id,
-        comment: {
-          body: "Hello there - I'm a comment!"
+      post(
+        :create,
+        params: {
+          user_form_response_id: @user_form_response.id,
+          user_id: @ordinary_user.id,
+          comment: {
+            body: "Hello there - I'm a comment!"
+          }
         }
+      )
     end
 
     assert_redirected_to root_path
@@ -71,7 +79,7 @@ class CommentsControllerTest < ActionController::TestCase
   test 'ordinary user cannot create a comment' do
     session[:user_id] = @ordinary_user.id
     assert_no_difference('Comment.count') do
-      delete :destroy, id: @existing_comment
+      delete :destroy, params: { id: @existing_comment }
     end
 
     assert_redirected_to root_path
@@ -82,12 +90,16 @@ class CommentsControllerTest < ActionController::TestCase
     request.env['HTTP_REFERER'] = user_form_response_path(@rg_ufr)
     assert @allocating_user.owns?(@resourcegroup.element)
     assert_difference('Comment.count') do
-      post :create,
-        user_form_response_id: @rg_ufr.id,
-        user_id: @allocating_user.id,
-        comment: {
-          body: "Hello there - I'm a comment!"
+      post(
+        :create,
+        params: {
+          user_form_response_id: @rg_ufr.id,
+          user_id: @allocating_user.id,
+          comment: {
+            body: "Hello there - I'm a comment!"
+          }
         }
+      )
     end
 
     assert_redirected_to user_form_response_path(@rg_ufr)
@@ -107,7 +119,7 @@ class CommentsControllerTest < ActionController::TestCase
     session[:user_id] = @ordinary_user.id
     request.env['HTTP_REFERER'] = user_form_response_path(@user_form_response)
     assert_difference('Comment.count', -1) do
-      delete :destroy, id: comment
+      delete :destroy, params: { id: comment }
     end
 
     assert_redirected_to user_form_response_path(@user_form_response)

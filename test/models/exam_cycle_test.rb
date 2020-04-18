@@ -39,11 +39,6 @@ class ExamCycleTest < ActiveSupport::TestCase
     assert_not ec.valid?
   end
 
-  test "default rota template is required" do
-    ec = ExamCycle.create(@valid_params.except(:default_rota_template))
-    assert_not ec.valid?
-  end
-
   test "default group element is required" do
     ec = ExamCycle.create(@valid_params.except(:default_group_element))
     assert_not ec.valid?

@@ -19,30 +19,47 @@ class UserFormsControllerTest < ActionController::TestCase
 
   test "should create user_form" do
     assert_difference('UserForm.count') do
-      post :create, user_form: { definition: @user_form.definition, name: @user_form.name }
+      post(
+        :create,
+        params: {
+          user_form: {
+            definition: @user_form.definition,
+            name: @user_form.name
+          }
+        }
+      )
     end
 
     assert_redirected_to user_forms_path
   end
 
   test "should show user_form" do
-    get :show, id: @user_form
+    get :show, params: { id: @user_form }
     assert_response :success
   end
 
   test "should get edit" do
-    get :edit, id: @user_form
+    get :edit, params: { id: @user_form }
     assert_response :success
   end
 
   test "should update user_form" do
-    patch :update, id: @user_form, user_form: { definition: @user_form.definition, name: @user_form.name }
+    patch(
+      :update,
+      params: {
+        id: @user_form,
+        user_form: {
+          definition: @user_form.definition,
+          name: @user_form.name 
+        }
+      }
+    )
     assert_redirected_to user_forms_path
   end
 
   test "should destroy user_form" do
     assert_difference('UserForm.count', -1) do
-      delete :destroy, id: @user_form
+      delete :destroy, params: { id: @user_form }
     end
 
     assert_redirected_to user_forms_path

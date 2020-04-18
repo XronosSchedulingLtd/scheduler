@@ -1,4 +1,11 @@
-class Request < ActiveRecord::Base
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
+class Request < ApplicationRecord
 
   class Candidate
     attr_reader :element_id,
@@ -31,13 +38,11 @@ class Request < ActiveRecord::Base
 
   belongs_to :element
   belongs_to :event
-  belongs_to :proto_request
+  belongs_to :proto_request, optional: true
 
   has_many :commitments, :dependent => :destroy
   has_one :user_form_response, as: :parent, dependent: :destroy
 
-  validates :element, :presence => true
-  validates :event,   :presence => true
   validates :element_id, uniqueness: { scope: :event_id }
 
   include WithForms

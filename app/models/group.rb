@@ -1,30 +1,30 @@
+#
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2018 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
 require 'csv'
 
-class Group < ActiveRecord::Base
+class Group < ApplicationRecord
   belongs_to :era
-  belongs_to :owner, :class_name => :User
-  belongs_to :persona, :polymorphic => true, :dependent => :destroy
-  belongs_to :datasource
+  belongs_to :owner, :class_name => :User, optional: true
+  belongs_to :persona, :polymorphic => true, :dependent => :destroy, optional: true
+  belongs_to :datasource, optional: true
   #
   #  Since we can't do joins on polymorphic relationships, we need
   #  explicit ones too.  These should really be defined elsewhere, but
   #  I'm not sure how just yet.
   #
-  belongs_to :tutorgrouppersona, -> { where(groups: {persona_type: 'Tutorgrouppersona'}).includes(:group) }, foreign_key: :persona_id
-  belongs_to :teachinggrouppersona, -> { where(groups: {persona_type: 'Teachinggrouppersona'}).includes(:group) }, foreign_key: :persona_id
-  belongs_to :taggrouppersona, -> { where(groups: {persona_type: 'Taggrouppersona'}).includes(:group) }, foreign_key: :persona_id
-  belongs_to :otherhalfgrouppersona, -> { where(groups: {persona_type: 'Otherhalfgrouppersona'}).includes(:group) }, foreign_key: :persona_id
+  belongs_to :tutorgrouppersona, -> { where(groups: {persona_type: 'Tutorgrouppersona'}).includes(:group) }, foreign_key: :persona_id, optional: true
+  belongs_to :teachinggrouppersona, -> { where(groups: {persona_type: 'Teachinggrouppersona'}).includes(:group) }, foreign_key: :persona_id, optional: true
+  belongs_to :taggrouppersona, -> { where(groups: {persona_type: 'Taggrouppersona'}).includes(:group) }, foreign_key: :persona_id, optional: true
+  belongs_to :otherhalfgrouppersona, -> { where(groups: {persona_type: 'Otherhalfgrouppersona'}).includes(:group) }, foreign_key: :persona_id, optional: true
 
   has_many :memberships, :dependent => :destroy
 
   validates :starts_on, presence: true
   validates :name,      presence: true
-  validates :era,       presence: true
 
   validate :not_backwards
   validate :persona_specified
@@ -59,7 +59,7 @@ class Group < ActiveRecord::Base
   #
   # scope :belonging_to, ->(target_user) { joins(element: {ownerships: :user}).where(users: {id: target_user.id} ) }
   scope :belonging_to, ->(target_user) { where(owner_id: target_user.id) }
-  scope :system, -> { where(owner_id: nil) }
+  scope :no_owner, -> { where(owner_id: nil) }
   scope :has_owner, -> { where.not(owner_id: nil) }
 
   #
@@ -432,6 +432,10 @@ class Group < ActiveRecord::Base
       #
       new_group
     end
+  end
+
+  def can_clone?
+    self.persona_type.blank?
   end
 
   #

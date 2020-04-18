@@ -21,7 +21,7 @@ two:
 calendar:
   name: Calendar
   pecking_order: 1
-  schoolwide: true
+  schoolwide: false
   publish: true
   public: false
   for_users: false
@@ -44,3 +44,13 @@ invigilation:
   public: false
   for_users: false
   unimportant: false
+
+hidden:
+  name: Hidden
+  pecking_order: 1
+  schoolwide: false
+  publish: false
+  public: false
+  for_users: false
+  unimportant: false
+  visible: false

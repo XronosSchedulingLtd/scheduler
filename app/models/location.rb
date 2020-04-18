@@ -1,3 +1,4 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
@@ -20,7 +21,7 @@ class SubsidiaryValidator < ActiveModel::Validator
 
 end
 
-class Location < ActiveRecord::Base
+class Location < ApplicationRecord
 
   has_many :locationaliases, :dependent => :nullify
 
@@ -31,7 +32,7 @@ class Location < ActiveRecord::Base
            foreign_key: :subsidiary_to_id,
            class_name: :Location,
            dependent: :nullify
-  belongs_to :subsidiary_to, class_name: :Location
+  belongs_to :subsidiary_to, class_name: :Location, optional: true
 
   validates :name, presence: true
   validates :num_invigilators, presence: true

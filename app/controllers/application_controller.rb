@@ -25,10 +25,6 @@ class ApplicationController < ActionController::Base
 
   private
 
-  def back_or(fallback_location)
-    session[:go_back_to] || fallback_location
-  end
-
   def login_required
     authorized?  || access_denied
   end

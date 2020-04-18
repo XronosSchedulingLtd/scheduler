@@ -94,17 +94,17 @@ class ApiTest < ActionDispatch::IntegrationTest
   end
 
   test "random uid does not log in" do
-    get @api_paths.login_path(uid: 'ablebakercharlie'), format: :json
+    get @api_paths.login_path(uid: 'ablebakercharlie'), params: { format: :json }
     assert_response 401         # Unauthorized
   end
 
   test "ordinary user cannot log in through api" do
-    get @api_paths.login_path(uid: @ordinary_user.uuid), format: :json
+    get @api_paths.login_path(uid: @ordinary_user.uuid), params: { format: :json }
     assert_response 401         # Unauthorized
   end
 
   test "api user can log in through api" do
-    get @api_paths.login_path(uid: @api_user.uuid), format: :json
+    get @api_paths.login_path(uid: @api_user.uuid), params: { format: :json }
     assert_response :success
   end
 
@@ -114,7 +114,7 @@ class ApiTest < ActionDispatch::IntegrationTest
   end
 
   test "logout always succeeds" do
-    get @api_paths.logout_path, format: :json
+    get @api_paths.logout_path, params: { format: :json }
     assert_response :success
   end
 
@@ -126,19 +126,19 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     #  Initially can't issue an arbitrary request.
     #
-    get @api_paths.elements_path, format: :json
+    get @api_paths.elements_path, params: { format: :json }
     assert_response 401         # Unauthorized
     #
     #  Then login and we can.
     #
     do_valid_login
-    get @api_paths.elements_path, format: :json
+    get @api_paths.elements_path, params: { format: :json }
     assert_response :success
     #
     #  Then logout and we can't again.
     #
     do_logout
-    get @api_paths.elements_path, format: :json
+    get @api_paths.elements_path, params: { format: :json }
     assert_response 401         # Unauthorized
   end
 
@@ -147,7 +147,7 @@ class ApiTest < ActionDispatch::IntegrationTest
   #
   test "index with no params gets empty response" do
     do_valid_login
-    get @api_paths.elements_path, format: :json
+    get @api_paths.elements_path, params: { format: :json }
     assert_response :success
     data = unpack_response(response, 'OK')
     elements = data['elements']
@@ -160,14 +160,14 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test "search for non-existent element returns appropriate error" do
     do_valid_login
-    get @api_paths.elements_path(name: 'Banana fritter'), format: :json
+    get @api_paths.elements_path(name: 'Banana fritter'), params: { format: :json }
     assert_response :missing
   end
 
   test "search for existing element finds it" do
     do_valid_login
     get @api_paths.elements_path(name: 'ABC - Able Baker Charlie'),
-        format: :json
+        params: { format: :json }
     assert_response :success
     data = unpack_response(response, 'OK')
     elements = data['elements']
@@ -178,14 +178,14 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test "fuzzy search for non-existent element returns appropriate error" do
     do_valid_login
-    get @api_paths.elements_path(namelike: 'Banana fritter'), format: :json
+    get @api_paths.elements_path(namelike: 'Banana fritter'), params: { format: :json }
     assert_response :missing
   end
 
   test "fuzzy search finds existing elements" do
     do_valid_login
     get @api_paths.elements_path(namelike: 'Fotheringay'),
-        format: :json
+        params: { format: :json }
     assert_response :success
     data = unpack_response(response, 'OK')
     elements = data['elements']
@@ -202,7 +202,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     end
     do_valid_login
     get @api_paths.elements_path(namelike: 'Pupil'),
-        format: :json
+        params: { format: :json }
     assert_response :success
     data = unpack_response(response, 'OK')
     elements = data['elements']
@@ -215,7 +215,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test "element show with invalid id returns appropriate error" do
     do_valid_login
-    get @api_paths.element_path(id: 999), format: :json
+    get @api_paths.element_path(id: 999), params: { format: :json }
     assert_response :missing
     unpack_response(response, 'Not found')
   end
@@ -260,13 +260,13 @@ class ApiTest < ActionDispatch::IntegrationTest
   #
   test "event create without params fails" do
     do_valid_login
-    post @api_paths.events_path, format: :json
+    post @api_paths.events_path, params: { format: :json }
     assert_response 400         # Bad request
   end
 
   test "event create with valid params succeeds" do
     do_valid_login
-    post @api_paths.events_path(event: @valid_event_params), format: :json
+    post @api_paths.events_path(event: @valid_event_params), params: { format: :json }
     assert_response 201         # Created
   end
 
@@ -275,7 +275,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     post @api_paths.events_path(
       event: @valid_event_params.merge({
         organiser_id: @staff1.element.id
-      })), format: :json
+      })), params: { format: :json }
     assert_response 201         # Created
     #
     #  And check that the organiser did indeed get set.  This requires
@@ -294,7 +294,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     event = response_data['event']
     assert_instance_of Hash, event
     event_id = event['id']
-    get @api_paths.event_path(event_id), format: :json
+    get @api_paths.event_path(event_id), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     event = response_data['event']
@@ -306,7 +306,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test "unauthorized user can't create event" do
     do_valid_login(@api_user_no_edit)
-    post @api_paths.events_path(event: @valid_event_params), format: :json
+    post @api_paths.events_path(event: @valid_event_params), params: { format: :json }
     assert_response 403         # Forbidden
   end
 
@@ -314,7 +314,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login
     post @api_paths.events_path(
       event: @valid_event_params.merge({
-        eventcategory_id: @privileged_eventcategory.id})), format: :json
+        eventcategory_id: @privileged_eventcategory.id})), params: { format: :json }
     assert_response 403         # Forbidden
   end
 
@@ -322,7 +322,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login(@privileged_api_user)
     post @api_paths.events_path(
       event: @valid_event_params.merge({
-        eventcategory_id: @privileged_eventcategory.id})), format: :json
+        eventcategory_id: @privileged_eventcategory.id})), params: { format: :json }
     assert_response 201         # Created
   end
 
@@ -331,7 +331,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     post @api_paths.events_path(
       event: @valid_event_params,
       elements: @element_ids_to_add
-    ), format: :json
+    ), params: { format: :json }
     assert_response 201         # Created
     response_data = unpack_response(response, 'Created')
     #
@@ -366,7 +366,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     post @api_paths.events_path(
       event: @valid_event_params,
       elements: [@resourcegroup.element.id, @resourcegroup.element.id]
-    ), format: :json
+    ), params: { format: :json }
     assert_response 201         # Created
     response_data = unpack_response(response, 'Created')
     #
@@ -390,7 +390,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     post @api_paths.events_path(
       event: @valid_event_params,
       elements: [@staff1.element.id, @staff1.element.id]
-    ), format: :json
+    ), params: { format: :json }
     assert_response 201         # Created
     response_data = unpack_response(response, 'Created')
     #
@@ -412,7 +412,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login
     post @api_paths.events_path(
       event: @valid_event_params
-    ), format: :json
+    ), params: { format: :json }
     assert_response 201         # Created
     response_data = unpack_response(response, 'Created')
     #
@@ -424,7 +424,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
     post @api_paths.add_event_path(event_id,
                                    elements: @element_ids_to_add),
-                                   format: :json
+                                   params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     #
@@ -452,7 +452,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'can query an existing event' do
     do_valid_login
-    get @api_paths.event_path(@existing_event), format: :json
+    get @api_paths.event_path(@existing_event), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     event = response_data['event']
@@ -461,7 +461,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'querying non-existent event returns correct status' do
     do_valid_login
-    get @api_paths.event_path(999), format: :json
+    get @api_paths.event_path(999), params: { format: :json }
     assert_response :missing
     response_data = unpack_response(response, 'Not found')
   end
@@ -473,7 +473,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     post @api_paths.add_event_path(@existing_event.id,
                                    elements: @element_ids_to_add),
-                                   format: :json
+                                   params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     #
@@ -485,7 +485,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     #  Now query it.
     #
-    get @api_paths.event_path(@existing_event), format: :json
+    get @api_paths.event_path(@existing_event), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     #
@@ -508,7 +508,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'event query should return extra details' do
     do_valid_login
-    get @api_paths.event_path(@existing_event), format: :json
+    get @api_paths.event_path(@existing_event), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     event = response_data['event']
@@ -546,7 +546,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       @resourcegroup.element,
       start_date: Date.today.strftime("%Y-%m-%d"),
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     requests = response_data['requests']
@@ -559,7 +559,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       @resourcegroup.element,
       start_date: (Date.today + 1.day).strftime("%Y-%m-%d"),
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     requests = response_data['requests']
@@ -570,7 +570,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     get @api_paths.element_requests_path(
       @resourcegroup.element
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     requests = response_data['requests']
@@ -590,7 +590,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       @resourcegroup.element,
       start_date: Date.today.strftime("%Y-%m-%d"),
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     requests = response_data['requests']
@@ -601,7 +601,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     target_id = event2['requests'][0]['id']
 
-    delete @api_paths.request_path(target_id), format: :json
+    delete @api_paths.request_path(target_id), params: { format: :json }
     assert_response :success
 
     #
@@ -611,7 +611,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       @resourcegroup.element,
       start_date: Date.today.strftime("%Y-%m-%d"),
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     requests = response_data['requests']
@@ -638,7 +638,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       @staff1.element,
       start_date: Date.today.strftime("%Y-%m-%d"),
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
@@ -651,7 +651,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       @staff1.element,
       start_date: (Date.today + 1.day).strftime("%Y-%m-%d"),
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
@@ -662,7 +662,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     get @api_paths.element_commitments_path(
       @staff1.element
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
@@ -682,7 +682,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       @staff1.element,
       start_date: Date.today.strftime("%Y-%m-%d"),
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
@@ -693,7 +693,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     target_id = event2['commitments'][0]['id']
 
-    delete @api_paths.commitment_path(target_id), format: :json
+    delete @api_paths.commitment_path(target_id), params: { format: :json }
     assert_response :success
 
     #
@@ -703,7 +703,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       @staff1.element,
       start_date: Date.today.strftime("%Y-%m-%d"),
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
@@ -723,7 +723,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       @staff1.element,
       start_date: Date.today.strftime("%Y-%m-%d"),
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
@@ -734,7 +734,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     target_id = event2['id']
 
-    delete @api_paths.event_path(target_id), format: :json
+    delete @api_paths.event_path(target_id), params: { format: :json }
     assert_response :success
 
     #
@@ -744,7 +744,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       @staff1.element,
       start_date: Date.today.strftime("%Y-%m-%d"),
       end_date: (Date.today + 2.days).strftime("%Y-%m-%d")
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     commitments = response_data['commitments']
@@ -755,7 +755,7 @@ class ApiTest < ActionDispatch::IntegrationTest
   test 'ordinary API user sees only ordinary event categories' do
     expected = Eventcategory.unprivileged.available.size
     do_valid_login
-    get @api_paths.eventcategories_path, format: :json
+    get @api_paths.eventcategories_path, params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     eventcategories = response_data['eventcategories']
@@ -766,7 +766,7 @@ class ApiTest < ActionDispatch::IntegrationTest
   test 'privileged API user sees all event categories' do
     expected = Eventcategory.available.size
     do_valid_login(@privileged_api_user)
-    get @api_paths.eventcategories_path, format: :json
+    get @api_paths.eventcategories_path, params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     eventcategories = response_data['eventcategories']
@@ -776,7 +776,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'ordinary API user can get details of ordinary event category' do
     do_valid_login
-    get @api_paths.eventcategory_path(@eventcategory), format: :json
+    get @api_paths.eventcategory_path(@eventcategory), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     eventcategory = response_data['eventcategory']
@@ -785,13 +785,13 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'but not of privileged event category' do
     do_valid_login
-    get @api_paths.eventcategory_path(@privileged_eventcategory), format: :json
+    get @api_paths.eventcategory_path(@privileged_eventcategory), params: { format: :json }
     assert_response :forbidden
   end
 
   test 'privileged API user can query any event category' do
     do_valid_login(@privileged_api_user)
-    get @api_paths.eventcategory_path(@privileged_eventcategory), format: :json
+    get @api_paths.eventcategory_path(@privileged_eventcategory), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     eventcategory = response_data['eventcategory']
@@ -800,7 +800,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'can get list of notes for event' do
     do_valid_login
-    get @api_paths.event_notes_path(@existing_event), format: :json
+    get @api_paths.event_notes_path(@existing_event), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     notes = response_data['notes']
@@ -811,7 +811,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'notes request for bad event id gives not_found' do
     do_valid_login
-    get @api_paths.event_notes_path(999), format: :json
+    get @api_paths.event_notes_path(999), params: { format: :json }
     assert_response :missing
   end
 
@@ -821,7 +821,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     post @api_paths.event_notes_path(
       @existing_event,
       note: { contents: 'Hello, world!'}
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     note = response_data['note']
@@ -830,7 +830,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     #  And do we now see it in the list for the event?
     #
-    get @api_paths.event_notes_path(@existing_event), format: :json
+    get @api_paths.event_notes_path(@existing_event), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     notes = response_data['notes']
@@ -848,7 +848,7 @@ class ApiTest < ActionDispatch::IntegrationTest
         visible_staff: false,
         visible_pupil: true
       }
-    ), format: :json
+    ), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     note = response_data['note']
@@ -861,7 +861,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'can get more details of a note' do
     do_valid_login
-    get @api_paths.note_path(@existing_note), format: :json
+    get @api_paths.note_path(@existing_note), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     note = response_data['note']
@@ -876,13 +876,13 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'but not of a non-existent note' do
     do_valid_login
-    get @api_paths.note_path(999), format: :json
+    get @api_paths.note_path(999), params: { format: :json }
     assert_response :missing
   end
 
   test 'can update the contents of a note' do
     do_valid_login
-    get @api_paths.note_path(@existing_note), format: :json
+    get @api_paths.note_path(@existing_note), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     note = response_data['note']
@@ -893,12 +893,12 @@ class ApiTest < ActionDispatch::IntegrationTest
       @existing_note,
       note: {
         contents: 'Updated contents'
-      }), format: :json
+      }), params: { format: :json }
     assert_response :success
     #
     #  Check our change has been effective
     #
-    get @api_paths.note_path(@existing_note), format: :json
+    get @api_paths.note_path(@existing_note), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     note = response_data['note']
@@ -912,13 +912,13 @@ class ApiTest < ActionDispatch::IntegrationTest
       @existing_note,
       note: {
         contents: 'Updated contents'
-      }), format: :json
+      }), params: { format: :json }
     assert_response :forbidden
   end
 
   test 'can delete a note from an event' do
     do_valid_login
-    delete @api_paths.note_path(@existing_note), format: :json
+    delete @api_paths.note_path(@existing_note), params: { format: :json }
     assert_response :success
   end
 
@@ -927,25 +927,25 @@ class ApiTest < ActionDispatch::IntegrationTest
     #  The pre-existing note belongs to @api_user, not to @other_api_user.
     #
     do_valid_login(@other_api_user)
-    delete @api_paths.note_path(@existing_note), format: :json
+    delete @api_paths.note_path(@existing_note), params: { format: :json }
     assert_response :forbidden
   end
 
   test 'cannot delete a non-existent note' do
     do_valid_login
-    delete @api_paths.note_path(999), format: :json
+    delete @api_paths.note_path(999), params: { format: :json }
     assert_response :missing
   end
 
   test 'ordinary api user cannot list users' do
     do_valid_login
-    get @api_paths.users_path, format: :json
+    get @api_paths.users_path, params: { format: :json }
     assert_response :forbidden
   end
 
   test 'su api user can list users' do
     do_valid_login(@api_user_with_su)
-    get @api_paths.users_path, format: :json
+    get @api_paths.users_path, params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, "OK")
     users = response_data['users']
@@ -958,7 +958,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'invalid email produces empty list' do
     do_valid_login(@api_user_with_su)
-    get @api_paths.users_path(email: "able.baker@charlie"), format: :json
+    get @api_paths.users_path(email: "able.baker@charlie"), params: { format: :json }
     assert_response :missing
     response_data = unpack_response(response, "Not found")
     users = response_data['users']
@@ -968,7 +968,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'valid email produces array of size 1' do
     do_valid_login(@api_user_with_su)
-    get @api_paths.users_path(email: "api_user@myschool.org.uk"), format: :json
+    get @api_paths.users_path(email: "api_user@myschool.org.uk"), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, "OK")
     users = response_data['users']
@@ -978,7 +978,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'api user with su can find current user id' do
     do_valid_login(@api_user_with_su)
-    get @api_paths.whoami_session_path(id: 1), format: :json
+    get @api_paths.whoami_session_path(id: 1), params: { format: :json }
     assert_response :ok
     response_data = unpack_response(response, 'OK')
     assert_equal @api_user_with_su.id, response_data['user_id'].to_i
@@ -986,7 +986,7 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'ordinary api user cannot find own user id' do
     do_valid_login
-    get @api_paths.whoami_session_path(id: 1), format: :json
+    get @api_paths.whoami_session_path(id: 1), params: { format: :json }
     assert_response :forbidden
     response_data = unpack_response(response, 'Permission denied')
     assert_nil response_data['user_id']
@@ -998,7 +998,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       id: 1,
       session: {
         user_id: @ordinary_user.id
-      }), format: :json
+      }), params: { format: :json }
     assert_response :forbidden
   end
 
@@ -1008,7 +1008,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       id: 1,
       session: {
         user_id: @ordinary_user.id
-      }), format: :json
+      }), params: { format: :json }
     assert_response :ok
     response_data = unpack_response(response, 'OK')
     #
@@ -1026,7 +1026,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       id: 1,
       session: {
         user_id: @admin_user.id
-      }), format: :json
+      }), params: { format: :json }
     assert_response :forbidden
   end
 
@@ -1036,7 +1036,7 @@ class ApiTest < ActionDispatch::IntegrationTest
       id: 1,
       session: {
         user_id: 999
-      }), format: :json
+      }), params: { format: :json }
     assert_response :not_found
     response_data = unpack_response(response, 'Not found')
     check_i_am(@api_user_with_su)
@@ -1052,7 +1052,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     #  This is what we are actually testing now.
     #
-    put @api_paths.revert_session_path(id: 1), format: :json
+    put @api_paths.revert_session_path(id: 1), params: { format: :json }
     assert_response :ok
     response_data = unpack_response(response, 'OK')
     check_i_am(@api_user_with_su)
@@ -1071,13 +1071,13 @@ class ApiTest < ActionDispatch::IntegrationTest
   test 'can su and then create event as new user' do
     do_valid_login(@api_user_with_su)
     become(@ordinary_user)
-    post @api_paths.events_path(event: @valid_event_params), format: :json
+    post @api_paths.events_path(event: @valid_event_params), params: { format: :json }
     assert_response 201         # Created
     response_data = unpack_response(response, "Created")
     event = response_data['event']
     assert_instance_of Hash, event
     event_id = event['id']
-    get @api_paths.event_path(event_id), format: :json
+    get @api_paths.event_path(event_id), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response, 'OK')
     event = response_data['event']
@@ -1090,13 +1090,13 @@ class ApiTest < ActionDispatch::IntegrationTest
     #
     revert_to_being(@api_user_with_su)
     #
-    delete @api_paths.event_path(event_id), format: :json
+    delete @api_paths.event_path(event_id), params: { format: :json }
     assert_response :forbidden
     #
     #  But as the ordinary user again, we can.
     #
     become(@ordinary_user)
-    delete @api_paths.event_path(event_id), format: :json
+    delete @api_paths.event_path(event_id), params: { format: :json }
     assert_response :ok
 
   end
@@ -1113,7 +1113,7 @@ class ApiTest < ActionDispatch::IntegrationTest
   end
 
   def check_i_am(user)
-    get @api_paths.whoami_session_path(id: 1), format: :json
+    get @api_paths.whoami_session_path(id: 1), params: { format: :json }
     assert_response :ok
     response_data = unpack_response(response, 'OK')
     assert_equal user.id, response_data['user_id'].to_i
@@ -1124,26 +1124,26 @@ class ApiTest < ActionDispatch::IntegrationTest
       id: 1,
       session: {
         user_id: user.id
-      }), format: :json
+      }), params: { format: :json }
     assert_response :ok
     response_data = unpack_response(response, 'OK')
     check_i_am(user)
   end
 
   def revert_to_being(original_user)
-    put @api_paths.revert_session_path(id: 1), format: :json
+    put @api_paths.revert_session_path(id: 1), params: { format: :json }
     assert_response :ok
     response_data = unpack_response(response, 'OK')
     check_i_am(original_user)
   end
 
   def do_valid_login(user = @api_user)
-    get @api_paths.login_path(uid: user.uuid), format: :json
+    get @api_paths.login_path(uid: user.uuid), params: { format: :json }
     assert_response :success
   end
 
   def do_logout
-    get @api_paths.logout_path, format: :json
+    get @api_paths.logout_path, params: { format: :json }
     assert_response :success
   end
 
@@ -1152,7 +1152,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #  This handles only the positive case.  The element should
     #  exist in the database.
     #
-    get @api_paths.element_path(element), format: :json
+    get @api_paths.element_path(element), params: { format: :json }
     assert_response :ok
     data = JSON.parse(response.body)
     status = data['status']
@@ -1236,9 +1236,9 @@ class ApiTest < ActionDispatch::IntegrationTest
       post @api_paths.events_path(
         event: event_params,
         elements: element_ids
-      ), format: :json
+      ), params: { format: :json }
     else
-      post @api_paths.events_path(event: event_params), format: :json
+      post @api_paths.events_path(event: event_params), params: { format: :json }
     end
     assert_response 201         # Created
     response_data = JSON.parse(response.body)

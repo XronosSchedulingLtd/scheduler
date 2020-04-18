@@ -838,10 +838,10 @@ class MIS_Loader
   def ensure_membership(group_name, members, member_class)
     members_added   = 0
     members_removed = 0
-    group = Group.system.vanillagroups.find_by(name: group_name,
+    group = Group.no_owner.vanillagroups.find_by(name: group_name,
                                                era_id: Setting.perpetual_era.id)
     unless group
-      group = Group.system.vanillagroups.find_by(name: group_name,
+      group = Group.no_owner.vanillagroups.find_by(name: group_name,
                                                  era_id: @era.id)
       if group
         #

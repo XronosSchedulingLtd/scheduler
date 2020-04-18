@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
-class UserFormResponse < ActiveRecord::Base
+class UserFormResponse < ApplicationRecord
 
   enum status: [
     #
@@ -34,11 +34,9 @@ class UserFormResponse < ActiveRecord::Base
 
   belongs_to :user_form
   belongs_to :parent, polymorphic: true
-  belongs_to :user
+  belongs_to :user, optional: true
 
   has_many :comments, as: :parent, dependent: :destroy
-
-  validates :user_form, :parent, presence: true
 
   scope :incomplete, -> { where.not("user_form_responses.status = ?",
                                     UserFormResponse.statuses[:complete]) }

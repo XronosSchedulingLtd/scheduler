@@ -19,30 +19,61 @@ class StaffsControllerTest < ActionController::TestCase
 
   test "should create staff" do
     assert_difference('Staff.count') do
-      post :create, staff: { active: @staff.active, current: @staff.current, email: @staff.email, forename: @staff.forename, initials: @staff.initials, name: @staff.name, source_id: @staff.source_id, surname: @staff.surname, title: @staff.title }
+      post(
+        :create,
+        params: {
+          staff: {
+            active: @staff.active,
+            current: @staff.current,
+            email: @staff.email,
+            forename: @staff.forename,
+            initials: @staff.initials,
+            name: @staff.name,
+            source_id: @staff.source_id,
+            surname: @staff.surname,
+            title: @staff.title
+          }
+        }
+      )
     end
 
     assert_redirected_to staff_path(assigns(:staff))
   end
 
   test "should show staff" do
-    get :show, id: @staff
+    get :show, params: { id: @staff }
     assert_response :success
   end
 
   test "should get edit" do
-    get :edit, id: @staff
+    get :edit, params: { id: @staff }
     assert_response :success
   end
 
   test "should update staff" do
-    patch :update, id: @staff, staff: { active: @staff.active, current: @staff.current, email: @staff.email, forename: @staff.forename, initials: @staff.initials, name: @staff.name, source_id: @staff.source_id, surname: @staff.surname, title: @staff.title }
+    patch(
+      :update,
+      params: {
+        id: @staff,
+        staff: {
+          active: @staff.active,
+          current: @staff.current,
+          email: @staff.email,
+          forename: @staff.forename,
+          initials: @staff.initials,
+          name: @staff.name,
+          source_id: @staff.source_id,
+          surname: @staff.surname,
+          title: @staff.title
+        }
+      }
+    )
     assert_redirected_to staffs_path
   end
 
   test "should destroy staff" do
     assert_difference('Staff.count', -1) do
-      delete :destroy, id: @staff
+      delete :destroy, params: { id: @staff }
     end
 
     assert_redirected_to staffs_path

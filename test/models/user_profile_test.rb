@@ -2,8 +2,24 @@ require 'test_helper'
 
 class UserProfileTest < ActiveSupport::TestCase
 
+  setup do
+    @valid_params = {
+      name: "A user profile"
+    }
+  end
+
+  test "can create a user profile" do
+    up = UserProfile.new(@valid_params)
+    assert up.valid?
+  end
+
+  test "name is required" do
+    up = UserProfile.new(@valid_params.except(:name))
+    assert_not up.valid?
+  end
+
   #
-  #  Really just testing that our test environment has been set up
+  #  The rest is just testing that our test environment has been set up
   #  correctly.
   #
   test "staff profile has correct permissions" do

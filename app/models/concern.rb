@@ -1,9 +1,10 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2018 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Concern < ActiveRecord::Base
+class Concern < ApplicationRecord
 
   FLAGS = [
     :visible,
@@ -43,11 +44,9 @@ class Concern < ActiveRecord::Base
   }
   belongs_to :user
   belongs_to :element
-  belongs_to :concern_set       # May be nil
+  belongs_to :concern_set, optional: true       # May be nil
   has_one    :itemreport, :dependent => :destroy
 
-  validates_presence_of :user
-  validates_presence_of :element
   validates_presence_of :colour
   validates_uniqueness_of :element_id, scope: [:user_id, :concern_set_id]
 
@@ -85,7 +84,7 @@ class Concern < ActiveRecord::Base
 
   scope :between, ->(user, element) {where(user_id: user.id, element_id: element.id)}
 
-  scope :concerning, ->(element) { where(element_id: element.id) }
+  scope :concerned_with, ->(element) { where(element_id: element.id) }
   scope :auto_add, -> { where(auto_add: true) }
 
   after_save :update_after_save

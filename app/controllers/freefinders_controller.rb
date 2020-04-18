@@ -35,9 +35,9 @@ class FreefindersController < ApplicationController
     if params[:export] == "Export"
       send_csv(@freefinder)
     elsif params[:create] == "Create group"
-      group_id = @freefinder.create_group(current_user)
-      if group_id
-        redirect_to edit_group_path(group_id)
+      @new_group = @freefinder.create_group(current_user)
+      if @new_group
+        redirect_to edit_group_path(@new_group, just_created: true)
       else
         render :new
       end

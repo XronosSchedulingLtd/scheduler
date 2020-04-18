@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
-class Subject < ActiveRecord::Base
+class Subject < ApplicationRecord
 
   DISPLAY_COLUMNS = [:subject_teachers, :subject_groups, :dummy]
 
@@ -15,6 +15,9 @@ class Subject < ActiveRecord::Base
   before_destroy { staffs.clear }
 
   scope :current, -> { where(current: true) }
+
+  validates :name, presence: true
+  validates :name, uniqueness: true
 
   def teachinggroups
     self.teachinggrouppersonae.preload(:group).collect { |tgp| tgp.group }

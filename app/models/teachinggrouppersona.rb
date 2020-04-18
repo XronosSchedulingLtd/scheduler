@@ -3,14 +3,14 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Teachinggrouppersona < ActiveRecord::Base
+class Teachinggrouppersona < ApplicationRecord
 
   include Persona
 
   has_and_belongs_to_many :staffs
   before_destroy { staffs.clear }
 
-  belongs_to :subject
+  belongs_to :subject, optional: true
 
   self.per_page = 15
 

@@ -2,9 +2,10 @@ require 'test_helper'
 
 class GroupTest < ActiveSupport::TestCase
   setup do
+    @entity_class = Group
     @era = FactoryBot.create(:era)
     @group = FactoryBot.create(:group)
-    @valid_attributes = {
+    @valid_params = {
       name:          'A useful group',
       era:           @era,
       starts_on:     @era.starts_on,
@@ -13,60 +14,51 @@ class GroupTest < ActiveSupport::TestCase
 
   end
 
-  test 'can create a valid group' do
-    group = Group.new(@valid_attributes)
-    assert group.valid?
-  end
-
-  test 'group requires a name' do
-    group = Group.new(@valid_attributes.except(:name))
-    assert_not group.valid?
-  end
+  include CommonEntityTests
 
   test 'group requires an era' do
-    group = Group.new(@valid_attributes.except(:era))
+    group = Group.new(@valid_params.except(:era))
     assert_not group.valid?
   end
 
   test 'group requires a start date' do
-    group = Group.new(@valid_attributes.except(:starts_on))
+    group = Group.new(@valid_params.except(:starts_on))
     assert_not group.valid?
   end
 
   test 'group requires a persona' do
-    group = Group.new(@valid_attributes.except(:persona_class))
+    group = Group.new(@valid_params.except(:persona_class))
     assert_not group.valid?
   end
 
   test 'group should allow an end date' do
     group = Group.new(
-      @valid_attributes.merge({ends_on: @era.starts_on + 1.day}))
+      @valid_params.merge({ends_on: @era.starts_on + 1.day}))
     assert group.valid?
   end
 
   test 'end date cannot be before start date' do
     group = Group.new(
-      @valid_attributes.merge({ends_on: @era.starts_on - 1.day}))
+      @valid_params.merge({ends_on: @era.starts_on - 1.day}))
     assert_not group.valid?
   end
 
-  test 'group should gain an element on creation' do
-    group = Group.create(@valid_attributes)
-    assert group.valid?
-    assert_not_nil group.element
+  test 'implements can_clone' do
+    group = FactoryBot.create(:group)
+    assert group.respond_to?(:can_clone?)
+    assert group.can_clone?
   end
 
-  test 'element name should be the same as group name' do
-    group = Group.create(@valid_attributes)
-    assert_not_nil group.element
-    assert_equal group.element.name, group.name
+  test 'groups other than vanilla cannot be cloned' do
+    group = FactoryBot.create(:group, chosen_persona: 'Resourcegrouppersona')
+    assert group.respond_to?(:can_clone?)
+    assert_not group.can_clone?
   end
 
-  test 'element name should change when group name changes' do
-    group = Group.create(@valid_attributes)
-    assert_not_nil group.element
-    assert_equal group.element.name, group.name
-  end
+  #
+  #  After this the tests are all specific to the behaviour of a group
+  #  as a thing which has members.
+  #
 
   test 'group should recognize immediate members' do
     location = FactoryBot.create(:location)

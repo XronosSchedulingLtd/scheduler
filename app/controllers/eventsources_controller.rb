@@ -66,7 +66,7 @@ class EventsourcesController < ApplicationController
         format.json { head :no_content }
       end
     else
-      redirect_to :back
+      redirect_back fallback_location: root_path
     end
   end
 

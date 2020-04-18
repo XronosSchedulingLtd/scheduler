@@ -1,9 +1,10 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class User < ActiveRecord::Base
+class User < ApplicationRecord
 
   include Permissions
 
@@ -91,11 +92,11 @@ class User < ActiveRecord::Base
 
   has_many :messages, class_name: 'Ahoy::Message', as: :user
   has_many :comments, dependent: :destroy
-  belongs_to :preferred_event_category, class_name: Eventcategory
-  belongs_to :day_shape, class_name: RotaTemplate
-  belongs_to :corresponding_staff, class_name: "Staff"
+  belongs_to :preferred_event_category, class_name: 'Eventcategory', optional: true
+  belongs_to :day_shape, class_name: 'RotaTemplate', optional: true
+  belongs_to :corresponding_staff, class_name: "Staff", optional: true
   belongs_to :user_profile
-  belongs_to :current_concern_set, class_name: "ConcernSet"
+  belongs_to :current_concern_set, class_name: "ConcernSet", optional: true
 
   #
   #  The only elements we can actually own currently are groups.  By creating
@@ -110,8 +111,6 @@ class User < ActiveRecord::Base
 
   validates :firstday, :presence => true
   validates :firstday, :numericality => true
-
-  validates :user_profile, :presence => true
 
   validates :uuid, uniqueness: true
 
@@ -167,7 +166,7 @@ class User < ActiveRecord::Base
   end
 
   def concern_with(element)
-    possibles = self.concerns.default_view.concerning(element)
+    possibles = self.concerns.default_view.concerned_with(element)
     if possibles.size == 1
       possibles[0]
     else
@@ -658,7 +657,7 @@ class User < ActiveRecord::Base
         false
       end
     elsif item.instance_of?(UserFile)
-      self.admin? || self.id == @user_file.owner_id
+      self.admin? || self.id == item.owner_id
     else
       false
     end

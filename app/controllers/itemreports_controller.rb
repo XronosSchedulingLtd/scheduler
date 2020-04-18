@@ -23,10 +23,10 @@ class ItemreportsController < ApplicationController
       if item_report.concern
         redirect_to item_report.url
       else
-        redirect_to :back
+        redirect_back fallback_location: root_path
       end
     else
-      redirect_to :back
+      redirect_back fallback_location: root_path
     end
   end
 
@@ -36,7 +36,7 @@ class ItemreportsController < ApplicationController
       item_report.note_type(params[:commit])
       redirect_to item_report.url
     else
-      redirect_to :back
+      redirect_back fallback_location: root_path
     end
   end
 

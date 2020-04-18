@@ -1,3 +1,4 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
@@ -5,7 +6,7 @@
 
 require 'yaml'
 
-class Membership < ActiveRecord::Base
+class Membership < ApplicationRecord
 
   class MembershipWithDuration
 
@@ -681,8 +682,6 @@ class Membership < ActiveRecord::Base
   belongs_to :group
   belongs_to :element
 
-  validates :group,     :presence => true
-  validates :element,   :presence => true
   validates :starts_on, :presence => true
   
   validate :not_backwards

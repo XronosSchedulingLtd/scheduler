@@ -1,3 +1,4 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
@@ -104,13 +105,13 @@ class CommitmentSet < Array
 
 end
 
-class Event < ActiveRecord::Base
+class Event < ApplicationRecord
 
   include ActiveModel::Validations
 
   belongs_to :eventcategory
   belongs_to :eventsource
-  belongs_to :event_collection
+  belongs_to :event_collection, optional: true
   has_many :commitments, :dependent => :destroy
   has_many :requests, :dependent => :destroy
   has_many :requested_elements, through: :requests, source: :element
@@ -137,15 +138,14 @@ class Event < ActiveRecord::Base
   has_many :cover_locations, -> { where(elements: {entity_type: "Location"}) }, class_name: "Element", :source => :element, :through => :covering_commitments
 
   has_one :journal, :dependent => :nullify
-  belongs_to :owner, :class_name => :User
 
-  belongs_to :organiser, :class_name => :Element
+  belongs_to :owner, :class_name => :User, optional: true
 
-  belongs_to :proto_event
+  belongs_to :organiser, :class_name => :Element, optional: true
+
+  belongs_to :proto_event, optional: true
 
   validates :body, presence: true
-  validates :eventcategory, presence: true
-  validates :eventsource, presence: true
   validates :starts_at, presence: true
   validates_with DurationValidator
   #
@@ -2044,6 +2044,11 @@ class Event < ActiveRecord::Base
 
   def ensure_journal
     unless self.journal
+      #
+      #  Because we have already been saved to the database, the action
+      #  of assigning the newly created journal as our journal saves
+      #  that too. (Coz it's a has_one relationship.)
+      #
       self.journal = Journal.new.populate_from_event(self)
     end
   end

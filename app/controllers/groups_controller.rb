@@ -144,7 +144,9 @@ class GroupsController < ApplicationController
 
   # GET /groups/1/edit
   def edit
-    unless params[:just_created]
+    if params[:just_created]
+      session[:go_back_to] = groups_path(mine: true)
+    else
       session[:go_back_to] = request.env['HTTP_REFERER']
     end
     if current_user.can_edit?(@group)
@@ -191,14 +193,14 @@ class GroupsController < ApplicationController
     #
     #  And round to edit it.
     #
-    redirect_to edit_group_path(@new_group)
+    redirect_to edit_group_path(@new_group, just_created: true)
   end
 
   # POST /groups/1/flatten
   def flatten
     @new_group = @group.do_clone
     @new_group.flatten
-    redirect_to edit_group_path(@new_group)
+    redirect_to edit_group_path(@new_group, just_created: true)
   end
 
   # PATCH/PUT /groups/1
@@ -255,7 +257,7 @@ class GroupsController < ApplicationController
     unless @group.current
       @group.reincarnate(true)
     end
-    redirect_to :back
+    redirect_back fallback_location: root_path
   end
 
   # GET /groups/1/schedule
@@ -356,23 +358,28 @@ class GroupsController < ApplicationController
       end
     end
 
-    # Use callbacks to share common setup or constraints between actions.
-    def set_group
-      @group = Group.find(params[:id])
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_group
+    @group = Group.find(params[:id])
+  end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def group_params
-      params.require(:group).permit(:name,
-                                    :era_id,
-                                    :current,
-                                    :source_id,
-                                    :make_public,
-                                    :edit_preferred_colour,
-                                    :loading_report_days,
-                                    :wrapping_mins,
-                                    :confirmation_days,
-                                    :form_warning_days,
-                                    :needs_people)
-    end
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def group_params
+    params.require(:group).permit(:name,
+                                  :era_id,
+                                  :current,
+                                  :source_id,
+                                  :make_public,
+                                  :edit_preferred_colour,
+                                  :loading_report_days,
+                                  :wrapping_mins,
+                                  :confirmation_days,
+                                  :form_warning_days,
+                                  :needs_people)
+  end
+
+  def back_or(fallback_location)
+    session[:go_back_to] || fallback_location
+  end
+
 end

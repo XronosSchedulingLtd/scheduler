@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 require 'digest'
 
 class UserFile < ActiveRecord::Base
@@ -11,7 +18,6 @@ class UserFile < ActiveRecord::Base
   has_many :attachments, dependent: :destroy
 
   validates :file_info, presence: true
-  validates :owner, presence: true
 
   validates :nanoid, uniqueness: true
 

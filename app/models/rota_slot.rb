@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 require 'tod'
 
 class RotaSlotValidator < ActiveModel::Validator
@@ -15,7 +22,7 @@ class RotaSlotValidator < ActiveModel::Validator
     end
     unless record[:ends_at].instance_of?(Tod::TimeOfDay)
       #
-      #  Don't seem to have a start time.  Has any useful attempt
+      #  Don't seem to have an end time.  Has any useful attempt
       #  been made?
       #
       if record.org_ends_at.blank?
@@ -33,14 +40,13 @@ class RotaSlotValidator < ActiveModel::Validator
 
 end
 
-class RotaSlot < ActiveRecord::Base
+class RotaSlot < ApplicationRecord
   serialize :starts_at, Tod::TimeOfDay
   serialize :ends_at, Tod::TimeOfDay
   serialize :days, Array
 
   belongs_to :rota_template
 
-  validates :rota_template, :presence => true
   validates_with RotaSlotValidator
 
   attr_reader :org_starts_at, :org_ends_at
