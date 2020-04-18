@@ -94,7 +94,12 @@ class MembershipsController < ApplicationController
       #  We have already checked the user's permissions.
       #
       @membership.destroy
-      redirect_back fallback_location: root_path
+      #
+      #  Don't put the and_save bit on here.  That way we end up
+      #  back at the group's membership listing, but our session
+      #  should still contain the *previous* group listing path.
+      #
+      redirect_to group_memberships_path(@membership.group)
     else
       #
       #  This one likewise doesn't work quite the way you might expect.
