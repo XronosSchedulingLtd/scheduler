@@ -130,13 +130,14 @@ FactoryBot.define do
     #  First we create some transient variables with default values.
     #
     transient do
-      permissions_admin      { false }
-      permissions_editor     { false }
-      permissions_privileged { false }
-      permissions_api        { false }
-      permissions_noter      { false }
-      permissions_files      { false }
-      permissions_su         { false }
+      permissions_admin       { false }
+      permissions_editor      { false }
+      permissions_privileged  { false }
+      permissions_api         { false }
+      permissions_noter       { false }
+      permissions_files       { false }
+      permissions_su          { false }
+      permissions_memberships { false }
       #
       #  Getting slightly odd.
       #
@@ -182,6 +183,10 @@ FactoryBot.define do
       permissions_su { true }
     end
 
+    trait :memberships do
+      permissions_memberships { true }
+    end
+
     firstday { 0 }
     user_profile { UserProfile.guest_profile }
 
@@ -219,6 +224,9 @@ FactoryBot.define do
       end
       if permissions_su
         hash[:can_su] = true
+      end
+      if permissions_memberships
+        hash[:can_edit_memberships] = true
       end
       hash
     end

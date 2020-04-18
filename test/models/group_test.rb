@@ -43,6 +43,18 @@ class GroupTest < ActiveSupport::TestCase
     assert_not group.valid?
   end
 
+  test 'implements can_clone' do
+    group = FactoryBot.create(:group)
+    assert group.respond_to?(:can_clone?)
+    assert group.can_clone?
+  end
+
+  test 'groups other than vanilla cannot be cloned' do
+    group = FactoryBot.create(:group, chosen_persona: 'Resourcegrouppersona')
+    assert group.respond_to?(:can_clone?)
+    assert_not group.can_clone?
+  end
+
   #
   #  After this the tests are all specific to the behaviour of a group
   #  as a thing which has members.

@@ -32,7 +32,7 @@ class RecordingBugTest < ActionDispatch::IntegrationTest
   #  for how to stub out omniauth is impenetrable.
   #
   def do_valid_login(user = @api_user)
-    get @api_paths.login_path(uid: user.uuid), format: :json
+    get @api_paths.login_path(uid: user.uuid), params: { format: :json }
     assert_response :success
   end
 

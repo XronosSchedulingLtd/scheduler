@@ -19,7 +19,7 @@ class UserFilesTest < ActionDispatch::IntegrationTest
   end
 
   test 'guest cannot list files json' do
-    get user_files_path, format: :json
+    get user_files_path, params: { format: :json }
     assert_response 302
   end
 
@@ -30,7 +30,7 @@ class UserFilesTest < ActionDispatch::IntegrationTest
 
   test 'can list own files implicitly json' do
     do_valid_login
-    get user_files_path, format: :json
+    get user_files_path, params: { format: :json }
     assert_response :success
     response_data = unpack_response(response)
     files = response_data['files']
@@ -48,7 +48,7 @@ class UserFilesTest < ActionDispatch::IntegrationTest
 
   test 'can list users files json' do
     do_valid_login
-    get user_user_files_path(@ordinary_user), format: :json
+    get user_user_files_path(@ordinary_user), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response)
     files = response_data['files']
@@ -66,7 +66,7 @@ class UserFilesTest < ActionDispatch::IntegrationTest
 
   test 'admin can list files of other user json' do
     do_valid_login(@admin_user)
-    get user_user_files_path(@ordinary_user), format: :json
+    get user_user_files_path(@ordinary_user), params: { format: :json }
     assert_response :success
     response_data = unpack_response(response)
     files = response_data['files']
@@ -84,7 +84,7 @@ class UserFilesTest < ActionDispatch::IntegrationTest
 
   test 'ordinary user cannot list files of others json' do
     do_valid_login(@ordinary_user)
-    get user_user_files_path(@admin_user), format: :json
+    get user_user_files_path(@admin_user), params: { format: :json }
     assert_response 302
   end
 
