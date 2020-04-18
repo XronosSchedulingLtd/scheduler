@@ -1,7 +1,14 @@
-class UserForm < ActiveRecord::Base
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
 
-  belongs_to :created_by_user, class_name: :User
-  belongs_to :edited_by_user, class_name: :User
+class UserForm < ApplicationRecord
+
+  belongs_to :created_by_user, class_name: :User, optional: true
+  belongs_to :edited_by_user, class_name: :User, optional: true
 
   has_many :user_form_responses, dependent: :destroy
   has_many :elements, dependent: :nullify

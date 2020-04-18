@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Commitment < ActiveRecord::Base
+class Commitment < ApplicationRecord
 
   enum status: [
     :uncontrolled,
@@ -15,15 +15,13 @@ class Commitment < ActiveRecord::Base
 
   belongs_to :event
   belongs_to :element
-  belongs_to :proto_commitment
-  belongs_to :request, counter_cache: true
-  belongs_to :by_whom, class_name: "User"
+  belongs_to :proto_commitment, optional: true
+  belongs_to :request, counter_cache: true, optional: true
+  belongs_to :by_whom, class_name: "User", optional: true
   has_many :notes, as: :parent, dependent: :destroy
   has_one :user_form_response, as: :parent, dependent: :destroy
 
   include WithForms
-
-  validates_presence_of :event, :element
 
   validates :element_id, uniqueness: { scope: [:event_id, :covering_id] }
 
@@ -37,7 +35,7 @@ class Commitment < ActiveRecord::Base
   #
   #  if commitment.covered
   #
-  belongs_to :covering, :class_name => 'Commitment'
+  belongs_to :covering, :class_name => 'Commitment', optional: true
 
   # If this commitment is being covered and this commitment gets deleted
   # then the covering commitment should be deleted too.
@@ -65,8 +63,6 @@ class Commitment < ActiveRecord::Base
                                       Commitment.statuses[:rejected]) }
   scope :constraining, -> { where("commitments.status = ?",
                                   Commitment.statuses[:confirmed]) }
-  scope :uncontrolled, -> { where("commitments.status = ?",
-                                  Commitment.statuses[:uncontrolled]) }
   scope :controlled, -> { where.not("commitments.status = ?",
                                   Commitment.statuses[:uncontrolled]) }
   scope :future, -> { joins(:event).merge(Event.beginning(Date.today))}

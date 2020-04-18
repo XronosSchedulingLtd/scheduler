@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 
 #
 #  This module exists to hold any methods relating to a proto event
@@ -27,6 +34,16 @@ module ProtoEventInvigilationPersona
       #  This shouldn't really happen
       #
       nil
+    end
+  end
+
+  #
+  #  This one is only used by the test suite, and more specifically
+  #  by the FactoryBot factory.
+  #
+  def location=(value)
+    if value.instance_of?(Location) && value.element
+      self.location_id = value.element.id
     end
   end
 
@@ -196,14 +213,14 @@ class ProtoEventValidator < ActiveModel::Validator
     #
     #  Now persona-specific stuff.
     #
-    if record.have_persona
+    if record.has_persona?
       record.persona_specific_validation
     end
   end
 end
 
 
-class ProtoEvent < ActiveRecord::Base
+class ProtoEvent < ApplicationRecord
   belongs_to :eventcategory
   belongs_to :eventsource
   has_many :proto_commitments, :dependent => :destroy
@@ -216,20 +233,14 @@ class ProtoEvent < ActiveRecord::Base
   #  We don't really *belong* to the rota_template, but we point at
   #  it so this is how ActiveRecord phrases it.
   #
-  belongs_to :rota_template
+  #  Although we are created with a rota_template, it is possible that
+  #  it may subsequently have been deleted, and the action in that case
+  #  is to nullify our reference.  Always check before dereferencing it.
+  #
+  belongs_to :rota_template, optional: true
   belongs_to :generator, :polymorphic => true
 
   validates :body, presence: true
-  validates :eventcategory, presence: true
-  validates :eventsource, presence: true
-  #
-  #  Note that, although we have a validation here to ensure we
-  #  have a rota template, it's possible that said template
-  #  might subsequently have been deleted.  The action in the rota_template
-  #  model is to nullify our reference, so we end up with a nil item
-  #  here.  Always check before using it.
-  #
-  validates :rota_template, :presence => true
   validates_with ProtoEventValidator
 
   attr_reader :org_starts_on, :org_ends_on
@@ -276,53 +287,6 @@ class ProtoEvent < ActiveRecord::Base
   #
   def un_generated?
     self.events.count == 0
-  end
-
-  #
-  #  Ensure a single event, as dictated by self, a date and a rota slot.
-  #
-  def ensure_event(date, rota_slot, existing)
-    starts_at, ends_at = rota_slot.timings_for(date)
-    if existing
-      event = existing
-      if event.body != self.body
-        event.body = self.body
-        event.save
-      end
-    else
-      event = self.events.create({
-        body:          self.body,
-        eventcategory: self.eventcategory,
-        eventsource:   self.eventsource,
-        starts_at:     starts_at,
-        ends_at:       ends_at,
-        source_id:     rota_slot.id})
-      unless event.valid?
-        Rails.logger.error("Failed to create event")
-        event.errors.each do |e|
-          Rails.logger.error(e)
-        end
-      end
-    end
-    #
-    #  Allow for persona-specific tweaking.
-    #
-    self.persona_specific_ensure(event)
-    #
-    #  And now make sure it has the right commitments and requests.
-    #  Note that it may well have required other commitments over
-    #  and above those which we provided - we're not interested
-    #  in them, and leave them alone.
-    #
-    #  Currently we don't delete commitments which we have created
-    #  but which have now lost the corresponding proto_commitment.
-    #
-    self.proto_commitments.each do |pc|
-      pc.ensure_commitment(event)
-    end
-    self.proto_requests.each do |pr|
-      pr.ensure_request(event)
-    end
   end
 
   #
@@ -388,66 +352,6 @@ class ProtoEvent < ActiveRecord::Base
   end
 
   #
-  #  Take all events on or after the given date from the donor.
-  #  In order to do that, we need a mapping between the donor's
-  #  ProtoRequests and ProtoCommitments and our own.  We should
-  #  have got a corresponding set when our record was saved.
-  #
-  def take_events(donor, date)
-    #
-    #  Key is the donor's ProtoCommitment ID.
-    #  Data is our corresponding ProtoCommitment.
-    #
-    pc_hash = Hash.new
-    donor.proto_commitments.each do |dpc|
-      opc = self.proto_commitments.detect {|pc| pc.element_id == dpc.element_id}
-      if opc
-        pc_hash[dpc.id] = opc
-      else
-        Rails.logger.error("Can't find matching proto_commitment duplicating proto_event.")
-      end
-    end
-    #
-    #  And the same for ProtoRequests.
-    #
-    pr_hash = Hash.new
-    donor.proto_requests.each do |dpr|
-      opr = self.proto_requests.detect {|pr| pr.element_id == dpr.element_id }
-      if opr
-        pr_hash[dpr.id] = opr
-      else
-        Rails.logger.error("Can't find matching proto_request duplicating proto_event.")
-      end
-    end
-    #
-    #  And now take the events.
-    #
-    donor.events.beginning(date).each do |e|
-      e.proto_event = self
-      e.save
-      #
-      #  Where a request or commitment attached to the event has been
-      #  generated by a corresponding proto_*, then we need to update
-      #  the parental reference too.
-      #
-      e.commitments.each do |c|
-        if c.proto_commitment_id &&
-           (our_pc = pc_hash[c.proto_commitment_id])
-          c.proto_commitment = our_pc
-          c.save
-        end
-      end
-      e.requests.each do |r|
-        if r.proto_request_id &&
-           (our_pr = pr_hash[r.proto_request_id])
-          r.proto_request = our_pr
-          r.save
-        end
-      end
-    end
-  end
-
-  #
   #  Split a ProtoEvent and all its attached events into this one and
   #  another one starting on the indicated date.  All sub-structures need
   #  to be handled too.
@@ -462,6 +366,7 @@ class ProtoEvent < ActiveRecord::Base
     result = nil
     if (date > self.starts_on) && (date <= self.ends_on)
       other = self.dup
+      other.forget_persona
       other.add_persona
       other.starts_on = date
       if other.save
@@ -508,7 +413,7 @@ class ProtoEvent < ActiveRecord::Base
   def persona_specific_ensure(event)
   end
 
-  def have_persona
+  def has_persona?
     #
     #  Want to coerce this into returning just true and false.
     #  @have_persona itself may be nil.
@@ -541,38 +446,50 @@ class ProtoEvent < ActiveRecord::Base
   #  and thus to pass it any additional parameters.
   #
   def add_persona
-    persona = PERSONAE_BY_GENERATOR[self.generator_type]
-    #
-    #  It's just possible that a caller might want to create a ProtoEvent
-    #  without doing it through its generator.  The usual way to create
-    #  one is with something like:
-    #
-    #    exam_cycle.proto_events.create({ ...hash... })
-    #
-    #  and that will work fine with the line above.  It is however just
-    #  possible that someone might want to create one and then assign
-    #  it to its generator later.  Allow the persona type to be specified
-    #  as a parameter.
-    #
-    if @persona_hash && (persona_name = @persona_hash[:persona])
-      @persona_hash.except!(:persona)
-      persona = PERSONAE_BY_NAME[persona_name]
-    end
-    if persona
-      self.extend persona
-      @have_persona = true
+    unless self.has_persona?
+      persona = PERSONAE_BY_GENERATOR[self.generator_type]
       #
-      #  Now need to pass in all the assignments saved earlier.
-      #  If one of them doesn't work, it should raise an error as before.
+      #  It's just possible that a caller might want to create a ProtoEvent
+      #  without doing it through its generator.  The usual way to create
+      #  one is with something like:
       #
-      if @persona_hash
-        @persona_hash.each do |key, value|
-          self.send("#{key}=", value)
+      #    exam_cycle.proto_events.create({ ...hash... })
+      #
+      #  and that will work fine with the line above.  It is however just
+      #  possible that someone might want to create one and then assign
+      #  it to its generator later.  Allow the persona type to be specified
+      #  as a parameter.
+      #
+      unless persona
+        if @persona_hash && (persona_name = @persona_hash[:persona])
+          @persona_hash.except!(:persona)
+          persona = PERSONAE_BY_NAME[persona_name]
         end
       end
-    else
-      raise ArgumentError, "proto_event must have a known generator_type #{self.generator_type}"
+      if persona
+        self.extend persona
+        @have_persona = true
+        #
+        #  Now need to pass in all the assignments saved earlier.
+        #  If one of them doesn't work, it should raise an error as before.
+        #
+        if @persona_hash
+          @persona_hash.each do |key, value|
+            self.send("#{key}=", value)
+          end
+        end
+      end
     end
+  end
+
+  def generator=(generator)
+    super
+    add_persona
+  end
+
+  def persona=(persona)
+    @persona_hash[:persona] = persona
+    add_persona
   end
 
   #
@@ -636,6 +553,124 @@ class ProtoEvent < ActiveRecord::Base
           false
         end
       end
+    end
+  end
+
+  protected
+
+  def forget_persona
+    #
+    #  After a dup, the new record has no persona, but thinks it has.
+    #
+    @have_persona = false
+  end
+
+  #
+  #  Take all events on or after the given date from the donor.
+  #  In order to do that, we need a mapping between the donor's
+  #  ProtoRequests and ProtoCommitments and our own.  We should
+  #  have got a corresponding set when our record was saved.
+  #
+  def take_events(donor, date)
+    #
+    #  Key is the donor's ProtoCommitment ID.
+    #  Data is our corresponding ProtoCommitment.
+    #
+    pc_hash = Hash.new
+    donor.proto_commitments.each do |dpc|
+      opc = self.proto_commitments.detect {|pc| pc.element_id == dpc.element_id}
+      if opc
+        pc_hash[dpc.id] = opc
+      else
+        Rails.logger.error("Can't find matching proto_commitment duplicating proto_event.")
+      end
+    end
+    #
+    #  And the same for ProtoRequests.
+    #
+    pr_hash = Hash.new
+    donor.proto_requests.each do |dpr|
+      opr = self.proto_requests.detect {|pr| pr.element_id == dpr.element_id }
+      if opr
+        pr_hash[dpr.id] = opr
+      else
+        Rails.logger.error("Can't find matching proto_request duplicating proto_event.")
+      end
+    end
+    #
+    #  And now take the events.
+    #
+    donor.events.beginning(date).each do |e|
+      e.proto_event = self
+      e.save
+      #
+      #  Where a request or commitment attached to the event has been
+      #  generated by a corresponding proto_*, then we need to update
+      #  the parental reference too.
+      #
+      e.commitments.each do |c|
+        if c.proto_commitment_id &&
+           (our_pc = pc_hash[c.proto_commitment_id])
+          c.proto_commitment = our_pc
+          c.save
+        end
+      end
+      e.requests.each do |r|
+        if r.proto_request_id &&
+           (our_pr = pr_hash[r.proto_request_id])
+          r.proto_request = our_pr
+          r.save
+        end
+      end
+    end
+  end
+
+  private
+
+  #
+  #  Ensure a single event, as dictated by self, a date and a rota slot.
+  #
+  def ensure_event(date, rota_slot, existing)
+    starts_at, ends_at = rota_slot.timings_for(date)
+    if existing
+      event = existing
+      if event.body != self.body
+        event.body = self.body
+        event.save
+      end
+    else
+      event = self.events.create({
+        body:          self.body,
+        eventcategory: self.eventcategory,
+        eventsource:   self.eventsource,
+        starts_at:     starts_at,
+        ends_at:       ends_at,
+        source_id:     rota_slot.id})
+      unless event.valid?
+        Rails.logger.error("Failed to create event")
+        event.errors.each do |e|
+          Rails.logger.error(e)
+        end
+      end
+    end
+    #
+    #  Allow for persona-specific tweaking.
+    #
+    self.persona_specific_ensure(event)
+    #
+    #  And now make sure it has the right commitments and requests.
+    #  Note that it may well have required other commitments over
+    #  and above those which we provided - we're not interested
+    #  in them, and leave them alone.
+    #
+    #  Currently we don't delete commitments which we have created
+    #  but which have now lost the corresponding proto_commitment.
+    #
+    self.proto_commitments.each do |pc|
+      pc.ensure_commitment(event)
+    end
+    self.proto_requests.each do |pr|
+      pr.ensure_request(event)
     end
   end
 

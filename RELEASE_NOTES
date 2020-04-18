@@ -1,3 +1,47 @@
+v1.11.0   2020-04-18
+
+* Upgrade Rails to the latest version 5 - 5.2.4.2
+
+  This has involved quite a lot of work behind the scenes, upgrading
+  first to 5.0, then 5.1, then 5.2.  At each stage various systematic
+  adjustments were needed, followed by extensive testing.
+
+* A very large number of new automated tests
+
+  To facilitate the upgrade process, a lot more automated tests were
+  written.  The more the code is exercised automatically, the more
+  confident one can be in an upgrade.
+
+* A number of small bugs fixed
+
+  In the course of writing the tests, several small bugs were discovered
+  which had never been noticed in the course of normal usage.  This is
+  because the tests exercise code paths which are seldom used in
+  a live system.  These bugs had never been reported before so aren't
+  listed individually here.  If you really want to know them, look
+  at the git change log.
+
+* GitHub Issue #12 resolved
+
+  Cloning a group put you in an endless loop of editing
+
+* GitHub Issue #13 resolved
+
+  After deleting a group membership record, the back button didn't
+  take you back to the group listing.
+
+* GitHub Issue #19 resolved
+
+  Un-cloneable groups no longer have a Clone button.
+
+* Stop auto-complete of date fields on Report form
+
+  When generating a report for an element, the date fields have a
+  selector provided by the application, but some web browsers were trying
+  to do auto-complete as well which was confusing.  Auto-complete from
+  the web browser now switched off.
+
+
 v1.10.0   2020-03-15
 
 * Add a new Agenda view

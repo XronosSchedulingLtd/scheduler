@@ -16,7 +16,7 @@
 //= require underscore
 //= require backbone-min
 //= require foundation
-//= require jquery.ui.all
+//= require jquery-ui
 //= require autocomplete-rails
 //= require moment.min
 //= require fullcalendar.min

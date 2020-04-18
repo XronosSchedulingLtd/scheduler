@@ -20,31 +20,48 @@ class LocationaliasesControllerTest < ActionController::TestCase
   test "should create locationalias" do
     session[:new_locationalias_from] = locationaliases_path
     assert_difference('Locationalias.count') do
-      post :create, locationalias: { location_id: @locationalias.location_id, name: @locationalias.name, source_id: @locationalias.source_id }
+      post(:create,
+           params: {
+             locationalias: {
+               location_id: @locationalias.location_id,
+               name: @locationalias.name,
+               source_id: @locationalias.source_id
+             }
+           })
     end
 
     assert_redirected_to locationaliases_path
   end
 
   test "should show locationalias" do
-    get :show, id: @locationalias
+    get :show, params: { id: @locationalias }
     assert_response :success
   end
 
   test "should get edit" do
-    get :edit, id: @locationalias
+    get :edit, params: { id: @locationalias }
     assert_response :success
   end
 
   test "should update locationalias" do
     session[:editing_locationalias_from] = "/banana"
-    patch :update, id: @locationalias, locationalias: { location_id: @locationalias.location_id, name: @locationalias.name, source_id: @locationalias.source_id }
+    patch(
+      :update,
+      params: {
+        id: @locationalias,
+        locationalias: {
+          location_id: @locationalias.location_id,
+          name: @locationalias.name,
+          source_id: @locationalias.source_id
+        }
+      }
+    )
     assert_redirected_to "/banana"
   end
 
   test "should destroy locationalias" do
     assert_difference('Locationalias.count', -1) do
-      delete :destroy, id: @locationalias
+      delete :destroy, params: { id: @locationalias }
     end
 
     assert_redirected_to locationaliases_path

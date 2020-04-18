@@ -14,7 +14,7 @@
  *= require foundation_and_overrides
  *= require zftable
  *= require zfbutton
- *= require jquery.ui.all
+ *= require jquery-ui
  *= require jquery-ui-timepicker-addon
  *= require fullcalendar.min
  *= require scheduler.min

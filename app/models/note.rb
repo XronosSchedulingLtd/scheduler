@@ -1,3 +1,4 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2019 John Winters
 # See COPYING and LICENCE in the root directory of the application
@@ -5,11 +6,11 @@
 #
 require 'uri'
 
-class Note < ActiveRecord::Base
+class Note < ApplicationRecord
   belongs_to :parent, polymorphic: true
 #  belongs_to :commitments, -> { where( notes: { parent_type: 'Commitment' } ).includes(:notes) }, foreign_key: 'parent_id'
-  belongs_to :owner, class_name: :User
-  belongs_to :promptnote
+  belongs_to :owner, class_name: :User, optional: true
+  belongs_to :promptnote, optional: true
   #
   #  Note that we use dependent: :delete_all here deliberately, in preference
   #  to dependent: :destroy.  This is because we don't want to the
@@ -21,14 +22,12 @@ class Note < ActiveRecord::Base
   has_many :attachments, as: :parent, dependent: :delete_all
   has_many :user_files, through: :attachments
 
-  validates :parent, presence: true
-
   scope :visible_guest, -> { where(visible_guest: true) }
 
   enum note_type: [ :ordinary, :clashes, :yaml, :socs ]
 
   before_save :format_contents
-  after_save :check_for_attachments, if: :contents_changed?
+  after_save :check_for_attachments, if: :saved_change_to_contents?
 
   #
   #  Visibility values

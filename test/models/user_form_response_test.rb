@@ -18,13 +18,13 @@ class UserFormResponseTest < ActiveSupport::TestCase
 
   test 'user form response must be linked to a user form' do
     user_form_response =
-      UserFormResponse.new(@valid_params.merge({user_form: nil}))
+      UserFormResponse.new(@valid_params.except(:user_form))
     assert_not user_form_response.valid?
   end
 
   test 'user form response must have a parent' do
     user_form_response =
-      UserFormResponse.new(@valid_params.merge({parent: nil}))
+      UserFormResponse.new(@valid_params.except(:parent))
     assert_not user_form_response.valid?
   end
 

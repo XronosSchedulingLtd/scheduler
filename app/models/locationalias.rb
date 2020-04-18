@@ -1,13 +1,14 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2014 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Locationalias < ActiveRecord::Base
+class Locationalias < ApplicationRecord
 
   validates :name, presence: true
-  belongs_to :location
-  belongs_to :datasource
+  belongs_to :location, optional: true
+  belongs_to :datasource, optional: true
 
   after_create :create_corresponding_location
   after_save :update_location

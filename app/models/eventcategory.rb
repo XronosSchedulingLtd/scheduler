@@ -1,9 +1,10 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2014 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Eventcategory < ActiveRecord::Base
+class Eventcategory < ApplicationRecord
 
   validates :name, presence: true
   validates :name, uniqueness: true
@@ -17,7 +18,7 @@ class Eventcategory < ActiveRecord::Base
 
   has_many :users, foreign_key: :preferred_event_category_id, :dependent => :nullify
   after_save :flush_cache
-  after_save :update_dependent_events, if: :confidential_changed?
+  after_save :update_dependent_events, if: :saved_change_to_confidential?
 
   scope :publish,          lambda { where(publish: true) }
   scope :name_starts_with, lambda { |prefix| where("name LIKE :prefix",

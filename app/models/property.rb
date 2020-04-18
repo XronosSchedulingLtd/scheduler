@@ -1,9 +1,10 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Property < ActiveRecord::Base
+class Property < ApplicationRecord
 
   scope :public_ones, -> { where(make_public: true) }
   scope :for_staff, -> { where(auto_staff: true) }

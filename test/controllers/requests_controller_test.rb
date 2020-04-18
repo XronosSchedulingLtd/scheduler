@@ -35,7 +35,7 @@ class RequestsControllerTest < ActionController::TestCase
   #
   test 'event owner can increment request' do
     session[:user_id] = @owning_user.id
-    put :increment, id: @resource_request.id, format: :js
+    put :increment, params: { id: @resource_request.id, format: :js }
     assert_response :ok
     @resource_request.reload
     assert_equal 2, @resource_request.quantity
@@ -45,7 +45,7 @@ class RequestsControllerTest < ActionController::TestCase
     @resource_request.quantity = 2
     @resource_request.save!
     session[:user_id] = @owning_user.id
-    put :decrement, id: @resource_request.id, format: :js
+    put :decrement, params: { id: @resource_request.id, format: :js }
     assert_response :ok
     @resource_request.reload
     assert_equal 1, @resource_request.quantity
@@ -54,7 +54,7 @@ class RequestsControllerTest < ActionController::TestCase
   test 'but not below 1' do
     @resource_request.save!
     session[:user_id] = @owning_user.id
-    put :decrement, id: @resource_request.id, format: :js
+    put :decrement, params: { id: @resource_request.id, format: :js }
     assert_response :ok
     @resource_request.reload
     assert_equal 1, @resource_request.quantity
@@ -62,7 +62,7 @@ class RequestsControllerTest < ActionController::TestCase
 
   test 'organiser can increment request' do
     session[:user_id] = @organiser_user.id
-    put :increment, id: @resource_request.id, format: :js
+    put :increment, params: { id: @resource_request.id, format: :js }
     assert_response :ok
     @resource_request.reload
     assert_equal 2, @resource_request.quantity
@@ -70,7 +70,7 @@ class RequestsControllerTest < ActionController::TestCase
 
   test 'but other user cannot' do
     session[:user_id] = @other_user.id
-    put :increment, id: @resource_request.id, format: :js
+    put :increment, params: { id: @resource_request.id, format: :js }
     assert_response 302
     @resource_request.reload
     assert_equal 1, @resource_request.quantity

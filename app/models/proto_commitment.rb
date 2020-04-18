@@ -1,11 +1,15 @@
-class ProtoCommitment < ActiveRecord::Base
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
+class ProtoCommitment < ApplicationRecord
   belongs_to :proto_event
   belongs_to :element
 
   has_many :commitments, :dependent => :nullify
-
-  validates :proto_event, :presence => true
-  validates :element,     :presence => true
 
   validates :element_id, uniqueness: { scope: :proto_event_id }
 

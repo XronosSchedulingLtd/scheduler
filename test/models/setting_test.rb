@@ -45,6 +45,16 @@ class SettingTest < ActiveSupport::TestCase
     assert_not @setting.valid?
   end
 
+  test "must have a current era" do
+    @setting.current_era = nil
+    assert_not @setting.valid?
+  end
+
+  test "must have a perpetual era" do
+    @setting.perpetual_era = nil
+    assert_not @setting.valid?
+  end
+
   private
 
   def check_range(field, min, max)

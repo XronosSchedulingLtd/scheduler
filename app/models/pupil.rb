@@ -1,9 +1,10 @@
+#
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2014 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Pupil < ActiveRecord::Base
+class Pupil < ApplicationRecord
 
   validates :name, presence: true
 
@@ -16,7 +17,7 @@ class Pupil < ActiveRecord::Base
     true
   end
 
-  belongs_to :datasource
+  belongs_to :datasource, optional: true
 
   self.per_page = 15
 
@@ -112,14 +113,64 @@ class Pupil < ActiveRecord::Base
     } House.  #{Setting.tutor_name}: #{self.tutor_name}."
   end
 
+  #
+  #  The next two methods exist in order to cope explicitly
+  #  with nil fields in either our record or the other one.
+  #
+  def compare_year(other)
+    if self.start_year.nil?
+      if other.start_year.nil?
+        0
+      else
+        1
+      end
+    else
+      if other.start_year.nil?
+        -1
+      else
+        other.start_year <=> self.start_year
+      end
+    end
+  end
+
+  def compare_names(own, other)
+    if own.blank?
+      if other.blank?
+        0
+      else
+        -1
+      end
+    else
+      if other.blank?
+        1
+      else
+        own <=> other
+      end
+    end
+  end
+
   def <=>(other)
+    #
+    #  Any of the sorting criteria fields might be nil.  We still
+    #  need to return a sensible result.
+    #
+    #  Nil year puts you at the end.
+    #  Nil or empty name at the beginning.
+    #
+    #  Realistically, none of them should be nil, but it's not
+    #  an actual constraint so we need to cope.
+    #
     result = sort_by_entity_type(other)
     if result == 0
-      result = other.start_year <=> self.start_year
+      #
+      #  By this point we do at least know that the other entity
+      #  is of the same type as us, and therefore also a pupil.
+      #
+      result = compare_year(other)
       if result == 0
-        result = self.surname <=> other.surname
+        result = compare_names(self.surname, other.surname)
         if result == 0
-          result = self.forename <=> other.forename
+          result = compare_names(self.forename, other.forename)
         end
       end
     end

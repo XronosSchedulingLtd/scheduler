@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Resourcegrouppersona < ActiveRecord::Base
+class Resourcegrouppersona < ApplicationRecord
 
   include Persona
 

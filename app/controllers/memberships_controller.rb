@@ -94,7 +94,12 @@ class MembershipsController < ApplicationController
       #  We have already checked the user's permissions.
       #
       @membership.destroy
-      redirect_to :back
+      #
+      #  Don't put the and_save bit on here.  That way we end up
+      #  back at the group's membership listing, but our session
+      #  should still contain the *previous* group listing path.
+      #
+      redirect_to group_memberships_path(@membership.group)
     else
       #
       #  This one likewise doesn't work quite the way you might expect.
@@ -148,9 +153,9 @@ class MembershipsController < ApplicationController
     #  setting the end date to today.
     #
     if @membership.terminate
-      redirect_to :back
+      redirect_back fallback_location: root_path
     else
-      redirect_to :back, notice: 'Not a valid end date'
+      redirect_back fallback_location: root_path, notice: 'Not a valid end date'
     end
   end
 

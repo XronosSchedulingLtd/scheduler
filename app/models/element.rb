@@ -3,7 +3,7 @@
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
-class Element < ActiveRecord::Base
+class Element < ApplicationRecord
   belongs_to :entity, :polymorphic => true
   has_many :memberships, :dependent => :destroy
   has_many :commitments, :dependent => :destroy
@@ -39,8 +39,8 @@ class Element < ActiveRecord::Base
            :foreign_key => :excluded_element_id,
            :dependent => :nullify
   has_one :promptnote, :dependent => :destroy
-  belongs_to :owner, :class_name => :User
-  belongs_to :user_form
+  belongs_to :owner, class_name: :User, optional: true
+  belongs_to :user_form, optional: true
 
   #
   #  This is actually a constraint in the database too, but by specifying

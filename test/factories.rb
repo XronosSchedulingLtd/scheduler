@@ -130,13 +130,14 @@ FactoryBot.define do
     #  First we create some transient variables with default values.
     #
     transient do
-      permissions_admin      { false }
-      permissions_editor     { false }
-      permissions_privileged { false }
-      permissions_api        { false }
-      permissions_noter      { false }
-      permissions_files      { false }
-      permissions_su         { false }
+      permissions_admin       { false }
+      permissions_editor      { false }
+      permissions_privileged  { false }
+      permissions_api         { false }
+      permissions_noter       { false }
+      permissions_files       { false }
+      permissions_su          { false }
+      permissions_memberships { false }
       #
       #  Getting slightly odd.
       #
@@ -182,6 +183,10 @@ FactoryBot.define do
       permissions_su { true }
     end
 
+    trait :memberships do
+      permissions_memberships { true }
+    end
+
     firstday { 0 }
     user_profile { UserProfile.guest_profile }
 
@@ -219,6 +224,9 @@ FactoryBot.define do
       end
       if permissions_su
         hash[:can_su] = true
+      end
+      if permissions_memberships
+        hash[:can_edit_memberships] = true
       end
       hash
     end
@@ -415,14 +423,80 @@ FactoryBot.define do
     default_group_element { create(:group).element }
   end
 
-  #
-  #  I cannot find a way to get FactoryBot to let me assign an extra
-  #  value to the thing which I am creating.  It tries to second
-  #  guess me and doesn't do it.  Hence no factory for ProtoEvent.
-  #
-  #factory :proto_event do
-  #  persona     { "Invigilation" }  # This is the thing it won't assign.
-  #  association :generator, factory: :exam_cycle
-  #end
+  factory :journal do
+    event
+  end
+
+  factory :journal_entry do
+    journal
+    user
+    element
+  end
+
+  factory :promptnote do
+    element
+  end
+
+  factory :event_collection do
+    era { Setting.current_era }
+    repetition_start_date { Date.today }
+    repetition_end_date   { Date.today + 1.month }
+  end
+
+  factory :membership do
+    group
+    element
+    starts_on { Date.today }
+    inverse { false }
+  end
+
+  factory :proto_event do
+    sequence(:body) { |n| "Proto event #{n}" }
+    association :generator, factory: :exam_cycle
+    eventcategory
+    eventsource
+    starts_on { Date.today }
+    ends_on { Date.tomorrow }
+    location
+    num_staff { "2" }
+  end
+
+  factory :proto_commitment do
+    #
+    #  ProtoCommitments need to be unique between event and element -
+    #  you can't have two with the same event and element.
+    #
+    #  For this reason, even if we build() a proto_commitment, force
+    #  automatic associations to be create()ed.
+    #
+    association :proto_event, factory: :proto_event, strategy: :create
+    element
+  end
+
+  factory :proto_request do
+    proto_event
+    element
+    quantity { 1 }
+  end
+
+  factory :freefinder do
+  end
+
+  factory :itemreport do
+    #
+    #  I would normally have here just:
+    #
+    #    concern
+    #
+    #  but Rails defines a method of this name.
+    #
+    #  You can also write:
+    #
+    #    add_attribute(:concern) { ...block of code... }
+    #
+    #  to avoid this kind of name clash.
+    #
+    association :concern, factory: :concern
+  end
 end
 

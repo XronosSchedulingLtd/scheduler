@@ -15,6 +15,18 @@ class Teachinggroup
     Group.create!(myparams.merge(params))
   end
 
+  #
+  #  A naive check of the code suggests that this method is never
+  #  used, but it is.
+  #
+  #  It's used from within the MIS Import stuff, in a very dynamic-code
+  #  sort of way.
+  #
+  #  MIS_TeachingGroup inherits from MIS_Group inherits from MIS_Record
+  #
+  #  The actual code which does the call is in the MIS_Record bit,
+  #  but it uses extra information provided by its inheritors.
+  #
   def self.new
     g = Group.new
     g.persona_class = Teachinggrouppersona

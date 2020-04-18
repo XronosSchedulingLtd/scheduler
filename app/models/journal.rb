@@ -1,17 +1,23 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2017 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
-class Journal < ActiveRecord::Base
-  belongs_to :event
-  belongs_to :event_eventcategory, class_name: :Eventcategory
-  belongs_to :event_owner,         class_name: :User
-  belongs_to :event_organiser,     class_name: :Element
+class Journal < ApplicationRecord
+  #
+  #  Although a journal needs to belong to an event when it is created,
+  #  the event may later be deleted and the journal then hangs about.
+  #
+  #  The action in the event model is to nullify the connection, so
+  #  we need optional: true here.
+  #
+  belongs_to :event, optional: true
+  belongs_to :event_eventcategory, class_name: :Eventcategory, optional: true
+  belongs_to :event_owner,         class_name: :User, optional: true
+  belongs_to :event_organiser,     class_name: :Element, optional: true
 
   has_many   :journal_entries, :dependent => :destroy
-
-  validates :event, presence: true
 
   self.per_page = 18
 
@@ -297,6 +303,7 @@ class Journal < ActiveRecord::Base
                       request,
                       by_user,
                       false,
+                      nil,
                       element)
   end
 
@@ -305,11 +312,15 @@ class Journal < ActiveRecord::Base
                       request,
                       by_user,
                       false,
+                      nil,
                       element)
   end
 
   def resource_request_reconfirmed(request, by_user)
-    entry_for_request(:resource_request_reconfirmed, request, false, by_user)
+    entry_for_request(:resource_request_reconfirmed,
+                      request,
+                      by_user,
+                      false)
   end
 
   def format_timing

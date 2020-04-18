@@ -1,9 +1,11 @@
+#
 # Xronos Scheduler - structured scheduling program.
 # Copyright (C) 2009-2017 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
-class JournalEntry < ActiveRecord::Base
+
+class JournalEntry < ApplicationRecord
   enum entry_type: [
     :event_created,
     :event_destroyed,
@@ -80,10 +82,7 @@ class JournalEntry < ActiveRecord::Base
 
   belongs_to :journal
   belongs_to :user
-  belongs_to :element
-
-  validates :journal, presence: true
-  validates :user,    presence: true
+  belongs_to :element, optional: true
 
   self.per_page = 15
 

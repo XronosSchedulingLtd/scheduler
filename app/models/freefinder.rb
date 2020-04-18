@@ -1,5 +1,6 @@
+#
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2016 John Winters
+# Copyright (C) 2009-2020 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
@@ -17,9 +18,9 @@ require 'csv'
 #  group.  The group lists the candidates for us to find free
 #  ones of.
 #
-class Freefinder < ActiveRecord::Base
+class Freefinder < ApplicationRecord
 
-  belongs_to :element
+  belongs_to :element, optional: true
 
   attr_reader :free_elements, :done_search, :original_membership_size
 
@@ -170,7 +171,7 @@ class Freefinder < ActiveRecord::Base
   end
 
   #
-  #  Create a new group from this search, and return its id.
+  #  Create a new group from this search, and return it.
   #  Returns nil if we haven't created one.
   #
   def create_group(user)
@@ -186,7 +187,7 @@ class Freefinder < ActiveRecord::Base
       @free_elements.each do |fe|
         new_group.add_member(fe)
       end
-      new_group.id
+      new_group
     else
       errors.add(:overall, "Must find some results to create a group")
       nil

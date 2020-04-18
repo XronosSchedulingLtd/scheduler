@@ -19,30 +19,30 @@ class EventsourcesControllerTest < ActionController::TestCase
 
   test "should create eventsource" do
     assert_difference('Eventsource.count') do
-      post :create, eventsource: { name: "Banana" }
+      post :create, params: {eventsource: { name: "Banana" }}
     end
 
     assert_redirected_to eventsources_path
   end
 
   test "should show eventsource" do
-    get :show, id: @eventsource
+    get :show, params: { id: @eventsource}
     assert_response :success
   end
 
   test "should get edit" do
-    get :edit, id: @eventsource
+    get :edit, params: { id: @eventsource }
     assert_response :success
   end
 
   test "should update eventsource" do
-    patch :update, id: @eventsource, eventsource: { name: "Baker" }
+    patch :update, params: { id: @eventsource, eventsource: { name: "Baker" }}
     assert_redirected_to eventsources_path
   end
 
   test "should destroy eventsource" do
     assert_difference('Eventsource.count', -1) do
-      delete :destroy, id: @eventsource
+      delete :destroy, params: { id: @eventsource }
     end
 
     assert_redirected_to eventsources_path
