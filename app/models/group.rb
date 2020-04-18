@@ -434,6 +434,10 @@ class Group < ApplicationRecord
     end
   end
 
+  def can_clone?
+    self.persona_type.blank?
+  end
+
   #
   #  Flatten this group.  That is, convert any memberships which are
   #  currently achieved via groups to direct memberships.  The final
