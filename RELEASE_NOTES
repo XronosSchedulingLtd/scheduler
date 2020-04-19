@@ -1,3 +1,53 @@
+v1.11.0.1 2020-04-19
+
+* No code changes - one extra step in the installation instructions
+
+  TL;DR - As part of installing this release, copy the definition
+  of SECRET_KEY_BASE from ~/.profile to ~/etc/whichsystem in
+  addition to the usual steps documented at:
+
+    https://xronos.uk/admin/upgrades.html
+
+  Long version:
+
+  One tiny wrinkle cropped up when the previous release was deployed
+  to a staging server for final testing.  There are various cron
+  jobs included in the system and since the upgrade to Rails 5 these
+  had been tested both from the command line and as cron jobs on a
+  development system.  Where they didn't however work was as cron jobs
+  on a production system.
+
+  This is because of an item required by Rails applications - a
+  secret key to secure the interactive sessions with browsers.  This
+  key is hard coded for development and test modes, but requires
+  an environment variable to be defined when the system is running
+  in production mode.
+
+  Previously (Rails 4) rake jobs were run from cron entirely separately
+  from Rails, and as they don't involve an interactive browser session
+  they didn't need this secret key.  In Rails 5, there has been an
+  attempt to integrate rake and rails - maintenance jobs which would
+  previously have been invoked as "rake ..." are now invoked
+  as "rails ...", apparently to avoid operator confusion.
+
+  A possibly unintended side effect of this is that when you invoke
+  a rake task in production mode you now need the SECRET_KEY_BASE
+  environment variable to be defined, where you didn't in Rails 4.
+
+  Again, all is well in an interactive terminal session on a production
+  system (because the key environment variable is defined in ~/.profile,
+  which is included as the user logs in) but not in a cron job,
+  the setup for which skips ~/.profile.
+
+  Scheduler already has a file ~/etc/whichsystem deliberately
+  designed to set up things needed by the cron jobs, so adding the
+  definition of SECRET_KEY_BASE to that file fixes the problem.
+
+  There are no code changes in this release - merely changes to this
+  documentation.  As this document forms part of the release, that
+  in turn needs a minor version number bump.
+
+
 v1.11.0   2020-04-18
 
 * Upgrade Rails to the latest version 5 - 5.2.4.2
