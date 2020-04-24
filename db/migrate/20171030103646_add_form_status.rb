@@ -1,4 +1,4 @@
-class AddFormStatus < ActiveRecord::Migration
+class AddFormStatus < ActiveRecord::Migration[4.2]
   def change
     add_column :user_form_responses, :status, :integer, default: 0
     rename_column :user_form_responses, :complete, :was_complete

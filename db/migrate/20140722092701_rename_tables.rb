@@ -1,4 +1,4 @@
-class RenameTables < ActiveRecord::Migration
+class RenameTables < ActiveRecord::Migration[4.2]
   def change
     rename_table :teachinggroups, :teachinggrouppersonae
     rename_table :tutorgroups,    :tutorgrouppersonae

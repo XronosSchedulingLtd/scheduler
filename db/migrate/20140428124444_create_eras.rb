@@ -1,4 +1,4 @@
-class CreateEras < ActiveRecord::Migration
+class CreateEras < ActiveRecord::Migration[4.2]
   def change
     create_table :eras do |t|
       t.string :name

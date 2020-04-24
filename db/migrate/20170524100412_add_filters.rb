@@ -1,4 +1,4 @@
-class AddFilters < ActiveRecord::Migration
+class AddFilters < ActiveRecord::Migration[4.2]
   def change
     #
     #  Using a type of text might seem like overkill, but :string

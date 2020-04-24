@@ -1,4 +1,4 @@
-class AddComments < ActiveRecord::Migration
+class AddComments < ActiveRecord::Migration[4.2]
   def change
     create_table :comments do |t|
       t.references :parent, polymorphic: true, index: true

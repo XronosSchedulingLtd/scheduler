@@ -1,4 +1,4 @@
-class AddRequests < ActiveRecord::Migration
+class AddRequests < ActiveRecord::Migration[4.2]
   def change
     create_table :requests do |t|
       t.belongs_to :event,         :index => true

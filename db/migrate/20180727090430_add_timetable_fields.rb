@@ -1,4 +1,4 @@
-class AddTimetableFields < ActiveRecord::Migration
+class AddTimetableFields < ActiveRecord::Migration[4.2]
   def change
     add_column :eventcategories, :timetable, :boolean, default: false
     add_column :settings,        :first_tt_day,    :integer, default: 1

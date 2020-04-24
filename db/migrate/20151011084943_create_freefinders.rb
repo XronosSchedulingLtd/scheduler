@@ -1,4 +1,4 @@
-class CreateFreefinders < ActiveRecord::Migration
+class CreateFreefinders < ActiveRecord::Migration[4.2]
   def change
     create_table :freefinders do |t|
       t.integer :element_id

@@ -1,4 +1,4 @@
-class CreateTutorgroups < ActiveRecord::Migration
+class CreateTutorgroups < ActiveRecord::Migration[4.2]
   def change
     create_table :tutorgroups do |t|
       t.string :name

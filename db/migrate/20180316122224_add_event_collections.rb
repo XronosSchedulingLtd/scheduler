@@ -1,4 +1,4 @@
-class AddEventCollections < ActiveRecord::Migration
+class AddEventCollections < ActiveRecord::Migration[4.2]
   def change
     create_table :event_collections do |t|
       t.integer :era_id

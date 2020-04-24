@@ -1,4 +1,4 @@
-class AddPermissionsFlags < ActiveRecord::Migration
+class AddPermissionsFlags < ActiveRecord::Migration[4.2]
   def change
     add_column :events, :complete,    :boolean, :default => true
     add_column :events, :constrained, :boolean, :default => false

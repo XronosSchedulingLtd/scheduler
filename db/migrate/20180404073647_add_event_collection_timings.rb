@@ -1,4 +1,4 @@
-class AddEventCollectionTimings < ActiveRecord::Migration
+class AddEventCollectionTimings < ActiveRecord::Migration[4.2]
   def change
     add_column :event_collections, :update_requested_at, :datetime, default: nil
     add_column :event_collections, :update_started_at,   :datetime, default: nil
