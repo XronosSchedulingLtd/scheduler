@@ -1,14 +1,15 @@
 #!/bin/bash
 
 # A skeletal script for setting up the necessary MYSQL databases.
-# Set the following environment variables before using it.
+# Set the following environment variable before using it.
+# Also edit config/database.yml and put the same password there.
 
-DATABASE_PREFIX="not set"
 DATABASE_PASSWORD="not set"
 
 #
-#  These next two probably don't need changing, but you might want to.
+#  These next three probably don't need changing, but you might want to.
 #
+DATABASE_PREFIX="scheduler"
 DATABASE_USER="scheduler"
 CLIENT_HOST="localhost"
 
@@ -25,15 +26,18 @@ if [ "$DATABASE_PASSWORD" == "not set" ]; then
   exit 1
 fi
 
-mysql -u root -p << EOF
-create database ${DATABASE_PREFIX}_development;
-create database ${DATABASE_PREFIX}_production;
-create database ${DATABASE_PREFIX}_test;
+mysql -u root << EOF
+CREATE DATABASE ${DATABASE_PREFIX}_development CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE ${DATABASE_PREFIX}_production CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE ${DATABASE_PREFIX}_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-grant all on ${DATABASE_PREFIX}_development.* to '${DATABASE_USER}'@'${CLIENT_HOST}' identified by '${DATABASE_PASSWORD}';
-grant all on ${DATABASE_PREFIX}_production.* to '${DATABASE_USER}'@'${CLIENT_HOST}' identified by '${DATABASE_PASSWORD}';
-grant all on ${DATABASE_PREFIX}_test.* to '${DATABASE_USER}'@'${CLIENT_HOST}' identified by '${DATABASE_PASSWORD}';
-flush privileges;
+CREATE USER ${DATABASE_USER} IDENTIFIED BY '${DATABASE_PASSWORD}';
 
-exit
+GRANT ALL PRIVILEGES ON ${DATABASE_PREFIX}_development.* TO ${DATABASE_USER};
+GRANT ALL PRIVILEGES ON ${DATABASE_PREFIX}_production.* TO ${DATABASE_USER};
+GRANT ALL PRIVILEGES ON ${DATABASE_PREFIX}_test.* TO ${DATABASE_USER};
+
+FLUSH PRIVILEGES;
+
+EXIT
 EOF
