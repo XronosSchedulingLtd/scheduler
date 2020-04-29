@@ -1,0 +1,20 @@
+#
+#  A systemd config file to start Xronos Scheduler by way of the
+#  Puma application server.
+#
+[Unit]
+Description=Puma HTTP Server
+After=network.target
+
+[Service]
+Type=simple
+User=scheduler
+WorkingDirectory=/home/scheduler/Work/Coding/scheduler
+EnvironmentFile=/home/scheduler/etc/authcredentials
+
+ExecStart=/home/scheduler/.rvm/wrappers/scheduler/bundle exec puma -C /home/scheduler/Work/Coding/scheduler/config/puma-live.rb
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
