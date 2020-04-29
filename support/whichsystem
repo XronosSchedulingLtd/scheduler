@@ -16,11 +16,4 @@ SCHEDULER_DIR=/home/scheduler/Work/Coding/scheduler
 #
 RAILS_ENV=development
 
-#
-#  When fetching from isams, should we use the API and/or direct d/b
-#  access.
-#
-USE_ISAMS_API=true
-USE_ISAMS_DB=true
-
-export RAILS_ENV SCHEDULER_DIR USE_ISAMS_API USE_ISAMS_DB
+export RAILS_ENV SCHEDULER_DIR
