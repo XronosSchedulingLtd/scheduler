@@ -146,6 +146,8 @@ GEM
       oauth2 (~> 1.1)
       omniauth (~> 1.9)
     public_suffix (3.0.3)
+    puma (4.3.3)
+      nio4r (~> 2.0)
     rack (2.2.2)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
@@ -258,6 +260,7 @@ DEPENDENCIES
   nokogiri
   omniauth
   omniauth-google-oauth2 (~> 0.6.0)
+  puma
   rails (= 5.2.4.2)
   rails-controller-testing
   rails-html-sanitizer (~> 1.0.4)
@@ -279,4 +282,4 @@ DEPENDENCIES
   will_paginate
 
 BUNDLED WITH
-   1.16.6
+   1.17.3

@@ -66,6 +66,7 @@ gem 'ahoy_email'
 gem 'nanoid'
 gem 'remotipart'
 gem 'rmagick'
+gem 'puma'
 group :production do
   gem 'tiny_tds'
 end
