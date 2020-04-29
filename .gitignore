@@ -91,3 +91,8 @@ notes/.zim/*
 # Ignore compiled assets
 public/assets/*
 
+# Ignore master key for decrypting credentials and more.
+/config/master.key
+
+# And since this is a public repository for distribution
+/config/credentials.yml.enc
