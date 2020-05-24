@@ -1,4 +1,4 @@
-class AddKnown < ActiveRecord::Migration
+class AddKnown < ActiveRecord::Migration[4.2]
   def change
     add_column :users, :known, :boolean, default: false
     add_column :user_profiles, :known, :boolean, default: true

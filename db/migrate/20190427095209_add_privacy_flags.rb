@@ -1,4 +1,4 @@
-class AddPrivacyFlags < ActiveRecord::Migration
+class AddPrivacyFlags < ActiveRecord::Migration[4.2]
   def change
     add_column :elements,        :viewable,     :boolean, default: true
     add_column :eventcategories, :confidential, :boolean, default: false

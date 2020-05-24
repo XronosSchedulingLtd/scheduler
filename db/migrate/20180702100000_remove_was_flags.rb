@@ -1,4 +1,4 @@
-class RemoveWasFlags < ActiveRecord::Migration
+class RemoveWasFlags < ActiveRecord::Migration[4.2]
   def change
     remove_column :commitments,         :was_rejected
     remove_column :commitments,         :was_constraining

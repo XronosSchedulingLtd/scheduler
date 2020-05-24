@@ -1,4 +1,4 @@
-class AddTaggroups < ActiveRecord::Migration
+class AddTaggroups < ActiveRecord::Migration[4.2]
   def change
     create_table :taggrouppersonae do |t|
       t.integer :source_id

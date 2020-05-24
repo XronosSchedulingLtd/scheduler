@@ -1,4 +1,4 @@
-class RemoveVisibleGroupFields < ActiveRecord::Migration
+class RemoveVisibleGroupFields < ActiveRecord::Migration[4.2]
   def change
     remove_column :tutorgroups, :name
     remove_column :tutorgroups, :era_id

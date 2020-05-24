@@ -1,4 +1,4 @@
-class AddUserFlags < ActiveRecord::Migration
+class AddUserFlags < ActiveRecord::Migration[4.2]
   def change
     add_column :users, :can_has_groups,   :boolean, :default => false
     add_column :users, :can_find_free,    :boolean, :default => false

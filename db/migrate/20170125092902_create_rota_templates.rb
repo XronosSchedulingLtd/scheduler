@@ -1,4 +1,4 @@
-class CreateRotaTemplates < ActiveRecord::Migration
+class CreateRotaTemplates < ActiveRecord::Migration[4.2]
   def change
     create_table :rota_templates do |t|
       t.string :name

@@ -1,4 +1,4 @@
-class AddOrganiserIndex < ActiveRecord::Migration
+class AddOrganiserIndex < ActiveRecord::Migration[4.2]
   def change
     add_index :events, :organiser_id
     add_column :events, :organiser_ref, :text

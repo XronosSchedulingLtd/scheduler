@@ -1,4 +1,4 @@
-class AddPermissionFlags < ActiveRecord::Migration
+class AddPermissionFlags < ActiveRecord::Migration[4.2]
   def change
     add_column :users, :can_add_resources, :boolean, default: false
     add_column :users, :can_add_notes,     :boolean, default: false

@@ -1,4 +1,4 @@
-class MoveGroupFields < ActiveRecord::Migration
+class MoveGroupFields < ActiveRecord::Migration[4.2]
   def change
     add_column :groups, :name,    :string
     add_column :groups, :era_id,  :integer

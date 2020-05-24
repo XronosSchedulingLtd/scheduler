@@ -1,4 +1,4 @@
-class AddEmailFields < ActiveRecord::Migration
+class AddEmailFields < ActiveRecord::Migration[4.2]
   def change
     add_column :resourcegrouppersonae, :confirmation_days, :integer, default: 0
     add_column :resourcegrouppersonae, :form_warning_days, :integer, default: 0

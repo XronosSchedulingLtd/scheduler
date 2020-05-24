@@ -1,4 +1,4 @@
-class AddSourceIdToGroups < ActiveRecord::Migration
+class AddSourceIdToGroups < ActiveRecord::Migration[4.2]
   def change
     add_column :groups, :source_id,     :integer
     add_column :groups, :source_id_str, :string

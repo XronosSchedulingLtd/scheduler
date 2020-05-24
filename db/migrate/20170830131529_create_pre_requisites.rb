@@ -1,4 +1,4 @@
-class CreatePreRequisites < ActiveRecord::Migration
+class CreatePreRequisites < ActiveRecord::Migration[4.2]
   def change
     create_table :pre_requisites do |t|
       t.string :label

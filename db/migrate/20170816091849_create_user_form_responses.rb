@@ -1,4 +1,4 @@
-class CreateUserFormResponses < ActiveRecord::Migration
+class CreateUserFormResponses < ActiveRecord::Migration[4.2]
   def change
     create_table :user_form_responses do |t|
       t.integer :user_form_id

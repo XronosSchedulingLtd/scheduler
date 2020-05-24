@@ -1,4 +1,4 @@
-class CreateProtoEvents < ActiveRecord::Migration
+class CreateProtoEvents < ActiveRecord::Migration[4.2]
   def change
     create_table :proto_events do |t|
       t.text :body

@@ -1,4 +1,4 @@
-class AddControlFlag < ActiveRecord::Migration
+class AddControlFlag < ActiveRecord::Migration[4.2]
   def change
     add_column :concerns, :controls, :boolean, :default => false
   end

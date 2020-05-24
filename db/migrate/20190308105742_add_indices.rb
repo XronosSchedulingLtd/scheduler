@@ -1,4 +1,4 @@
-class AddIndices < ActiveRecord::Migration
+class AddIndices < ActiveRecord::Migration[4.2]
   def change
     add_index :ahoy_messages, [:user_type, :user_id]
     add_index :elements, [:entity_type, :entity_id]

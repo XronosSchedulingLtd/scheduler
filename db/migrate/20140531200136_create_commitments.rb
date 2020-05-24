@@ -1,4 +1,4 @@
-class CreateCommitments < ActiveRecord::Migration
+class CreateCommitments < ActiveRecord::Migration[4.2]
   def change
     create_table :commitments do |t|
       t.integer :event_id

@@ -1,4 +1,4 @@
-class CreateConcerns < ActiveRecord::Migration
+class CreateConcerns < ActiveRecord::Migration[4.2]
   def change
     create_table :concerns do |t|
       t.integer :user_id

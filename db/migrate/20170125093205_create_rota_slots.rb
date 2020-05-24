@@ -1,4 +1,4 @@
-class CreateRotaSlots < ActiveRecord::Migration
+class CreateRotaSlots < ActiveRecord::Migration[4.2]
   def change
     create_table :rota_slots do |t|
       t.integer :rota_template_id

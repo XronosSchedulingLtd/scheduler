@@ -1,3 +1,75 @@
+v1.11.1   2020-05-24
+
+Tidying up and polishing the move to Rails 5.
+
+* Version number added to all old database migrations.
+
+  As of version 5, Rails requires all database migrations to specify
+  which version of Rails they were generated for.  Anything before
+  Rails 5 should carry a version number of 4.2.
+
+  Whilst really old migrations shouldn't really be needed by anyone,
+  it's difficult to know exactly where to cut off and so all the old
+  ones have had version 4.2 added to them.
+
+* Puma gem added to Gemfile
+
+  Rails 5 uses Puma as its application server by default.  Whilst existing
+  installations will continue to use Passenger for now, Puma is included
+  in the distribution.
+
+  Several empty directories have been added to support the use of Puma
+  in a live installation.
+
+* Convert database schema to specify utf8mb4 on all tables
+
+  The database schema - used to create new databases - now specifies
+  utf8mb4 as the charset on all the tables.
+
+* Specify correct charset and collation when creating a database.
+
+  The sample database creation script provided in the distribution -
+  support/setupmysql - has been modified to specify utf8mb4 as well.
+
+* Convert to using Rails 5 style credentials
+
+  Older versions of Rails used a file - config/secrets.yml - to hold
+  a magic random string.  This in turn was used by the application to
+  thwart session hijacking attempts.
+
+  As of Rails 5, the equivalent information is held in an encrypted
+  file, with the encryption key being held in another file.  As part
+  of installing this release it is necessary to create these files
+  with the command:
+
+    $ EDITOR=vi rails credentials:edit
+
+  The necessary files are not included in the distribution because
+  they need to be unique to each individual system.
+
+* Add various files to the support directory
+
+  Several files have been added to the support directory to assist
+  in the installation of a new system.  These are referenced by
+  the updated installation instructions.
+
+* Update to Rails 5.2.4.3
+
+  A minor bug-fix release of Rails was put out in the course
+  of preparing this release of Scheduler.  It is included with
+  this release.
+
+* Don't require subject names to be unique
+
+  Scheduler has a check to ensure that subject names fed from the MIS
+  are unique.  It was discovered that this clashed with one MIS where
+  they weren't unique.
+
+  It's not really Scheduler's job to police this kind of things - it's
+  up to the MIS and its manager to decide.  The check has therefore
+  been removed from Scheduler.
+
+
 v1.11.0.1 2020-04-19
 
 * No code changes - one extra step in the installation instructions
