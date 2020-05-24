@@ -1,4 +1,4 @@
-class AddAuto < ActiveRecord::Migration
+class AddAuto < ActiveRecord::Migration[4.2]
   def change
     add_column :properties, :auto_staff,  :boolean, default: false
     add_column :properties, :auto_pupils, :boolean, default: false

@@ -1,4 +1,4 @@
-class AddCommitmentStatus < ActiveRecord::Migration
+class AddCommitmentStatus < ActiveRecord::Migration[4.2]
   def change
     add_column    :commitments, :status,       :integer, default: 0
     rename_column :commitments, :rejected,     :was_rejected

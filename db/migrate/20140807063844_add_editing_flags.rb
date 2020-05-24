@@ -1,4 +1,4 @@
-class AddEditingFlags < ActiveRecord::Migration
+class AddEditingFlags < ActiveRecord::Migration[4.2]
   def change
     add_column :elements, :owner_id, :integer, :default => nil
     add_column :users,    :editor,   :boolean, :default => false

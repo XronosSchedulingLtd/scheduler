@@ -1,4 +1,4 @@
-class CreateLocationaliases < ActiveRecord::Migration
+class CreateLocationaliases < ActiveRecord::Migration[4.2]
   def change
     create_table :locationaliases do |t|
       t.string :name

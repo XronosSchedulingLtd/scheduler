@@ -1,4 +1,4 @@
-class AddJournals < ActiveRecord::Migration
+class AddJournals < ActiveRecord::Migration[4.2]
   def change
     create_table :journals do |t|
       t.integer   :event_id

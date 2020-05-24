@@ -12,10 +12,10 @@
 default: &default
   adapter: mysql2
   username: scheduler
-  password: scpasswd
+  password: 
   host: localhost
-  encoding: utf8
-  collation: utf8_general_ci
+  encoding: utf8mb4
+  collation: utf8mb4_general_ci
 
 development:
   <<: *default

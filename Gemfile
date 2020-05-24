@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'rails', '5.2.4.2'
+gem 'rails', '5.2.4.3'
 gem 'rails-html-sanitizer', '~> 1.0.4'
 # Use sqlite3 as the database for Active Record
 #gem 'sqlite3'
@@ -66,6 +66,7 @@ gem 'ahoy_email'
 gem 'nanoid'
 gem 'remotipart'
 gem 'rmagick'
+gem 'puma'
 group :production do
   gem 'tiny_tds'
 end

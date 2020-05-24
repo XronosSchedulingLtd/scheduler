@@ -1,4 +1,4 @@
-class AddRotaTemplateType < ActiveRecord::Migration
+class AddRotaTemplateType < ActiveRecord::Migration[4.2]
   def change
     create_table :rota_template_types do |t|
       t.string :name

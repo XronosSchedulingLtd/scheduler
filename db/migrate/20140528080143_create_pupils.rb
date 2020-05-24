@@ -1,4 +1,4 @@
-class CreatePupils < ActiveRecord::Migration
+class CreatePupils < ActiveRecord::Migration[4.2]
   def change
     create_table :pupils do |t|
       t.string :name

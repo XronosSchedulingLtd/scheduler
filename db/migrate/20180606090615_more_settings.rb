@@ -1,4 +1,4 @@
-class MoreSettings < ActiveRecord::Migration
+class MoreSettings < ActiveRecord::Migration[4.2]
   def change
     add_column :settings, :tutorgroups_by_house,     :boolean, default: true
     add_column :settings, :tutorgroups_name,         :string,  default: "Tutor group"

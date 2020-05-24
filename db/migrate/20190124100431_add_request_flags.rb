@@ -1,4 +1,4 @@
-class AddRequestFlags < ActiveRecord::Migration
+class AddRequestFlags < ActiveRecord::Migration[4.2]
   def change
     add_column :requests, :tentative,    :boolean, default: true
     add_column :requests, :constraining, :boolean, default: false

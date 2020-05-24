@@ -22,11 +22,11 @@ class SubjectTest < ActiveSupport::TestCase
 
   include CommonEntityTests
 
-  test 'name must be unique' do
+  test 'name need not be unique' do
     subject1 = Subject.create(@valid_params)
     assert subject1.valid?
     subject2 = Subject.create(@valid_params)
-    assert_not subject2.valid?
+    assert subject2.valid?
   end
 
   test 'can select just current subjects' do

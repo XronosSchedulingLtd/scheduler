@@ -1,4 +1,4 @@
-class CreateItemreports < ActiveRecord::Migration
+class CreateItemreports < ActiveRecord::Migration[4.2]
   def change
     create_table :itemreports do |t|
       t.integer :concern_id

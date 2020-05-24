@@ -1,4 +1,4 @@
-class AddTitleTexts < ActiveRecord::Migration
+class AddTitleTexts < ActiveRecord::Migration[4.2]
   def change
     add_column :settings, :title_text,        :string, default: nil
     add_column :settings, :public_title_text, :string, default: nil

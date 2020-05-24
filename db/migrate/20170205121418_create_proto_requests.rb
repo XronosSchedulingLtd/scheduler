@@ -1,4 +1,4 @@
-class CreateProtoRequests < ActiveRecord::Migration
+class CreateProtoRequests < ActiveRecord::Migration[4.2]
   def change
     create_table :proto_requests do |t|
       t.belongs_to :proto_event, :index => true

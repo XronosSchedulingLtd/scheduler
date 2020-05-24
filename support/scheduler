@@ -1,0 +1,49 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2020 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
+#
+#  This tells Nginx where to find our application server.
+#
+upstream scheduler {
+  server unix:///home/scheduler/Work/Coding/scheduler/shared/sockets/scheduler.sock;
+}
+
+#
+#  Front-end our scheduler server processes
+#
+server {
+  server_name scheduler.myschool.org.uk;
+  listen 80;
+  listen [::]:80;
+  root /home/scheduler/Work/Coding/scheduler/public;
+
+  access_log /var/log/nginx/scheduler-access.log;
+  error_log  /var/log/nginx/scheduler-error.log;
+  #
+  #  Look first at the file system, then pass to the application.
+  #
+  try_files $uri @scheduler;
+
+  #
+  #  Note that this file is set up originally for http:, but on
+  #  the assumption that it will almost immediately be modified
+  #  by certbot for https:
+  #
+  #  Nginx handles all the crypto stuff, so we talk to Puma with
+  #  pure http.  We need however to add some extra headers to tell
+  #  it that https has been involved.
+  #
+  location @scheduler {
+    proxy_pass http://scheduler;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Ssl on;
+    proxy_set_header X-Forwarded-Port $server_port;
+    proxy_set_header X-Forwarded-Host $host;
+  }
+
+}

@@ -1,4 +1,4 @@
-class CreateExamCycles < ActiveRecord::Migration
+class CreateExamCycles < ActiveRecord::Migration[4.2]
   def change
     create_table :exam_cycles do |t|
       t.string :name
