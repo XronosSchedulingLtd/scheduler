@@ -106,7 +106,7 @@ GEM
     listen (3.2.1)
       rb-fsevent (~> 0.10, >= 0.10.3)
       rb-inotify (~> 0.9, >= 0.9.10)
-    loofah (2.4.0)
+    loofah (2.5.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mail (2.7.1)
@@ -146,7 +146,7 @@ GEM
       oauth2 (~> 1.1)
       omniauth (~> 1.9)
     public_suffix (3.0.3)
-    puma (4.3.3)
+    puma (4.3.5)
       nio4r (~> 2.0)
     rack (2.2.2)
     rack-test (1.1.0)
@@ -254,7 +254,7 @@ DEPENDENCIES
   jquery-rails
   jquery-ui-rails
   listen
-  loofah (~> 2.4.0)
+  loofah (~> 2.5.0)
   mysql2
   nanoid
   nokogiri
