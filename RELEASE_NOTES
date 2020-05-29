@@ -1,3 +1,75 @@
+v1.11.2   2020-05-29
+
+* Ruby updated to version 2.6.6
+
+  Ruby 2.7 was released on 2019-12-25 (as is traditional) but it contains
+  certain deprecations in preparation for Ruby 3.  Rails 5 applications
+  will run with Ruby 2.7 but produce quite a lot of warnings about
+  the deprecations.  The latest versions of Rails 6 are fully compatible
+  with Ruby 2.7, so an upgrade to that release will have to wait until
+  Scheduler is upgraded to Rails 6.
+
+  In preparation for installing this release, it's worth getting
+  Ruby 2.6.6 installed on your system.  Log in as your scheduler user
+  to the command line and type:
+
+    $ rvm install ruby-2.6.6
+
+  This may take 10-15 minutes to run, depending on the speed of your
+  system, but it can be done whilst your system is still open to users.
+
+  To install this release, some extra steps are required over and above
+  those given at:
+  
+    https://xronos.uk/admin/upgrades.html#basic-steps
+
+  Having stopped your web server and fetched the new version with "git pull",
+  you then need to move out of the Scheduler directory and back in again:
+
+    $ cd ..
+    $ cd $SCHEDULER_DIR
+
+  This will cause rvm to notice that the new version of Ruby is required
+  and it will create a new gemset for it.  You then do:
+
+    $ bundle install
+
+  to install all the required gems in the new gemset, and:
+
+    $ rvm alias create scheduler ruby-2.6.6@scheduler
+
+  to switch the environment to the new version of Ruby.
+
+  If you are using Passenger to run your live application, then
+  edit /etc/nginx/sites-available/scheduler to change the version
+  of Ruby used by Passenger.  If your relevant line reads:
+
+    passenger_ruby /home/scheduler/.rvm/gems/ruby-2.5.5@scheduler/wrappers/ruby;
+
+  then you can change it to just:
+
+    passenger_ruby /home/scheduler/.rvm/gems/scheduler/wrappers/ruby;
+
+  (making use of the alias which you just created) and thus avoid
+  having to make this change in future releases.
+
+  With these steps done, resume the normal upgrade at "rake db:migrate".
+
+* Loofah gem upgraded to version 2.5.0
+
+  For some odd reason, GitHub has a thing about applications using old
+  versions of Loofah.  For most gems, it complains merely if there is
+  an actual problem with the old version, but for Loofah it complains as
+  soon as a new version comes out.  Just to shut it up, Loofah has
+  been upgraded to 2.5.0.
+
+* Puma gem upgraded to 4.3.5
+
+  There are two vulnerabilities (CVE-2020-11076 and CVE-2020-11077) in
+  Puma 4.3.3.  These affect only sites using Puma rather than Passenger
+  as their application server.
+
+
 v1.11.1   2020-05-24
 
 Tidying up and polishing the move to Rails 5.
