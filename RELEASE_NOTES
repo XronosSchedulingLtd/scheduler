@@ -1,3 +1,14 @@
+v1.11.3   2020-06-25
+
+* Upgrade rack to version 2.2.3
+
+  This implements a fix for CVE-2020-8184
+
+* Upgrade websocket-extensions to 0.1.5
+
+  This implements a fix for CVE-2020-7663
+
+
 v1.11.2   2020-05-29
 
 * Ruby updated to version 2.6.6
