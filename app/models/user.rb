@@ -1116,12 +1116,13 @@ class User < ApplicationRecord
             end
           else
             self.concerns.create!({
-              element:  pupil.element,
-              equality: true,
-              owns:     false,
-              visible:  true,
-              auto_add: true,
-              colour:   "#225599"
+              element:       pupil.element,
+              equality:      true,
+              owns:          false,
+              visible:       true,
+              auto_add:      true,
+              list_teachers: true,
+              colour:        "#225599"
             })
           end
         end
