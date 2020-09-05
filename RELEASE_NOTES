@@ -1,3 +1,18 @@
+v1.11.4   2020-09-05
+
+* Default to showing initials in pupils' view of their schedules.
+
+  Scheduler has long allowed for the teacher's initials to be included
+  in the listing for each lesson, but it's a configuration option which
+  defaults to off.
+
+  In this release, the default for pupils is changed to be on.  They can
+  still opt to turn it off, but by default it's on.
+
+  A maintenance method is also provided to convert all existing students
+  to having it switched on.
+
+
 v1.11.3   2020-06-25
 
 * Upgrade rack to version 2.2.3
