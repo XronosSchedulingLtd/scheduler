@@ -140,4 +140,22 @@ class UserProfile < ApplicationRecord
     end
   end
 
+  #
+  #  Maintenance method to allow the "list_teachers" bit to be set for all
+  #  student users.
+  #
+  def self.set_list_teachers
+    up = UserProfile.find_by(name: "Pupil")
+    if up
+      up.users.find_each do |u|
+        own_concern = u.concerns.me[0]
+        if own_concern && !own_concern.list_teachers
+          own_concern.list_teachers = true
+          own_concern.save
+        end
+      end
+    end
+    nil
+  end
+
 end

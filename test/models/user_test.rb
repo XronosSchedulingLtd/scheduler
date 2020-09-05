@@ -65,10 +65,26 @@ class UserTest < ActiveSupport::TestCase
     check_staff_permissions(user)
   end
 
+  test "new staff user does not have list_teachers set on own concern" do
+    staff = FactoryBot.create(:staff, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
+    own_concern = user.concerns.me[0]
+    assert_not_nil(own_concern)
+    assert_not own_concern.list_teachers
+  end
+
   test "new pupil user gets correct permissions" do
     pupil = FactoryBot.create(:pupil, email: 'able@myschool.org.uk')
     user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
     check_pupil_permissions(user)
+  end
+
+  test "new pupil user has list_teachers set on own concern" do
+    pupil = FactoryBot.create(:pupil, email: 'able@myschool.org.uk')
+    user = FactoryBot.create(:user, email: 'able@myschool.org.uk')
+    own_concern = user.concerns.me[0]
+    assert_not_nil(own_concern)
+    assert own_concern.list_teachers
   end
 
   test "new guest user gets correct permissions" do
