@@ -104,6 +104,8 @@ module Timetable
     def periodtext_class
       if duration > 30
         "periodtext"
+      elsif duration < 20
+        "periodtextreallysmall"
       else
         "periodtextsmall"
       end
