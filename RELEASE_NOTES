@@ -1,3 +1,12 @@
+v1.11.5   2020-09-06
+
+* Allow tutor period to be only 15 minutes long in printed timetable
+
+  A tutor period of only 15 minutes was causing the printed timetable
+  to have text outside the bounding box for that period.  This release
+  moves the text back inside the bounding box.
+
+
 v1.11.4   2020-09-05
 
 * Default to showing initials in pupils' view of their schedules.
