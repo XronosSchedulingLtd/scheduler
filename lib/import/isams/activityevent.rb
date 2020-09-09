@@ -50,7 +50,25 @@ class ISAMS_ActivityEvent
   end
 
   def wanted?
-    @complete
+    if @complete
+      #
+      #  Make sure we don't have a negative duration.
+      #
+      #  It is not enough just to compare end_date and start_date because
+      #  they tend to have different dates, even though the later is
+      #  nonsensical.  What we want to know is that the *times* make
+      #  sense.
+      #
+      if @end_date.seconds_since_midnight >= @start_date.seconds_since_midnight
+        true
+      else
+        puts "Dropping OH entry for #{@subject} because it has negative duration."
+        puts "Starts #{start_time}, ends #{end_time}."
+        false
+      end
+    else
+      false
+    end
   end
 
   def note_teacher(teacher_link)

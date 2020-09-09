@@ -1,3 +1,24 @@
+v1.11.6   2020-09-09
+
+* Enhance Zoom ID import utility
+
+  The Zoom ID import utility has been enhanced to cope with a slightly
+  different format of input file.
+
+* Fix to timetable printing
+
+  It was found that the buttons for printing a whole set of timetables
+  did not work correctly on MacOS computers.  This was caused by an error
+  in the code which first invokes the print dialogue and then closes the
+  window - the window was closing too soon.
+
+* Cope with events with negative duration from iSAMS
+
+  An event had been erroneously entered into iSAMS with a negative
+  duration (from 17:00 to 16:30).  This caused the Scheduler import
+  utility to fail.  The utility will now log and ignore such events.
+
+
 v1.11.5   2020-09-06
 
 * Allow tutor period to be only 15 minutes long in printed timetable

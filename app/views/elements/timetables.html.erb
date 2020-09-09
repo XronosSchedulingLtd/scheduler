@@ -6,8 +6,8 @@
 <p class='pagebreak'/>
 <% end %>
 <% if @doprint %>
-  <script language="JavaScript">
-    print();
-    window.close();
+  <script type="text/javascript">
+    window.addEventListener("afterprint", function() { window.close(); });
+    window.print();
   </script>
 <% end %>
