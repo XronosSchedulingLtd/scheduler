@@ -26,11 +26,11 @@ class ZoomStaffRecord
   include CSVImport
 
   def wanted?
-    self.user_group == "Staff"
+    self.user_group == "Staff" || self.user_group == "Senior Teaching"
   end
 
   def adjust(accumulator)
-    self.zoom_id.gsub!('-', '')
+    self.zoom_id.gsub!(/[- ]/, '')
   end
 
   def self.construct(file_name)

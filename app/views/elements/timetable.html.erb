@@ -4,7 +4,7 @@
 </div>
 <% if @doprint %>
   <script language="JavaScript">
-    print();
-    window.close();
+    window.addEventListener("afterprint", function() { window.close(); });
+    window.print();
   </script>
 <% end %>
