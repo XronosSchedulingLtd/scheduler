@@ -17,6 +17,7 @@
   </head>
 
   <body>
+<% unless @suppress_nav %>
   <nav class="top-bar" data-topbar role="navigation">
     <ul class="title-area">
       <li class="name">
@@ -76,3 +77,4 @@
       </ul>
     </section>
   </nav>
+<% end %>
