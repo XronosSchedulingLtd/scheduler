@@ -145,7 +145,8 @@ FactoryBot.define do
       #  either editor or not_editor then the user's edit permission
       #  will be inherited from the user profile.
       #
-      permissions_not_editor { false }
+      permissions_not_editor   { false }
+      permissions_not_can_roam { false }
     end
 
     #
@@ -161,6 +162,10 @@ FactoryBot.define do
 
     trait :not_editor do
       permissions_not_editor { true }
+    end
+
+    trait :not_can_roam do
+      permissions_not_can_roam { true }
     end
 
     trait :privileged do
@@ -209,6 +214,9 @@ FactoryBot.define do
       #
       if permissions_not_editor
         hash[:editor] = false
+      end
+      if permissions_not_can_roam
+        hash[:can_roam] = false
       end
       if permissions_privileged
         hash[:privileged] = true

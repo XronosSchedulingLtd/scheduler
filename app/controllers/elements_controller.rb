@@ -331,7 +331,7 @@ class ElementsController < ApplicationController
     #  Users who can't roam are allowed to look only at
     #  things for which they currently have concerns.
     #
-    if user_can_roam? || current_user.concern_with(@element)
+    if admin_user? || user_can_roam? || current_user.concern_with(@element)
       @mwd_set = @element.memberships_by_duration(start_date: nil,
                                                   end_date: nil)
       #
@@ -382,7 +382,7 @@ class ElementsController < ApplicationController
         @panels += @element.extra_panels(index)
       end
     else
-      render :forbidden
+      render :forbidden, status: :forbidden
     end
   end
 
@@ -811,8 +811,8 @@ class ElementsController < ApplicationController
         @embed_css = @timetables.periods_css
       end
       if params[:print]
-        @suppress_nav = true
         @doprint = true
+        @suppress_nav = true
       else
         @doprint = false
       end
