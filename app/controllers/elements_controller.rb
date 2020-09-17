@@ -784,6 +784,7 @@ class ElementsController < ApplicationController
     @embed_css = @timetable.periods_css
     if params[:print]
       @doprint = true
+      @suppress_nav = true
     else
       @doprint = false
     end
@@ -810,6 +811,7 @@ class ElementsController < ApplicationController
         @embed_css = @timetables.periods_css
       end
       if params[:print]
+        @suppress_nav = true
         @doprint = true
       else
         @doprint = false
