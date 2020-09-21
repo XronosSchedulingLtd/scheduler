@@ -1,3 +1,31 @@
+v1.11.7   2020-09-21
+
+* Improve timetable printing
+
+  When the "Print" button is used to print timetables the page header
+  is now suppressed, resulting in a tidier print.
+
+* Fix to issue displaying elements without can_roam? set
+
+  When an admin user who happened not to have the can_roam? bit set in
+  his or her user profile tried to show details of an element an error
+  was displayed instead.  Admin privilege is now enough to show details
+  of any element.
+
+* Utility to list staff with blank zoom IDs.
+
+  A very minimal utility has been added to generate a listing of any
+  active staff members (those with timetables) who have a blank zoom id.
+
+  Invoke it with:
+
+  . ~/etc/whichsystem
+  lib/import/findblankzoom.rb
+
+  It is inefficient but will produce a listing in about 15 seconds depending
+  on the speed of your system.
+
+
 v1.11.6   2020-09-09
 
 * Enhance Zoom ID import utility
