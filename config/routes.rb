@@ -1,5 +1,13 @@
 Rails.application.routes.draw do
 
+  resources :ad_hoc_domains do
+    member do
+      get :edit_controllers
+      patch :add_controller
+      patch :remove_controller
+    end
+  end
+
   resources :user_profiles do
     resources :users
     member do

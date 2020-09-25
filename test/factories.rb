@@ -1,4 +1,11 @@
 FactoryBot.define do
+  factory :ad_hoc_domain do
+    sequence(:name) { |n| "Ad Hoc Domain #{n}" }
+    eventsource
+    eventcategory
+    association :connected_property_element, factory: :element
+  end
+
   factory :attachment do
     parent_id { 1 }
     parent_type { "MyString" }

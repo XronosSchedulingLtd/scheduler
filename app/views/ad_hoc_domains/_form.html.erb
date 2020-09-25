@@ -1,0 +1,104 @@
+<%= form_with(model: ad_hoc_domain, local: true) do |form| %>
+  <% if ad_hoc_domain.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(ad_hoc_domain.errors.count, "error") %> prohibited this ad_hoc_domain from being saved:</h2>
+
+      <ul>
+      <% ad_hoc_domain.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :name, class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= form.text_field :name %>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+      A name of your choosing to refer to this group of Ad Hoc lessons.
+    </div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :eventsource_id, "Source for events", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= form.collection_select(:eventsource_id,
+                                 Eventsource.all.sort,
+                                 :id,
+                                 :name,
+                                 { prompt: true },
+                                 { class: 'compressed' }) %>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+      Each event generated in this group will have this event source, enabling
+      them to be identified as a group later.  You probably want it to be
+      unique to the group.
+    </div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :eventcategory_id, "Category for events", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= form.collection_select(:eventcategory_id,
+                                 Eventcategory.all.sort,
+                                 :id,
+                                 :name,
+                                 { prompt: true },
+                                 { class: 'compressed' }) %>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+      Likewise the generated events will be put in this event category.
+      "Lesson" is an obvious choice, but you might want to make it
+      something different.
+    </div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :connected_property_element_id, "Identifying Property", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+    <%=
+      form.autocomplete_field(
+        :connected_property_element_name,
+        autocomplete_property_element_name_elements_path,
+        'data-auto-focus' => true,
+        :id_element => '#connected_property_element_id',
+        :placeholder => "A property to allow selection of any events generated",
+        :class => 'compressed')
+    %>
+    <%=
+      form.text_field(
+        :connected_property_element_id,
+        type: :hidden,
+        id: 'connected_property_element_id')
+      %>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+      Optional.  Here you can specify a Property which will then be attached
+      to all generated events.  This can be useful if you later want to select
+      the events in the calendar display or for a report.
+    </div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-9 small-offset-3 columns">
+      <div class="actions">
+        <%=
+          form.submit @ad_hoc_domain.id ? "Update" : "Create", class: "zfbutton tiny radius"
+        %>
+        <%=
+          link_to("Cancel", ad_hoc_domains_path, class: "zfbutton tiny radius button-link")
+        %>
+      </div>
+    </div>
+  </div>
+<% end %>

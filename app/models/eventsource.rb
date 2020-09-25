@@ -10,6 +10,7 @@ class Eventsource < ApplicationRecord
 
    has_many :events, dependent: :destroy
    has_many :proto_events, dependent: :destroy
+   has_many :ad_hoc_domains, dependent: :nullify
 
    @@manual_source_id = nil
 

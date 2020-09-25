@@ -101,6 +101,7 @@ class User < ApplicationRecord
   belongs_to :user_profile
   belongs_to :current_concern_set, class_name: "ConcernSet", optional: true
 
+  has_and_belongs_to_many :ad_hoc_domains, join_table: :ad_hoc_domain_controllers
   #
   #  The only elements we can actually own currently are groups.  By creating
   #  a group with us as the owner, its corresponding element will also be
@@ -908,6 +909,10 @@ class User < ApplicationRecord
     #  but that simplifies to:
     #
     self.admin? || !other_user.admin?
+  end
+
+  def controls?(ad_hoc_domain)
+    self.ad_hoc_domains.include?(ad_hoc_domain)
   end
 
   #

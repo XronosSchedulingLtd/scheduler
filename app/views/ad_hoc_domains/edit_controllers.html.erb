@@ -1,0 +1,46 @@
+<h1>Controllers of <%= @ad_hoc_domain.name %></h1>
+
+<div class="row collapse">
+  <div class="small-3 columns">
+    <label class="right">Existing controllers</label>
+  </div>
+  <div class="small-6 columns" id="controller-listing">
+    <%= render partial: 'controller_listing', object: @ad_hoc_domain %>
+  </div>
+  <div class="small-3 columns">
+  </div>
+</div>
+<%= form_with(model: @ad_hoc_domain,
+              url: add_controller_ad_hoc_domain_path(@ad_hoc_domain),
+              local: false) do |form| %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :new_controller_name, "Add controller", class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%=
+        form.autocomplete_field(:new_controller_name,
+                                autocomplete_user_name_users_path,
+                                id_element: '#new-controller-id',
+                                placeholder: "Name of user",
+                                'data-auto-focus': true,
+                                id: 'new-controller-name')
+                              %>
+      <%= form.text_field :new_controller_id, id: 'new-controller-id', type: :hidden %>
+                  
+    </div>
+    <div class="small-3 columns">
+      <%= form.submit "Add", class: "zfbutton tiny radius" %>
+    </div>
+  </div>
+<% end %>
+
+  <div class="row collapse">
+    <div class="small-9 small-offset-3 columns">
+      <div class="actions">
+        <%=
+          link_to("Finished", ad_hoc_domains_path, class: "zfbutton tiny radius button-link")
+        %>
+      </div>
+    </div>
+  </div>

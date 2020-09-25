@@ -1,0 +1,108 @@
+class AdHocDomainsController < ApplicationController
+  before_action :set_ad_hoc_domain,
+                only: [
+                  :show,
+                  :edit,
+                  :update,
+                  :destroy,
+                  :edit_controllers,
+                  :add_controller,
+                  :remove_controller]
+
+  # GET /ad_hoc_domains
+  # GET /ad_hoc_domains.json
+  def index
+    @ad_hoc_domains = AdHocDomain.all
+  end
+
+  # GET /ad_hoc_domains/new
+  def new
+    @ad_hoc_domain = AdHocDomain.new
+  end
+
+  # GET /ad_hoc_domains/1
+  def show
+  end
+
+  # GET /ad_hoc_domains/1/edit
+  def edit
+  end
+
+  # POST /ad_hoc_domains
+  # POST /ad_hoc_domains.json
+  def create
+    @ad_hoc_domain = AdHocDomain.new(ad_hoc_domain_params)
+
+    respond_to do |format|
+      if @ad_hoc_domain.save
+        format.html { redirect_to ad_hoc_domains_url, notice: 'Ad hoc domain was successfully created.' }
+        format.json { render :show, status: :created, location: @ad_hoc_domain }
+      else
+        format.html { render :new }
+        format.json { render json: @ad_hoc_domain.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # PATCH/PUT /ad_hoc_domains/1
+  # PATCH/PUT /ad_hoc_domains/1.json
+  def update
+    respond_to do |format|
+      if @ad_hoc_domain.update(ad_hoc_domain_params)
+        format.html { redirect_to ad_hoc_domains_url, notice: 'Ad hoc domain was successfully updated.' }
+        format.json { render :show, status: :ok, location: @ad_hoc_domain }
+      else
+        format.html { render :edit }
+        format.json { render json: @ad_hoc_domain.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # DELETE /ad_hoc_domains/1
+  # DELETE /ad_hoc_domains/1.json
+  def destroy
+    @ad_hoc_domain.destroy
+    respond_to do |format|
+      format.html { redirect_to ad_hoc_domains_url, notice: 'Ad hoc domain was successfully destroyed.' }
+      format.json { head :no_content }
+    end
+  end
+
+  # GET /ad_hoc_domains/1/edit_controllers
+  def edit_controllers
+  end
+
+  # PATCH /ad_hoc_domains/1/add_controller
+  def add_controller
+    new_controller_id = params[:ad_hoc_domain][:new_controller_id]
+    #
+    #  Use find_by because we don't want an error if the id is no good.
+    #
+    user = User.includes(:ad_hoc_domains).find_by(id: new_controller_id)
+    if user
+      unless user.controls?(@ad_hoc_domain)
+        @ad_hoc_domain.controllers << user
+      end
+    end
+    respond_to do |format|
+      format.html { render :edit_controllers }
+      format.js { }
+    end
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_ad_hoc_domain
+      @ad_hoc_domain = AdHocDomain.find(params[:id])
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def ad_hoc_domain_params
+      params.require(:ad_hoc_domain).
+             permit(:name,
+                    :eventsource_id,
+                    :eventcategory_id,
+                    :connected_property_element_id,
+                    :connected_property_element_name)
+    end
+end

@@ -1,0 +1,2 @@
+module AdHocDomainsHelper
+end

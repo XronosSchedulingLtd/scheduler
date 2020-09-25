@@ -263,6 +263,11 @@ module ApplicationHelper
             m.dropdown('Settings', settings_path) do
               m.item('Pre-requisites', pre_requisites_path)
             end
+            m.dropdown('Ad hoc t/ts', ad_hoc_domains_path) do
+              AdHocDomain.all.each do |ahd|
+                m.item(ahd.name, ad_hoc_domain_path(ahd))
+              end
+            end
             m.item('Imports', imports_index_path)
             m.item('Day shape',
                     rota_template_type_rota_templates_path(
