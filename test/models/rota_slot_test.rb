@@ -38,4 +38,11 @@ class RotaSlotTest < ActiveSupport::TestCase
     assert_not rs.valid?
   end
 
+  test "can specify to which days it applies" do
+    rs = RotaSlot.new(@valid_params.merge(days: [true, false, true]))
+    assert rs.valid?
+    assert rs.applies_on?(Date.today.sunday)
+    assert_not rs.applies_on?(Date.today.sunday + 1.day)
+    assert rs.applies_on?(Date.today.sunday + 2.days)
+  end
 end
