@@ -26,12 +26,24 @@ class AdHocDomainsController < ApplicationController
 
   # GET /ad_hoc_domains/1/edit
   def edit
+    tt = DayShapeManager.template_type
+    if tt
+      @day_shapes = tt.rota_templates
+    else
+      @day_shapes = []
+    end
   end
 
   # POST /ad_hoc_domains
   # POST /ad_hoc_domains.json
   def create
     @ad_hoc_domain = AdHocDomain.new(ad_hoc_domain_params)
+    tt = DayShapeManager.template_type
+    if tt
+      @day_shapes = tt.rota_templates
+    else
+      @day_shapes = []
+    end
 
     respond_to do |format|
       if @ad_hoc_domain.save
@@ -103,6 +115,7 @@ class AdHocDomainsController < ApplicationController
                     :eventsource_id,
                     :eventcategory_id,
                     :connected_property_element_id,
-                    :connected_property_element_name)
+                    :connected_property_element_name,
+                    :default_day_shape_id)
     end
 end

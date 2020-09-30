@@ -5,6 +5,7 @@ class AdHocDomain < ApplicationRecord
   has_and_belongs_to_many :controllers,
                           class_name: "User",
                           join_table: :ad_hoc_domain_controllers
+  belongs_to :default_day_shape, class_name: "RotaTemplate", optional: true
 
   validates :name, presence: true
 

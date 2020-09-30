@@ -5,6 +5,7 @@ class CreateAdHocDomains < ActiveRecord::Migration[5.2]
       t.integer :eventsource_id
       t.integer :eventcategory_id
       t.integer :connected_property_element_id
+      t.integer :default_day_shape_id
       t.timestamps
     end
 

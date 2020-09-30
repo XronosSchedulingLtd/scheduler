@@ -63,6 +63,25 @@
 
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= form.label :default_day_shape_id, "Default day shape", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= form.collection_select(:default_day_shape_id,
+                                 @day_shapes,
+                                 :id,
+                                 :name,
+                                 { prompt: true },
+                                 { class: 'compressed' }) %>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+      When editing individual timetables, any day shape selected here will
+      be used by default to provide the background periods.  Clicking on
+      one will automatically create a lesson of matching length.
+    </div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
       <%= form.label :connected_property_element_id, "Identifying Property", class: "right inline" %>
     </div>
     <div class="small-4 columns">
