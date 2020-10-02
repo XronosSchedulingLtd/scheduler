@@ -6,6 +6,7 @@ class AdHocDomainsControllerTest < ActionDispatch::IntegrationTest
     @admin_user = FactoryBot.create(:user, :admin)
     @eventsource = FactoryBot.create(:eventsource)
     @eventcategory = FactoryBot.create(:eventcategory)
+    @datasource = FactoryBot.create(:datasource)
     @ordinary_user = FactoryBot.create(:user)
     do_valid_login
   end
@@ -26,7 +27,8 @@ class AdHocDomainsControllerTest < ActionDispatch::IntegrationTest
         ad_hoc_domain: {
           name: @ad_hoc_domain.name,
           eventsource_id: @eventsource.id,
-          eventcategory_id: @eventcategory.id
+          eventcategory_id: @eventcategory.id,
+          datasource_id: @datasource.id
         } 
       }
     end
@@ -78,7 +80,6 @@ class AdHocDomainsControllerTest < ActionDispatch::IntegrationTest
       patch add_controller_ad_hoc_domain_url(@ad_hoc_domain),
         params: { format: 'js', ad_hoc_domain: { new_controller_id: @ordinary_user.id } }
       assert_response :success
-      puts response.body.inspect
     end
   end
 

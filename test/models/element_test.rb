@@ -11,6 +11,8 @@ class ElementTest < ActiveSupport::TestCase
     @heavy_locations = [@location1, @location3]
     @light_locations = [@location2, @location4]
 
+    @staff = FactoryBot.create(:staff)
+    @pupil = FactoryBot.create(:pupil)
     @event = FactoryBot.create(:event, commitments_to: @all_locations)
   end
 
@@ -425,6 +427,30 @@ class ElementTest < ActiveSupport::TestCase
         assert_equal membership4, mwdb[0].membership
       end
     end
+  end
+
+  test "can select just people" do
+    people_elements = Element.person.to_a
+    assert people_elements.include?(@staff.element)
+    assert people_elements.include?(@pupil.element)
+    assert_not people_elements.include?(@location1.element)
+  end
+
+  test "can select just staff" do
+    staff_elements = Element.staff.to_a
+    assert staff_elements.include?(@staff.element)
+    assert_not staff_elements.include?(@pupil.element)
+    assert_not staff_elements.include?(@location1.element)
+  end
+
+  test "can select just locations" do
+    location_elements = Element.location.to_a
+    assert_not location_elements.include?(@staff.element)
+    assert_not location_elements.include?(@pupil.element)
+    assert location_elements.include?(@location1.element)
+    assert location_elements.include?(@location2.element)
+    assert location_elements.include?(@location3.element)
+    assert location_elements.include?(@location4.element)
   end
 
   private

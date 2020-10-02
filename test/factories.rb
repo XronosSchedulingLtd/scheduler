@@ -104,6 +104,7 @@ FactoryBot.define do
 
   factory :subject do
     sequence(:name) { |n| "Subject #{n}" }
+    datasource
   end
 
   factory :user_profile do
@@ -297,6 +298,10 @@ FactoryBot.define do
     user
     element
     colour { 'blue' }
+  end
+
+  factory :datasource do
+    sequence(:name) { |n| "Data source #{n}" }
   end
 
   factory :eventcategory do

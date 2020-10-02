@@ -5,6 +5,9 @@ class AdHocDomainTest < ActiveSupport::TestCase
     @ad_hoc_domain = FactoryBot.create(:ad_hoc_domain)
     @user1 = FactoryBot.create(:user)
     @user2 = FactoryBot.create(:user)
+    @day_shape =
+      FactoryBot.create(:rota_template,
+                        rota_template_type: rota_template_types(:dayshape))
   end
 
   test "can have a name" do
@@ -44,4 +47,12 @@ class AdHocDomainTest < ActiveSupport::TestCase
     expected = [@user1, @user2].sort.map(&:name).join(", ")
     assert_equal expected, @ad_hoc_domain.controller_list
   end
+
+  test "can have a default day shape" do
+    ahd = FactoryBot.build(:ad_hoc_domain, default_day_shape: @day_shape)
+    assert ahd.valid?
+    ahd.save!
+    assert ahd.default_day_shape.ad_hoc_domain_defaults.include?(ahd)
+  end
+
 end

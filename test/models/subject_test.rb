@@ -11,7 +11,8 @@ class SubjectTest < ActiveSupport::TestCase
   setup do
     @entity_class = Subject
     @valid_params = {
-      name: "A subject"
+      name: "A subject",
+      datasource: datasources(:one)
     }
     @staff1 = FactoryBot.create(:staff)
     @staff2 = FactoryBot.create(:staff)

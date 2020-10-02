@@ -87,6 +87,20 @@ class DatasourceTest < ActiveSupport::TestCase
     assert_nil group2.datasource
   end
 
+  test 'can have subjects' do
+    ds = Datasource.create(@valid_params)
+    ds.subjects << subject1 = FactoryBot.create(:subject)
+    ds.subjects << subject2 = FactoryBot.create(:subject)
+    assert_equal 2, ds.subjects.count
+    ds.destroy
+    assert_not subject1.destroyed?
+    assert_not subject2.destroyed?
+    subject1.reload
+    subject2.reload
+    assert_nil subject1.datasource
+    assert_nil subject2.datasource
+  end
+
   test 'sorts by name' do
     datasources = Array.new
     datasources << ds1 = Datasource.create(@valid_params.merge({name: "Zak"}))
