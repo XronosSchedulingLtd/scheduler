@@ -1,0 +1,47 @@
+<%= form_for(@subject) do |f| %>
+  <% if @subject.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@subject.errors.count, "error") %> prohibited this subject from being saved:</h2>
+
+      <ul>
+      <% @subject.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :name, class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :name %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :current, class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.check_box :current %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :datasource_name, "Data source", class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.text_field :datasource_name, disabled: true %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="actions">
+    <%= f.submit @subject.new_record? ? "Create" : "Update", class: "zfbutton tiny radius" %>
+  </div>
+<% end %>
