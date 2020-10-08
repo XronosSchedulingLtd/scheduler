@@ -1,11 +1,17 @@
 class AdHocDomain < ApplicationRecord
   belongs_to :eventsource
   belongs_to :eventcategory
+  belongs_to :datasource, optional: true
   belongs_to :connected_property_element, class_name: "Element", optional: true
   has_and_belongs_to_many :controllers,
                           class_name: "User",
                           join_table: :ad_hoc_domain_controllers
   belongs_to :default_day_shape, class_name: "RotaTemplate", optional: true
+
+  has_and_belongs_to_many :subject_elements,
+                          class_name: "Element",
+                          association_foreign_key: :subject_element_id,
+                          join_table: :ad_hoc_domain_subjects
 
   validates :name, presence: true
 

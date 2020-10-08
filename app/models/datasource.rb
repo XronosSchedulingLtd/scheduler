@@ -11,6 +11,8 @@ class Datasource < ApplicationRecord
 
    has_many :staffs, dependent: :nullify
    has_many :pupils, dependent: :nullify
+   has_many :ad_hoc_domains, dependent: :nullify
+   has_many :subjects, dependent: :nullify
    has_many :locationaliases, dependent: :nullify
    has_many :groups, dependent: :nullify
 
@@ -19,7 +21,10 @@ class Datasource < ApplicationRecord
    end
 
    def can_destroy?
-     self.staffs.count == 0 && self.pupils.count == 0
+     self.staffs.count == 0 &&
+       self.pupils.count == 0 &&
+       self.subjects.count == 0 &&
+       self.ad_hoc_domains.count == 0
    end
 
    #

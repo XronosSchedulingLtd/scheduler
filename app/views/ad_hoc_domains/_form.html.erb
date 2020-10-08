@@ -42,6 +42,27 @@
     </div>
   </div>
 
+<% if false %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :datasource_id, "Source for subjects", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= form.collection_select(:datasource_id,
+                                 Datasource.all.sort,
+                                 :id,
+                                 :name,
+                                 { prompt: true },
+                                 { class: 'compressed' }) %>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+      Likewise, each Subject generated for this group will need to be
+      identified as belonging to the group.  For historical reasons,
+      Subjects use a different source identifier from Events.
+    </div>
+  </div>
+<% end %>
+
   <div class="row collapse">
     <div class="small-3 columns">
       <%= form.label :eventcategory_id, "Category for events", class: "right inline" %>
@@ -55,7 +76,7 @@
                                  { class: 'compressed' }) %>
     </div>
     <div class="small-4 offset-1 columns annotation">
-      Likewise the generated events will be put in this event category.
+      The generated events will be put in this event category.
       "Lesson" is an obvious choice, but you might want to make it
       something different.
     </div>

@@ -55,4 +55,13 @@ class AdHocDomainTest < ActiveSupport::TestCase
     assert ahd.default_day_shape.ad_hoc_domain_defaults.include?(ahd)
   end
 
+  test "can be linked to multiple subjects" do
+    subject1 = FactoryBot.create(:subject)
+    subject2 = FactoryBot.create(:subject)
+    @ad_hoc_domain.subject_elements << subject1.element
+    @ad_hoc_domain.subject_elements << subject2.element
+    assert_equal 2, @ad_hoc_domain.subject_elements.count
+    assert subject1.element.ad_hoc_domains_as_subject.include?(@ad_hoc_domain)
+  end
+
 end

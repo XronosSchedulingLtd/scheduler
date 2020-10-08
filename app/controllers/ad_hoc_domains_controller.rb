@@ -18,6 +18,7 @@ class AdHocDomainsController < ApplicationController
   # GET /ad_hoc_domains/new
   def new
     @ad_hoc_domain = AdHocDomain.new
+    set_day_shapes
   end
 
   # GET /ad_hoc_domains/1
@@ -26,24 +27,14 @@ class AdHocDomainsController < ApplicationController
 
   # GET /ad_hoc_domains/1/edit
   def edit
-    tt = DayShapeManager.template_type
-    if tt
-      @day_shapes = tt.rota_templates
-    else
-      @day_shapes = []
-    end
+    set_day_shapes
   end
 
   # POST /ad_hoc_domains
   # POST /ad_hoc_domains.json
   def create
     @ad_hoc_domain = AdHocDomain.new(ad_hoc_domain_params)
-    tt = DayShapeManager.template_type
-    if tt
-      @day_shapes = tt.rota_templates
-    else
-      @day_shapes = []
-    end
+    set_day_shapes
 
     respond_to do |format|
       if @ad_hoc_domain.save
@@ -103,19 +94,31 @@ class AdHocDomainsController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_ad_hoc_domain
-      @ad_hoc_domain = AdHocDomain.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def ad_hoc_domain_params
-      params.require(:ad_hoc_domain).
-             permit(:name,
-                    :eventsource_id,
-                    :eventcategory_id,
-                    :connected_property_element_id,
-                    :connected_property_element_name,
-                    :default_day_shape_id)
+  # Use callbacks to share common setup or constraints between actions.
+  def set_ad_hoc_domain
+    @ad_hoc_domain = AdHocDomain.find(params[:id])
+  end
+
+  def set_day_shapes
+    tt = DayShapeManager.template_type
+    if tt
+      @day_shapes = tt.rota_templates
+    else
+      @day_shapes = []
     end
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def ad_hoc_domain_params
+    params.require(:ad_hoc_domain).
+           permit(:name,
+                  :eventsource_id,
+                  :datasource_id,
+                  :eventcategory_id,
+                  :connected_property_element_id,
+                  :connected_property_element_name,
+                  :default_day_shape_id)
+  end
+
 end

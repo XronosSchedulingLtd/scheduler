@@ -34,7 +34,7 @@ Rails.application.routes.draw do
     resources :comments, shallow: true
   end
 
-  resources :periods, only: [:index]
+#  resources :periods, only: [:index]
 
   resources :notifiers
 
@@ -83,6 +83,8 @@ Rails.application.routes.draw do
     resources :rota_slots
     member do
       post :do_clone
+      get :new_from
+      get :slots
     end
   end
 
@@ -270,6 +272,7 @@ Rails.application.routes.draw do
       get :autocomplete_group_element_name
       get :autocomplete_property_element_name
       get :autocomplete_location_element_name
+      get :autocomplete_subject_element_name
       get :autocomplete_direct_add_element_name
       get :autocomplete_viewable_element_name
       get :autocomplete_tutorgroup_element_name
