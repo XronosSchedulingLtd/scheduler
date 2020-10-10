@@ -16,9 +16,94 @@
 #
 require_relative '../../config/environment'
 
-#
-#  Hard-coded simple version to test the concept.
-#
+require_relative 'filing'
+
+class Options
+
+  attr_reader :all_day,
+              :both_weeks,
+              :template_name,
+              :staff_group_name,
+              :list_staff,
+              :output_name,
+              :user_id
+
+  def initialize
+    parser = OptionParser.new do |opts|
+      opts.banner = "Usage: findfreestaff.rb [options]"
+
+      opts.on("-h", "--help",
+              "Print this help and exit.") do |h|
+        STDERR.puts opts
+        exit
+      end
+
+      opts.on("-a", "--all-day",
+              "Take the first slot as specifying an",
+              "all-day period and identify those staff",
+              "who are free throughout.") do |a|
+        @all_day = a
+      end
+
+      opts.on("-b", "--both-weeks",
+              "As well as evaluating each week separately",
+              "do a run for both weeks together.  Only",
+              "those free for both weeks in any indicated",
+              "period are then listed") do |b|
+        @both_weeks = b
+      end
+
+      opts.on("-t", "--template TEMPLATE", String,
+              "Specify which template (day shape) to use.") do |t|
+        @template_name = t
+      end
+
+      opts.on("-g", "--group GROUP", String,
+              "Specify which group of staff to check for.") do |g|
+        @staff_group_name = g
+      end
+
+      opts.on("-l", "--list",
+              "Print a list of staff considered, with",
+              "their initials.") do |l|
+        @list_staff = l
+      end
+
+      opts.on("-o", "--output FILENAME", String,
+              "Specify the name of the file to which to",
+              "send output.  Without this, output is",
+              "written to stdout.") do |o|
+        @output_name = o
+      end
+
+      opts.on("-u", "--user USERID", String,
+              "The id of a user to whom to give the",
+              "output file.  If no file name is given",
+              "then this has no effect.") do |u|
+        @user_id = u
+      end
+
+    end
+    begin
+      parser.parse!
+      unless @template_name
+        raise OptionParser::MissingArgument.new("Must specify a template")
+      end
+      unless @staff_group_name
+        raise OptionParser::MissingArgument.new("Must specify a group of staff")
+      end
+    rescue Exception => e
+      unless e.class == SystemExit
+        STDERR.puts
+        STDERR.puts e
+        STDERR.puts
+        STDERR.puts parser
+      end
+      exit
+    end
+
+  end
+end
 
 class WeekSummary < Array
   attr_reader :week_letter
@@ -60,149 +145,213 @@ end
 
 PER_LINE = 15
 #
-#  Specific for my purposes, puts up to N sets of initials on a line, 
+#  Specific for my purposes, output.puts up to N sets of initials on a line, 
 #  then starts a new line with a fixed indent.
 #
-def splat_initials(elements)
+def splat_initials(output, elements)
   #
   #  Don't want to modify the caller's copy.
   #
   working = elements.map(&:initials).sort
   batch = working.shift(PER_LINE)
-  puts batch.join(",")
+  output.puts batch.join(",")
   while working.size > 0
     batch = working.shift(PER_LINE)
-    puts "               #{batch.join(",")}"
+    output.puts "               #{batch.join(",")}"
   end
 end
 
 
+
+#
+#=======================================================================
+#
+#   Start of main code
+#
+#=======================================================================
+#
+
+options = Options.new
+
 start_date = Setting.tt_store_start
 num_weeks  = Setting.tt_cycle_weeks
 
-rota_template = RotaTemplate.find_by(name: "Duty slots")
-group = Group.find_by(name: "Duty staff")
+rota_template = RotaTemplate.find_by(name: options.template_name)
+
+unless rota_template
+  STDERR.puts "Rota template \"#{options.template_name}\" not found."
+  exit
+end
+
+group = Group.find_by(name: options.staff_group_name)
+
+unless rota_template
+  STDERR.puts "Staff group \"#{options.staff_group_name}\" not found."
+  exit
+end
 
 everyone = group.members(nil, true, true)
-puts "Eligible for duty:"
-print "               "
-splat_initials(everyone)
 
-puts ""
+if options.output_name
+  if options.user_id
+    user = User.find_by(id: options.user_id)
+    if user
+      begin
+        output = UserFiling.new(user, options.output_name)
+      rescue Exception => e
+        STDERR.puts "Failed to open UserFile \"#{options.output_name}\" for user #{options.user_id} - #{user.name}"
+        STDERR.puts e
+        exit
+      end
+    else
+      STDERR.puts "User with id #{options.user_id} not found."
+      exit
+    end
+  else
+    begin
+      output = File.open(options.output_name, "w")
+    rescue Exception => e
+      STDERR.puts "Can't open \"#{options.output_name}\""
+      STDERR.puts e
+      exit
+    end
+  end
+else
+  output = STDOUT
+end
+
+#
+#  And now start processing.
+#
+
+output.puts "Eligible:"
+output.print "               "
+splat_initials(output, everyone)
+
+output.puts ""
 
 week_summaries = []
 
 num_weeks.times do |i|
   current_week = WeekSummary.new(i == 0 ? "A" : "B")
-  puts "=================================================="
-  puts " Week #{current_week.week_letter}"
-  puts "=================================================="
+  output.puts "=================================================="
+  output.puts " Week #{current_week.week_letter}"
+  output.puts "=================================================="
   7.times do |j|
     date = start_date + (7 * i).days + j.days
     day_name = date.strftime("%A")
     current_day = DaySummary.new(day_name)
     todays_slots = rota_template.slots_for(date)
-    puts ""
-    puts "Checking #{day_name}"
+    if todays_slots.size > 0
+      output.puts ""
+      output.puts "Checking #{day_name}"
 
-    free_all_day = []
+      free_all_day = []
 
-    todays_slots.sort.each_with_index do |slot, i|
+      todays_slots.sort.each_with_index do |slot, i|
 
-      ff = Freefinder.new({
-        element: group.element,
-        on: date,
-        memberships_on: Date.today,
-        start_time_text: slot.starts_at,
-        end_time_text: slot.ends_at
-      })
-      ff.do_find
+        ff = Freefinder.new({
+          element: group.element,
+          on: date,
+          memberships_on: Date.today,
+          start_time_text: slot.starts_at,
+          end_time_text: slot.ends_at
+        })
+        ff.do_find
 
-      if i == 0
-        #
-        #  First slot is whole day.  Anyone free for the whole day
-        #  should be ignored.
-        #
-        free_all_day = ff.free_elements
-        if free_all_day.size > 0
-          puts "Free all day: #{initials_from(free_all_day)}"
-          current_day.free_all_day = free_all_day
-          puts ""
-        end
-      else
-        print "#{slot.starts_at} - #{slot.ends_at}: "
-
-        if ff.free_elements.count == ff.member_elements.count
-          puts "Everyone"
-        elsif ff.free_elements.count > ff.member_elements.count - 10
-          puts "All but: #{initials_from(ff.member_elements - ff.free_elements)}"
+        if options.all_day && (i == 0)
+          #
+          #  First slot is whole day.  Anyone free for the whole day
+          #  should be ignored.
+          #
+          free_all_day = ff.free_elements
+          if free_all_day.size > 0
+            output.puts "Free all day: #{initials_from(free_all_day)}"
+            current_day.free_all_day = free_all_day
+            output.puts ""
+          end
         else
-          free_elements = ff.free_elements - free_all_day
-          splat_initials(free_elements)
+          output.print "#{slot.starts_at} - #{slot.ends_at}: "
+
+          if ff.free_elements.count == ff.member_elements.count
+            output.puts "Everyone"
+          elsif ff.free_elements.count > ff.member_elements.count - 10
+            output.puts "All but: #{initials_from(ff.member_elements - ff.free_elements)}"
+          else
+            free_elements = ff.free_elements - free_all_day
+            splat_initials(output, free_elements)
+          end
+          #
+          #  Note that we record the raw list of free elements, not the one
+          #  where we have subtracted the free-all-day elements.  This is
+          #  because when we do the calculation for both weeks together
+          #  the free-all-day list may be different.
+          #
+          current_day <<
+            SlotSummary.new(slot.starts_at, slot.ends_at, ff.free_elements)
         end
-        #
-        #  Note that we record the raw list of free elements, not the one
-        #  where we have subtracted the free-all-day elements.  This is
-        #  because when we do the calculation for both weeks together
-        #  the free-all-day list may be different.
-        #
-        current_day <<
-          SlotSummary.new(slot.starts_at, slot.ends_at, ff.free_elements)
       end
     end
     current_week << current_day
   end
-  puts ""
+  output.puts ""
   week_summaries << current_week
 end
 
-if week_summaries.size > 1
-  puts "=================================================="
-  puts " Both Weeks"
-  puts "=================================================="
+if options.both_weeks && (week_summaries.size > 1)
+  output.puts "=================================================="
+  output.puts " Both Weeks"
+  output.puts "=================================================="
   #
   #  Note that we assume that we have built the weeks correctly, with 7
   #  days in each week and the same number of slots on matching days.  If
   #  we haven't then there's something wrong with the earlier code.
   #
   week_summaries[0].zip(week_summaries[1]).each do |weeka_day, weekb_day|
-    puts ""
-    puts "Checking #{weeka_day.day_name}"
-    free_all_day =
-      weeka_day.free_all_day & weekb_day.free_all_day
-    if free_all_day.size > 0
-      puts "Free all day: #{initials_from(free_all_day)}"
-      puts ""
-    end
-    weeka_day.zip(weekb_day).each do |slota, slotb|
-      free_elements = slota.free_elements & slotb.free_elements
-      print "#{slota.starts_at} - #{slota.ends_at}: "
+    if weeka_day.size > 0
+      output.puts ""
+      output.puts "Checking #{weeka_day.day_name}"
+      free_all_day =
+        weeka_day.free_all_day & weekb_day.free_all_day
+      if free_all_day.size > 0
+        output.puts "Free all day: #{initials_from(free_all_day)}"
+        output.puts ""
+      end
+      weeka_day.zip(weekb_day).each do |slota, slotb|
+        free_elements = slota.free_elements & slotb.free_elements
+        output.print "#{slota.starts_at} - #{slota.ends_at}: "
 
-      if free_elements.count == everyone.count
-        puts "Everyone"
-      elsif free_elements.count > everyone.count - 10
-        puts "All but: #{initials_from(everyone - free_elements)}"
-      else
-        effectively_free = free_elements - free_all_day
-        splat_initials(effectively_free)
+        if free_elements.count == everyone.count
+          output.puts "Everyone"
+        elsif free_elements.count > everyone.count - 10
+          output.puts "All but: #{initials_from(everyone - free_elements)}"
+        else
+          effectively_free = free_elements - free_all_day
+          splat_initials(output, effectively_free)
+        end
       end
     end
-
-
   end
+end
+
+def pad_to(initials, desired_size)
+  "#{initials}       "[0,desired_size]
 end
 
 #
 #  Let's print a handy lookup table
 #
 
-def pad_to(initials, desired_size)
-  "#{initials}       "[0,desired_size]
+if options.list_staff
+
+  max_initials = everyone.map(&:initials).collect {|i| i.length}.max
+
+  everyone.sort_by {|e| e.initials}.each do |e|
+    output.puts "#{pad_to(e.initials, max_initials)} : #{e.name}"
+  end
 end
 
-max_initials = everyone.map(&:initials).collect {|i| i.length}.max
-
-everyone.sort_by {|e| e.initials}.each do |e|
-  puts "#{pad_to(e.initials, max_initials)} : #{e.name}"
+unless output == STDOUT
+  output.close
 end
 
