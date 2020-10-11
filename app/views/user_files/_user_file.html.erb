@@ -9,13 +9,15 @@
   <td><%= user_file.updated_at.to_s(:hmsdmy) %></td>
   <td><%=
     link_to "Download",
-            user_file_path(user_file.nanoid)
+      user_file_path(user_file.nanoid),
+      class: "zfbutton radius tiny teensy button-link"
   %></td>
   <td><%=
     link_to "Delete",
             user_file_path(user_file),
             :method => :delete,
-            data: { confirm: 'Are you sure?' }
+            data: { confirm: 'Are you sure?' },
+            class: "zfbutton radius tiny teensy button-link"
        %></td>
 </tr>
 
