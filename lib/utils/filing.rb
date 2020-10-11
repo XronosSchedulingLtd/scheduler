@@ -9,14 +9,14 @@
 #  Support code to allow utilities to manipulate UserFiles.
 #
 
-class UserFiling
+class UserFiling < Tempfile
 
   #
   #  Note that we have no particular requirements for the file name
   #  except that it is not blank.  We don't use it to store the file.
   #  We simply store it as a string for later reference.
   #
-  def initialize(user, file_name)
+  def initialize(user, file_name, encoding="utf-8")
     unless user.can_has_files?
       raise ArgumentError.new("User #{user.name} cannot have files.")
     end
@@ -25,23 +25,8 @@ class UserFiling
     end
     @user = user
     @file_name = file_name
-    @temp_file = Tempfile.new("scheduler")
-  end
-
-  def puts(line)
-    @temp_file.puts(line)
-  end
-
-  def print(line)
-    @temp_file.print(line)
-  end
-
-  def read
-    @temp_file.read
-  end
-
-  def size
-    @temp_file.size
+    @encoding = encoding
+    super("scheduler", encoding: encoding)
   end
 
   def original_filename
@@ -49,10 +34,27 @@ class UserFiling
   end
 
   def close
-    @temp_file.rewind
-    @user.user_files.create({file_info: self})
-    @temp_file.close
-    @temp_file.unlink
+    self.rewind
+    #
+    #  Now, if this is a re-run, we simply want to replace the contents
+    #  of the existing user file - not create a new one.
+    #
+    existing = @user.user_files.find_by({
+      original_file_name: @file_name,
+      system_created: true
+    })
+    if existing
+      existing.encoding = @encoding
+      existing.replace_contents(self)
+    else
+      @user.user_files.create({
+        file_info: self,
+        system_created: true,
+        encoding: @encoding
+      })
+    end
+    super
+    self.unlink
   end
 
 end
