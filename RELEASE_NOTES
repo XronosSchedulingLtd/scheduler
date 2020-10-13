@@ -1,3 +1,37 @@
+v1.11.8   2020-10-13
+
+Adds a couple of utilities to aid in managing staff duties and free
+periods.
+
+* findfreestaff
+
+  This utility takes a list of staff (defined by a Group within the
+  system) and a set of time slots (defined as a Day Shape) within the
+  system and produces a report on which are staff are free (i.e. not
+  timetabled to be doing anything) in the indicated periods.  This
+  report takes account of both the academic timetable and scheduled
+  extra-curricular activities.
+
+  The report by default lists the requested time slots and the staff
+  free within them, but it can also provide the information the other
+  way around - a list of staff, and the periods in which each is free.
+
+  The utility runs from the command line but it can automatically
+  send its report to the Files area of a nominated user.  Thus it
+  can be configured to run every night, and then the user can download
+  the report from Scheduler as and when it is needed.
+
+* timetabletoxls
+
+  Similarly, this utility can convert the entire timetable (*including*
+  activities) to an XLS spreadsheet.  It goes beyond just the timetable
+  periods and can produce a report for any set of time slots defined
+  within the day.
+
+  Again, it is intended to be run as an overnight job with the output
+  file being placed in a nominated user's Files area within Scheduler.
+
+
 v1.11.7   2020-09-21
 
 * Improve timetable printing
