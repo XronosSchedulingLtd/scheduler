@@ -459,6 +459,14 @@ class Element < ApplicationRecord
     entity.show_historic_panels?
   end
 
+  def initials
+    if entity.respond_to?(:initials)
+      entity.initials
+    else
+      "n/a"
+    end
+  end
+
   #
   #  This one tests whether the next one should be called.
   #

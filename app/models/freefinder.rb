@@ -22,7 +22,7 @@ class Freefinder < ApplicationRecord
 
   belongs_to :element, optional: true
 
-  attr_reader :free_elements, :done_search, :original_membership_size
+  attr_reader :free_elements, :done_search, :original_membership_size, :member_elements
 
   def element_name
     self.element ? self.element.name : ""
@@ -62,6 +62,20 @@ class Freefinder < ApplicationRecord
     "date not given"
   end
 
+  #
+  #  These next two allow us to override the date for evaluating memberships.
+  #
+  #  They are used when doing a freefind for the timetable instead of the
+  #  calendar, where the events are stored way in the past.
+  #
+  def memberships_on
+    @memberships_on
+  end
+
+  def memberships_on=(date)
+    @memberships_on = date
+  end
+
   def do_find(except_event = nil)
     #
     #  The very minimum which we need in order to do our work is a
@@ -97,9 +111,14 @@ class Freefinder < ApplicationRecord
       #  Now - I need to have a list of all the all the atomic elements
       #  which were members of this group on the specified date.
       #
-      member_elements =
-        target_group.members(self.on, true, true).collect {|e| e.element}
-      @original_membership_size = member_elements.size
+      if self.memberships_on
+        effective_date = self.memberships_on
+      else
+        effective_date = self.on
+      end
+      @member_elements =
+        target_group.members(effective_date, true, true).collect {|e| e.element}
+      @original_membership_size = @member_elements.size
       #
       #  And a list of all the events occuring at the specified time,
       #  from which we construct a list of all the elements committed to
@@ -128,7 +147,7 @@ class Freefinder < ApplicationRecord
       overlapping_commitments.each do |oc|
         if oc.element.entity.instance_of?(Group)
           committed_elements += 
-            oc.element.entity.members(self.on,
+            oc.element.entity.members(effective_date,
                                       true,
                                       true).collect {|e| e.element}
         else
@@ -139,7 +158,7 @@ class Freefinder < ApplicationRecord
       #
       #  And now subtract
       #
-      @free_elements = member_elements - committed_elements
+      @free_elements = @member_elements - committed_elements
       @done_search = true
     else
       errors.add(:element_name,

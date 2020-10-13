@@ -51,9 +51,19 @@ class RotaSlot < ApplicationRecord
 
   attr_reader :org_starts_at, :org_ends_at
 
+  #
+  #  Slightly mis-named.  This is used solely to allow the JS front end to
+  #  sort our slots correctly.  We want them sorted first by start time
+  #  and then by end time, but the Backbone library expects to do things
+  #  solely by a single value.
+  #
   def start_second
     if self[:starts_at]
-      self[:starts_at].second_of_day
+      if self[:ends_at]
+        (self[:starts_at].second_of_day * 100000) + self[:ends_at].second_of_day
+      else
+        self[:starts_at].second_of_day * 100000
+      end
     else
       0
     end

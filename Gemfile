@@ -67,6 +67,7 @@ gem 'nanoid'
 gem 'remotipart'
 gem 'rmagick'
 gem 'puma'
+gem 'spreadsheet'
 group :production do
   gem 'tiny_tds'
 end
