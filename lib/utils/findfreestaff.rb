@@ -18,6 +18,10 @@ require_relative '../../config/environment'
 
 require_relative 'filing'
 
+def pad_to(text, desired_size)
+  "#{text}       "[0,desired_size]
+end
+
 class Options
 
   attr_reader :all_day,
@@ -26,6 +30,7 @@ class Options
               :staff_group_name,
               :list_staff,
               :output_name,
+              :reverse_output,
               :user_id
 
   def initialize
@@ -74,6 +79,14 @@ class Options
               "send output.  Without this, output is",
               "written to stdout.") do |o|
         @output_name = o
+      end
+
+      opts.on("-r", "--reverse",
+              "Also produce output in reverse, listing",
+              "free periods for each staff member, rather",
+              "than the usual list of staff for each",
+              "period.") do |r|
+        @reverse_output = r
       end
 
       opts.on("-u", "--user USERID", String,
@@ -139,6 +152,45 @@ class SlotSummary
 
 end
 
+class StaffSlotList
+  attr_reader :slot_count, :initials, :name
+
+  def initialize(initials, name)
+    @initials = initials
+    @name     = name
+    @slot_count = 0
+    @weeks = Hash.new
+  end
+
+  def record_slot(week_letter, day_name, timing)
+    @slot_count += 1
+    week = (@weeks[week_letter] ||= Hash.new)
+    day = (week[day_name] ||= Array.new)
+    day << timing
+  end
+
+  def each
+    ["A", "B", "Both"].each do |week_letter|
+      week = @weeks[week_letter]
+      if week
+        if week_letter == "Both"
+          yield "Both weeks"
+        else
+          yield " Week #{week_letter}"
+        end
+        %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday).each do |day_name|
+          day = week[day_name]
+          if day
+            yield "  #{pad_to(day_name, 10)} #{day.join(", ")}"
+#            yield "  #{day_name}"
+#            yield "   #{day.join(", ")}"
+          end
+        end
+      end
+    end
+  end
+end
+
 def initials_from(elements)
   elements.map(&:initials).sort.join(",")
 end
@@ -191,6 +243,11 @@ unless rota_template
 end
 
 everyone = group.members(nil, true, true)
+
+staff_hash = Hash.new
+everyone.each do |s|
+  staff_hash[s.initials] = StaffSlotList.new(s.initials, s.name)
+end
 
 if options.output_name
   if options.user_id
@@ -271,15 +328,21 @@ num_weeks.times do |i|
             output.puts ""
           end
         else
-          output.print "#{slot.starts_at} - #{slot.ends_at}: "
+          timing = "#{slot.starts_at} - #{slot.ends_at}"
+          output.print "#{timing}: "
 
+          free_elements = ff.free_elements - free_all_day
           if ff.free_elements.count == ff.member_elements.count
             output.puts "Everyone"
           elsif ff.free_elements.count > ff.member_elements.count - 10
             output.puts "All but: #{initials_from(ff.member_elements - ff.free_elements)}"
           else
-            free_elements = ff.free_elements - free_all_day
             splat_initials(output, free_elements)
+          end
+          free_elements.each do |e|
+            staff_hash[e.initials].record_slot(current_week.week_letter,
+                                               day_name,
+                                               timing)
           end
           #
           #  Note that we record the raw list of free elements, not the one
@@ -319,7 +382,8 @@ if options.both_weeks && (week_summaries.size > 1)
       end
       weeka_day.zip(weekb_day).each do |slota, slotb|
         free_elements = slota.free_elements & slotb.free_elements
-        output.print "#{slota.starts_at} - #{slota.ends_at}: "
+        timing = "#{slota.starts_at} - #{slota.ends_at}"
+        output.print "#{timing}: "
 
         if free_elements.count == everyone.count
           output.puts "Everyone"
@@ -329,13 +393,30 @@ if options.both_weeks && (week_summaries.size > 1)
           effectively_free = free_elements - free_all_day
           splat_initials(output, effectively_free)
         end
+        free_elements.each do |e|
+          staff_hash[e.initials].record_slot("Both",
+                                             weeka_day.day_name,
+                                             timing)
+        end
       end
     end
   end
 end
 
-def pad_to(initials, desired_size)
-  "#{initials}       "[0,desired_size]
+max_initials = everyone.map(&:initials).collect {|i| i.length}.max
+
+if options.reverse_output
+  output.puts
+  output.puts "By staff member:"
+  staff_hash.keys.sort.each do |key|
+    output.puts
+    entry = staff_hash[key]
+    output.puts "#{pad_to(entry.initials, max_initials)} : #{entry.name}"
+    entry.each do |string|
+      output.puts string
+    end
+  end
+  output.puts
 end
 
 #
@@ -344,7 +425,6 @@ end
 
 if options.list_staff
 
-  max_initials = everyone.map(&:initials).collect {|i| i.length}.max
 
   everyone.sort_by {|e| e.initials}.each do |e|
     output.puts "#{pad_to(e.initials, max_initials)} : #{e.name}"
