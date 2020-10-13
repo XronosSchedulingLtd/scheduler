@@ -3,7 +3,11 @@
 #
 module MIS_Utils
   def local_yeargroup(nc_year)
-    nc_year - 6
+    if nc_year == 15
+      5
+    else
+      nc_year - 6
+    end
   end
 
   def local_yeargroup_text(yeargroup)

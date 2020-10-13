@@ -25,7 +25,7 @@ PERMITTED_OVERLOADS = [
   #
   #  4th year private study.
   #
-  PermittedOverload.new(/^4S PS/,   /^4S PS/),
+  PermittedOverload.new(/^4[DRS] PS/,   /^4[DRS] PS/),
   #
   #  3rd year rowing.
   #
@@ -46,8 +46,20 @@ PERMITTED_OVERLOADS = [
   PermittedOverload.new(/-Invig/,   / Tu$/),
   PermittedOverload.new(/-Invig/,   / Chap$/),
   #
-  #  Merging two tutor periods.
+  #  Merging two tutor/chapel/assembly periods.
   #
-  PermittedOverload.new(/ Tu$/,     / Tu$/)
+  #  Note that it isn't really feasibly to merge those of different types,
+  #  but ICF does it anyway.
+  #
+  PermittedOverload.new(/ (Tu|Ass|Chap)$/, / (Tu|Ass|Chap)$/),
+  #
+  #  We have two members of staff teaching 7P Ar and sometimes one is
+  #  put down as covering the other.
+  #
+  PermittedOverload.new(/^7P Ar$/,   /^7P Ar$/),
+  #
+  #  Mindsets
+  #
+  PermittedOverload.new(/^6 Mi/, /^6 Mi/)
 
 ]

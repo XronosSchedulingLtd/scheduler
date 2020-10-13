@@ -6,16 +6,18 @@
     <% end %>
   </td>
   <td><%= number_to_human_size(user_file.file_size) %></td>
-  <td><%= user_file.created_at.to_s(:hmsdmy) %></td>
+  <td><%= user_file.updated_at.to_s(:hmsdmy) %></td>
   <td><%=
     link_to "Download",
-            user_file_path(user_file.nanoid)
+      user_file_path(user_file.nanoid),
+      class: "zfbutton radius tiny teensy button-link"
   %></td>
   <td><%=
     link_to "Delete",
             user_file_path(user_file),
             :method => :delete,
-            data: { confirm: 'Are you sure?' }
+            data: { confirm: 'Are you sure?' },
+            class: "zfbutton radius tiny teensy button-link"
        %></td>
 </tr>
 

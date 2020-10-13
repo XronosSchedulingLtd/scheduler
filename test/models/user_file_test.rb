@@ -38,9 +38,19 @@ class UserFileTest < ActiveSupport::TestCase
     assert_not user_file.valid?
   end
 
-  test 'must have file info' do
+  test 'must have file name' do
     user_file = UserFile.create(@valid_params.except(:file_info))
     assert_not user_file.valid?
+  end
+
+  test 'system_created defaults to false' do
+    user_file = UserFile.create(@valid_params)
+    assert_not user_file.system_created?
+  end
+
+  test 'system_created can be true' do
+    user_file = UserFile.create(@valid_params.merge(system_created: true))
+    assert user_file.system_created?
   end
 
   test 'can delete file' do

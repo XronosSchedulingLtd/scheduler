@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_03_12_090509) do
+ActiveRecord::Schema.define(version: 2020_10_10_091950) do
 
   create_table "ahoy_messages", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade do |t|
     t.integer "user_id"
@@ -675,6 +675,7 @@ ActiveRecord::Schema.define(version: 2020_03_12_090509) do
     t.integer "file_size", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "system_created", default: false
     t.index ["nanoid"], name: "index_user_files_on_nanoid", unique: true
   end
 

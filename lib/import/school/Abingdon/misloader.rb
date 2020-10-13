@@ -188,7 +188,11 @@ class SB_Group
       self.subject_ident = mis_group.subject.isams_id
     end
     self.name          = mis_group.name
-    self.year_ident    = mis_group.year_id - 6
+    if mis_group.year_id == 15
+      self.year_ident = 5
+    else
+      self.year_ident = mis_group.year_id - 6
+    end
     self.records = Array.new
     mis_group.pupils.each do |pupil|
       self.records << SB_AcademicRecord.new(pupil)
