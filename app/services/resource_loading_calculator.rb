@@ -139,7 +139,7 @@ class ResourceLoadingCalculator
     end
   end
 
-  class TimeSlot
+  class RlcTimeSlot
 
     class ResourceTally
       attr_reader :requestee, :other_commitment_count, :request_count
@@ -305,10 +305,10 @@ class ResourceLoadingCalculator
       result = []
       if times.size > 1
         #
-        #  N times will produce N-1 TimeSlots.
+        #  N times will produce N-1 RlcTimeSlots.
         #
         (times.size - 1).times do |index|
-          result << TimeSlot.new(times[index],
+          result << RlcTimeSlot.new(times[index],
                                  times[index + 1],
                                  events,
                                  requestees)
@@ -441,7 +441,7 @@ class ResourceLoadingCalculator
         #times.each do |t|
         #  puts "Time is #{t}"
         #end
-        @timeslots = TimeSlot.construct(times, all_events, requestees)
+        @timeslots = RlcTimeSlot.construct(times, all_events, requestees)
         #@timeslots.each do |ts|
         #  puts "Timeslot from #{ts.to_s}:"
         #  puts "#{ts.events.size} events"

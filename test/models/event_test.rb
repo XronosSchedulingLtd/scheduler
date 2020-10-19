@@ -424,6 +424,75 @@ class EventTest < ActiveSupport::TestCase
     assert_equal 1, @efj.journal.journal_entries.count
   end
 
+  test "exists_on? copes correctly with edge cases" do
+    #
+    #  Note that the dates here are when DST is in effect, which is
+    #  the thing which causes problems.
+    #
+    event = FactoryBot.create(:event,
+                              starts_at: Time.zone.parse("2016-05-01"),
+                              ends_at: Time.zone.parse("2016-05-03"),
+                              all_day: true)
+    assert_not event.exists_on?(Date.parse("2016-04-30"))
+    assert event.exists_on?(Date.parse("2016-05-01"))
+    assert event.exists_on?(Date.parse("2016-05-02"))
+    assert_not event.exists_on?(Date.parse("2016-05-03"))
+    event = FactoryBot.create(:event,
+                              starts_at: Time.zone.parse("2016-05-01"),
+                              ends_at: Time.zone.parse("2016-05-03"))
+    assert_not event.exists_on?(Date.parse("2016-04-30"))
+    assert event.exists_on?(Date.parse("2016-05-01"))
+    assert event.exists_on?(Date.parse("2016-05-02"))
+    assert_not event.exists_on?(Date.parse("2016-05-03"))
+  end
+
+  test "start_time_on copes correctly with edge cases" do
+    event = FactoryBot.create(:event,
+                              starts_at: Time.zone.parse("2016-05-01"),
+                              ends_at: Time.zone.parse("2016-05-03"),
+                              all_day: true)
+    assert_nil event.start_time_on(Date.parse("2016-04-30"))
+    assert_equal Time.zone.parse("2016-05-01 00:00"),
+                 event.start_time_on(Date.parse("2016-05-01"))
+  end
+
+  test "can get time slots for event" do
+    event = FactoryBot.create(:event,
+                              starts_at: Time.zone.parse("2016-05-01 12:27:00"),
+                              ends_at: Time.zone.parse("2016-05-03 13:05:01"))
+    ts1 = event.time_slot_on(Date.parse("2016-04-30"))
+    assert_nil ts1
+    ts2 = event.time_slot_on(Date.parse("2016-05-01"))
+    assert_not_nil ts2
+    assert_equal "12:27 - 24:00", ts2.to_s
+    ts3 = event.time_slot_on(Date.parse("2016-05-02"))
+    assert_not_nil ts3
+    assert_equal "00:00 - 24:00", ts3.to_s
+    ts4 = event.time_slot_on(Date.parse("2016-05-03"))
+    assert_not_nil ts4
+    assert_equal "00:00 - 13:05", ts4.to_s
+    ts5 = event.time_slot_on(Date.parse("2016-05-04"))
+    assert_nil ts5
+  end
+
+  test "can get time slots for all day event" do
+    event = FactoryBot.create(:event,
+                              starts_at: Time.zone.parse("2016-05-01"),
+                              ends_at: Time.zone.parse("2016-05-03"),
+                              all_day: true)
+    assert_not event.exists_on?(Date.parse("2016-04-30"))
+    ts1 = event.time_slot_on(Date.parse("2016-04-30"))
+    assert_nil ts1
+    ts2 = event.time_slot_on(Date.parse("2016-05-01"))
+    assert_not_nil ts2
+    assert_equal "00:00 - 24:00", ts2.to_s
+    ts3 = event.time_slot_on(Date.parse("2016-05-02"))
+    assert_not_nil ts3
+    assert_equal "00:00 - 24:00", ts3.to_s
+    ts4 = event.time_slot_on(Date.parse("2016-05-03"))
+    assert_nil ts4
+  end
+
   #
   #  Leave this test at the end.  It needs investigating at some point.
   #
