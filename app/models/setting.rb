@@ -12,6 +12,10 @@ class Setting < ApplicationRecord
   @@hostname = ""
   @@rr_versions = nil
 
+  serialize :ft_default_day_starts_at, Tod::TimeOfDay
+  serialize :ft_default_day_ends_at, Tod::TimeOfDay
+  serialize :ft_default_days, Array
+
   belongs_to :current_era, class_name: :Era
   belongs_to :next_era, class_name: :Era, optional: true
   belongs_to :previous_era, class_name: :Era, optional: true

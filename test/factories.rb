@@ -488,6 +488,7 @@ FactoryBot.define do
   end
 
   factory :freefinder do
+    association :owner, factory: :user
   end
 
   factory :itemreport do

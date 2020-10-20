@@ -22,6 +22,8 @@ class Freefinder < ApplicationRecord
 
   belongs_to :element, optional: true
 
+  belongs_to :owner, class_name: :User
+
   attr_reader :free_elements, :done_search, :original_membership_size, :member_elements
 
   def element_name

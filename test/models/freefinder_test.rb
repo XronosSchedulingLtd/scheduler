@@ -11,7 +11,8 @@ require 'csv'
 
 class FreefinderTest < ActiveSupport::TestCase
   setup do
-    @minimal_valid_params = {}
+    @user = FactoryBot.create(:user)
+    @minimal_valid_params = {owner: @user}
     @group = FactoryBot.create(:group)
     @property = FactoryBot.create(:property)
     @staff1 = FactoryBot.create(:staff)
@@ -24,6 +25,7 @@ class FreefinderTest < ActiveSupport::TestCase
     @group.add_member(@staff3)
     @group.add_member(@staff4)
     @full_valid_params = {
+      owner: @user,
       element: @group.element,
       start_time_text: "12:30",
       end_time_text: "15:00",
@@ -50,6 +52,7 @@ class FreefinderTest < ActiveSupport::TestCase
   test 'can create a free finder' do
     ff = Freefinder.new(@minimal_valid_params)
     assert ff.valid?
+
   end
 
   test 'can specify a group element' do
@@ -124,6 +127,11 @@ class FreefinderTest < ActiveSupport::TestCase
     assert members.include?(@staff3)
     assert_not members.include?(@staff2)
     assert_not members.include?(@staff4)
-
   end
+
+  test 'can be saved for user' do
+    ff = Freefinder.new(@full_valid_params)
+    @user.freefinder = ff
+  end
+
 end

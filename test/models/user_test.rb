@@ -393,6 +393,12 @@ class UserTest < ActiveSupport::TestCase
     assert @admin_user.can_delete?(user_file)
   end
 
+  test "can have a freefinder" do
+    ff = @staff_user.create_freefinder
+    assert_not_nil ff
+    assert ff.valid?
+  end
+
   private
 
   def check_yes(value)
