@@ -13,45 +13,28 @@ require 'tod'
 #  A TimeSlotSet only ever represents an ordered set of non-overlapping
 #  time slots.
 #
-class TimeSlotSet
+class TimeSlotSet < Array
 
   def initialize(*params)
-    @slots = Array.new
+    super()
     params.each do |p|
-      @slots << TimeSlot.new(p)
+      if p.instance_of?(TimeSlot)
+        self << p
+      else
+        self << TimeSlot.new(p)
+      end
     end
     tidy_up!
   end
 
-  #
-  #  When dup'ed we want our own array of slots, not a pointer to
-  #  the original array.
-  #
-  def initialize_copy(orig)
-    super
-    @slots = orig.slots.dup
-  end
-
-  def size
-    @slots.size
-  end
-
-  def [](index)
-    @slots[index]
-  end
+  alias_method :parent_shift, :<<
 
   def <<(new_slot)
     unless new_slot.is_a?(Tod::Shift)
       raise ArgumentError.new("Can't add object of type #{new_slot.class}.")
     end
-    @slots << new_slot
+    super
     tidy_up!
-  end
-
-  def each
-    @slots.each do |s|
-      yield s
-    end
   end
 
   def remove(going)
@@ -68,10 +51,6 @@ class TimeSlotSet
       raise ArgumentError.new("Can't subtract object of type #{going.class}.")
     end
     self
-  end
-
-  def empty?
-    @slots.empty?
   end
 
   def &(other)
@@ -129,49 +108,57 @@ class TimeSlotSet
   end
 
   def dump
-    @slots.each do |s|
+    self.each do |s|
       puts " #{s.to_s}"
     end
   end
 
-  def ==(other)
-    self.size == other.size &&
-      self.slots == other.slots
+  #
+  #  Return our longest time slot, or nil if we have none.
+  #
+  def longest
+    self.max {|a,b| a.duration <=> b.duration}
   end
 
-  protected
-  
-  attr_reader :slots
+  #
+  #  Return all our slots which are no shorter than mins minutes.
+  #  We return them as a new TimeSlotSet, not just as a new array
+  #  of TimeSlots
+  #
+  def at_least_mins(mins)
+    seconds = mins * 60
+    TimeSlotSet.new(*self.select {|ts| ts.duration >= seconds})
+  end
 
   private
 
   def tidy_up!
-    working = @slots.sort
-    @slots.clear
+    working = self.sort
+    self.clear
     current = working.shift
     if current
       while (nextone = working.shift)
         if current.overlaps?(nextone) || current.abuts?(nextone)
           current = current.merge(nextone)
         else
-          @slots << current
+          self.parent_shift current
           current = nextone
         end
       end
-      @slots << current
+      self.parent_shift current
     end
   end
 
   def do_remove(slot)
-    working = @slots.sort
-    @slots.clear
+    working = self.sort
+    self.clear
     while (current = working.shift)
       if current.overlaps?(slot)
         current.subtract(slot) do |remains|
-          @slots << remains
+          self.parent_shift remains
         end
       else
-        @slots << current
+        self.parent_shift current
       end
     end
   end
