@@ -97,6 +97,13 @@ class TimeSlotTest < ActiveSupport::TestCase
     assert_match /Slot duration can't be negative/, err.message
   end
 
+  test "can't be zero duration" do
+    err = assert_raise(ArgumentError) {
+      ts = TimeSlot.new("11:15", "11:15")
+    }
+    assert_match /Slot duration can't be zero/, err.message
+  end
+
   test "can sort timeslots" do
     ts1 = TimeSlot.new("08:00 - 09:00")
     ts2 = TimeSlot.new("08:30 - 10:00")
