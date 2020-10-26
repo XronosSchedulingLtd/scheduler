@@ -20,6 +20,14 @@ class TimeSlotSetTest < ActiveSupport::TestCase
     assert_equal 3, tss.size
   end
 
+  test "will accept existing slots" do
+    tss = TimeSlotSet.new("10:00 - 12:00",
+                          "08:00 - 09:00",
+                          TimeSlot.new("09:30 - 09:45"))
+    assert_not_nil tss
+    assert_equal 3, tss.size
+  end
+
   test "overlapping slots merge" do
     tss = TimeSlotSet.new("10:00 - 12:00",
                           "08:00 - 09:00",
@@ -240,6 +248,33 @@ class TimeSlotSetTest < ActiveSupport::TestCase
     assert_equal 2, tss1.size
     assert_equal "08:00 - 12:00", tss1[0].to_s
     assert_equal "13:00 - 17:30", tss1[1].to_s
+  end
+
+  test "can identify longest slot" do
+    #
+    #  We expect just one back.  A sort of "sort into order of size
+    #  descending, then return the first".
+    #
+    tss = TimeSlotSet.new("07:30 - 10:00",
+                          "11:30 - 12:30",
+                          "13:30 - 15:00",
+                          "16:00 - 18:00")
+    longest = tss.longest
+    assert_not_nil longest
+    assert longest.instance_of?(TimeSlot)
+    assert_equal "07:30 - 10:00", longest.to_s
+  end
+
+  test "can identify slots longer than a given time" do
+    tss = TimeSlotSet.new("07:30 - 10:00",
+                          "11:30 - 12:30",
+                          "13:30 - 15:00",
+                          "16:00 - 18:00")
+    tss2 = tss.at_least_mins(120)
+    assert tss2.instance_of?(TimeSlotSet)
+    assert_equal 2, tss2.size
+    assert_equal "07:30 - 10:00", tss2[0].to_s
+    assert_equal "16:00 - 18:00", tss2[1].to_s
   end
 
 end
