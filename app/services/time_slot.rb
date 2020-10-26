@@ -77,6 +77,9 @@ class TimeSlot < Tod::Shift
     if time1 < time0
       raise ArgumentError.new("Slot duration can't be negative.")
     end
+    if time1 == time0
+      raise ArgumentError.new("Slot duration can't be zero.")
+    end
     super(time0, time1, true)
   end
 
