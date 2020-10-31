@@ -30,7 +30,7 @@
       <%= f.label "Find free resources on", class: "right inline" %>
     </div>
     <div class="small-2 columns">
-      <%= f.text_field :on, :id => :freedatepicker %>
+      <%= f.text_field :on, autocomplete: :off, id: :freedatepicker, class: :datepicker %>
     </div>
     <div class="small-1 columns">
       <%= f.label "between", class: "right inline" %>

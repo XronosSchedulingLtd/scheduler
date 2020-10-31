@@ -1,0 +1,82 @@
+<h1>Find free times</h1>
+
+<div class="row collapse">
+  <div class="small-6 columns">
+    <%= form_for(@freefinder) do |f| %>
+      <% if @freefinder.errors.any? %>
+        <div id="error_explanation">
+          <ul>
+            <% @freefinder.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+      <div class="row collapse">
+        <div class="small-5 columns">
+          <%= f.label "Start date", class: "right inline" %>
+        </div>
+        <div class="small-6 columns">
+          <%= f.text_field :ft_start_date, autocomplete: :off, class: :datepicker %>
+        </div>
+        <div class="small-1 columns">
+        </div>
+      </div>
+      <div class="row collapse">
+        <div class="small-5 columns">
+          <%= f.label "Days to search", class: "right inline" %>
+        </div>
+        <div class="small-6 columns">
+          <%= f.number_field :ft_num_days %>
+        </div>
+        <div class="small-1 columns">
+        </div>
+      </div>
+      <div class="row collapse">
+        <div class="small-5 columns">
+          <%= f.label "Earliest time", class: "right inline" %>
+        </div>
+        <div class="small-6 columns">
+          <%= f.time_field :ft_day_starts_at %>
+        </div>
+        <div class="small-1 columns">
+        </div>
+      </div>
+      <div class="row collapse">
+        <div class="small-5 columns">
+          <%= f.label "Latest time", class: "right inline" %>
+        </div>
+        <div class="small-6 columns">
+          <%= f.time_field :ft_day_ends_at %>
+        </div>
+        <div class="small-1 columns">
+        </div>
+      </div>
+      <div class="row collapse">
+        <div class="small-5 columns">
+          <%= f.label "Days of week", class: "right inline" %>
+        </div>
+        <div class="small-6 columns">
+          Sun Mon Tue Wed Thu Fri Sat
+        </div>
+        <div class="small-1 columns">
+        </div>
+      </div>
+      <div class="row collapse">
+        <div class="small-2 small-offset-5 columns">
+          <%= f.submit "Find free", :class => "zfbutton tiny radius" %>
+        </div>
+        <div class="small-5 columns">
+        </div>
+      </div>
+    <% end %>
+  </div>
+  <div class="small-3 columns">
+    List of people/things
+  </div>
+  <div class="small-3 columns">
+    List of times
+  </div>
+</div>
+
+

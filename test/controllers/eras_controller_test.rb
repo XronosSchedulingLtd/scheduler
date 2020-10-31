@@ -5,6 +5,12 @@ class ErasControllerTest < ActionController::TestCase
     @era = eras(:eraone)
     @eratodelete = eras(:eratwo)
     session[:user_id] = users(:admin).id
+
+    @eratoedit = FactoryBot.create(
+      :era,
+      starts_on: Date.parse("2016-09-01"),
+      ends_on: Date.parse("2017-08-31")
+    )
   end
 
   test "should get index" do
@@ -77,4 +83,53 @@ class ErasControllerTest < ActionController::TestCase
 
     assert_redirected_to "/"
   end
+
+  test "date should display as ddmmyyyy" do
+    get :edit, params: { id: @eratoedit }
+    assert_response :success
+    assert_select '#era_starts_on' do |fields|
+      assert_equal 1, fields.count
+      assert_equal "01/09/2016", fields.first['value']
+    end
+    assert_select '#era_ends_on' do |fields|
+      assert_equal 1, fields.count
+      assert_equal "31/08/2017", fields.first['value']
+    end
+  end
+
+  test "can update date with ddmmyyyy" do
+    patch(
+      :update,
+      params: {
+        id: @eratoedit,
+        era: {
+          starts_on: "02/09/2016",
+          ends_on: "10/09/2016"
+        }
+      }
+    )
+    assert_redirected_to eras_path
+    @eratoedit.reload
+    assert_equal Date.parse("2016-09-02"), @eratoedit.starts_on
+    assert_equal Date.parse("2016-09-10"), @eratoedit.ends_on
+  end
+
+  test "can update date with yyyymmdd" do
+    patch(
+      :update,
+      params: {
+        id: @eratoedit,
+        era: {
+          starts_on: "2016-09-02",
+          ends_on: "2016-09-10"
+        }
+      }
+    )
+    assert_redirected_to eras_path
+    @eratoedit.reload
+    assert_equal Date.parse("2016-09-02"), @eratoedit.starts_on
+    assert_equal Date.parse("2016-09-10"), @eratoedit.ends_on
+  end
+
+
 end

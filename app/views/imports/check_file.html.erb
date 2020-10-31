@@ -76,18 +76,16 @@
       <td>Start date:</td>
       <td>
         <%= text_field_tag(:first_date,
-                           @start_date.strftime("%d/%m/%Y"),
-                           :class => :datepicker) %>
+                           autocomplete: :off,
+                           class: :datepicker) %>
       </td>
     </tr>
     <tr>
       <td>End date:</td>
       <td>
         <%= text_field_tag(:last_date,
-                           @latest_date ?
-                           @latest_date.strftime("%d/%m/%Y") :
-                           "",
-                           :class => :datepicker) %>
+                           autocomplete: :off,
+                           class: :datepicker) %>
       </td>
     </tr>
     <tr>

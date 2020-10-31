@@ -57,6 +57,17 @@ class ExamCyclesControllerTest < ActionController::TestCase
   test "should get edit" do
     get :edit, params: { id: @exam_cycle }
     assert_response :success
+    #
+    #  Also check date formats
+    #
+    assert_select '#exam_cycle_starts_on_text' do |fields|
+      assert_equal 1, fields.count
+      assert_equal Date.today.to_s(:dmy), fields.first['value']
+    end
+    assert_select '#exam_cycle_ends_on_text' do |fields|
+      assert_equal 1, fields.count
+      assert_equal Date.tomorrow.to_s(:dmy), fields.first['value']
+    end
   end
 
   test "should update exam_cycle" do

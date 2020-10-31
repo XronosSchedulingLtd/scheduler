@@ -128,5 +128,42 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
     assert_equal "14:00 - 15:30", fs[1].to_s
   end
 
+  test "free slot can be at start of day" do
+    fsf = FreeSlotFinder.new(@elements, 60, "07:00", "17:00")
+    fs = fsf.slots_on(@day1)
+    assert fs.instance_of?(TimeSlotSet)
+    assert_not fs.empty?
+    assert_equal 3, fs.size
+    assert_equal "07:00 - 08:00", fs[0].to_s
+    assert_equal "10:30 - 11:30", fs[1].to_s
+    assert_equal "14:00 - 15:30", fs[2].to_s
+  end
+
+  test "free slot can be at end of day" do
+    fsf = FreeSlotFinder.new(@elements, 60, "08:30", "19:00")
+    fs = fsf.slots_on(@day1)
+    assert fs.instance_of?(TimeSlotSet)
+    assert_not fs.empty?
+    assert_equal 3, fs.size
+    assert_equal "10:30 - 11:30", fs[0].to_s
+    assert_equal "14:00 - 15:30", fs[1].to_s
+    assert_equal "18:00 - 19:00", fs[2].to_s
+  end
+
+  test "given a group we check individual members" do
+    group = FactoryBot.create(:group, starts_on: @day1)
+    group.add_member(@element1, @day1)
+    group.add_member(@element2, @day1)
+    group.add_member(@element3, @day1)
+
+    fsf = FreeSlotFinder.new([group.element], 60, "08:30", "17:00")
+    fs = fsf.slots_on(@day1)
+    assert fs.instance_of?(TimeSlotSet)
+    assert_not fs.empty?
+    assert_equal 2, fs.size
+    assert_equal "10:30 - 11:30", fs[0].to_s
+    assert_equal "14:00 - 15:30", fs[1].to_s
+  end
+
 end
 

@@ -862,6 +862,13 @@ class Membership < ApplicationRecord
     end
   end
 
+  #
+  #  These next 4 are kind of redundant.  They were implemented to force
+  #  the date representation in the UI to DD/MM/YYYY, but that's now the
+  #  default for the whole application.
+  #
+  #  Removing them would involve changing the controller, views and tests.
+  #
   def starts_on_text
     self.starts_on ? self.starts_on.to_s(:dmy) : ""
   end

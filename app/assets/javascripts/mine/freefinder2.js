@@ -33,7 +33,14 @@ if ($('#freedatepicker').length &&
     };
 
     function createButtonsForDate() {
-      var dayNo = new Date($('#freedatepicker').val()).getDay();
+      //
+      //  We used to use "new Date" here, but whilst that copes correctly
+      //  with ISO dates, its behaviour with other formats is implementation
+      //  dependent.  By using a library, we can dictate the behaviour.
+      //
+      var day = moment($('#freedatepicker').val(), "DD/MM/YYYY");
+      var dayNo = day.day();
+
       var newContents = [];
       newContents.push("<ul class='zfbutton-group round'>");
       if (period_definitions[dayNo].length > 0) {
@@ -50,11 +57,6 @@ if ($('#freedatepicker').length &&
 
     that.init = function() {
       date_field = $('#freedatepicker');
-      date_field.datepicker({
-        showOtherMonths: true,
-        selectOtherMonths: true,
-        dateFormat: 'yy-mm-dd'
-      });
       //
       //  Periods may not be defined.  If not, still provide fallback
       //  functionality.

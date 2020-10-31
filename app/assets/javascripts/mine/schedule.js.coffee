@@ -14,13 +14,6 @@
 that = {}
 that.adding_file_directly = false
 $(document).ready ->
-  $('#datepicker').datepicker
-    showOtherMonths: true
-    selectOtherMonths: true
-    dateFormat: 'yy-mm-dd'
-    firstDay: $('#fullcalendar').data("firstday")
-    onSelect: (dateText, inst) ->
-      $('#fullcalendar').fullCalendar( 'gotoDate', new Date(dateText))
   $('#topdatepicker').datepicker
     showOtherMonths: true
     selectOtherMonths: true
@@ -306,7 +299,6 @@ activateColourPicker = (field_id, sample_id) ->
       $(sample_id).css('background-color', colour.toHexString())
 
 prepareToRender = (view, element) ->
-  $('#datepicker').datepicker('setDate', view.start.toDate())
   that.viewStartDate = view.start.toDate()
   that.viewName = view.name
   that.elementsSeen = {}

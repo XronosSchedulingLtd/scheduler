@@ -138,6 +138,9 @@ FactoryBot.define do
       permissions_files       { false }
       permissions_su          { false }
       permissions_memberships { false }
+      permissions_exams       { false }
+      permissions_have_forms  { false }
+      permissions_view_forms  { false }
       #
       #  Getting slightly odd.
       #
@@ -192,6 +195,18 @@ FactoryBot.define do
       permissions_memberships { true }
     end
 
+    trait :does_exams do
+      permissions_exams { true }
+    end
+
+    trait :have_forms do
+      permissions_have_forms { true }
+    end
+
+    trait :view_forms do
+      permissions_view_forms { true }
+    end
+
     firstday { 0 }
     user_profile { UserProfile.guest_profile }
 
@@ -235,6 +250,15 @@ FactoryBot.define do
       end
       if permissions_memberships
         hash[:can_edit_memberships] = true
+      end
+      if permissions_exams
+        hash[:exams] = true
+      end
+      if permissions_have_forms
+        hash[:can_has_forms] = true
+      end
+      if permissions_view_forms
+        hash[:can_view_forms] = true
       end
       hash
     end
