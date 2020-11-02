@@ -140,6 +140,25 @@ module ApplicationHelper
     result.join("\n").html_safe
   end
 
+  def configured_date_field(f, selector, classes = [])
+    if Setting.current.dp_jquery?
+      f.text_field(
+        selector,
+        class: (['datepicker'] + classes).join(" "),
+        autocomplete: :off
+      )
+    else
+      if classes.empty?
+        f.date_field(selector)
+      else
+        f.date_field(
+          selector,
+          class: classes.join(" ")
+        )
+      end
+    end
+  end
+
   #
   #  Take a piece of plain text, with line breaks, and convert it to
   #  the equivalent HTML with <br/> characters.  Escape any dangerous
@@ -277,7 +296,10 @@ module ApplicationHelper
           end
         end
         if user.can_find_free?
-          m.item('Find free', new_freefinder_path)
+          m.dropdown('Find free', new_freefinder_path) do
+            m.item('Resources', new_freefinder_path)
+            m.item('Times', edit_freefinder_path(1))
+          end
         end
         if user.can_has_forms?
           m.item('Forms', user_forms_path)
