@@ -264,6 +264,7 @@ ActiveRecord::Schema.define(version: 2020_10_19_074049) do
     t.text "ft_days"
     t.time "ft_day_starts_at"
     t.time "ft_day_ends_at"
+    t.integer "ft_duration"
     t.text "ft_element_ids"
     t.index ["owner_id"], name: "index_freefinders_on_owner_id"
   end
@@ -603,10 +604,12 @@ ActiveRecord::Schema.define(version: 2020_10_19_074049) do
     t.integer "event_keep_years", default: 0
     t.string "zoom_link_text"
     t.string "zoom_link_base_url"
+    t.integer "datepicker_type", default: 0
     t.integer "ft_default_num_days", default: 14
-    t.text "ft_default_days", default: "'---\\n- false\\n- true\\n- true\\n- true\\n- true\\n- true\\n- false\\n'"
+    t.text "ft_default_days", default: "'---\\n- 1\\n- 2\\n- 3\\n- 4\\n- 5\\n'"
     t.time "ft_default_day_starts_at", default: "2000-01-01 08:30:00"
     t.time "ft_default_day_ends_at", default: "2000-01-01 17:30:00"
+    t.integer "ft_default_duration", default: 60
   end
 
   create_table "staffs", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade do |t|

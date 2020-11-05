@@ -513,6 +513,8 @@ FactoryBot.define do
 
   factory :freefinder do
     association :owner, factory: :user
+    ft_start_date { Date.today }
+    ft_num_days { 14 }
   end
 
   factory :itemreport do

@@ -390,7 +390,7 @@
       <%= f.label :tt_store_start, "Date to store timetable", class: "right" %>
     </div>
     <div class="small-6 columns">
-      <%= f.date_field :tt_store_start %>
+      <%= f.configured_date_field(:tt_store_start) %>
     </div>
     <div class="small-3 columns">
     </div>
@@ -447,10 +447,81 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
+      <%= f.label :datepicker_type, "Date picker type", class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%=
+        f.collection_select(
+          :datepicker_type,
+          Setting.dp_selections,
+          :first,
+          :second)
+        %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <h4>Finding free times - defaults</h4>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :ft_default_days, "Days to search", class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.collection_check_boxes(:ft_default_days,
+                                   DayNamer.daynames_with_index,
+                                   :index,
+                                   :name) %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :ft_default_num_days, "How many days", class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.number_field :ft_default_num_days %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :ft_default_day_starts_at, "Earliest start time", class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.time_field :ft_default_day_starts_at %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :ft_default_day_ends_at, "Latest end time", class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.time_field :ft_default_day_ends_at %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :ft_default_duration, "Required duration (mins)", class: "right" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.number_field :ft_default_duration %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       &nbsp;
     </div>
     <div class="small-6 columns">
       <%= f.submit "Update", class: "zfbutton tiny radius" %>
+      <%= link_to "Cancel", "/", class: 'zfbutton tiny radius button-link' %>
     </div>
     <div class="small-3 columns">
     </div>
