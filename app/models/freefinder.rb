@@ -143,7 +143,7 @@ class Freefinder < ApplicationRecord
         Commitment.commitments_during(
           start_time: starts_at,
           end_time: ends_at,
-          excluded_category: Eventcategory.non_busy_categories)
+          excluded_category: Eventcategory.non_busy_categories).includes(:element)
       if except_event
         overlapping_commitments =
           overlapping_commitments.where.not(event_id: except_event.id)
@@ -154,7 +154,7 @@ class Freefinder < ApplicationRecord
       #
       committed_elements = Array.new
       overlapping_commitments.each do |oc|
-        if oc.element.entity.instance_of?(Group)
+        if oc.element.entity_type == 'Group'
           committed_elements += 
             oc.element.entity.members(effective_date,
                                       true,
