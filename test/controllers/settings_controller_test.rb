@@ -66,7 +66,11 @@ class SettingsControllerTest < ActionController::TestCase
     check_text(:email_keep_days)
     check_text(:zoom_link_text)
     check_text(:zoom_link_base_url)
-    check_selection(:datepicker_type)
+    #
+    #  Modifying the datepicker type has been disabled for now.  Not
+    #  all the work to enable native datepickers has been done.
+    #
+#    check_selection(:datepicker_type)
     check_checkbox_collection(:ft_default_days, 7)
     check_text(:ft_default_num_days)
     check_text(:ft_default_day_starts_at)
@@ -114,7 +118,7 @@ class SettingsControllerTest < ActionController::TestCase
       email_keep_days:                  999,
       zoom_link_text:                   "Wheeeeee!",
       zoom_link_base_url:               "http://",
-      datepicker_type:                  "dp_native",
+#      datepicker_type:                  "dp_native",
       ft_default_num_days:              12,
       ft_default_day_starts_at:         "09:00",
       ft_default_day_ends_at:           "19:00",
