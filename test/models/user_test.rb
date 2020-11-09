@@ -394,7 +394,7 @@ class UserTest < ActiveSupport::TestCase
   end
 
   test "can have a freefinder" do
-    ff = @staff_user.create_freefinder
+    ff = @staff_user.create_freefinder(attributes_for(:freefinder))
     assert_not_nil ff
     assert ff.valid?
   end

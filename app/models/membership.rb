@@ -863,29 +863,6 @@ class Membership < ApplicationRecord
   end
 
   #
-  #  These next 4 are kind of redundant.  They were implemented to force
-  #  the date representation in the UI to DD/MM/YYYY, but that's now the
-  #  default for the whole application.
-  #
-  #  Removing them would involve changing the controller, views and tests.
-  #
-  def starts_on_text
-    self.starts_on ? self.starts_on.to_s(:dmy) : ""
-  end
-
-  def ends_on_text
-    self.ends_on ? self.ends_on.to_s(:dmy) : ""
-  end
-
-  def starts_on_text=(text)
-    self.starts_on = Date.safe_parse(text)
-  end
-
-  def ends_on_text=(text)
-    self.ends_on = Date.safe_parse(text)
-  end
-
-  #
   #  Does it make sense to call terminate() for this membership
   #  record?
   #

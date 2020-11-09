@@ -3,7 +3,7 @@ require 'test_helper'
 class ErasControllerTest < ActionController::TestCase
   setup do
     @era = eras(:eraone)
-    @eratodelete = eras(:eratwo)
+    @eratodelete = eras(:eratodelete)
     session[:user_id] = users(:admin).id
 
     @eratoedit = FactoryBot.create(

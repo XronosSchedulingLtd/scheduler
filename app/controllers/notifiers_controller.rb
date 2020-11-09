@@ -68,9 +68,9 @@ class NotifiersController < ApplicationController
     # Never trust parameters from the scary internet, only allow the white list through.
     def notifier_params
       params.require(:notifier).
-             permit(:start_date_text,
-                    :end_date_text,
-                    :modified_since_text,
+             permit(:start_date,
+                    :end_date,
+                    :modified_since,
                     :extra_text,
                     :check_clashes,
                     :send_notifications)

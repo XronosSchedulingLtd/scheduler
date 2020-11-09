@@ -12,7 +12,11 @@ require 'csv'
 class FreefinderTest < ActiveSupport::TestCase
   setup do
     @user = FactoryBot.create(:user)
-    @minimal_valid_params = {owner: @user}
+    @minimal_valid_params = {
+      owner: @user,
+      ft_start_date: Date.today,
+      ft_num_days: 14
+    }
     @group = FactoryBot.create(:group)
     @property = FactoryBot.create(:property)
     @staff1 = FactoryBot.create(:staff)
@@ -29,7 +33,9 @@ class FreefinderTest < ActiveSupport::TestCase
       element: @group.element,
       start_time_text: "12:30",
       end_time_text: "15:00",
-      on: Date.today
+      on: Date.today,
+      ft_start_date: Date.today,
+      ft_num_days: 14
     }
     #
     #  Now give staff2 and staff 4 clashing commitments.

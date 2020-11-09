@@ -13,6 +13,16 @@ class FreefindersControllerTest < ActionController::TestCase
     assert_equal 3, @source_group.members.count
   end
 
+  test "check default days" do
+    settings = Setting.first
+    assert_equal 5, settings.ft_default_days.size
+    assert settings.ft_default_days.include?(1)
+    assert settings.ft_default_days.include?(2)
+    assert settings.ft_default_days.include?(3)
+    assert settings.ft_default_days.include?(4)
+    assert settings.ft_default_days.include?(5)
+  end
+
   test "should get new" do
     get :new
     assert_response :success
@@ -22,7 +32,7 @@ class FreefindersControllerTest < ActionController::TestCase
     get :new
     assert_response :success
     today = Date.today.to_s(:dmy)
-    assert_select '#freedatepicker' do |fields|
+    assert_select '#freefinder_on' do |fields|
       assert_equal 1, fields.count
       assert_equal today, fields.first['value']
     end
@@ -40,7 +50,7 @@ class FreefindersControllerTest < ActionController::TestCase
       }
     )
     assert_response :success
-    assert_select '#freedatepicker' do |fields|
+    assert_select '#freefinder_on' do |fields|
       assert_equal 1, fields.count
       assert_equal tomorrow_dmy, fields.first['value']
     end
@@ -66,7 +76,7 @@ class FreefindersControllerTest < ActionController::TestCase
     #  doesn't actually save the record to the database, so we get back
     #  what we sent.
     #
-    assert_select '#freedatepicker' do |fields|
+    assert_select '#freefinder_on' do |fields|
       assert_equal 1, fields.count
       assert_equal tomorrow_ymd, fields.first['value']
     end

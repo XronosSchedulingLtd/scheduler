@@ -101,33 +101,6 @@ class Notifier
     end
   end
 
-  def start_date_text
-    self.start_date ? self.start_date.to_formatted_s(:dmy) : ""
-  end
-
-  #
-  #  We're given a text string which we try to make sense of.
-  #
-  def start_date_text=(new_value)
-    self.start_date = Date.safe_parse(new_value)
-  end
-
-  def end_date_text
-    self.end_date ? self.end_date.to_formatted_s(:dmy) : ""
-  end
-
-  def end_date_text=(new_value)
-    self.end_date = Date.safe_parse(new_value)
-  end
-
-  def modified_since_text
-    self.modified_since ? self.modified_since.to_formatted_s(:dmy) : ""
-  end
-
-  def modified_since_text=(new_value)
-    self.modified_since = Date.safe_parse(new_value)
-  end
-
   def check_clashes=(new_value)
     #
     #  I want this to be a boolean, but I might be passed a string.

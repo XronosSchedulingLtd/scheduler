@@ -15,13 +15,13 @@
       <%= f.label "Start date", class: "right inline" %>
     </div>
     <div class="small-2 columns">
-      <%= f.text_field :start_date_text, autocomplete: :off, :class => :datepicker %>
+      <%= f.configured_date_field :start_date %>
     </div>
     <div class="small-2 columns">
       <%= f.label "End date", class: "right inline" %>
     </div>
     <div class="small-2 columns">
-      <%= f.text_field :end_date_text, autocomplete: :off, :class => :datepicker %>
+      <%= f.configured_date_field :end_date %>
     </div>
     <div class="small-3 columns">
     </div>
@@ -31,7 +31,7 @@
       <%= f.label "Allocations created since", class: "right inline" %>
     </div>
     <div class="small-2 columns">
-      <%= f.text_field :modified_since_text, autocomplete: :off, :class => :datepicker %>
+      <%= f.configured_date_field :modified_since %>
     </div>
     <div class="small-7 columns">
     </div>

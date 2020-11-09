@@ -38,7 +38,7 @@ class MembershipsControllerTest < ActionController::TestCase
         params: {
           group_id: @source_group,
           membership: {
-            starts_on_text: Date.today.to_s(:dmy),
+            starts_on: Date.today.to_s(:dmy),
             element_id: @spare_thing.element,
             inverse: false
           }
@@ -61,7 +61,7 @@ class MembershipsControllerTest < ActionController::TestCase
       params: {
         id: membership,
         membership: {
-          starts_on_text: Date.tomorrow.to_s(:dmy)
+          starts_on: Date.tomorrow.to_s(:dmy)
         }
       }
     )
@@ -87,7 +87,7 @@ class MembershipsControllerTest < ActionController::TestCase
     today_dmy = Date.today.to_s(:dmy)
     get :edit, params: { id: @source_group.memberships[0] }
     assert_response :success
-    assert_select '#membership_starts_on_text' do |fields|
+    assert_select '#membership_starts_on' do |fields|
       assert_equal 1, fields.count
       assert_equal today_dmy, fields.first['value']
     end
@@ -104,7 +104,7 @@ class MembershipsControllerTest < ActionController::TestCase
       params: {
         id: membership,
         membership: {
-          starts_on_text: Date.tomorrow.to_s(:ymd)
+          starts_on: Date.tomorrow.to_s(:ymd)
         }
       }
     )

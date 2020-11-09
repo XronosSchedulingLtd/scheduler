@@ -164,38 +164,6 @@ class EventCollection < ApplicationRecord
     enable_day(value)
   end
 
-  def starts_on_text
-    repetition_start_date ? repetition_start_date.strftime("%d/%m/%Y") : ""
-  end
-
-  def starts_on_text=(value)
-    old_repetition_start_date = self.repetition_start_date
-    self.repetition_start_date = value
-    if (self.repetition_start_date != old_repetition_start_date) &&
-      !self.new_record?
-      #
-      #  A genuine change.
-      #
-      @timing_changed = true
-    end
-  end
-
-  def ends_on_text
-    repetition_end_date ? repetition_end_date.strftime("%d/%m/%Y") : ""
-  end
-
-  def ends_on_text=(value)
-    old_repetition_end_date = self.repetition_end_date
-    self.repetition_end_date = value
-    if (self.repetition_end_date != old_repetition_end_date) &&
-      !self.new_record?
-      #
-      #  A genuine change.
-      #
-      @timing_changed = true
-    end
-  end
-
   #
   #  The published interface to ActiveRecord's update() method breaks
   #  down a little if you have optimistic locking in place.  Most errors

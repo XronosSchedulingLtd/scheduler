@@ -5,6 +5,7 @@
 # for more information.
 #
 require 'csv'
+require 'tod'
 
 #
 #  A class which does the work of finding free resources of
@@ -20,9 +21,15 @@ require 'csv'
 #
 class Freefinder < ApplicationRecord
 
+  serialize :ft_day_starts_at, Tod::TimeOfDay
+  serialize :ft_day_ends_at, Tod::TimeOfDay
+  serialize :ft_days, Array
   belongs_to :element, optional: true
 
   belongs_to :owner, class_name: :User
+
+  validates :ft_start_date, presence: true
+  validates :ft_num_days, presence: true
 
   attr_reader :free_elements, :done_search, :original_membership_size, :member_elements
 
@@ -215,4 +222,19 @@ class Freefinder < ApplicationRecord
     end
   end
 
+  #
+  #  Provides a hash to use in the creation of a Freefinder object using
+  #  system default values.
+  #
+  def self.system_defaults
+    settings = Setting.current
+    {
+      ft_start_date:    Date.today,
+      ft_num_days:      settings.ft_default_num_days,
+      ft_days:          settings.ft_default_days,
+      ft_day_starts_at: settings.ft_default_day_starts_at,
+      ft_day_ends_at:   settings.ft_default_day_ends_at,
+      ft_duration:      settings.ft_default_duration
+    }
+  end
 end

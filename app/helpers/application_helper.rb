@@ -140,25 +140,6 @@ module ApplicationHelper
     result.join("\n").html_safe
   end
 
-  def configured_date_field(f, selector, classes = [])
-    if Setting.current.dp_jquery?
-      f.text_field(
-        selector,
-        class: (['datepicker'] + classes).join(" "),
-        autocomplete: :off
-      )
-    else
-      if classes.empty?
-        f.date_field(selector)
-      else
-        f.date_field(
-          selector,
-          class: classes.join(" ")
-        )
-      end
-    end
-  end
-
   #
   #  Take a piece of plain text, with line breaks, and convert it to
   #  the equivalent HTML with <br/> characters.  Escape any dangerous
@@ -186,6 +167,33 @@ module ApplicationHelper
       else
         element_commitments_path(element)
       end
+    end
+  end
+
+  def configured_date_field_tag(selector, **options)
+    if Setting.current.dp_jquery?
+      #
+      #  We want to add a class of datepicker to the options.
+      #  There may or may not already be some classes specified
+      #  there, and they could be an array, a string or a symbol.
+      #
+      existing = options[:class]
+      if existing
+        case existing
+        when String
+          options[:class] = "#{existing} datepicker"
+        when Symbol
+          options[:class] = [existing, :datepicker]
+        when Array
+          options[:class] << :datepicker
+        end
+      else
+        options[:class] = :datepicker
+      end
+      options[:autocomplete] = :off
+      text_field_tag(selector, options)
+    else
+      date_field_tag(selector, options)
     end
   end
 

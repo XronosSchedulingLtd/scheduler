@@ -39,8 +39,8 @@ class ExamCyclesControllerTest < ActionController::TestCase
              exam_cycle: {
                default_rota_template_id: @exam_cycle.default_rota_template_id,
                name: @exam_cycle.name,
-               starts_on_text: @exam_cycle.starts_on,
-               ends_on_text: @exam_cycle.ends_on,
+               starts_on: @exam_cycle.starts_on,
+               ends_on: @exam_cycle.ends_on,
                default_group_element_id: @exam_cycle.default_group_element_id
              }
            }
@@ -60,11 +60,11 @@ class ExamCyclesControllerTest < ActionController::TestCase
     #
     #  Also check date formats
     #
-    assert_select '#exam_cycle_starts_on_text' do |fields|
+    assert_select '#exam_cycle_starts_on' do |fields|
       assert_equal 1, fields.count
       assert_equal Date.today.to_s(:dmy), fields.first['value']
     end
-    assert_select '#exam_cycle_ends_on_text' do |fields|
+    assert_select '#exam_cycle_ends_on' do |fields|
       assert_equal 1, fields.count
       assert_equal Date.tomorrow.to_s(:dmy), fields.first['value']
     end

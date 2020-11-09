@@ -58,6 +58,17 @@ class Setting < ApplicationRecord
 
   enum auth_type: [:google_auth, :google_demo_auth]
 
+  enum datepicker_type: [:dp_jquery, :dp_native]
+
+  DATEPICKER_NAMES = [
+    "JQuery",
+    "Native"
+  ]
+
+  def self.dp_selections
+    self.datepicker_types.map {|dt| [dt.first, DATEPICKER_NAMES[dt.second]]}
+  end
+
   # We never want this record to be deleted.
   def destroy
     raise "Can't delete the system settings"
