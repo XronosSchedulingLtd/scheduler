@@ -64,3 +64,21 @@ unbusy:
   for_users: false
   unimportant: false
   busy: false
+
+eventsetup:
+  name: Event setup
+  pecking_order: 1
+  schoolwide: false
+  publish: false
+  public: false
+  for_users: false
+  unimportant: false
+
+weekletter:
+  name: Week letter
+  pecking_order: 1
+  schoolwide: false
+  publish: false
+  public: false
+  for_users: false
+  unimportant: false

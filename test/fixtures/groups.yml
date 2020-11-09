@@ -51,3 +51,7 @@ vanillagrouptwo:
   starts_on: 2018-09-01
   era: eraone
 
+roomcovergroup:
+  name: "Room cover group"
+  starts_on: 2014-01-01
+  era: perpetual
