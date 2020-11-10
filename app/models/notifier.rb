@@ -72,12 +72,12 @@ class Notifier
 
   end
 
-  attr_accessor :start_date,
-                :end_date,
-                :modified_since,
+  attr_accessor :modified_since,
                 :extra_text
   attr_reader   :check_clashes,
-                :send_notifications
+                :send_notifications,
+                :start_date,
+                :end_date
 
   validates :start_date, :presence => true
   validates_with NotifierValidator
@@ -110,6 +110,20 @@ class Notifier
 
   def send_notifications=(new_value)
     @send_notifications = to_bool(new_value)
+  end
+
+  #
+  #  We are not a real active model, so we need to provide some help
+  #  with assignment.  If a real active model date field receives
+  #  an empty string it is set to nil.  Our class has no way of knowing
+  #  what type @start_date is, so we need to help a bit.
+  #
+  def start_date=(value)
+    @start_date = Date.safe_parse(value)
+  end
+
+  def end_date=(value)
+    @end_date = Date.safe_parse(value)
   end
 
   def save
