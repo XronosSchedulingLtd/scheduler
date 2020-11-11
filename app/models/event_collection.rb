@@ -149,8 +149,6 @@ class EventCollection < ApplicationRecord
 
   def enable_day(value)
     if value >=0 && value < Date::ABBR_DAYNAMES.size
-      Rails.logger.debug("days_of_week = #{self.days_of_week.inspect}")
-      Rails.logger.debug("value = #{value} (#{value.class})")
       unless self.days_of_week.include?(value)
         self.days_of_week << value
       end
