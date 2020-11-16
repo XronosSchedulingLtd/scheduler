@@ -15,10 +15,16 @@ require 'tod'
 #
 class TimeSlotSet < Array
 
+  attr_reader :date
+
   def initialize(*params)
     super()
+    @date = nil
     params.each do |p|
-      if p.instance_of?(TimeSlot)
+      case p
+      when Date
+        @date = p
+      when TimeSlot
         self << p
       else
         self << TimeSlot.new(p)

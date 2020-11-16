@@ -277,4 +277,10 @@ class TimeSlotSetTest < ActiveSupport::TestCase
     assert_equal "16:00 - 18:00", tss2[1].to_s
   end
 
+  test "set can have a date" do
+    tss = TimeSlotSet.new(Date.today, "10:00 - 12:00", "08:00 - 09:00", "09:30 - 09:45")
+    assert_not_nil tss
+    assert_equal 3, tss.size
+  end
+
 end
