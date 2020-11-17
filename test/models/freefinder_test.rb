@@ -37,6 +37,7 @@ class FreefinderTest < ActiveSupport::TestCase
       ft_start_date: Date.today,
       ft_num_days: 14
     }
+    @valid_ff = FactoryBot.create(:freefinder, @full_valid_params)
     #
     #  Now give staff2 and staff 4 clashing commitments.
     #
@@ -138,6 +139,11 @@ class FreefinderTest < ActiveSupport::TestCase
   test 'can be saved for user' do
     ff = Freefinder.new(@full_valid_params)
     @user.freefinder = ff
+  end
+
+  test "tt_days accepts strings" do
+    @valid_ff.ft_days = ["", "1", "2", "3"]
+    assert_equal [1,2,3], @valid_ff.ft_days
   end
 
 end

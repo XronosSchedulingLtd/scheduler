@@ -9,7 +9,7 @@ class AddFreeTimeFields < ActiveRecord::Migration[5.2]
     add_column :freefinders, :ft_element_ids,   :text
 
     add_column :settings, :datepicker_type, :integer, default: 0
-    add_column :settings, :ft_default_num_days,      :integer, default: 14
+    add_column :settings, :ft_default_num_days,      :integer, default: 7
     add_column :settings,
                :ft_default_days,
                :text,

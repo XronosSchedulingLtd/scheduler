@@ -93,6 +93,7 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
     fs = fsf.slots_on(@day1)
     assert fs.instance_of?(TimeSlotSet)
     assert_not fs.empty?
+    assert_equal @day1, fs.date
     assert_equal 2, fs.size
     assert_equal "10:30 - 11:30", fs[0].to_s
     assert_equal "14:00 - 15:30", fs[1].to_s
@@ -108,6 +109,7 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
     fs = fsf.slots_on(@day1)
     assert fs.instance_of?(TimeSlotSet)
     assert_not fs.empty?
+    assert_equal @day1, fs.date
     assert_equal 1, fs.size
     assert_equal "14:00 - 15:30", fs[0].to_s
   end
@@ -123,6 +125,7 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
     fs = fsf.slots_on(@day1)
     assert fs.instance_of?(TimeSlotSet)
     assert_not fs.empty?
+    assert_equal @day1, fs.date
     assert_equal 2, fs.size
     assert_equal "10:30 - 11:30", fs[0].to_s
     assert_equal "14:00 - 15:30", fs[1].to_s
@@ -133,6 +136,7 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
     fs = fsf.slots_on(@day1)
     assert fs.instance_of?(TimeSlotSet)
     assert_not fs.empty?
+    assert_equal @day1, fs.date
     assert_equal 3, fs.size
     assert_equal "07:00 - 08:00", fs[0].to_s
     assert_equal "10:30 - 11:30", fs[1].to_s
@@ -144,6 +148,7 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
     fs = fsf.slots_on(@day1)
     assert fs.instance_of?(TimeSlotSet)
     assert_not fs.empty?
+    assert_equal @day1, fs.date
     assert_equal 3, fs.size
     assert_equal "10:30 - 11:30", fs[0].to_s
     assert_equal "14:00 - 15:30", fs[1].to_s
@@ -160,6 +165,7 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
     fs = fsf.slots_on(@day1)
     assert fs.instance_of?(TimeSlotSet)
     assert_not fs.empty?
+    assert_equal @day1, fs.date
     assert_equal 2, fs.size
     assert_equal "10:30 - 11:30", fs[0].to_s
     assert_equal "14:00 - 15:30", fs[1].to_s

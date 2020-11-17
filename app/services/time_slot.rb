@@ -187,4 +187,7 @@ class TimeSlot < Tod::Shift
     end
   end
 
+  def to_partial_path
+    'time_slot'
+  end
 end

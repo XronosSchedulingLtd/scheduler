@@ -1,0 +1,21 @@
+<div class="small-11 columns">
+  <%= form_with url: add_element_freefinder_path(@freefinder), local: false do |f| %>
+    <%= f.autocomplete_field :element_name,
+                             autocomplete_element_name_elements_path,
+                             'data-auto-focus' => true,
+                             id_element: '#ff_element_id',
+                             id: 'ff-element-name',
+                             placeholder: "Person or group" %>
+    <%= f.hidden_field :element_id, id: :ff_element_id %>
+    <%= f.submit 'Add', class: 'zfbutton tiny radius' %>
+  <% end %>
+  <h6>Currently</h6>
+  <% if @elements.empty? %>
+    No-one as yet
+  <% else %>
+    <ul>
+      <%= render collection: @elements, partial: 'freefinders/element' %>
+    </ul>
+  <% end %>
+</div>
+

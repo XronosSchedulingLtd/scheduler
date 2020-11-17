@@ -3,7 +3,7 @@
 //
 //  Are we on the right page?  If not, do nothing.
 //
-if ($('#freedatepicker').length &&
+if ($('#freefinder_on').length &&
     $('#ff-buttons-2').length) {
   var fdp2 = function() {
     var period_definitions;
@@ -38,7 +38,13 @@ if ($('#freedatepicker').length &&
       //  with ISO dates, its behaviour with other formats is implementation
       //  dependent.  By using a library, we can dictate the behaviour.
       //
-      var day = moment($('#freedatepicker').val(), "DD/MM/YYYY");
+      var contents = $('#freefinder_on').val();
+      console.log(contents);
+      var day = moment(contents, "DD/MM/YYYY");
+      if (!day.isValid()) {
+        console.log("Trying YYYY-MM-DD");
+        day = moment(contents, "YYYY-MM-DD");
+      }
       var dayNo = day.day();
 
       var newContents = [];
@@ -56,7 +62,7 @@ if ($('#freedatepicker').length &&
     };
 
     that.init = function() {
-      date_field = $('#freedatepicker');
+      date_field = $('#freefinder_on');
       //
       //  Periods may not be defined.  If not, still provide fallback
       //  functionality.
@@ -68,7 +74,7 @@ if ($('#freedatepicker').length &&
         end_time_field = $('#freefinder_end_time_text');
         target_div = $('#ff-buttons-2');
         createButtonsForDate();
-        date_field.on("change", createButtonsForDate);
+        date_field.change(createButtonsForDate);
       }
 
     };

@@ -7,7 +7,7 @@
       <%= render partial: 'freefinders/who_bit' %>
     </div>
   </div>
-  <div class="small-12 large-6 columns">
+  <div class="small-12 large-4 columns">
     <h4>When</h4>
     <%= form_for(@freefinder) do |f| %>
       <% if @freefinder.errors.any? %>
@@ -70,33 +70,34 @@
         </div>
       </div>
       <div class="row collapse">
-        <div class="small-11 columns">
-          <div class="right">
-            <label>Days of the week</label>
-            <%=
-              f.collection_check_boxes(
-                :ft_days,
-                DayNamer.daynames_with_index,
-                :index,
-                :name
-              )
-            %>
-          </div>
+        <div class="small-5 columns">
+          <%= f.label "Days of the week", class: "right inline" %>
+        </div>
+        <div class="small-6 columns">
+          <%=
+            f.collection_check_boxes(
+              :ft_days,
+              DayNamer.daynames_with_index,
+              :index,
+              :name
+            ) do |b|
+              b.label { b.check_box + " " + b.text }
+            end
+          %>
         </div>
         <div class="small-1 columns">
         </div>
       </div>
       <div class="row collapse">
-        <div class="small-5 small-offset-4 columns">
+        <div class="small-11 small-offset-1 columns">
           <%= f.submit "Find free", class: "zfbutton tiny radius" %>
           <%= link_to "Cancel", "/", class: 'zfbutton tiny radius button-link' %>
-        </div>
-        <div class="small-3 columns">
+          <%= link_to "Reset", reset_freefinder_path(1), method: :put, class: 'zfbutton tiny radius button-link' %>
         </div>
       </div>
     <% end %>
   </div>
-  <div class="small-12 large-2 columns">
+  <div class="small-12 large-4 columns">
     <h4>Results</h4>
     <% if @days %>
       <% if @days.size > 0 %>

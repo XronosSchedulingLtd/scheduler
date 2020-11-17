@@ -43,8 +43,8 @@ class FreeSlotFinder
   end
 
   def slots_on(date)
-    free_times = TimeSlotSet.new([@start_time, @end_time])
-    @elements.each do |element|
+    free_times = TimeSlotSet.new(date, [@start_time, @end_time])
+    flatten_on(date, @elements).each do |element|
       commitments =
         element.commitments_on(startdate: date).preload(event: :eventcategory)
       commitments.each do |commitment|
@@ -56,4 +56,26 @@ class FreeSlotFinder
     end
     free_times
   end
+
+  private
+
+  #
+  #  Takes an array of elements, some of which may be groups, and flattens
+  #  it to an array of atomic elements - no groups.
+  #
+  def flatten_on(date, elements)
+    result = []
+    elements.each do |element|
+      if element.entity_type == "Group"
+        members = element.entity.members(date, true, true)
+        members.each do |member|
+          result << member.element
+        end
+      else
+        result << element
+      end
+    end
+    result.uniq
+  end
+
 end

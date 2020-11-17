@@ -22,6 +22,8 @@ class TimeSlotSet < Array
     @date = nil
     params.each do |p|
       case p
+      when nil
+        # Do nothing
       when Date
         @date = p
       when TimeSlot
@@ -67,7 +69,7 @@ class TimeSlotSet < Array
       raise ArgumentError.new("Can't intersect with object of type #{other.class}.")
     end
     if self.empty? || other.empty?
-      TimeSlotSet.new       # Empty
+      TimeSlotSet.new(self.date)       # Empty
     else
       #
       #  We now need to identify the time periods *common* to both
@@ -75,7 +77,8 @@ class TimeSlotSet < Array
       #  then doing a double subtraction.  Can we do it more directly
       #  though?
       #
-      working = TimeSlotSet.new([
+      working = TimeSlotSet.new(self.date,
+      [
         [self[0].beginning, other[0].beginning].min,
         [self[-1].ending, other[-1].ending].max
       ])
@@ -133,7 +136,11 @@ class TimeSlotSet < Array
   #
   def at_least_mins(mins)
     seconds = mins * 60
-    TimeSlotSet.new(*self.select {|ts| ts.duration >= seconds})
+    TimeSlotSet.new(self.date, *self.select {|ts| ts.duration >= seconds})
+  end
+
+  def to_partial_path
+    'time_slot_set'
   end
 
   private

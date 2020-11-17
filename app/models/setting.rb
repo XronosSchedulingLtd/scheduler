@@ -120,6 +120,24 @@ class Setting < ApplicationRecord
     # Ignore
   end
 
+  def enable_day(value)
+    if value >=0 && value < Date::ABBR_DAYNAMES.size
+      unless self.ft_default_days.include?(value)
+        self.ft_default_days << value
+      end
+    end
+  end
+
+  def ft_default_days=(strings)
+    self[:ft_default_days] = []
+    strings.each do |string|
+      unless string.empty?
+        value = string.to_i
+        enable_day(value)
+      end
+    end
+  end
+
   def self.title_text
     @@setting ||= Setting.first
     if @@setting && !@@setting.title_text.blank?

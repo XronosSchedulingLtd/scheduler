@@ -122,7 +122,8 @@ class SettingsControllerTest < ActionController::TestCase
       ft_default_num_days:              12,
       ft_default_day_starts_at:         "09:00",
       ft_default_day_ends_at:           "19:00",
-      ft_default_duration:              30
+      ft_default_duration:              30,
+      ft_default_days:                  [2,3,4]
     }
 
     to_update.each do |key, value|
@@ -171,7 +172,7 @@ class SettingsControllerTest < ActionController::TestCase
     unless contents
       stored = @setting[field]
       if stored.instance_of?(Tod::TimeOfDay)
-        contents = stored.strftime("%H:%M:%S.%3N")
+        contents = stored.strftime("%H:%M:%S")
       else
         contents = stored.to_s
       end

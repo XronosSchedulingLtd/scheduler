@@ -27,4 +27,20 @@ class ActionView::Helpers::FormBuilder
     end
   end
 
+  def sane_time_field(selector, **options)
+    #
+    #  By default, the Rails time_field builder uses %T.%L as its
+    #  format string, resulting in stuff like "08:30:00.000", but
+    #  then Tod::TimeOfDay can't parse that if/when it comes back.
+    #  Let's have just "08:30:00" instead.
+    #
+    unless options[:value]
+      item = @object[selector]
+      if item.respond_to?(:strftime)
+        options[:value] = item.strftime("%H:%M:%S")
+      end
+    end
+    self.time_field(selector, options)
+  end
+
 end

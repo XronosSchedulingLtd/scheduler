@@ -30,4 +30,6 @@ one:
   zoom_link_base_url: "https://zoom.myschool.org.uk/"
   ft_default_day_starts_at: "08:30"
   ft_default_day_starts_at: "17:30"
+  ft_default_num_days: 7
   ft_default_duration: 60
+  ft_default_days: [1,2,3,4,5]

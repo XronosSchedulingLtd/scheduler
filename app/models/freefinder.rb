@@ -24,12 +24,17 @@ class Freefinder < ApplicationRecord
   serialize :ft_day_starts_at, Tod::TimeOfDay
   serialize :ft_day_ends_at, Tod::TimeOfDay
   serialize :ft_days, Array
+  serialize :ft_element_ids, Array
   belongs_to :element, optional: true
 
   belongs_to :owner, class_name: :User
 
   validates :ft_start_date, presence: true
-  validates :ft_num_days, presence: true
+  validates :ft_num_days, numericality: {
+    only_integer: true,
+    greater_than_or_equal_to: 1,
+    less_than_or_equal_to: 14
+  }
 
   attr_reader :free_elements, :done_search, :original_membership_size, :member_elements
 
@@ -63,6 +68,31 @@ class Freefinder < ApplicationRecord
 
   def end_time_text=(value)
     self.end_time = Time.zone.parse(value)
+  end
+
+  def enable_day(value)
+    if value >=0 && value < Date::ABBR_DAYNAMES.size
+      unless self.ft_days.include?(value)
+        self.ft_days << value
+      end
+    end
+  end
+
+  def ft_days=(array)
+    self[:ft_days] = []
+    array.each do |value|
+      case value
+      when Integer
+        enable_day(value)
+      when String
+        unless value.empty?
+          value = value.to_i
+          enable_day(value)
+        end
+      else
+        raise ArgumentError.new("Can't handle value of type #{value.class}")
+      end
+    end
   end
 
   def on_text
