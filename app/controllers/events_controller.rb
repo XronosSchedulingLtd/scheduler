@@ -316,6 +316,16 @@ class EventsController < ApplicationController
         end
       end
     end
+    if params[:eventcategory_id]
+      #
+      #  Note that this will override anything set up in the user's
+      #  preferences.
+      #
+      eventcategory = Eventcategory.find_by(id: params[:eventcategory_id])
+      if eventcategory
+        @event.eventcategory = eventcategory
+      end
+    end
     @pre_requisites = PreRequisite.pre_creation.order(:priority).to_a
     #
     #  Split into two columns.

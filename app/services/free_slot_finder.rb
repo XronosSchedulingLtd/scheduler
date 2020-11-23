@@ -28,11 +28,18 @@ class FreeSlotFinder
     def at_least_mins(mins)
       result = super
       result.mins_required = self.mins_required
+      result.element_ids = self.element_ids.dup
       result
     end
 
     def to_partial_path
       'fsf_result'
+    end
+
+    protected
+
+    def element_ids=(new_ids)
+      @element_ids = new_ids
     end
 
   end
