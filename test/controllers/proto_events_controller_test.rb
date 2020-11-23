@@ -51,6 +51,7 @@ class ProtoEventsControllerTest < ActionController::TestCase
            }
     end
     assert_response :success
+    assert_no_errors
   end
 
   test "should update proto_event" do
@@ -62,6 +63,7 @@ class ProtoEventsControllerTest < ActionController::TestCase
             proto_event: @valid_params
           }
     assert_response :success
+    assert_no_errors
   end
 
   test "should destroy proto_event" do
@@ -80,6 +82,7 @@ class ProtoEventsControllerTest < ActionController::TestCase
           id: @existing_proto_event
         }
     assert_response :success
+    assert_no_errors
     #
     #  And did we get some events?
     #

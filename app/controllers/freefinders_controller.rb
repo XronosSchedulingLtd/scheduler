@@ -154,17 +154,18 @@ class FreefindersController < ApplicationController
           #  Surely most of this logic should be in the model?
           #
           @days = []
-          fsf = FreeSlotFinder.new(@elements,
-                                   @freefinder.ft_duration,
-                                   @freefinder.ft_day_starts_at,
-                                   @freefinder.ft_day_ends_at)
+          @fsf = FreeSlotFinder.new(@elements,
+                                    @freefinder.ft_duration,
+                                    @freefinder.ft_day_starts_at,
+                                    @freefinder.ft_day_ends_at)
           @freefinder.ft_num_days.times do |i|
             date = @freefinder.ft_start_date + i.days
             if @freefinder.ft_days.include?(date.wday)
               slots =
-                fsf.slots_on(@freefinder.ft_start_date + i.days).
-                    at_least_mins(@freefinder.ft_duration)
+                @fsf.slots_on(@freefinder.ft_start_date + i.days).
+                     at_least_mins(@freefinder.ft_duration)
               unless slots.empty?
+                Rails.logger.debug("slots is of class #{slots.class}")
                 @days << slots
               end
             end

@@ -1,1 +1,4 @@
-<li><%= time_slot.to_s %></li>
+<li>
+  <%= time_slot.to_s %>
+  <%= ff_booking_links(fsf_result, time_slot) %>
+</li>

@@ -46,6 +46,7 @@ class MembershipsControllerTest < ActionController::TestCase
       )
     end
     assert_redirected_to group_memberships_path(@source_group)
+    assert_no_errors
   end
 
   test "should get edit" do
@@ -66,6 +67,7 @@ class MembershipsControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to group_memberships_path(@source_group)
+    assert_no_errors
     #
     #  Because we have moved one of the memberships to starting
     #  tomorrow, there should now be only 2 members today.
@@ -109,6 +111,7 @@ class MembershipsControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to group_memberships_path(@source_group)
+    assert_no_errors
     #
     #  Because we have moved one of the memberships to starting
     #  tomorrow, there should now be only 2 members today.

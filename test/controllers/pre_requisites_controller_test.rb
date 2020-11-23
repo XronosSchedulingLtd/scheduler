@@ -34,6 +34,7 @@ class PreRequisitesControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to pre_requisites_path
+    assert_no_errors
   end
 
   test "should show pre_requisite" do
@@ -60,6 +61,7 @@ class PreRequisitesControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to pre_requisites_path
+    assert_no_errors
   end
 
   test "should destroy pre_requisite" do

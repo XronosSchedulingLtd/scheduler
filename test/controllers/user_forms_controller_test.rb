@@ -31,6 +31,7 @@ class UserFormsControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to user_forms_path
+    assert_no_errors
   end
 
   test "should show user_form" do
@@ -55,6 +56,7 @@ class UserFormsControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to user_forms_path
+    assert_no_errors
   end
 
   test "should destroy user_form" do

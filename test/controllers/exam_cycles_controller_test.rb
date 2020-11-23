@@ -47,6 +47,7 @@ class ExamCyclesControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to exam_cycles_path
+    assert_no_errors
   end
 
   test "should show exam_cycle" do
@@ -80,6 +81,7 @@ class ExamCyclesControllerTest < ActionController::TestCase
             }
           }
     assert_redirected_to exam_cycles_path
+    assert_no_errors
   end
 
   test "should destroy exam_cycle" do

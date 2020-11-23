@@ -2,6 +2,7 @@
 
 //
 //  Are we on the right page?  If not, do nothing.
+//  This code is for the "find free resources" page.
 //
 if ($('#freefinder_on').length &&
     $('#ff-buttons-2').length) {

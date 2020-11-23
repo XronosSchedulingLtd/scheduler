@@ -91,7 +91,7 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
   test "can find free slots" do
     fsf = FreeSlotFinder.new(@elements, 60, "08:30", "17:00")
     fs = fsf.slots_on(@day1)
-    assert fs.instance_of?(TimeSlotSet)
+    assert fs.instance_of?(FreeSlotFinder::FSFResult)
     assert_not fs.empty?
     assert_equal @day1, fs.date
     assert_equal 2, fs.size
@@ -107,7 +107,7 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
                         commitments_to: [@staff1])
     fsf = FreeSlotFinder.new(@elements, 60, "08:30", "17:00")
     fs = fsf.slots_on(@day1)
-    assert fs.instance_of?(TimeSlotSet)
+    assert fs.instance_of?(FreeSlotFinder::FSFResult)
     assert_not fs.empty?
     assert_equal @day1, fs.date
     assert_equal 1, fs.size
@@ -123,7 +123,7 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
                         commitments_to: [@staff1])
     fsf = FreeSlotFinder.new(@elements, 60, "08:30", "17:00")
     fs = fsf.slots_on(@day1)
-    assert fs.instance_of?(TimeSlotSet)
+    assert fs.instance_of?(FreeSlotFinder::FSFResult)
     assert_not fs.empty?
     assert_equal @day1, fs.date
     assert_equal 2, fs.size
@@ -134,7 +134,7 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
   test "free slot can be at start of day" do
     fsf = FreeSlotFinder.new(@elements, 60, "07:00", "17:00")
     fs = fsf.slots_on(@day1)
-    assert fs.instance_of?(TimeSlotSet)
+    assert fs.instance_of?(FreeSlotFinder::FSFResult)
     assert_not fs.empty?
     assert_equal @day1, fs.date
     assert_equal 3, fs.size
@@ -146,7 +146,7 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
   test "free slot can be at end of day" do
     fsf = FreeSlotFinder.new(@elements, 60, "08:30", "19:00")
     fs = fsf.slots_on(@day1)
-    assert fs.instance_of?(TimeSlotSet)
+    assert fs.instance_of?(FreeSlotFinder::FSFResult)
     assert_not fs.empty?
     assert_equal @day1, fs.date
     assert_equal 3, fs.size
@@ -163,7 +163,7 @@ class FreeSlotFinderTest < ActiveSupport::TestCase
 
     fsf = FreeSlotFinder.new([group.element], 60, "08:30", "17:00")
     fs = fsf.slots_on(@day1)
-    assert fs.instance_of?(TimeSlotSet)
+    assert fs.instance_of?(FreeSlotFinder::FSFResult)
     assert_not fs.empty?
     assert_equal @day1, fs.date
     assert_equal 2, fs.size

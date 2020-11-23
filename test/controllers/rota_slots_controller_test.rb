@@ -29,6 +29,7 @@ class RotaSlotsControllerTest < ActionController::TestCase
       )
     end
     assert_response :success
+    assert_no_errors
   end
 
   test "should update rota_slot" do
@@ -46,6 +47,7 @@ class RotaSlotsControllerTest < ActionController::TestCase
       }
     )
     assert_response :success
+    assert_no_errors
   end
 
   test "should destroy rota_slot" do

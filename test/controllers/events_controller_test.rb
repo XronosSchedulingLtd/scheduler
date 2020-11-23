@@ -57,6 +57,7 @@ class EventsControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to events_path
+    assert_no_errors
   end
 
   test "should show event" do
@@ -98,6 +99,7 @@ class EventsControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to events_path
+    assert_no_errors
   end
 
   test "should destroy event" do

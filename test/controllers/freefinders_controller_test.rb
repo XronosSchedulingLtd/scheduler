@@ -54,6 +54,7 @@ class FreefindersControllerTest < ActionController::TestCase
       }
     )
     assert_response :success
+    assert_no_errors
     assert_select '#freefinder_on' do |fields|
       assert_equal 1, fields.count
       assert_equal tomorrow_dmy, fields.first['value']
@@ -74,6 +75,7 @@ class FreefindersControllerTest < ActionController::TestCase
       }
     )
     assert_response :success
+    assert_no_errors
     #
     #  We would normally expect the date to have been converted by the
     #  controller into dd/mm/yyyy, but in this instance the controller
@@ -196,7 +198,7 @@ class FreefindersControllerTest < ActionController::TestCase
         }
       }
     assert_response :success
-    assert_select '.field_with_errors', false, "There should be no errors"
+    assert_no_errors
   end
 
   test "can set num days to 14" do
@@ -213,7 +215,7 @@ class FreefindersControllerTest < ActionController::TestCase
         }
       }
     assert_response :success
-    assert_select '.field_with_errors', false, "There should be no errors"
+    assert_no_errors
   end
 
   test "15 days is too many" do
@@ -230,7 +232,7 @@ class FreefindersControllerTest < ActionController::TestCase
         }
       }
     assert_response :success
-    assert_select '.field_with_errors'
+    assert_errors
     assert_select '#error_explanation' do |fields|
       assert_match /less than or equal to 14/, fields.first.inner_html
     end
@@ -239,6 +241,7 @@ class FreefindersControllerTest < ActionController::TestCase
   test "can reset form" do
     post :reset, params: {id: 1}
     assert_response :success
+    assert_no_errors
     today = Date.today.to_s(:dmy)
     assert_select '#freefinder_ft_start_date' do |fields|
       assert_equal 1, fields.count
@@ -279,6 +282,7 @@ class FreefindersControllerTest < ActionController::TestCase
         }
       }
     assert_response :success
+    assert_no_errors
     assert_select '.field_with_errors', false, "There should be no errors"
   end
 

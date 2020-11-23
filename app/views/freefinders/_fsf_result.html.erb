@@ -1,0 +1,8 @@
+<li><%= fsf_result.date.compact_format %>
+<ul>
+  <%=
+    render partial: :time_slot,
+      collection: fsf_result,
+      locals: { fsf_result: fsf_result } %>
+</ul>
+</li>

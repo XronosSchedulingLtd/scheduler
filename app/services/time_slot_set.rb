@@ -136,7 +136,7 @@ class TimeSlotSet < Array
   #
   def at_least_mins(mins)
     seconds = mins * 60
-    TimeSlotSet.new(self.date, *self.select {|ts| ts.duration >= seconds})
+    self.class.new(self.date, *self.select {|ts| ts.duration >= seconds})
   end
 
   def to_partial_path

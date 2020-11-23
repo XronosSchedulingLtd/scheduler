@@ -283,4 +283,25 @@ class TimeSlotSetTest < ActiveSupport::TestCase
     assert_equal 3, tss.size
   end
 
+  class SubTimeSlotSet < TimeSlotSet
+  end
+
+  test "sub class stays as sub class through subtraction" do
+    tss1 = SubTimeSlotSet.new("08:00 - 12:00", "13:00 - 17:30")
+    tss2 = TimeSlotSet.new("07:30 - 10:00",
+                           "11:30 - 12:30",
+                           "13:30 - 15:00",
+                           "16:00 - 18:00")
+    tss3 = tss1 - tss2
+    assert tss3.instance_of? SubTimeSlotSet
+    tss1 -= tss2
+    assert tss1.instance_of? SubTimeSlotSet
+  end
+
+  test "sub class stays as sub class through at least mins" do
+    tss1 = SubTimeSlotSet.new("08:00 - 09:00", "13:00 - 17:30")
+    tss2 = tss1.at_least_mins(120)
+    assert tss2.instance_of? SubTimeSlotSet
+  end
+
 end

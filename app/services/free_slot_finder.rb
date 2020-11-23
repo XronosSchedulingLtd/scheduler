@@ -9,6 +9,34 @@ require 'tod'
 
 class FreeSlotFinder
 
+  class FSFResult < TimeSlotSet
+
+    attr_accessor :mins_required
+
+    attr_reader :element_ids
+
+    def initialize(*params)
+      super
+      @mins_required = 0
+      @element_ids = Array.new
+    end
+
+    def note_elements(elements)
+      @element_ids = elements.collect {|e| e.id}
+    end
+
+    def at_least_mins(mins)
+      result = super
+      result.mins_required = self.mins_required
+      result
+    end
+
+    def to_partial_path
+      'fsf_result'
+    end
+
+  end
+
   def initialize(elements, mins_required, start_time, end_time)
     elements.each do |e|
       unless e.instance_of?(Element)
@@ -43,8 +71,11 @@ class FreeSlotFinder
   end
 
   def slots_on(date)
-    free_times = TimeSlotSet.new(date, [@start_time, @end_time])
-    flatten_on(date, @elements).each do |element|
+    free_times = FSFResult.new(date, [@start_time, @end_time])
+    free_times.mins_required = @mins_required
+    elements = flatten_on(date, @elements)
+    free_times.note_elements(elements)
+    elements.each do |element|
       commitments =
         element.commitments_on(startdate: date).preload(event: :eventcategory)
       commitments.each do |commitment|

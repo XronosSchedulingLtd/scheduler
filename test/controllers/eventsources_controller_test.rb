@@ -23,6 +23,7 @@ class EventsourcesControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to eventsources_path
+    assert_no_errors
   end
 
   test "should show eventsource" do
@@ -38,6 +39,7 @@ class EventsourcesControllerTest < ActionController::TestCase
   test "should update eventsource" do
     patch :update, params: { id: @eventsource, eventsource: { name: "Baker" }}
     assert_redirected_to eventsources_path
+    assert_no_errors
   end
 
   test "should destroy eventsource" do

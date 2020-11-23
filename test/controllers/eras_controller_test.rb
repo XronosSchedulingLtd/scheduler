@@ -39,6 +39,7 @@ class ErasControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to era_path(assigns(:era))
+    assert_no_errors
   end
 
   test "should show era" do
@@ -64,6 +65,7 @@ class ErasControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to eras_path
+    assert_no_errors
   end
 
   test "should destroy era" do

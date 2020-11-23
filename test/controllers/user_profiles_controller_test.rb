@@ -34,6 +34,7 @@ class UserProfilesControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to user_profiles_path
+    assert_no_errors
   end
 
   test "should show user_profile" do
@@ -58,6 +59,7 @@ class UserProfilesControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to user_profiles_path
+    assert_no_errors
   end
 
   test "should destroy user_profile" do
