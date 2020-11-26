@@ -10,9 +10,14 @@ class AddFreeTimeFields < ActiveRecord::Migration[5.2]
 
     add_column :settings, :datepicker_type, :integer, default: 0
     add_column :settings, :ft_default_num_days,      :integer, default: 7
+    #
+    #  This next one would naturally be a text column, by MySql won't
+    #  let you set a default value for a column of that type.  Hence
+    #  a string.  (MariaDB has no such issue.)
+    #
     add_column :settings,
                :ft_default_days,
-               :text,
+               :string,
                default: "---\n- 1\n- 2\n- 3\n- 4\n- 5\n"
     add_column :settings, :ft_default_day_starts_at, :time,
       default: Time.find_zone("UTC").parse("08:30")
