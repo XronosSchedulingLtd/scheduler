@@ -460,12 +460,40 @@ class Event < ApplicationRecord
     end
   end
 
+  #
+  #  Two pseudo-attributes used to pass stuff backwards and forwards to
+  #  dialogues.
+  #
   def precommit_element_id
     @precommit_element_id
   end
 
   def precommit_element_id=(value)
     @precommit_element_id = value
+  end
+
+  #
+  #  We store and return "1" or "0", but we can also query.
+  #  Note that it will start life as nil, equivalent to "0".
+  #
+  def skip_edit
+    @skip_edit ||= "0"
+  end
+
+  #
+  #  Convenience method returning a boolean.
+  #
+  def skip_edit?
+    skip_edit == "1"
+  end
+
+  def skip_edit=(value)
+    case value
+    when 1, "1", true
+      @skip_edit = "1"
+    else
+      @skip_edit = "0"
+    end
   end
 
   def starts_at_text

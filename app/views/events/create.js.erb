@@ -1,8 +1,8 @@
 <% if @success %>
-  <% if current_user.can_add_resources? %>
-window.switchToEditingEvent("<%=j render "form" %>");
-  <% else %>
+  <% if @skip_edit %>
 window.finishEditingEvent("<%=j render 'show_event' %>", true)
+  <% else %>
+window.switchToEditingEvent("<%=j render "form" %>");
   <% end %>
 <% else %>
 $('#for_errors').html("<%=j render "error_msgs" %>")

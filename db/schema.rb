@@ -605,7 +605,7 @@ ActiveRecord::Schema.define(version: 2020_10_19_074049) do
     t.string "zoom_link_text"
     t.string "zoom_link_base_url"
     t.integer "datepicker_type", default: 0
-    t.integer "ft_default_num_days", default: 14
+    t.integer "ft_default_num_days", default: 7
     t.text "ft_default_days", default: "'---\\n- 1\\n- 2\\n- 3\\n- 4\\n- 5\\n'"
     t.time "ft_default_day_starts_at", default: "2000-01-01 08:30:00"
     t.time "ft_default_day_ends_at", default: "2000-01-01 17:30:00"

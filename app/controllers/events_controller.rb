@@ -326,6 +326,11 @@ class EventsController < ApplicationController
         @event.eventcategory = eventcategory
       end
     end
+    if params[:noedit]
+      @event.skip_edit = true
+    else
+      @event.skip_edit = false
+    end
     @pre_requisites = PreRequisite.pre_creation.order(:priority).to_a
     #
     #  Split into two columns.
@@ -506,7 +511,13 @@ class EventsController < ApplicationController
         #  he will be thrown straight out to the event display.
         #  Prepare the necessary data.
         #
-        unless current_user.can_add_resources?
+        #  Likewise, the way we were called may have indicated that
+        #  we don't want to go to the edit dialogue.
+        #
+        @skip_edit =
+          !current_user.can_add_resources? ||
+          @event.skip_edit?
+        if @skip_edit
           assemble_event_info
         end
         @quick_buttons = QuickButtons.new(@event)
@@ -780,6 +791,7 @@ class EventsController < ApplicationController
                                   :organiser_name,
                                   :organiser_id,
                                   :organiser_ref,
-                                  :precommit_element_id)
+                                  :precommit_element_id,
+                                  :skip_edit)
   end
 end
