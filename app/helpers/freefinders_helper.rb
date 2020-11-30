@@ -31,38 +31,25 @@ module FreefindersHelper
     results = []
     if current_user.editor? && current_user.can_add_resources?
       eventcategory = Eventcategory.cached_category("Meeting")
+      starting_time = time_slot.beginning.on(fsf_result.date)
+      ending_time = starting_time + fsf_result.mins_required.minutes
+#      ending_time = time_slot.ending.on(fsf_result.date)
+      results <<
+        ff_booking_link(
+          "#{starting_time.strftime("%H:%M")} - #{ending_time.strftime("%H:%M")}",
+          starting_time,
+          ending_time,
+          eventcategory,
+          fsf_result.element_ids)
       if time_slot.duration > fsf_result.mins_required * 60
-        starting_time = time_slot.beginning.on(fsf_result.date)
-        ending_time = starting_time + fsf_result.mins_required.minutes
-        results << ff_booking_link("First #{fsf_result.mins_required}",
-                                   starting_time,
-                                   ending_time,
-                                   eventcategory,
-                                   fsf_result.element_ids)
-
-        ending_time = time_slot.ending.on(fsf_result.date)
-        results << ff_booking_link('Book all',
-                                   starting_time,
-                                   ending_time,
-                                   eventcategory,
-                                   fsf_result.element_ids)
-
-        starting_time = ending_time - fsf_result.mins_required.minutes
-
-        results << ff_booking_link("Last #{fsf_result.mins_required}",
-                                   starting_time,
-                                   ending_time,
-                                   eventcategory,
-                                   fsf_result.element_ids)
-
+        #
+        #  Give a slider as well.
+        #
+        results << "<div class='ff-slidecontainer'>"
+        results << "<input type='range' class='slider' min='1' max='10' value='1'>"
+#        results << "Time: <span class='show-time'></span>"
+        results << "</div>"
       else
-        starting_time = time_slot.beginning.on(fsf_result.date)
-        ending_time = time_slot.ending.on(fsf_result.date)
-        results << ff_booking_link('Book',
-                                   starting_time,
-                                   ending_time,
-                                   eventcategory,
-                                   fsf_result.element_ids)
       end
     end
     results.join(" ").html_safe

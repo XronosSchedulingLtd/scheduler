@@ -16,8 +16,17 @@ if ($('.ff-booking').length) {
                                     $(this).attr('href'));
       }
 
+      function setSlider(index, element) {
+        console.log("One result");
+        $(element).find('.show-time').text("Hello");
+      }
+
       that.init = function() {
         $('.ff-booking').click(openEventModal);
+        //
+        //  Do we have any results on display?  If so, set up the sliders.
+        //
+        $('.ff-result').each(setSlider);
       }
 
       return that;
