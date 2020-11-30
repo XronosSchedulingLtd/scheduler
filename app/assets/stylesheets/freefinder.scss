@@ -1,3 +1,14 @@
+li.ff-result {
+  height: 40px;
+}
+
 .ff-slidecontainer {
   display: inline-block;
+  vertical-align: text-top;
+  margin-left: 10px;
+  width: 120px;
+  .ui-slider-float .ui-slider-tip {
+    width: 74px;
+    left: -12px;
+  }
 }

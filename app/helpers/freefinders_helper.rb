@@ -33,10 +33,9 @@ module FreefindersHelper
       eventcategory = Eventcategory.cached_category("Meeting")
       starting_time = time_slot.beginning.on(fsf_result.date)
       ending_time = starting_time + fsf_result.mins_required.minutes
-#      ending_time = time_slot.ending.on(fsf_result.date)
       results <<
         ff_booking_link(
-          "#{starting_time.strftime("%H:%M")} - #{ending_time.strftime("%H:%M")}",
+          "Book",
           starting_time,
           ending_time,
           eventcategory,
@@ -45,9 +44,8 @@ module FreefindersHelper
         #
         #  Give a slider as well.
         #
-        results << "<div class='ff-slidecontainer'>"
-        results << "<input type='range' class='slider' min='1' max='10' value='1'>"
-#        results << "Time: <span class='show-time'></span>"
+        results << " <div class='ff-slidecontainer'>"
+        results << "<div class='ff-slider'></div>"
         results << "</div>"
       else
       end
