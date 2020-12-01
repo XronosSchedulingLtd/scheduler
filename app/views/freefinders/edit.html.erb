@@ -102,9 +102,11 @@
     <h4>Results</h4>
     <% if @days %>
       <% if @days.size > 0 %>
-        <ul>
-          <%= render @days %>
-        </ul>
+        <div id='fft-results' data-mins-needed='<%= @days[0].mins_required %>'>
+          <ul>
+            <%= render @days %>
+          </ul>
+        </div>
       <% else %>
         None found
       <% end %>
