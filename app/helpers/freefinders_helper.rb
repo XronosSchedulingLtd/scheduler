@@ -23,6 +23,10 @@ module FreefindersHelper
     )
   end
 
+  def timing_data(fsf_result, time_slot)
+    "data-start-time='#{time_slot.beginning.strftime("%H:%M")}' data-end-time='#{time_slot.ending.strftime("%H:%M")}' data-date='#{fsf_result.date.strftime("%Y-%m-%d")}'"
+  end
+
   def ff_booking_links(fsf_result, time_slot)
     #
     #  What exactly we return depends on the relative sizes of what
@@ -31,38 +35,23 @@ module FreefindersHelper
     results = []
     if current_user.editor? && current_user.can_add_resources?
       eventcategory = Eventcategory.cached_category("Meeting")
+      starting_time = time_slot.beginning.on(fsf_result.date)
+      ending_time = starting_time + fsf_result.mins_required.minutes
+      results <<
+        ff_booking_link(
+          "Book",
+          starting_time,
+          ending_time,
+          eventcategory,
+          fsf_result.element_ids)
       if time_slot.duration > fsf_result.mins_required * 60
-        starting_time = time_slot.beginning.on(fsf_result.date)
-        ending_time = starting_time + fsf_result.mins_required.minutes
-        results << ff_booking_link("First #{fsf_result.mins_required}",
-                                   starting_time,
-                                   ending_time,
-                                   eventcategory,
-                                   fsf_result.element_ids)
-
-        ending_time = time_slot.ending.on(fsf_result.date)
-        results << ff_booking_link('Book all',
-                                   starting_time,
-                                   ending_time,
-                                   eventcategory,
-                                   fsf_result.element_ids)
-
-        starting_time = ending_time - fsf_result.mins_required.minutes
-
-        results << ff_booking_link("Last #{fsf_result.mins_required}",
-                                   starting_time,
-                                   ending_time,
-                                   eventcategory,
-                                   fsf_result.element_ids)
-
+        #
+        #  Give a slider as well.
+        #
+        results << " <div class='ff-slidecontainer'>"
+        results << "<div class='ff-slider' #{timing_data(fsf_result, time_slot)}></div>"
+        results << "</div>"
       else
-        starting_time = time_slot.beginning.on(fsf_result.date)
-        ending_time = time_slot.ending.on(fsf_result.date)
-        results << ff_booking_link('Book',
-                                   starting_time,
-                                   ending_time,
-                                   eventcategory,
-                                   fsf_result.element_ids)
       end
     end
     results.join(" ").html_safe
