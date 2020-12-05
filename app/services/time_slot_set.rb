@@ -38,7 +38,7 @@ class TimeSlotSet < Array
   alias_method :parent_shift, :<<
 
   def <<(new_slot)
-    unless new_slot.is_a?(Tod::Shift)
+    unless new_slot.is_a?(TodShift)
       raise ArgumentError.new("Can't add object of type #{new_slot.class}.")
     end
     super
@@ -49,7 +49,7 @@ class TimeSlotSet < Array
     #
     #  Remove either one time slot, or a set of them, from our set.
     #
-    if going.is_a?(Tod::Shift)
+    if going.is_a?(TodShift)
       do_remove(going)
     elsif going.is_a?(TimeSlotSet)
       going.each do |g|
@@ -163,15 +163,27 @@ class TimeSlotSet < Array
   end
 
   def do_remove(slot)
-    working = self.sort
-    self.clear
-    while (current = working.shift)
-      if current.overlaps?(slot)
-        current.subtract(slot) do |remains|
-          self.parent_shift remains
+    #
+    #  An interesting question arises when we subtract a slot of zero
+    #  duration.  Should that cut another slot in two?  It could, but
+    #  then the next invocation of tidy_up! (not here, but any further
+    #  operation might cause one) will glue them back together again.
+    #
+    #  Until we come up with a requirement and design for this kind of
+    #  slicing (would need to store info about where the cut is), we
+    #  ignore zero duration slots for subtraction.
+    #
+    unless slot.duration == 0
+      working = self.sort
+      self.clear
+      while (current = working.shift)
+        if current.overlaps?(slot)
+          current.subtract(slot) do |remains|
+            self.parent_shift remains
+          end
+        else
+          self.parent_shift current
         end
-      else
-        self.parent_shift current
       end
     end
   end

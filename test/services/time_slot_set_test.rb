@@ -250,6 +250,25 @@ class TimeSlotSetTest < ActiveSupport::TestCase
     assert_equal "13:00 - 17:30", tss1[1].to_s
   end
 
+  test "subtracting zero length slot does not modify set" do
+    tss1 = TimeSlotSet.new("08:00 - 12:00", "13:00 - 17:30")
+    ts = TimeSlot.new("09:00 - 09:00")
+    tss1 -= ts
+    assert_equal 2, tss1.size
+    assert_equal "08:00 - 12:00", tss1[0].to_s
+    assert_equal "13:00 - 17:30", tss1[1].to_s
+    ts = TimeSlot.new("08:00 - 08:00")
+    tss1 -= ts
+    assert_equal 2, tss1.size
+    assert_equal "08:00 - 12:00", tss1[0].to_s
+    assert_equal "13:00 - 17:30", tss1[1].to_s
+    ts = TimeSlot.new("12:00 - 12:00")
+    tss1 -= ts
+    assert_equal 2, tss1.size
+    assert_equal "08:00 - 12:00", tss1[0].to_s
+    assert_equal "13:00 - 17:30", tss1[1].to_s
+  end
+
   test "can identify longest slot" do
     #
     #  We expect just one back.  A sort of "sort into order of size

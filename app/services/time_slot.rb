@@ -7,12 +7,12 @@
 
 require 'tod'
 
-class TimeSlot < Tod::Shift
+class TimeSlot < TodShift
   #
   #  Keeps track of one time slot within a day.  E.g. 10:00 - 11:15
   #  Provides helper methods for manipulating them.
   #
-  #  Built on top of Tod::TimeOfDay and Tod::Shift
+  #  Built on top of Tod::TimeOfDay and TodShift
   #
   #
   #  Note that we provide one bit of additional functionality
@@ -32,10 +32,7 @@ class TimeSlot < Tod::Shift
     #
     #  or a Tod::TimeOfDay
     #
-    #  Internally we use Tod::TimeOfDays and Tod::Shifts
-    #
-    #  Note that our end times are always *exclusive* (not the default
-    #  for Tod::Shift) and we don't allow slots to go through midnight.
+    #  Internally we use Tod::TimeOfDays and TodShifts
     #
     #
     #  Allow for arguments to have been passed as an array.
@@ -77,17 +74,14 @@ class TimeSlot < Tod::Shift
     if time1 < time0
       raise ArgumentError.new("Slot duration can't be negative.")
     end
-    if time1 == time0
-      raise ArgumentError.new("Slot duration can't be zero.")
-    end
     super(time0, time1, true)
   end
 
   def <=>(other)
     #
-    #  We allow for the other being merely a Tod::Shift
+    #  We allow for the other being merely a TodShift
     #
-    if other.is_a?(Tod::Shift)
+    if other.is_a?(TodShift)
       #
       #  Start time is more significant.
       #
@@ -108,7 +102,7 @@ class TimeSlot < Tod::Shift
     #  a slot ending at 10:00 *is* strictly less than one starting at
     #  10:00 - they do not overlap.
     #
-    if other.is_a?(Tod::Shift)
+    if other.is_a?(TodShift)
       self.ending.second_of_day <= other.beginning.second_of_day
     else
       raise ArgumentError.new("Can't compare with object of type #{other.class}")
@@ -116,7 +110,7 @@ class TimeSlot < Tod::Shift
   end
 
   def >(other)
-    if other.is_a?(Tod::Shift)
+    if other.is_a?(TodShift)
       self.beginning.second_of_day >= other.ending.second_of_day
     else
       raise ArgumentError.new("Can't compare with object of type #{other.class}")
@@ -124,20 +118,10 @@ class TimeSlot < Tod::Shift
   end
 
   #
-  #  Does this slot immediately precede the other?
-  #
-  def abuts?(other)
-    if other.is_a?(Tod::Shift)
-      self.ending.second_of_day == other.beginning.second_of_day
-    else
-      raise ArgumentError.new("Can't compare with object of type #{other.class}")
-    end
-  end
-  #
   #  Note that we don't have corresponding <= or >=.  Defining these gets
   #  really interesting.  All I want to be able to do is say that one
   #  slot is definitely before or after another.  We have the "overlaps?"
-  #  functionality of Tod::Shift to handle overlaps.
+  #  functionality of TodShift to handle overlaps.
   #
   #  The above two functions disagree slightly with the <=> function.
   #
@@ -147,7 +131,7 @@ class TimeSlot < Tod::Shift
   end
 
   def merge(other)
-    if other.is_a?(Tod::Shift)
+    if other.is_a?(TodShift)
       start_tod = [self.beginning, other.beginning].min
       end_tod = [self.ending, other.ending].max
       TimeSlot.new(start_tod, end_tod)
@@ -161,7 +145,7 @@ class TimeSlot < Tod::Shift
     #  The result of subtraction may be 0, 1 or 2 slots, so we return
     #  them via a yield.
     #
-    unless other.is_a?(Tod::Shift)
+    unless other.is_a?(TodShift)
       raise ArgumentError.new("Can't subtract object of type #{other.class}")
     end
     if self.overlaps?(other)
