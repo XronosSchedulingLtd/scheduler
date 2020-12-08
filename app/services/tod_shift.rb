@@ -13,6 +13,75 @@ require 'tod'
 
 class TodShift
 
+  class InnerShift
+
+    attr_reader :beg_sec, :end_sec
+
+    def initialize(beg_sec, end_sec)
+      @beg_sec = beg_sec
+      @end_sec = end_sec
+    end
+
+    def duration
+      @end_sec - @beg_sec
+    end
+
+    def hash_str
+      "#{@beg_sec}:#{@end_sec}".hash
+    end
+
+    def include?(tod)
+      second = tod.to_i
+      @beg_sec <= second && second < @end_sec
+    end
+
+    #
+    #  One starts as the other ends.
+    #
+    def abuts?(other)
+      self.beg_sec == other.end_sec || self.end_sec == other.beg_sec
+    end
+
+    #
+    #  Starts or ends at precisely the same time.
+    #
+    def coterminates?(other)
+      self.beg_sec == other.beg_sec || self.end_sec == other.end_sec
+    end
+
+    #
+    #  Shares at least one common time.  This may be only an instant,
+    #  but must be internal as all Shifts have an exclusive end.  If two
+    #  shifts abut, they do not overlap.
+    #
+    #  The logic here comes from thinking about when they don't overlap.
+    #
+    #  (a.start >= b.end) || (b.start >= a.end)
+    #
+    #  Negate that and reduce and we get:
+    #
+    #  a.start < b.end && b.start < a.end
+    #
+    def overlaps?(other)
+      self.beg_sec < other.end_sec && other.beg_sec < self.end_sec
+    end
+
+    #
+    #  Sort of the inverse of overlaps?  They occupy completely distinct
+    #  times, but may just touch.
+    #
+    def avoids?(other)
+      self.beg_sec >= other.end_sec || other.beg_sec >= self.end_sec
+    end
+
+    #
+    #  All the times of other our our times too.
+    #
+    def contains?(other)
+      self.beg_sec <= other.beg_sec && self.end_sec >= other.end_sec
+    end
+  end
+
   attr_reader :beginning, :ending, :exclude_end
 
   def initialize(beginning, ending, exclude_end=true)
@@ -46,8 +115,7 @@ class TodShift
       #
       #  A normal, forwards range.  Doesn't traverse midnight.
       #
-      @beg_sec = beg_sec
-      @end_sec = end_sec
+      @inner = InnerShift.new(beg_sec, end_sec)
       @inverse = false
     else
       #
@@ -56,8 +124,7 @@ class TodShift
       #  it as a single range internally we actually store the bit of the
       #  day which is *not* within it.
       #
-      @beg_sec = end_sec
-      @end_sec = beg_sec
+      @inner = InnerShift.new(end_sec, beg_sec)
       @inverse = true
     end
     freeze
@@ -72,14 +139,14 @@ class TodShift
   end
 
   def hash
-    "#{@beg_sec}:#{@end_sec}:#{@inverse}:#{@exclude_end}".hash
+    "#{@inner.hash_str}:#{@inverse}:#{@exclude_end}".hash
   end
 
   def duration
     if @inverse
-      Tod::TimeOfDay::NUM_SECONDS_IN_DAY - internal_duration
+      Tod::TimeOfDay::NUM_SECONDS_IN_DAY - @inner.duration
     else
-      internal_duration
+      @inner.duration
     end
   end
 
@@ -100,19 +167,14 @@ class TodShift
       raise ArgumentError.new("can only abut other TodShifts")
     end
     if self.inverse == other.inverse
-      internal_abuts?(other)
+      inner.abuts?(other.inner)
     else
-      internal_coterminates?(other)
+      inner.coterminates?(other.inner)
     end
   end
 
   def include?(tod)
-    second = tod.to_i
-    if @inverse
-      second >= @end_sec || second < @beg_sec
-    else
-      @beg_sec <= second && second < @end_sec
-    end
+    @inverse ^ @inner.include?(tod)
   end
 
   def contains?(other)
@@ -121,9 +183,9 @@ class TodShift
     end
     if self.inverse
       if other.inverse
-        other.internal_contains?(self)
+        other.inner.contains?(self.inner)
       else
-        self.internal_avoids?(other)
+        self.inner.avoids?(other.inner)
       end
     else
       if other.inverse
@@ -134,7 +196,7 @@ class TodShift
         #
         false
       else
-        self.internal_contains?(other)
+        self.inner.contains?(other.inner)
       end
     end
   end
@@ -151,69 +213,19 @@ class TodShift
       if other.inverse
         true
       else
-        !self.internal_contains?(other)
+        !self.inner.contains?(other.inner)
       end
     else
       if other.inverse
-        !other.internal_contains?(self)
+        !other.inner.contains?(self.inner)
       else
-        internal_overlaps?(other)
+        inner.overlaps?(other.inner)
       end
     end
   end
 
   protected
 
-  attr_reader :beg_sec, :end_sec, :inverse
-
-  def internal_duration
-    @end_sec - @beg_sec
-  end
-
-  #
-  #  One starts as the other ends.
-  #
-  def internal_abuts?(other)
-    self.beg_sec == other.end_sec || self.end_sec == other.beg_sec
-  end
-
-  #
-  #  Starts or ends at precisely the same time.
-  #
-  def internal_coterminates?(other)
-    self.beg_sec == other.beg_sec || self.end_sec == other.end_sec
-  end
-
-  #
-  #  Shares at least one common time.  This may be only an instant,
-  #  but must be internal as all Shifts have an exclusive end.  If two
-  #  shifts abut, they do not overlap.
-  #
-  #  The logic here comes from thinking about when they don't overlap.
-  #
-  #  (a.start >= b.end) || (b.start >= a.end)
-  #
-  #  Negate that and reduce and we get:
-  #
-  #  a.start < b.end && b.start < a.end
-  #
-  def internal_overlaps?(other)
-    self.beg_sec < other.end_sec && other.beg_sec < self.end_sec
-  end
-
-  #
-  #  Sort of the inverse of overlaps?  They occupy completely distinct
-  #  times, but may just touch.
-  #
-  def internal_avoids?(other)
-    self.beg_sec >= other.end_sec || other.beg_sec >= self.end_sec
-  end
-
-  #
-  #  All the times of other our our times too.
-  #
-  def internal_contains?(other)
-    self.beg_sec <= other.beg_sec && self.end_sec >= other.end_sec
-  end
+  attr_reader :inner, :inverse
 
 end
