@@ -33,6 +33,7 @@ class LocationsControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to locations_path
+    assert_no_errors
   end
 
   test "should show location" do
@@ -59,6 +60,7 @@ class LocationsControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to "/banana"
+    assert_no_errors
   end
 
   test "should destroy location" do

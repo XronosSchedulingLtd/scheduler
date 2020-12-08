@@ -12,6 +12,14 @@ class ActiveSupport::TestCase
   # Add more helper methods to be used by all tests here...
   include FactoryBot::Syntax::Methods
 
+  def assert_no_errors
+    assert_select '.field_with_errors', false, "There should be no errors"
+  end
+
+  def assert_errors
+    assert_select '.field_with_errors'
+  end
+
 #  module FailingTest
 #    def test_it_fails
 #      assert false, "See - told you it fails"

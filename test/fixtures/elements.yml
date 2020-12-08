@@ -83,3 +83,12 @@ grouponeelement:
   entity: groupone (Group)
   uuid: "mswksalsj"
 
+roomcovergroupelement:
+  name: "Room cover group"
+  entity: roomcovergroup (Group)
+  uuid: "ksklhassss"
+
+prepelement:
+  name: "Prep"
+  entity: prep (Property)
+  uuid: "failed"

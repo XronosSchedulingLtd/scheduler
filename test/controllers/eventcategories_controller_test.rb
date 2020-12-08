@@ -36,6 +36,7 @@ class EventcategoriesControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to eventcategories_path
+    assert_no_errors
   end
 
   test "should show eventcategory" do
@@ -65,6 +66,7 @@ class EventcategoriesControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to eventcategories_path
+    assert_no_errors
   end
 
   test "should destroy eventcategory" do

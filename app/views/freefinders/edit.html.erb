@@ -1,0 +1,117 @@
+<h1>Find free times</h1>
+
+<div id="request-index" data-dorefresh="0" data-goroot="1" class="flag-refreshes"></div>
+<div class="row collapse">
+  <div class="small-12 large-3 columns">
+    <h4>Who</h4>
+    <div class="row collapse" id='ff-who-bit'>
+      <%= render partial: 'freefinders/who_bit' %>
+    </div>
+  </div>
+  <div class="small-12 large-4 columns">
+    <h4>When</h4>
+    <%= form_for(@freefinder) do |f| %>
+      <% if @freefinder.errors.any? %>
+        <div id="error_explanation">
+          <ul>
+            <% @freefinder.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+      <div class="row collapse">
+        <div class="small-5 columns">
+          <%= f.label "Start date", class: "right inline" %>
+        </div>
+        <div class="small-6 columns">
+          <%= f.configured_date_field :ft_start_date %>
+        </div>
+        <div class="small-1 columns">
+        </div>
+      </div>
+      <div class="row collapse">
+        <div class="small-5 columns">
+          <%= f.label "Days to search", class: "right inline" %>
+        </div>
+        <div class="small-6 columns">
+          <%= f.number_field :ft_num_days %>
+        </div>
+        <div class="small-1 columns">
+        </div>
+      </div>
+      <div class="row collapse">
+        <div class="small-5 columns">
+          <%= f.label "Earliest start time", class: "right inline" %>
+        </div>
+        <div class="small-6 columns">
+          <%= f.sane_time_field :ft_day_starts_at %>
+        </div>
+        <div class="small-1 columns">
+        </div>
+      </div>
+      <div class="row collapse">
+        <div class="small-5 columns">
+          <%= f.label "Latest end time", class: "right inline" %>
+        </div>
+        <div class="small-6 columns">
+          <%= f.sane_time_field :ft_day_ends_at %>
+        </div>
+        <div class="small-1 columns">
+        </div>
+      </div>
+      <div class="row collapse">
+        <div class="small-5 columns">
+          <%= f.label "Required duration (mins)", class: "right inline" %>
+        </div>
+        <div class="small-6 columns">
+          <%= f.number_field :ft_duration %>
+        </div>
+        <div class="small-1 columns">
+        </div>
+      </div>
+      <div class="row collapse">
+        <div class="small-5 columns">
+          <%= f.label "Days of the week", class: "right inline" %>
+        </div>
+        <div class="small-6 columns">
+          <%=
+            f.collection_check_boxes(
+              :ft_days,
+              DayNamer.daynames_with_index,
+              :index,
+              :name
+            ) do |b|
+              b.label { b.check_box + " " + b.text }
+            end
+          %>
+        </div>
+        <div class="small-1 columns">
+        </div>
+      </div>
+      <div class="row collapse">
+        <div class="small-11 small-offset-1 columns">
+          <%= f.submit "Find free", class: "zfbutton tiny radius" %>
+          <%= link_to "Cancel", "/", class: 'zfbutton tiny radius button-link' %>
+          <%= link_to "Reset", reset_freefinder_path(1), method: :put, class: 'zfbutton tiny radius button-link' %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  <div class="small-12 large-5 columns">
+    <h4>Results</h4>
+    <% if @days %>
+      <% if @days.size > 0 %>
+        <div id='fft-results' data-mins-needed='<%= @days[0].mins_required %>'>
+          <ul>
+            <%= render @days %>
+          </ul>
+        </div>
+      <% else %>
+        None found
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+

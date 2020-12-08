@@ -3,3 +3,12 @@
 internalexams:
   rota_template_type: invigilation
   name:               InternalExams
+
+dayshape:
+  rota_template_type: dayshape
+  name:               Normal day
+
+freefinder:
+  rota_template_type: dayshape
+  name:               Free finder
+

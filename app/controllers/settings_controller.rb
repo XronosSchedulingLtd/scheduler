@@ -111,6 +111,12 @@ class SettingsController < ApplicationController
                     :email_keep_days,
                     :event_keep_years,
                     :zoom_link_text,
-                    :zoom_link_base_url)
+                    :zoom_link_base_url,
+                    :datepicker_type,
+                    :ft_default_num_days,
+                    :ft_default_day_starts_at,
+                    :ft_default_day_ends_at,
+                    :ft_default_duration,
+                    ft_default_days: [])
     end
 end

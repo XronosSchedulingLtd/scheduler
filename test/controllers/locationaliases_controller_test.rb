@@ -31,6 +31,7 @@ class LocationaliasesControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to locationaliases_path
+    assert_no_errors
   end
 
   test "should show locationalias" do
@@ -57,6 +58,7 @@ class LocationaliasesControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to "/banana"
+    assert_no_errors
   end
 
   test "should destroy locationalias" do

@@ -72,12 +72,12 @@ class Notifier
 
   end
 
-  attr_accessor :start_date,
-                :end_date,
-                :modified_since,
+  attr_accessor :modified_since,
                 :extra_text
   attr_reader   :check_clashes,
-                :send_notifications
+                :send_notifications,
+                :start_date,
+                :end_date
 
   validates :start_date, :presence => true
   validates_with NotifierValidator
@@ -101,33 +101,6 @@ class Notifier
     end
   end
 
-  def start_date_text
-    self.start_date ? self.start_date.to_formatted_s(:dmy) : ""
-  end
-
-  #
-  #  We're given a text string which we try to make sense of.
-  #
-  def start_date_text=(new_value)
-    self.start_date = Date.safe_parse(new_value)
-  end
-
-  def end_date_text
-    self.end_date ? self.end_date.to_formatted_s(:dmy) : ""
-  end
-
-  def end_date_text=(new_value)
-    self.end_date = Date.safe_parse(new_value)
-  end
-
-  def modified_since_text
-    self.modified_since ? self.modified_since.to_formatted_s(:dmy) : ""
-  end
-
-  def modified_since_text=(new_value)
-    self.modified_since = Date.safe_parse(new_value)
-  end
-
   def check_clashes=(new_value)
     #
     #  I want this to be a boolean, but I might be passed a string.
@@ -137,6 +110,20 @@ class Notifier
 
   def send_notifications=(new_value)
     @send_notifications = to_bool(new_value)
+  end
+
+  #
+  #  We are not a real active model, so we need to provide some help
+  #  with assignment.  If a real active model date field receives
+  #  an empty string it is set to nil.  Our class has no way of knowing
+  #  what type @start_date is, so we need to help a bit.
+  #
+  def start_date=(value)
+    @start_date = Date.safe_parse(value)
+  end
+
+  def end_date=(value)
+    @end_date = Date.safe_parse(value)
   end
 
   def save

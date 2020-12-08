@@ -138,6 +138,9 @@ FactoryBot.define do
       permissions_files       { false }
       permissions_su          { false }
       permissions_memberships { false }
+      permissions_exams       { false }
+      permissions_have_forms  { false }
+      permissions_view_forms  { false }
       #
       #  Getting slightly odd.
       #
@@ -145,8 +148,9 @@ FactoryBot.define do
       #  either editor or not_editor then the user's edit permission
       #  will be inherited from the user profile.
       #
-      permissions_not_editor   { false }
-      permissions_not_can_roam { false }
+      permissions_not_editor        { false }
+      permissions_not_can_roam      { false }
+      permissions_not_add_resources { false }
     end
 
     #
@@ -166,6 +170,10 @@ FactoryBot.define do
 
     trait :not_can_roam do
       permissions_not_can_roam { true }
+    end
+
+    trait :not_add_resources do
+      permissions_not_add_resources { true }
     end
 
     trait :privileged do
@@ -190,6 +198,18 @@ FactoryBot.define do
 
     trait :memberships do
       permissions_memberships { true }
+    end
+
+    trait :does_exams do
+      permissions_exams { true }
+    end
+
+    trait :have_forms do
+      permissions_have_forms { true }
+    end
+
+    trait :view_forms do
+      permissions_view_forms { true }
     end
 
     firstday { 0 }
@@ -218,6 +238,9 @@ FactoryBot.define do
       if permissions_not_can_roam
         hash[:can_roam] = false
       end
+      if permissions_not_add_resources
+        hash[:can_add_resources] = false
+      end
       if permissions_privileged
         hash[:privileged] = true
       end
@@ -235,6 +258,15 @@ FactoryBot.define do
       end
       if permissions_memberships
         hash[:can_edit_memberships] = true
+      end
+      if permissions_exams
+        hash[:exams] = true
+      end
+      if permissions_have_forms
+        hash[:can_has_forms] = true
+      end
+      if permissions_view_forms
+        hash[:can_view_forms] = true
       end
       hash
     end
@@ -488,6 +520,9 @@ FactoryBot.define do
   end
 
   factory :freefinder do
+    association :owner, factory: :user
+    ft_start_date { Date.today }
+    ft_num_days { 14 }
   end
 
   factory :itemreport do

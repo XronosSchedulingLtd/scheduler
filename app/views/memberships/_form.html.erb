@@ -32,13 +32,13 @@ Membership of <%= @membership.group.name %>
       <%= f.label :starts_on, class: 'right inline' %>
     </div>
     <div class='small-2 columns'>
-      <%= f.text_field :starts_on_text, autocomplete: 'off', class: 'datepicker' %>
+      <%= f.configured_date_field(:starts_on) %>
     </div>
     <div class='small-2 columns'>
       <%= f.label :ends_on, class: 'right inline' %>
     </div>
     <div class='small-2 columns'>
-      <%= f.text_field :ends_on_text, autocomplete: 'off', class: 'datepicker' %>
+      <%= f.configured_date_field(:ends_on) %>
     </div>
     <div class='small-4 columns'>
     </div>

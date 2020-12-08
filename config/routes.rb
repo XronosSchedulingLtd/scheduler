@@ -134,7 +134,13 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :freefinders
+  resources :freefinders do
+    member do
+      post :add_element
+      post :remove_element
+      put :reset
+    end
+  end
 
   resources :tutorgroups
 

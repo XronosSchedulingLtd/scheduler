@@ -79,6 +79,11 @@ class NotifierTest < ActiveSupport::TestCase
     assert_not notifier.valid?
   end
 
+  test "allows blank end date" do
+    notifier = Notifier.new(@valid_params.merge({end_date: ""}))
+    assert notifier.valid?
+  end
+
   test "default values are as expected" do
     notifier = Notifier.new(@valid_params)
     assert     notifier.send_notifications

@@ -1,3 +1,29 @@
+v1.12.0   2020-12-08
+
+* New feature - Finding Free Times
+
+  Scheduler has long offered the ability to find a free resource of
+  a given type at a specified time - e.g. find a prefect who is free
+  from 12:30 to 13:30 on Thursday 12th.
+
+  This release adds a new facility to do it the other way around - given
+  a list of resources (typically, but not necessarily, people) and a
+  specified duration (e.g. 45 minutes) it will search for a time when
+  all the indicated resources are free and offer a quick way of creating
+  a new event at that time.
+
+  The user can either list resources individually, or use pre-existing
+  groups.  When a group is specified, the code looks at all the individual
+  members of the group to find when they are all free.  Thus it is
+  possible to search for a free slot for:
+
+    * The Senior Leadership Team
+    * The board room
+
+  and the code will try to find a time when all the SLT, plus the board
+  room are free.
+
+
 v1.11.8   2020-10-13
 
 Adds a couple of utilities to aid in managing staff duties and free

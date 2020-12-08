@@ -12,6 +12,10 @@ class Setting < ApplicationRecord
   @@hostname = ""
   @@rr_versions = nil
 
+  serialize :ft_default_day_starts_at, Tod::TimeOfDay
+  serialize :ft_default_day_ends_at, Tod::TimeOfDay
+  serialize :ft_default_days, Array
+
   belongs_to :current_era, class_name: :Era
   belongs_to :next_era, class_name: :Era, optional: true
   belongs_to :previous_era, class_name: :Era, optional: true
@@ -53,6 +57,17 @@ class Setting < ApplicationRecord
   }
 
   enum auth_type: [:google_auth, :google_demo_auth]
+
+  enum datepicker_type: [:dp_jquery, :dp_native]
+
+  DATEPICKER_NAMES = [
+    "JQuery",
+    "Native"
+  ]
+
+  def self.dp_selections
+    self.datepicker_types.map {|dt| [dt.first, DATEPICKER_NAMES[dt.second]]}
+  end
 
   # We never want this record to be deleted.
   def destroy
@@ -103,6 +118,24 @@ class Setting < ApplicationRecord
 
   def wrapping_eventcategory_name=(newname)
     # Ignore
+  end
+
+  def enable_day(value)
+    if value >=0 && value < Date::ABBR_DAYNAMES.size
+      unless self.ft_default_days.include?(value)
+        self.ft_default_days << value
+      end
+    end
+  end
+
+  def ft_default_days=(strings)
+    self[:ft_default_days] = []
+    strings.each do |string|
+      unless string.empty?
+        value = string.to_i
+        enable_day(value)
+      end
+    end
   end
 
   def self.title_text

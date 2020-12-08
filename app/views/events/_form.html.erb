@@ -4,16 +4,16 @@
 <h2>New event</h2>
 <% end %>
 <div id="event-editing-upper">
-<%= form_for(@event, remote: @minimal) do |f| %>
+  <%=
+    form_for(@event, remote: @minimal) do |f| %>
   <div id="for_errors">
     <% if @event.errors.any? %>
       <%= render "error_msgs" %>
     <% end %>
   </div>
 
-  <%= f.text_field :precommit_element_id,
-                   :type => :hidden,
-                   :readonly => true %>
+  <%= f.hidden_field :precommit_element_id, readonly: true %>
+  <%= f.hidden_field :skip_edit, readonly: true %>
 
   <div class="row">
     <div class="small-9 columns">

@@ -22,22 +22,6 @@ class ExamCycle < ApplicationRecord
   validates :starts_on, :presence => true
   validates :ends_on, :presence => true
 
-  def starts_on_text
-    starts_on ? starts_on.strftime("%d/%m/%Y") : ""
-  end
-
-  def starts_on_text=(value)
-    self.starts_on = value
-  end
-
-  def ends_on_text
-    ends_on ? ends_on.strftime("%d/%m/%Y") : ""
-  end
-
-  def ends_on_text=(value)
-    self.ends_on = value
-  end
-
   def vague_start_date
     if starts_on
       starts_on.strftime("%b %Y")
