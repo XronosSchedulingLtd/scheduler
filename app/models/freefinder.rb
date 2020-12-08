@@ -5,6 +5,7 @@
 # for more information.
 #
 require 'csv'
+require 'tod'
 
 #
 #  A class which does the work of finding free resources of
@@ -20,7 +21,20 @@ require 'csv'
 #
 class Freefinder < ApplicationRecord
 
+  serialize :ft_day_starts_at, Tod::TimeOfDay
+  serialize :ft_day_ends_at, Tod::TimeOfDay
+  serialize :ft_days, Array
+  serialize :ft_element_ids, Array
   belongs_to :element, optional: true
+
+  belongs_to :owner, class_name: :User
+
+  validates :ft_start_date, presence: true
+  validates :ft_num_days, numericality: {
+    only_integer: true,
+    greater_than_or_equal_to: 1,
+    less_than_or_equal_to: 14
+  }
 
   attr_reader :free_elements, :done_search, :original_membership_size, :member_elements
 
@@ -54,6 +68,31 @@ class Freefinder < ApplicationRecord
 
   def end_time_text=(value)
     self.end_time = Time.zone.parse(value)
+  end
+
+  def enable_day(value)
+    if value >=0 && value < Date::ABBR_DAYNAMES.size
+      unless self.ft_days.include?(value)
+        self.ft_days << value
+      end
+    end
+  end
+
+  def ft_days=(array)
+    self[:ft_days] = []
+    array.each do |value|
+      case value
+      when Integer
+        enable_day(value)
+      when String
+        unless value.empty?
+          value = value.to_i
+          enable_day(value)
+        end
+      else
+        raise ArgumentError.new("Can't handle value of type #{value.class}")
+      end
+    end
   end
 
   def on_text
@@ -134,7 +173,7 @@ class Freefinder < ApplicationRecord
         Commitment.commitments_during(
           start_time: starts_at,
           end_time: ends_at,
-          excluded_category: Eventcategory.non_busy_categories)
+          excluded_category: Eventcategory.non_busy_categories).includes(:element)
       if except_event
         overlapping_commitments =
           overlapping_commitments.where.not(event_id: except_event.id)
@@ -145,7 +184,7 @@ class Freefinder < ApplicationRecord
       #
       committed_elements = Array.new
       overlapping_commitments.each do |oc|
-        if oc.element.entity.instance_of?(Group)
+        if oc.element.entity_type == 'Group'
           committed_elements += 
             oc.element.entity.members(effective_date,
                                       true,
@@ -213,4 +252,19 @@ class Freefinder < ApplicationRecord
     end
   end
 
+  #
+  #  Provides a hash to use in the creation of a Freefinder object using
+  #  system default values.
+  #
+  def self.system_defaults
+    settings = Setting.current
+    {
+      ft_start_date:    Date.today,
+      ft_num_days:      settings.ft_default_num_days,
+      ft_days:          settings.ft_default_days,
+      ft_day_starts_at: settings.ft_default_day_starts_at,
+      ft_day_ends_at:   settings.ft_default_day_ends_at,
+      ft_duration:      settings.ft_default_duration
+    }
+  end
 end

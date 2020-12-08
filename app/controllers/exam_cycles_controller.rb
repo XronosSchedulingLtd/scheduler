@@ -124,7 +124,7 @@ class ExamCyclesController < ApplicationController
                                          :default_quantity,
                                          :selector_element_id,
                                          :selector_element_name,
-                                         :starts_on_text,
-                                         :ends_on_text)
+                                         :starts_on,
+                                         :ends_on)
     end
 end

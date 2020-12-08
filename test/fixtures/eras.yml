@@ -10,6 +10,17 @@ perpetual:
   starts_on: 2013-09-01
 
 eratwo:
+  name: "Another era"
+  starts_on: 2014-04-28
+  ends_on: 2014-04-28
+
+erathree:
+  name: "A previous era"
+  starts_on: 2012-09-01
+  ends_on: 2013-08-31
+
+eratodelete:
   name: "Can delete this one"
   starts_on: 2014-04-28
   ends_on: 2014-04-28
+

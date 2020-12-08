@@ -207,8 +207,8 @@ class MembershipsController < ApplicationController
   def membership_params
     params.require(:membership).permit(:element_id,
                                        :element_name,
-                                       :starts_on_text,
-                                       :ends_on_text,
+                                       :starts_on,
+                                       :ends_on,
                                        :inverse)
   end
 

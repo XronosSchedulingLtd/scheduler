@@ -862,22 +862,6 @@ class Membership < ApplicationRecord
     end
   end
 
-  def starts_on_text
-    self.starts_on ? self.starts_on.to_s(:dmy) : ""
-  end
-
-  def ends_on_text
-    self.ends_on ? self.ends_on.to_s(:dmy) : ""
-  end
-
-  def starts_on_text=(text)
-    self.starts_on = Date.safe_parse(text)
-  end
-
-  def ends_on_text=(text)
-    self.ends_on = Date.safe_parse(text)
-  end
-
   #
   #  Does it make sense to call terminate() for this membership
   #  record?

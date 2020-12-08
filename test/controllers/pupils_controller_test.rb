@@ -38,6 +38,7 @@ class PupilsControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to pupil_path(assigns(:pupil))
+    assert_no_errors
   end
 
   test "should show pupil" do
@@ -69,6 +70,7 @@ class PupilsControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to pupil_path(assigns(:pupil))
+    assert_no_errors
   end
 
   test "should destroy pupil" do

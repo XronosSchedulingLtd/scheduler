@@ -36,10 +36,7 @@
       <%= f.label :starts_on, class: "right inline" %>
     </div>
     <div class="small-6 columns">
-      <%= f.text_field(:starts_on,
-                       value: @era.formatted_starts_on,
-                       autocomplete: 'off',
-                       class: :datepicker) %>
+    <%= f.configured_date_field(:starts_on) %>
     </div>
     <div class="small-3 columns">
     </div>
@@ -49,10 +46,7 @@
       <%= f.label :ends_on, class: "right inline" %>
     </div>
     <div class="small-6 columns">
-      <%= f.text_field(:ends_on,
-                       value: @era.formatted_ends_on,
-                       autocomplete: 'off',
-                       class: :datepicker) %>
+    <%= f.configured_date_field(:ends_on) %>
     </div>
     <div class="small-3 columns">
     </div>

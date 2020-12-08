@@ -58,14 +58,6 @@ class Era < ApplicationRecord
     self.starts_on <=> other.starts_on
   end
 
-  def formatted_starts_on
-    self.starts_on ? self.starts_on.to_formatted_s(:dmy) : ''
-  end
-
-  def formatted_ends_on
-    self.ends_on ? self.ends_on.to_formatted_s(:dmy) : ''
-  end
-
   private
 
   def not_backwards

@@ -55,6 +55,11 @@ class SettingTest < ActiveSupport::TestCase
     assert_not @setting.valid?
   end
 
+  test "tt_default_days accepts strings" do
+    @setting.ft_default_days = ["", "1", "2", "3"]
+    assert_equal [1,2,3], @setting.ft_default_days
+  end
+
   private
 
   def check_range(field, min, max)

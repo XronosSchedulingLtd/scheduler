@@ -149,8 +149,6 @@ class EventCollection < ApplicationRecord
 
   def enable_day(value)
     if value >=0 && value < Date::ABBR_DAYNAMES.size
-      Rails.logger.debug("days_of_week = #{self.days_of_week.inspect}")
-      Rails.logger.debug("value = #{value} (#{value.class})")
       unless self.days_of_week.include?(value)
         self.days_of_week << value
       end
@@ -162,38 +160,6 @@ class EventCollection < ApplicationRecord
       self[:days_of_week] = []
     end
     enable_day(value)
-  end
-
-  def starts_on_text
-    repetition_start_date ? repetition_start_date.strftime("%d/%m/%Y") : ""
-  end
-
-  def starts_on_text=(value)
-    old_repetition_start_date = self.repetition_start_date
-    self.repetition_start_date = value
-    if (self.repetition_start_date != old_repetition_start_date) &&
-      !self.new_record?
-      #
-      #  A genuine change.
-      #
-      @timing_changed = true
-    end
-  end
-
-  def ends_on_text
-    repetition_end_date ? repetition_end_date.strftime("%d/%m/%Y") : ""
-  end
-
-  def ends_on_text=(value)
-    old_repetition_end_date = self.repetition_end_date
-    self.repetition_end_date = value
-    if (self.repetition_end_date != old_repetition_end_date) &&
-      !self.new_record?
-      #
-      #  A genuine change.
-      #
-      @timing_changed = true
-    end
   end
 
   #

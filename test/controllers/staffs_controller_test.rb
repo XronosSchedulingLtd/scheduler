@@ -38,6 +38,7 @@ class StaffsControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to staff_path(assigns(:staff))
+    assert_no_errors
   end
 
   test "should show staff" do
@@ -69,6 +70,7 @@ class StaffsControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to staffs_path
+    assert_no_errors
   end
 
   test "should destroy staff" do

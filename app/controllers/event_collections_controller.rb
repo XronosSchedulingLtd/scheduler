@@ -82,7 +82,7 @@ class EventCollectionsController < ApplicationController
         try_again = true
       end
     else
-      @event_collection.errors[:base] =
+      @event_collection.errors[:base] <<
         "The specified criteria would result in no events at all - not even this one."
       try_again = true
     end
@@ -167,7 +167,7 @@ class EventCollectionsController < ApplicationController
           end
           request_notifier.send_batch_notifications(current_user)
         else
-          @event_collection.errors[:base] =
+          @event_collection.errors[:base] <<
             "The specified criteria would result in no events at all - not even this one."
           try_again = true
         end
@@ -289,8 +289,8 @@ class EventCollectionsController < ApplicationController
   def event_collection_params
     params.require(:event_collection).
            permit(:era_id,
-                  :starts_on_text,
-                  :ends_on_text,
+                  :repetition_start_date,
+                  :repetition_end_date,
                   :when_in_month,
                   :preserve_earlier,
                   :preserve_later,

@@ -299,7 +299,7 @@ class GroupsController < ApplicationController
     groups =
       selector.
               where('groups.name LIKE ?', "%#{term}%").
-              order("LENGTH(groups.name)").
+              order(Arel.sql("LENGTH(groups.name)")).
               order(:name).
               all
     render json: groups.map { |group|

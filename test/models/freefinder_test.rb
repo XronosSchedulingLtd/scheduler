@@ -11,7 +11,12 @@ require 'csv'
 
 class FreefinderTest < ActiveSupport::TestCase
   setup do
-    @minimal_valid_params = {}
+    @user = FactoryBot.create(:user)
+    @minimal_valid_params = {
+      owner: @user,
+      ft_start_date: Date.today,
+      ft_num_days: 14
+    }
     @group = FactoryBot.create(:group)
     @property = FactoryBot.create(:property)
     @staff1 = FactoryBot.create(:staff)
@@ -24,11 +29,15 @@ class FreefinderTest < ActiveSupport::TestCase
     @group.add_member(@staff3)
     @group.add_member(@staff4)
     @full_valid_params = {
+      owner: @user,
       element: @group.element,
       start_time_text: "12:30",
       end_time_text: "15:00",
-      on: Date.today
+      on: Date.today,
+      ft_start_date: Date.today,
+      ft_num_days: 14
     }
+    @valid_ff = FactoryBot.create(:freefinder, @full_valid_params)
     #
     #  Now give staff2 and staff 4 clashing commitments.
     #
@@ -50,6 +59,7 @@ class FreefinderTest < ActiveSupport::TestCase
   test 'can create a free finder' do
     ff = Freefinder.new(@minimal_valid_params)
     assert ff.valid?
+
   end
 
   test 'can specify a group element' do
@@ -124,6 +134,16 @@ class FreefinderTest < ActiveSupport::TestCase
     assert members.include?(@staff3)
     assert_not members.include?(@staff2)
     assert_not members.include?(@staff4)
-
   end
+
+  test 'can be saved for user' do
+    ff = Freefinder.new(@full_valid_params)
+    @user.freefinder = ff
+  end
+
+  test "tt_days accepts strings" do
+    @valid_ff.ft_days = ["", "1", "2", "3"]
+    assert_equal [1,2,3], @valid_ff.ft_days
+  end
+
 end

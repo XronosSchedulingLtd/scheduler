@@ -460,12 +460,40 @@ class Event < ApplicationRecord
     end
   end
 
+  #
+  #  Two pseudo-attributes used to pass stuff backwards and forwards to
+  #  dialogues.
+  #
   def precommit_element_id
     @precommit_element_id
   end
 
   def precommit_element_id=(value)
     @precommit_element_id = value
+  end
+
+  #
+  #  We store and return "1" or "0", but we can also query.
+  #  Note that it will start life as nil, equivalent to "0".
+  #
+  def skip_edit
+    @skip_edit ||= "0"
+  end
+
+  #
+  #  Convenience method returning a boolean.
+  #
+  def skip_edit?
+    skip_edit == "1"
+  end
+
+  def skip_edit=(value)
+    case value
+    when 1, "1", true
+      @skip_edit = "1"
+    else
+      @skip_edit = "0"
+    end
   end
 
   def starts_at_text
@@ -550,7 +578,11 @@ class Event < ApplicationRecord
     #  * We start after the day has ended.
     #  * We end before the day has started.
     #
-    self.starts_at < date + 1.day && self.ends_at > date
+    #  In order to do safe comparisons between a date and a timewithzone
+    #  we need to convert the date first.
+    #
+    zonedate = date.in_time_zone
+    self.starts_at < zonedate + 1.day && self.ends_at > zonedate
   end
 
   #
@@ -586,12 +618,13 @@ class Event < ApplicationRecord
       #  the next day.
       #
       padded_starts_at = self.starts_at - padding_mins.minutes
-      if padded_starts_at < date
+      zonedate = date.in_time_zone
+      if padded_starts_at < zonedate
         #
         #  Event begins before the indicated day.  Return the
         #  start of the day as a TimeWithZone
         #
-        date.in_time_zone
+        zonedate
       else
         padded_starts_at
       end
@@ -611,11 +644,34 @@ class Event < ApplicationRecord
     date = date.to_date
     if self.exists_on?(date)
       padded_ends_at = self.ends_at + padding_mins.minutes
-      if padded_ends_at > date + 1.day
-        (date + 1.day).in_time_zone
+      zone_limit = (date + 1.day).in_time_zone
+      if padded_ends_at > zone_limit
+        zone_limit
       else
         padded_ends_at
       end
+    else
+      nil
+    end
+  end
+
+  def time_slot_on(date)
+    if self.exists_on?(date)
+      zonedate = date.in_time_zone
+      if self.starts_at < zonedate
+        start_time = "00:00"
+      else
+        start_time = self.starts_at.strftime("%H:%M")
+      end
+      #
+      #  We already know that self.ends_at > date (tested by exists_on?)
+      #
+      if self.ends_at >= zonedate + 1.day
+        end_time = "24:00"
+      else
+        end_time = self.ends_at.strftime("%H:%M")
+      end
+      TimeSlot.new(start_time, end_time)
     else
       nil
     end

@@ -41,6 +41,7 @@ class GroupsControllerTest < ActionController::TestCase
       )
     end
     assert_redirected_to edit_group_path(assigns(:group), just_created: true)
+    assert_no_errors
   end
 
   test "should clone group" do
@@ -54,6 +55,7 @@ class GroupsControllerTest < ActionController::TestCase
     end
     assert_redirected_to edit_group_path(assigns(:new_group),
                                          just_created: true)
+    assert_no_errors
   end
 
   test "should flatten group" do
@@ -67,6 +69,7 @@ class GroupsControllerTest < ActionController::TestCase
     end
     assert_redirected_to edit_group_path(assigns(:new_group),
                                          just_created: true)
+    assert_no_errors
   end
 
   test "should show group" do
@@ -92,6 +95,7 @@ class GroupsControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to groups_path
+    assert_no_errors
   end
 
   test "should destroy group" do

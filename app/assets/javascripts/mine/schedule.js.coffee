@@ -14,13 +14,6 @@
 that = {}
 that.adding_file_directly = false
 $(document).ready ->
-  $('#datepicker').datepicker
-    showOtherMonths: true
-    selectOtherMonths: true
-    dateFormat: 'yy-mm-dd'
-    firstDay: $('#fullcalendar').data("firstday")
-    onSelect: (dateText, inst) ->
-      $('#fullcalendar').fullCalendar( 'gotoDate', new Date(dateText))
   $('#topdatepicker').datepicker
     showOtherMonths: true
     selectOtherMonths: true
@@ -66,10 +59,22 @@ $(document).ready ->
     #  check our very own instance.  We also reset it by ID, so we affect
     #  only ours.
     #
-    flag = $('#fullcalendar').data("dorefresh")
+    flag = $('.flag-refreshes').data("dorefresh")
     if flag == "1"
-      $('#fullcalendar').data("dorefresh", "0")
-      $('#fullcalendar').fullCalendar('refetchEvents')
+      goroot = $('.flag-refreshes').data("goroot")
+      console.log({goroot})
+      #
+      #  It's odd, but if I have set a data field from JavaScript then
+      #  it seems to be a string, but if it came from the back end then
+      #  it's an integer.  Not sure about this wrinkle.
+      #
+      if goroot == 1
+        console.log("Going to root")
+        window.location.href = "/"
+      else
+        console.log("Refreshing")
+        $('#fullcalendar').data("dorefresh", "0")
+        $('#fullcalendar').fullCalendar('refetchEvents')
     )
 
   $(document).on('opened', '[data-reveal]', ->
@@ -306,7 +311,6 @@ activateColourPicker = (field_id, sample_id) ->
       $(sample_id).css('background-color', colour.toHexString())
 
 prepareToRender = (view, element) ->
-  $('#datepicker').datepicker('setDate', view.start.toDate())
   that.viewStartDate = view.start.toDate()
   that.viewName = view.name
   that.elementsSeen = {}
@@ -601,6 +605,7 @@ window.closeModal = (full_reload, just_events, filter_state) ->
         el.text(filter_state)
 
 window.refreshNeeded = ->
+  console.log("Asked to refresh")
   $('.flag-refreshes').data("dorefresh", "1")
 
 #

@@ -225,7 +225,7 @@ class ElementsController < ApplicationController
       selector.current.
               mine_or_system(current_user).
               where('elements.name LIKE ?', "%#{term}%").
-              order("LENGTH(elements.name)").
+              order(Arel.sql("LENGTH(elements.name)")).
               order(:name).
               all
     #

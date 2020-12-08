@@ -75,19 +75,13 @@
     <tr>
       <td>Start date:</td>
       <td>
-        <%= text_field_tag(:first_date,
-                           @start_date.strftime("%d/%m/%Y"),
-                           :class => :datepicker) %>
+      <%= configured_date_field_tag(:first_date) %>
       </td>
     </tr>
     <tr>
       <td>End date:</td>
       <td>
-        <%= text_field_tag(:last_date,
-                           @latest_date ?
-                           @latest_date.strftime("%d/%m/%Y") :
-                           "",
-                           :class => :datepicker) %>
+      <%= configured_date_field_tag(:last_date) %>
       </td>
     </tr>
     <tr>

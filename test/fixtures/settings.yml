@@ -1,7 +1,35 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
+  title_text: "Scheduler - Dotheboys Hall"
+  public_title_text: "Dotheboys Hall Calendar"
   current_era: eraone
   perpetual_era: perpetual
+  next_era: eratwo
+  previous_era: erathree
   enforce_permissions: true
-
+  ft_default_days: [1,2,3,4,5]
+  current_mis: "Able"
+  previous_mis: "Baker"
+  auth_type: :google_auth
+  datepicker_type: :dp_jquery
+  dns_domain_name: "scheduler.myschool.org.uk"
+  room_cover_group_element: roomcovergroupelement
+  event_creation_markup: "Able, Baker, Charlie"
+  wrapping_before_mins: 60
+  wrapping_after_mins: 30
+  wrapping_eventcategory: eventsetup
+  default_display_day_shape: dayshape
+  default_free_finder_day_shape: freefinder
+  tutorgroups_by_house: true
+  tutorgroups_name: "Tutor groups"
+  tutor_name: "Tutor"
+  prep_suffix: "(P)"
+  prep_property_element: prepelement
+  zoom_link_text: "Launch Zoom"
+  zoom_link_base_url: "https://zoom.myschool.org.uk/"
+  ft_default_day_starts_at: "08:30"
+  ft_default_day_starts_at: "17:30"
+  ft_default_num_days: 7
+  ft_default_duration: 60
+  ft_default_days: [1,2,3,4,5]

@@ -36,6 +36,7 @@ class RotaTemplatesControllerTest < ActionController::TestCase
       )
     end
     assert_redirected_to rota_template_path(assigns(:rota_template))
+    assert_no_errors
   end
 
   test "should show rota_template" do
@@ -54,6 +55,7 @@ class RotaTemplatesControllerTest < ActionController::TestCase
       }
     )
     assert_redirected_to rota_template_path(assigns(:rota_template))
+    assert_no_errors
   end
 
   test "should destroy rota_template" do

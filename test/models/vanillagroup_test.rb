@@ -5,9 +5,9 @@ class VanillagroupTest < ActiveSupport::TestCase
     @era1   = eras(:eraone)
   end
 
-  test "we have two vanilla groups to start with" do
+  test "we have three vanilla groups to start with" do
     count = Vanillagroup.count
-    assert_equal 2, count
+    assert_equal 3, count
   end
 
   test "we can construct a new valid vanilla group" do

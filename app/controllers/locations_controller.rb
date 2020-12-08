@@ -100,7 +100,7 @@ class LocationsController < ApplicationController
     elements =
       Element.location.current.
               where('elements.name LIKE ?', "%#{term}%").
-              order("LENGTH(elements.name)").
+              order(Arel.sql("LENGTH(elements.name)")).
               order(:name).
               all
     render json: elements.map { |element|
