@@ -243,6 +243,7 @@ unless rota_template
 end
 
 everyone = group.members(nil, true, true)
+every_element = everyone.collect {|s| s.element}
 
 staff_hash = Hash.new
 everyone.each do |s|
@@ -385,10 +386,10 @@ if options.both_weeks && (week_summaries.size > 1)
         timing = "#{slota.starts_at} - #{slota.ends_at}"
         output.print "#{timing}: "
 
-        if free_elements.count == everyone.count
+        if free_elements.count == every_element.count
           output.puts "Everyone"
-        elsif free_elements.count > everyone.count - 10
-          output.puts "All but: #{initials_from(everyone - free_elements)}"
+        elsif free_elements.count > every_element.count - 10
+          output.puts "All but: #{initials_from(every_element - free_elements)}"
         else
           effectively_free = free_elements - free_all_day
           splat_initials(output, effectively_free)
