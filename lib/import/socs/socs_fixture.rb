@@ -201,6 +201,18 @@ class SocsFixture
         @ends_at = Time.zone.parse(@ends_at_text)
       end
     end
+    #
+    #  Little check to eliminate a data entry error.
+    #
+    if @wanted
+      if @ends_at < @starts_at
+        puts "Negative duration event detected"
+        puts "  Event:  #{event_body}"
+        puts "  Starts: #{@starts_at.to_s}"
+        puts "  Ends:   #{@ends_at.to_s}"
+        @wanted = false
+      end
+    end
   end
 
   #

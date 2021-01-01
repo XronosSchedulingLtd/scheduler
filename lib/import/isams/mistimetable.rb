@@ -479,7 +479,7 @@ end
 
 class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
 
-  attr_reader :period_time, :date
+  attr_reader :period_time, :date, :event_id
 
   def initialize(db_entry)
     #
@@ -499,10 +499,15 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
         MIS_PeriodTime.new(db_entry.event.start_time,
                            db_entry.event.end_time)
     end
+    @event_id      = db_entry.event.ident
     @period_time   = db_entry.event.timeslot
     @date          = db_entry.datetime.to_date
     @name          = db_entry.event.subject
-    @isams_id      = db_entry.ident
+    #
+    #  Take the isams_id from the event rather than the eventoccurrence
+    #  for stability.
+    #
+    @isams_id      = db_entry.event.ident
     @group         = db_entry.event.group
     @location_name = db_entry.event.location.gsub(/ \([^\)]*\)$/, "")
 #    if @date
@@ -594,10 +599,43 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
     else
       puts "Can't find OH event occurrences."
     end
+    #
+    #  Track them all by date.
+    #
     @events_by_date = Hash.new
+    #
+    #  And also by day of the week.
+    #
+    range_start_date = Date.today - 7.days
+    range_end_date   = range_start_date + 28.days  # Exclusive end
+    #
+    #  List of event instances for each day.
+    #
+    @events_by_wday = Array.new(7) {|i| Array.new}
+    #
+    #  event_ids of events which we have already added on that day.
+    #
+    @events_seen = Array.new(7) {|i| Array.new}
+    #
+    #  And now process them.
+    #
     oh_events.each do |ohe|
       slot = @events_by_date[ohe.date.iso8601] ||= Array.new
       slot << ohe
+      #
+      #  We also need to keep track of event occurrences by the day of the
+      #  week on which they occur.  We work on the 28 days starting
+      #  one week ago.
+      #
+      if ohe.date >= range_start_date &&
+          ohe.date < range_end_date
+        wday = ohe.date.wday
+        event_id = ohe.event_id
+        unless @events_seen[wday].include?(event_id)
+          @events_by_wday[wday] << ohe
+          @events_seen[wday] << event_id
+        end
+      end
     end
     oh_events
   end
@@ -617,19 +655,11 @@ class ISAMS_OtherHalfEntry < MIS_ScheduleEntry
 
   #
   #  Return OH events for just one day of the week.
-  #  Unfortunately, iSams does not provide a proper timetable
-  #  of OH events - just a list of events by date.
-  #
-  #  We therefore work out the next date with this day number,
-  #  and use that.
-  #
-  #  Note that, towards the end of term, this may lead to OH
-  #  commitments not appearing.
+  #  This is used solely by the code which loads an "ideal week"
+  #  of timetable events.
   #
   def self.events_by_day_no(day_no)
-    today = Date.today
-    date = today + ((day_no - today.wday) % 7).days
-    self.events_on(date)
+    @events_by_wday[day_no]
   end
 
 end

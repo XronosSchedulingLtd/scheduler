@@ -1,3 +1,52 @@
+v1.12.1   2021-01-01
+
+Three minor fixes/tweaks
+
+* Detect and discard fixtures arriving from SOCS with a negative duration.
+
+  It seems that the SOCS system for sports fixtures does not properly
+  validate the fixtures as they are being entered, allowing the entry of
+  events with negative durations.  That is, events which end before they
+  started.  This caused a problem with the SOCS => Scheduler importer because
+  such events are not allowed within Scheduler.
+
+  The import now detects, logs and discards such events.
+
+* Correct listing of "All but:" staff in free staff report for combined weeks.
+
+  The report on free staff in nominated time slots introduced in release
+  1.11.8 had a small bug in the report for combined weeks.  If for any
+  given slot fewer than 10 staff are busy - that is, almost everyone is
+  free - it attempts to list those who are busy rather than giving a
+  very long list of everyone who is free.
+
+  It was found that, although it was correctly detecting the circumstance,
+  it then listed everyone instead of everyone who was busy.  This has
+  been corrected.
+
+* Improve algorithm to retro-generate activities timetable from iSAMS input
+
+  The Scheduler importer fetches information on scheduled activities from
+  iSAMS (the iSAMS Activities module) and loads them into the schedules
+  of individual staff and pupils.  It also puts them onto the timetables
+  of users as well, but here it has a slight problem in that iSAMS does
+  not store them in timetable form - merely as a long list of dates during
+  the term.
+
+  The importer thus needs to work backwards and reconstruct a proper
+  timetable from these individual events.  Previously it did it by the
+  very simple approach of looking at the coming seven days - starting
+  from today's date - and putting each event which it found on the appropriate
+  day of the week in the timetable.  This led to problems when doing
+  advance analysis of staff loading and availability for duties - until
+  the start of term the timetable was not complete.
+
+  The algorithm now looks at a 28 day period of the iSAMS output, starting
+  7 days in the past.  Any activities which it finds in that range are
+  allocated to the appropriate day in the timetable, with duplicates being
+  dropped.  The timetable is thus available for use much earlier.
+
+
 v1.12.0   2020-12-08
 
 * New feature - Finding Free Times
