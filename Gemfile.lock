@@ -189,7 +189,7 @@ GEM
       ffi (~> 1.0)
     rdoc (4.1.1)
       json (~> 1.4)
-    redcarpet (3.4.0)
+    redcarpet (3.5.1)
     remotipart (1.4.3)
     ri_cal (0.8.8)
     rmagick (4.0.0)
