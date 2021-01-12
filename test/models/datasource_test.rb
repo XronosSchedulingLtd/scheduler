@@ -101,6 +101,20 @@ class DatasourceTest < ActiveSupport::TestCase
     assert_nil subject2.datasource
   end
 
+  test 'can have ad hoc domains' do
+    ds = Datasource.create(@valid_params)
+    ds.ad_hoc_domains << ad_hoc_domain1 = FactoryBot.create(:ad_hoc_domain)
+    ds.ad_hoc_domains << ad_hoc_domain2 = FactoryBot.create(:ad_hoc_domain)
+    assert_equal 2, ds.ad_hoc_domains.count
+    ds.destroy
+    assert_not ad_hoc_domain1.destroyed?
+    assert_not ad_hoc_domain2.destroyed?
+    ad_hoc_domain1.reload
+    ad_hoc_domain2.reload
+    assert_nil ad_hoc_domain1.datasource
+    assert_nil ad_hoc_domain2.datasource
+  end
+
   test 'sorts by name' do
     datasources = Array.new
     datasources << ds1 = Datasource.create(@valid_params.merge({name: "Zak"}))

@@ -23,6 +23,11 @@ class AdHocDomainsController < ApplicationController
 
   # GET /ad_hoc_domains/1
   def show
+    #
+    #  Need a blank AdHocDomainSubject to support the dialogue for
+    #  creating a new one.
+    #
+    @ad_hoc_domain_subject = AdHocDomainSubject.new
   end
 
   # GET /ad_hoc_domains/1/edit

@@ -1,0 +1,41 @@
+<table class='zftable'>
+  <thead>
+    <tr>
+      <th>Subject</th>
+      <th>Teachers</th>
+      <th>Pupils</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%= render collection: @ad_hoc_domain.ad_hoc_domain_subjects, partial: 'ad_hoc_domains/ad_hoc_domain_subject' %>
+  </tbody>
+</table>
+<div id='ahd-subject-errors'></div>
+<%= form_with(model: [@ad_hoc_domain, @ad_hoc_domain_subject], local: false) do |form| %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :new_subject_element_id, "Subject to add", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+    <%=
+      form.autocomplete_field(
+        :subject_element_name,
+        autocomplete_subject_element_name_elements_path,
+        'data-auto-focus' => true,
+        id: 'subject-element-name',
+        :id_element => '#subject-element-id',
+        :placeholder => "Subject name",
+        :class => 'compressed')
+    %>
+    <%=
+      form.text_field(
+        :subject_element_id,
+        type: :hidden,
+        id: 'subject-element-id')
+      %>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+    </div>
+  </div>
+<% end %>
+

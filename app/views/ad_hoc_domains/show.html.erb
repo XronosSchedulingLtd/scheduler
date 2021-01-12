@@ -12,45 +12,9 @@
 <div class="tabs-content">
   <div class="content" id="ahd-subjects">
     <h3>Subjects</h3>
-    <table class='zftable'>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Teachers</th>
-          <th>Pupils</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @ad_hoc_domain.subject_elements.each do |se| %>
-        </tbody>
-      <% end %>
-    </table>
-    <%= form_with(model: @ad_hoc_domain) do |form| %>
-      <div class="row collapse">
-        <div class="small-3 columns">
-          <%= form.label :new_subject_element_id, "Subject to add", class: "right inline" %>
-        </div>
-        <div class="small-4 columns">
-        <%=
-          form.autocomplete_field(
-            :new_subject_element_name,
-            autocomplete_subject_element_name_elements_path,
-            'data-auto-focus' => true,
-            :id_element => '#new-subject-element-id',
-            :placeholder => "Subject name",
-            :class => 'compressed')
-        %>
-        <%=
-          form.text_field(
-            :new_subject_element_id,
-            type: :hidden,
-            id: 'new-subject-element-id')
-          %>
-        </div>
-        <div class="small-4 offset-1 columns annotation">
-        </div>
-      </div>
-    <% end %>
+    <div id='ahd-subject-listing'>
+      <%= render 'subject_listing' %>
+    </div>
   </div>
   <div class="content" id="ahd-teachers">
     <h3>Teachers</h3>

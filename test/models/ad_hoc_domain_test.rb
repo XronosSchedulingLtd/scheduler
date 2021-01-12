@@ -29,6 +29,14 @@ class AdHocDomainTest < ActiveSupport::TestCase
     assert_not ahd.valid?
   end
 
+  test "can have a data source but not compulsory" do
+    ahd = FactoryBot.build(:ad_hoc_domain, datasource: nil)
+    assert ahd.valid?
+    ahd = FactoryBot.build(:ad_hoc_domain, datasource: datasources(:one))
+    assert ahd.valid?
+    
+  end
+
   test "need not have a connected property" do
     ahd = FactoryBot.build(:ad_hoc_domain, connected_property_element: nil)
     assert ahd.valid?

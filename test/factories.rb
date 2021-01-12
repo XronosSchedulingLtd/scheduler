@@ -6,6 +6,11 @@ FactoryBot.define do
     association :connected_property_element, factory: :element
   end
 
+  factory :ad_hoc_domain_subject do
+    ad_hoc_domain
+    association :subject_element, factory: :element
+  end
+
   factory :attachment do
     parent_id { 1 }
     parent_type { "MyString" }

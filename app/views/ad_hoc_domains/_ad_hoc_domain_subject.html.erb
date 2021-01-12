@@ -1,0 +1,13 @@
+<tr>
+  <td><%= ad_hoc_domain_subject.subject_element.name %></td>
+  <td></td>
+  <td></td>
+  <td><%= ad_hoc_domain_subject.can_delete? ?
+    link_to("&#215;".html_safe,
+            ad_hoc_domain_subject,
+            method: :delete,
+            data: {
+              confirm: "Deleting this subject link will remove all the corresponding entries for students and teachers of the subject.  Continue?"
+            },
+            remote: true) : " " %></td>
+</tr>

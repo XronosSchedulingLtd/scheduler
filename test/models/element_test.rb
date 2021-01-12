@@ -453,6 +453,34 @@ class ElementTest < ActiveSupport::TestCase
     assert location_elements.include?(@location4.element)
   end
 
+  test "property can be linked to ad hoc domain" do
+    ahd = FactoryBot.create(:ad_hoc_domain)
+    property = FactoryBot.create(:property)
+    property.element.ad_hoc_domains_as_property << ahd
+    ahd.reload
+    assert_not_nil ahd.connected_property_element
+    #
+    #  And deleting the property should nullify the connection.
+    #
+    property.destroy
+    ahd.reload
+    assert_nil ahd.connected_property_element
+  end
+
+  test "subject can be linked to ad hoc domain" do
+    ahd = FactoryBot.create(:ad_hoc_domain)
+    subject = FactoryBot.create(:subject)
+    subject.element.ad_hoc_domain_subjects.create(ad_hoc_domain: ahd)
+    assert_equal 1, subject.element.ad_hoc_domain_subjects.count
+    assert_equal 1, subject.element.ad_hoc_domains_as_subject.count
+    #
+    #  Deleting the subject destroys the connection
+    #
+    subject.destroy
+    assert_equal 0, ahd.ad_hoc_domain_subjects.count
+    assert_equal 0, ahd.subject_elements.count
+  end
+
   private
 
   def nested_attributes_for(*args)

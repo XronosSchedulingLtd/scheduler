@@ -42,10 +42,17 @@ class Element < ApplicationRecord
   belongs_to :owner, class_name: :User, optional: true
   belongs_to :user_form, optional: true
 
-  has_and_belongs_to_many :ad_hoc_domains_as_subject,
-                          class_name: :AdHocDomain,
-                          foreign_key: :subject_element_id,
-                          join_table: :ad_hoc_domain_subjects
+  has_many :ad_hoc_domains_as_property,
+           class_name: "AdHocDomain",
+           foreign_key: :connected_property_element_id,
+           dependent: :nullify
+
+  has_many :ad_hoc_domain_subjects,
+           foreign_key: :subject_element_id,
+           dependent: :destroy
+  has_many :ad_hoc_domains_as_subject,
+           through: :ad_hoc_domain_subjects,
+           source: :ad_hoc_domain
 
   #
   #  This is actually a constraint in the database too, but by specifying
