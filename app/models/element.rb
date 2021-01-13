@@ -54,6 +54,13 @@ class Element < ApplicationRecord
            through: :ad_hoc_domain_subjects,
            source: :ad_hoc_domain
 
+  has_many :ad_hoc_domain_staffs,
+           foreign_key: :staff_element_id,
+           dependent: :destroy
+  has_many :ad_hoc_domains_as_staff,
+           through: :ad_hoc_domain_staffs,
+           source: :ad_hoc_domain
+
   #
   #  This is actually a constraint in the database too, but by specifying
   #  it here we can catch errors earlier.

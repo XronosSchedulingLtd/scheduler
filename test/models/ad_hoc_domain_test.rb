@@ -66,10 +66,61 @@ class AdHocDomainTest < ActiveSupport::TestCase
   test "can be linked to multiple subjects" do
     subject1 = FactoryBot.create(:subject)
     subject2 = FactoryBot.create(:subject)
+    #
+    #  Something intriguing which I discovered entirely by accident.
+    #  I originally had a HABTM relationship between AdHocDomain and
+    #  Subject Element, then changed it to an explicit intermediate
+    #  model.  Nonetheless, the trick of <<ing a new element still
+    #  seems to work.  Clever.
+    #
     @ad_hoc_domain.subject_elements << subject1.element
     @ad_hoc_domain.subject_elements << subject2.element
     assert_equal 2, @ad_hoc_domain.subject_elements.count
+    assert_equal 2, @ad_hoc_domain.ad_hoc_domain_subjects.count
     assert subject1.element.ad_hoc_domains_as_subject.include?(@ad_hoc_domain)
+    #
+    #  Deleting the AdHocDomain deletes its AdHocDomainSubjects but not
+    #  the subjects.
+    #
+    assert_difference('AdHocDomainSubject.count', -2) do
+      @ad_hoc_domain.destroy
+      subject1.reload
+      subject2.reload
+      assert_not_nil subject1.element
+      assert_not_nil subject2.element
+    end
+  end
+
+  test "can be linked to multiple staff" do
+    subject1 = FactoryBot.create(:subject)
+    staff1 = FactoryBot.create(:staff)
+    staff2 = FactoryBot.create(:staff)
+    @ad_hoc_domain.subject_elements << subject1.element
+    ahds = @ad_hoc_domain.ad_hoc_domain_subjects[0]
+    #
+    #  Can't use the << trick for AdHocDomainStaffs because more
+    #  info needed.
+    #
+    @ad_hoc_domain.ad_hoc_domain_staffs.create(
+      staff_element: staff1.element,
+      ad_hoc_domain_subject: ahds
+    )
+    @ad_hoc_domain.ad_hoc_domain_staffs.create(
+      staff_element: staff2.element,
+      ad_hoc_domain_subject: ahds
+    )
+    assert_equal 1, @ad_hoc_domain.subject_elements.count
+    assert_equal 1, @ad_hoc_domain.ad_hoc_domain_subjects.count
+    assert_equal 2, @ad_hoc_domain.staff_elements.count
+    assert_equal 2, @ad_hoc_domain.ad_hoc_domain_staffs.count
+    assert staff1.element.ad_hoc_domains_as_staff.include?(@ad_hoc_domain)
+    assert_difference('AdHocDomainStaff.count', -2) do
+      @ad_hoc_domain.destroy
+      staff1.reload
+      staff2.reload
+      assert_not_nil staff1.element
+      assert_not_nil staff2.element
+    end
   end
 
 end

@@ -2,6 +2,8 @@ class AdHocDomainSubject < ApplicationRecord
   belongs_to :ad_hoc_domain
   belongs_to :subject_element, class_name: "Element"
 
+  has_many :ad_hoc_domain_staffs, dependent: :destroy
+
   validates :subject_element,
     uniqueness: {
       scope: :ad_hoc_domain,

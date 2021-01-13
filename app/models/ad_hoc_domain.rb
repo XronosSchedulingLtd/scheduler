@@ -10,10 +10,9 @@ class AdHocDomain < ApplicationRecord
 
   has_many :ad_hoc_domain_subjects, dependent: :destroy
   has_many :subject_elements, through: :ad_hoc_domain_subjects
-#  has_and_belongs_to_many :subject_elements,
-#                          class_name: "Element",
-#                          association_foreign_key: :subject_element_id,
-#                          join_table: :ad_hoc_domain_subjects
+
+  has_many :ad_hoc_domain_staffs, dependent: :destroy
+  has_many :staff_elements, through: :ad_hoc_domain_staffs
 
   validates :name, presence: true
 
