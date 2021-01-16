@@ -31,6 +31,9 @@ class AdHocDomainSubjectTest < ActiveSupport::TestCase
       ad_hoc_domain: @ad_hoc_domain,
       subject_element: @subject.element)
     assert_not second.valid?    # Because it's the same as the first one
-
   end
+
+  test "can have staff" do
+  end
+
 end

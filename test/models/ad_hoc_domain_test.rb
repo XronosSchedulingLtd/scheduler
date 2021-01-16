@@ -8,6 +8,7 @@ class AdHocDomainTest < ActiveSupport::TestCase
     @day_shape =
       FactoryBot.create(:rota_template,
                         rota_template_type: rota_template_types(:dayshape))
+    @property = FactoryBot.create(:property)
   end
 
   test "can have a name" do
@@ -38,7 +39,12 @@ class AdHocDomainTest < ActiveSupport::TestCase
   end
 
   test "need not have a connected property" do
-    ahd = FactoryBot.build(:ad_hoc_domain, connected_property_element: nil)
+    ahd = FactoryBot.build(:ad_hoc_domain, connected_property: nil)
+    assert ahd.valid?
+  end
+
+  test "can have a connected property" do
+    ahd = FactoryBot.build(:ad_hoc_domain, connected_property: @property)
     assert ahd.valid?
   end
 
@@ -51,7 +57,6 @@ class AdHocDomainTest < ActiveSupport::TestCase
   test "can list controllers" do
     @ad_hoc_domain.controllers << @user1
     @ad_hoc_domain.controllers << @user2
-#    expected = [@user1, @user2].sort.collect {|u| u.name}.join(", ")
     expected = [@user1, @user2].sort.map(&:name).join(", ")
     assert_equal expected, @ad_hoc_domain.controller_list
   end
@@ -61,6 +66,11 @@ class AdHocDomainTest < ActiveSupport::TestCase
     assert ahd.valid?
     ahd.save!
     assert ahd.default_day_shape.ad_hoc_domain_defaults.include?(ahd)
+  end
+
+  test "need not have a default day shape" do
+    ahd = FactoryBot.build(:ad_hoc_domain, default_day_shape: nil)
+    assert ahd.valid?
   end
 
   test "can be linked to multiple subjects" do
@@ -73,11 +83,11 @@ class AdHocDomainTest < ActiveSupport::TestCase
     #  model.  Nonetheless, the trick of <<ing a new element still
     #  seems to work.  Clever.
     #
-    @ad_hoc_domain.subject_elements << subject1.element
-    @ad_hoc_domain.subject_elements << subject2.element
-    assert_equal 2, @ad_hoc_domain.subject_elements.count
+    @ad_hoc_domain.subjects << subject1
+    @ad_hoc_domain.subjects << subject2
+    assert_equal 2, @ad_hoc_domain.subjects.count
     assert_equal 2, @ad_hoc_domain.ad_hoc_domain_subjects.count
-    assert subject1.element.ad_hoc_domains_as_subject.include?(@ad_hoc_domain)
+    assert subject1.ad_hoc_domains.include?(@ad_hoc_domain)
     #
     #  Deleting the AdHocDomain deletes its AdHocDomainSubjects but not
     #  the subjects.
@@ -91,36 +101,28 @@ class AdHocDomainTest < ActiveSupport::TestCase
     end
   end
 
-  test "can be linked to multiple staff" do
-    subject1 = FactoryBot.create(:subject)
-    staff1 = FactoryBot.create(:staff)
-    staff2 = FactoryBot.create(:staff)
-    @ad_hoc_domain.subject_elements << subject1.element
-    ahds = @ad_hoc_domain.ad_hoc_domain_subjects[0]
-    #
-    #  Can't use the << trick for AdHocDomainStaffs because more
-    #  info needed.
-    #
-    @ad_hoc_domain.ad_hoc_domain_staffs.create(
-      staff_element: staff1.element,
-      ad_hoc_domain_subject: ahds
-    )
-    @ad_hoc_domain.ad_hoc_domain_staffs.create(
-      staff_element: staff2.element,
-      ad_hoc_domain_subject: ahds
-    )
-    assert_equal 1, @ad_hoc_domain.subject_elements.count
-    assert_equal 1, @ad_hoc_domain.ad_hoc_domain_subjects.count
-    assert_equal 2, @ad_hoc_domain.staff_elements.count
-    assert_equal 2, @ad_hoc_domain.ad_hoc_domain_staffs.count
-    assert staff1.element.ad_hoc_domains_as_staff.include?(@ad_hoc_domain)
-    assert_difference('AdHocDomainStaff.count', -2) do
-      @ad_hoc_domain.destroy
-      staff1.reload
-      staff2.reload
-      assert_not_nil staff1.element
-      assert_not_nil staff2.element
-    end
+  test "responds to controller admin fields" do
+    assert @ad_hoc_domain.respond_to?(:new_controller_name)
+    assert @ad_hoc_domain.respond_to?(:new_controller_name=)
+    assert @ad_hoc_domain.respond_to?(:new_controller_id)
+    assert @ad_hoc_domain.respond_to?(:new_controller_id=)
+  end
+
+  test "can set and fetch connected property via element" do
+    ahd = FactoryBot.build(:ad_hoc_domain, connected_property: nil)
+    ahd.connected_property_element = @property.element
+    assert_equal @property, ahd.connected_property
+    ahd.connected_property_element = nil
+    assert_nil ahd.connected_property
+  end
+
+  test "can get names" do
+    assert_equal @ad_hoc_domain.eventsource.name,
+                 @ad_hoc_domain.eventsource_name
+    assert_equal @ad_hoc_domain.eventcategory.name,
+                 @ad_hoc_domain.eventcategory_name
+    assert_equal @ad_hoc_domain.connected_property.element.name,
+                 @ad_hoc_domain.connected_property_element_name
   end
 
 end

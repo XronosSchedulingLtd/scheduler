@@ -6,6 +6,9 @@
 
 class Staff < ApplicationRecord
 
+  has_many :ad_hoc_domain_staffs, dependent: :destroy
+  has_many :ad_hoc_domains, through: :ad_hoc_domain_staffs
+
   validates :name, presence: true
 
   DISPLAY_COLUMNS = [:taught_groups, :direct_groups, :indirect_groups]

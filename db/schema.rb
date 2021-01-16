@@ -22,41 +22,38 @@ ActiveRecord::Schema.define(version: 2021_01_06_163634) do
   end
 
   create_table "ad_hoc_domain_pupil_courses", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
-    t.integer "ad_hoc_domain_id"
-    t.integer "pupil_element_id"
-    t.integer "ad_hoc_domain_subject_id"
+    t.integer "pupil_id"
     t.integer "ad_hoc_domain_staff_id"
     t.integer "lessons_per_week", default: 1
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["ad_hoc_domain_id"], name: "index_ad_hoc_domain_pupil_courses_on_ad_hoc_domain_id"
     t.index ["ad_hoc_domain_staff_id"], name: "index_ad_hoc_domain_pupil_courses_on_ad_hoc_domain_staff_id"
-    t.index ["ad_hoc_domain_subject_id"], name: "index_ad_hoc_domain_pupil_courses_on_ad_hoc_domain_subject_id"
-    t.index ["pupil_element_id"], name: "index_ad_hoc_domain_pupil_courses_on_pupil_element_id"
+    t.index ["pupil_id"], name: "index_ad_hoc_domain_pupil_courses_on_pupil_id"
   end
 
   create_table "ad_hoc_domain_staffs", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
-    t.integer "ad_hoc_domain_id"
-    t.integer "staff_element_id"
+    t.integer "staff_id"
     t.integer "ad_hoc_domain_subject_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["ad_hoc_domain_id"], name: "index_ad_hoc_domain_staffs_on_ad_hoc_domain_id"
+    t.index ["ad_hoc_domain_subject_id"], name: "index_ad_hoc_domain_staffs_on_ad_hoc_domain_subject_id"
+    t.index ["staff_id"], name: "index_ad_hoc_domain_staffs_on_staff_id"
   end
 
   create_table "ad_hoc_domain_subjects", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
     t.integer "ad_hoc_domain_id"
-    t.integer "subject_element_id"
+    t.integer "subject_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["ad_hoc_domain_id"], name: "index_ad_hoc_domain_subjects_on_ad_hoc_domain_id"
+    t.index ["subject_id"], name: "index_ad_hoc_domain_subjects_on_subject_id"
   end
 
   create_table "ad_hoc_domains", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name"
     t.integer "eventsource_id"
     t.integer "eventcategory_id"
-    t.integer "connected_property_element_id"
+    t.integer "connected_property_id"
     t.integer "default_day_shape_id"
     t.integer "datasource_id"
     t.datetime "created_at", null: false

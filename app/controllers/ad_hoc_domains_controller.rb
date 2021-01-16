@@ -27,7 +27,23 @@ class AdHocDomainsController < ApplicationController
     #  Need a blank AdHocDomainSubject to support the dialogue for
     #  creating a new one.
     #
-    @ad_hoc_domain_subject = AdHocDomainSubject.new
+    #  It's tempting to do "@ad_hoc_domain.ad_hoc_domain_subjects.new",
+    #  but that adds it immediately to the in-memory array of subjects
+    #  for the domain, which then messes up attempts to list them.
+    #
+    #  The linking together of the two instead happens in the controller
+    #  when the form comes back.
+    #
+    @blank_ad_hoc_domain_subject = AdHocDomainSubject.new
+    #
+    #  Similarly for AdHocDomainStaff, but only if we already have
+    #  a subject.
+    #
+    @default_ad_hoc_domain_subject =
+      @ad_hoc_domain.ad_hoc_domain_subjects.first
+    if @default_ad_hoc_domain_subject
+      @blank_ad_hoc_domain_staff = AdHocDomainStaff.new
+    end
   end
 
   # GET /ad_hoc_domains/1/edit

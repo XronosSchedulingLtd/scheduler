@@ -6,6 +6,10 @@
 
 class Property < ApplicationRecord
 
+  has_many :ad_hoc_domains,
+           foreign_key: :connected_property_id,
+           dependent: :nullify
+
   scope :public_ones, -> { where(make_public: true) }
   scope :for_staff, -> { where(auto_staff: true) }
   scope :for_pupils, -> { where(auto_pupils: true) }

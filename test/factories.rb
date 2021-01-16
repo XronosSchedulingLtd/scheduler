@@ -3,17 +3,16 @@ FactoryBot.define do
     sequence(:name) { |n| "Ad Hoc Domain #{n}" }
     eventsource
     eventcategory
-    association :connected_property_element, factory: :element
+    association :connected_property, factory: :property
   end
 
   factory :ad_hoc_domain_subject do
     ad_hoc_domain
-    association :subject_element, factory: :element
+    subject
   end
 
   factory :ad_hoc_domain_staff do
-    ad_hoc_domain
-    association :staff_element, factory: :element
+    staff
     ad_hoc_domain_subject
   end
 

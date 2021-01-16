@@ -42,25 +42,6 @@ class Element < ApplicationRecord
   belongs_to :owner, class_name: :User, optional: true
   belongs_to :user_form, optional: true
 
-  has_many :ad_hoc_domains_as_property,
-           class_name: "AdHocDomain",
-           foreign_key: :connected_property_element_id,
-           dependent: :nullify
-
-  has_many :ad_hoc_domain_subjects,
-           foreign_key: :subject_element_id,
-           dependent: :destroy
-  has_many :ad_hoc_domains_as_subject,
-           through: :ad_hoc_domain_subjects,
-           source: :ad_hoc_domain
-
-  has_many :ad_hoc_domain_staffs,
-           foreign_key: :staff_element_id,
-           dependent: :destroy
-  has_many :ad_hoc_domains_as_staff,
-           through: :ad_hoc_domain_staffs,
-           source: :ad_hoc_domain
-
   #
   #  This is actually a constraint in the database too, but by specifying
   #  it here we can catch errors earlier.

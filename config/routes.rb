@@ -1,7 +1,9 @@
 Rails.application.routes.draw do
 
   resources :ad_hoc_domains do
-    resources :ad_hoc_domain_subjects, shallow: true
+    resources :ad_hoc_domain_subjects, shallow: true do
+      resources :ad_hoc_domain_staffs, shallow: true
+    end
     member do
       get :edit_controllers
       patch :add_controller
