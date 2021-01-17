@@ -24,8 +24,8 @@ class AdHocDomainSubjectsController < ApplicationController
         #  (because our new one could be anywhere in the list), which
         #  in turn needs a whole hierarchy of new blank records.
         #
-        create_blanks(@ad_hoc_domain)
-        format.js { render :created }
+        generate_blanks(@ad_hoc_domain)
+        format.js { render :created, locals: { owner_id: @ad_hoc_domain.id} }
       else
         format.js { render :createfailed, status: :conflict }
       end

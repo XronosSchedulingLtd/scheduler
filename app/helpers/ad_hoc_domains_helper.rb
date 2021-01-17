@@ -11,22 +11,22 @@ module AdHocDomainsHelper
     #
     #  What we are aiming to produce here is fundamentally:
     #
-    #  <li class='row'>
+    #  <div class='row'>
     #    <div class='leaf'>Subject text</div>
     #    <div class='leaf'>Staff text</div>
     #    <div class='leaf'>Pupil text</div>
-    #  </li>
+    #  </div>
     #
     #
     result = []
-    result << "<li class='#{(["row"] + row_classes).join(" ")}'>"
+    result << "<div class='#{(["row"] + row_classes).join(" ")}'>"
     result << "  <div> </div>"
     result << "  <div class='#{(["leaf"] + classes1).join(" ")}'>#{text1}</div>"
     result << "  <div> </div>"
     result << "  <div class='#{(["leaf"] + classes2).join(" ")}'>#{text2}</div>"
     result << "  <div> </div>"
     result << "  <div class='#{(["leaf"] + classes3).join(" ")}'>#{text3}</div>"
-    result << "</li>"
+    result << "</div>"
     result.join("\n").html_safe
   end
 
