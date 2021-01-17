@@ -1,6 +1,9 @@
 module AdHocDomainsHelper
   def ahd_row(
     row_classes: [],
+    prefix1: " ",
+    prefix2: " ",
+    prefix3: " ",
     text1: "",
     text2: "",
     text3: "",
@@ -20,11 +23,11 @@ module AdHocDomainsHelper
     #
     result = []
     result << "<div class='#{(["row"] + row_classes).join(" ")}'>"
-    result << "  <div> </div>"
+    result << "  <div>#{prefix1}</div>"
     result << "  <div class='#{(["leaf"] + classes1).join(" ")}'>#{text1}</div>"
-    result << "  <div> </div>"
+    result << "  <div>#{prefix2}</div>"
     result << "  <div class='#{(["leaf"] + classes2).join(" ")}'>#{text2}</div>"
-    result << "  <div> </div>"
+    result << "  <div>#{prefix3}</div>"
     result << "  <div class='#{(["leaf"] + classes3).join(" ")}'>#{text3}</div>"
     result << "</div>"
     result.join("\n").html_safe
@@ -58,6 +61,16 @@ module AdHocDomainsHelper
         id: "#{prefix}-element-id-#{parent.id}"
       )
     end
+  end
+
+  def ahd_deletion_link(model, prompt)
+    link_to("&#215;".html_safe,
+            model,
+            method: :delete,
+            data: {
+              confirm: prompt
+            },
+            remote: true)
   end
 
 end

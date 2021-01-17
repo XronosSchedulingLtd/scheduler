@@ -38,8 +38,8 @@ class AdHocDomainSubjectsController < ApplicationController
     @ad_hoc_domain = @ad_hoc_domain_subject.ad_hoc_domain
     @ad_hoc_domain_subject.destroy
     respond_to do |format|
-      @blank_ad_hoc_domain_subject = AdHocDomainSubject.new
-      format.js { render :destroyed }
+      generate_blanks(@ad_hoc_domain)
+      format.js { render :destroyed, locals: { owner_id: @ad_hoc_domain.id} }
     end
   end
 
