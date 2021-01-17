@@ -2,7 +2,9 @@ Rails.application.routes.draw do
 
   resources :ad_hoc_domains do
     resources :ad_hoc_domain_subjects, shallow: true do
-      resources :ad_hoc_domain_staffs, shallow: true
+      resources :ad_hoc_domain_staffs, shallow: true do
+        resources :ad_hoc_domain_pupil_courses, shallow: true
+      end
     end
     member do
       get :edit_controllers
@@ -272,6 +274,7 @@ Rails.application.routes.draw do
     collection do
       get :autocomplete_element_name
       get :autocomplete_staff_element_name
+      get :autocomplete_pupil_element_name
       get :autocomplete_group_element_name
       get :autocomplete_property_element_name
       get :autocomplete_location_element_name

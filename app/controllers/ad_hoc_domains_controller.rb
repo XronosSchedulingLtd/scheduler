@@ -1,4 +1,7 @@
 class AdHocDomainsController < ApplicationController
+
+  include AdHoc
+
   before_action :set_ad_hoc_domain,
                 only: [
                   :show,
@@ -27,23 +30,20 @@ class AdHocDomainsController < ApplicationController
     #  Need a blank AdHocDomainSubject to support the dialogue for
     #  creating a new one.
     #
-    #  It's tempting to do "@ad_hoc_domain.ad_hoc_domain_subjects.new",
-    #  but that adds it immediately to the in-memory array of subjects
-    #  for the domain, which then messes up attempts to list them.
+    #  The following line has the effect of adding a new, blank
+    #  ahds to the array which our in-memory ahd has.
     #
-    #  The linking together of the two instead happens in the controller
-    #  when the form comes back.
+    #  Our "sort" method always puts new records at the end, so we end
+    #  up with a form at the end of all the real records.
     #
-    @blank_ad_hoc_domain_subject = AdHocDomainSubject.new
-    #
-    #  Similarly for AdHocDomainStaff, but only if we already have
-    #  a subject.
-    #
-    @default_ad_hoc_domain_subject =
-      @ad_hoc_domain.ad_hoc_domain_subjects.first
-    if @default_ad_hoc_domain_subject
-      @blank_ad_hoc_domain_staff = AdHocDomainStaff.new
-    end
+    generate_blanks(@ad_hoc_domain)
+#    @ad_hoc_domain.ad_hoc_domain_subjects.each do |ahdsubject|
+#      ahdsubject.ad_hoc_domain_staffs.each do |ahdstaff|
+#        ahdstaff.ad_hoc_domain_pupil_courses.new
+#      end
+#      ahdsubject.ad_hoc_domain_staffs.new
+#    end
+#    @ad_hoc_domain.ad_hoc_domain_subjects.new
   end
 
   # GET /ad_hoc_domains/1/edit
@@ -118,7 +118,7 @@ class AdHocDomainsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_ad_hoc_domain
-    @ad_hoc_domain = AdHocDomain.find(params[:id])
+    @ad_hoc_domain = AdHocDomain.preload(:ad_hoc_domain_subjects).find(params[:id])
   end
 
   def set_day_shapes

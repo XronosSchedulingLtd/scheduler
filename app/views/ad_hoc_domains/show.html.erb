@@ -1,47 +1,20 @@
 
 <h1>Arranging <%= @ad_hoc_domain.name %></h1>
 
-<ul class="tabs" data-tab>
-  <li class="tab-title"><a href="#ahd-subjects">Subjects</a></li>
-  <li class="tab-title"><a href="#ahd-teachers">Teachers</a></li>
-  <li class="tab-title"><a href="#ahd-pupils">Pupils</a></li>
-  <li class="tab-title active"><a href="#ahd-cycles">Cycles</a></li>
-</ul>
+<section class='ahd-listing'>
+  <ol>
+    <%=
+      ahd_row(
+        row_classes: %w(heading),
+        classes1: %w(heading),
+        text1: "Subject"
+      )
+      %>
+    <% if @ad_hoc_domain.ad_hoc_domain_subjects.empty? %>
+      None defined yet.
+    <% else %>
+      <%= render @ad_hoc_domain.ad_hoc_domain_subjects.sort %>
+    <% end %>
+  </ol>
+</section>
 
-<hr/>
-<div class="tabs-content">
-  <div class="content" id="ahd-subjects">
-    <h3>Subjects</h3>
-    <div id='ahd-subject-listing'>
-      <%= render 'subject_listing' %>
-    </div>
-  </div>
-  <div class="content" id="ahd-teachers">
-    <h3>Teachers</h3>
-    <div id='ahd-staff-listing'>
-      <%= render 'staff_listing' %>
-    </div>
-  </div>
-  <div class="content" id="ahd-pupils">
-    <h3>Pupils</h3>
-  </div>
-  <div class="content active" id="ahd-cycles">
-    <h3>Cycles</h3>
-  </div>
-</div>
-
-<p>List of teachers who teach music</p>
-
-<p>Means to add and remove</p>
-
-<p>Means to edit schedule for each</p>
-
-<p>List of pupils who study music</p>
-
-<p>Means to add and remove</p>
-
-<p>List of cycles - typically half a term</p>
-
-<p>Means to add and remove, plus generate lessons for a cycle</p>
-
-<p>Means to allocate pupils to lessons</p>

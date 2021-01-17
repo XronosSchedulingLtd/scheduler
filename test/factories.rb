@@ -16,6 +16,11 @@ FactoryBot.define do
     ad_hoc_domain_subject
   end
 
+  factory :ad_hoc_domain_pupil_course do
+    pupil
+    ad_hoc_domain_staff
+  end
+
   factory :attachment do
     parent_id { 1 }
     parent_type { "MyString" }

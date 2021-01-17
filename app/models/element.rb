@@ -57,6 +57,7 @@ class Element < ApplicationRecord
   scope :add_directly, -> { where(add_directly: true) }
   scope :viewable, -> { where(viewable: true) }
   scope :staff, -> { where(entity_type: "Staff") }
+  scope :pupil, -> { where(entity_type: "Pupil") }
   scope :person, -> { where(entity_type: "Pupil").or(Element.where(entity_type: "Staff")) }
   scope :agroup, -> { where(entity_type: "Group") }
 #  scope :aresourcegroup, -> {

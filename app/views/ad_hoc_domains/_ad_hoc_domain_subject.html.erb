@@ -1,3 +1,4 @@
+<% unless ad_hoc_domain_subject.new_record? %>
 <tr>
   <td><%= ad_hoc_domain_subject.subject.name %></td>
   <td class='numeric'><%=
@@ -13,3 +14,4 @@
             },
             remote: true) : " " %></td>
 </tr>
+<% end %>

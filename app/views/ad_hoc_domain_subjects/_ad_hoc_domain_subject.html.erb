@@ -1,0 +1,11 @@
+<% if ad_hoc_domain_subject.new_record? %>
+  <%= ahd_row(text1: ahd_form(ad_hoc_domain_subject),
+              row_classes: %w(underrule overrule)) %>
+<% else %>
+  <%= ahd_row(text1: ad_hoc_domain_subject.subject_name,
+              text2: "Staff",
+              classes2: %w(heading),
+              row_classes: %w(overrule)) %>
+  <%= render ad_hoc_domain_subject.ad_hoc_domain_staffs.sort %>
+<% end %>
+

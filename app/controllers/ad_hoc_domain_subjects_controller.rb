@@ -1,4 +1,7 @@
 class AdHocDomainSubjectsController < ApplicationController
+
+  include AdHoc
+
   before_action :set_ad_hoc_domain, only: [:create]
   before_action :set_ad_hoc_domain_subject, only: [:destroy]
 
@@ -16,7 +19,12 @@ class AdHocDomainSubjectsController < ApplicationController
 
     respond_to do |format|
       if @ad_hoc_domain_subject.save
-        @ad_hoc_domain_subject = AdHocDomainSubject.new
+        #
+        #  We're going to need to refresh the entire listing of subjects
+        #  (because our new one could be anywhere in the list), which
+        #  in turn needs a whole hierarchy of new blank records.
+        #
+        create_blanks(@ad_hoc_domain)
         format.js { render :created }
       else
         format.js { render :createfailed, status: :conflict }
@@ -30,7 +38,7 @@ class AdHocDomainSubjectsController < ApplicationController
     @ad_hoc_domain = @ad_hoc_domain_subject.ad_hoc_domain
     @ad_hoc_domain_subject.destroy
     respond_to do |format|
-      @ad_hoc_domain_subject = AdHocDomainSubject.new
+      @blank_ad_hoc_domain_subject = AdHocDomainSubject.new
       format.js { render :destroyed }
     end
   end

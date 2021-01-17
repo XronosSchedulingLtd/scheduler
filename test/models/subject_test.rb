@@ -28,6 +28,7 @@ class SubjectTest < ActiveSupport::TestCase
     assert subject1.valid?
     subject2 = Subject.create(@valid_params)
     assert subject2.valid?
+    assert_not_equal subject1, subject2
   end
 
   test 'can select just current subjects' do
@@ -115,6 +116,14 @@ class SubjectTest < ActiveSupport::TestCase
     subject.destroy
     assert_equal 0, ahd.ad_hoc_domain_subjects.count
     assert_equal 0, ahd.subjects.count
+  end
+
+  test "can sort subjects" do
+    subject1 = FactoryBot.create(:subject, name: "Charlie")
+    subject2 = FactoryBot.create(:subject, name: "Able")
+    subject3 = FactoryBot.create(:subject, name: "Baker")
+    subjects = [subject1, subject2, subject3]
+    assert_equal [subject2, subject3, subject1], subjects.sort
   end
 
 end

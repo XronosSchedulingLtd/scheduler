@@ -1,3 +1,35 @@
 // Place all the styles related to the AdHocDomains controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+
+.ahd-listing {
+  .row {
+    display: grid;
+    grid-template-columns: 1em 2em 2fr 2em 2fr 2em 2fr;
+  }
+
+  .heading {
+    font-weight: bold;
+  }
+
+  .underrule {
+    border-bottom-style: solid;
+    border-width: 2px;
+    border-color: black;
+    &.minor {
+      margin-bottom: -1px;
+      border-width: 1px;
+    }
+  }
+
+  .overrule {
+    border-top-style: solid;
+    border-width: 2px;
+    border-color: black;
+    &.minor {
+      margin-top: -1px;
+      border-width: 1px;
+    }
+  }
+
+}

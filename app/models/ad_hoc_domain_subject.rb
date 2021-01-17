@@ -1,4 +1,6 @@
 class AdHocDomainSubject < ApplicationRecord
+  include Comparable
+
   belongs_to :ad_hoc_domain
   belongs_to :subject
 
@@ -35,6 +37,49 @@ class AdHocDomainSubject < ApplicationRecord
   def subject_element_id=(id)
     Rails.logger.debug("subject_element_id= passed #{id}")
     self.subject_element = Element.find_by(id: id)
+  end
+
+  #
+  #  Safe way of getting the subject name
+  #
+  def subject_name
+    if subject
+      subject.name
+    else
+      ""
+    end
+  end
+
+  def <=>(other)
+    if other.instance_of?(AdHocDomainSubject)
+      #
+      #  We sort by name.  If you want to do a lot then make sure
+      #  you preload the Subject records before attempting your
+      #  sort.
+      #
+      if self.subject
+        if other.subject
+          result = self.subject <=> other.subject
+          if result == 0
+            #  We must return 0 iff we are the same record.
+            result = self.id <=> other.id
+          end
+        else
+          #
+          #  Other is not yet complete.  Put it last.
+          #
+          result = -1
+        end
+      else
+        #
+        #  We are incomplete and go last.
+        #
+        result = 1
+      end
+    else
+      result = nil
+    end
+    result
   end
 
 end
