@@ -5,12 +5,6 @@ class AdHocDomainSubjectsController < ApplicationController
   before_action :set_ad_hoc_domain, only: [:create]
   before_action :set_ad_hoc_domain_subject, only: [:destroy]
 
-  # GET /ad_hoc_domains
-  # GET /ad_hoc_domains.json
-  def index
-    @ad_hoc_domains = AdHocDomain.all
-  end
-
   # POST /ad_hoc_domain/1/ad_hoc_domain_subjects
   # POST /ad_hoc_domain/1/ad_hoc_domain_subjects.json
   def create

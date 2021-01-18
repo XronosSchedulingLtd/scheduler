@@ -11,7 +11,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
     @ordinary_user = FactoryBot.create(:user)
   end
 
-  test "should create ad_hoc_domain" do
+  test "should create ad_hoc_domain subject" do
     session[:user_id] = @admin_user.id
     assert_difference('AdHocDomainSubject.count') do
       post :create,
@@ -24,7 +24,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :success
-    assert /^document.getElementById\('ahd-subject-list'/ =~ response.body
+    assert /^document.getElementById\('ahd-subject-listing'/ =~ response.body
   end
 
   test "should fail to create two identical" do
@@ -54,7 +54,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
     assert /^document.getElementById\('ahd-subject-errors'/ =~ response.body
   end
 
-  test "should delete ad_hoc_domain" do
+  test "should delete ad_hoc_domain_subject" do
     session[:user_id] = @admin_user.id
     ahds = FactoryBot.create(:ad_hoc_domain_subject)
     assert_difference('AdHocDomainSubject.count', -1) do
@@ -65,7 +65,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :success
-    assert /^document.getElementById\('ahd-subject-list'/ =~ response.body
+    assert /^document.getElementById\('ahd-subject-listing'/ =~ response.body
   end
 
 end

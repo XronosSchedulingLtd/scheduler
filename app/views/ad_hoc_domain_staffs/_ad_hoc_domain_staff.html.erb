@@ -1,6 +1,5 @@
 <% if ad_hoc_domain_staff.new_record? %>
-  <%= ahd_row(text2: ahd_form(ad_hoc_domain_staff),
-              row_classes: %w(underrule minor)) %>
+  <%= ahd_row(text2: ahd_form(ad_hoc_domain_staff)) %>
 <% else %>
   <%= ahd_row(text2: ad_hoc_domain_staff.staff_name,
               text3: "Pupils",

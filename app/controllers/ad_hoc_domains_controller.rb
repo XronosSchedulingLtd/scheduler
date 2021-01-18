@@ -118,7 +118,8 @@ class AdHocDomainsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_ad_hoc_domain
-    @ad_hoc_domain = AdHocDomain.preload(:ad_hoc_domain_subjects).find(params[:id])
+    @ad_hoc_domain =
+      AdHocDomain.includes(ad_hoc_domain_subjects: :ad_hoc_domain_staffs).find(params[:id])
   end
 
   def set_day_shapes

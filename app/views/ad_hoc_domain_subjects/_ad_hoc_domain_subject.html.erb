@@ -2,11 +2,11 @@
   <%= ahd_row(text1: ahd_form(ad_hoc_domain_subject),
               row_classes: %w(underrule overrule)) %>
 <% else %>
-  <%= ahd_row(prefix1: ahd_deletion_link(ad_hoc_domain_subject, "Hello"),
+  <%= ahd_row(prefix1: ahd_deletion_link(ad_hoc_domain_subject),
               text1: ad_hoc_domain_subject.subject_name,
               text2: "Staff",
               classes2: %w(heading),
               row_classes: %w(overrule)) %>
-  <%= render ad_hoc_domain_subject.ad_hoc_domain_staffs.sort %>
+  <%= render object: ad_hoc_domain_subject, partial: 'ad_hoc_domain_subjects/subject_staff' %>
 <% end %>
 

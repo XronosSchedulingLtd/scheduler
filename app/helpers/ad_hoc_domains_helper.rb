@@ -63,12 +63,21 @@ module AdHocDomainsHelper
     end
   end
 
-  def ahd_deletion_link(model, prompt)
+  def ahd_deletion_prompt(model)
+    case model
+    when AdHocDomainSubject
+      "Deleting this link to the subject \"#{model.subject_name}\" will remove all the corresponding entries for students and teachers of the subject.  Continue?"
+    else
+      "Are you sure?"
+    end
+  end
+
+  def ahd_deletion_link(model)
     link_to("&#215;".html_safe,
             model,
             method: :delete,
             data: {
-              confirm: prompt
+              confirm: ahd_deletion_prompt(model)
             },
             remote: true)
   end

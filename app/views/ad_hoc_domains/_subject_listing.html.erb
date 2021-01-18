@@ -1,8 +1,7 @@
-<div id='ahd-subject-list'>
-  <% if @ad_hoc_domain.ad_hoc_domain_subjects.empty? %>
+<div id='ahd-subject-listing'>
+  <% if @ad_hoc_domain.ad_hoc_domain_subjects.size == 1 %>
     None defined yet.
-  <% else %>
-    <%= render @ad_hoc_domain.ad_hoc_domain_subjects.sort %>
   <% end %>
+  <%= render @ad_hoc_domain.ad_hoc_domain_subjects.sort %>
 </div>
 

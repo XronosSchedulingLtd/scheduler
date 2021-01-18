@@ -12,12 +12,16 @@
     font-weight: bold;
   }
 
+  .annotation {
+    font-size: 100%;
+  }
+
   .underrule {
     border-bottom-style: solid;
     border-width: 2px;
     border-color: black;
+    margin-bottom: 2px;
     &.minor {
-      margin-bottom: -1px;
       border-width: 1px;
     }
   }
@@ -26,8 +30,8 @@
     border-top-style: solid;
     border-width: 2px;
     border-color: black;
+    padding-top: 2px;
     &.minor {
-      margin-top: -1px;
       border-width: 1px;
     }
   }
