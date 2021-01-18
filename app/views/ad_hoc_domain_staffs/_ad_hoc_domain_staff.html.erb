@@ -1,7 +1,8 @@
 <% if ad_hoc_domain_staff.new_record? %>
   <%= ahd_row(text2: ahd_form(ad_hoc_domain_staff)) %>
 <% else %>
-  <%= ahd_row(text2: ad_hoc_domain_staff.staff_name,
+  <%= ahd_row(prefix2: ahd_deletion_link(ad_hoc_domain_staff),
+              text2: ad_hoc_domain_staff.staff_name,
               text3: "Pupils",
               classes3: %w(heading),
               row_classes: %w(overrule minor)) %>
