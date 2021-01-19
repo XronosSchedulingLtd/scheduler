@@ -21,6 +21,7 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
     end
     assert_response :success
     assert /^document.getElementById\('ahd-staff-pupils-#{@ad_hoc_domain_staff.id}'/ =~ response.body
+    assert /document.getElementById\('pupil-element-name-#{@ad_hoc_domain_staff.id}'\)\.focus/ =~ response.body
   end
 
   test "should fail to create two identical" do
@@ -52,7 +53,9 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
 
   test "should delete ad_hoc_pupil_course" do
     session[:user_id] = @admin_user.id
-    ahdpc = FactoryBot.create(:ad_hoc_domain_pupil_course)
+    ahdpc = FactoryBot.create(
+      :ad_hoc_domain_pupil_course,
+      ad_hoc_domain_staff: @ad_hoc_domain_staff)
     assert_difference('AdHocDomainPupilCourse.count', -1) do
       delete :destroy,
         params: {
@@ -61,7 +64,8 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :success
-    assert /^document.getElementById\('ahd-staff-pupils-/ =~ response.body
+    assert /^document.getElementById\('ahd-staff-pupils-#{@ad_hoc_domain_staff.id}'\)/ =~ response.body
+    assert /document.getElementById\('pupil-element-name-#{@ad_hoc_domain_staff.id}'\)\.focus/ =~ response.body
   end
 
 end
