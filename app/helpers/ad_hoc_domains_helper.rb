@@ -69,6 +69,8 @@ module AdHocDomainsHelper
       "Deleting this link to the subject \"#{model.subject_name}\" will remove all the corresponding entries for students and teachers of the subject.  Continue?"
     when AdHocDomainStaff
       "Deleting this link to the staff member \"#{model.staff_name}\" will remove all the corresponding entries for his or her students of the subject.  Continue?"
+    when AdHocDomainPupilCourse
+      "Deleting this link to the pupil \"#{model.pupil_name}\" will not delete the pupil, but will stop any further lessons being scheduled."
     else
       "Are you sure?"
     end
