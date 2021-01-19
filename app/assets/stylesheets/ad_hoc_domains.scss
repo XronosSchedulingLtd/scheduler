@@ -38,6 +38,14 @@
     }
   }
 
+  .errors {
+    color: red;
+  }
+
+  .folded {
+    display: none;
+  }
+
   input {
     margin-bottom: 2px;
     height: 24px;

@@ -39,16 +39,20 @@ module AdHocDomainsHelper
       parent = model.ad_hoc_domain
       prefix = "subject"
       helper = autocomplete_subject_element_name_elements_path
+      error_field_id = "ahd-subject-errors"
     when AdHocDomainStaff
       parent = model.ad_hoc_domain_subject
       prefix = "staff"
       helper = autocomplete_staff_element_name_elements_path
+      error_field_id = "ahd-staff-errors-#{model.ad_hoc_domain_subject_id}"
     when AdHocDomainPupilCourse
       parent = model.ad_hoc_domain_staff
       prefix = "pupil"
       helper = autocomplete_pupil_element_name_elements_path
+      error_field_id = "ahd-pupil-errors-#{model.ad_hoc_domain_staff_id}"
     end
     form_with(model: [parent, model], local: false) do |form|
+      "<div class='errors' id='#{error_field_id}'></div>".html_safe +
       form.autocomplete_field(
         "#{prefix}_element_name",
         helper,
@@ -84,6 +88,16 @@ module AdHocDomainsHelper
               confirm: ahd_deletion_prompt(model)
             },
             remote: true)
+  end
+
+  def ahd_error_texts(model)
+    result = []
+    result << "<ul>"
+    model.errors.full_messages.each do |message|
+      result << "<li>#{message}</li>"
+    end
+    result << "</ul>"
+    result.join("\n").html_safe
   end
 
 end

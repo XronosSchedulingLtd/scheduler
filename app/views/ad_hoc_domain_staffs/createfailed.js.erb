@@ -1,2 +1,3 @@
-document.getElementById('ahd-staff-errors-<%= owner_id %>').innerHTML = "<%=j "ouch" %>";
+document.getElementById('ahd-staff-errors-<%= owner_id %>').innerHTML = "<%=
+j(ahd_error_texts(@ad_hoc_domain_staff)) %>";
 
