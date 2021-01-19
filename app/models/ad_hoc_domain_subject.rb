@@ -5,6 +5,7 @@ class AdHocDomainSubject < ApplicationRecord
   belongs_to :subject
 
   has_many :ad_hoc_domain_staffs, dependent: :destroy
+  has_many :staffs, through: :ad_hoc_domain_staffs
 
   validates :subject,
     uniqueness: {

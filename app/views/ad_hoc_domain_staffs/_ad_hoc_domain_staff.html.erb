@@ -6,6 +6,7 @@
               text3: "Pupils",
               classes3: %w(heading),
               row_classes: %w(overrule minor)) %>
-  <%= render ad_hoc_domain_staff.ad_hoc_domain_pupil_courses.sort %>
+  <%= render object: ad_hoc_domain_staff,
+    partial: 'ad_hoc_domain_staffs/staff_pupils' %>
 <% end %>
 

@@ -67,6 +67,8 @@ class AdHocDomainSubjectTest < ActiveSupport::TestCase
   end
 
   test "can have staff" do
+    assert @ad_hoc_domain_subject.respond_to? :staffs
+    assert @ad_hoc_domain_subject.respond_to? :ad_hoc_domain_staffs
   end
 
 end
