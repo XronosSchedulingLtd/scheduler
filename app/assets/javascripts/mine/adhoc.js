@@ -90,8 +90,15 @@ if ($('.ahd-listing').length) {
         }
       }
 
+      function updateTotals(subject_id, num_staff, num_pupils) {
+        var target_row = $('div#ahd-subject-' + subject_id);
+        $(target_row).find('.num-staff').text(num_staff + ' staff');
+        $(target_row).find('.num-pupils').text(num_pupils + ' pupils');
+      }
+
       that.init = function() {
         $('.toggle').click(clickHandler);
+        window.updateTotals = updateTotals;
       };
 
       return that;

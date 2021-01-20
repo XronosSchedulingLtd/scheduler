@@ -2,12 +2,15 @@
   <%= ahd_row(text1: ahd_form(ad_hoc_domain_subject),
               row_classes: %w(underrule overrule)) %>
 <% else %>
-  <%= ahd_row(prefix1: ahd_deletion_link(ad_hoc_domain_subject),
+  <%= ahd_row(id: "ahd-subject-#{ad_hoc_domain_subject.id}",
+              prefix1: ahd_deletion_link(ad_hoc_domain_subject),
               text1: ad_hoc_domain_subject.subject_name,
               text2: "#{ad_hoc_domain_subject.num_real_staff} staff",
               text3: "#{ad_hoc_domain_subject.num_real_pupils} pupils",
               text4: ahd_toggle("Show"),
               classes1: %w(heading),
+              classes2: %w(num-staff),
+              classes3: %w(num-pupils),
               row_classes: %w(overrule)) %>
   <%= render object: ad_hoc_domain_subject, partial: 'ad_hoc_domain_subjects/subject_staff' %>
 <% end %>

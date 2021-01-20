@@ -1,2 +1,3 @@
 document.getElementById('ahd-staff-pupils-<%= owner_id %>').outerHTML = "<%=j render partial: 'ad_hoc_domain_staffs/staff_pupils', object: @ad_hoc_domain_staff %>";
+window.updateTotals(<%= grandparent_id %>, <%= @num_staff %>, <%= @num_pupils %>);
 document.getElementById('pupil-element-name-<%= owner_id %>').focus();

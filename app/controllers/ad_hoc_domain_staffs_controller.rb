@@ -20,6 +20,8 @@ class AdHocDomainStaffsController < ApplicationController
         #
         generate_blanks(@ad_hoc_domain_subject)
         @folding_class_toggle = ""
+        @num_staff = @ad_hoc_domain_subject.num_real_staff
+        @num_pupils = @ad_hoc_domain_subject.num_real_pupils
         format.js { render :created,
                     locals: { owner_id: @ad_hoc_domain_subject.id} }
       else
@@ -38,6 +40,8 @@ class AdHocDomainStaffsController < ApplicationController
     respond_to do |format|
       generate_blanks(@ad_hoc_domain_subject)
       @folding_class_toggle = ""
+      @num_staff = @ad_hoc_domain_subject.num_real_staff
+      @num_pupils = @ad_hoc_domain_subject.num_real_pupils
       format.js { render :destroyed, locals: { owner_id: @ad_hoc_domain_subject.id} }
     end
   end

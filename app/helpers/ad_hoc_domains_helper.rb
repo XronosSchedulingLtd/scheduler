@@ -1,5 +1,6 @@
 module AdHocDomainsHelper
   def ahd_row(
+    id: nil,
     row_classes: [],
     prefix1: " ",
     prefix2: " ",
@@ -23,7 +24,7 @@ module AdHocDomainsHelper
     #
     #
     result = []
-    result << "<div class='#{(["row"] + row_classes).join(" ")}'>"
+    result << "<div class='#{(["row"] + row_classes).join(" ")}'#{ id ? " id='#{id}'" : ""}>"
     result << "  <div>#{prefix1}</div>"
     result << "  <div class='#{(["leaf"] + classes1).join(" ")}'>#{text1}</div>"
     result << "  <div>#{prefix2}</div>"
