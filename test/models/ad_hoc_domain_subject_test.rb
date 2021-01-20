@@ -71,4 +71,28 @@ class AdHocDomainSubjectTest < ActiveSupport::TestCase
     assert @ad_hoc_domain_subject.respond_to? :ad_hoc_domain_staffs
   end
 
+  test "can compute number of staff and number of pupils" do
+    assert @ad_hoc_domain_subject.respond_to? :num_real_staff
+    assert @ad_hoc_domain_subject.respond_to? :num_real_pupils
+    staff1 = FactoryBot.create(
+      :ad_hoc_domain_staff,
+      ad_hoc_domain_subject: @ad_hoc_domain_subject)
+    staff2 = FactoryBot.create(
+      :ad_hoc_domain_staff,
+      ad_hoc_domain_subject: @ad_hoc_domain_subject)
+    #
+    #  This next one should not be counted.
+    #
+    blank_staff = @ad_hoc_domain_subject.ad_hoc_domain_staffs.new
+    assert_equal 2, @ad_hoc_domain_subject.num_real_staff
+    pupil1 = FactoryBot.create(
+      :ad_hoc_domain_pupil_course,
+      ad_hoc_domain_staff: staff1)
+    pupil2 = FactoryBot.create(
+      :ad_hoc_domain_pupil_course,
+      ad_hoc_domain_staff: staff2)
+    blank_pupil = staff1.ad_hoc_domain_pupil_courses.new
+    assert_equal 2, @ad_hoc_domain_subject.num_real_pupils
+  end
+
 end

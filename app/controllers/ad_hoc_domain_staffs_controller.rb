@@ -19,6 +19,7 @@ class AdHocDomainStaffsController < ApplicationController
         #  in turn needs a whole hierarchy of new blank records.
         #
         generate_blanks(@ad_hoc_domain_subject)
+        @folding_class_toggle = ""
         format.js { render :created,
                     locals: { owner_id: @ad_hoc_domain_subject.id} }
       else
@@ -36,6 +37,7 @@ class AdHocDomainStaffsController < ApplicationController
     @ad_hoc_domain_staff.destroy
     respond_to do |format|
       generate_blanks(@ad_hoc_domain_subject)
+      @folding_class_toggle = ""
       format.js { render :destroyed, locals: { owner_id: @ad_hoc_domain_subject.id} }
     end
   end

@@ -53,6 +53,18 @@ class AdHocDomainSubject < ApplicationRecord
     end
   end
 
+  def num_real_staff
+    self.ad_hoc_domain_staffs.select {|ahds| !ahds.new_record?}.count
+  end
+
+  def num_real_pupils
+    total = 0
+    self.ad_hoc_domain_staffs.select {|ahds| !ahds.new_record?}.each do |ahds|
+      total += ahds.num_real_pupils
+    end
+    total
+  end
+
   def <=>(other)
     if other.instance_of?(AdHocDomainSubject)
       #

@@ -1,4 +1,4 @@
-<div id='ahd-subject-staff-<%= subject_staff.id %>' class='folded foldable'>
+<div id='ahd-subject-staff-<%= subject_staff.id %>' class='foldable<%= @folding_class_toggle %>'>
   <% if subject_staff.ad_hoc_domain_staffs.size == 1 %>
     <%= ahd_row(text2: "None defined yet.",
                 classes2: %w(annotation)) %>

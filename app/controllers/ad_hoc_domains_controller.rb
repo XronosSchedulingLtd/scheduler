@@ -37,13 +37,7 @@ class AdHocDomainsController < ApplicationController
     #  up with a form at the end of all the real records.
     #
     generate_blanks(@ad_hoc_domain)
-#    @ad_hoc_domain.ad_hoc_domain_subjects.each do |ahdsubject|
-#      ahdsubject.ad_hoc_domain_staffs.each do |ahdstaff|
-#        ahdstaff.ad_hoc_domain_pupil_courses.new
-#      end
-#      ahdsubject.ad_hoc_domain_staffs.new
-#    end
-#    @ad_hoc_domain.ad_hoc_domain_subjects.new
+    @folding_class_toggle = " folded"
   end
 
   # GET /ad_hoc_domains/1/edit

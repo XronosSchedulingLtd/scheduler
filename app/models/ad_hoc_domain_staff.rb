@@ -45,6 +45,10 @@ class AdHocDomainStaff < ApplicationRecord
     end
   end
 
+  def num_real_pupils
+    self.ad_hoc_domain_pupil_courses.select {|ahdpc| !ahdpc.new_record?}.count
+  end
+
   def <=>(other)
     if other.instance_of?(AdHocDomainStaff)
       #
