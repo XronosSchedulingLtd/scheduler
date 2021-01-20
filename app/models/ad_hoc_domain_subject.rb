@@ -7,6 +7,8 @@ class AdHocDomainSubject < ApplicationRecord
   has_many :ad_hoc_domain_staffs, dependent: :destroy
   has_many :staffs, through: :ad_hoc_domain_staffs
 
+  has_many :ad_hoc_domain_pupil_courses, through: :ad_hoc_domain_staffs
+
   validates :subject,
     uniqueness: {
       scope: :ad_hoc_domain,

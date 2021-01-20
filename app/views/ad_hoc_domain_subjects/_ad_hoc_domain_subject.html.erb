@@ -4,7 +4,9 @@
 <% else %>
   <%= ahd_row(prefix1: ahd_deletion_link(ad_hoc_domain_subject),
               text1: ad_hoc_domain_subject.subject_name,
-              text2: "Staff",
+              text2: "#{ad_hoc_domain_subject.ad_hoc_domain_staffs.size} staff",
+              text3: "#{ad_hoc_domain_subject.ad_hoc_domain_pupil_courses.size} pupils",
+              text4: ahd_toggle("Show"),
               classes1: %w(heading),
               classes2: %w(heading),
               row_classes: %w(overrule)) %>

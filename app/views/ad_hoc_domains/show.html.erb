@@ -5,9 +5,9 @@
   <div>
     <%=
       ahd_row(
-        row_classes: %w(heading),
         classes1: %w(heading),
-        text1: "Subject"
+        text1: "Subject",
+        text4: ahd_toggle("Show all")
       )
     %>
     <%= render 'subject_listing' %>

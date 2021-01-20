@@ -7,6 +7,7 @@ module AdHocDomainsHelper
     text1: "",
     text2: "",
     text3: "",
+    text4: "",
     classes1: [],
     classes2: [],
     classes3: [])
@@ -29,6 +30,7 @@ module AdHocDomainsHelper
     result << "  <div class='#{(["leaf"] + classes2).join(" ")}'>#{text2}</div>"
     result << "  <div>#{prefix3}</div>"
     result << "  <div class='#{(["leaf"] + classes3).join(" ")}'>#{text3}</div>"
+    result << "  <div>#{text4}</div>"
     result << "</div>"
     result.join("\n").html_safe
   end
@@ -98,6 +100,10 @@ module AdHocDomainsHelper
     end
     result << "</ul>"
     result.join("\n").html_safe
+  end
+
+  def ahd_toggle(text)
+    link_to(text, '#', class: "toggle")
   end
 
 end
