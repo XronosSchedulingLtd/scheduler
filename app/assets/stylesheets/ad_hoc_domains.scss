@@ -18,7 +18,7 @@
 
   .underrule {
     border-bottom-style: solid;
-    border-width: 2px;
+    border-width: 1px;
     border-color: black;
     margin-bottom: 2px;
     &.minor {
@@ -29,7 +29,7 @@
 
   .overrule {
     border-top-style: solid;
-    border-width: 2px;
+    border-width: 1px;
     border-color: black;
     padding-top: 2px;
     &.minor {

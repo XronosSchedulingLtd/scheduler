@@ -90,15 +90,26 @@ if ($('.ahd-listing').length) {
         }
       }
 
-      function updateTotals(subject_id, num_staff, num_pupils) {
-        var target_row = $('div#ahd-subject-' + subject_id);
-        $(target_row).find('.num-staff').text(num_staff + ' staff');
-        $(target_row).find('.num-pupils').text(num_pupils + ' pupils');
-      }
-
       that.init = function() {
         $('.toggle').click(clickHandler);
-        window.updateTotals = updateTotals;
+
+        window.updateTotals = function(subject_id, num_staff, num_pupils) {
+          var target_row = $('div#ahd-subject-' + subject_id);
+          $(target_row).find('.num-staff').text(num_staff + ' staff');
+          $(target_row).find('.num-pupils').text(num_pupils + ' pupils');
+        }
+
+        //
+        //  We will use the CSS convention of indexing from 1 (nasty).
+        //
+        window.insertSubjectAt = function(html, index) {
+          var marker = $('div#ahd-subject-listing > div:nth-child(' + index + ')');
+          if (marker.length === 0) {
+            marker = $('div#ahd-subject-listing > div:last-child');
+          }
+          marker.before(html);
+        }
+
       };
 
       return that;

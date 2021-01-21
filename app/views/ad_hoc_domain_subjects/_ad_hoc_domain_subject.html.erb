@@ -7,7 +7,7 @@
                   text1: ad_hoc_domain_subject.subject_name,
                   text2: "#{ad_hoc_domain_subject.num_real_staff} staff",
                   text3: "#{ad_hoc_domain_subject.num_real_pupils} pupils",
-                  text4: ahd_toggle("Show"),
+                  text4: ahd_toggle( @folded ? "Show" : "Hide"),
                   classes1: %w(heading),
                   classes2: %w(num-staff),
                   classes3: %w(num-pupils),

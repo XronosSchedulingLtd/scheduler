@@ -24,7 +24,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :success
-    assert /^document.getElementById\('ahd-subject-listing'/ =~ response.body
+    assert /^window.insertSubjectAt/ =~ response.body
   end
 
   test "should fail to create two identical" do
@@ -65,7 +65,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :success
-    assert /^document.getElementById\('ahd-subject-listing'/ =~ response.body
+    assert /^document.getElementById\('ahd-subject-/ =~ response.body
   end
 
 end

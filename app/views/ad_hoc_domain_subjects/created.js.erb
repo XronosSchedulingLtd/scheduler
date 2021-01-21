@@ -1,2 +1,3 @@
-document.getElementById('ahd-subject-listing').outerHTML = "<%=j render partial: 'ad_hoc_domains/subject_listing', object: @ad_hoc_domain %>";
+window.insertSubjectAt("<%=j render @ad_hoc_domain_subject %>", <%= position %>);
 document.getElementById('subject-element-name-<%= owner_id %>').focus();
+document.getElementById('subject-element-name-<%= owner_id %>').value = "";

@@ -56,4 +56,11 @@ class AdHocDomain < ApplicationRecord
     self.connected_property_element = Element.find_by(id: id)
   end
 
+  #
+  #  Work out the position of this particular subject in our listing,
+  #  indexed from 1 (yuk!) to suit CSS.
+  #
+  def position_of(ahds)
+    (self.ad_hoc_domain_subjects.sort.find_index(ahds) || 0) + 1
+  end
 end

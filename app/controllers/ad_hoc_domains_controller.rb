@@ -37,7 +37,7 @@ class AdHocDomainsController < ApplicationController
     #  up with a form at the end of all the real records.
     #
     generate_blanks(@ad_hoc_domain)
-    @folding_class_toggle = " folded"
+    @folded = true
   end
 
   # GET /ad_hoc_domains/1/edit
