@@ -7,6 +7,8 @@ class CreateAdHocDomains < ActiveRecord::Migration[5.2]
       t.integer :connected_property_id
       t.integer :default_day_shape_id
       t.integer :datasource_id
+      t.integer :default_lesson_mins, default: 30
+      t.integer :mins_step, default: 15
       t.timestamps
     end
 
@@ -38,7 +40,7 @@ class CreateAdHocDomains < ActiveRecord::Migration[5.2]
     create_table :ad_hoc_domain_pupil_courses do |t|
       t.integer :pupil_id
       t.integer :ad_hoc_domain_staff_id
-      t.integer :lessons_per_week, default: 1
+      t.integer :minutes, default: 30
       t.timestamps
     end
     add_index :ad_hoc_domain_pupil_courses, :pupil_id

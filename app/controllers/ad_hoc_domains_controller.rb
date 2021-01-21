@@ -134,7 +134,9 @@ class AdHocDomainsController < ApplicationController
                   :eventcategory_id,
                   :connected_property_element_id,
                   :connected_property_element_name,
-                  :default_day_shape_id)
+                  :default_day_shape_id,
+                  :default_lesson_mins,
+                  :mins_step)
   end
 
 end

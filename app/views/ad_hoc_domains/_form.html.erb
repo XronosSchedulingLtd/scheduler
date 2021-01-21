@@ -130,6 +130,31 @@
   </div>
 
   <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :default_lesson_mins, "Default lesson (mins)", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= form.number_field(:default_lesson_mins) %>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+      The default lesson duration to put in newly created pupil records.
+    </div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :mins_step, "Step size (mins)", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= form.number_field(:mins_step) %>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+      In the pupil editing dialogue, how much should the number of minutes
+      go up and down by in each step?
+    </div>
+  </div>
+
+  <div class="row collapse">
     <div class="small-9 small-offset-3 columns">
       <div class="actions">
         <%=

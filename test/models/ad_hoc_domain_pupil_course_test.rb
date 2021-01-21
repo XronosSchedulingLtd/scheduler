@@ -78,4 +78,9 @@ class AdHocDomainPupilCourseTest < ActiveSupport::TestCase
       @ad_hoc_domain_staff.ad_hoc_domain_pupil_courses.sort.map(&:pupil)
   end
 
+  test "has minutes defaulting to 30" do
+    assert @ad_hoc_domain_pupil_course.respond_to? :minutes
+    assert_equal 30, @ad_hoc_domain_pupil_course.minutes
+  end
+
 end

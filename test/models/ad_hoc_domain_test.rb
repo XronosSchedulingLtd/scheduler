@@ -35,7 +35,16 @@ class AdHocDomainTest < ActiveSupport::TestCase
     assert ahd.valid?
     ahd = FactoryBot.build(:ad_hoc_domain, datasource: datasources(:one))
     assert ahd.valid?
-    
+  end
+
+  test "has default_lesson_mins defaulting to 30" do
+    assert @ad_hoc_domain.respond_to? :default_lesson_mins
+    assert_equal 30, @ad_hoc_domain.default_lesson_mins
+  end
+
+  test "has mins_step defaulting to 15" do
+    assert @ad_hoc_domain.respond_to? :mins_step
+    assert_equal 15, @ad_hoc_domain.mins_step
   end
 
   test "need not have a connected property" do
