@@ -94,10 +94,13 @@ module AdHocDomainsHelper
   end
 
   def ahd_error_texts(model)
+    puts model.errors.inspect
     result = []
     result << "<ul>"
-    model.errors.full_messages.each do |message|
-      result << "<li>#{message}</li>"
+    model.errors.messages.values.each do |message_set|
+      message_set.each do |message|
+        result << "<li>#{message}</li>"
+      end
     end
     result << "</ul>"
     result.join("\n").html_safe
