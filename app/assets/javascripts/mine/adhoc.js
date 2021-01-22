@@ -102,14 +102,29 @@ if ($('.ahd-listing').length) {
         //
         //  We will use the CSS convention of indexing from 1 (nasty).
         //
-        window.insertSubjectAt = function(html, index) {
+        window.insertSubjectAt = function(text, index, owner_id) {
+          //
+          //  We convert the provided text to being an HTML element
+          //  before we insert it so we can attach the click handler.
+          //
+          var html = $.parseHTML(text);
+          $(html).find('.toggle').click(clickHandler);
+          //
+          //  And now insert.
+          //
           var marker = $('div#ahd-subject-listing > div:nth-child(' + index + ')');
           if (marker.length === 0) {
             marker = $('div#ahd-subject-listing > div:last-child');
           }
           marker.before(html);
+          //
+          //  And now a bit of tidying up.
+          //
+          var name_field = $('#subject-element-name-' + owner_id);
+          name_field.focus();
+          name_field.val('');
+          $('#ahd-subject-errors').html("");
         }
-
       };
 
       return that;
