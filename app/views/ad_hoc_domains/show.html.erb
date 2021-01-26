@@ -4,11 +4,11 @@
 <section class='ahd-listing'>
   <div>
     <%=
-      ahd_row(
-        classes1: %w(heading),
-        text1: "Subject",
-        text4: ahd_toggle("Show all")
-      )
+      ahd_row2(
+        contents: {
+          subject_heading: "Subject",
+          flipper: ahd_toggle("Show all")
+        })
     %>
     <%= render 'subject_listing' %>
   </div>

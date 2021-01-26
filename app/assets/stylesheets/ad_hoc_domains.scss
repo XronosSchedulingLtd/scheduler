@@ -3,18 +3,104 @@
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
 .ahd-listing {
-  .row {
+  //
+  //  Tempting to use a class of simply "row" here, but that then
+  //  clashes with Zurb Foundation.
+  //
+  .arow {
     display: grid;
-    grid-template-columns: 1em 1em 3fr 1em 3fr 1em 2fr 1fr 1fr 6em;
-    grid-template-areas: "dummy subject subject staff staff pupil pupil pupil pupil button";
+    grid-template-columns: 1em 3fr 1em 3fr 1em 2fr 1fr 1fr 6em;
+    grid-template-areas: "subject subject staff staff pupil pupil pupil pupil flipper";
   }
 
-  .heading {
+  .flipper {
+    grid-column: flipper;
+  }
+
+  .subject-heading {
+    font-weight: bold;
+    grid-column: 2;
+  }
+
+  .subject-form {
+    grid-column: 2;
+  }
+
+  .subject-delete {
+    grid-column: 1;
+  }
+
+  .subject {
+    grid-column: 2;
     font-weight: bold;
   }
 
-  .annotation {
-    font-size: 100%;
+  .staff-delete {
+    grid-column: 3;
+  }
+
+  %staff-shared {
+    grid-column: 4;
+  }
+
+  .num-staff {
+    @extend %staff-shared;
+  }
+
+  .no-staff {
+    @extend %staff-shared;
+    font-style: italic;
+  }
+
+  .staff-form {
+    @extend %staff-shared;
+  }
+
+  .staff {
+    @extend %staff-shared;
+  }
+
+  %pupil-shared {
+    grid-column: 6;
+  }
+
+  .num-pupils {
+    @extend %pupil-shared;
+  }
+
+  .no-pupils {
+    @extend %pupil-shared;
+    font-style: italic;
+  }
+
+  .pupil-heading {
+    @extend %pupil-shared;
+    font-weight: bold;
+  }
+
+  .pupil-form {
+    grid-column: 6 / span 3;
+  }
+
+  .pupil-delete {
+    grid-column: 5;
+  }
+
+  .pupil {
+    @extend %pupil-shared;
+  }
+
+  .mins-heading {
+    grid-column: 7;
+    font-weight: bold;
+  }
+
+  .mins {
+    grid-column: 7;
+  }
+
+  .edit_pupil {
+    grid-column: 8;
   }
 
   .underrule {

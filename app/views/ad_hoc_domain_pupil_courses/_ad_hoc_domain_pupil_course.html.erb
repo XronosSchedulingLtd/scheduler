@@ -1,11 +1,16 @@
 <% if ad_hoc_domain_pupil_course.new_record? %>
-  <%= ahd_row(text3: ahd_form(ad_hoc_domain_pupil_course)) %>
+  <%= ahd_row2(
+    contents: {
+      pupil_form: ahd_form(ad_hoc_domain_pupil_course)
+    })
+  %>
 <% else %>
-  <%= ahd_row(
-    prefix3: ahd_deletion_link(ad_hoc_domain_pupil_course),
-    text3: ad_hoc_domain_pupil_course.pupil_name,
-    text3a: ad_hoc_domain_pupil_course.minutes.to_s,
-    text3b: 'Edit'
-  ) %>
+  <%= ahd_row2(
+    contents: {
+      pupil_delete: ahd_deletion_link(ad_hoc_domain_pupil_course),
+      pupil: ad_hoc_domain_pupil_course.pupil_name,
+      mins: ad_hoc_domain_pupil_course.minutes.to_s,
+      edit_pupil: 'Edit'
+    }) %>
 <% end %>
 

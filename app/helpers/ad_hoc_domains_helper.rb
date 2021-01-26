@@ -28,7 +28,7 @@ module AdHocDomainsHelper
     #
     #
     result = []
-    result << "<div class='#{(["row"] + row_classes).join(" ")}'#{ id ? " id='#{id}'" : ""}>"
+    result << "<div class='#{(["arow"] + row_classes).join(" ")}'#{ id ? " id='#{id}'" : ""}>"
     result << "  <div>#{prefix1}</div>"
     result << "  <div class='#{(["leaf"] + classes1).join(" ")}'>#{text1}</div>"
     result << "  <div>#{prefix2}</div>"
@@ -38,6 +38,40 @@ module AdHocDomainsHelper
     result << "  <div class='#{(["leaf"] + classes3a).join(" ")}'>#{text3a}</div>"
     result << "  <div class='#{(["leaf"] + classes3b).join(" ")}'>#{text3b}</div>"
     result << "  <div>#{text4}</div>"
+    result << "</div>"
+    result.join("\n").html_safe
+  end
+
+  #
+  #  A complete re-work, the idea being for the code to provide
+  #  merely the textual contents.  All the formatting and positioning
+  #  decisions should be handled in the stylesheets.
+  #
+  #  We expect keys like:
+  #
+  #    subject_head
+  #    subject_delete
+  #    subject
+  #    subject_form
+  #    staff_head
+  #    staff_delete
+  #    staff
+  #    num_staff
+  #    num_pupils
+  #    ...
+  #    pupil_...
+  #    flipper
+  #
+  def ahd_row2(row_id: nil, row_classes: [], contents: {})
+    result = []
+    result << "<div class='#{
+        (["arow"] + row_classes).join(" ")
+      }'#{
+        row_id ? " id='#{row_id}'" : ""
+      }>"
+    contents.each do |key, data|
+      result << "<div class='#{tcc(key)}'>#{data}</div>"
+    end
     result << "</div>"
     result.join("\n").html_safe
   end

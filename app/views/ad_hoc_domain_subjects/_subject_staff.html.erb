@@ -1,8 +1,11 @@
 <div id='ahd-subject-staff-<%= subject_staff.id %>' class='foldable<%=
 @folded ? " folded" : "" %>'>
   <% if subject_staff.ad_hoc_domain_staffs.size == 1 %>
-    <%= ahd_row(text2: "None defined yet.",
-                classes2: %w(annotation)) %>
+    <%= ahd_row2(
+      contents: {
+        no_staff: "None defined yet."
+      }
+    ) %>
   <% end %>
   <%= render subject_staff.ad_hoc_domain_staffs.sort %>
 </div>

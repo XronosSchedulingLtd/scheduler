@@ -56,7 +56,7 @@ if ($('.ahd-listing').length) {
         //
         //  Want the parent *row* of the current target.
         //
-        var my_row = $(button).closest(".row");
+        var my_row = $(button).closest(".arow");
         var target = $(my_row).next();
         //
         //  Now the processing diverges a tiny bit.

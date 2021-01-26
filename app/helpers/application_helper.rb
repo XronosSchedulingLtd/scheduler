@@ -150,6 +150,18 @@ module ApplicationHelper
   end
 
   #
+  #  In ruby we tend to use underscores in symbols and strings whilst
+  #  CSS classes conventionally use hyphens.  Convert.
+  #
+  #  Also accepts symbols.
+  #
+  def to_css_class(org)
+    org.to_s.gsub("_", "-")
+  end
+
+  alias tcc to_css_class
+
+  #
   #  Returns an appropriate path for listing pending items relating
   #  to the indicated element.  For most elements these will be concerns,
   #  but for ResourceGroups, these will be requests.
