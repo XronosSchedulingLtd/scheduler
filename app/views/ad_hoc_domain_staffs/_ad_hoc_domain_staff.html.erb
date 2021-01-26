@@ -4,7 +4,9 @@
   <%= ahd_row(prefix2: ahd_deletion_link(ad_hoc_domain_staff),
               text2: ad_hoc_domain_staff.staff_name,
               text3: "Pupils",
+              text3a: "Mins",
               classes3: %w(heading),
+              classes3a: %w(heading),
               row_classes: %w(overrule minor)) %>
   <%= render object: ad_hoc_domain_staff,
     partial: 'ad_hoc_domain_staffs/staff_pupils' %>

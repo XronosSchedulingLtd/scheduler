@@ -5,7 +5,8 @@
 .ahd-listing {
   .row {
     display: grid;
-    grid-template-columns: 1em 1em 2fr 1em 2fr 1em 2fr 6em;
+    grid-template-columns: 1em 1em 3fr 1em 3fr 1em 2fr 1fr 1fr 6em;
+    grid-template-areas: "dummy subject subject staff staff pupil pupil pupil pupil button";
   }
 
   .heading {

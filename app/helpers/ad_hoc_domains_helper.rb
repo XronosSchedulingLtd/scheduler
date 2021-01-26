@@ -8,10 +8,14 @@ module AdHocDomainsHelper
     text1: "",
     text2: "",
     text3: "",
+    text3a: "",
+    text3b: "",
     text4: "",
     classes1: [],
     classes2: [],
-    classes3: [])
+    classes3: [],
+    classes3a: [],
+    classes3b: [])
 
     #
     #  What we are aiming to produce here is fundamentally:
@@ -31,6 +35,8 @@ module AdHocDomainsHelper
     result << "  <div class='#{(["leaf"] + classes2).join(" ")}'>#{text2}</div>"
     result << "  <div>#{prefix3}</div>"
     result << "  <div class='#{(["leaf"] + classes3).join(" ")}'>#{text3}</div>"
+    result << "  <div class='#{(["leaf"] + classes3a).join(" ")}'>#{text3a}</div>"
+    result << "  <div class='#{(["leaf"] + classes3b).join(" ")}'>#{text3b}</div>"
     result << "  <div>#{text4}</div>"
     result << "</div>"
     result.join("\n").html_safe
