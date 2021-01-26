@@ -1,5 +1,5 @@
 <% if ad_hoc_domain_subject.new_record? %>
-  <%= ahd_row2(
+  <%= ahd_row(
     contents: {
       subject_form: ahd_form(ad_hoc_domain_subject),
     },
@@ -7,7 +7,7 @@
   ) %>
   <% else %>
     <div id='ahd-subject-<%= ad_hoc_domain_subject.id %>'>
-      <%= ahd_row2(
+      <%= ahd_row(
         contents: {
           subject_delete: ahd_deletion_link(ad_hoc_domain_subject),
           subject: ad_hoc_domain_subject.subject_name,

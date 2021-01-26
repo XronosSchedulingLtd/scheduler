@@ -1,7 +1,7 @@
 <% if ad_hoc_domain_staff.new_record? %>
-  <%= ahd_row2(contents: { staff_form: ahd_form(ad_hoc_domain_staff) }) %>
+  <%= ahd_row(contents: { staff_form: ahd_form(ad_hoc_domain_staff) }) %>
 <% else %>
-  <%= ahd_row2(
+  <%= ahd_row(
     contents: {
       staff_delete: ahd_deletion_link(ad_hoc_domain_staff),
       staff: ad_hoc_domain_staff.staff_name,

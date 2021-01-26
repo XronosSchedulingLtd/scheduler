@@ -1,47 +1,4 @@
 module AdHocDomainsHelper
-  def ahd_row(
-    id: nil,
-    row_classes: [],
-    prefix1: " ",
-    prefix2: " ",
-    prefix3: " ",
-    text1: "",
-    text2: "",
-    text3: "",
-    text3a: "",
-    text3b: "",
-    text4: "",
-    classes1: [],
-    classes2: [],
-    classes3: [],
-    classes3a: [],
-    classes3b: [])
-
-    #
-    #  What we are aiming to produce here is fundamentally:
-    #
-    #  <div class='row'>
-    #    <div class='leaf'>Subject text</div>
-    #    <div class='leaf'>Staff text</div>
-    #    <div class='leaf'>Pupil text</div>
-    #  </div>
-    #
-    #
-    result = []
-    result << "<div class='#{(["arow"] + row_classes).join(" ")}'#{ id ? " id='#{id}'" : ""}>"
-    result << "  <div>#{prefix1}</div>"
-    result << "  <div class='#{(["leaf"] + classes1).join(" ")}'>#{text1}</div>"
-    result << "  <div>#{prefix2}</div>"
-    result << "  <div class='#{(["leaf"] + classes2).join(" ")}'>#{text2}</div>"
-    result << "  <div>#{prefix3}</div>"
-    result << "  <div class='#{(["leaf"] + classes3).join(" ")}'>#{text3}</div>"
-    result << "  <div class='#{(["leaf"] + classes3a).join(" ")}'>#{text3a}</div>"
-    result << "  <div class='#{(["leaf"] + classes3b).join(" ")}'>#{text3b}</div>"
-    result << "  <div>#{text4}</div>"
-    result << "</div>"
-    result.join("\n").html_safe
-  end
-
   #
   #  A complete re-work, the idea being for the code to provide
   #  merely the textual contents.  All the formatting and positioning
@@ -62,7 +19,7 @@ module AdHocDomainsHelper
   #    pupil_...
   #    flipper
   #
-  def ahd_row2(row_id: nil, row_classes: [], contents: {})
+  def ahd_row(row_id: nil, row_classes: [], contents: {})
     result = []
     result << "<div class='#{
         (["arow"] + row_classes).join(" ")
