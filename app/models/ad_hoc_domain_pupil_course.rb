@@ -30,7 +30,7 @@ class AdHocDomainPupilCourse < ApplicationRecord
 
   def pupil_name
     if self.pupil
-      self.pupil.name
+      self.pupil.element_name
     else
       ""
     end
