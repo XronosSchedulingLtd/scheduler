@@ -9,8 +9,7 @@
     contents: {
       pupil_delete: ahd_deletion_link(ad_hoc_domain_pupil_course),
       pupil: ad_hoc_domain_pupil_course.pupil_name,
-      mins: ad_hoc_domain_pupil_course.minutes.to_s,
-      edit_pupil: 'Edit'
+      mins: "<span title='Click to amend'>#{ad_hoc_domain_pupil_course.minutes.to_s}"
     }) %>
 <% end %>
 

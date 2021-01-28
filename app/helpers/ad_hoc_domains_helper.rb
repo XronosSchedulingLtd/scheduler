@@ -27,13 +27,18 @@ module AdHocDomainsHelper
         row_id ? " id='#{row_id}'" : ""
       }>"
     contents.each do |key, data|
-      result << "<div class='#{tcc(key)}'>#{data}</div>"
+      if key == :edit_pupil
+        result << "<div class='edit-pupil zfbutton teensy tiny button-link'>#{data}</div>"
+      else
+        result << "<div class='#{tcc(key)}'>#{data}</div>"
+      end
     end
     result << "</div>"
     result.join("\n").html_safe
   end
 
   def ahd_form(model)
+    mins_field = false
     case model
     when AdHocDomainSubject
       parent = model.ad_hoc_domain
@@ -50,20 +55,32 @@ module AdHocDomainsHelper
       prefix = "pupil"
       helper = autocomplete_pupil_element_name_elements_path
       error_field_id = "ahd-pupil-errors-#{model.ad_hoc_domain_staff_id}"
+      mins_field = true
+      step = model.ad_hoc_domain_staff.ad_hoc_domain_subject.ad_hoc_domain.mins_step
     end
     form_with(model: [parent, model], local: false) do |form|
-      "<div class='errors' id='#{error_field_id}'></div>".html_safe +
-      form.autocomplete_field(
+      result = []
+      result << "<div class='errors' id='#{error_field_id}'></div>"
+      if mins_field
+        result << "<div class='sub-grid'>"
+      end
+      result << form.autocomplete_field(
         "#{prefix}_element_name",
         helper,
         'data-auto-focus' => true,
         id: "#{prefix}-element-name-#{parent.id}",
         id_element: "##{prefix}-element-id-#{parent.id}",
-        placeholder: "Add #{prefix}") +
-      form.hidden_field(
+        placeholder: "Add #{prefix}",
+        class: 'pupil-name')
+      result << form.hidden_field(
         "#{prefix}_element_id",
-        id: "#{prefix}-element-id-#{parent.id}"
-      )
+        id: "#{prefix}-element-id-#{parent.id}")
+      if mins_field
+        result << form.number_field(:minutes, step: step, class: 'pupil-mins')
+        result << form.submit("Add", class: 'pupil-add zfbutton tiny teensy')
+        result << "</div>"
+      end
+      result.join("\n").html_safe
     end
   end
 

@@ -55,7 +55,7 @@ class AdHocDomainPupilCourseTest < ActiveSupport::TestCase
 
   test "can get pupil name directly" do
     assert @ad_hoc_domain_pupil_course.respond_to? :pupil_name
-    assert_equal @ad_hoc_domain_pupil_course.pupil.name,
+    assert_equal @ad_hoc_domain_pupil_course.pupil.element_name,
       @ad_hoc_domain_pupil_course.pupil_name
   end
 
