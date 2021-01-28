@@ -112,8 +112,24 @@ class AdHocDomainsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_ad_hoc_domain
+    #
+    #  This looks like a lot of pre-fetching, but we'll only end up
+    #  fetching them all again separately later.  For a show(), we need
+    #  all of them.
+    #
     @ad_hoc_domain =
-      AdHocDomain.includes(ad_hoc_domain_subjects: :ad_hoc_domain_staffs).find(params[:id])
+      AdHocDomain.includes(
+        ad_hoc_domain_subjects: [
+          :subject,
+          {
+            ad_hoc_domain_staffs: [
+              :staff,
+              {
+                ad_hoc_domain_pupil_courses: :pupil
+              }
+            ]
+          }
+        ]).find(params[:id])
   end
 
   def set_day_shapes
