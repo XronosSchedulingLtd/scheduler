@@ -9,12 +9,21 @@
   //
   .arow {
     display: grid;
-    grid-template-columns: 1em 3fr 1em 3fr 1em 2fr 1fr 1fr 6em;
-    grid-template-areas: "subject subject staff staff pupil pupil pupil pupil flipper";
+    grid-template-columns: 1em 4fr 1em 4fr 1em 4fr 1fr 3em 6em;
+    grid-template-areas: "subjectx subject staffx staff pupilx pupil pupil pupil flipper";
+  }
+
+  .sub-grid {
+    display: grid;
+    grid-template-columns: 4fr 1fr 3em;
   }
 
   .flipper {
     grid-column: flipper;
+  }
+
+  .subject-delete {
+    grid-column: subjectx;
   }
 
   .subject-heading {
@@ -26,21 +35,17 @@
     grid-column: 2;
   }
 
-  .subject-delete {
-    grid-column: 1;
-  }
-
   .subject {
     grid-column: 2;
     font-weight: bold;
   }
 
   .staff-delete {
-    grid-column: 3;
+    grid-column: staffx;
   }
 
   %staff-shared {
-    grid-column: 4;
+    grid-column: staff;
   }
 
   .num-staff {
@@ -58,6 +63,10 @@
 
   .staff {
     @extend %staff-shared;
+  }
+
+  .pupil-delete {
+    grid-column: 5;
   }
 
   %pupil-shared {
@@ -79,11 +88,8 @@
   }
 
   .pupil-form {
-    grid-column: 6 / span 3;
-  }
-
-  .pupil-delete {
-    grid-column: 5;
+//    grid-column: 6 / span 3;
+    grid-column: pupil;
   }
 
   .pupil {
