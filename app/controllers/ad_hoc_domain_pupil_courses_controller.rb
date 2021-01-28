@@ -80,7 +80,7 @@ class AdHocDomainPupilCoursesController < ApplicationController
   # Never trust parameters from the scary internet, only allow the white list through.
   def ad_hoc_domain_pupil_course_params
     params.require(:ad_hoc_domain_pupil_course).
-           permit(:pupil_element_name, :pupil_element_id)
+           permit(:pupil_element_name, :pupil_element_id, :minutes)
   end
 
 end
