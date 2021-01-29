@@ -63,4 +63,13 @@ class AdHocDomain < ApplicationRecord
   def position_of(ahds)
     (self.ad_hoc_domain_subjects.sort.find_index(ahds) || 0) + 1
   end
+
+  #
+  #  Find all AdHocDomainStaff records in this AdHocDomain matching
+  #  a sample one.
+  #
+  def peers_of(ahds)
+    self.ad_hoc_domain_staffs.where(staff_id: ahds.staff_id)
+  end
+
 end

@@ -16,6 +16,14 @@ class AdHocDomainStaff < ApplicationRecord
   #
   attr_writer :staff_element_name
 
+  def ad_hoc_domain
+    self.ad_hoc_domain_subject.ad_hoc_domain
+  end
+
+  def peers
+    self.ad_hoc_domain.peers_of(self)
+  end
+
   def can_delete?
     #
     #  Can delete this only if there are no affected pupils.
@@ -79,6 +87,22 @@ class AdHocDomainStaff < ApplicationRecord
       result = nil
     end
     result
+  end
+
+  def loading
+    self.peers.
+         includes(:ad_hoc_domain_pupil_courses).
+         map {|peer| peer.single_loading}.
+         reduce(0, :+)
+  end
+
+  protected
+
+  #
+  #  The loading just for this instance.
+  #
+  def single_loading
+    self.ad_hoc_domain_pupil_courses.inject(0) {|sum, p| sum + p.minutes}
   end
 
 end

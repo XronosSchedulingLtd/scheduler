@@ -87,6 +87,7 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
     #  Check new value is in response.
     #
     assert_equal @ad_hoc_domain_pupil_course.id, data['id']
+    assert_equal @ad_hoc_domain_pupil_course.owner_id, data['owner_id']
     assert_equal org_mins + 15, data['minutes']
     #
     #  And that it's been saved on the host.
@@ -104,6 +105,7 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
     assert_response 422
     data = JSON.parse(response.body)
     assert_equal @ad_hoc_domain_pupil_course.id, data['id']
+    assert_equal @ad_hoc_domain_pupil_course.owner_id, data['owner_id']
     assert_equal 'is not a number', data['errors']['minutes'][0]
   end
 

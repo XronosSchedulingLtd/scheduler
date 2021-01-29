@@ -72,4 +72,8 @@ class AdHocDomainStaffTest < ActiveSupport::TestCase
       @ad_hoc_domain_subject.ad_hoc_domain_staffs.sort.map(&:staff)
   end
 
+  test "can calculate loading" do
+    assert @ad_hoc_domain_staff.respond_to? :loading
+  end
+
 end

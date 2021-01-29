@@ -100,5 +100,9 @@ class AdHocDomainPupilCourseTest < ActiveSupport::TestCase
     assert_not @ad_hoc_domain_pupil_course.valid?
   end
 
+  test "implements owner_id" do
+    assert @ad_hoc_domain_pupil_course.respond_to? :owner_id
+    assert_equal @ad_hoc_domain_staff.id, @ad_hoc_domain_pupil_course.owner_id
+  end
 
 end

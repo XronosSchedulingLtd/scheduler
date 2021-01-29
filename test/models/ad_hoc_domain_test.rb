@@ -134,4 +134,37 @@ class AdHocDomainTest < ActiveSupport::TestCase
                  @ad_hoc_domain.connected_property_element_name
   end
 
+  test "can get all records for one member of staff" do
+    assert @ad_hoc_domain.respond_to? :peers_of
+    #
+    #  See that it works
+    #
+    staffs = []
+    2.times do
+      staffs << FactoryBot.create(:staff)
+    end
+
+    subjects = []
+    3.times do
+      subjects << FactoryBot.create(:subject)
+    end
+
+    ahd_staffs = []
+    subjects.each do |subject|
+      ahdsu = FactoryBot.create(
+        :ad_hoc_domain_subject,
+        ad_hoc_domain: @ad_hoc_domain,
+        subject: subject)
+      staffs.each do |staff|
+        ahd_staffs << FactoryBot.create(
+          :ad_hoc_domain_staff,
+          ad_hoc_domain_subject: ahdsu,
+          staff: staff)
+      end
+    end
+    ahd_staffs.each do |ahdst|
+      assert_equal 3, @ad_hoc_domain.peers_of(ahdst).count
+    end
+  end
+
 end
