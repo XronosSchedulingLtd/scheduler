@@ -27,9 +27,27 @@ module AdHocDomainsHelper
         row_id ? " id='#{row_id}'" : ""
       }>"
     contents.each do |key, data|
-      if key == :edit_pupil
-        result << "<div class='edit-pupil zfbutton teensy tiny button-link'>#{data}</div>"
+      #
+      #  The caller may have supplied a hash in order to
+      #  do clever things.
+      #
+      if data.is_a? Hash
+        #
+        #  It must have a :body.  Anything else goes in the
+        #  heading.
+        #
+        extra = data.except(:body)
+        if extra.empty?
+          extra_text = ""
+        else
+          extra_text =
+            extra.to_a.collect {|arr| "#{arr[0]}='#{arr[1]}'"}.join(" ")
+        end
+        result << "<div class='#{tcc(key)}' #{extra_text}>#{data[:body]}</div>"
       else
+        #
+        #  Otherwise just shove it in the contents.
+        #
         result << "<div class='#{tcc(key)}'>#{data}</div>"
       end
     end

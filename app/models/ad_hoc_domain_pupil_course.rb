@@ -9,6 +9,11 @@ class AdHocDomainPupilCourse < ApplicationRecord
       scope: [:ad_hoc_domain_staff],
       message: "Can't repeat pupil within staff"
     }
+  validates :minutes,
+    numericality: {
+      only_integer: true,
+      greater_than: 0
+    }
   #
   #  This exists just so we can write to it.
   #
@@ -64,4 +69,7 @@ class AdHocDomainPupilCourse < ApplicationRecord
     result
   end
 
+  def owner_id
+    self.ad_hoc_domain_staff.id
+  end
 end

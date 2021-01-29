@@ -83,4 +83,22 @@ class AdHocDomainPupilCourseTest < ActiveSupport::TestCase
     assert_equal 30, @ad_hoc_domain_pupil_course.minutes
   end
 
+  test "minutes must be numeric" do
+    @ad_hoc_domain_pupil_course.minutes = "Banana"
+    assert_not @ad_hoc_domain_pupil_course.valid?
+  end
+
+  test "minutes must be an integer" do
+    @ad_hoc_domain_pupil_course.minutes = 0.81
+    assert_not @ad_hoc_domain_pupil_course.valid?
+  end
+
+  test "minutes must be strictly positive" do
+    @ad_hoc_domain_pupil_course.minutes = "0"
+    assert_not @ad_hoc_domain_pupil_course.valid?
+    @ad_hoc_domain_pupil_course.minutes = "-7"
+    assert_not @ad_hoc_domain_pupil_course.valid?
+  end
+
+
 end

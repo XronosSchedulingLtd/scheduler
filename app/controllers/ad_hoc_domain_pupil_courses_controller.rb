@@ -3,7 +3,7 @@ class AdHocDomainPupilCoursesController < ApplicationController
   include AdHoc
 
   before_action :set_ad_hoc_domain_staff, only: [:create]
-  before_action :set_ad_hoc_domain_pupil_course, only: [:destroy]
+  before_action :set_ad_hoc_domain_pupil_course, only: [:destroy, :update]
 
   # POST /ad_hoc_domain_staff/1/ad_hoc_domain_staffs
   # POST /ad_hoc_domain_staff/1/ad_hoc_domain_staffs.json
@@ -38,6 +38,26 @@ class AdHocDomainPupilCoursesController < ApplicationController
       end
     end
   end
+
+  # PATCH /ad_hoc_domain_pupil_courses/1.json
+  def update
+    respond_to do |format|
+      #
+      #  Can update only the minutes field.
+      #
+      if @ad_hoc_domain_pupil_course.update(update_params)
+        format.json
+      else
+        format.json {
+          render json: { id: @ad_hoc_domain_pupil_course.id,
+                         owner_id: @ad_hoc_domain_staff.id,
+                         errors: @ad_hoc_domain_pupil_course.errors}, 
+          status: :unprocessable_entity
+        }
+      end
+    end
+  end
+
 
   # DELETE /ad_hoc_domain_pupil_courses/1
   # DELETE /ad_hoc_domain_pupil_courses/1.json
@@ -81,6 +101,11 @@ class AdHocDomainPupilCoursesController < ApplicationController
   def ad_hoc_domain_pupil_course_params
     params.require(:ad_hoc_domain_pupil_course).
            permit(:pupil_element_name, :pupil_element_id, :minutes)
+  end
+
+  def update_params
+    params.require(:ad_hoc_domain_pupil_course).
+           permit(:minutes)
   end
 
 end

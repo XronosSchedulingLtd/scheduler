@@ -5,6 +5,7 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
     @ad_hoc_domain_staff = FactoryBot.create(:ad_hoc_domain_staff)
     @pupil = FactoryBot.create(:pupil)
     @admin_user = FactoryBot.create(:user, :admin)
+    @ad_hoc_domain_pupil_course = FactoryBot.create(:ad_hoc_domain_pupil_course)
   end
 
   test "should create ad_hoc_pupil_course" do
@@ -66,6 +67,44 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
     assert_response :success
     assert /^document.getElementById\('ahd-staff-pupils-#{@ad_hoc_domain_staff.id}'\)/ =~ response.body
     assert /document.getElementById\('pupil-element-name-#{@ad_hoc_domain_staff.id}'\)\.focus/ =~ response.body
+  end
+
+  test "can update minutes via ajax" do
+    session[:user_id] = @admin_user.id
+    org_mins = @ad_hoc_domain_pupil_course.minutes
+#    patch set_mins_ad_hoc_domain_pupil_course_path(
+    patch :update,
+      params: {
+        id: @ad_hoc_domain_pupil_course,
+        ad_hoc_domain_pupil_course: {
+          minutes: org_mins + 15
+        }
+      },
+      format: :json
+    assert_response :success
+    data = JSON.parse(response.body)
+    #
+    #  Check new value is in response.
+    #
+    assert_equal @ad_hoc_domain_pupil_course.id, data['id']
+    assert_equal org_mins + 15, data['minutes']
+    #
+    #  And that it's been saved on the host.
+    #
+    @ad_hoc_domain_pupil_course.reload
+    assert_equal org_mins + 15, @ad_hoc_domain_pupil_course.minutes
+    patch :update,
+      params: {
+        id: @ad_hoc_domain_pupil_course,
+        ad_hoc_domain_pupil_course: {
+          minutes: "Banana"
+        }
+      },
+      format: :json
+    assert_response 422
+    data = JSON.parse(response.body)
+    assert_equal @ad_hoc_domain_pupil_course.id, data['id']
+    assert_equal 'is not a number', data['errors']['minutes'][0]
   end
 
 end

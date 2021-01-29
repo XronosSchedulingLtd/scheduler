@@ -5,6 +5,10 @@ if ($('.ahd-listing').length) {
     function() {
       var that = {};
 
+      var my_bit;
+      var show_template;
+      var edit_template;
+
       function toggleVisibility() {
         if ($(this).hasClass('folded')) {
           $(this).slideDown();
@@ -90,8 +94,108 @@ if ($('.ahd-listing').length) {
         }
       }
 
+      function updateOK(data, textStatus, jqXHR) {
+        var pupil_id = data.id;
+        var owner_id = data.owner_id;
+        var minutes = data.minutes;
+
+        var div = my_bit.find('div#ahd-pupil-' + pupil_id);
+        if (div.length) {
+          $(div).html(show_template({mins: minutes}));
+          $(div).click(minsClickHandler);
+        }
+        my_bit.find('div#ahd-pupil-errors-' + owner_id).text("");
+      }
+
+      function updateFailed(jqXHR, textStatus, errorThrown) {
+        var json = jqXHR.responseJSON;
+        var pupil_id = json.id;
+        var owner_id = json.owner_id;
+        var errors = json.errors;
+
+        var text = errors.minutes[0];
+        my_bit.find('div#ahd-pupil-errors-' + owner_id).text(text);
+      }
+
+      function minsClickHandler(event) {
+        var div = event['currentTarget'];
+        //
+        //  Need to disable click handler temporarily.
+        //
+        $(div).off('click');
+        //
+        //  There should be a span within this, which we are going to
+        //  change to be an input field.
+        //
+        var org_contents = $(div).children('span').html();
+        $(div).html(edit_template({mins: org_contents}));
+        $(div).children('input').focus();
+        //
+        //  We will terminate input if the user presses Enter or Escape.
+        //
+        $(div).children('input').keyup(function(e) {
+          if (e.key === 'Escape') {
+            //
+            //  Revert things to how they were.
+            //
+            var prev_value = $(e.target).data('prev-value');
+
+            $(div).html(show_template({mins: prev_value}));
+            $(div).click(minsClickHandler);
+            return false;
+          } else if (e.key == 'Enter') {
+            //
+            //  We need to send the new value up to the host.
+            //
+            var new_value = $(e.target).val();
+            //
+            //  And the ID of the record to be updated?
+            //
+            var parent_id = $(e.target).parent().attr('id');
+            var id = parent_id.replace("ahd-pupil-", "");
+            var prepared_data = JSON.stringify({
+              ad_hoc_domain_pupil_course: {
+                minutes: new_value
+              }
+            });
+            $.ajax({
+              url: '/ad_hoc_domain_pupil_courses/' + id,
+              type: 'PATCH',
+              context: this,
+              dataType: 'json',
+              contentType: 'application/json',
+              data: prepared_data
+            }).done(updateOK).
+               fail(updateFailed);
+            return false;
+          } else {
+            return true;
+          }
+        });
+        //
+        //  Likewise if we lose focus.
+        //
+        $(div).children('input').focusout(function(e) {
+          //
+          //  Revert things to how they were.
+          //
+          var prev_value = $(e.target).data('prev-value');
+
+          $(div).html(show_template({mins: prev_value}));
+          $(div).click(minsClickHandler);
+        });
+      }
+
       that.init = function() {
+        my_bit = $('.ahd-listing');
+        //
+        //  We use templates for modifying the contents of the
+        //  mins span/field.
+        //
+        show_template = _.template($('#ahd-show-mins').html());
+        edit_template = _.template($('#ahd-edit-mins').html());
         $('.toggle').click(clickHandler);
+        $('.mins').click(minsClickHandler);
 
         window.updateTotals = function(subject_id, num_staff, num_pupils) {
           var target_row = $('div#ahd-subject-' + subject_id);
