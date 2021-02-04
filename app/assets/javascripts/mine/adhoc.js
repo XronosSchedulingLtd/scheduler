@@ -5,7 +5,8 @@ if ($('.ahd-listing').length) {
     function() {
       var that = {};
 
-      var my_bit;
+      var by_subject_bit;
+      var by_staff_bit;
       var show_template;
       var edit_template;
 
@@ -99,12 +100,12 @@ if ($('.ahd-listing').length) {
         var owner_id = data.owner_id;
         var minutes = data.minutes;
 
-        var div = my_bit.find('div#ahd-pupil-' + pupil_id);
+        var div = by_subject_bit.find('div#ahd-pupil-' + pupil_id);
         if (div.length) {
           $(div).html(show_template({mins: minutes}));
           $(div).click(minsClickHandler);
         }
-        my_bit.find('div#ahd-pupil-errors-' + owner_id).text("");
+        by_subject_bit.find('div#ahd-pupil-errors-' + owner_id).text("");
       }
 
       function updateFailed(jqXHR, textStatus, errorThrown) {
@@ -114,7 +115,7 @@ if ($('.ahd-listing').length) {
         var errors = json.errors;
 
         var text = errors.minutes[0];
-        my_bit.find('div#ahd-pupil-errors-' + owner_id).text(text);
+        by_subject_bit.find('div#ahd-pupil-errors-' + owner_id).text(text);
       }
 
       function minsClickHandler(event) {
@@ -187,7 +188,8 @@ if ($('.ahd-listing').length) {
       }
 
       that.init = function() {
-        my_bit = $('.ahd-listing');
+        by_subject_bit = $('#ahd-by-subject');
+        by_staff_bit = $('#ahd-by-staff');
         //
         //  We use templates for modifying the contents of the
         //  mins span/field.

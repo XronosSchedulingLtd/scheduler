@@ -35,7 +35,15 @@ class AdHocDomainPupilCourse < ApplicationRecord
 
   def pupil_name
     if self.pupil
-      self.pupil.element_name
+      #
+      #  Tempting to use self.pupil.element_name here because it
+      #  involves one fewer models, but that method actually works
+      #  out what the name should be, which in turn involves several
+      #  d/b hits.  The element record on the other hand has it as
+      #  a simple data field.  If doing a lot, pre-load all the elements
+      #  too.
+      #
+      self.pupil.element.name
     else
       ""
     end

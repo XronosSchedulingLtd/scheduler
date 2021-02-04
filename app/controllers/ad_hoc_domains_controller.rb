@@ -1,16 +1,70 @@
 class AdHocDomainsController < ApplicationController
 
+  class PseudoStaff
+    #
+    #  Used simply for displaying our info sorted by staff member.
+    #
+    include Comparable
+
+    attr_reader :staff,
+                :staff_name,
+                :num_real_subjects,
+                :num_real_pupils,
+                :ad_hoc_domain_subjects
+
+    def initialize(ad_hoc_domain_staffs)
+      @staff = ad_hoc_domain_staffs[0].staff
+      @staff_name = ad_hoc_domain_staffs[0].staff_name
+      @num_real_subjects = ad_hoc_domain_staffs.size
+      @num_real_pupils = ad_hoc_domain_staffs.inject(0) {|sum, s| sum + s.num_real_pupils}
+      @ad_hoc_domain_subjects = ad_hoc_domain_staffs.collect {|s| s.ad_hoc_domain_subject}.sort
+    end
+
+    def to_partial_path
+      'pseudo_staff'
+    end
+
+    def <=>(other)
+      if other.instance_of?(PseudoStaff)
+        #
+        if self.staff
+          if other.staff
+            result = self.staff <=> other.staff
+            if result == 0
+              #  We must return 0 iff we are the same record.
+              result = self.id <=> other.id
+            end
+          else
+            #
+            #  Other is not yet complete.  Put it last.
+            #
+            result = -1
+          end
+        else
+          #
+          #  We are incomplete and go last.
+          #
+          result = 1
+        end
+      else
+        result = nil
+      end
+      result
+    end
+
+  end
+
   include AdHoc
 
   before_action :set_ad_hoc_domain,
                 only: [
-                  :show,
                   :edit,
                   :update,
                   :destroy,
                   :edit_controllers,
                   :add_controller,
                   :remove_controller]
+  before_action :set_ad_hoc_domain_et_al, only: [:show]
 
   # GET /ad_hoc_domains
   # GET /ad_hoc_domains.json
@@ -38,6 +92,11 @@ class AdHocDomainsController < ApplicationController
     #
     generate_blanks(@ad_hoc_domain)
     @folded = true
+    @pseudo_staffs =
+      @ad_hoc_domain.ad_hoc_domain_staffs.
+                     group_by {|ahds| ahds.staff_id}.
+                     values.
+                     collect {|arr| PseudoStaff.new(arr)}.sort
   end
 
   # GET /ad_hoc_domains/1/edit
@@ -112,6 +171,10 @@ class AdHocDomainsController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def set_ad_hoc_domain
+    @ad_hoc_domain = AdHocDomain.find(params[:id])
+  end
+
+  def set_ad_hoc_domain_et_al
     #
     #  This looks like a lot of pre-fetching, but we'll only end up
     #  fetching them all again separately later.  For a show(), we need
@@ -125,7 +188,7 @@ class AdHocDomainsController < ApplicationController
             ad_hoc_domain_staffs: [
               :staff,
               {
-                ad_hoc_domain_pupil_courses: :pupil
+                ad_hoc_domain_pupil_courses: [pupil: :element]
               }
             ]
           }

@@ -7,10 +7,67 @@
   //  Tempting to use a class of simply "row" here, but that then
   //  clashes with Zurb Foundation.
   //
-  .arow {
-    display: grid;
-    grid-template-columns: 1em 4fr 1em 4fr 1em 4fr 1fr 3em 6em;
-    grid-template-areas: "subjectx subject staffx staff pupilx pupil pupil pupil flipper";
+
+  %staff-shared {
+    grid-column: staff;
+  }
+
+  #ahd-by-subject {
+    .arow {
+      display: grid;
+      grid-template-columns: 1em 4fr 1em 4fr 1em 4fr 1fr 3em 6em;
+      grid-template-areas: "subjectx subject staffx staff pupilx pupil pupil pupil flipper";
+    }
+
+    .subject-heading {
+      font-weight: bold;
+      grid-column: 2;
+    }
+
+    .subject-form {
+      grid-column: 2;
+    }
+
+    .subject {
+      grid-column: 2;
+      font-weight: bold;
+    }
+
+    .num-staff {
+      @extend %staff-shared;
+    }
+
+    .staff {
+      @extend %staff-shared;
+    }
+
+  }
+
+  #ahd-by-staff {
+    .arow {
+      display: grid;
+      grid-template-columns: 1em 4fr 1em 4fr 1em 4fr 1fr 3em 6em;
+      grid-template-areas: "staffx staff subjectx subject pupilx pupil pupil pupil flipper";
+    }
+
+    .staff-heading {
+      @extend %staff-shared;
+      font-weight: bold;
+    }
+
+    .staff {
+      @extend %staff-shared;
+      font-weight: bold;
+    }
+
+    .num-subjects {
+      grid-column: subject;
+    }
+
+    .subject {
+      grid-column: subject;
+    }
+
   }
 
   .sub-grid {
@@ -18,38 +75,12 @@
     grid-template-columns: 4fr 1fr 3em;
   }
 
-  .flipper {
-    grid-column: flipper;
-  }
-
   .subject-delete {
     grid-column: subjectx;
   }
 
-  .subject-heading {
-    font-weight: bold;
-    grid-column: 2;
-  }
-
-  .subject-form {
-    grid-column: 2;
-  }
-
-  .subject {
-    grid-column: 2;
-    font-weight: bold;
-  }
-
   .staff-delete {
     grid-column: staffx;
-  }
-
-  %staff-shared {
-    grid-column: staff;
-  }
-
-  .num-staff {
-    @extend %staff-shared;
   }
 
   .no-staff {
@@ -58,10 +89,6 @@
   }
 
   .staff-form {
-    @extend %staff-shared;
-  }
-
-  .staff {
     @extend %staff-shared;
   }
 
@@ -107,6 +134,10 @@
 
   .edit_pupil {
     grid-column: 8;
+  }
+
+  .flipper {
+    grid-column: flipper;
   }
 
   .underrule {

@@ -3,26 +3,32 @@
 <ul class="tabs" data-tab>
   <li class="tab-title active"><a href="#ahd-by-subject">By Subject</a></li>
   <li class="tab-title"><a href="#ahd-by-staff">By Staff</a></li>
+  <li class="tab-title"><a href="#ahd-cycles">Cycles</a></li>
 </ul>
 
 <hr/>
-<div class="tabs-content">
+<div class="tabs-content ahd-listing">
   <div class="content active" id="ahd-by-subject">
-    <section class='ahd-listing'>
-      <div>
-        <%=
-          ahd_row(
-            contents: {
-              subject_heading: "Subject",
-              flipper: ahd_toggle("Show all")
-            })
-        %>
-        <%= render 'subject_listing' %>
-      </div>
-    </section>
+    <%=
+      ahd_row(
+        contents: {
+          subject_heading: "Subject",
+          flipper: ahd_toggle("Show all")
+        })
+    %>
+    <%= render 'subject_listing' %>
   </div>
   <div class="content" id="ahd-by-staff">
-    Listing by staff
+    <%=
+      ahd_row(
+        contents: {
+          staff_heading: "Staff",
+          flipper: ahd_toggle("Show all")
+          })
+        %>
+    <%= render 'staff_listing' %>
+  </div>
+  <div class="content" id="ahd-cycles">
   </div>
 </div>
 
