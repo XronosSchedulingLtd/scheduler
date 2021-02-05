@@ -3,11 +3,15 @@ require 'test_helper'
 class AdHocDomainSubjectTest < ActiveSupport::TestCase
   setup do
     @ad_hoc_domain = FactoryBot.create(:ad_hoc_domain)
+    @ad_hoc_domain_cycle =
+      FactoryBot.create(
+        :ad_hoc_domain_cycle,
+        ad_hoc_domain: @ad_hoc_domain)
     @subject = FactoryBot.create(:subject)
     @ad_hoc_domain_subject =
       FactoryBot.create(
         :ad_hoc_domain_subject,
-        ad_hoc_domain: @ad_hoc_domain,
+        ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
         subject: @subject)
   end
 
@@ -15,8 +19,8 @@ class AdHocDomainSubjectTest < ActiveSupport::TestCase
     assert @ad_hoc_domain_subject.valid?
   end
 
-  test "must have a domain" do
-    ahds = FactoryBot.build(:ad_hoc_domain_subject, ad_hoc_domain: nil)
+  test "must have a cycle" do
+    ahds = FactoryBot.build(:ad_hoc_domain_subject, ad_hoc_domain_cycle: nil)
     assert_not ahds.valid?
   end
 
@@ -34,7 +38,7 @@ class AdHocDomainSubjectTest < ActiveSupport::TestCase
   test "must be unique" do
     second = FactoryBot.build(
       :ad_hoc_domain_subject,
-      ad_hoc_domain: @ad_hoc_domain,
+      ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
       subject: @subject)
     assert_not second.valid?    # Because it's the same as the first one
   end
@@ -44,24 +48,24 @@ class AdHocDomainSubjectTest < ActiveSupport::TestCase
     subject2 = FactoryBot.create(:subject, name: "Able")
     subject3 = FactoryBot.create(:subject, name: "Baker")
     ahds1 = FactoryBot.create(:ad_hoc_domain_subject,
-                              ad_hoc_domain: @ad_hoc_domain,
+                              ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
                               subject: subject1)
     ahds2 = FactoryBot.create(:ad_hoc_domain_subject,
-                              ad_hoc_domain: @ad_hoc_domain,
+                              ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
                               subject: subject2)
     ahds3 = FactoryBot.create(:ad_hoc_domain_subject,
-                              ad_hoc_domain: @ad_hoc_domain,
+                              ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
                               subject: subject3)
 
-    @ad_hoc_domain.reload
+    @ad_hoc_domain_cycle.reload
     assert_equal [subject2, subject3, subject1, @subject],
-      @ad_hoc_domain.ad_hoc_domain_subjects.sort.map(&:subject)
+      @ad_hoc_domain_cycle.ad_hoc_domain_subjects.sort.map(&:subject)
   end
 
   test "subject can be assigned via element" do
     subject = FactoryBot.create(:subject, name: "Charlie")
     ahds = FactoryBot.create(:ad_hoc_domain_subject,
-                              ad_hoc_domain: @ad_hoc_domain,
+                              ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
                               subject_element: subject.element)
     assert_equal subject, ahds.subject
   end
@@ -93,6 +97,10 @@ class AdHocDomainSubjectTest < ActiveSupport::TestCase
       ad_hoc_domain_staff: staff2)
     blank_pupil = staff1.ad_hoc_domain_pupil_courses.new
     assert_equal 2, @ad_hoc_domain_subject.num_real_pupils
+  end
+
+  test "can access domain directly" do
+    assert_equal @ad_hoc_domain, @ad_hoc_domain_subject.ad_hoc_domain
   end
 
 end

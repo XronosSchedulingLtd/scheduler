@@ -14,7 +14,8 @@ class Subject < ApplicationRecord
   has_many :teachinggrouppersonae, :dependent => :nullify
 
   has_many :ad_hoc_domain_subjects, dependent: :destroy
-  has_many :ad_hoc_domains, through: :ad_hoc_domain_subjects
+  has_many :ad_hoc_domain_cycles, through: :ad_hoc_domain_subjects
+  has_many :ad_hoc_domains, through: :ad_hoc_domain_cycles
 
   belongs_to :datasource
 

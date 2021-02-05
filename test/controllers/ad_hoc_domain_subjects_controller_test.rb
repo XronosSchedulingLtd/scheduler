@@ -3,6 +3,9 @@ require 'test_helper'
 class AdHocDomainSubjectsControllerTest < ActionController::TestCase
   setup do
     @ad_hoc_domain = FactoryBot.create(:ad_hoc_domain)
+    @ad_hoc_domain_cycle = FactoryBot.create(
+      :ad_hoc_domain_cycle,
+      ad_hoc_domain: @ad_hoc_domain)
     @subject = FactoryBot.create(:subject)
     @admin_user = FactoryBot.create(:user, :admin)
     @eventsource = FactoryBot.create(:eventsource)
@@ -16,7 +19,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
     assert_difference('AdHocDomainSubject.count') do
       post :create,
         params: {
-          ad_hoc_domain_id: @ad_hoc_domain,
+          ad_hoc_domain_cycle_id: @ad_hoc_domain_cycle,
           ad_hoc_domain_subject: {
             subject_element_id: @subject.element
           } 
@@ -32,7 +35,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
     assert_difference('AdHocDomainSubject.count') do
       post :create,
         params: {
-          ad_hoc_domain_id: @ad_hoc_domain,
+          ad_hoc_domain_cycle_id: @ad_hoc_domain_cycle,
           ad_hoc_domain_subject: {
             subject_element_id: @subject.element
           } 
@@ -43,7 +46,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
     assert_difference('AdHocDomainSubject.count', 0) do
       post :create,
         params: {
-          ad_hoc_domain_id: @ad_hoc_domain,
+          ad_hoc_domain_cycle_id: @ad_hoc_domain_cycle,
           ad_hoc_domain_subject: {
             subject_element_id: @subject.element
           } 

@@ -16,7 +16,7 @@ module AdHoc
   #
   def generate_blanks(root)
     case root
-    when AdHocDomain
+    when AdHocDomainCycle
       root.ad_hoc_domain_subjects.each do |ahdsubject|
         generate_blanks(ahdsubject)
       end

@@ -5,10 +5,14 @@ class AdHocDomainStaffTest < ActiveSupport::TestCase
     @ad_hoc_domain = FactoryBot.create(:ad_hoc_domain)
     @subject = FactoryBot.create(:subject)
     @staff = FactoryBot.create(:staff, surname: "ZZZ")
+    @ad_hoc_domain_cycle =
+      FactoryBot.create(
+        :ad_hoc_domain_cycle,
+        ad_hoc_domain: @ad_hoc_domain)
     @ad_hoc_domain_subject =
       FactoryBot.create(
         :ad_hoc_domain_subject,
-        ad_hoc_domain: @ad_hoc_domain,
+        ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
         subject: @subject)
     @ad_hoc_domain_staff =
       FactoryBot.create(
@@ -74,6 +78,10 @@ class AdHocDomainStaffTest < ActiveSupport::TestCase
 
   test "can calculate loading" do
     assert @ad_hoc_domain_staff.respond_to? :loading
+  end
+
+  test "can access domain directly" do
+    assert_equal @ad_hoc_domain, @ad_hoc_domain_staff.ad_hoc_domain
   end
 
 end

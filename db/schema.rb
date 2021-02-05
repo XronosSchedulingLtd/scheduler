@@ -21,6 +21,16 @@ ActiveRecord::Schema.define(version: 2021_01_06_163634) do
     t.index ["user_id"], name: "index_ad_hoc_domain_controllers_on_user_id"
   end
 
+  create_table "ad_hoc_domain_cycles", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
+    t.integer "ad_hoc_domain_id"
+    t.string "name"
+    t.date "starts_on"
+    t.date "exclusive_end_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ad_hoc_domain_id"], name: "index_ad_hoc_domain_cycles_on_ad_hoc_domain_id"
+  end
+
   create_table "ad_hoc_domain_pupil_courses", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
     t.integer "pupil_id"
     t.integer "ad_hoc_domain_staff_id"
@@ -41,11 +51,11 @@ ActiveRecord::Schema.define(version: 2021_01_06_163634) do
   end
 
   create_table "ad_hoc_domain_subjects", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
-    t.integer "ad_hoc_domain_id"
+    t.integer "ad_hoc_domain_cycle_id"
     t.integer "subject_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["ad_hoc_domain_id"], name: "index_ad_hoc_domain_subjects_on_ad_hoc_domain_id"
+    t.index ["ad_hoc_domain_cycle_id"], name: "index_ad_hoc_domain_subjects_on_ad_hoc_domain_cycle_id"
     t.index ["subject_id"], name: "index_ad_hoc_domain_subjects_on_subject_id"
   end
 
@@ -58,6 +68,7 @@ ActiveRecord::Schema.define(version: 2021_01_06_163634) do
     t.integer "datasource_id"
     t.integer "default_lesson_mins", default: 30
     t.integer "mins_step", default: 15
+    t.integer "default_cycle_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

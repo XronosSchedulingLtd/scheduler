@@ -82,34 +82,6 @@ class AdHocDomainTest < ActiveSupport::TestCase
     assert ahd.valid?
   end
 
-  test "can be linked to multiple subjects" do
-    subject1 = FactoryBot.create(:subject)
-    subject2 = FactoryBot.create(:subject)
-    #
-    #  Something intriguing which I discovered entirely by accident.
-    #  I originally had a HABTM relationship between AdHocDomain and
-    #  Subject Element, then changed it to an explicit intermediate
-    #  model.  Nonetheless, the trick of <<ing a new element still
-    #  seems to work.  Clever.
-    #
-    @ad_hoc_domain.subjects << subject1
-    @ad_hoc_domain.subjects << subject2
-    assert_equal 2, @ad_hoc_domain.subjects.count
-    assert_equal 2, @ad_hoc_domain.ad_hoc_domain_subjects.count
-    assert subject1.ad_hoc_domains.include?(@ad_hoc_domain)
-    #
-    #  Deleting the AdHocDomain deletes its AdHocDomainSubjects but not
-    #  the subjects.
-    #
-    assert_difference('AdHocDomainSubject.count', -2) do
-      @ad_hoc_domain.destroy
-      subject1.reload
-      subject2.reload
-      assert_not_nil subject1.element
-      assert_not_nil subject2.element
-    end
-  end
-
   test "responds to controller admin fields" do
     assert @ad_hoc_domain.respond_to?(:new_controller_name)
     assert @ad_hoc_domain.respond_to?(:new_controller_name=)
@@ -132,39 +104,6 @@ class AdHocDomainTest < ActiveSupport::TestCase
                  @ad_hoc_domain.eventcategory_name
     assert_equal @ad_hoc_domain.connected_property.element.name,
                  @ad_hoc_domain.connected_property_element_name
-  end
-
-  test "can get all records for one member of staff" do
-    assert @ad_hoc_domain.respond_to? :peers_of
-    #
-    #  See that it works
-    #
-    staffs = []
-    2.times do
-      staffs << FactoryBot.create(:staff)
-    end
-
-    subjects = []
-    3.times do
-      subjects << FactoryBot.create(:subject)
-    end
-
-    ahd_staffs = []
-    subjects.each do |subject|
-      ahdsu = FactoryBot.create(
-        :ad_hoc_domain_subject,
-        ad_hoc_domain: @ad_hoc_domain,
-        subject: subject)
-      staffs.each do |staff|
-        ahd_staffs << FactoryBot.create(
-          :ad_hoc_domain_staff,
-          ad_hoc_domain_subject: ahdsu,
-          staff: staff)
-      end
-    end
-    ahd_staffs.each do |ahdst|
-      assert_equal 3, @ad_hoc_domain.peers_of(ahdst).count
-    end
   end
 
 end

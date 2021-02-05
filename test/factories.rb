@@ -6,8 +6,15 @@ FactoryBot.define do
     association :connected_property, factory: :property
   end
 
-  factory :ad_hoc_domain_subject do
+  factory :ad_hoc_domain_cycle do
+    sequence(:name) { |n| "Ad Hoc Domain Cycle #{n}" }
     ad_hoc_domain
+    starts_on { Date.today }
+    exclusive_end_date { Date.today + 3.days }
+  end
+
+  factory :ad_hoc_domain_subject do
+    ad_hoc_domain_cycle
     subject
   end
 

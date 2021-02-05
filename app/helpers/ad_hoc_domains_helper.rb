@@ -59,7 +59,7 @@ module AdHocDomainsHelper
     mins_field = false
     case model
     when AdHocDomainSubject
-      parent = model.ad_hoc_domain
+      parent = model.ad_hoc_domain_cycle
       prefix = "subject"
       helper = autocomplete_subject_element_name_elements_path
       error_field_id = "ahd-subject-errors"
@@ -74,7 +74,12 @@ module AdHocDomainsHelper
       helper = autocomplete_pupil_element_name_elements_path
       error_field_id = "ahd-pupil-errors-#{model.ad_hoc_domain_staff_id}"
       mins_field = true
-      step = model.ad_hoc_domain_staff.ad_hoc_domain_subject.ad_hoc_domain.mins_step
+      step = model.
+             ad_hoc_domain_staff.
+             ad_hoc_domain_subject.
+             ad_hoc_domain_cycle.
+             ad_hoc_domain.
+             mins_step
     end
     form_with(model: [parent, model], local: false) do |form|
       result = []

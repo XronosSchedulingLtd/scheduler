@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2021 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 class AdHocDomainsController < ApplicationController
 
   class PseudoStaff
@@ -81,22 +88,78 @@ class AdHocDomainsController < ApplicationController
   # GET /ad_hoc_domains/1
   def show
     #
-    #  Need a blank AdHocDomainSubject to support the dialogue for
-    #  creating a new one.
+    #  Before we can do a sensible "show", we need at least one cycle.
+    #  If we do have one or more cycles, then we will show the one
+    #  requested in the URL, or the default one.
     #
-    #  The following line has the effect of adding a new, blank
-    #  ahds to the array which our in-memory ahd has.
+    #  First, do we have any?
     #
-    #  Our "sort" method always puts new records at the end, so we end
-    #  up with a form at the end of all the real records.
-    #
-    generate_blanks(@ad_hoc_domain)
-    @folded = true
-    @pseudo_staffs =
-      @ad_hoc_domain.ad_hoc_domain_staffs.
-                     group_by {|ahds| ahds.staff_id}.
-                     values.
-                     collect {|arr| PseudoStaff.new(arr)}.sort
+    if @ad_hoc_domain.ad_hoc_domain_cycles.empty?
+      @have_cycles = false
+    else
+      @have_cycles = true
+      #
+      #  Given that we have at least one cycle, the question then arises
+      #  of which one to show.  In order:
+      #
+      #  * The one specified in the URL
+      #  * The currently configured default one
+      #  * The last one chronologically
+      #
+      if params[:cycle_id]
+        @ad_hoc_domain_cycle =
+          @ad_hoc_domain.ad_hoc_domain_cycles.find_by(id: params[:cycle_id])
+      end
+      unless @ad_hoc_domain_cycle
+        #
+        #  Either nothing was specified, or it was invalid.
+        #
+        @ad_hoc_domain_cycle = @ad_hoc_domain.default_cycle
+      end
+      unless @ad_hoc_domain_cycle
+        #
+        #  Still nothing.  Take the last one.
+        #
+        @ad_hoc_domain_cycle = @ad_hoc_domain.ad_hoc_domain_cycles.sort.last
+      end
+      #
+      #  Now let's pre-load all the records below the chosen cycle.
+      #  This also involves reloading the one which we've chosen.
+      #
+      cycle_id = @ad_hoc_domain_cycle.id
+      @ad_hoc_domain_cycle =
+        @ad_hoc_domain.ad_hoc_domain_cycles.
+                       includes(
+                         ad_hoc_domain_subjects: [
+                           :subject,
+                           {
+                             ad_hoc_domain_staffs: [
+                               :staff,
+                               {
+                                 ad_hoc_domain_pupil_courses: [pupil: :element]
+                               }
+                             ]
+                           }
+                         ]).find_by(id: cycle_id)
+
+      #
+      #  Need a blank AdHocDomainSubject to support the dialogue for
+      #  creating a new one.
+      #
+      #  The following line has the effect of adding a new, blank
+      #  ahds to the array which our in-memory ahd has.
+      #
+      #  Our "sort" method always puts new records at the end, so we end
+      #  up with a form at the end of all the real records.
+      #
+      generate_blanks(@ad_hoc_domain_cycle)
+      @folded = true
+      @pseudo_staffs =
+        @ad_hoc_domain_cycle.ad_hoc_domain_staffs.
+                       group_by {|ahds| ahds.staff_id}.
+                       values.
+                       collect {|arr| PseudoStaff.new(arr)}.sort
+    end
   end
 
   # GET /ad_hoc_domains/1/edit
@@ -176,23 +239,10 @@ class AdHocDomainsController < ApplicationController
 
   def set_ad_hoc_domain_et_al
     #
-    #  This looks like a lot of pre-fetching, but we'll only end up
-    #  fetching them all again separately later.  For a show(), we need
-    #  all of them.
+    #  Get the cycles as well for now.
     #
     @ad_hoc_domain =
-      AdHocDomain.includes(
-        ad_hoc_domain_subjects: [
-          :subject,
-          {
-            ad_hoc_domain_staffs: [
-              :staff,
-              {
-                ad_hoc_domain_pupil_courses: [pupil: :element]
-              }
-            ]
-          }
-        ]).find(params[:id])
+      AdHocDomain.includes(:ad_hoc_domain_cycles).find(params[:id])
   end
 
   def set_day_shapes

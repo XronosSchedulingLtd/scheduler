@@ -1,3 +1,9 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2021 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
 class AdHocDomainStaff < ApplicationRecord
   include Comparable
 
@@ -11,13 +17,14 @@ class AdHocDomainStaff < ApplicationRecord
       scope: [:ad_hoc_domain_subject],
       message: "Can't repeat staff within subject"
     }
+
   #
   #  This exists just so we can write to it.
   #
   attr_writer :staff_element_name
 
   def ad_hoc_domain
-    self.ad_hoc_domain_subject.ad_hoc_domain
+    self.ad_hoc_domain_subject&.ad_hoc_domain_cycle&.ad_hoc_domain
   end
 
   def peers

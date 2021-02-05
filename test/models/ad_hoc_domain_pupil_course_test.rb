@@ -6,10 +6,14 @@ class AdHocDomainPupilCourseTest < ActiveSupport::TestCase
     @subject = FactoryBot.create(:subject)
     @staff = FactoryBot.create(:staff)
     @pupil = FactoryBot.create(:pupil, start_year: 1990)
+    @ad_hoc_domain_cycle =
+      FactoryBot.create(
+        :ad_hoc_domain_cycle,
+        ad_hoc_domain: @ad_hoc_domain)
     @ad_hoc_domain_subject =
       FactoryBot.create(
         :ad_hoc_domain_subject,
-        ad_hoc_domain: @ad_hoc_domain,
+        ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
         subject: @subject)
     @ad_hoc_domain_staff =
       FactoryBot.create(
@@ -103,6 +107,10 @@ class AdHocDomainPupilCourseTest < ActiveSupport::TestCase
   test "implements owner_id" do
     assert @ad_hoc_domain_pupil_course.respond_to? :owner_id
     assert_equal @ad_hoc_domain_staff.id, @ad_hoc_domain_pupil_course.owner_id
+  end
+
+  test "can access domain directly" do
+    assert_equal @ad_hoc_domain, @ad_hoc_domain_pupil_course.ad_hoc_domain
   end
 
 end

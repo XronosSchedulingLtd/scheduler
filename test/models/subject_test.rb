@@ -104,18 +104,19 @@ class SubjectTest < ActiveSupport::TestCase
     assert_not subject.can_destroy?
   end
 
-  test "subject can be linked to ad hoc domain" do
-    ahd = FactoryBot.create(:ad_hoc_domain)
+  test "subject can be linked to ad hoc domain cycle" do
+    ahdc = FactoryBot.create(:ad_hoc_domain_cycle)
     subject = FactoryBot.create(:subject)
-    subject.ad_hoc_domain_subjects.create(ad_hoc_domain: ahd)
+    subject.ad_hoc_domain_subjects.create(ad_hoc_domain_cycle: ahdc)
     assert_equal 1, subject.ad_hoc_domain_subjects.count
+    assert_equal 1, subject.ad_hoc_domain_cycles.count
     assert_equal 1, subject.ad_hoc_domains.count
     #
     #  Deleting the subject destroys the connection
     #
     subject.destroy
-    assert_equal 0, ahd.ad_hoc_domain_subjects.count
-    assert_equal 0, ahd.subjects.count
+    assert_equal 0, ahdc.ad_hoc_domain_subjects.count
+    assert_equal 0, ahdc.subjects.count
   end
 
   test "can sort subjects" do

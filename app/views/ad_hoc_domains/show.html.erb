@@ -1,35 +1,50 @@
 <h1>Arranging <%= @ad_hoc_domain.name %></h1>
 
 <ul class="tabs" data-tab>
-  <li class="tab-title active"><a href="#ahd-by-subject">By Subject</a></li>
-  <li class="tab-title"><a href="#ahd-by-staff">By Staff</a></li>
-  <li class="tab-title"><a href="#ahd-cycles">Cycles</a></li>
+  <% if @have_cycles %>
+    <li class="tab-title"><a href="#ahd-cycles">Cycles</a></li>
+    <li class="tab-title active"><a href="#ahd-by-subject">By Subject</a></li>
+    <li class="tab-title"><a href="#ahd-by-staff">By Staff</a></li>
+  <% else %>
+    <li class="tab-title active"><a href="#ahd-cycles">Cycles</a></li>
+  <% end %>
 </ul>
 
 <hr/>
 <div class="tabs-content ahd-listing">
-  <div class="content active" id="ahd-by-subject">
-    <%=
-      ahd_row(
-        contents: {
-          subject_heading: "Subject",
-          flipper: ahd_toggle("Show all")
-        })
-    %>
-    <%= render 'subject_listing' %>
-  </div>
-  <div class="content" id="ahd-by-staff">
-    <%=
-      ahd_row(
-        contents: {
-          staff_heading: "Staff",
-          flipper: ahd_toggle("Show all")
+  <% if @have_cycles %>
+    <div class="content" id="ahd-cycles">
+      <%= render @ad_hoc_domain.ad_hoc_domain_cycles %>
+    </div>
+    <div class="content active" id="ahd-by-subject">
+      <%=
+        ahd_row(
+          contents: {
+            subject_heading: "Subject",
+            flipper: ahd_toggle("Show all")
           })
-        %>
-    <%= render 'staff_listing' %>
-  </div>
-  <div class="content" id="ahd-cycles">
-  </div>
+      %>
+      <%= render 'subject_listing' %>
+    </div>
+    <div class="content" id="ahd-by-staff">
+      <%=
+        ahd_row(
+          contents: {
+            staff_heading: "Staff",
+            flipper: ahd_toggle("Show all")
+            })
+          %>
+      <%= render 'staff_listing' %>
+    </div>
+  <% else %>
+    <div class="content active" id="ahd-cycles">
+      <div>None defined yet.</div>
+      <%=
+        link_to "New cycle",
+          new_ad_hoc_domain_ad_hoc_domain_cycle_path(@ad_hoc_domain),
+          class: "zfbutton tiny radius button-link" %>
+    </div>
+  <% end %>
 </div>
 
 <script type="text/template" id="ahd-show-mins">

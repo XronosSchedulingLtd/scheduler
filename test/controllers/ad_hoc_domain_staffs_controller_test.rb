@@ -3,11 +3,15 @@ require 'test_helper'
 class AdHocDomainStaffsControllerTest < ActionController::TestCase
   setup do
     @ad_hoc_domain = FactoryBot.create(:ad_hoc_domain)
+    @ad_hoc_domain_cycle =
+      FactoryBot.create(
+        :ad_hoc_domain_cycle,
+        ad_hoc_domain: @ad_hoc_domain)
     @subject = FactoryBot.create(:subject)
     @ad_hoc_domain_subject =
       FactoryBot.create(
         :ad_hoc_domain_subject,
-        ad_hoc_domain: @ad_hoc_domain,
+        ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
         subject: @subject)
     @staff = FactoryBot.create(:staff)
     @admin_user = FactoryBot.create(:user, :admin)

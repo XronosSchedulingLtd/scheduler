@@ -1,7 +1,7 @@
 <div id='ahd-subject-listing'>
-  <% if @ad_hoc_domain.ad_hoc_domain_subjects.size == 1 %>
+  <% if @ad_hoc_domain_cycle.ad_hoc_domain_subjects.size == 1 %>
     None defined yet.
   <% end %>
-  <%= render @ad_hoc_domain.ad_hoc_domain_subjects.sort %>
+  <%= render @ad_hoc_domain_cycle.ad_hoc_domain_subjects.sort %>
 </div>
 

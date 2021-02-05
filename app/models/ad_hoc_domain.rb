@@ -1,3 +1,9 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2021 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
 class AdHocDomain < ApplicationRecord
   belongs_to :eventsource
   belongs_to :eventcategory
@@ -12,11 +18,15 @@ class AdHocDomain < ApplicationRecord
                           join_table: :ad_hoc_domain_controllers
   belongs_to :default_day_shape, class_name: "RotaTemplate", optional: true
 
-  has_many :ad_hoc_domain_subjects, dependent: :destroy
+  has_many :ad_hoc_domain_cycles, dependent: :destroy
+
+  has_many :ad_hoc_domain_subjects, through: :ad_hoc_domain_cycles
   has_many :subjects, through: :ad_hoc_domain_subjects
 
   has_many :ad_hoc_domain_staffs, through: :ad_hoc_domain_subjects
   has_many :staffs, through: :ad_hoc_domain_staffs
+
+  has_one :default_cycle, class_name: "AdHocDomainCycle"
 
   validates :name, presence: true
 
@@ -54,22 +64,6 @@ class AdHocDomain < ApplicationRecord
 
   def connected_property_element_id=(id)
     self.connected_property_element = Element.find_by(id: id)
-  end
-
-  #
-  #  Work out the position of this particular subject in our listing,
-  #  indexed from 1 (yuk!) to suit CSS.
-  #
-  def position_of(ahds)
-    (self.ad_hoc_domain_subjects.sort.find_index(ahds) || 0) + 1
-  end
-
-  #
-  #  Find all AdHocDomainStaff records in this AdHocDomain matching
-  #  a sample one.
-  #
-  def peers_of(ahds)
-    self.ad_hoc_domain_staffs.where(staff_id: ahds.staff_id)
   end
 
 end
