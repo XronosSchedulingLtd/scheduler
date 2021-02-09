@@ -2,18 +2,147 @@ require 'test_helper'
 
 class AdHocDomainsControllerTest < ActionDispatch::IntegrationTest
   setup do
-    @ad_hoc_domain = FactoryBot.create(:ad_hoc_domain)
     @admin_user = FactoryBot.create(:user, :admin)
+    @ordinary_user = FactoryBot.create(:user)
+    #
     @eventsource = FactoryBot.create(:eventsource)
     @eventcategory = FactoryBot.create(:eventcategory)
     @datasource = FactoryBot.create(:datasource)
-    @ordinary_user = FactoryBot.create(:user)
+    @property = FactoryBot.create(:property)
+    #
+    @ad_hoc_domain = FactoryBot.create(
+      :ad_hoc_domain,
+      eventsource: @eventsource,
+      eventcategory: @eventcategory,
+      connected_property: @property,
+      datasource: @datasource)
     do_valid_login
   end
 
   test "should get index" do
     get ad_hoc_domains_url
     assert_response :success
+  end
+
+  test "should show domain" do
+    get ad_hoc_domain_url(@ad_hoc_domain)
+    assert_response :success
+    #
+    #  As there are no cycles defined yet, we should get just the one
+    #  tab and it should be active.
+    #
+    document = Nokogiri::HTML(response.body)
+    assert_equal 1, document.css('li.tab-title').count
+    assert_equal 1, document.css('li.tab-title.active').count
+    assert_equal 1, document.css('div.content').count
+    assert_equal 1, document.css('div.content.active').count
+  end
+
+  test "with a cycle should show second of three tabs" do
+    FactoryBot.create(
+      :ad_hoc_domain_cycle,
+      ad_hoc_domain: @ad_hoc_domain)
+    get ad_hoc_domain_url(@ad_hoc_domain)
+    assert_response :success
+    #
+    document = Nokogiri::HTML(response.body)
+    titles = document.css('li.tab-title')
+    assert_equal 3, titles.count
+    assert /active/ =~ titles[1].attributes['class'].value
+    assert_equal 1, document.css('li.tab-title.active').count
+    bodies = document.css('div.content')
+    assert_equal 3, bodies.count
+    assert /active/ =~ bodies[1].attributes['class'].value
+    assert_equal 1, document.css('div.content.active').count
+  end
+
+  test "request can override which tab is shown" do
+    FactoryBot.create(
+      :ad_hoc_domain_cycle,
+      ad_hoc_domain: @ad_hoc_domain)
+    get ad_hoc_domain_url(@ad_hoc_domain, params: { tab: 0 })
+    assert_response :success
+    #
+    document = Nokogiri::HTML(response.body)
+    titles = document.css('li.tab-title')
+    assert_equal 3, titles.count
+    assert /active/ =~ titles[0].attributes['class'].value
+    assert_equal 1, document.css('li.tab-title.active').count
+    bodies = document.css('div.content')
+    assert_equal 3, bodies.count
+    assert /active/ =~ bodies[0].attributes['class'].value
+    assert_equal 1, document.css('div.content.active').count
+
+
+    get ad_hoc_domain_url(@ad_hoc_domain, params: { tab: 2 })
+    assert_response :success
+    #
+    document = Nokogiri::HTML(response.body)
+    titles = document.css('li.tab-title')
+    assert_equal 3, titles.count
+    assert /active/ =~ titles[2].attributes['class'].value
+    assert_equal 1, document.css('li.tab-title.active').count
+    bodies = document.css('div.content')
+    assert_equal 3, bodies.count
+    assert /active/ =~ bodies[2].attributes['class'].value
+    assert_equal 1, document.css('div.content.active').count
+  end
+
+  test "can choose which cycle to show" do
+    earlier_cycle = FactoryBot.create(
+      :ad_hoc_domain_cycle,
+      ad_hoc_domain: @ad_hoc_domain,
+      name: "Earlier",
+      starts_on: Date.today,
+      exclusive_end_date: Date.today + 3.days)
+    later_cycle = FactoryBot.create(
+      :ad_hoc_domain_cycle,
+      ad_hoc_domain: @ad_hoc_domain,
+      name: "Later",
+      starts_on: Date.today + 7.days,
+      exclusive_end_date: Date.today + 10.days)
+    @ad_hoc_domain.reload
+    get ad_hoc_domain_url(@ad_hoc_domain)
+    assert_response :success
+    document = Nokogiri::HTML(response.body)
+    sub_head = document.at_css("h4")
+    assert /Later/ =~ sub_head.text
+    #
+    get ad_hoc_domain_url(@ad_hoc_domain,
+                          params: { cycle_id: earlier_cycle.id })
+    assert_response :success
+    document = Nokogiri::HTML(response.body)
+    sub_head = document.at_css("h4")
+    assert /Earlier/ =~ sub_head.text
+  end
+
+  test "setting a default cycle causes it to show" do
+    earlier_cycle = FactoryBot.create(
+      :ad_hoc_domain_cycle,
+      ad_hoc_domain: @ad_hoc_domain,
+      name: "Earlier",
+      starts_on: Date.today,
+      exclusive_end_date: Date.today + 3.days)
+    later_cycle = FactoryBot.create(
+      :ad_hoc_domain_cycle,
+      ad_hoc_domain: @ad_hoc_domain,
+      name: "Later",
+      starts_on: Date.today + 7.days,
+      exclusive_end_date: Date.today + 10.days)
+    @ad_hoc_domain.reload
+    get ad_hoc_domain_url(@ad_hoc_domain)
+    assert_response :success
+    document = Nokogiri::HTML(response.body)
+    sub_head = document.at_css("h4")
+    assert /Later/ =~ sub_head.text
+    #
+    @ad_hoc_domain.default_cycle = earlier_cycle
+    @ad_hoc_domain.save
+    get ad_hoc_domain_url(@ad_hoc_domain)
+    assert_response :success
+    document = Nokogiri::HTML(response.body)
+    sub_head = document.at_css("h4")
+    assert /Earlier/ =~ sub_head.text
   end
 
   test "should get new" do

@@ -151,4 +151,30 @@ class AdHocDomainCycleTest < ActiveSupport::TestCase
     assert @ad_hoc_domain_cycle.respond_to? :position_of
   end
 
+  test "cycles sort by date" do
+    base_date = Date.today
+    c1 = FactoryBot.create(
+      :ad_hoc_domain_cycle,
+      starts_on: base_date,
+      ends_on: base_date + 5.days)
+    c2 = FactoryBot.create(
+      :ad_hoc_domain_cycle,
+      starts_on: base_date + 30.days,
+      ends_on: base_date + 35.days)
+    c3 = FactoryBot.create(
+      :ad_hoc_domain_cycle,
+      starts_on: base_date + 20.days,
+      ends_on: base_date + 25.days)
+    c4 = FactoryBot.create(
+      :ad_hoc_domain_cycle,
+      starts_on: base_date + 30.days,
+      ends_on: base_date + 34.days)
+
+    original = [c1, c2, c3, c4]
+    sorted = [c1, c3, c4, c2]
+    assert_equal sorted, original.sort
+    original = [c4, c3, c2, c1]
+    assert_equal sorted, original.sort
+  end
+
 end

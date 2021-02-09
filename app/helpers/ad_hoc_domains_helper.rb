@@ -146,4 +146,18 @@ module AdHocDomainsHelper
     link_to(text, '#', class: "toggle")
   end
 
+  def ahd_tab_header(key, text, active)
+    "<li class='tab-title#{ active ? " active" : ""}'><a href='##{be_hyphen(key)}'>#{text}</a></li>".html_safe
+  end
+
+  def ahd_tab(key, active)
+    "class='content#{ active ? " active" : ""}' id='#{be_hyphen(key)}'".html_safe
+  end
+
+  private
+
+  def be_hyphen(key)
+    key.to_s.gsub("_", "-")
+  end
+
 end

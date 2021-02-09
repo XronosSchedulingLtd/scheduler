@@ -96,8 +96,10 @@ class AdHocDomainsController < ApplicationController
     #
     if @ad_hoc_domain.ad_hoc_domain_cycles.empty?
       @have_cycles = false
+      @active_tab = 0
     else
       @have_cycles = true
+      @active_tab = 1
       #
       #  Given that we have at least one cycle, the question then arises
       #  of which one to show.  In order:
@@ -121,6 +123,14 @@ class AdHocDomainsController < ApplicationController
         #  Still nothing.  Take the last one.
         #
         @ad_hoc_domain_cycle = @ad_hoc_domain.ad_hoc_domain_cycles.sort.last
+      end
+      #
+      #  Has the requester specified a particular tab to make active?
+      #  Note that passing a non-numeric parameter here will send you
+      #  to tab 0, because that's how to_i works.
+      #
+      if params[:tab]
+        @active_tab = params[:tab].to_i
       end
       #
       #  Now let's pre-load all the records below the chosen cycle.

@@ -1,9 +1,14 @@
 Rails.application.routes.draw do
 
   resources :ad_hoc_domains do
-    resources :ad_hoc_domain_subjects, shallow: true do
-      resources :ad_hoc_domain_staffs, shallow: true do
-        resources :ad_hoc_domain_pupil_courses, shallow: true
+    resources :ad_hoc_domain_cycles, shallow: true do
+      member do
+        put :set_as_default
+      end
+      resources :ad_hoc_domain_subjects, shallow: true do
+        resources :ad_hoc_domain_staffs, shallow: true do
+          resources :ad_hoc_domain_pupil_courses, shallow: true
+        end
       end
     end
     member do

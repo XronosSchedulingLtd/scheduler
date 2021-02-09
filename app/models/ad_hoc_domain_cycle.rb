@@ -28,6 +28,7 @@ class AdHocDomainCycleValidator < ActiveModel::Validator
 end
 
 class AdHocDomainCycle < ApplicationRecord
+  include Comparable
   belongs_to :ad_hoc_domain
 
   has_one :ad_hoc_domain_as_default_cycle,
@@ -75,6 +76,10 @@ class AdHocDomainCycle < ApplicationRecord
     self.ad_hoc_domain_staffs.where(staff_id: ahds.staff_id)
   end
 
+  def set_as_default?
+    self.ad_hoc_domain.default_cycle == self
+  end
+
   #
   #  Work out the position of this particular subject in our listing,
   #  indexed from 1 (yuk!) to suit CSS.
@@ -83,4 +88,45 @@ class AdHocDomainCycle < ApplicationRecord
     (self.ad_hoc_domain_subjects.sort.find_index(ahds) || 0) + 1
   end
 
+  def <=>(other)
+    if other.instance_of?(AdHocDomainCycle)
+      #
+      #  We sort by date, first the start date, then the end date.
+      #  Missing dates put you at the end of the list.
+      #
+      if self.starts_on
+        if other.starts_on
+          result = self.starts_on <=> other.starts_on
+          if result == 0
+            if self.exclusive_end_date
+              if other.exclusive_end_date
+                result = self.exclusive_end_date <=> other.exclusive_end_date
+                if result == 0
+                  #  We must return 0 iff we are the same record.
+                  result = self.id <=> other.id
+                end
+              else
+                result = -1
+              end
+            else
+              result = 1
+            end
+          end
+        else
+          #
+          #  Other is not yet complete.  Put it last.
+          #
+          result = -1
+        end
+      else
+        #
+        #  We are incomplete and go last.
+        #
+        result = 1
+      end
+    else
+      result = nil
+    end
+    result
+  end
 end

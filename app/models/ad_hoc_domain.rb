@@ -26,7 +26,7 @@ class AdHocDomain < ApplicationRecord
   has_many :ad_hoc_domain_staffs, through: :ad_hoc_domain_subjects
   has_many :staffs, through: :ad_hoc_domain_staffs
 
-  has_one :default_cycle, class_name: "AdHocDomainCycle"
+  belongs_to :default_cycle, class_name: "AdHocDomainCycle", optional: true
 
   validates :name, presence: true
 

@@ -1,10 +1,24 @@
 <h1>Arranging <%= @ad_hoc_domain.name %></h1>
+<% if @ad_hoc_domain_cycle %>
+  <h4>Viewing the "<%=
+  @ad_hoc_domain_cycle.name
+  %>" cycle - <%=
+    @ad_hoc_domain_cycle.set_as_default? ? "which is current" : "not current"
+  %></h4>
+<% else %>
+  <h4>No cycles defined yet</h4>
+<% end %>
 
 <ul class="tabs" data-tab>
-  <% if @have_cycles %>
-    <li class="tab-title"><a href="#ahd-cycles">Cycles</a></li>
-    <li class="tab-title active"><a href="#ahd-by-subject">By Subject</a></li>
-    <li class="tab-title"><a href="#ahd-by-staff">By Staff</a></li>
+  <% if @have_cycles
+    {
+      ahd_cycles:     "Cycles",
+      ahd_by_subject: "By Subject",
+      ahd_by_staff:   "By Staff"
+    }.each_with_index do |(key, value), index|
+  %>
+  <%= ahd_tab_header(key, value, index == @active_tab) %>
+  <% end %>
   <% else %>
     <li class="tab-title active"><a href="#ahd-cycles">Cycles</a></li>
   <% end %>
@@ -13,10 +27,10 @@
 <hr/>
 <div class="tabs-content ahd-listing">
   <% if @have_cycles %>
-    <div class="content" id="ahd-cycles">
-      <%= render @ad_hoc_domain.ad_hoc_domain_cycles %>
+    <div <%= ahd_tab(:ahd_cycles, @active_tab == 0) %>>
+      <%= render 'list_cycles' %>
     </div>
-    <div class="content active" id="ahd-by-subject">
+    <div <%= ahd_tab(:ahd_by_subject, @active_tab == 1) %>>
       <%=
         ahd_row(
           contents: {
@@ -26,7 +40,7 @@
       %>
       <%= render 'subject_listing' %>
     </div>
-    <div class="content" id="ahd-by-staff">
+    <div <%= ahd_tab(:ahd_by_staff, @active_tab == 2) %>>
       <%=
         ahd_row(
           contents: {
@@ -38,11 +52,7 @@
     </div>
   <% else %>
     <div class="content active" id="ahd-cycles">
-      <div>None defined yet.</div>
-      <%=
-        link_to "New cycle",
-          new_ad_hoc_domain_ad_hoc_domain_cycle_path(@ad_hoc_domain),
-          class: "zfbutton tiny radius button-link" %>
+      <%= render 'list_cycles' %>
     </div>
   <% end %>
 </div>
