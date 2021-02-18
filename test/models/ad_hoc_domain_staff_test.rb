@@ -84,4 +84,20 @@ class AdHocDomainStaffTest < ActiveSupport::TestCase
     assert_equal @ad_hoc_domain, @ad_hoc_domain_staff.ad_hoc_domain
   end
 
+  test "can populate new staff record from old one" do
+    3.times do
+      FactoryBot.create(
+        :ad_hoc_domain_pupil_course,
+        ad_hoc_domain_staff: @ad_hoc_domain_staff)
+    end
+    @ad_hoc_domain_staff.reload
+    ahds = FactoryBot.create(:ad_hoc_domain_staff)
+    assert_equal 0, ahds.ad_hoc_domain_pupil_courses.count
+    ahds.populate_from(@ad_hoc_domain_staff, 2)
+    assert_equal 0, ahds.ad_hoc_domain_pupil_courses.count
+    ahds.populate_from(@ad_hoc_domain_staff, 3)
+    assert_equal 3, ahds.ad_hoc_domain_pupil_courses.count
+    assert_equal 3, @ad_hoc_domain_staff.ad_hoc_domain_pupil_courses.count
+  end
+
 end

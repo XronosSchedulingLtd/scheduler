@@ -47,6 +47,42 @@
     </div>
   </div>
 
+  <% if @ad_hoc_domain_cycle.new_record? && @existing_cycles %>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :based_on, class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%=
+        form.collection_select(
+          :based_on_id,
+          @existing_cycles,
+          :id,
+          :name,
+          prompt: "Select cycle")
+        %>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+      Specify an existing cycle to use as a basis for this one.
+    </div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :copy_what, class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <div class='ahd-slider-container'>
+        <%= form.hidden_field :copy_what, id: 'copy-what' %>
+        <div class='ahd-slider'></div>
+      </div>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+      How much should be copied from the existing cycle?
+    </div>
+  </div>
+  <% end %>
+
   <div class="row collapse">
     <div class="small-9 small-offset-3 columns">
       <div class="actions">
@@ -54,7 +90,13 @@
           form.submit @ad_hoc_domain_cycle.new_record? ? "Create" : "Update", class: "zfbutton tiny radius"
         %>
         <%=
-          link_to("Cancel", ad_hoc_domain_path(@ad_hoc_domain_cycle.ad_hoc_domain), class: "zfbutton tiny radius button-link")
+          link_to(
+            "Cancel",
+            ad_hoc_domain_path(
+              @ad_hoc_domain_cycle.ad_hoc_domain,
+              params: { tab: 0 }
+            ),
+            class: "zfbutton tiny radius button-link")
         %>
       </div>
     </div>

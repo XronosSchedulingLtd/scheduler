@@ -8,7 +8,7 @@
         @ad_hoc_domain,
         params: {
           cycle_id: ad_hoc_domain_cycle.id,
-          tab: 0
+          tab: 1
         } ),
       class: "zfbutton teensy tiny button-link"
     )
@@ -30,5 +30,12 @@
     edit_ad_hoc_domain_cycle_path(ad_hoc_domain_cycle),
     class: "zfbutton teensy tiny button-link"
     %></td>
-  <td></td>
+  <td><%=
+  link_to(
+    "Delete",
+    ad_hoc_domain_cycle,
+    method: :delete,
+    data: { confirm: 'Deleting this cycle will remove all its subsidiary records too.  Continue?' },
+    class: "zfbutton teensy tiny button-link")
+  %></td>
 </tr>

@@ -74,9 +74,11 @@ class AdHocDomainsController < ApplicationController
   before_action :set_ad_hoc_domain_et_al, only: [:show]
 
   # GET /ad_hoc_domains
-  # GET /ad_hoc_domains.json
   def index
     @ad_hoc_domains = AdHocDomain.all
+    respond_to do |format|
+      format.html
+    end
   end
 
   # GET /ad_hoc_domains/new

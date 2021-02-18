@@ -62,7 +62,7 @@ class AdHocDomainCyclesControllerTest < ActionDispatch::IntegrationTest
     assert /Cycle 2/ =~ sub_head.text
 
     put set_as_default_ad_hoc_domain_cycle_url(cycle1)
-    assert_redirected_to ad_hoc_domain_url(@ad_hoc_domain, params: { tab: 0 })
+    assert_redirected_to ad_hoc_domain_url(@ad_hoc_domain, params: { tab: 1 })
 
     get ad_hoc_domain_url(@ad_hoc_domain, params: { tab: 0 })
     assert_response :success

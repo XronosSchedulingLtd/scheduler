@@ -107,4 +107,13 @@ class AdHocDomainSubject < ApplicationRecord
     result
   end
 
+  def populate_from(ahdsubj, copy_what)
+    if copy_what > 1
+      ahdsubj.ad_hoc_domain_staffs.each do |ahdstaff|
+        self.ad_hoc_domain_staffs << newstaff = ahdstaff.dup
+        newstaff.populate_from(ahdstaff, copy_what)
+      end
+    end
+  end
+
 end

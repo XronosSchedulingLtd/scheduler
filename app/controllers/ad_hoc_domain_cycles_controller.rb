@@ -14,6 +14,7 @@ class AdHocDomainCyclesController < ApplicationController
                                                  :set_as_default]
 
   def new
+    @existing_cycles = @ad_hoc_domain.ad_hoc_domain_cycles.sort.reverse
     @ad_hoc_domain_cycle = @ad_hoc_domain.ad_hoc_domain_cycles.new
   end
 
@@ -22,6 +23,17 @@ class AdHocDomainCyclesController < ApplicationController
       @ad_hoc_domain.ad_hoc_domain_cycles.new(ad_hoc_domain_cycle_params)
     respond_to do |format|
       if @ad_hoc_domain_cycle.save
+        #
+        #  We've managed to create the basic cycle.  Do we need to
+        #  add anything to it?
+        #
+        if @ad_hoc_domain_cycle.based_on_id
+          @donor_cycle =
+            AdHocDomainCycle.find_by(id: @ad_hoc_domain_cycle.based_on_id)
+          if @donor_cycle
+            @ad_hoc_domain_cycle.populate_from(@donor_cycle)
+          end
+        end
         format.html {
           redirect_to ad_hoc_domain_url(@ad_hoc_domain, params: { tab: 0 })
         }
@@ -44,11 +56,17 @@ class AdHocDomainCyclesController < ApplicationController
     end
   end
 
+  def destroy
+    @ad_hoc_domain = @ad_hoc_domain_cycle.ad_hoc_domain
+    @ad_hoc_domain_cycle.destroy
+    redirect_to ad_hoc_domain_url(@ad_hoc_domain, params: { tab: 0 })
+  end
+
   def set_as_default
     @ad_hoc_domain = @ad_hoc_domain_cycle.ad_hoc_domain
     @ad_hoc_domain.default_cycle = @ad_hoc_domain_cycle
     @ad_hoc_domain.save
-    redirect_to ad_hoc_domain_path(@ad_hoc_domain, params: { tab: 0 })
+    redirect_to ad_hoc_domain_path(@ad_hoc_domain, params: { tab: 1 })
   end
 
   private
@@ -67,7 +85,9 @@ class AdHocDomainCyclesController < ApplicationController
     params.require(:ad_hoc_domain_cycle).
            permit(:name,
                   :starts_on,
-                  :ends_on)
+                  :ends_on,
+                  :based_on_id,
+                  :copy_what)
   end
 
 end

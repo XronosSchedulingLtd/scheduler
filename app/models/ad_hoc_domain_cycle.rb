@@ -47,6 +47,21 @@ class AdHocDomainCycle < ApplicationRecord
   validates_with AdHocDomainCycleValidator
 
   #
+  #  Temporary stores for information about copying from another domain cycle.
+  #
+  attr_accessor :based_on_id
+  attr_writer :copy_what
+
+  #
+  #  Slight frig.  When anyone asks from outside what our copy_what
+  #  value is, we say 2.  This is the default for the dialogue.  However
+  #  we access the real value internally, which is set by the above writer.
+  #
+  def copy_what
+    2
+  end
+
+  #
   #  End dates should always be stored as exclusive end dates, but it's
   #  convenient to end users to provide inclusive ones as well.  These
   #  methods should be used *only* for user interface stuff.
@@ -129,4 +144,39 @@ class AdHocDomainCycle < ApplicationRecord
     end
     result
   end
+
+  def populate_from(donor_cycle)
+    #
+    #  Copy records from the donor cycle, according to our existing
+    #  @copy_what instance variable.
+    #
+    to_copy = @copy_what.to_i
+    if to_copy > 0
+      donor_cycle.ad_hoc_domain_subjects.each do |ahdsubj|
+        self.ad_hoc_domain_subjects << newsubj = ahdsubj.dup
+        newsubj.populate_from(ahdsubj, to_copy)
+      end
+    end
+  end
+
+  def num_real_subjects
+    self.ad_hoc_domain_subjects.select {|ahds| !ahds.new_record?}.count
+  end
+
+  def num_real_staff
+    total = 0
+    self.ad_hoc_domain_subjects.select {|ahds| !ahds.new_record?}.each do |ahds|
+      total += ahds.num_real_staff
+    end
+    total
+  end
+
+  def num_real_pupils
+    total = 0
+    self.ad_hoc_domain_subjects.select {|ahds| !ahds.new_record?}.each do |ahds|
+      total += ahds.num_real_pupils
+    end
+    total
+  end
+
 end

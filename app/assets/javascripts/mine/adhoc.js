@@ -236,5 +236,22 @@ if ($('.ahd-listing').length) {
       return that;
     }().init
   );
-
 }
+
+//
+//  Set up sliders, even when not on our main page.
+//
+$('.ahd-slider').slider(
+  {
+    min: 0,
+    max: 3,
+    value: 2,
+    slide: function(event, ui) {
+      $('#copy-what').val(ui.value);
+    }
+  }
+).slider('pips', {
+  first: 'label',
+  last: 'label',
+  rest: 'label',
+  labels: ["Nothing", "Subjects", "Staff", "Pupils"]});

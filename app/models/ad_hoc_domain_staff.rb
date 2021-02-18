@@ -103,6 +103,14 @@ class AdHocDomainStaff < ApplicationRecord
          reduce(0, :+)
   end
 
+  def populate_from(ahdstaff, copy_what)
+    if copy_what > 2
+      ahdstaff.ad_hoc_domain_pupil_courses.each do |ahdpupil|
+        self.ad_hoc_domain_pupil_courses << ahdpupil.dup
+      end
+    end
+  end
+
   protected
 
   #

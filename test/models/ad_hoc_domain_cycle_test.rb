@@ -177,4 +177,49 @@ class AdHocDomainCycleTest < ActiveSupport::TestCase
     assert_equal sorted, original.sort
   end
 
+  test "can populate new cycle record from old one" do
+    2.times do
+      ahdsubj = FactoryBot.create(
+        :ad_hoc_domain_subject,
+        ad_hoc_domain_cycle: @ad_hoc_domain_cycle)
+      3.times do
+        ahdstaff = FactoryBot.create(
+          :ad_hoc_domain_staff,
+          ad_hoc_domain_subject: ahdsubj)
+        4.times do
+          FactoryBot.create(
+            :ad_hoc_domain_pupil_course,
+            ad_hoc_domain_staff: ahdstaff)
+        end
+      end
+    end
+    @ad_hoc_domain_cycle.reload
+    ahdc = FactoryBot.create(:ad_hoc_domain_cycle)
+    assert_equal 0, ahdc.num_real_subjects
+    assert_equal 0, ahdc.num_real_staff
+    assert_equal 0, ahdc.num_real_pupils
+    ahdc.copy_what = "0"
+    ahdc.populate_from(@ad_hoc_domain_cycle)
+    assert_equal 0, ahdc.num_real_subjects
+    assert_equal 0, ahdc.num_real_staff
+    assert_equal 0, ahdc.num_real_pupils
+    ahdc.copy_what = "1"
+    ahdc.populate_from(@ad_hoc_domain_cycle)
+    assert_equal 2, ahdc.num_real_subjects
+    assert_equal 0, ahdc.num_real_staff
+    assert_equal 0, ahdc.num_real_pupils
+    ahdc = FactoryBot.create(:ad_hoc_domain_cycle)
+    ahdc.copy_what = "2"
+    ahdc.populate_from(@ad_hoc_domain_cycle)
+    assert_equal 2, ahdc.num_real_subjects
+    assert_equal 6, ahdc.num_real_staff
+    assert_equal 0, ahdc.num_real_pupils
+    ahdc = FactoryBot.create(:ad_hoc_domain_cycle)
+    ahdc.copy_what = "3"
+    ahdc.populate_from(@ad_hoc_domain_cycle)
+    assert_equal 2, ahdc.num_real_subjects
+    assert_equal 6, ahdc.num_real_staff
+    assert_equal 24, ahdc.num_real_pupils
+  end
+
 end
