@@ -1,15 +1,22 @@
 Rails.application.routes.draw do
 
+  #
+  #  This line is a little messy, but I can find no way of expressing
+  #  it using the "resources" syntax.
+  #
+  post '/ad_hoc_domain_subjects/:ad_hoc_domain_subject_id/ad_hoc_domain_staffs/:ad_hoc_domain_staff_id/ad_hoc_domain_pupil_courses',
+       to: 'ad_hoc_domain_pupil_courses#create',
+       as: 'ad_hoc_domain_subject_ad_hoc_domain_staff_ad_hoc_domain_pupil_courses'
+
+  resources :ad_hoc_domain_pupil_courses, only: [:update, :destroy]
+
   resources :ad_hoc_domains do
     resources :ad_hoc_domain_cycles, shallow: true do
       member do
         put :set_as_default
       end
-      resources :ad_hoc_domain_subjects, shallow: true do
-        resources :ad_hoc_domain_staffs, shallow: true do
-          resources :ad_hoc_domain_pupil_courses, shallow: true
-        end
-      end
+      resources :ad_hoc_domain_subjects, shallow: true
+      resources :ad_hoc_domain_staffs, shallow: true
     end
     member do
       get :edit_controllers

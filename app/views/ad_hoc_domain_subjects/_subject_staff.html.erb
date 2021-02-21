@@ -7,6 +7,15 @@
       }
     ) %>
   <% end %>
-  <%= render subject_staff.ad_hoc_domain_staffs.sort %>
+  <%=
+    render(
+      partial: 'ad_hoc_domain_staffs/ad_hoc_domain_staff',
+      collection: subject_staff.ad_hoc_domain_staffs.sort,
+      locals: {
+        nested: true,
+        ad_hoc_domain_subject: subject_staff
+      }
+    )
+  %>
 </div>
 

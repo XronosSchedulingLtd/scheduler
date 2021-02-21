@@ -80,10 +80,12 @@ class AdHocDomainSubjectTest < ActiveSupport::TestCase
     assert @ad_hoc_domain_subject.respond_to? :num_real_pupils
     staff1 = FactoryBot.create(
       :ad_hoc_domain_staff,
-      ad_hoc_domain_subject: @ad_hoc_domain_subject)
+      ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
+      ad_hoc_domain_subjects: [@ad_hoc_domain_subject])
     staff2 = FactoryBot.create(
       :ad_hoc_domain_staff,
-      ad_hoc_domain_subject: @ad_hoc_domain_subject)
+      ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
+      ad_hoc_domain_subjects: [@ad_hoc_domain_subject])
     #
     #  This next one should not be counted.
     #
@@ -91,9 +93,11 @@ class AdHocDomainSubjectTest < ActiveSupport::TestCase
     assert_equal 2, @ad_hoc_domain_subject.num_real_staff
     pupil1 = FactoryBot.create(
       :ad_hoc_domain_pupil_course,
+      ad_hoc_domain_subject: @ad_hoc_domain_subject,
       ad_hoc_domain_staff: staff1)
     pupil2 = FactoryBot.create(
       :ad_hoc_domain_pupil_course,
+      ad_hoc_domain_subject: @ad_hoc_domain_subject,
       ad_hoc_domain_staff: staff2)
     blank_pupil = staff1.ad_hoc_domain_pupil_courses.new
     assert_equal 2, @ad_hoc_domain_subject.num_real_pupils
@@ -101,35 +105,6 @@ class AdHocDomainSubjectTest < ActiveSupport::TestCase
 
   test "can access domain directly" do
     assert_equal @ad_hoc_domain, @ad_hoc_domain_subject.ad_hoc_domain
-  end
-
-  test "can populate new subject record from old one" do
-    3.times do
-      ahdstaff = FactoryBot.create(
-        :ad_hoc_domain_staff,
-        ad_hoc_domain_subject: @ad_hoc_domain_subject)
-      4.times do
-        FactoryBot.create(
-          :ad_hoc_domain_pupil_course,
-          ad_hoc_domain_staff: ahdstaff)
-      end
-    end
-    @ad_hoc_domain_subject.reload
-    ahds = FactoryBot.create(:ad_hoc_domain_subject)
-    assert_equal 0, ahds.num_real_staff
-    assert_equal 0, ahds.num_real_pupils
-    ahds.populate_from(@ad_hoc_domain_subject, 1)
-    assert_equal 0, ahds.num_real_staff
-    assert_equal 0, ahds.num_real_pupils
-    ahds.populate_from(@ad_hoc_domain_subject, 2)
-    assert_equal 3, ahds.num_real_staff
-    assert_equal 0, ahds.num_real_pupils
-    ahds = FactoryBot.create(:ad_hoc_domain_subject)
-    assert_equal 0, ahds.num_real_staff
-    assert_equal 0, ahds.num_real_pupils
-    ahds.populate_from(@ad_hoc_domain_subject, 3)
-    assert_equal 3, ahds.num_real_staff
-    assert_equal 12, ahds.num_real_pupils
   end
 
 end

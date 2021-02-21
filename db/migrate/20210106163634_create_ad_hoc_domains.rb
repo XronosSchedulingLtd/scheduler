@@ -37,25 +37,30 @@ class CreateAdHocDomains < ActiveRecord::Migration[5.2]
       t.integer :subject_id
       t.timestamps
     end
-
     add_index :ad_hoc_domain_subjects, :ad_hoc_domain_cycle_id
     add_index :ad_hoc_domain_subjects, :subject_id
 
     create_table :ad_hoc_domain_staffs do |t|
       t.integer :staff_id
-      t.integer :ad_hoc_domain_subject_id
+      t.integer :ad_hoc_domain_cycle_id
       t.timestamps
     end
     add_index :ad_hoc_domain_staffs, :staff_id
-    add_index :ad_hoc_domain_staffs, :ad_hoc_domain_subject_id
+    add_index :ad_hoc_domain_staffs, :ad_hoc_domain_cycle_id
+
+    create_join_table :ad_hoc_domain_subjects, :ad_hoc_domain_staffs do |t|
+      t.index [:ad_hoc_domain_subject_id, :ad_hoc_domain_staff_id], name: :ad_hoc_habtm
+    end
 
     create_table :ad_hoc_domain_pupil_courses do |t|
       t.integer :pupil_id
+      t.integer :ad_hoc_domain_subject_id
       t.integer :ad_hoc_domain_staff_id
       t.integer :minutes, default: 30
       t.timestamps
     end
     add_index :ad_hoc_domain_pupil_courses, :pupil_id
+    add_index :ad_hoc_domain_pupil_courses, :ad_hoc_domain_subject_id
     add_index :ad_hoc_domain_pupil_courses, :ad_hoc_domain_staff_id
 
   end

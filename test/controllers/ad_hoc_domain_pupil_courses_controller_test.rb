@@ -21,7 +21,7 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :success
-    assert /^document.getElementById\('ahd-staff-pupils-#{@ad_hoc_domain_staff.id}'/ =~ response.body
+    assert /^document.getElementById\('ahd-staff-pupils-t#{@ad_hoc_domain_staff.id}'/ =~ response.body
     assert /document.getElementById\('pupil-element-name-#{@ad_hoc_domain_staff.id}'\)\.focus/ =~ response.body
   end
 
@@ -65,7 +65,7 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :success
-    assert /^document.getElementById\('ahd-staff-pupils-#{@ad_hoc_domain_staff.id}'\)/ =~ response.body
+    assert /^document.getElementById\('ahd-staff-pupils-t#{@ad_hoc_domain_staff.id}'\)/ =~ response.body
     assert /document.getElementById\('pupil-element-name-#{@ad_hoc_domain_staff.id}'\)\.focus/ =~ response.body
   end
 

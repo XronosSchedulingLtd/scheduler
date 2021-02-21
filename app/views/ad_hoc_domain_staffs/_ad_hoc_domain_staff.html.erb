@@ -1,15 +1,49 @@
-<% if ad_hoc_domain_staff.new_record? %>
-  <%= ahd_row(contents: { staff_form: ahd_form(ad_hoc_domain_staff) }) %>
+<% if nested %>
+  <% if ad_hoc_domain_staff.new_record? %>
+    <%=
+      ahd_row(
+        contents: {
+          staff_form: ahd_form(ad_hoc_domain_staff, ad_hoc_domain_subject)
+        }
+      )
+    %>
+  <% else %>
+    <%= ahd_row(
+      contents: {
+        staff_delete: ahd_deletion_link(ad_hoc_domain_staff),
+        staff: ad_hoc_domain_staff.staff_name,
+        pupil_heading: "Pupils",
+        mins_heading:  "Mins"
+      },
+      row_classes: %w(overrule minor)) %>
+    <%=
+      render object: ad_hoc_domain_staff,
+        partial: 'ad_hoc_domain_staffs/staff_pupils',
+        locals: { ad_hoc_domain_subject: ad_hoc_domain_subject }
+      %>
+  <% end %>
 <% else %>
-  <%= ahd_row(
-    contents: {
-      staff_delete: ahd_deletion_link(ad_hoc_domain_staff),
-      staff: ad_hoc_domain_staff.staff_name,
-      pupil_heading: "Pupils",
-      mins_heading:  "Mins"
-    },
-    row_classes: %w(overrule minor)) %>
-  <%= render object: ad_hoc_domain_staff,
-    partial: 'ad_hoc_domain_staffs/staff_pupils' %>
+  <% if ad_hoc_domain_staff.new_record? %>
+    <%=
+      ahd_row(
+        contents: {
+          staff_form: ahd_form(ad_hoc_domain_staff)
+        }
+      )
+    %>
+  <% else %>
+    <%= ahd_row(
+      contents: {
+        staff_delete: ahd_deletion_link(ad_hoc_domain_staff),
+        staff: ad_hoc_domain_staff.staff_name,
+        pupil_heading: "Pupils",
+        mins_heading:  "Mins"
+      },
+      row_classes: %w(overrule minor)) %>
+    <%=
+      render object: ad_hoc_domain_staff,
+        partial: 'ad_hoc_domain_staffs/staff_subjects'
+      %>
+  <% end %>
 <% end %>
 

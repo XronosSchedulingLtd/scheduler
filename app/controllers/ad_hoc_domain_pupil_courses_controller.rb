@@ -9,28 +9,35 @@ class AdHocDomainPupilCoursesController < ApplicationController
 
   include AdHoc
 
-  before_action :set_ad_hoc_domain_staff, only: [:create]
+  before_action :set_parents, only: [:create]
   before_action :set_ad_hoc_domain_pupil_course, only: [:destroy, :update]
 
-  # POST /ad_hoc_domain_staff/1/ad_hoc_domain_staffs
-  # POST /ad_hoc_domain_staff/1/ad_hoc_domain_staffs.json
+  # POST /ad_hoc_domain_subject/1/ad_hoc_domain_staff/1/ad_hoc_domain_staffs
+  # POST /ad_hoc_domain_subject/1/ad_hoc_domain_staff/1/ad_hoc_domain_staffs.json
   def create
     @ad_hoc_domain_pupil_course =
-      @ad_hoc_domain_staff.ad_hoc_domain_pupil_courses.new(
-        ad_hoc_domain_pupil_course_params)
+      @ad_hoc_domain_subject.ad_hoc_domain_pupil_courses.new(
+        ad_hoc_domain_pupil_course_params.merge({
+          ad_hoc_domain_staff: @ad_hoc_domain_staff
+        }))
 
     respond_to do |format|
       if @ad_hoc_domain_pupil_course.save
+        #
+        #  There are two separate refreshes to do - one on the By Subject
+        #  tab and one on the By Staff tab.  Both will have changed
+        #  because we have create a new PupilCourse record.
         #
         #  We're going to need to refresh the entire listing of staffs
         #  (because our new one could be anywhere in the list), which
         #  in turn needs a whole hierarchy of new blank records.
         #
-        generate_blanks(@ad_hoc_domain_staff)
+        generate_blanks(@ad_hoc_domain_staff, @ad_hoc_domain_subject)
+        generate_blanks(@ad_hoc_domain_subject, @ad_hoc_domain_staff)
         @num_staff =
-          @ad_hoc_domain_staff.ad_hoc_domain_subject.num_real_staff
+          @ad_hoc_domain_subject.num_real_staff
         @num_pupils =
-          @ad_hoc_domain_staff.ad_hoc_domain_subject.num_real_pupils
+          @ad_hoc_domain_subject.num_real_pupils
         format.js {
           render :created,
                   locals: {
@@ -41,7 +48,11 @@ class AdHocDomainPupilCoursesController < ApplicationController
       else
         format.js { render :createfailed,
                     status: :conflict,
-                    locals: { owner_id: @ad_hoc_domain_staff.id} }
+                    locals: {
+                      owner_id: @ad_hoc_domain_staff.id,
+                      grandparent_id: @ad_hoc_domain_subject.id
+                    }
+        }
       end
     end
   end
@@ -71,11 +82,12 @@ class AdHocDomainPupilCoursesController < ApplicationController
   def destroy
     @ad_hoc_domain_pupil_course.destroy
     respond_to do |format|
-      generate_blanks(@ad_hoc_domain_staff)
+      generate_blanks(@ad_hoc_domain_staff, @ad_hoc_domain_subject)
+      generate_blanks(@ad_hoc_domain_subject, @ad_hoc_domain_staff)
       @num_staff =
-        @ad_hoc_domain_staff.ad_hoc_domain_subject.num_real_staff
+        @ad_hoc_domain_subject.num_real_staff
       @num_pupils =
-        @ad_hoc_domain_staff.ad_hoc_domain_subject.num_real_pupils
+        @ad_hoc_domain_subject.num_real_pupils
       format.js {
         render :destroyed,
                locals: {
@@ -89,19 +101,19 @@ class AdHocDomainPupilCoursesController < ApplicationController
   private
 
   # Use callbacks to share common setup or constraints between actions.
-  def set_ad_hoc_domain_staff
+  def set_parents
     @ad_hoc_domain_staff =
-      AdHocDomainStaff.includes(:ad_hoc_domain_subject).
-                       find(params[:ad_hoc_domain_staff_id])
-    @ad_hoc_domain_subject = @ad_hoc_domain_staff.ad_hoc_domain_subject
+      AdHocDomainStaff.find(params[:ad_hoc_domain_staff_id])
+    @ad_hoc_domain_subject =
+      AdHocDomainSubject.find(params[:ad_hoc_domain_subject_id])
   end
 
   def set_ad_hoc_domain_pupil_course
     @ad_hoc_domain_pupil_course =
-      AdHocDomainPupilCourse.includes(ad_hoc_domain_staff: :ad_hoc_domain_subject).
+      AdHocDomainPupilCourse.includes([:ad_hoc_domain_staff, :ad_hoc_domain_subject]).
                              find(params[:id])
     @ad_hoc_domain_staff = @ad_hoc_domain_pupil_course.ad_hoc_domain_staff
-    @ad_hoc_domain_subject = @ad_hoc_domain_staff.ad_hoc_domain_subject
+    @ad_hoc_domain_subject = @ad_hoc_domain_pupil_course.ad_hoc_domain_subject
   end
 
   # Never trust parameters from the scary internet, only allow the white list through.

@@ -1,0 +1,10 @@
+<div id='ahd-subject-pupils-u<%= subject_pupils.id %>'>
+  <% if subject_pupils.ad_hoc_domain_pupil_courses.size == 1 %>
+    <%= ahd_row(
+      contents: {
+        no_pupils: "None defined yet."
+      }) %>
+  <% end %>
+  <%= render subject_pupils.ad_hoc_domain_pupil_courses.sort %>
+</div>
+

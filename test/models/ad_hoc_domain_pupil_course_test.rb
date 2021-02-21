@@ -19,12 +19,13 @@ class AdHocDomainPupilCourseTest < ActiveSupport::TestCase
       FactoryBot.create(
         :ad_hoc_domain_staff,
         staff: @staff,
-        ad_hoc_domain_subject: @ad_hoc_domain_subject)
+        ad_hoc_domain_cycle: @ad_hoc_domain_cycle)
     @ad_hoc_domain_pupil_course =
       FactoryBot.create(
         :ad_hoc_domain_pupil_course,
         pupil: @pupil,
-        ad_hoc_domain_staff: @ad_hoc_domain_staff)
+        ad_hoc_domain_staff: @ad_hoc_domain_staff,
+        ad_hoc_domain_subject: @ad_hoc_domain_subject)
   end
 
   test "can be valid" do
@@ -45,7 +46,8 @@ class AdHocDomainPupilCourseTest < ActiveSupport::TestCase
     second = FactoryBot.build(
       :ad_hoc_domain_pupil_course,
       pupil: @pupil,
-      ad_hoc_domain_staff: @ad_hoc_domain_staff)
+      ad_hoc_domain_staff: @ad_hoc_domain_staff,
+      ad_hoc_domain_subject: @ad_hoc_domain_subject)
     assert_not second.valid?    # Because it's the same as the first one
   end
 

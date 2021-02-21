@@ -1,10 +1,10 @@
-<div id='ahd-staff-pupils-<%= staff_pupils.id %>'>
+<div id='ahd-staff-pupils-t<%= staff_pupils.id %>'>
   <% if staff_pupils.ad_hoc_domain_pupil_courses.size == 1 %>
     <%= ahd_row(
       contents: {
         no_pupils: "None defined yet."
       }) %>
   <% end %>
-  <%= render staff_pupils.ad_hoc_domain_pupil_courses.sort %>
+  <%= render staff_pupils.pupils_for(ad_hoc_domain_subject).sort %>
 </div>
 

@@ -17,17 +17,13 @@ class AdHocDomainStaffTest < ActiveSupport::TestCase
     @ad_hoc_domain_staff =
       FactoryBot.create(
         :ad_hoc_domain_staff,
+        ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
         staff: @staff,
-        ad_hoc_domain_subject: @ad_hoc_domain_subject)
+        ad_hoc_domain_subjects: [@ad_hoc_domain_subject])
   end
 
   test "can be valid" do
     assert @ad_hoc_domain_staff.valid?
-  end
-
-  test "must have a subject" do
-    ahds = FactoryBot.build(:ad_hoc_domain_staff, ad_hoc_domain_subject: nil)
-    assert_not ahds.valid?
   end
 
   test "must have a staff" do
@@ -38,16 +34,17 @@ class AdHocDomainStaffTest < ActiveSupport::TestCase
   test "must be unique" do
     second = FactoryBot.build(
       :ad_hoc_domain_staff,
-      staff: @staff,
-      ad_hoc_domain_subject: @ad_hoc_domain_subject)
+      ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
+      staff: @staff)
     assert_not second.valid?    # Because it's the same as the first one
   end
 
   test "staff can be assigned via element" do
     staff = FactoryBot.create(:staff, name: "Charlie")
     ahds = FactoryBot.create(:ad_hoc_domain_staff,
-                              ad_hoc_domain_subject: @ad_hoc_domain_subject,
-                              staff_element: staff.element)
+                             ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
+                             ad_hoc_domain_subjects: [@ad_hoc_domain_subject],
+                             staff_element: staff.element)
     assert_equal staff, ahds.staff
   end
 
@@ -62,13 +59,16 @@ class AdHocDomainStaffTest < ActiveSupport::TestCase
     staff2 = FactoryBot.create(:staff, surname: "Able")
     staff3 = FactoryBot.create(:staff, surname: "Baker")
     ahds1 = FactoryBot.create(:ad_hoc_domain_staff,
-                              ad_hoc_domain_subject: @ad_hoc_domain_subject,
+                              ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
+                              ad_hoc_domain_subjects: [@ad_hoc_domain_subject],
                               staff: staff1)
     ahds2 = FactoryBot.create(:ad_hoc_domain_staff,
-                              ad_hoc_domain_subject: @ad_hoc_domain_subject,
+                              ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
+                              ad_hoc_domain_subjects: [@ad_hoc_domain_subject],
                               staff: staff2)
     ahds3 = FactoryBot.create(:ad_hoc_domain_staff,
-                              ad_hoc_domain_subject: @ad_hoc_domain_subject,
+                              ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
+                              ad_hoc_domain_subjects: [@ad_hoc_domain_subject],
                               staff: staff3)
 
     @ad_hoc_domain.reload
@@ -82,22 +82,6 @@ class AdHocDomainStaffTest < ActiveSupport::TestCase
 
   test "can access domain directly" do
     assert_equal @ad_hoc_domain, @ad_hoc_domain_staff.ad_hoc_domain
-  end
-
-  test "can populate new staff record from old one" do
-    3.times do
-      FactoryBot.create(
-        :ad_hoc_domain_pupil_course,
-        ad_hoc_domain_staff: @ad_hoc_domain_staff)
-    end
-    @ad_hoc_domain_staff.reload
-    ahds = FactoryBot.create(:ad_hoc_domain_staff)
-    assert_equal 0, ahds.ad_hoc_domain_pupil_courses.count
-    ahds.populate_from(@ad_hoc_domain_staff, 2)
-    assert_equal 0, ahds.ad_hoc_domain_pupil_courses.count
-    ahds.populate_from(@ad_hoc_domain_staff, 3)
-    assert_equal 3, ahds.ad_hoc_domain_pupil_courses.count
-    assert_equal 3, @ad_hoc_domain_staff.ad_hoc_domain_pupil_courses.count
   end
 
 end

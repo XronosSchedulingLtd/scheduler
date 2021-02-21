@@ -1,7 +1,15 @@
 <div id='ahd-staff-listing'>
-  <% if @pseudo_staffs.size == 0 %>
-    None defined yet.
+  <% if @ad_hoc_domain_cycle.ad_hoc_domain_staffs.size == 1 %>
+    <span class='none-yet'>None defined yet.</span>
   <% end %>
-  <%= render @pseudo_staffs %>
+  <%=
+    render(
+      partial: 'ad_hoc_domain_staffs/ad_hoc_domain_staff',
+      collection: @ad_hoc_domain_cycle.ad_hoc_domain_staffs.sort,
+      locals: {
+        nested: false
+      }
+    )
+  %>
 </div>
 

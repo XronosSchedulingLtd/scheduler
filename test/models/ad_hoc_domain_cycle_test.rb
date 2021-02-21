@@ -114,39 +114,6 @@ class AdHocDomainCycleTest < ActiveSupport::TestCase
     end
   end
 
-  test "can get all records for one member of staff" do
-    assert @ad_hoc_domain_cycle.respond_to? :peers_of
-    #
-    #  See that it works
-    #
-    staffs = []
-    2.times do
-      staffs << FactoryBot.create(:staff)
-    end
-
-    subjects = []
-    3.times do
-      subjects << FactoryBot.create(:subject)
-    end
-
-    ahd_staffs = []
-    subjects.each do |subject|
-      ahdsu = FactoryBot.create(
-        :ad_hoc_domain_subject,
-        ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
-        subject: subject)
-      staffs.each do |staff|
-        ahd_staffs << FactoryBot.create(
-          :ad_hoc_domain_staff,
-          ad_hoc_domain_subject: ahdsu,
-          staff: staff)
-      end
-    end
-    ahd_staffs.each do |ahdst|
-      assert_equal 3, @ad_hoc_domain_cycle.peers_of(ahdst).count
-    end
-  end
-
   test "implements position of" do
     assert @ad_hoc_domain_cycle.respond_to? :position_of
   end
@@ -185,14 +152,19 @@ class AdHocDomainCycleTest < ActiveSupport::TestCase
       3.times do
         ahdstaff = FactoryBot.create(
           :ad_hoc_domain_staff,
-          ad_hoc_domain_subject: ahdsubj)
+          ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
+          ad_hoc_domain_subjects: [ahdsubj])
         4.times do
           FactoryBot.create(
             :ad_hoc_domain_pupil_course,
-            ad_hoc_domain_staff: ahdstaff)
+            ad_hoc_domain_staff: ahdstaff,
+            ad_hoc_domain_subject: ahdsubj)
         end
       end
     end
+    assert_equal 2, @ad_hoc_domain_cycle.ad_hoc_domain_subjects.count
+    assert_equal 6, @ad_hoc_domain_cycle.ad_hoc_domain_staffs.count
+    assert_equal 24, @ad_hoc_domain_cycle.ad_hoc_domain_pupil_courses.count
     @ad_hoc_domain_cycle.reload
     ahdc = FactoryBot.create(:ad_hoc_domain_cycle)
     assert_equal 0, ahdc.num_real_subjects

@@ -55,33 +55,56 @@ module AdHocDomainsHelper
     result.join("\n").html_safe
   end
 
-  def ahd_form(model)
+  def ahd_form(model, peer_model = nil)
     mins_field = false
     case model
     when AdHocDomainSubject
+      Rails.logger.debug("Doing AdHocDomainSubject")
       parent = model.ad_hoc_domain_cycle
       prefix = "subject"
       helper = autocomplete_subject_element_name_elements_path
-      error_field_id = "ahd-subject-errors"
+      if peer_model
+        error_field_id = "ahd-subject-errors-t#{peer_model.id}"
+        id_suffix = "t#{peer_model.id}"
+      else
+        error_field_id = "ahd-subject-errors"
+        id_suffix = "c#{parent.id}"
+      end
+      form_model = [parent, model]
     when AdHocDomainStaff
-      parent = model.ad_hoc_domain_subject
+      Rails.logger.debug("Doing AdHocDomainStaff")
+      parent = model.ad_hoc_domain_cycle
+      Rails.logger.debug(parent.inspect)
       prefix = "staff"
       helper = autocomplete_staff_element_name_elements_path
-      error_field_id = "ahd-staff-errors-#{model.ad_hoc_domain_subject_id}"
+      if peer_model
+        error_field_id = "ahd-staff-errors-u#{peer_model.id}"
+        id_suffix = "u#{peer_model.id}"
+      else
+        error_field_id = "ahd-staff-errors"
+        id_suffix = "c#{parent.id}"
+      end
+      form_model = [parent, model]
     when AdHocDomainPupilCourse
+      Rails.logger.debug("Doing AdHocDomainPupilCourse")
       parent = model.ad_hoc_domain_staff
       prefix = "pupil"
       helper = autocomplete_pupil_element_name_elements_path
-      error_field_id = "ahd-pupil-errors-#{model.ad_hoc_domain_staff_id}"
+      id_suffix = "u#{model.ad_hoc_domain_subject_id}t#{model.ad_hoc_domain_staff_id}"
+      error_field_id = "ahd-pupil-errors-#{id_suffix}"
+
       mins_field = true
       step = model.
              ad_hoc_domain_staff.
-             ad_hoc_domain_subject.
              ad_hoc_domain_cycle.
              ad_hoc_domain.
              mins_step
+      form_model = [model.ad_hoc_domain_subject, model.ad_hoc_domain_staff, model]
+    else
+      Rails.logger.debug("Dunno")
     end
-    form_with(model: [parent, model], local: false) do |form|
+
+    form_with(model: form_model, local: false) do |form|
       result = []
       result << "<div class='errors' id='#{error_field_id}'></div>"
       if mins_field
@@ -91,17 +114,20 @@ module AdHocDomainsHelper
         "#{prefix}_element_name",
         helper,
         'data-auto-focus' => true,
-        id: "#{prefix}-element-name-#{parent.id}",
-        id_element: "##{prefix}-element-id-#{parent.id}",
+        id: "#{prefix}-element-name-#{id_suffix}",
+        id_element: "##{prefix}-element-id-#{id_suffix}",
         placeholder: "Add #{prefix}",
         class: 'pupil-name')
       result << form.hidden_field(
         "#{prefix}_element_id",
-        id: "#{prefix}-element-id-#{parent.id}")
+        id: "#{prefix}-element-id-#{id_suffix}")
       if mins_field
         result << form.number_field(:minutes, step: step, class: 'pupil-mins')
         result << form.submit("Add", class: 'pupil-add zfbutton tiny teensy')
         result << "</div>"
+      end
+      if peer_model
+        result << form.hidden_field(:peer_id)
       end
       result.join("\n").html_safe
     end

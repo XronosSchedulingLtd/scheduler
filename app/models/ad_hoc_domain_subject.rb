@@ -10,20 +10,27 @@ class AdHocDomainSubject < ApplicationRecord
   belongs_to :ad_hoc_domain_cycle
   belongs_to :subject
 
-  has_many :ad_hoc_domain_staffs, dependent: :destroy
+  has_and_belongs_to_many :ad_hoc_domain_staffs
   has_many :staffs, through: :ad_hoc_domain_staffs
 
-  has_many :ad_hoc_domain_pupil_courses, through: :ad_hoc_domain_staffs
+  has_many :ad_hoc_domain_pupil_courses, dependent: :destroy
 
   validates :subject,
     uniqueness: {
       scope: :ad_hoc_domain_cycle,
       message: "Can't repeat subject within cycle"
     }
+
   #
   #  This exists just so we can write to it.
   #
   attr_writer :subject_element_name
+
+  #
+  #  And this one exists for temporary purposes when we are creating
+  #  a new record.
+  #
+  attr_accessor :peer_id
 
   def ad_hoc_domain
     self.ad_hoc_domain_cycle&.ad_hoc_domain
@@ -105,15 +112,6 @@ class AdHocDomainSubject < ApplicationRecord
       result = nil
     end
     result
-  end
-
-  def populate_from(ahdsubj, copy_what)
-    if copy_what > 1
-      ahdsubj.ad_hoc_domain_staffs.each do |ahdstaff|
-        self.ad_hoc_domain_staffs << newstaff = ahdstaff.dup
-        newstaff.populate_from(ahdstaff, copy_what)
-      end
-    end
   end
 
 end

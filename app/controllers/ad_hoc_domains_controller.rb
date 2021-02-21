@@ -7,60 +7,6 @@
 
 class AdHocDomainsController < ApplicationController
 
-  class PseudoStaff
-    #
-    #  Used simply for displaying our info sorted by staff member.
-    #
-    include Comparable
-
-    attr_reader :staff,
-                :staff_name,
-                :num_real_subjects,
-                :num_real_pupils,
-                :ad_hoc_domain_subjects
-
-    def initialize(ad_hoc_domain_staffs)
-      @staff = ad_hoc_domain_staffs[0].staff
-      @staff_name = ad_hoc_domain_staffs[0].staff_name
-      @num_real_subjects = ad_hoc_domain_staffs.size
-      @num_real_pupils = ad_hoc_domain_staffs.inject(0) {|sum, s| sum + s.num_real_pupils}
-      @ad_hoc_domain_subjects = ad_hoc_domain_staffs.collect {|s| s.ad_hoc_domain_subject}.sort
-    end
-
-    def to_partial_path
-      'pseudo_staff'
-    end
-
-    def <=>(other)
-      if other.instance_of?(PseudoStaff)
-        #
-        if self.staff
-          if other.staff
-            result = self.staff <=> other.staff
-            if result == 0
-              #  We must return 0 iff we are the same record.
-              result = self.id <=> other.id
-            end
-          else
-            #
-            #  Other is not yet complete.  Put it last.
-            #
-            result = -1
-          end
-        else
-          #
-          #  We are incomplete and go last.
-          #
-          result = 1
-        end
-      else
-        result = nil
-      end
-      result
-    end
-
-  end
-
   include AdHoc
 
   before_action :set_ad_hoc_domain,
@@ -166,11 +112,6 @@ class AdHocDomainsController < ApplicationController
       #
       generate_blanks(@ad_hoc_domain_cycle)
       @folded = true
-      @pseudo_staffs =
-        @ad_hoc_domain_cycle.ad_hoc_domain_staffs.
-                       group_by {|ahds| ahds.staff_id}.
-                       values.
-                       collect {|arr| PseudoStaff.new(arr)}.sort
     end
   end
 

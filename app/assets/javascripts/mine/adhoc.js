@@ -231,6 +231,28 @@ if ($('.ahd-listing').length) {
           name_field.val('');
           $('#ahd-subject-errors').html("");
         }
+        //
+        //  New single entry point for updates.
+        //  Expects to be passed an array of objects to be actioned
+        //  in order.  Each object has an "action" attribute to tell
+        //  us what to do.
+        //
+
+        window.ahdUpdate = function(updates) {
+          actions.forEach(function(update) {
+            switch(update.action) {
+              case 'add_lone_subject':
+                //
+                //  This affects only the "By subject" listing.
+                //
+                break;
+
+              default:
+                console.log("Unknown action - " + update.action);
+                break;
+            }
+          });
+        }
       };
 
       return that;

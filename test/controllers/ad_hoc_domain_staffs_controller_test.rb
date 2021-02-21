@@ -26,7 +26,7 @@ class AdHocDomainStaffsControllerTest < ActionController::TestCase
     assert_difference('AdHocDomainStaff.count') do
       post :create,
         params: {
-          ad_hoc_domain_subject_id: @ad_hoc_domain_subject,
+          ad_hoc_domain_cycle_id: @ad_hoc_domain_cycle,
           ad_hoc_domain_staff: {
             staff_element_id: @staff.element
           } 
@@ -43,7 +43,7 @@ class AdHocDomainStaffsControllerTest < ActionController::TestCase
     assert_difference('AdHocDomainStaff.count') do
       post :create,
         params: {
-          ad_hoc_domain_subject_id: @ad_hoc_domain_subject,
+          ad_hoc_domain_cycle_id: @ad_hoc_domain_cycle,
           ad_hoc_domain_staff: {
             staff_element_id: @staff.element
           } 
@@ -54,7 +54,7 @@ class AdHocDomainStaffsControllerTest < ActionController::TestCase
     assert_difference('AdHocDomainStaff.count', 0) do
       post :create,
         params: {
-          ad_hoc_domain_subject_id: @ad_hoc_domain_subject,
+          ad_hoc_domain_cycle_id: @ad_hoc_domain_cycle,
           ad_hoc_domain_staff: {
             staff_element_id: @staff.element
           } 

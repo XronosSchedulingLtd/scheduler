@@ -2,6 +2,13 @@
   <% if @ad_hoc_domain_cycle.ad_hoc_domain_subjects.size == 1 %>
     <span class='none-yet'>None defined yet.</span>
   <% end %>
-  <%= render @ad_hoc_domain_cycle.ad_hoc_domain_subjects.sort %>
+  <%=
+    render(
+      partial: 'ad_hoc_domain_subjects/ad_hoc_domain_subject',
+      collection: @ad_hoc_domain_cycle.ad_hoc_domain_subjects.sort,
+      locals: {
+        nested: false
+      })
+  %>
 </div>
 

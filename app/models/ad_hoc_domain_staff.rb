@@ -7,15 +7,18 @@
 class AdHocDomainStaff < ApplicationRecord
   include Comparable
 
+  belongs_to :ad_hoc_domain_cycle
   belongs_to :staff
-  belongs_to :ad_hoc_domain_subject
+
+  has_and_belongs_to_many :ad_hoc_domain_subjects
+  has_many :subjects, through: :ad_hoc_domain_subjects
 
   has_many :ad_hoc_domain_pupil_courses, dependent: :destroy
 
   validates :staff,
     uniqueness: {
-      scope: [:ad_hoc_domain_subject],
-      message: "Can't repeat staff within subject"
+      scope: [:ad_hoc_domain_cycle],
+      message: "Can't repeat staff within cycle"
     }
 
   #
@@ -23,12 +26,14 @@ class AdHocDomainStaff < ApplicationRecord
   #
   attr_writer :staff_element_name
 
-  def ad_hoc_domain
-    self.ad_hoc_domain_subject&.ad_hoc_domain_cycle&.ad_hoc_domain
-  end
+  #
+  #  And this one exists for temporary purposes when we are creating
+  #  a new record.
+  #
+  attr_accessor :peer_id
 
-  def peers
-    self.ad_hoc_domain.peers_of(self)
+  def ad_hoc_domain
+    self.ad_hoc_domain_cycle&.ad_hoc_domain
   end
 
   def can_delete?
@@ -103,12 +108,17 @@ class AdHocDomainStaff < ApplicationRecord
          reduce(0, :+)
   end
 
-  def populate_from(ahdstaff, copy_what)
-    if copy_what > 2
-      ahdstaff.ad_hoc_domain_pupil_courses.each do |ahdpupil|
-        self.ad_hoc_domain_pupil_courses << ahdpupil.dup
-      end
-    end
+  #
+  #  All our pupils taking the indicated subject.
+  #
+  def pupils_for(ahd_subject)
+    #
+    #  This is intended for use in AdHocDomainCycle listings, and it is
+    #  assumed that all relevant records are already in memory, cached by
+    #  the controller.  We therefore use select rather than a fresh d/b hit.
+    #
+    self.ad_hoc_domain_pupil_courses.
+         select {|ahdp| ahdp.ad_hoc_domain_subject == ahd_subject}
   end
 
   protected
