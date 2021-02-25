@@ -295,8 +295,20 @@ if ($('.ahd-listing').length) {
                 //  Technically a new pupil course.  Two places to make
                 //  this appear.
                 //
-                $('#ahd-staff-pupils-t' + update.staff_id).html(update.pupil_listing);
-                $('#ahd-subject-pupils-u' + update.subject_id).html(update.pupil_listing);
+                var by_subject_selector =
+                  '#ahd-staff-pupils-t' + update.staff_id
+                var by_staff_selector =
+                  '#ahd-subject-pupils-u' + update.subject_id
+
+                $(by_subject_selector).html(update.pupil_listing);
+                $(by_staff_selector).html(update.pupil_listing);
+                //
+                //  And now one of those two should get the input focus,
+                //  depending on which tab is active.
+                //
+                $('#ahd-by-staff.active ' + by_staff_selector + ' form input.pupil-name').focus();
+
+                $('#ahd-by-subject.active ' + by_subject_selector + ' form input.pupil-name').focus();
                 break;
 
               default:
