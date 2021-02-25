@@ -56,57 +56,43 @@ module AdHocDomainsHelper
   end
 
   def ahd_form(model, peer_model = nil)
+#    Rails.logger.debug("Entering ahd_form")
+#    Rails.logger.debug("model: #{model.inspect}")
+#    Rails.logger.debug("peer_model: #{peer_model.inspect}")
     mins_field = false
     case model
     when AdHocDomainSubject
-      Rails.logger.debug("Doing AdHocDomainSubject")
-      parent = model.ad_hoc_domain_cycle
+      parent = peer_model ? peer_model : model.ad_hoc_domain_cycle
       prefix = "subject"
       helper = autocomplete_subject_element_name_elements_path
-      if peer_model
-        error_field_id = "ahd-subject-errors-t#{peer_model.id}"
-        id_suffix = "t#{peer_model.id}"
-      else
-        error_field_id = "ahd-subject-errors"
-        id_suffix = "c#{parent.id}"
-      end
+      id_suffix = parent.id_suffix
       form_model = [parent, model]
     when AdHocDomainStaff
-      Rails.logger.debug("Doing AdHocDomainStaff")
-      parent = model.ad_hoc_domain_cycle
-      Rails.logger.debug(parent.inspect)
+      parent = peer_model ? peer_model : model.ad_hoc_domain_cycle
       prefix = "staff"
       helper = autocomplete_staff_element_name_elements_path
-      if peer_model
-        error_field_id = "ahd-staff-errors-u#{peer_model.id}"
-        id_suffix = "u#{peer_model.id}"
-      else
-        error_field_id = "ahd-staff-errors"
-        id_suffix = "c#{parent.id}"
-      end
+      id_suffix = parent.id_suffix
       form_model = [parent, model]
     when AdHocDomainPupilCourse
-      Rails.logger.debug("Doing AdHocDomainPupilCourse")
-      parent = model.ad_hoc_domain_staff
+      parent = model.ad_hoc_domain_subject_staff
       prefix = "pupil"
       helper = autocomplete_pupil_element_name_elements_path
-      id_suffix = "u#{model.ad_hoc_domain_subject_id}t#{model.ad_hoc_domain_staff_id}"
-      error_field_id = "ahd-pupil-errors-#{id_suffix}"
+      id_suffix = "u#{parent.ad_hoc_domain_subject_id}t#{parent.ad_hoc_domain_staff_id}"
 
       mins_field = true
-      step = model.
+      step = parent.
              ad_hoc_domain_staff.
              ad_hoc_domain_cycle.
              ad_hoc_domain.
              mins_step
-      form_model = [model.ad_hoc_domain_subject, model.ad_hoc_domain_staff, model]
+      form_model = [parent.ad_hoc_domain_subject, parent.ad_hoc_domain_staff, model]
     else
       Rails.logger.debug("Dunno")
     end
 
     form_with(model: form_model, local: false) do |form|
       result = []
-      result << "<div class='errors' id='#{error_field_id}'></div>"
+      result << "<div class='errors' id='ahd-#{prefix}-errors-#{id_suffix}'></div>"
       if mins_field
         result << "<div class='sub-grid'>"
       end
@@ -126,9 +112,6 @@ module AdHocDomainsHelper
         result << form.submit("Add", class: 'pupil-add zfbutton tiny teensy')
         result << "</div>"
       end
-      if peer_model
-        result << form.hidden_field(:peer_id)
-      end
       result.join("\n").html_safe
     end
   end
@@ -146,14 +129,51 @@ module AdHocDomainsHelper
     end
   end
 
-  def ahd_deletion_link(model)
-    link_to("&#215;".html_safe,
-            model,
-            method: :delete,
-            data: {
-              confirm: ahd_deletion_prompt(model)
-            },
-            remote: true)
+  def ahd_deletion_link(model, peer = nil)
+    if peer
+      #
+      #  We want to delete the connection between two - must be a subject
+      #  and a staff, but might be specified either way around.
+      #
+      if model.is_a?(AdHocDomainStaff) && peer.is_a?(AdHocDomainSubject)
+        staff = model
+        subject = peer
+      elsif model.is_a?(AdHocDomainSubject) && peer.is_a?(AdHocDomainStaff)
+        staff = peer
+        subject = mdel
+      else
+        #
+        #  Erroneous call.
+        #
+        staff = nil
+      end
+      if staff
+        linker = AdHocDomainSubjectStaff.find_by(
+          ad_hoc_domain_subject_id: subject.id,
+          ad_hoc_domain_staff_id: staff.id)
+        if linker
+          link_to("&#215;".html_safe,
+                  linker,
+                  method: :delete,
+                  data: {
+                    confirm: ahd_deletion_prompt(model)
+                  },
+                  remote: true)
+        else
+          "YY"
+        end
+      else
+        "XX"
+      end
+    else
+      link_to("&#215;".html_safe,
+              model,
+              method: :delete,
+              data: {
+                confirm: ahd_deletion_prompt(model)
+              },
+              remote: true)
+    end
   end
 
   def ahd_error_texts(model)

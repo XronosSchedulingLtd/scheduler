@@ -23,13 +23,17 @@ FactoryBot.define do
     ad_hoc_domain_cycle
   end
 
-  factory :ad_hoc_domain_pupil_course do
+  factory :ad_hoc_domain_subject_staff do
     transient do
       ad_hoc_domain_cycle { create(:ad_hoc_domain_cycle) }
     end
-    pupil
     ad_hoc_domain_staff { create(:ad_hoc_domain_staff, ad_hoc_domain_cycle: ad_hoc_domain_cycle) }
     ad_hoc_domain_subject { create(:ad_hoc_domain_subject, ad_hoc_domain_cycle: ad_hoc_domain_cycle) }
+  end
+
+  factory :ad_hoc_domain_pupil_course do
+    ad_hoc_domain_subject_staff
+    pupil
   end
 
   factory :attachment do

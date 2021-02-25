@@ -1,0 +1,13 @@
+window.ahdUpdate([{
+  action: 'new_link',
+  subject_id: <%= subject_id %>,
+  staff_listing: "<%=j(
+  render(
+    partial: 'ad_hoc_domain_staffs/ad_hoc_domain_staff',
+    collection: @ad_hoc_domain_subject.ad_hoc_domain_staffs,
+    locals: {
+      nested: true,
+      ad_hoc_domain_subject: @ad_hoc_domain_subject
+    })) %>"
+}]);
+

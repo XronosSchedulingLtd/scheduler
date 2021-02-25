@@ -3,8 +3,7 @@
     <%= ahd_row(
       contents: {
         subject_form: ahd_form(ad_hoc_domain_subject, ad_hoc_domain_staff),
-      },
-      row_classes: %w(underrule overrule)
+      }
     ) %>
   <% else %>
     <div id='ahd-subject-<%= ad_hoc_domain_subject.id %>'>

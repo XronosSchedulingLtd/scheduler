@@ -29,6 +29,7 @@ end
 
 class AdHocDomainCycle < ApplicationRecord
   include Comparable
+  include Adhoc
   belongs_to :ad_hoc_domain
 
   has_one :ad_hoc_domain_as_default_cycle,
@@ -91,11 +92,16 @@ class AdHocDomainCycle < ApplicationRecord
   end
 
   #
-  #  Work out the position of this particular subject in our listing,
+  #  Work out the position of this particular subject or staff in our listing,
   #  indexed from 1 (yuk!) to suit CSS.
   #
   def position_of(ahds)
-    (self.ad_hoc_domain_subjects.sort.find_index(ahds) || 0) + 1
+    case ahds
+    when AdHocDomainSubject
+      (self.ad_hoc_domain_subjects.sort.find_index(ahds) || 0) + 1
+    when AdHocDomainStaff
+      (self.ad_hoc_domain_staffs.sort.find_index(ahds) || 0) + 1
+    end
   end
 
   def <=>(other)
@@ -147,7 +153,7 @@ class AdHocDomainCycle < ApplicationRecord
     #
     to_copy = @copy_what.to_i
     if to_copy > 0
-      ahd_subjects_by_subject_id = Hash.new
+      ahd_new_subjects_by_old_id = Hash.new
       #
       #  We need to copy (duplicate) all the subject and staff records
       #  which are children of the given cycle record, then go for any
@@ -159,7 +165,7 @@ class AdHocDomainCycle < ApplicationRecord
         #
         #  So we can find it to link to staff.
         #
-        ahd_subjects_by_subject_id[newsubj.subject_id] = newsubj
+        ahd_new_subjects_by_old_id[ahdsubj.id] = newsubj
       end
       if to_copy > 1
         #
@@ -171,24 +177,21 @@ class AdHocDomainCycle < ApplicationRecord
           #  And need to re-create the linking records between
           #  staff and subjects.
           #
-          ahdstaff.ad_hoc_domain_subjects.each do |ahdsubj|
-            newsubj = ahd_subjects_by_subject_id[ahdsubj.subject_id]
+          ahdstaff.ad_hoc_domain_subject_staffs.each do |ahdss|
+            #
+            #  Each time there was an old record we need a new
+            #  one.
+            #
+            newsubj = ahd_new_subjects_by_old_id[ahdss.ad_hoc_domain_subject_id]
             if newsubj
-              newstaff.ad_hoc_domain_subjects << newsubj
-            end
-          end
-          if to_copy > 2
-            #
-            #  And need pupils too.
-            #
-            ahdstaff.ad_hoc_domain_pupil_courses.each do |ahdpupil|
-              newsubj =
-                ahd_subjects_by_subject_id[ahdpupil.ad_hoc_domain_subject.subject_id]
-              if newsubj
-                newpupil = ahdpupil.dup
-                newpupil.ad_hoc_domain_subject = newsubj
-                newpupil.ad_hoc_domain_staff = newstaff
-                newpupil.save
+              newahdss = newstaff.ad_hoc_domain_subject_staffs.create({
+                ad_hoc_domain_subject: newsubj})
+              if to_copy > 2
+                ahdss.ad_hoc_domain_pupil_courses.each do |ahdpc|
+                  newpupil = ahdpc.dup
+                  newpupil.ad_hoc_domain_subject_staff = newahdss
+                  newpupil.save
+                end
               end
             end
           end

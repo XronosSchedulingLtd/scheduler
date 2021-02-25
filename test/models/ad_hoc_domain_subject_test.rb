@@ -80,26 +80,28 @@ class AdHocDomainSubjectTest < ActiveSupport::TestCase
     assert @ad_hoc_domain_subject.respond_to? :num_real_pupils
     staff1 = FactoryBot.create(
       :ad_hoc_domain_staff,
-      ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
-      ad_hoc_domain_subjects: [@ad_hoc_domain_subject])
+      ad_hoc_domain_cycle: @ad_hoc_domain_cycle)
     staff2 = FactoryBot.create(
       :ad_hoc_domain_staff,
-      ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
-      ad_hoc_domain_subjects: [@ad_hoc_domain_subject])
+      ad_hoc_domain_cycle: @ad_hoc_domain_cycle)
     #
     #  This next one should not be counted.
     #
-    blank_staff = @ad_hoc_domain_subject.ad_hoc_domain_staffs.new
+    ad_hoc_domain_subject_staff1 = FactoryBot.create(
+      :ad_hoc_domain_subject_staff,
+      ad_hoc_domain_subject: @ad_hoc_domain_subject,
+      ad_hoc_domain_staff: staff1)
+    ad_hoc_domain_subject_staff2 = FactoryBot.create(
+      :ad_hoc_domain_subject_staff,
+      ad_hoc_domain_subject: @ad_hoc_domain_subject,
+      ad_hoc_domain_staff: staff2)
     assert_equal 2, @ad_hoc_domain_subject.num_real_staff
     pupil1 = FactoryBot.create(
       :ad_hoc_domain_pupil_course,
-      ad_hoc_domain_subject: @ad_hoc_domain_subject,
-      ad_hoc_domain_staff: staff1)
+      ad_hoc_domain_subject_staff: ad_hoc_domain_subject_staff1)
     pupil2 = FactoryBot.create(
       :ad_hoc_domain_pupil_course,
-      ad_hoc_domain_subject: @ad_hoc_domain_subject,
-      ad_hoc_domain_staff: staff2)
-    blank_pupil = staff1.ad_hoc_domain_pupil_courses.new
+      ad_hoc_domain_subject_staff: ad_hoc_domain_subject_staff2)
     assert_equal 2, @ad_hoc_domain_subject.num_real_pupils
   end
 

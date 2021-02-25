@@ -6,14 +6,17 @@
 #
 class AdHocDomainSubject < ApplicationRecord
   include Comparable
+  include Adhoc
 
   belongs_to :ad_hoc_domain_cycle
   belongs_to :subject
 
-  has_and_belongs_to_many :ad_hoc_domain_staffs
+  has_many :ad_hoc_domain_subject_staffs
+  has_many :ad_hoc_domain_staffs, through: :ad_hoc_domain_subject_staffs
+
   has_many :staffs, through: :ad_hoc_domain_staffs
 
-  has_many :ad_hoc_domain_pupil_courses, dependent: :destroy
+  has_many :ad_hoc_domain_pupil_courses, through: :ad_hoc_domain_subject_staffs
 
   validates :subject,
     uniqueness: {
@@ -25,12 +28,6 @@ class AdHocDomainSubject < ApplicationRecord
   #  This exists just so we can write to it.
   #
   attr_writer :subject_element_name
-
-  #
-  #  And this one exists for temporary purposes when we are creating
-  #  a new record.
-  #
-  attr_accessor :peer_id
 
   def ad_hoc_domain
     self.ad_hoc_domain_cycle&.ad_hoc_domain
@@ -71,13 +68,13 @@ class AdHocDomainSubject < ApplicationRecord
   end
 
   def num_real_staff
-    self.ad_hoc_domain_staffs.select {|ahds| !ahds.new_record?}.count
+    self.ad_hoc_domain_subject_staffs.size
   end
 
   def num_real_pupils
     total = 0
-    self.ad_hoc_domain_staffs.select {|ahds| !ahds.new_record?}.each do |ahds|
-      total += ahds.num_real_pupils
+    self.ad_hoc_domain_subject_staffs.select {|ahdss| !ahdss.new_record?}.each do |ahdss|
+      total += ahdss.num_real_pupils
     end
     total
   end

@@ -68,8 +68,7 @@ class AdHocDomainStaffsControllerTest < ActionController::TestCase
   test "should delete ad_hoc_domain_staff" do
     session[:user_id] = @admin_user.id
     ahds = FactoryBot.create(
-      :ad_hoc_domain_staff,
-      ad_hoc_domain_subject: @ad_hoc_domain_subject)
+      :ad_hoc_domain_staff)
     assert_difference('AdHocDomainStaff.count', -1) do
       delete :destroy,
         params: {

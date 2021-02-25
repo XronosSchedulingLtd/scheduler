@@ -152,13 +152,15 @@ class AdHocDomainCycleTest < ActiveSupport::TestCase
       3.times do
         ahdstaff = FactoryBot.create(
           :ad_hoc_domain_staff,
-          ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
-          ad_hoc_domain_subjects: [ahdsubj])
+          ad_hoc_domain_cycle: @ad_hoc_domain_cycle)
+        ahdss = FactoryBot.create(
+          :ad_hoc_domain_subject_staff,
+          ad_hoc_domain_subject: ahdsubj,
+          ad_hoc_domain_staff: ahdstaff)
         4.times do
           FactoryBot.create(
             :ad_hoc_domain_pupil_course,
-            ad_hoc_domain_staff: ahdstaff,
-            ad_hoc_domain_subject: ahdsubj)
+            ad_hoc_domain_subject_staff: ahdss)
         end
       end
     end

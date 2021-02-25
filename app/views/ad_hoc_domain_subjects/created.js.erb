@@ -1,1 +1,1 @@
-window.insertSubjectAt("<%=j render @ad_hoc_domain_subject %>", <%= position %>, <%= owner_id %>);
+window.insertSubjectAt("<%=j render object: @ad_hoc_domain_subject, partial: 'ad_hoc_domain_subject', locals: { nested: false } %>", <%= position %>, <%= owner_id %>);

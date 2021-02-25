@@ -110,7 +110,9 @@ class AdHocDomainsController < ApplicationController
       #  Our "sort" method always puts new records at the end, so we end
       #  up with a form at the end of all the real records.
       #
+      Rails.logger.debug("Invoking generate_blanks")
       generate_blanks(@ad_hoc_domain_cycle)
+      Rails.logger.debug("Back from generate_blanks")
       @folded = true
     end
   end

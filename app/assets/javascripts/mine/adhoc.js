@@ -232,6 +232,30 @@ if ($('.ahd-listing').length) {
           $('#ahd-subject-errors').html("");
         }
         //
+        window.insertStaffAt = function(text, index, owner_id) {
+          //
+          //  We convert the provided text to being an HTML element
+          //  before we insert it so we can attach the click handler.
+          //
+          var html = $.parseHTML(text);
+          $(html).find('.toggle').click(clickHandler);
+          //
+          //  And now insert.
+          //
+          var marker = $('div#ahd-staff-listing > div:nth-child(' + index + ')');
+          if (marker.length === 0) {
+            marker = $('div#ahd-staff-listing > div:last-child');
+          }
+          marker.before(html);
+          //
+          //  And now a bit of tidying up.
+          //
+          var name_field = $('#staff-element-name-' + owner_id);
+          name_field.focus();
+          name_field.val('');
+          $('#ahd-staff-errors').html("");
+        }
+        //
         //  New single entry point for updates.
         //  Expects to be passed an array of objects to be actioned
         //  in order.  Each object has an "action" attribute to tell
@@ -239,12 +263,33 @@ if ($('.ahd-listing').length) {
         //
 
         window.ahdUpdate = function(updates) {
-          actions.forEach(function(update) {
+          updates.forEach(function(update) {
             switch(update.action) {
               case 'add_lone_subject':
                 //
                 //  This affects only the "By subject" listing.
                 //
+                break;
+
+              case 'new_link':
+                var target1 = $('#ahd-subject-staff-' + update.subject_id);
+                console.log(update.staff_listing);
+                $(target1).html(update.staff_listing);
+                break;
+
+              case 'link_gone':
+                //
+                //  Need to delete the staff entry under the subject and
+                //  the subject entry under the staff.
+                //
+                $('#ahd-nested-staff-u' +
+                  update.subject_id +
+                  't' +
+                  update.staff_id).remove();
+                $('#ahd-nested-subject-t' +
+                  update.staff_id +
+                  'u' +
+                  update.subject_id).remove();
                 break;
 
               default:

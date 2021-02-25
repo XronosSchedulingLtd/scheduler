@@ -6,14 +6,14 @@
 #
 class AdHocDomainPupilCourse < ApplicationRecord
   include Comparable
+  include Adhoc
 
   belongs_to :pupil
-  belongs_to :ad_hoc_domain_subject
-  belongs_to :ad_hoc_domain_staff
+  belongs_to :ad_hoc_domain_subject_staff
 
   validates :pupil,
     uniqueness: {
-      scope: [:ad_hoc_domain_subject, :ad_hoc_domain_staff],
+      scope: [:ad_hoc_domain_subject_staff],
       message: "Can't repeat pupil for same subject and staff"
     }
   validates :minutes,
@@ -27,7 +27,8 @@ class AdHocDomainPupilCourse < ApplicationRecord
   attr_writer :pupil_element_name
 
   def ad_hoc_domain
-    self&.ad_hoc_domain_staff&.
+    self&.ad_hoc_domain_subject_staff&.
+          ad_hoc_domain_subject&.
           ad_hoc_domain_cycle&.
           ad_hoc_domain
   end
@@ -91,6 +92,6 @@ class AdHocDomainPupilCourse < ApplicationRecord
   end
 
   def owner_id
-    self.ad_hoc_domain_staff.id
+    self.ad_hoc_domain_subject_staff.id
   end
 end

@@ -6,14 +6,17 @@
 #
 class AdHocDomainStaff < ApplicationRecord
   include Comparable
+  include Adhoc
 
   belongs_to :ad_hoc_domain_cycle
   belongs_to :staff
 
-  has_and_belongs_to_many :ad_hoc_domain_subjects
+  has_many :ad_hoc_domain_subject_staffs
+  has_many :ad_hoc_domain_subjects, through: :ad_hoc_domain_subject_staffs
+
   has_many :subjects, through: :ad_hoc_domain_subjects
 
-  has_many :ad_hoc_domain_pupil_courses, dependent: :destroy
+  has_many :ad_hoc_domain_pupil_courses, through: :ad_hoc_domain_subject_staffs
 
   validates :staff,
     uniqueness: {
@@ -25,12 +28,6 @@ class AdHocDomainStaff < ApplicationRecord
   #  This exists just so we can write to it.
   #
   attr_writer :staff_element_name
-
-  #
-  #  And this one exists for temporary purposes when we are creating
-  #  a new record.
-  #
-  attr_accessor :peer_id
 
   def ad_hoc_domain
     self.ad_hoc_domain_cycle&.ad_hoc_domain
@@ -117,8 +114,24 @@ class AdHocDomainStaff < ApplicationRecord
     #  assumed that all relevant records are already in memory, cached by
     #  the controller.  We therefore use select rather than a fresh d/b hit.
     #
-    self.ad_hoc_domain_pupil_courses.
-         select {|ahdp| ahdp.ad_hoc_domain_subject == ahd_subject}
+    Rails.logger.debug("Staff #{self.staff_name} finding pupils for #{ahd_subject.subject_name}")
+    self.ad_hoc_domain_pupil_courses.each do |ahdpc|
+      Rails.logger.debug ahdpc.id
+    end
+    self.ad_hoc_domain_subject_staffs.each do |ss|
+      Rails.logger.debug "#{ss.ad_hoc_domain_staff.staff_name} teaches #{ss.ad_hoc_domain_subject.subject_name}"
+      Rails.logger.debug "#{ss.ad_hoc_domain_pupil_courses.size} pupil courses"
+    end
+    habtm = self.ad_hoc_domain_subject_staffs.find {|l|
+      l.ad_hoc_domain_subject == ahd_subject}
+    if habtm
+      habtm.ad_hoc_domain_pupil_courses
+    else
+      []
+    end
+
+#    self.ad_hoc_domain_pupil_courses.
+#         select {|ahdp| ahdp.ad_hoc_domain_subject == ahd_subject}
   end
 
   protected
