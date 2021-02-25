@@ -41,8 +41,8 @@
       contents: {
         staff_delete: ahd_deletion_link(ad_hoc_domain_staff),
         staff: ad_hoc_domain_staff.staff_name,
-        pupil_heading: "Pupils",
-        mins_heading:  "Mins",
+        num_subjects: "#{ad_hoc_domain_staff.num_real_subjects} subjects",
+        num_pupils: "#{ad_hoc_domain_staff.num_real_pupils} pupils",
         flipper: ahd_toggle( @folded ? "Show" : "Hide")
       },
       row_classes: %w(overrule minor)) %>

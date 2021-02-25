@@ -11,8 +11,8 @@
         contents: {
           subject_delete: ahd_deletion_link(ad_hoc_domain_subject),
           subject: ad_hoc_domain_subject.subject_name,
-          num_staff: "#{ad_hoc_domain_subject.num_real_staff} staff",
-          num_pupils: "#{ad_hoc_domain_subject.num_real_pupils} pupils"
+          pupil_heading: "Pupils",
+          mins_heading:  "Mins"
         },
         row_classes: %w(overrule)) %>
       <%= render object: ad_hoc_domain_subject,
