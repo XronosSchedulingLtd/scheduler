@@ -200,7 +200,7 @@ if ($('.ahd-listing').length) {
         $('.mins').click(minsClickHandler);
 
         window.updateTotals = function(subject_id, num_staff, num_pupils) {
-          var target_row = $('div#ahd-subject-' + subject_id);
+          var target_row = $('div#ahd-subject-u' + subject_id);
           $(target_row).find('.num-staff').text(num_staff + ' staff');
           $(target_row).find('.num-pupils').text(num_pupils + ' pupils');
         }
@@ -226,7 +226,7 @@ if ($('.ahd-listing').length) {
           //
           //  And now a bit of tidying up.
           //
-          var name_field = $('#subject-element-name-' + owner_id);
+          var name_field = $('#subject-element-name-c' + owner_id);
           name_field.focus();
           name_field.val('');
           $('#ahd-subject-errors').html("");
@@ -309,6 +309,9 @@ if ($('.ahd-listing').length) {
                 $('#ahd-by-staff.active ' + by_staff_selector + ' form input.pupil-name').focus();
 
                 $('#ahd-by-subject.active ' + by_subject_selector + ' form input.pupil-name').focus();
+                break;
+
+              case 'remove_staff':
                 break;
 
               default:

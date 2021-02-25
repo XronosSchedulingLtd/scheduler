@@ -1,5 +1,5 @@
 <div id='ahd-subject-listing'>
-  <% if @ad_hoc_domain_cycle.ad_hoc_domain_subjects.size == 1 %>
+  <% if @ad_hoc_domain_cycle.ad_hoc_domain_subjects.size == 0 %>
     <span class='none-yet'>None defined yet.</span>
   <% end %>
   <%=
@@ -9,6 +9,14 @@
       locals: {
         nested: false
       })
-  %>
+    %>
+  <%=
+    render(
+      partial: 'ad_hoc_domain_subjects/ad_hoc_domain_subject',
+      object: @ad_hoc_domain_cycle.ad_hoc_domain_subjects.new,
+      locals: {
+        nested: false
+        })
+    %>
 </div>
 

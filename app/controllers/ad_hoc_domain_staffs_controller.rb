@@ -120,14 +120,22 @@ class AdHocDomainStaffsController < ApplicationController
   # DELETE /ad_hoc_domain_staffs/1
   # DELETE /ad_hoc_domain_staffs/1.json
   def destroy
-    @ad_hoc_domain_subject = @ad_hoc_domain_staff.ad_hoc_domain_subject
+    @erstwhile_subjects = @ad_hoc_domain_staff.ad_hoc_domain_subjects.to_a
+    @ad_hoc_domain_cycle = @ad_hoc_domain_staff.ad_hoc_domain_cycle
     @ad_hoc_domain_staff.destroy
     respond_to do |format|
-      generate_blanks(@ad_hoc_domain_subject)
-      @folded = false
-      @num_staff = @ad_hoc_domain_subject.num_real_staff
-      @num_pupils = @ad_hoc_domain_subject.num_real_pupils
-      format.js { render :destroyed, locals: { owner_id: @ad_hoc_domain_subject.id} }
+      #
+      #  If we've deleted a member of staff then their entry in the
+      #  by_staff tab disappears entirely, plus any entries which they
+      #  had in the by_subject tab should go too.  The request must
+      #  have been issued from the by_staff tab.
+      #
+      @ad_hoc_domain_cycle.reload
+      generate_blanks(@ad_hoc_domain_cycle)
+      @erstwhile_subjects.each do |es|
+        generate_blanks(es)
+      end
+      format.js
     end
   end
 

@@ -6,7 +6,7 @@
       }
     ) %>
   <% else %>
-    <div id='ahd-subject-<%= ad_hoc_domain_subject.id %>'>
+    <div id='ahd-subject-<%= ad_hoc_domain_staff.id_suffix %><%= ad_hoc_domain_subject.id_suffix %>'>
       <%= ahd_row(
         contents: {
           subject_delete: ahd_deletion_link(ad_hoc_domain_subject),
@@ -16,7 +16,8 @@
         },
         row_classes: %w(overrule)) %>
       <%= render object: ad_hoc_domain_subject,
-        partial: 'ad_hoc_domain_subjects/subject_pupils' %>
+        partial: 'ad_hoc_domain_subjects/subject_pupils',
+        locals: { ad_hoc_domain_staff: ad_hoc_domain_staff } %>
     </div>
   <% end %>
 <% else %>
@@ -28,7 +29,7 @@
       row_classes: %w(underrule overrule)
     ) %>
   <% else %>
-    <div id='ahd-subject-<%= ad_hoc_domain_subject.id %>'>
+    <div id='ahd-subject-<%= ad_hoc_domain_subject.id_suffix %>'>
       <%= ahd_row(
         contents: {
           subject_delete: ahd_deletion_link(ad_hoc_domain_subject),

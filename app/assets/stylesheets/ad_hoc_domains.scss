@@ -68,6 +68,14 @@
       grid-column: subject;
     }
 
+    .subject-form {
+      grid-column: subject;
+    }
+
+    .no-subject {
+      grid-column: subject;
+    }
+
   }
 
   .sub-grid {
@@ -85,6 +93,10 @@
 
   .no-staff {
     @extend %staff-shared;
+    font-style: italic;
+  }
+
+  .no-subject {
     font-style: italic;
   }
 

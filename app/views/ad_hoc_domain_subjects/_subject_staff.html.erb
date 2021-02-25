@@ -1,6 +1,6 @@
 <div id='ahd-subject-staff-<%= subject_staff.id %>' class='foldable<%=
 @folded ? " folded" : "" %>'>
-  <% if subject_staff.ad_hoc_domain_staffs.size == 1 %>
+  <% if subject_staff.ad_hoc_domain_staffs.size == 0 %>
     <%= ahd_row(
       contents: {
         no_staff: "None defined yet."
@@ -11,6 +11,16 @@
     render(
       partial: 'ad_hoc_domain_staffs/ad_hoc_domain_staff',
       collection: subject_staff.ad_hoc_domain_staffs.sort,
+      locals: {
+        nested: true,
+        ad_hoc_domain_subject: subject_staff
+      }
+    )
+  %>
+  <%=
+    render(
+      partial: 'ad_hoc_domain_staffs/ad_hoc_domain_staff',
+      object: subject_staff.ad_hoc_domain_staffs.new,
       locals: {
         nested: true,
         ad_hoc_domain_subject: subject_staff

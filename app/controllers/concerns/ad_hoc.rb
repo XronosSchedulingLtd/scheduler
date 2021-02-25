@@ -20,6 +20,7 @@ module AdHoc
   #  "by_subject" tab then staff appear under subjects, and vice versa.
   #
   def generate_blanks(root, parent = nil)
+    return
     case root
     when AdHocDomainCycle
       #
