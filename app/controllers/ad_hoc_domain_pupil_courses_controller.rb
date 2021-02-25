@@ -9,24 +9,22 @@ class AdHocDomainPupilCoursesController < ApplicationController
 
   include AdHoc
 
-  before_action :set_parents, only: [:create]
+  before_action :set_ad_hoc_domain_subject_staff, only: [:create]
   before_action :set_ad_hoc_domain_pupil_course, only: [:destroy, :update]
 
   # POST /ad_hoc_domain_subject/1/ad_hoc_domain_staff/1/ad_hoc_domain_staffs
   # POST /ad_hoc_domain_subject/1/ad_hoc_domain_staff/1/ad_hoc_domain_staffs.json
   def create
     @ad_hoc_domain_pupil_course =
-      @ad_hoc_domain_subject.ad_hoc_domain_pupil_courses.new(
-        ad_hoc_domain_pupil_course_params.merge({
-          ad_hoc_domain_staff: @ad_hoc_domain_staff
-        }))
+      @ad_hoc_domain_subject_staff.ad_hoc_domain_pupil_courses.new(
+        ad_hoc_domain_pupil_course_params)
 
     respond_to do |format|
       if @ad_hoc_domain_pupil_course.save
         #
         #  There are two separate refreshes to do - one on the By Subject
         #  tab and one on the By Staff tab.  Both will have changed
-        #  because we have create a new PupilCourse record.
+        #  because we have created a new PupilCourse record.
         #
         #  We're going to need to refresh the entire listing of staffs
         #  (because our new one could be anywhere in the list), which
@@ -46,6 +44,7 @@ class AdHocDomainPupilCoursesController < ApplicationController
                   }
         }
       else
+        Rails.logger.debug(@ad_hoc_domain_pupil_course.errors.inspect)
         format.js { render :createfailed,
                     status: :conflict,
                     locals: {
@@ -101,16 +100,16 @@ class AdHocDomainPupilCoursesController < ApplicationController
   private
 
   # Use callbacks to share common setup or constraints between actions.
-  def set_parents
-    @ad_hoc_domain_staff =
-      AdHocDomainStaff.find(params[:ad_hoc_domain_staff_id])
-    @ad_hoc_domain_subject =
-      AdHocDomainSubject.find(params[:ad_hoc_domain_subject_id])
+  def set_ad_hoc_domain_subject_staff
+    @ad_hoc_domain_subject_staff =
+      AdHocDomainSubjectStaff.find(params[:ad_hoc_domain_subject_staff_id])
+    @ad_hoc_domain_staff = @ad_hoc_domain_subject_staff.ad_hoc_domain_staff
+    @ad_hoc_domain_subject = @ad_hoc_domain_subject_staff.ad_hoc_domain_subject
   end
 
   def set_ad_hoc_domain_pupil_course
     @ad_hoc_domain_pupil_course =
-      AdHocDomainPupilCourse.includes([:ad_hoc_domain_staff, :ad_hoc_domain_subject]).
+      AdHocDomainPupilCourse.includes(ad_hoc_domain_subject_staff: [:ad_hoc_domain_staff, :ad_hoc_domain_subject]).
                              find(params[:id])
     @ad_hoc_domain_staff = @ad_hoc_domain_pupil_course.ad_hoc_domain_staff
     @ad_hoc_domain_subject = @ad_hoc_domain_pupil_course.ad_hoc_domain_subject

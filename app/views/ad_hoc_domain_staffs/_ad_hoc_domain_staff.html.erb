@@ -17,11 +17,13 @@
           mins_heading:  "Mins"
         },
         row_classes: %w(overrule minor)) %>
+      <div id='ahd-staff-pupils-<%= ad_hoc_domain_staff.id_suffix %>'>
       <%=
         render object: ad_hoc_domain_staff,
           partial: 'ad_hoc_domain_staffs/staff_pupils',
           locals: { ad_hoc_domain_subject: ad_hoc_domain_subject }
         %>
+      </div>
     </div>
   <% end %>
 <% else %>

@@ -11,6 +11,9 @@ class AdHocDomainPupilCourse < ApplicationRecord
   belongs_to :pupil
   belongs_to :ad_hoc_domain_subject_staff
 
+  delegate :ad_hoc_domain_subject, to: :ad_hoc_domain_subject_staff
+  delegate :ad_hoc_domain_staff, to: :ad_hoc_domain_subject_staff
+
   validates :pupil,
     uniqueness: {
       scope: [:ad_hoc_domain_subject_staff],

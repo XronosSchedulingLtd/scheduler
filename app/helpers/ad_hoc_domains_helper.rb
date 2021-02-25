@@ -66,13 +66,11 @@ module AdHocDomainsHelper
       prefix = "subject"
       helper = autocomplete_subject_element_name_elements_path
       id_suffix = parent.id_suffix
-      form_model = [parent, model]
     when AdHocDomainStaff
       parent = peer_model ? peer_model : model.ad_hoc_domain_cycle
       prefix = "staff"
       helper = autocomplete_staff_element_name_elements_path
       id_suffix = parent.id_suffix
-      form_model = [parent, model]
     when AdHocDomainPupilCourse
       parent = model.ad_hoc_domain_subject_staff
       prefix = "pupil"
@@ -85,12 +83,11 @@ module AdHocDomainsHelper
              ad_hoc_domain_cycle.
              ad_hoc_domain.
              mins_step
-      form_model = [parent.ad_hoc_domain_subject, parent.ad_hoc_domain_staff, model]
     else
       Rails.logger.debug("Dunno")
     end
 
-    form_with(model: form_model, local: false) do |form|
+    form_with(model: [parent, model], local: false) do |form|
       result = []
       result << "<div class='errors' id='ahd-#{prefix}-errors-#{id_suffix}'></div>"
       if mins_field

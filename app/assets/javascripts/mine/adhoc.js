@@ -272,9 +272,7 @@ if ($('.ahd-listing').length) {
                 break;
 
               case 'new_link':
-                var target1 = $('#ahd-subject-staff-' + update.subject_id);
-                console.log(update.staff_listing);
-                $(target1).html(update.staff_listing);
+                $('#ahd-subject-staff-' + update.subject_id).html(update.staff_listing);
                 break;
 
               case 'link_gone':
@@ -290,6 +288,15 @@ if ($('.ahd-listing').length) {
                   update.staff_id +
                   'u' +
                   update.subject_id).remove();
+                break;
+
+              case 'new_pupil':
+                //
+                //  Technically a new pupil course.  Two places to make
+                //  this appear.
+                //
+                $('#ahd-staff-pupils-t' + update.staff_id).html(update.pupil_listing);
+                $('#ahd-subject-pupils-u' + update.subject_id).html(update.pupil_listing);
                 break;
 
               default:
