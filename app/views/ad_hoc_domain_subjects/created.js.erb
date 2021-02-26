@@ -1,1 +1,11 @@
-window.insertSubjectAt("<%=j render object: @ad_hoc_domain_subject, partial: 'ad_hoc_domain_subject', locals: { nested: false } %>", <%= position %>, <%= owner_id %>);
+window.ahdUpdate([
+  {
+    action: 'add_subject',
+    position: <%= position %>,
+    cycle_id: <%= owner_id %>,
+    html: '<%=j render object: @ad_hoc_domain_subject, partial: 'ad_hoc_domain_subjects/subject_outer', locals: { nested: false } %>'
+  },
+  {
+    action: 'clear_errors'
+  }
+]);

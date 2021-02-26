@@ -7,7 +7,6 @@
 
 class AdHocDomainSubjectsController < ApplicationController
 
-  include AdHoc
 
   before_action :set_ad_hoc_domain_cycle, only: [:create]
   before_action :set_ad_hoc_domain_subject, only: [:destroy]
@@ -26,7 +25,6 @@ class AdHocDomainSubjectsController < ApplicationController
         #  (because our new one could be anywhere in the list), which
         #  in turn needs a whole hierarchy of new blank records.
         #
-        generate_blanks(@ad_hoc_domain_subject)
         @ad_hoc_domain_cycle.reload
         format.js {
           render :created,
@@ -44,10 +42,9 @@ class AdHocDomainSubjectsController < ApplicationController
   # DELETE /ad_hoc_domain_subjects/1
   # DELETE /ad_hoc_domain_subjects/1.json
   def destroy
-    @ad_hoc_domain_cycle = @ad_hoc_domain_subject.ad_hoc_domain_cycle
     @ad_hoc_domain_subject.destroy
     respond_to do |format|
-      format.js { render :destroyed, locals: { owner_id: @ad_hoc_domain_cycle.id} }
+      format.js
     end
   end
 

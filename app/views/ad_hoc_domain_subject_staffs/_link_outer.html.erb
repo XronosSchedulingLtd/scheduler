@@ -1,0 +1,20 @@
+<% if defined?(ad_hoc_domain_subject) %>
+  <% if defined?(ad_hoc_domain_staff) %>
+    <div>Listing pupils</div>
+  <% else %>
+    <%=
+      render partial: 'ad_hoc_domain_staffs/staff_outer',
+             object: link_outer.ad_hoc_domain_staff,
+             locals: {
+               nested: true,
+               ad_hoc_domain_subject: link_outer.ad_hoc_domain_subject
+               }
+             %>
+  <% end %>
+<% else %>
+  <% if defined?(ad_hoc_domain_staff) %>
+    <div>Listing subjects</div>
+  <% else %>
+    <div>Error</div>
+  <% end %>
+<% end %>

@@ -7,7 +7,6 @@
 
 class AdHocDomainStaffsController < ApplicationController
 
-  include AdHoc
 
   before_action :set_progenitors, only: [:create]
   before_action :set_ad_hoc_domain_staff, only: [:destroy]
@@ -47,8 +46,6 @@ class AdHocDomainStaffsController < ApplicationController
         #
         @ad_hoc_domain_subject.ad_hoc_domain_staffs << @ad_hoc_domain_staff
         respond_to do |format|
-          generate_blanks(@ad_hoc_domain_staff)
-          generate_blanks(@ad_hoc_domain_subject)
           @folded = false
           #
           #  At this point we need to refresh both the subject listing
@@ -73,7 +70,6 @@ class AdHocDomainStaffsController < ApplicationController
         end
         respond_to do |format|
           if result
-            generate_blanks(@ad_hoc_domain_subject)
             @folded = false
             @num_staff = @ad_hoc_domain_cycle.num_real_staff
             @num_pupils = @ad_hoc_domain_cycle.num_real_pupils
@@ -101,7 +97,6 @@ class AdHocDomainStaffsController < ApplicationController
           #  "by staff" listing (because it isn't currently linked to
           #  a subject).  Inject it.
           #
-          generate_blanks(@ad_hoc_domain_staff)
           @ad_hoc_domain_cycle.reload
           format.js {
             render :created,
@@ -130,11 +125,6 @@ class AdHocDomainStaffsController < ApplicationController
       #  had in the by_subject tab should go too.  The request must
       #  have been issued from the by_staff tab.
       #
-      @ad_hoc_domain_cycle.reload
-      generate_blanks(@ad_hoc_domain_cycle)
-      @erstwhile_subjects.each do |es|
-        generate_blanks(es)
-      end
       format.js
     end
   end

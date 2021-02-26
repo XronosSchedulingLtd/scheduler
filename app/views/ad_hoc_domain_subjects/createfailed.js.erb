@@ -1,3 +1,5 @@
-document.getElementById('ahd-subject-errors').innerHTML = "<%=
-j(ahd_error_texts(@ad_hoc_domain_subject)) %>";
-
+window.ahdUpdate([{
+  action: 'show_error',
+  selector: '#ahd-subject-errors-<%= @ad_hoc_domain_subject.ad_hoc_domain_cycle.id_suffix %>',
+  error_text: '<%=j ahd_error_texts(@ad_hoc_domain_subject) %>'
+}]);

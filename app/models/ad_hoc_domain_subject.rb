@@ -41,7 +41,6 @@ class AdHocDomainSubject < ApplicationRecord
   end
 
   def subject_element=(element)
-    Rails.logger.debug("subject_id= passed #{element}")
     if element
       if element.entity_type == "Subject"
         self.subject = element.entity

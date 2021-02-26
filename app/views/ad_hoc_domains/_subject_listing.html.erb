@@ -1,22 +1,23 @@
 <div id='ahd-subject-listing'>
   <% if @ad_hoc_domain_cycle.ad_hoc_domain_subjects.size == 0 %>
     <span class='none-yet'>None defined yet.</span>
+  <% else %>
+    <%=
+      render(
+        partial: 'ad_hoc_domain_subjects/subject_outer',
+        collection: @ad_hoc_domain_cycle.ad_hoc_domain_subjects.sort,
+        locals: {
+          nested: false
+        })
+      %>
   <% end %>
   <%=
-    render(
-      partial: 'ad_hoc_domain_subjects/ad_hoc_domain_subject',
-      collection: @ad_hoc_domain_cycle.ad_hoc_domain_subjects.sort,
-      locals: {
-        nested: false
-      })
-    %>
-  <%=
-    render(
-      partial: 'ad_hoc_domain_subjects/ad_hoc_domain_subject',
-      object: @ad_hoc_domain_cycle.ad_hoc_domain_subjects.new,
-      locals: {
-        nested: false
-        })
+    ahd_row(
+      contents: {
+        subject_form: ahd_form(@ad_hoc_domain_cycle.ad_hoc_domain_subjects.new)
+      },
+      row_classes: %w(underrule overrule)
+    )
     %>
 </div>
 

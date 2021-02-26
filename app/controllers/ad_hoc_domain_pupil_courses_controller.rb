@@ -7,7 +7,6 @@
 
 class AdHocDomainPupilCoursesController < ApplicationController
 
-  include AdHoc
 
   before_action :set_ad_hoc_domain_subject_staff, only: [:create]
   before_action :set_ad_hoc_domain_pupil_course, only: [:destroy, :update]
@@ -30,8 +29,6 @@ class AdHocDomainPupilCoursesController < ApplicationController
         #  (because our new one could be anywhere in the list), which
         #  in turn needs a whole hierarchy of new blank records.
         #
-        generate_blanks(@ad_hoc_domain_staff, @ad_hoc_domain_subject)
-        generate_blanks(@ad_hoc_domain_subject, @ad_hoc_domain_staff)
         @num_staff =
           @ad_hoc_domain_subject.num_real_staff
         @num_pupils =
@@ -81,8 +78,6 @@ class AdHocDomainPupilCoursesController < ApplicationController
   def destroy
     @ad_hoc_domain_pupil_course.destroy
     respond_to do |format|
-      generate_blanks(@ad_hoc_domain_staff, @ad_hoc_domain_subject)
-      generate_blanks(@ad_hoc_domain_subject, @ad_hoc_domain_staff)
       @num_staff =
         @ad_hoc_domain_subject.num_real_staff
       @num_pupils =

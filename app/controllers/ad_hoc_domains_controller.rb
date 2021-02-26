@@ -7,7 +7,6 @@
 
 class AdHocDomainsController < ApplicationController
 
-  include AdHoc
 
   before_action :set_ad_hoc_domain,
                 only: [
@@ -100,19 +99,6 @@ class AdHocDomainsController < ApplicationController
                            }
                          ]).find_by(id: cycle_id)
 
-      #
-      #  Need a blank AdHocDomainSubject to support the dialogue for
-      #  creating a new one.
-      #
-      #  The following line has the effect of adding a new, blank
-      #  ahds to the array which our in-memory ahd has.
-      #
-      #  Our "sort" method always puts new records at the end, so we end
-      #  up with a form at the end of all the real records.
-      #
-      Rails.logger.debug("Invoking generate_blanks")
-      generate_blanks(@ad_hoc_domain_cycle)
-      Rails.logger.debug("Back from generate_blanks")
       @folded = true
     end
   end

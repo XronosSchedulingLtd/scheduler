@@ -1,0 +1,40 @@
+<% if nested %>
+  <% links = ad_hoc_domain_staff.links_to(subject_inner) %>
+  <% if links.size == 0 %>
+    <%= ahd_row(
+      contents: {
+        no_pupils: "None defined yet."
+      }) %>
+  <% else %>
+    <%= render collection: links.sort,
+      partial: 'ad_hoc_domain_subject_staffs/link_outer',
+      locals: {
+        ad_hoc_domain_subject: subject_inner,
+        ad_hoc_domain_staff: ad_hoc_domain_staff
+      }
+    %>
+  <% end %>
+<% else %>
+  <% links = subject_inner.ad_hoc_domain_subject_staffs %>
+  <% if links.size == 0 %>
+    <%= ahd_row(
+      contents: {
+        no_staff: "None defined yet."
+      }) %>
+  <% else %>
+    <%= render collection: links.sort,
+      partial: 'ad_hoc_domain_subject_staffs/link_outer',
+      locals: {
+        ad_hoc_domain_subject: subject_inner
+      }
+    %>
+  <% end %>
+  <%=
+    ahd_row(contents: {
+      staff_form:
+        ahd_form(
+          subject_inner.ad_hoc_domain_cycle.ad_hoc_domain_staffs.new,
+          subject_inner)
+          })
+        %>
+<% end %>

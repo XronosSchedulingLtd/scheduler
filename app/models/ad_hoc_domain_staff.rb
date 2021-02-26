@@ -125,7 +125,15 @@ class AdHocDomainStaff < ApplicationRecord
     else
       []
     end
+  end
 
+  #
+  #  Find all instances of ad_hoc_domain_subject_staff records linking
+  #  us to the indicated subject.
+  #
+  def links_to(ahd_subject)
+    self.ad_hoc_domain_subject_staffs.select { |l|
+      l.ad_hoc_domain_subject == ahd_subject }
   end
 
   protected

@@ -265,10 +265,38 @@ if ($('.ahd-listing').length) {
         window.ahdUpdate = function(updates) {
           updates.forEach(function(update) {
             switch(update.action) {
-              case 'add_lone_subject':
+              case 'show_error':
+                $(update.selector).html(update.error_text);
+                break;
+
+              case 'clear_errors':
+                $('.errors').html("");
+                break;
+
+              case 'add_subject':
                 //
                 //  This affects only the "By subject" listing.
                 //
+                var html = $.parseHTML(update.html);
+                $(html).find('.toggle').click(clickHandler);
+                //
+                //  And now insert.
+                //
+                var marker = $('div#ahd-subject-listing > div:nth-child(' + update.position + ')');
+                if (marker.length === 0) {
+                  marker = $('div#ahd-subject-listing > div:last-child');
+                }
+                marker.before(html);
+                //
+                //  And now a bit of tidying up.
+                //
+                var name_field = $('#subject-element-name-c' + update.cycle_id);
+                name_field.focus();
+                name_field.val('');
+                break;
+
+              case 'delete_subject':
+                $('#ahd-subject-u' + update.subject_id).remove();
                 break;
 
               case 'new_link':
