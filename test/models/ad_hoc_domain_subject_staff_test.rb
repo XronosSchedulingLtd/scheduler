@@ -67,4 +67,5 @@ class AdHocDomainSubjectStaffTest < ActiveSupport::TestCase
       @ad_hoc_domain_subject_staff.destroy
     end
   end
+
 end

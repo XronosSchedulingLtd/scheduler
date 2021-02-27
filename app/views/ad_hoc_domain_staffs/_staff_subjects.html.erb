@@ -1,4 +1,4 @@
-<div id='ahd-staff-subjects-<%= staff_subjects.id %>' class='foldable<%=
+<div id='ahd-staff-subjects-<%= staff_subjects.id_suffix %>' class='foldable<%=
 @folded ? " folded" : "" %>'>
   <% if staff_subjects.ad_hoc_domain_subjects.size == 0 %>
     <%= ahd_row(
@@ -17,15 +17,8 @@
       }
     )
   %>
-  <%=
-    render(
-      partial: 'ad_hoc_domain_subjects/ad_hoc_domain_subject',
-      object: staff_subjects.ad_hoc_domain_subjects.new,
-      locals: {
-        nested: true,
-        ad_hoc_domain_staff: staff_subjects
-      }
-    )
+<%=
+  ahd_new_subject_form(staff_subjects.ad_hoc_domain_cycle, staff_subjects)
   %>
 </div>
 

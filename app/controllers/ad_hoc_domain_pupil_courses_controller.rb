@@ -11,8 +11,7 @@ class AdHocDomainPupilCoursesController < ApplicationController
   before_action :set_ad_hoc_domain_subject_staff, only: [:create]
   before_action :set_ad_hoc_domain_pupil_course, only: [:destroy, :update]
 
-  # POST /ad_hoc_domain_subject/1/ad_hoc_domain_staff/1/ad_hoc_domain_staffs
-  # POST /ad_hoc_domain_subject/1/ad_hoc_domain_staff/1/ad_hoc_domain_staffs.json
+  # POST /ad_hoc_domain_subject/1/ad_hoc_domain_staff/1/ad_hoc_domain_staffs.js
   def create
     @ad_hoc_domain_pupil_course =
       @ad_hoc_domain_subject_staff.ad_hoc_domain_pupil_courses.new(

@@ -33,6 +33,10 @@
       font-weight: bold;
     }
 
+    .no-subject {
+      grid-column: subject;
+    }
+
     .num-staff {
       @extend %staff-shared;
     }

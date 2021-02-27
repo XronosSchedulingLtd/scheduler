@@ -52,8 +52,7 @@ class AdHocDomainStaffsController < ApplicationController
           #  on the by-staff tab and the staff listing on the by-subject
           #  tab.  Both must already exist.
           #
-          format.js { render :linked,
-                      locals: { subject_id: @ad_hoc_domain_subject.id} }
+          format.js { render :linked }
         end
       else
         #
@@ -73,8 +72,12 @@ class AdHocDomainStaffsController < ApplicationController
             @folded = false
             @num_staff = @ad_hoc_domain_cycle.num_real_staff
             @num_pupils = @ad_hoc_domain_cycle.num_real_pupils
-            format.js { render :created,
-                        locals: { owner_id: @ad_hoc_domain_subject.id} }
+            format.js {
+              render :created_and_linked,
+                     locals: {
+                       position: @ad_hoc_domain_cycle.position_of(@ad_hoc_domain_staff)
+                     }
+            }
           else
             format.js { render :createfailed,
                         status: :conflict,
@@ -101,7 +104,6 @@ class AdHocDomainStaffsController < ApplicationController
           format.js {
             render :created,
             locals: {
-              owner_id: @ad_hoc_domain_cycle.id_suffix,
               position: @ad_hoc_domain_cycle.position_of(@ad_hoc_domain_staff)
             }
           }

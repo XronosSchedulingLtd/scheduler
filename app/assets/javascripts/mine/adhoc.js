@@ -288,11 +288,46 @@ if ($('.ahd-listing').length) {
                 }
                 marker.before(html);
                 //
+                //  Get rid of any placeholder
+                //
+                $('div#ahd-subject-listing div.arow.placeholder').remove();
+                //
                 //  And now a bit of tidying up.
                 //
-                var name_field = $('#subject-element-name-c' + update.cycle_id);
-                name_field.focus();
-                name_field.val('');
+                var name_field = $('#ahd-by-subject.active #subject-element-name-c' + update.cycle_id);
+                if (name_field.length) {
+                  name_field.focus();
+                  name_field.val('');
+                }
+                break;
+
+              case 'add_staff':
+                //
+                //  This affects only the "By staff" listing.
+                //
+                var html = $.parseHTML(update.html);
+                $(html).find('.toggle').click(clickHandler);
+                //
+                //  And now insert.
+                //
+                var marker = $('div#ahd-staff-listing > div:nth-child(' + update.position + ')');
+                if (marker.length === 0) {
+                  marker = $('div#ahd-staff-listing > div:last-child');
+                }
+                marker.before(html);
+                //
+                //  Get rid of any placeholder
+                //
+                $('div#ahd-staff-listing div.arow.placeholder').remove();
+                //
+                //  And now a bit of tidying up.  Do this only if the by_staff
+                //  tab is currently active.
+                //
+                var name_field = $('#ahd-by-staff.active #staff-element-name-c' + update.cycle_id);
+                if (name_field.length) {
+                  name_field.focus();
+                  name_field.val('');
+                }
                 break;
 
               case 'delete_subject':
@@ -300,7 +335,14 @@ if ($('.ahd-listing').length) {
                 break;
 
               case 'new_link':
-                $('#ahd-subject-staff-' + update.subject_id).html(update.staff_listing);
+                if ('staff_listing' in update) {
+                  $('#ahd-subject-staff-u' + update.subject_id).
+                    html(update.staff_listing);
+                }
+                if ('subject_listing' in update) {
+                  $('#ahd-staff-subjects-t' + update.staff_id).
+                    html(update.subject_listing);
+                }
                 break;
 
               case 'link_gone':

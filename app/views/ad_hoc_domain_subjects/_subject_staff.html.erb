@@ -18,14 +18,8 @@
     )
   %>
   <%=
-    render(
-      partial: 'ad_hoc_domain_staffs/ad_hoc_domain_staff',
-      object: subject_staff.ad_hoc_domain_staffs.new,
-      locals: {
-        nested: true,
-        ad_hoc_domain_subject: subject_staff
-      }
-    )
+    ahd_new_staff_form(subject_staff.ad_hoc_domain_cycle,
+                       subject_staff)
   %>
 </div>
 

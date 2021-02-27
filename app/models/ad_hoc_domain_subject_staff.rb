@@ -6,6 +6,8 @@
 #
 
 class AdHocDomainSubjectStaff < ApplicationRecord
+  include Comparable
+
   belongs_to :ad_hoc_domain_subject
   belongs_to :ad_hoc_domain_staff
 
@@ -19,6 +21,41 @@ class AdHocDomainSubjectStaff < ApplicationRecord
 
   def num_real_pupils
     self.ad_hoc_domain_pupil_courses.size
+  end
+
+  def <=>(other)
+    if other.instance_of?(AdHocDomainSubjectStaff)
+      #
+      #  We delegate the sorting to our AdHocDomainSubject and
+      #  AdHocDomainStaff records, sorting by subject and then
+      #  by staff.
+      #
+      if self.ad_hoc_domain_subject && self.ad_hoc_domain_staff
+        if other.ad_hoc_domain_subject && other.ad_hoc_domain_staff
+          result = self.ad_hoc_domain_subject <=> other.ad_hoc_domain_subject
+          if result == 0
+            result = self.ad_hoc_domain_staff <=> other.ad_hoc_domain_staff
+            if result == 0
+              #  We must return 0 iff we are the same record.
+              result = self.id <=> other.id
+            end
+          end
+        else
+          #
+          #  Other is not yet complete.  Put it last.
+          #
+          result = -1
+        end
+      else
+        #
+        #  We are incomplete and go last.
+        #
+        result = 1
+      end
+    else
+      result = nil
+    end
+    result
   end
 
 end

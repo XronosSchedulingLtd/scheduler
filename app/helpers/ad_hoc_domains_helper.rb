@@ -79,7 +79,7 @@ module AdHocDomainsHelper
 
       mins_field = true
       step = parent.
-             ad_hoc_domain_staff.
+             ad_hoc_domain_subject.
              ad_hoc_domain_cycle.
              ad_hoc_domain.
              mins_step
@@ -113,12 +113,35 @@ module AdHocDomainsHelper
     end
   end
 
+  def ahd_new_staff_form(ad_hoc_domain_cycle, peer_model = nil)
+    ahd_form(
+      AdHocDomainStaff.new({ ad_hoc_domain_cycle: ad_hoc_domain_cycle }),
+      peer_model
+    )
+  end
+
+  def ahd_new_subject_form(ad_hoc_domain_cycle, peer_model = nil)
+    ahd_form(
+      AdHocDomainSubject.new({ ad_hoc_domain_cycle: ad_hoc_domain_cycle }),
+      peer_model
+    )
+  end
+
+  def ahd_new_pupil_form(ad_hoc_domain_subject_staff)
+    ahd_form(
+      AdHocDomainPupilCourse.new({
+        ad_hoc_domain_subject_staff: ad_hoc_domain_subject_staff
+      }))
+  end
+
   def ahd_deletion_prompt(model)
     case model
     when AdHocDomainSubject
       "Deleting this link to the subject \"#{model.subject_name}\" will remove all the corresponding entries for students and teachers of the subject.  Continue?"
     when AdHocDomainStaff
       "Deleting this link to the staff member \"#{model.staff_name}\" will remove all the corresponding entries for his or her students of the subject.  Continue?"
+    when AdHocDomainSubjectStaff
+      "This will remove the connection between staff member \"#{model.ad_hoc_domain_staff.staff_name}\" and the subject \"#{model.ad_hoc_domain_subject.subject_name}\"."
     when AdHocDomainPupilCourse
       "Deleting this link to the pupil \"#{model.pupil_name}\" will not delete the pupil, but will stop any further lessons being scheduled."
     else

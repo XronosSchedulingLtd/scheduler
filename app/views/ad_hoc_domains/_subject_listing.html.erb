@@ -1,6 +1,8 @@
 <div id='ahd-subject-listing'>
   <% if @ad_hoc_domain_cycle.ad_hoc_domain_subjects.size == 0 %>
-    <span class='none-yet'>None defined yet.</span>
+    <%= ahd_row(
+      contents: { no_subject: "None defined yet." },
+      row_classes: %w(placeholder)) %>
   <% else %>
     <%=
       render(
@@ -14,7 +16,7 @@
   <%=
     ahd_row(
       contents: {
-        subject_form: ahd_form(@ad_hoc_domain_cycle.ad_hoc_domain_subjects.new)
+        subject_form: ahd_new_subject_form(@ad_hoc_domain_cycle)
       },
       row_classes: %w(underrule overrule)
     )

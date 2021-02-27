@@ -1,5 +1,5 @@
 <% if nested %>
-  <% links = ad_hoc_domain_staff.links_to(subject_inner) %>
+  <% links = staff_inner.links_to(ad_hoc_domain_subject) %>
   <% if links.size == 0 %>
     <%= ahd_row(
       contents: {
@@ -9,13 +9,13 @@
     <%= render collection: links.sort,
       partial: 'ad_hoc_domain_subject_staffs/link',
       locals: {
-        ad_hoc_domain_subject: subject_inner,
-        ad_hoc_domain_staff: ad_hoc_domain_staff
+        ad_hoc_domain_subject: ad_hoc_domain_subject,
+        ad_hoc_domain_staff: staff_inner
       }
     %>
   <% end %>
 <% else %>
-  <% links = subject_inner.ad_hoc_domain_subject_staffs %>
+  <% links = staff_inner.ad_hoc_domain_subject_staffs %>
   <% if links.size == 0 %>
     <%= ahd_row(
       contents: {
@@ -25,13 +25,13 @@
     <%= render collection: links.sort,
       partial: 'ad_hoc_domain_subject_staffs/link',
       locals: {
-        ad_hoc_domain_subject: subject_inner
+        ad_hoc_domain_staff: staff_inner
       }
     %>
   <% end %>
   <%=
     ahd_row(contents: {
-      staff_form: ahd_new_staff_form(subject_inner.ad_hoc_domain_cycle,
-                                     subject_inner) })
+      subject_form: ahd_new_subject_form(staff_inner.ad_hoc_domain_cycle,
+                                         staff_inner) })
         %>
 <% end %>

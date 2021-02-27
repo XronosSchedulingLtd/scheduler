@@ -29,7 +29,6 @@ class AdHocDomainSubjectsController < ApplicationController
         format.js {
           render :created,
           locals: {
-            owner_id: @ad_hoc_domain_cycle.id,
             position: @ad_hoc_domain_cycle.position_of(@ad_hoc_domain_subject)
           }
         }

@@ -11,7 +11,7 @@ class AdHocDomainStaff < ApplicationRecord
   belongs_to :ad_hoc_domain_cycle
   belongs_to :staff
 
-  has_many :ad_hoc_domain_subject_staffs
+  has_many :ad_hoc_domain_subject_staffs, dependent: :destroy
   has_many :ad_hoc_domain_subjects, through: :ad_hoc_domain_subject_staffs
 
   has_many :subjects, through: :ad_hoc_domain_subjects

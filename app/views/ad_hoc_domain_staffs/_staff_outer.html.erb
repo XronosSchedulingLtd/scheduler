@@ -11,29 +11,36 @@
     <div id='ahd-staff-pupils-<%= staff_outer.id_suffix %>'>
     <%=
       render object: staff_outer,
-        partial: 'ad_hoc_domain_staffs/staff_pupils',
-        locals: { ad_hoc_domain_subject: ad_hoc_domain_subject }
+        partial: 'ad_hoc_domain_staffs/staff_inner',
+        locals: {
+          ad_hoc_domain_subject: ad_hoc_domain_subject,
+          nested: true
+        }
       %>
     </div>
   </div>
 <% else %>
-  <div id='ahd-staff-<%= subject_outer.id_suffix %>'>
-    <%= ahd_row(
-      contents: {
-        staff_delete: ahd_deletion_link(staff_outer),
-        staff: staff_outer.staff_name,
-        num_subjects: "#{staff_outer.num_real_subjects} subjects",
-        num_pupils: "#{staff_outer.num_real_pupils} pupils",
-        flipper: ahd_toggle( @folded ? "Show" : "Hide")
-      },
-      row_classes: %w(overrule minor)) %>
-    <div id='ahd-staff-subject-<%= staff_outer.id_suffix %>' class='foldable<%= @folded ? " folded" : "" %>'>
-    <%=
-      render object: staff_outer,
-        partial: 'ad_hoc_domain_staffs/staff_inner',
-        local: { nested: false }
-      %>
-    </div>
+  <div id='ahd-staff-<%= staff_outer.id_suffix %>'>
+    <% if staff_outer.new_record? %>
+      <div>New record!!</div>
+    <% else %>
+      <%= ahd_row(
+        contents: {
+          staff_delete: ahd_deletion_link(staff_outer),
+          staff: staff_outer.staff_name,
+          num_subjects: "#{staff_outer.num_real_subjects} subjects",
+          num_pupils: "#{staff_outer.num_real_pupils} pupils",
+          flipper: ahd_toggle( @folded ? "Show" : "Hide")
+        },
+        row_classes: %w(overrule minor)) %>
+      <div id='ahd-staff-subject-<%= staff_outer.id_suffix %>' class='foldable<%= @folded ? " folded" : "" %>'>
+      <%=
+        render object: staff_outer,
+          partial: 'ad_hoc_domain_staffs/staff_inner',
+          locals: { nested: false }
+        %>
+      </div>
+    <% end %>
   </div>
 <% end %>
 
