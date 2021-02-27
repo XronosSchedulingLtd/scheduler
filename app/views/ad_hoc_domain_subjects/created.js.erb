@@ -3,7 +3,7 @@ window.ahdUpdate([
     action: 'add_subject',
     position: <%= position %>,
     cycle_id: <%= @ad_hoc_domain_cycle.id %>,
-    html: '<%=j render object: @ad_hoc_domain_subject, partial: 'ad_hoc_domain_subjects/subject_outer', locals: { nested: false } %>'
+    html: '<%=j render object: @ad_hoc_domain_subject, partial: 'ad_hoc_domain_subjects/subject_outer' %>'
   },
   {
     action: 'clear_errors'

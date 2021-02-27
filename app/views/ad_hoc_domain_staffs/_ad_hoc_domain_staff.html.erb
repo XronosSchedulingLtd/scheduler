@@ -1,55 +1,24 @@
-<% if nested %>
-  <% if ad_hoc_domain_staff.new_record? %>
-    <%=
-      ahd_row(
-        contents: {
-          staff_form: ahd_form(ad_hoc_domain_staff, ad_hoc_domain_subject)
-        }
-      )
-    %>
-  <% else %>
-    <div id='ahd-nested-staff-<%= ad_hoc_domain_subject.id_suffix %><%= ad_hoc_domain_staff.id_suffix %>'>
-      <%= ahd_row(
-        contents: {
-          staff_delete: ahd_deletion_link(ad_hoc_domain_staff, ad_hoc_domain_subject),
-          staff: ad_hoc_domain_staff.staff_name,
-          pupil_heading: "Pupils",
-          mins_heading:  "Mins"
-        },
-        row_classes: %w(overrule minor)) %>
-      <div id='ahd-staff-pupils-<%= ad_hoc_domain_staff.id_suffix %>'>
-      <%=
-        render object: ad_hoc_domain_staff,
-          partial: 'ad_hoc_domain_staffs/staff_pupils',
-          locals: { ad_hoc_domain_subject: ad_hoc_domain_subject }
-        %>
-      </div>
-    </div>
-  <% end %>
-<% else %>
-  <% if ad_hoc_domain_staff.new_record? %>
-    <%=
-      ahd_row(
-        contents: {
-          staff_form: ahd_form(ad_hoc_domain_staff)
-        },
-        row_classes: %w(underrule overrule)
-      )
-    %>
-  <% else %>
-    <%= ahd_row(
+<% if ad_hoc_domain_staff.new_record? %>
+  <%=
+    ahd_row(
       contents: {
-        staff_delete: ahd_deletion_link(ad_hoc_domain_staff),
-        staff: ad_hoc_domain_staff.staff_name,
-        num_subjects: "#{ad_hoc_domain_staff.num_real_subjects} subjects",
-        num_pupils: "#{ad_hoc_domain_staff.num_real_pupils} pupils",
-        flipper: ahd_toggle( @folded ? "Show" : "Hide")
+        staff_form: ahd_form(ad_hoc_domain_staff)
       },
-      row_classes: %w(overrule minor)) %>
-    <%=
-      render object: ad_hoc_domain_staff,
-        partial: 'ad_hoc_domain_staffs/staff_subjects'
-      %>
-  <% end %>
+      row_classes: %w(underrule overrule)
+    )
+  %>
+<% else %>
+  <%= ahd_row(
+    contents: {
+      staff_delete: ahd_deletion_link(ad_hoc_domain_staff),
+      staff: ad_hoc_domain_staff.staff_name,
+      num_subjects: "#{ad_hoc_domain_staff.num_real_subjects} subjects",
+      num_pupils: "#{ad_hoc_domain_staff.num_real_pupils} pupils",
+      flipper: ahd_toggle( @folded ? "Show" : "Hide")
+    },
+    row_classes: %w(overrule minor)) %>
+  <%=
+    render object: ad_hoc_domain_staff,
+      partial: 'ad_hoc_domain_staffs/staff_subjects'
+    %>
 <% end %>
-

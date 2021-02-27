@@ -7,10 +7,7 @@
     <%=
       render(
         partial: 'ad_hoc_domain_subjects/subject_outer',
-        collection: @ad_hoc_domain_cycle.ad_hoc_domain_subjects.sort,
-        locals: {
-          nested: false
-        })
+        collection: @ad_hoc_domain_cycle.ad_hoc_domain_subjects.sort)
       %>
   <% end %>
   <%=

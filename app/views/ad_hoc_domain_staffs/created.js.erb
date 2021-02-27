@@ -3,7 +3,7 @@ window.ahdUpdate([
     action: 'add_staff',
     position: <%= position %>,
     cycle_id: <%= @ad_hoc_domain_cycle.id %>,
-    html: '<%=j render object: @ad_hoc_domain_staff, partial: 'ad_hoc_domain_staffs/staff_outer', locals: { nested: false } %>'
+    html: '<%=j render object: @ad_hoc_domain_staff, partial: 'ad_hoc_domain_staffs/staff_outer' %>'
   },
   {
     action: 'clear_errors'
