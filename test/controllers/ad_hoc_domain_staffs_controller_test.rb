@@ -69,18 +69,27 @@ class AdHocDomainStaffsControllerTest < ActionController::TestCase
   test "should delete ad_hoc_domain_staff" do
     session[:user_id] = @admin_user.id
     ahds = FactoryBot.create(
-      :ad_hoc_domain_staff)
+      :ad_hoc_domain_staff,
+      ad_hoc_domain_cycle: @ad_hoc_domain_cycle)
+    FactoryBot.create(
+      :ad_hoc_domain_subject_staff,
+      ad_hoc_domain_subject: @ad_hoc_domain_subject,
+      ad_hoc_domain_staff: ahds)
+
     assert_difference('AdHocDomainStaff.count', -1) do
-      delete :destroy,
-        params: {
-          id: ahds
-        },
-        xhr: true
+      assert_difference('AdHocDomainSubjectStaff.count', -1) do
+        delete :destroy,
+          params: {
+            id: ahds
+          },
+          xhr: true
+      end
     end
     assert_response :success
     assert /^window.ahdUpdate\(/ =~ response.body
     assert /action: 'delete_staff'/ =~ response.body
     assert /action: 'clear_errors'/ =~ response.body
+    assert /action: 'update_subject_staff'/ =~ response.body
   end
 
 end

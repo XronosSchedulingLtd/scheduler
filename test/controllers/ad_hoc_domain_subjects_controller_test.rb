@@ -62,18 +62,30 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
 
   test "should delete ad_hoc_domain_subject" do
     session[:user_id] = @admin_user.id
-    ahds = FactoryBot.create(:ad_hoc_domain_subject)
+    ahd_subject = FactoryBot.create(
+      :ad_hoc_domain_subject,
+      ad_hoc_domain_cycle: @ad_hoc_domain_cycle)
+    ahd_staff = FactoryBot.create(
+      :ad_hoc_domain_staff,
+      ad_hoc_domain_cycle: @ad_hoc_domain_cycle)
+    FactoryBot.create(
+      :ad_hoc_domain_subject_staff,
+      ad_hoc_domain_subject: ahd_subject,
+      ad_hoc_domain_staff: ahd_staff)
     assert_difference('AdHocDomainSubject.count', -1) do
-      delete :destroy,
-        params: {
-          id: ahds
-        },
-        xhr: true
+      assert_difference('AdHocDomainSubjectStaff.count', -1) do
+        delete :destroy,
+          params: {
+            id: ahd_subject
+          },
+          xhr: true
+      end
     end
     assert_response :success
     assert /^window.ahdUpdate\(/ =~ response.body
     assert /action: 'delete_subject'/ =~ response.body
     assert /action: 'clear_errors'/ =~ response.body
+    assert /action: 'update_staff_subjects'/ =~ response.body
   end
 
   test "can link existing subject to existing staff" do

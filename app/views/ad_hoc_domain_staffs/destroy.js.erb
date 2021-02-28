@@ -1,9 +1,19 @@
-window.ahdUpdate([{
+<% @erstwhile_subjects.each do |es| %>
+    window.ahdUpdate([
+      {
+        action: 'update_subject_staff',
+        subject_id: <%= es.id %>,
+        staff_listing: "<%=j(
+          render object: es, partial: 'ad_hoc_domain_subjects/subject_inner') %>"
+      }
+    ]);
+<% end %>
+window.ahdUpdate([
   {
     action: 'delete_staff',
-    subject_id: <%= @ad_hoc_domain_staff.id %>
+    staff_id: <%= @ad_hoc_domain_staff.id %>
   },
   {
     action: 'clear_errors'
   }
-}]);
+]);

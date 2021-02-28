@@ -71,11 +71,7 @@ class AdHocDomainSubject < ApplicationRecord
   end
 
   def num_real_pupils
-    total = 0
-    self.ad_hoc_domain_subject_staffs.select {|ahdss| !ahdss.new_record?}.each do |ahdss|
-      total += ahdss.num_real_pupils
-    end
-    total
+    self.ad_hoc_domain_pupil_courses.size
   end
 
   def <=>(other)

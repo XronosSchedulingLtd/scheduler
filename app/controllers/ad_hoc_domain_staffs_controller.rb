@@ -129,7 +129,6 @@ class AdHocDomainStaffsController < ApplicationController
   # DELETE /ad_hoc_domain_staffs/1.json
   def destroy
     @erstwhile_subjects = @ad_hoc_domain_staff.ad_hoc_domain_subjects.to_a
-    @ad_hoc_domain_cycle = @ad_hoc_domain_staff.ad_hoc_domain_cycle
     @ad_hoc_domain_staff.destroy
     respond_to do |format|
       #

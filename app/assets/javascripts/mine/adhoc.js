@@ -206,56 +206,6 @@ if ($('.ahd-listing').length) {
         }
 
         //
-        //  We will use the CSS convention of indexing from 1 (nasty).
-        //
-        window.insertSubjectAt = function(text, index, owner_id) {
-          //
-          //  We convert the provided text to being an HTML element
-          //  before we insert it so we can attach the click handler.
-          //
-          var html = $.parseHTML(text);
-          $(html).find('.toggle').click(clickHandler);
-          //
-          //  And now insert.
-          //
-          var marker = $('div#ahd-subject-listing > div:nth-child(' + index + ')');
-          if (marker.length === 0) {
-            marker = $('div#ahd-subject-listing > div:last-child');
-          }
-          marker.before(html);
-          //
-          //  And now a bit of tidying up.
-          //
-          var name_field = $('#subject-element-name-c' + owner_id);
-          name_field.focus();
-          name_field.val('');
-          $('#ahd-subject-errors').html("");
-        }
-        //
-        window.insertStaffAt = function(text, index, owner_id) {
-          //
-          //  We convert the provided text to being an HTML element
-          //  before we insert it so we can attach the click handler.
-          //
-          var html = $.parseHTML(text);
-          $(html).find('.toggle').click(clickHandler);
-          //
-          //  And now insert.
-          //
-          var marker = $('div#ahd-staff-listing > div:nth-child(' + index + ')');
-          if (marker.length === 0) {
-            marker = $('div#ahd-staff-listing > div:last-child');
-          }
-          marker.before(html);
-          //
-          //  And now a bit of tidying up.
-          //
-          var name_field = $('#staff-element-name-' + owner_id);
-          name_field.focus();
-          name_field.val('');
-          $('#ahd-staff-errors').html("");
-        }
-        //
         //  New single entry point for updates.
         //  Expects to be passed an array of objects to be actioned
         //  in order.  Each object has an "action" attribute to tell
@@ -334,6 +284,10 @@ if ($('.ahd-listing').length) {
                 $('#ahd-subject-u' + update.subject_id).remove();
                 break;
 
+              case 'delete_staff':
+                $('#ahd-staff-t' + update.staff_id).remove();
+                break;
+
               case 'new_link':
                 if ('staff_listing' in update) {
                   $('#ahd-subject-staff-u' + update.subject_id).
@@ -360,6 +314,33 @@ if ($('.ahd-listing').length) {
                   update.staff_id).remove();
                 break;
 
+              case 'update_subject_staff':
+                //
+                //  Update a top level subject listing by replacing its
+                //  list of staff.
+                //
+                $('#ahd-subject-staff-u' + update.subject_id).
+                  html(update.staff_listing);
+                break;
+
+              case 'update_staff_subjects':
+                //
+                //  Update a top level staff listing by replacing its
+                //  list of subjects.
+                //
+                $('#ahd-staff-subject-t' + update.staff_id).
+                  html(update.subject_listing);
+                break;
+
+              case 'update_staff_totals':
+                break;
+
+              case 'update_subject_totals':
+                var selector = 'ahd-subject-u' + update.subject_id;
+                $(selector).find('.num-staff').text(update.num_staff);
+                $(selector).find('.num-pupils').text(update.num_pupils);
+                break;
+
               case 'new_pupil_listing':
                 //
                 //  Two places to make this appear.
@@ -371,6 +352,11 @@ if ($('.ahd-listing').length) {
 
                 $(by_subject_selector).html(update.pupil_listing);
                 $(by_staff_selector).html(update.pupil_listing);
+                //
+                //  Re-activate minute clicking.
+                //
+                $(by_subject_selector).find('.mins').click(minsClickHandler);
+                $(by_staff_selector).find('.mins').click(minsClickHandler);
                 //
                 //  And now one of those two should get the input focus,
                 //  depending on which tab is active.

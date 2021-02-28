@@ -127,6 +127,12 @@ class AdHocDomainSubjectsController < ApplicationController
   # DELETE /ad_hoc_domain_subjects/1
   # DELETE /ad_hoc_domain_subjects/1.json
   def destroy
+    #
+    #  Before deleting the subject we need a list of the staff previously
+    #  listed as teaching it, because all their entries will need updating
+    #  too.
+    #
+    @erstwhile_staff = @ad_hoc_domain_subject.ad_hoc_domain_staffs.to_a
     @ad_hoc_domain_subject.destroy
     respond_to do |format|
       format.js

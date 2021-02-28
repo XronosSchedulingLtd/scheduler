@@ -63,11 +63,11 @@ class AdHocDomainStaff < ApplicationRecord
   end
 
   def num_real_pupils
-    self.ad_hoc_domain_pupil_courses.select {|ahdpc| !ahdpc.new_record?}.count
+    self.ad_hoc_domain_pupil_courses.size
   end
 
   def num_real_subjects
-    99
+    self.ad_hoc_domain_subject_staffs.size
   end
 
   def <=>(other)
