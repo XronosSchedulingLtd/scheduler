@@ -221,6 +221,27 @@ module AdHocDomainsHelper
     "class='content#{ active ? " active" : ""}' id='#{be_hyphen(key)}'".html_safe
   end
 
+  #
+  #  Generates a JavaScript snippet to send back to the front end.
+  #
+  def ahd_staff_totals(staff)
+    result = []
+    result << "action: 'update_staff_totals'"
+    result << "staff_id: #{staff.id}"
+    result << "num_subjects: '#{staff.num_subjects_text}'"
+    result << "num_pupils: '#{staff.num_pupils_text}'"
+    result.join(",\n").html_safe
+  end
+
+  def ahd_subject_totals(subject)
+    result = []
+    result << "action: 'update_subject_totals'"
+    result << "subject_id: #{subject.id}"
+    result << "num_staff: '#{subject.num_staff_text}'"
+    result << "num_pupils: '#{subject.num_pupils_text}'"
+    result.join(",\n").html_safe
+  end
+
   private
 
   def be_hyphen(key)

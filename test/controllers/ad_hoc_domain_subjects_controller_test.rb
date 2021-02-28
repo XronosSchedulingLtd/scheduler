@@ -111,7 +111,10 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
     end
     assert_response :success
     assert /^window.ahdUpdate\(/ =~ response.body
-    assert /action: 'new_link'/ =~ response.body
+    assert /action: 'update_subject_staff'/ =~ response.body
+    assert /action: 'update_staff_subjects'/ =~ response.body
+    assert /action: 'update_staff_totals'/ =~ response.body
+    assert /action: 'update_subject_totals'/ =~ response.body
   end
 
 end

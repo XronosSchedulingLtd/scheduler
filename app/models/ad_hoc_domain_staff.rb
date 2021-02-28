@@ -70,6 +70,14 @@ class AdHocDomainStaff < ApplicationRecord
     self.ad_hoc_domain_subject_staffs.size
   end
 
+  def num_pupils_text
+    "#{num_real_pupils} #{"pupil".pluralize(num_real_pupils)}"
+  end
+
+  def num_subjects_text
+    "#{num_real_subjects} #{"subject".pluralize(num_real_subjects)}"
+  end
+
   def <=>(other)
     if other.instance_of?(AdHocDomainStaff)
       #

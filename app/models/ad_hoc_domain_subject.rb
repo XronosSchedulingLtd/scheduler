@@ -74,6 +74,14 @@ class AdHocDomainSubject < ApplicationRecord
     self.ad_hoc_domain_pupil_courses.size
   end
 
+  def num_pupils_text
+    "#{num_real_pupils} #{"pupil".pluralize(num_real_pupils)}"
+  end
+
+  def num_staff_text
+    "#{num_real_staff} staff"
+  end
+
   def <=>(other)
     if other.instance_of?(AdHocDomainSubject)
       #

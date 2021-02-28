@@ -288,17 +288,6 @@ if ($('.ahd-listing').length) {
                 $('#ahd-staff-t' + update.staff_id).remove();
                 break;
 
-              case 'new_link':
-                if ('staff_listing' in update) {
-                  $('#ahd-subject-staff-u' + update.subject_id).
-                    html(update.staff_listing);
-                }
-                if ('subject_listing' in update) {
-                  $('#ahd-staff-subject-t' + update.staff_id).
-                    html(update.subject_listing);
-                }
-                break;
-
               case 'link_gone':
                 //
                 //  Need to delete the staff entry under the subject and
@@ -333,12 +322,19 @@ if ($('.ahd-listing').length) {
                 break;
 
               case 'update_staff_totals':
+                var outer = '#ahd-staff-t' + update.staff_id;
+                var string = outer + ' .num-subjects';
+                var found = $(string);
+                console.log({string});
+                console.log({found});
+                $(outer + ' .num-subjects').text(update.num_subjects);
+                $(outer + ' .num-pupils').text(update.num_pupils);
                 break;
 
               case 'update_subject_totals':
-                var selector = 'ahd-subject-u' + update.subject_id;
-                $(selector).find('.num-staff').text(update.num_staff);
-                $(selector).find('.num-pupils').text(update.num_pupils);
+                var outer = '#ahd-subject-u' + update.subject_id;
+                $(outer + ' .num-staff').text(update.num_staff);
+                $(outer + ' .num-pupils').text(update.num_pupils);
                 break;
 
               case 'new_pupil_listing':

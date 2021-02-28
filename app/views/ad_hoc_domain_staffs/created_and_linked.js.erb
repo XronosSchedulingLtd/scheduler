@@ -1,8 +1,7 @@
 window.ahdUpdate([
   {
-    action: 'new_link',
+    action: 'update_subject_staff',
     subject_id: <%= @ad_hoc_domain_subject.id %>,
-    staff_id: <%= @ad_hoc_domain_staff.id %>,
     staff_listing: "<%=j(
     render(
       partial: 'ad_hoc_domain_subjects/subject_inner',
