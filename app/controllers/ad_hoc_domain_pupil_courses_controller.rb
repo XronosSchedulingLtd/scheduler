@@ -63,7 +63,7 @@ class AdHocDomainPupilCoursesController < ApplicationController
       else
         format.json {
           render json: { id: @ad_hoc_domain_pupil_course.id,
-                         owner_id: @ad_hoc_domain_staff.id,
+                         owner_id: @ad_hoc_domain_pupil_course.owner_id,
                          errors: @ad_hoc_domain_pupil_course.errors}, 
           status: :unprocessable_entity
         }

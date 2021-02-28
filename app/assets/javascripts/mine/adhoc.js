@@ -360,10 +360,9 @@ if ($('.ahd-listing').length) {
                   update.subject_id).remove();
                 break;
 
-              case 'new_pupil':
+              case 'new_pupil_listing':
                 //
-                //  Technically a new pupil course.  Two places to make
-                //  this appear.
+                //  Two places to make this appear.
                 //
                 var by_subject_selector =
                   '#ahd-staff-pupils-t' + update.staff_id

@@ -1,0 +1,22 @@
+window.ahdUpdate([
+  {
+    action: 'new_link',
+    subject_id: <%= @ad_hoc_domain_subject.id %>,
+    staff_id: <%= @ad_hoc_domain_staff.id %>,
+    subject_listing: "<%=j(
+    render(
+      partial: 'ad_hoc_domain_staffs/staff_inner',
+      object: @ad_hoc_domain_staff
+    )) %>"
+  },
+  {
+    action: 'add_subject',
+    position: <%= position %>,
+    cycle_id: <%= @ad_hoc_domain_cycle.id %>,
+    html: '<%=j render object: @ad_hoc_domain_subject, partial: 'ad_hoc_domain_subjects/subject_outer' %>'
+  },
+  {
+    action: 'clear_errors'
+  }
+]);
+

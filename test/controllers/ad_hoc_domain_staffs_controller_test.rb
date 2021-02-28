@@ -34,8 +34,9 @@ class AdHocDomainStaffsControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :success
-    assert /^document.getElementById\('ahd-subject-staff-#{@ad_hoc_domain_subject.id}'/ =~ response.body
-    assert /document.getElementById\('staff-element-name-#{@ad_hoc_domain_subject.id}'\)\.focus/ =~ response.body
+    assert /^window.ahdUpdate\(/ =~ response.body
+    assert /action: 'add_staff'/ =~ response.body
+    assert /action: 'clear_errors'/ =~ response.body
   end
 
   test "should fail to create two identical" do
@@ -62,7 +63,7 @@ class AdHocDomainStaffsControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :conflict
-    assert /^document.getElementById\('ahd-staff-errors-#{@ad_hoc_domain_subject.id}'/ =~ response.body
+    assert /^document.getElementById\('ahd-staff-errors-#{@ad_hoc_domain_cycle.id_suffix}'/ =~ response.body
   end
 
   test "should delete ad_hoc_domain_staff" do
@@ -77,8 +78,9 @@ class AdHocDomainStaffsControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :success
-    assert /^document.getElementById\('ahd-subject-staff-#{@ad_hoc_domain_subject.id}'\)/ =~ response.body
-    assert /document.getElementById\('staff-element-name-#{@ad_hoc_domain_subject.id}'\)\.focus/ =~ response.body
+    assert /^window.ahdUpdate\(/ =~ response.body
+    assert /action: 'delete_staff'/ =~ response.body
+    assert /action: 'clear_errors'/ =~ response.body
   end
 
 end

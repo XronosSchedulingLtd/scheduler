@@ -7,7 +7,6 @@
 
 class AdHocDomainStaffsController < ApplicationController
 
-
   before_action :set_progenitors, only: [:create]
   before_action :set_ad_hoc_domain_staff, only: [:destroy]
 
@@ -44,15 +43,25 @@ class AdHocDomainStaffsController < ApplicationController
         #  The AHD_Staff record exists already. The most we can do
         #  is add another link.
         #
-        @ad_hoc_domain_subject.ad_hoc_domain_staffs << @ad_hoc_domain_staff
         respond_to do |format|
-          @folded = false
-          #
-          #  At this point we need to refresh both the subject listing
-          #  on the by-staff tab and the staff listing on the by-subject
-          #  tab.  Both must already exist.
-          #
-          format.js { render :linked }
+          begin
+            @ad_hoc_domain_subject.ad_hoc_domain_staffs << @ad_hoc_domain_staff
+          rescue ActiveRecord::RecordInvalid => e
+            @error_text = e.to_s
+            format.js {
+              render :createfailed,
+                     status: :conflict,
+                     locals: { owner_id: @ad_hoc_domain_subject.id_suffix}
+            }
+          else
+            @folded = false
+            #
+            #  At this point we need to refresh both the subject listing
+            #  on the by-staff tab and the staff listing on the by-subject
+            #  tab.  Both must already exist.
+            #
+            format.js { render :linked }
+          end
         end
       else
         #
@@ -81,7 +90,7 @@ class AdHocDomainStaffsController < ApplicationController
           else
             format.js { render :createfailed,
                         status: :conflict,
-                        locals: { owner_id: @ad_hoc_domain_subject.id} }
+                        locals: { owner_id: @ad_hoc_domain_subject.id_suffix} }
           end
         end
       end
@@ -108,7 +117,9 @@ class AdHocDomainStaffsController < ApplicationController
             }
           }
         else
-          format.js { render :createfailed, status: :conflict }
+          format.js { render :createfailed,
+                      status: :conflict,
+                      locals: { owner_id: @ad_hoc_domain_cycle.id_suffix }}
         end
       end
     end

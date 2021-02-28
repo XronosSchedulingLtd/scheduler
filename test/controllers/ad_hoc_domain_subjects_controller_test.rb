@@ -27,7 +27,8 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :success
-    assert /^window.insertSubjectAt/ =~ response.body
+    assert /^window.ahdUpdate\(/ =~ response.body
+    assert /action: 'add_subject'/ =~ response.body
   end
 
   test "should fail to create two identical" do
@@ -54,7 +55,8 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :conflict
-    assert /^document.getElementById\('ahd-subject-errors'/ =~ response.body
+    assert /^window.ahdUpdate\(/ =~ response.body
+    assert /action: 'show_error'/ =~ response.body
   end
 
   test "should delete ad_hoc_domain_subject" do
@@ -68,7 +70,9 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :success
-    assert /^document.getElementById\('ahd-subject-/ =~ response.body
+    assert /^window.ahdUpdate\(/ =~ response.body
+    assert /action: 'delete_subject'/ =~ response.body
+    assert /action: 'clear_errors'/ =~ response.body
   end
 
 end

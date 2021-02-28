@@ -75,7 +75,7 @@ module AdHocDomainsHelper
       parent = model.ad_hoc_domain_subject_staff
       prefix = "pupil"
       helper = autocomplete_pupil_element_name_elements_path
-      id_suffix = "u#{parent.ad_hoc_domain_subject_id}t#{parent.ad_hoc_domain_staff_id}"
+      id_suffix = peer_model.id_suffix
 
       mins_field = true
       step = parent.
@@ -127,11 +127,12 @@ module AdHocDomainsHelper
     )
   end
 
-  def ahd_new_pupil_form(ad_hoc_domain_subject_staff)
+  def ahd_new_pupil_form(ad_hoc_domain_subject_staff, peer)
     ahd_form(
       AdHocDomainPupilCourse.new({
         ad_hoc_domain_subject_staff: ad_hoc_domain_subject_staff
-      }))
+      }),
+      peer)
   end
 
   def ahd_deletion_prompt(model)

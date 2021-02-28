@@ -7,36 +7,122 @@
 
 class AdHocDomainSubjectsController < ApplicationController
 
-
-  before_action :set_ad_hoc_domain_cycle, only: [:create]
+  before_action :set_progenitors, only: [:create]
   before_action :set_ad_hoc_domain_subject, only: [:destroy]
 
-  # POST /ad_hoc_domain/1/ad_hoc_domain_subjects
-  # POST /ad_hoc_domain/1/ad_hoc_domain_subjects.json
+  # POST /ad_hoc_domain_cycle/1/ad_hoc_domain_subjects.json
+  # POST /ad_hoc_domain_staff/1/ad_hoc_domain_subjects.json
   def create
-    @ad_hoc_domain_subject =
-      @ad_hoc_domain_cycle.ad_hoc_domain_subjects.
-                           new(ad_hoc_domain_subject_params)
-
-    respond_to do |format|
-      if @ad_hoc_domain_subject.save
+    #
+    #  Two different ways we can be called - with or without an
+    #  ad_hoc_domain_staff_id specified.
+    #
+    #  If none is specified then we're on the "by subject" listing
+    #  page and someone has simply asked to add another subject.
+    #
+    #  If one has been specified, then we're on the "by staff"
+    #  listing page and the user wants to add a new subject
+    #  to an existing member of staff.
+    #
+    if @ad_hoc_domain_staff
+      #
+      #  Does a suitable AHD_Subject already exist?
+      #
+      subject_element =
+        Element.find_by(
+          id: ad_hoc_domain_subject_params[:subject_element_id],
+          entity_type: "Subject")
+      if subject_element
+        @ad_hoc_domain_subject =
+          @ad_hoc_domain_cycle.ad_hoc_domain_subjects.
+                               find_by(subject_id: subject_element.entity_id)
+      end
+      if @ad_hoc_domain_subject
         #
-        #  We're going to need to refresh the entire listing of subjects
-        #  (because our new one could be anywhere in the list), which
-        #  in turn needs a whole hierarchy of new blank records.
+        #  The AHD_subject record exists already. The most we can do
+        #  is add another link.
         #
-        @ad_hoc_domain_cycle.reload
-        format.js {
-          render :created,
-          locals: {
-            position: @ad_hoc_domain_cycle.position_of(@ad_hoc_domain_subject)
-          }
-        }
+        respond_to do |format|
+          begin
+            @ad_hoc_domain_staff.ad_hoc_domain_subjects <<
+              @ad_hoc_domain_subject
+          rescue ActiveRecord::RecordInvalid => e
+            @error_text = e.to_s
+            format.js {
+              render :createfailed,
+                     status: :conflict,
+                     locals: { owner_id: @ad_hoc_domain_staff.id_suffix}
+            }
+          else
+            @folded = false
+            #
+            #  At this point we need to refresh both the subject listing
+            #  on the by-staff tab and the staff listing on the by-subject
+            #  tab.  Both must already exist.
+            #
+            format.js { render :linked }
+          end
+        end
       else
-        format.js { render :createfailed, status: :conflict }
+        #
+        #  Does not exist.  Need to create and link.
+        #
+        @ad_hoc_domain_subject =
+          @ad_hoc_domain_cycle.ad_hoc_domain_subjects.
+                                 new(ad_hoc_domain_subject_params)
+        if @ad_hoc_domain_subject.save
+          @ad_hoc_domain_staff.ad_hoc_domain_subjects << @ad_hoc_domain_subject
+          result = true
+        else
+          result = false
+        end
+        respond_to do |format|
+          if result
+            @folded = false
+            @num_staff = @ad_hoc_domain_cycle.num_real_staff
+            @num_pupils = @ad_hoc_domain_cycle.num_real_pupils
+            format.js {
+              render :created_and_linked,
+                     locals: {
+                       position: @ad_hoc_domain_cycle.position_of(@ad_hoc_domain_subject)
+                     }
+            }
+          else
+            format.js { render :createfailed,
+                        status: :conflict,
+                        locals: { owner_id: @ad_hoc_domain_staff.id} }
+          end
+        end
+      end
+    else
+      #
+      #  A simple request to create a new subject record.
+      #
+      @ad_hoc_domain_subject =
+        @ad_hoc_domain_cycle.ad_hoc_domain_subjects.
+                             new(ad_hoc_domain_subject_params)
+
+      respond_to do |format|
+        if @ad_hoc_domain_subject.save
+          #
+          #  We have a new subject record, which will appear only in the
+          #  "by subject" listing (because it isn't currently linked to
+          #  a staff member).  Inject it.
+          #
+          @ad_hoc_domain_cycle.reload
+          format.js {
+            render :created,
+            locals: {
+              position: @ad_hoc_domain_cycle.position_of(@ad_hoc_domain_subject)
+            }
+          }
+        else
+          format.js { render :createfailed, status: :conflict }
+        end
       end
     end
   end
+
 
   # DELETE /ad_hoc_domain_subjects/1
   # DELETE /ad_hoc_domain_subjects/1.json
@@ -50,10 +136,25 @@ class AdHocDomainSubjectsController < ApplicationController
   private
 
   # Use callbacks to share common setup or constraints between actions.
-  def set_ad_hoc_domain_cycle
-    @ad_hoc_domain_cycle =
-      AdHocDomainCycle.find(params[:ad_hoc_domain_cycle_id])
+  def set_progenitors
+    #
+    #  We may have been invoked in the context of a staff, or merely
+    #  in the context of a cycle.
+    #
+    if params[:ad_hoc_domain_staff_id]
+      @ad_hoc_domain_staff =
+        AdHocDomainStaff.find(params[:ad_hoc_domain_staff_id])
+      @ad_hoc_domain_cycle = @ad_hoc_domain_staff.ad_hoc_domain_cycle
+    else
+      #
+      #  Not really needed, but let's be explicit.
+      #
+      @ad_hoc_domain_staff = nil
+      @ad_hoc_domain_cycle =
+        AdHocDomainCycle.find(params[:ad_hoc_domain_cycle_id])
+    end
   end
+
 
   def set_ad_hoc_domain_subject
     @ad_hoc_domain_subject = AdHocDomainSubject.find(params[:id])

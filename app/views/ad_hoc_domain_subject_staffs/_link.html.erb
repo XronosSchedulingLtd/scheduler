@@ -2,7 +2,15 @@
   subject = link.ad_hoc_domain_subject
   staff   = link.ad_hoc_domain_staff
 %>
-<% if defined?(ad_hoc_domain_subject) %>
+<%
+  #
+  #  This is a slightly horrible way of deciding which tab we are in.
+  #  If ad_hoc_domain_subject is defined, then we are displaying the
+  #  staff for a subject - subject => staff => pupils.
+  #
+  #  If not then it's the other way around.
+  #
+    if defined?(ad_hoc_domain_subject) %>
   <div id='ahd-nested-staff-<%= subject.id_suffix %><%= staff.id_suffix %>'>
     <%= ahd_row(
       contents: {
@@ -25,7 +33,7 @@
     <%=
       ahd_row(
         contents: {
-          pupil_form: ahd_new_pupil_form(link)
+          pupil_form: ahd_new_pupil_form(link, staff)
         })
     %>
   </div>
@@ -52,7 +60,7 @@
     <%=
       ahd_row(
         contents: {
-          pupil_form: ahd_new_pupil_form(link)
+          pupil_form: ahd_new_pupil_form(link, subject)
         })
     %>
   </div>
