@@ -340,7 +340,7 @@ if ($('.ahd-listing').length) {
                     html(update.staff_listing);
                 }
                 if ('subject_listing' in update) {
-                  $('#ahd-staff-subjects-t' + update.staff_id).
+                  $('#ahd-staff-subject-t' + update.staff_id).
                     html(update.subject_listing);
                 }
                 break;
@@ -354,10 +354,10 @@ if ($('.ahd-listing').length) {
                   update.subject_id +
                   't' +
                   update.staff_id).remove();
-                $('#ahd-nested-subject-t' +
-                  update.staff_id +
-                  'u' +
-                  update.subject_id).remove();
+                $('#ahd-nested-subject-u' +
+                  update.subject_id +
+                  't' +
+                  update.staff_id).remove();
                 break;
 
               case 'new_pupil_listing':

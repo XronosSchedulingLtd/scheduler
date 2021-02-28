@@ -7,6 +7,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
       :ad_hoc_domain_cycle,
       ad_hoc_domain: @ad_hoc_domain)
     @subject = FactoryBot.create(:subject)
+    @staff = FactoryBot.create(:staff)
     @admin_user = FactoryBot.create(:user, :admin)
     @eventsource = FactoryBot.create(:eventsource)
     @eventcategory = FactoryBot.create(:eventcategory)
@@ -73,6 +74,32 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
     assert /^window.ahdUpdate\(/ =~ response.body
     assert /action: 'delete_subject'/ =~ response.body
     assert /action: 'clear_errors'/ =~ response.body
+  end
+
+  test "can link existing subject to existing staff" do
+    session[:user_id] = @admin_user.id
+    ahd_subject =
+      FactoryBot.create(
+        :ad_hoc_domain_subject,
+        ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
+        subject_element_id: @subject.element)
+    ahd_staff =
+      FactoryBot.create(
+        :ad_hoc_domain_staff,
+        ad_hoc_domain_cycle: @ad_hoc_domain_cycle)
+    assert_difference('AdHocDomainSubjectStaff.count') do
+      post :create,
+        params: {
+          ad_hoc_domain_staff_id: ahd_staff,
+          ad_hoc_domain_subject: {
+            subject_element_id: @subject.element
+          } 
+        },
+        xhr: true
+    end
+    assert_response :success
+    assert /^window.ahdUpdate\(/ =~ response.body
+    assert /action: 'new_link'/ =~ response.body
   end
 
 end
