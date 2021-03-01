@@ -336,9 +336,21 @@ if ($('.ahd-listing').length) {
                 //  Two places to make this appear.
                 //
                 var by_subject_selector =
-                  '#ahd-staff-pupils-t' + update.staff_id
+                  '#ahd-staff-pupils-u' + update.subject_id + 't' + update.staff_id;
                 var by_staff_selector =
-                  '#ahd-subject-pupils-u' + update.subject_id
+                  '#ahd-subject-pupils-u' + update.subject_id + 't' + update.staff_id;
+
+                //
+                //  Little test
+                //
+                var sutarget = $(by_subject_selector);
+                if (sutarget.len == 0) {
+                  alert("Failed to find node using \"" + by_subject_selector + "\"");
+                }
+                var sttarget = $(by_staff_selector);
+                if (sttarget.len == 0) {
+                  alert("Failed to find node using \"" + by_staff_selector + "\"");
+                }
 
                 $(by_subject_selector).html(update.pupil_listing);
                 $(by_staff_selector).html(update.pupil_listing);

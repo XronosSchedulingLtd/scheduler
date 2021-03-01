@@ -20,7 +20,7 @@
         mins_heading:  "Mins"
       },
       row_classes: %w(overrule minor)) %>
-    <div id='ahd-staff-pupils-<%= staff.id_suffix %>'>
+    <div id='ahd-staff-pupils-<%= subject.id_suffix %><%= staff.id_suffix %>'>
       <% if link.ad_hoc_domain_pupil_courses.size == 0 %>
         <%= ahd_row(contents: { no_pupils: "None defined yet." },
                     row_classes: %w(placeholder)) %>
@@ -47,7 +47,7 @@
         mins_heading:  "Mins"
       },
       row_classes: %w(overrule minor)) %>
-    <div id='ahd-subject-pupils-<%= subject.id_suffix %>'>
+    <div id='ahd-subject-pupils-<%= subject.id_suffix %><%= staff.id_suffix %>'>
       <% if link.ad_hoc_domain_pupil_courses.size == 0 %>
         <%= ahd_row(contents: { no_pupils: "None defined yet." },
                     row_classes: %w(placeholder)) %>
