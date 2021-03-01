@@ -1,7 +1,10 @@
-window.ahdUpdate([{
-  action: 'link_gone',
-  subject_id: <%= @ad_hoc_domain_subject.id %>,
-  staff_id: <%= @ad_hoc_domain_staff.id %>
-}]);
+window.ahdUpdate([
+  <%= ahd_update_totals(@ad_hoc_domain_subject, @ad_hoc_domain_staff) %>,
+  {
+    action: 'link_gone',
+    subject_id: <%= @ad_hoc_domain_subject.id %>,
+    staff_id: <%= @ad_hoc_domain_staff.id %>
+  }
+]);
 
 

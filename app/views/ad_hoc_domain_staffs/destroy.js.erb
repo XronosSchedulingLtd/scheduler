@@ -1,14 +1,5 @@
-<% @erstwhile_subjects.each do |es| %>
-    window.ahdUpdate([
-      {
-        action: 'update_subject_staff',
-        subject_id: <%= es.id %>,
-        staff_listing: "<%=j(
-          render object: es, partial: 'ad_hoc_domain_subjects/subject_inner') %>"
-      }
-    ]);
-<% end %>
 window.ahdUpdate([
+  <%= ahd_update(*@erstwhile_subjects) %>,
   {
     action: 'delete_staff',
     staff_id: <%= @ad_hoc_domain_staff.id %>

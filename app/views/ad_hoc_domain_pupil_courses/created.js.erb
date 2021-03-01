@@ -1,12 +1,15 @@
-window.ahdUpdate([{
-  action: 'new_pupil_listing',
-  subject_id: <%= @ad_hoc_domain_subject.id %>,
-  staff_id: <%= @ad_hoc_domain_staff.id %>,
-  pupil_listing: "<%=j(
-    render partial: 'ad_hoc_domain_staffs/staff_pupils',
-           object: @ad_hoc_domain_staff,
-           locals: {
-             ad_hoc_domain_subject: @ad_hoc_domain_subject
-           }
-  )%>"
-}]);
+window.ahdUpdate([
+  {
+    action: 'new_pupil_listing',
+    subject_id: <%= @ad_hoc_domain_subject.id %>,
+    staff_id: <%= @ad_hoc_domain_staff.id %>,
+    pupil_listing: "<%=j(
+      render partial: 'ad_hoc_domain_staffs/staff_pupils',
+             object: @ad_hoc_domain_staff,
+             locals: {
+               ad_hoc_domain_subject: @ad_hoc_domain_subject
+             }
+    )%>"
+  },
+  <%= ahd_update_totals(@ad_hoc_domain_subject, @ad_hoc_domain_staff) %>
+]);

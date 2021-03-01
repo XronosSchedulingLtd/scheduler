@@ -75,7 +75,23 @@ module AdHocDomainsHelper
       parent = model.ad_hoc_domain_subject_staff
       prefix = "pupil"
       helper = autocomplete_pupil_element_name_elements_path
-      id_suffix = peer_model.id_suffix
+      #
+      #  The suffix here gets quite interesting.  It must be unique
+      #  across the whole page.  Each member of staff may have several;
+      #  each subject may have several, and indeed each pairing (staff
+      #  and subject) will have two.
+      #
+      #  We take the peer as coming last, so if our peer is a subject
+      #  we end up with: tNNuNN, whilst if our peer is a member of
+      #  staff we get instead uNNtNN.
+      #
+      subject = parent.ad_hoc_domain_subject
+      staff = parent.ad_hoc_domain_staff
+      if peer_model.is_a? AdHocDomainSubject
+        id_suffix = "#{staff.id_suffix}#{subject.id_suffix}"
+      else
+        id_suffix = "#{subject.id_suffix}#{staff.id_suffix}"
+      end
 
       mins_field = true
       step = parent.
@@ -222,15 +238,49 @@ module AdHocDomainsHelper
   end
 
   #
+  #  Turn a set of several lines into a chunk, wrapped up with
+  #  { and }.  This is a separate step because here we don't want commas.
+  #
+  def bechunk(contents)
+    result = []
+    result << "{"
+    result << contents
+    result << "}"
+    result.join("\n")
+  end
+
+  #
   #  Generates a JavaScript snippet to send back to the front end.
   #
+  def ahd_update_subject_inner(subject)
+    result = []
+    result << "action: 'update_subject_staff'"
+    result << "subject_id: #{subject.id}"
+    result << "staff_listing: '#{ j(
+                 render(
+                   partial: 'ad_hoc_domain_subjects/subject_inner',
+                   object: subject)) }'"
+    bechunk(result.join(",\n")).html_safe
+  end
+
+  def ahd_update_staff_inner(staff)
+    result = []
+    result << "action: 'update_staff_subjects'"
+    result << "staff_id: #{staff.id}"
+    result << "subject_listing: '#{ j(
+                 render(
+                   partial: 'ad_hoc_domain_staffs/staff_inner',
+                   object: staff)) }'"
+    bechunk(result.join(",\n")).html_safe
+  end
+
   def ahd_staff_totals(staff)
     result = []
     result << "action: 'update_staff_totals'"
     result << "staff_id: #{staff.id}"
     result << "num_subjects: '#{staff.num_subjects_text}'"
     result << "num_pupils: '#{staff.num_pupils_text}'"
-    result.join(",\n").html_safe
+    bechunk(result.join(",\n")).html_safe
   end
 
   def ahd_subject_totals(subject)
@@ -239,6 +289,38 @@ module AdHocDomainsHelper
     result << "subject_id: #{subject.id}"
     result << "num_staff: '#{subject.num_staff_text}'"
     result << "num_pupils: '#{subject.num_pupils_text}'"
+    bechunk(result.join(",\n")).html_safe
+  end
+
+  def ahd_update_totals(*things)
+    result = []
+    things.each do |thing|
+      case thing
+      when AdHocDomainSubject
+        result << ahd_subject_totals(thing)
+      when AdHocDomainStaff
+        result << ahd_staff_totals(thing)
+      end
+    end
+    result.join(",\n").html_safe
+  end
+
+  #
+  #  Update all the indicated things (subjects or staff) on screen, doing
+  #  both their header totals and their body text.
+  #
+  def ahd_update(*things)
+    result = []
+    things.each do |thing|
+      case thing
+      when AdHocDomainSubject
+        result << ahd_update_subject_inner(thing)
+        result << ahd_subject_totals(thing)
+      when AdHocDomainStaff
+        result << ahd_update_staff_inner(thing)
+        result << ahd_staff_totals(thing)
+      end
+    end
     result.join(",\n").html_safe
   end
 

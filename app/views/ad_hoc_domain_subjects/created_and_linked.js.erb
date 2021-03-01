@@ -1,13 +1,5 @@
 window.ahdUpdate([
-  {
-    action: 'update_staff_subjects',
-    staff_id: <%= @ad_hoc_domain_staff.id %>,
-    subject_listing: "<%=j(
-    render(
-      partial: 'ad_hoc_domain_staffs/staff_inner',
-      object: @ad_hoc_domain_staff
-    )) %>"
-  },
+  <%= ahd_update(@ad_hoc_domain_staff) %>,
   {
     action: 'add_subject',
     position: <%= position %>,
