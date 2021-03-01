@@ -63,7 +63,9 @@ class AdHocDomainStaffsControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :conflict
-    assert /^document.getElementById\('ahd-staff-errors-#{@ad_hoc_domain_cycle.id_suffix}'/ =~ response.body
+    assert /^window.ahdUpdate\(/ =~ response.body
+    assert /action: 'show_error'/ =~ response.body
+    assert /selector: '#ahd-staff-errors-c/ =~ response.body
   end
 
   test "should delete ad_hoc_domain_staff" do

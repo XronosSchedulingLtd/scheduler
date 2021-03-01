@@ -51,7 +51,7 @@ class AdHocDomainSubjectsController < ApplicationController
             format.js {
               render :createfailed,
                      status: :conflict,
-                     locals: { owner_id: @ad_hoc_domain_staff.id_suffix}
+                     locals: { parent: @ad_hoc_domain_staff }
             }
           else
             @folded = false
@@ -90,7 +90,7 @@ class AdHocDomainSubjectsController < ApplicationController
           else
             format.js { render :createfailed,
                         status: :conflict,
-                        locals: { owner_id: @ad_hoc_domain_staff.id} }
+                        locals: { parent: @ad_hoc_domain_staff } }
           end
         end
       end
@@ -117,7 +117,11 @@ class AdHocDomainSubjectsController < ApplicationController
             }
           }
         else
-          format.js { render :createfailed, status: :conflict }
+          format.js {
+            render :createfailed,
+            status: :conflict,
+            locals: { parent: @ad_hoc_domain_cycle }
+          }
         end
       end
     end

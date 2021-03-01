@@ -1,8 +1,6 @@
-<% if @error_text %>
-document.getElementById('ahd-staff-errors-<%= owner_id %>').innerHTML = "<%=
-j(@error_text) %>";
-<% else %>
-document.getElementById('ahd-staff-errors-<%= owner_id %>').innerHTML = "<%=
-j(ahd_error_texts(@ad_hoc_domain_staff)) %>";
-<% end %>
+window.ahdUpdate([{
+  action: 'show_error',
+  selector: '#ahd-staff-errors-<%= parent.id_suffix %>',
+  error_text: '<%=j(@error_text ? @error_text : ahd_error_texts(@ad_hoc_domain_staff)) %>'
+}]);
 

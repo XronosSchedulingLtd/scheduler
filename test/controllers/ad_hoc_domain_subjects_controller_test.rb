@@ -58,6 +58,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
     assert_response :conflict
     assert /^window.ahdUpdate\(/ =~ response.body
     assert /action: 'show_error'/ =~ response.body
+    assert /selector: '#ahd-subject-errors-c/ =~ response.body
   end
 
   test "should delete ad_hoc_domain_subject" do
