@@ -405,6 +405,21 @@ if ($('.ahd-listing').length) {
                 $('#ahd-by-subject.active ' + by_subject_selector + ' form input.pupil-name').focus();
                 break;
 
+              case 'give_focus':
+                //
+                //  Give focus to an indicated member of staff or subject.
+                //  If a staff member, then we position the cursor in
+                //  the "new subject" field for that member of staff,
+                //  and vice versa.
+                //
+                if ('staff_id' in update) {
+                  $('#subject-element-name-t' + update.staff_id).focus();
+                }
+                if ('subject_id' in update) {
+                  $('#staff-element-name-u' + update.subject_id).focus();
+                }
+                break;
+
               default:
                 console.log("Unknown action - " + update.action);
                 break;

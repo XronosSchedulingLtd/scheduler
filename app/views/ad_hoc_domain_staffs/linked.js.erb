@@ -2,5 +2,9 @@ window.ahdUpdate([
   <%= ahd_update(@ad_hoc_domain_subject, @ad_hoc_domain_staff) %>,
   {
     action: 'clear_errors'
+  },
+  {
+    action: 'give_focus',
+    subject_id: <%= @ad_hoc_domain_subject.id %>
   }
 ]);

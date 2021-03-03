@@ -118,6 +118,7 @@ class AdHocDomainStaffsControllerTest < ActionController::TestCase
     assert /action: 'update_staff_totals'/ =~ response.body
     assert /action: 'update_subject_totals'/ =~ response.body
     assert /action: 'clear_errors'/ =~ response.body
+    assert /action: 'give_focus'/ =~ response.body
   end
 
   private
