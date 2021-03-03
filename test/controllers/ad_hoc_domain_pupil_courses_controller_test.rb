@@ -50,7 +50,11 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
         xhr: true
     end
     assert_response :conflict
-    assert /^document.getElementById\('ahd-pupil-errors-/ =~ response.body
+    assert /^window.ahdUpdate\(/ =~ response.body
+    assert /action: 'show_pupil_error'/ =~ response.body
+    assert /staff_id:/ =~ response.body
+    assert /subject_id:/ =~ response.body
+    assert /error_text:/ =~ response.body
   end
 
   test "should delete ad_hoc_pupil_course" do
