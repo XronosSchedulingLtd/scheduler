@@ -377,22 +377,10 @@ if ($('.ahd-listing').length) {
                 //
                 //  Two places to make this appear.
                 //
-                var by_subject_selector =
-                  '#ahd-staff-pupils-u' + update.subject_id + 't' + update.staff_id;
-                var by_staff_selector =
-                  '#ahd-subject-pupils-u' + update.subject_id + 't' + update.staff_id;
+                var suffix = 'u' + update.subject_id + 't' + update.staff_id;
+                var by_subject_selector = '#ahd-staff-pupils-' + suffix;
+                var by_staff_selector = '#ahd-subject-pupils-' + suffix;
 
-                //
-                //  Little test
-                //
-                var sutarget = $(by_subject_selector);
-                if (sutarget.len == 0) {
-                  alert("Failed to find node using \"" + by_subject_selector + "\"");
-                }
-                var sttarget = $(by_staff_selector);
-                if (sttarget.len == 0) {
-                  alert("Failed to find node using \"" + by_staff_selector + "\"");
-                }
 
                 $(by_subject_selector).html(update.pupil_listing);
                 $(by_staff_selector).html(update.pupil_listing);
@@ -405,8 +393,15 @@ if ($('.ahd-listing').length) {
                 //  And now one of those two should get the input focus,
                 //  depending on which tab is active.
                 //
+                //  Need to move focus out slightly.
+                //
+                var by_subject_selector = '#ahd-nested-staff-' + suffix;
+                var by_staff_selector = '#ahd-nested-subject-' + suffix;
+
+                $('#ahd-by-staff.active ' + by_staff_selector + ' form input.pupil-name').val('');
                 $('#ahd-by-staff.active ' + by_staff_selector + ' form input.pupil-name').focus();
 
+                $('#ahd-by-subject.active ' + by_subject_selector + ' form input.pupil-name').val('');
                 $('#ahd-by-subject.active ' + by_subject_selector + ' form input.pupil-name').focus();
                 break;
 
