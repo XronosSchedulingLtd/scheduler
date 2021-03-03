@@ -7,7 +7,6 @@
 
 class AdHocDomainPupilCoursesController < ApplicationController
 
-
   before_action :set_ad_hoc_domain_subject_staff, only: [:create]
   before_action :set_ad_hoc_domain_pupil_course, only: [:destroy, :update]
 
@@ -40,13 +39,9 @@ class AdHocDomainPupilCoursesController < ApplicationController
                   }
         }
       else
-        Rails.logger.debug(@ad_hoc_domain_pupil_course.errors.inspect)
-        format.js { render :createfailed,
-                    status: :conflict,
-                    locals: {
-                      owner_id: @ad_hoc_domain_staff.id,
-                      grandparent_id: @ad_hoc_domain_subject.id
-                    }
+        format.js {
+          render :createfailed,
+                 status: :conflict
         }
       end
     end

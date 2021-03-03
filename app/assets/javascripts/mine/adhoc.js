@@ -213,6 +213,15 @@ if ($('.ahd-listing').length) {
                 $(update.selector).html(update.error_text);
                 break;
 
+              case 'show_pupil_error':
+                //
+                //  A pupil error goes in one of two places depending
+                //  on which tab is active.
+                //
+                $('#ahd-by-subject.active #ahd-pupil-errors-u' + update.subject_id + 't' + update.staff_id).html(update.error_text);
+                $('#ahd-by-staff.active #ahd-pupil-errors-t' + update.staff_id + 'u' + update.subject_id).html(update.error_text);
+                break;
+
               case 'clear_errors':
                 $('.errors').html("");
                 break;
