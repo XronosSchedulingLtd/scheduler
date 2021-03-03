@@ -96,26 +96,60 @@ if ($('.ahd-listing').length) {
       }
 
       function updateOK(data, textStatus, jqXHR) {
-        var pupil_id = data.id;
-        var owner_id = data.owner_id;
+        var course_id = data.id;
         var minutes = data.minutes;
 
-        var div = by_subject_bit.find('div#ahd-pupil-' + pupil_id);
-        if (div.length) {
-          $(div).html(show_template({mins: minutes}));
-          $(div).click(minsClickHandler);
+        //
+        //  We apply the change to the relevant field in both
+        //  tabs, but only need to revert the field in the active
+        //  tab.
+        //
+        if (by_subject_bit.hasClass('active')) {
+          var div = by_subject_bit.find('div.ahd-pupil-course-' + course_id);
+          if (div.length) {
+            $(div).html(show_template({mins: minutes}));
+            $(div).click(minsClickHandler);
+          }
+          div = by_staff_bit.find('div.ahd-pupil-course-' + course_id + ' span');
+          if (div.length) {
+            div.text(minutes);
+          }
+        } else {
+          var div = by_staff_bit.find('div.ahd-pupil-course-' + course_id);
+          if (div.length) {
+            $(div).html(show_template({mins: minutes}));
+            $(div).click(minsClickHandler);
+          }
+          div = by_subject_bit.find('div.ahd-pupil-course-' + course_id + ' span');
+          if (div.length) {
+            div.text(minutes);
+          }
         }
-        by_subject_bit.find('div#ahd-pupil-errors-' + owner_id).text("");
+        $('.errors').html("");
       }
 
       function updateFailed(jqXHR, textStatus, errorThrown) {
         var json = jqXHR.responseJSON;
-        var pupil_id = json.id;
-        var owner_id = json.owner_id;
+        var course_id = json.id;
+        var subject_id = json.subject_id;
+        var staff_id = json.staff_id;
         var errors = json.errors;
 
+        var div;
+
         var text = errors.minutes[0];
-        by_subject_bit.find('div#ahd-pupil-errors-' + owner_id).text(text);
+        if (by_subject_bit.hasClass('active')) {
+          div =
+            by_subject_bit.find(
+              'div#ahd-pupil-errors-u' + subject_id + 't' + staff_id);
+        } else {
+          div =
+            by_staff_bit.find(
+              'div#ahd-pupil-errors-t' + staff_id + 'u' + subject_id);
+        }
+        if (div.length) {
+          div.text(text);
+        }
       }
 
       function minsClickHandler(event) {
@@ -152,8 +186,7 @@ if ($('.ahd-listing').length) {
             //
             //  And the ID of the record to be updated?
             //
-            var parent_id = $(e.target).parent().attr('id');
-            var id = parent_id.replace("ahd-pupil-", "");
+            var id = $(e.target).parent().data('course-id');
             var prepared_data = JSON.stringify({
               ad_hoc_domain_pupil_course: {
                 minutes: new_value

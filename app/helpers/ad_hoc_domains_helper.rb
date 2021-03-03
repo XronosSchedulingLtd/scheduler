@@ -40,10 +40,20 @@ module AdHocDomainsHelper
         if extra.empty?
           extra_text = ""
         else
+          #
+          #  May also have more classes specified.
+          #
+          classes = extra[:class]
+          if classes
+            more_classes = " #{classes}"
+            extra = extra.except(:class)
+          else
+            more_classes = ""
+          end
           extra_text =
             extra.to_a.collect {|arr| "#{arr[0]}='#{arr[1]}'"}.join(" ")
         end
-        result << "<div class='#{tcc(key)}' #{extra_text}>#{data[:body]}</div>"
+        result << "<div class='#{tcc(key)}#{more_classes}' #{extra_text}>#{data[:body]}</div>"
       else
         #
         #  Otherwise just shove it in the contents.
