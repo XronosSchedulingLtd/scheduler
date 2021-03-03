@@ -30,6 +30,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
     assert_response :success
     assert /^window.ahdUpdate\(/ =~ response.body
     assert /action: 'add_subject'/ =~ response.body
+    assert /action: 'clear_errors'/ =~ response.body
   end
 
   test "should fail to create two identical" do
@@ -116,6 +117,7 @@ class AdHocDomainSubjectsControllerTest < ActionController::TestCase
     assert /action: 'update_staff_subjects'/ =~ response.body
     assert /action: 'update_staff_totals'/ =~ response.body
     assert /action: 'update_subject_totals'/ =~ response.body
+    assert /action: 'clear_errors'/ =~ response.body
   end
 
 end

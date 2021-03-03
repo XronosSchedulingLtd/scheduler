@@ -24,6 +24,7 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
     assert_response :success
     assert /^window.ahdUpdate\(/ =~ response.body
     assert /action: 'new_pupil_listing'/ =~ response.body
+    assert /action: 'clear_errors'/ =~ response.body
   end
 
   test "should fail to create two identical" do
@@ -72,6 +73,7 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
     assert_response :success
     assert /^window.ahdUpdate\(/ =~ response.body
     assert /action: 'new_pupil_listing'/ =~ response.body
+    assert /action: 'clear_errors'/ =~ response.body
   end
 
   test "can update minutes via ajax" do

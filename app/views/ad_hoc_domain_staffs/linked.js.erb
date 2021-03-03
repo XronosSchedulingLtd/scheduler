@@ -1,3 +1,6 @@
 window.ahdUpdate([
-  <%= ahd_update(@ad_hoc_domain_subject, @ad_hoc_domain_staff) %>
+  <%= ahd_update(@ad_hoc_domain_subject, @ad_hoc_domain_staff) %>,
+  {
+    action: 'clear_errors'
+  }
 ]);

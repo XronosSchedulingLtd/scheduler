@@ -94,4 +94,36 @@ class AdHocDomainStaffsControllerTest < ActionController::TestCase
     assert /action: 'update_subject_staff'/ =~ response.body
   end
 
+  test "can link existing staff to existing subject" do
+    session[:user_id] = @admin_user.id
+    ahd_staff =
+      FactoryBot.create(
+        :ad_hoc_domain_staff,
+        ad_hoc_domain_cycle: @ad_hoc_domain_cycle,
+        staff_element_id: @staff.element)
+    assert_difference('AdHocDomainSubjectStaff.count') do
+      post :create,
+        params: {
+          ad_hoc_domain_subject_id: @ad_hoc_domain_subject,
+          ad_hoc_domain_staff: {
+            staff_element_id: @staff.element
+          } 
+        },
+        xhr: true
+    end
+    assert_response :success
+    assert /^window.ahdUpdate\(/ =~ response.body
+    assert /action: 'update_subject_staff'/ =~ response.body
+    assert /action: 'update_staff_subjects'/ =~ response.body
+    assert /action: 'update_staff_totals'/ =~ response.body
+    assert /action: 'update_subject_totals'/ =~ response.body
+    assert /action: 'clear_errors'/ =~ response.body
+  end
+
+  private
+
+  def unescape(text)
+    text.gsub('\/', '/').gsub('\n', "\n").gsub('\"', '"').gsub("\\'", "'")
+  end
+
 end
