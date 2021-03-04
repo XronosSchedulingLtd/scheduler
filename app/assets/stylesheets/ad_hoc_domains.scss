@@ -15,7 +15,7 @@
   #ahd-by-subject {
     .arow {
       display: grid;
-      grid-template-columns: 1em 4fr 1em 4fr 1em 4fr 1fr 3em 6em;
+      grid-template-columns: 1em 5fr 1em 5fr 1em 5fr 2fr 3em 6em;
       grid-template-areas: "subjectx subject staffx staff pupilx pupil pupil pupil flipper";
     }
 
@@ -50,7 +50,7 @@
   #ahd-by-staff {
     .arow {
       display: grid;
-      grid-template-columns: 1em 4fr 1em 4fr 1em 4fr 1fr 3em 6em;
+      grid-template-columns: 1em 5fr 1em 5fr 1em 5fr 2fr 3em 6em;
       grid-template-areas: "staffx staff subjectx subject pupilx pupil pupil pupil flipper";
     }
 
@@ -84,7 +84,7 @@
 
   .sub-grid {
     display: grid;
-    grid-template-columns: 4fr 1fr 3em;
+    grid-template-columns: 5fr 2fr 3em;
   }
 
   .subject-delete {
@@ -145,6 +145,10 @@
   }
 
   .mins {
+    grid-column: 7;
+  }
+
+  .num-mins {
     grid-column: 7;
   }
 

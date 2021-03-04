@@ -112,6 +112,26 @@ module ApplicationHelper
     result.join("\n").html_safe
   end
 
+  def mins_to_str(mins)
+    hours = mins / 60
+    left  = mins % 60
+    if hours == 0
+      hours_bit = ""
+    else
+      hours_bit = "#{hours} #{"hr".pluralize(hours)}"
+    end
+    mins_bit = "#{left} #{"min".pluralize(left)}"
+    if hours_bit.blank?
+      mins_bit
+    else
+      if left == 0
+        hours_bit
+      else
+        "#{hours_bit} #{mins_bit}"
+      end
+    end
+  end
+
   def tscb_group(f,
                  parent,
                  field,

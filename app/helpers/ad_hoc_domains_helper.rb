@@ -290,6 +290,7 @@ module AdHocDomainsHelper
     result << "staff_id: #{staff.id}"
     result << "num_subjects: '#{staff.num_subjects_text}'"
     result << "num_pupils: '#{staff.num_pupils_text}'"
+    result << "num_mins: '#{mins_to_str(staff.total_mins)}'"
     bechunk(result.join(",\n")).html_safe
   end
 
@@ -299,6 +300,7 @@ module AdHocDomainsHelper
     result << "subject_id: #{subject.id}"
     result << "num_staff: '#{subject.num_staff_text}'"
     result << "num_pupils: '#{subject.num_pupils_text}'"
+    result << "num_mins: '#{mins_to_str(subject.total_mins)}'"
     bechunk(result.join(",\n")).html_safe
   end
 

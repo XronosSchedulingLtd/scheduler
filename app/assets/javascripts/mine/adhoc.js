@@ -125,6 +125,15 @@ if ($('.ahd-listing').length) {
             div.text(minutes);
           }
         }
+        //
+        //  And now we need to update the minutes total for both the subject
+        //  and the staff member affected.
+        //
+        var outer = '#ahd-staff-t' + data.staff_id;
+        $(outer + ' .num-mins').text(data.staff_total);
+        outer = '#ahd-subject-u' + data.subject_id;
+        $(outer + ' .num-mins').text(data.subject_total);
+
         $('.errors').html("");
       }
 
@@ -359,18 +368,16 @@ if ($('.ahd-listing').length) {
 
               case 'update_staff_totals':
                 var outer = '#ahd-staff-t' + update.staff_id;
-                var string = outer + ' .num-subjects';
-                var found = $(string);
-                console.log({string});
-                console.log({found});
                 $(outer + ' .num-subjects').text(update.num_subjects);
                 $(outer + ' .num-pupils').text(update.num_pupils);
+                $(outer + ' .num-mins').text(update.num_mins);
                 break;
 
               case 'update_subject_totals':
                 var outer = '#ahd-subject-u' + update.subject_id;
                 $(outer + ' .num-staff').text(update.num_staff);
                 $(outer + ' .num-pupils').text(update.num_pupils);
+                $(outer + ' .num-mins').text(update.num_mins);
                 break;
 
               case 'new_pupil_listing':

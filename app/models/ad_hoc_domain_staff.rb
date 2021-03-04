@@ -78,6 +78,13 @@ class AdHocDomainStaff < ApplicationRecord
     "#{num_real_subjects} #{"subject".pluralize(num_real_subjects)}"
   end
 
+  def total_mins
+    #
+    #  The total number of minutes scheduled for this staff member.
+    #
+    self.ad_hoc_domain_pupil_courses.map(&:minutes).reduce(0, :+)
+  end
+
   def <=>(other)
     if other.instance_of?(AdHocDomainStaff)
       #

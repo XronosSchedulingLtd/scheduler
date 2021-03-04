@@ -5,6 +5,7 @@
       staff: staff_outer.staff_name,
       num_subjects: "#{staff_outer.num_real_subjects} subjects",
       num_pupils: "#{staff_outer.num_real_pupils} pupils",
+      num_mins: "#{mins_to_str(staff_outer.total_mins)}",
       flipper: ahd_toggle( @folded ? "Show" : "Hide")
     },
     row_classes: %w(overrule minor)) %>

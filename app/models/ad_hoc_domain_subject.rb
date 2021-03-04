@@ -82,6 +82,13 @@ class AdHocDomainSubject < ApplicationRecord
     "#{num_real_staff} staff"
   end
 
+  def total_mins
+    #
+    #  The total number of minutes scheduled for this subject.
+    #
+    self.ad_hoc_domain_pupil_courses.map(&:minutes).reduce(0, :+)
+  end
+
   def <=>(other)
     if other.instance_of?(AdHocDomainSubject)
       #

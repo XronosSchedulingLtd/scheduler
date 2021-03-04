@@ -98,6 +98,10 @@ class AdHocDomainPupilCoursesControllerTest < ActionController::TestCase
     #
     assert_equal @ad_hoc_domain_pupil_course.id, data['id']
     assert_equal org_mins + 15, data['minutes']
+    assert_not_nil data['staff_id']
+    assert_not_nil data['staff_total']
+    assert_not_nil data['subject_id']
+    assert_not_nil data['subject_total']
     #
     #  And that it's been saved on the host.
     #

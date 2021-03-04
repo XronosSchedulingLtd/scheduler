@@ -5,6 +5,7 @@
       subject: subject_outer.subject_name,
       num_staff: "#{subject_outer.num_real_staff} staff",
       num_pupils: "#{subject_outer.num_real_pupils} pupils",
+      num_mins: "#{mins_to_str(subject_outer.total_mins)}",
       flipper: ahd_toggle( @folded ? "Show" : "Hide")
     },
     row_classes: %w(overrule)) %>
