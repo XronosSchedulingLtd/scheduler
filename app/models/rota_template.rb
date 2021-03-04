@@ -76,6 +76,9 @@ class RotaTemplate < ApplicationRecord
            foreign_key: :default_free_finder_day_shape_id,
            dependent: :nullify
 
+  has_one :ad_hoc_domain_staff,
+          dependent: :nullify
+
   #
   #  We may be the default day shape for one or more ad hoc domains.
   #

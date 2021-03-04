@@ -21,7 +21,7 @@ class RotaTemplateType < ApplicationRecord
   #  even the sys admin to change them.
   #
   def self.create_basics
-    ["Invigilation", "Day shape"].each do |name|
+    ["Invigilation", "Day shape", "AdHocAvailability"].each do |name|
       rtt = RotaTemplateType.find_by(name: name)
       unless rtt
         RotaTemplateType.create!({ name: name })

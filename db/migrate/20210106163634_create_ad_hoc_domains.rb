@@ -43,6 +43,7 @@ class CreateAdHocDomains < ActiveRecord::Migration[5.2]
     create_table :ad_hoc_domain_staffs do |t|
       t.integer :staff_id
       t.integer :ad_hoc_domain_cycle_id
+      t.integer :rota_template_id
       t.timestamps
     end
     add_index :ad_hoc_domain_staffs, :staff_id

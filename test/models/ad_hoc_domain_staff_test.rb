@@ -84,4 +84,23 @@ class AdHocDomainStaffTest < ActiveSupport::TestCase
     assert_equal @ad_hoc_domain, @ad_hoc_domain_staff.ad_hoc_domain
   end
 
+  test "can have a rota template attached" do
+    rt = FactoryBot.create(
+      :rota_template,
+      rota_template_type: rota_template_types(:adhoc))
+    assert_nothing_raised do
+      @ad_hoc_domain_staff.rota_template = rt
+    end
+  end
+
+  test "deleting staff deletes rota template" do
+    rt = FactoryBot.create(
+      :rota_template,
+      rota_template_type: rota_template_types(:adhoc))
+    @ad_hoc_domain_staff.rota_template = rt
+    assert_difference('RotaTemplate.count', -1) do
+      @ad_hoc_domain_staff.destroy
+    end
+  end
+
 end
