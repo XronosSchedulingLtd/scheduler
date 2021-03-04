@@ -15,8 +15,8 @@
   #ahd-by-subject {
     .arow {
       display: grid;
-      grid-template-columns: 1em 5fr 1em 5fr 1em 5fr 2fr 3em 6em;
-      grid-template-areas: "subjectx subject staffx staff pupilx pupil pupil pupil flipper";
+      grid-template-columns: 1em 5fr 1px 1em 5fr 1em 5fr 2fr 3em 6em;
+      grid-template-areas: "subjectx subject filler staffx staff pupilx pupil pupil pupil flipper";
     }
 
     .subject-heading {
@@ -50,8 +50,8 @@
   #ahd-by-staff {
     .arow {
       display: grid;
-      grid-template-columns: 1em 5fr 1em 5fr 1em 5fr 2fr 3em 6em;
-      grid-template-areas: "staffx staff subjectx subject pupilx pupil pupil pupil flipper";
+      grid-template-columns: 1em 4fr 2fr 1em 4fr 1em 5fr 2fr 3em 6em;
+      grid-template-areas: "staffx staff availability subjectx subject pupilx pupil pupil pupil flipper";
     }
 
     .staff-heading {
@@ -78,6 +78,10 @@
 
     .no-subject {
       grid-column: subject;
+    }
+
+    .availability {
+      grid-column: availability;
     }
 
   }
@@ -109,11 +113,11 @@
   }
 
   .pupil-delete {
-    grid-column: 5;
+    grid-column: 6;
   }
 
   %pupil-shared {
-    grid-column: 6;
+    grid-column: 7;
   }
 
   .num-pupils {
@@ -140,20 +144,20 @@
   }
 
   .mins-heading {
-    grid-column: 7;
+    grid-column: 8;
     font-weight: bold;
   }
 
   .mins {
-    grid-column: 7;
+    grid-column: 8;
   }
 
   .num-mins {
-    grid-column: 7;
+    grid-column: 8;
   }
 
   .edit_pupil {
-    grid-column: 8;
+    grid-column: 9;
   }
 
   .flipper {
@@ -200,3 +204,18 @@
   margin-left: 20px;
   margin-right: 20px;
 }
+
+.ahd-current {
+  background-color: darkseagreen;
+  padding-left: 3px;
+  padding-right: 3px;
+  border-radius: 3px;
+}
+
+.ahd-not-current {
+  background-color: indianred;
+  padding-left: 3px;
+  padding-right: 3px;
+  border-radius: 3px;
+}
+

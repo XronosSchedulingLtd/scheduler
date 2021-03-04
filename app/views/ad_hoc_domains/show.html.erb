@@ -3,7 +3,7 @@
   <h4>Viewing the "<%=
   @ad_hoc_domain_cycle.name
   %>" cycle - <%=
-    @ad_hoc_domain_cycle.set_as_default? ? "which is current" : "not current"
+  @ad_hoc_domain_cycle.set_as_default? ? "<span class='ahd-current'>which is current</span>".html_safe : "<span class='ahd-not-current'>not current</span>".html_safe
   %></h4>
 <% else %>
   <h4>No cycles defined yet</h4>
