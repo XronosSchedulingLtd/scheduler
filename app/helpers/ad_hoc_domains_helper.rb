@@ -223,6 +223,11 @@ module AdHocDomainsHelper
     end
   end
 
+  def ahd_availability_link(ahd_staff)
+    link_to("Availability",
+            edit_availability_ad_hoc_domain_staff_path(ahd_staff))
+  end
+
   def ahd_error_texts(model)
     result = []
     result << "<ul>"

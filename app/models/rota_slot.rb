@@ -144,6 +144,8 @@ class RotaSlot < ApplicationRecord
   def assign_tod_value(field, value)
     if value.instance_of?(Tod::TimeOfDay)
       self[field] = value
+    elsif value.instance_of?(ActiveSupport::TimeWithZone)
+      self[field] = Tod::TimeOfDay.try_parse(value.strftime("%H:%M"))
     elsif value.instance_of?(String)
       self[field] = Tod::TimeOfDay.try_parse(value)
     else

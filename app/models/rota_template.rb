@@ -76,8 +76,7 @@ class RotaTemplate < ApplicationRecord
            foreign_key: :default_free_finder_day_shape_id,
            dependent: :nullify
 
-  has_one :ad_hoc_domain_staff,
-          dependent: :nullify
+  belongs_to :ad_hoc_domain_staff, optional: true
 
   #
   #  We may be the default day shape for one or more ad hoc domains.
@@ -257,4 +256,63 @@ class RotaTemplate < ApplicationRecord
       end
     end
   end
+
+  #
+  #  Passed a starting datetime and an ending datetime, add a slot
+  #  to suit.  If we already have a slot with the relevant timing, may
+  #  just add an extra day to that slot.
+  #
+  #  We expect starting and ending to be TimeWithZones.
+  #
+  def add_slot(starting, ending)
+    date = starting.to_date
+    start_tod = Tod::TimeOfDay(starting)
+    end_tod = Tod::TimeOfDay(ending)
+    existing = self.rota_slots.find { |s|
+      s.starts_at_tod == start_tod &&
+        s.ends_at_tod == end_tod
+    }
+    if existing
+      #
+      #  Add the indicated day to the existing RotaSlot.
+      #
+      unless existing.days[date.wday]
+        existing.days[date.wday] = true
+        existing.save
+      end
+    else
+      #
+      #  Need to create a new slot with this timing on the indicated day.
+      #
+      rs = RotaSlot.new
+      rs.starts_at = starting
+      rs.ends_at   = ending
+      days = [false, false, false, false, false, false, false]
+      days[starting.wday] = true
+      rs.days = days
+      self.rota_slots << rs
+    end
+  end
+
+  #
+  #  And just to be wonderfully inconsistent, here we expect an
+  #  integer and two strings.
+  #
+  def remove_slot(day_no, starting, ending)
+    existing = self.rota_slots.find { |s|
+      s.starts_at == starting &&
+        s.ends_at == ending
+    }
+    if existing
+      if existing.days[day_no]
+        existing.days[day_no] = false
+        if existing.days.none?
+          existing.destroy
+        else
+          existing.save
+        end
+      end
+    end
+  end
+
 end

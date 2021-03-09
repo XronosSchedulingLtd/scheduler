@@ -145,6 +145,7 @@ class AdHocDomainCycleTest < ActiveSupport::TestCase
   end
 
   test "can populate new cycle record from old one" do
+    base_rt_count = RotaTemplate.count
     2.times do
       ahdsubj = FactoryBot.create(
         :ad_hoc_domain_subject,
@@ -153,6 +154,8 @@ class AdHocDomainCycleTest < ActiveSupport::TestCase
         ahdstaff = FactoryBot.create(
           :ad_hoc_domain_staff,
           ad_hoc_domain_cycle: @ad_hoc_domain_cycle)
+        ahdstaff.rota_template = FactoryBot.create(
+          :rota_template)
         ahdss = FactoryBot.create(
           :ad_hoc_domain_subject_staff,
           ad_hoc_domain_subject: ahdsubj,
@@ -167,33 +170,40 @@ class AdHocDomainCycleTest < ActiveSupport::TestCase
     assert_equal 2, @ad_hoc_domain_cycle.ad_hoc_domain_subjects.count
     assert_equal 6, @ad_hoc_domain_cycle.ad_hoc_domain_staffs.count
     assert_equal 24, @ad_hoc_domain_cycle.ad_hoc_domain_pupil_courses.count
+    assert_equal base_rt_count + 6, RotaTemplate.count
     @ad_hoc_domain_cycle.reload
     ahdc = FactoryBot.create(:ad_hoc_domain_cycle)
     assert_equal 0, ahdc.num_real_subjects
     assert_equal 0, ahdc.num_real_staff
     assert_equal 0, ahdc.num_real_pupils
+    assert_equal base_rt_count + 6, RotaTemplate.count
     ahdc.copy_what = "0"
     ahdc.populate_from(@ad_hoc_domain_cycle)
     assert_equal 0, ahdc.num_real_subjects
     assert_equal 0, ahdc.num_real_staff
     assert_equal 0, ahdc.num_real_pupils
+    assert_equal base_rt_count + 6, RotaTemplate.count
     ahdc.copy_what = "1"
     ahdc.populate_from(@ad_hoc_domain_cycle)
     assert_equal 2, ahdc.num_real_subjects
     assert_equal 0, ahdc.num_real_staff
     assert_equal 0, ahdc.num_real_pupils
     ahdc = FactoryBot.create(:ad_hoc_domain_cycle)
+    assert_equal base_rt_count + 6, RotaTemplate.count
     ahdc.copy_what = "2"
     ahdc.populate_from(@ad_hoc_domain_cycle)
     assert_equal 2, ahdc.num_real_subjects
     assert_equal 6, ahdc.num_real_staff
     assert_equal 0, ahdc.num_real_pupils
+    assert_equal base_rt_count + 12, RotaTemplate.count
+    ahdc.destroy
     ahdc = FactoryBot.create(:ad_hoc_domain_cycle)
     ahdc.copy_what = "3"
     ahdc.populate_from(@ad_hoc_domain_cycle)
     assert_equal 2, ahdc.num_real_subjects
     assert_equal 6, ahdc.num_real_staff
     assert_equal 24, ahdc.num_real_pupils
+    assert_equal base_rt_count + 12, RotaTemplate.count
   end
 
 end

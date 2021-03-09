@@ -173,6 +173,15 @@ class AdHocDomainCycle < ApplicationRecord
         #
         donor_cycle.ad_hoc_domain_staffs.each do |ahdstaff|
           self.ad_hoc_domain_staffs << newstaff = ahdstaff.dup
+          if ahdstaff.rota_template
+            #
+            #  Need our own copy of this.
+            #
+            newstaff.rota_template = ahdstaff.rota_template.do_clone
+#            new_template = ahdstaff.rota_template.do_clone
+#            new_template.ad_hoc_domain_staff = newstaff
+#            new_template.save # Should save both
+          end
           #
           #  And need to re-create the linking records between
           #  staff and subjects.

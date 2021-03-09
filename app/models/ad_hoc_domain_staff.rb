@@ -11,7 +11,7 @@ class AdHocDomainStaff < ApplicationRecord
   belongs_to :ad_hoc_domain_cycle
   belongs_to :staff
 
-  belongs_to :rota_template, optional: true, dependent: :destroy
+  has_one :rota_template, dependent: :destroy
 
   has_many :ad_hoc_domain_subject_staffs, dependent: :destroy
   has_many :ad_hoc_domain_subjects, through: :ad_hoc_domain_subject_staffs

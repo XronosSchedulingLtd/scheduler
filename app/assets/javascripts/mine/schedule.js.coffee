@@ -62,17 +62,14 @@ $(document).ready ->
     flag = $('.flag-refreshes').data("dorefresh")
     if flag == "1"
       goroot = $('.flag-refreshes').data("goroot")
-      console.log({goroot})
       #
       #  It's odd, but if I have set a data field from JavaScript then
       #  it seems to be a string, but if it came from the back end then
       #  it's an integer.  Not sure about this wrinkle.
       #
       if goroot == 1
-        console.log("Going to root")
         window.location.href = "/"
       else
-        console.log("Refreshing")
         $('#fullcalendar').data("dorefresh", "0")
         $('#fullcalendar').fullCalendar('refetchEvents')
     )
@@ -605,7 +602,6 @@ window.closeModal = (full_reload, just_events, filter_state) ->
         el.text(filter_state)
 
 window.refreshNeeded = ->
-  console.log("Asked to refresh")
   $('.flag-refreshes').data("dorefresh", "1")
 
 #

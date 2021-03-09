@@ -8,7 +8,8 @@
 class AdHocDomainStaffsController < ApplicationController
 
   before_action :set_progenitors, only: [:create]
-  before_action :set_ad_hoc_domain_staff, only: [:destroy]
+  before_action :set_ad_hoc_domain_staff, only: [:destroy,
+                                                 :edit_availability]
 
   # POST /ad_hoc_domain_cycle/1/ad_hoc_domain_staffs.json
   # POST /ad_hoc_domain_subject/1/ad_hoc_domain_staffs.json
@@ -138,6 +139,21 @@ class AdHocDomainStaffsController < ApplicationController
       #  have been issued from the by_staff tab.
       #
       format.js
+    end
+  end
+
+  def edit_availability
+    #
+    #  Create a rota template if we don't already have one.
+    #
+    unless @ad_hoc_domain_staff.rota_template
+      rtt = RotaTemplateType.find_by(name: "AdHocAvailability")
+      @ad_hoc_domain_staff.create_rota_template(
+        {
+          rota_template_type: rtt,
+          name: "Availability for #{@ad_hoc_domain_staff.staff_name} in #{@ad_hoc_domain_staff.ad_hoc_domain_cycle.name}"
+        }
+      )
     end
   end
 

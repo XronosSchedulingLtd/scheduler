@@ -1,0 +1,31 @@
+<div id="mainContainer">
+  <div class="row collapse calendarbit">
+    <div class="small-12 columns">
+      <h2><%= @ad_hoc_domain_staff.rota_template.name %></h2>
+    </div>
+    <div class="small-3 columns">
+      <p><%= @ad_hoc_domain_staff.staff_name %></p>
+      <p>
+        Teaches
+        <ul>
+          <% @ad_hoc_domain_staff.ad_hoc_domain_subject_staffs.each do |ss| %>
+            <li><%=
+                ss.ad_hoc_domain_subject.subject_name
+              %> (<%=
+                mins_to_str(ss.total_mins)
+              %>)</li>
+          <% end %>
+        </ul>
+      </p>
+      <%= link_to "Finished",
+        ad_hoc_domain_url(
+          @ad_hoc_domain_staff.ad_hoc_domain_cycle.ad_hoc_domain,
+          tab: 2),
+        class: "zfbutton tiny radius button-link" %>
+    </div>
+    <div class="small-9 columns">
+      <div id='editing-rota-template' data-staff-id='<%= @ad_hoc_domain_staff.id %>'>
+      </div>
+    </div>
+  </div>
+</div>

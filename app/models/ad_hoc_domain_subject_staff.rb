@@ -58,5 +58,12 @@ class AdHocDomainSubjectStaff < ApplicationRecord
     result
   end
 
+  def total_mins
+    #
+    #  The total number of minutes scheduled for this staff and subject.
+    #
+    self.ad_hoc_domain_pupil_courses.map(&:minutes).reduce(0, :+)
+  end
+
 end
 

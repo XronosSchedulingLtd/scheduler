@@ -10,7 +10,11 @@ Rails.application.routes.draw do
         put :set_as_default
       end
       resources :ad_hoc_domain_subjects, shallow: true do
-        resources :ad_hoc_domain_staffs, only: [:create]
+        resources :ad_hoc_domain_staffs, only: [:create] do
+          member do
+            get :edit_availability
+          end
+        end
       end
       resources :ad_hoc_domain_staffs, shallow: true do
         resources :ad_hoc_domain_subjects, only: [:create]
@@ -21,6 +25,9 @@ Rails.application.routes.draw do
       patch :add_controller
       patch :remove_controller
     end
+  end
+  resources :ad_hoc_domain_staffs, only: [] do
+    resources :events, controller: :ahd_events
   end
 
   resources :user_profiles do
