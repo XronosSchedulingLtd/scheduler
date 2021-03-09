@@ -151,7 +151,7 @@ class AdHocDomainStaffsController < ApplicationController
       @ad_hoc_domain_staff.create_rota_template(
         {
           rota_template_type: rtt,
-          name: "Availability for #{@ad_hoc_domain_staff.staff_name} in #{@ad_hoc_domain_staff.ad_hoc_domain_cycle.name}"
+          name: @ad_hoc_domain_staff.rota_template_name
         }
       )
     end

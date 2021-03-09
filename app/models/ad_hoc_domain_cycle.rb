@@ -177,10 +177,8 @@ class AdHocDomainCycle < ApplicationRecord
             #
             #  Need our own copy of this.
             #
-            newstaff.rota_template = ahdstaff.rota_template.do_clone
-#            new_template = ahdstaff.rota_template.do_clone
-#            new_template.ad_hoc_domain_staff = newstaff
-#            new_template.save # Should save both
+            newstaff.rota_template =
+              ahdstaff.rota_template.do_clone(newstaff.rota_template_name)
           end
           #
           #  And need to re-create the linking records between

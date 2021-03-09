@@ -194,4 +194,20 @@ class RotaTemplateTest < ActiveSupport::TestCase
     assert_nil rt.covering_slot(1, Tod::TimeOfDay.parse("12:22"))
   end
 
+  test "can clone a template" do
+    rt = FactoryBot.create(:rota_template)
+    assert_difference("RotaTemplate.count") do
+      new_rt = rt.do_clone
+      assert_equal 12, new_rt.slots.count
+    end
+  end
+
+  test "can specify a name when cloning" do
+    rt = FactoryBot.create(:rota_template)
+    assert_difference("RotaTemplate.count") do
+      new_rt = rt.do_clone("Name of clone")
+      assert_equal "Name of clone", new_rt.name
+    end
+  end
+
 end

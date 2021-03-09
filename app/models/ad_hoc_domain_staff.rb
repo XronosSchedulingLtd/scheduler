@@ -153,6 +153,13 @@ class AdHocDomainStaff < ApplicationRecord
       l.ad_hoc_domain_subject == ahd_subject }
   end
 
+  #
+  #  Single place to decide what the name should be.
+  #
+  def rota_template_name
+    "Availability for #{self.staff_name} in #{self.ad_hoc_domain_cycle.name}"
+  end
+
   protected
 
   #

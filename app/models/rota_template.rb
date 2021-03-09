@@ -91,9 +91,9 @@ class RotaTemplate < ApplicationRecord
   #
   #  Make a copy of ourself, duplicating all the necessary rota slots.
   #
-  def do_clone
+  def do_clone(new_name = nil)
     new_template = RotaTemplate.new({
-      name: "Clone of #{self.name}",
+      name: new_name ? new_name : "Clone of #{self.name}",
       rota_template_type: self.rota_template_type
     })
     if new_template.save
