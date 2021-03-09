@@ -34,4 +34,63 @@ class RotaEditorTest < ActiveSupport::TestCase
     assert_equal 'background', for_json[:rendering]
   end
 
+  test "can add an event" do
+    rota_editor = RotaEditor.new(@rota, @template)
+    #
+    #  First just a start time.
+    #
+    params = {
+      day_no: 3,
+      starts_at: "09:30"
+    }
+    assert_difference("RotaSlot.count") do
+      rota_editor.add_event(params)
+    end
+    rs = RotaSlot.last
+    assert_equal "09:25", rs.starts_at
+    assert_equal "10:15", rs.ends_at
+    assert_day_set(rs, 3)
+    #
+    #  Now both times
+    #
+    params = {
+      day_no: 4,
+      starts_at: "09:30",
+      ends_at: "10:30"
+    }
+    assert_difference("RotaSlot.count") do
+      rota_editor.add_event(params)
+    end
+    rs = RotaSlot.last
+    assert_equal "09:30", rs.starts_at
+    assert_equal "10:30", rs.ends_at
+    assert_day_set(rs, 4)
+    #
+    #  And a single time which doesn't fit in a defined slot.
+    #
+    params = {
+      day_no: 5,
+      starts_at: "09:22"
+    }
+    assert_difference("RotaSlot.count") do
+      rota_editor.add_event(params)
+    end
+    rs = RotaSlot.last
+    assert_equal "09:22", rs.starts_at
+    assert_equal "10:22", rs.ends_at
+    assert_day_set(rs, 5)
+  end
+
+  private
+
+  def assert_day_set(rs, n)
+    rs.days.each_with_index do |day, i|
+      if i == n
+        assert day
+      else
+        assert_not day
+      end
+    end
+  end
+
 end

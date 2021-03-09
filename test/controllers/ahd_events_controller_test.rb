@@ -46,8 +46,9 @@ class AhdEventsControllerTest < ActionDispatch::IntegrationTest
         as: :json,
         params: {
           ahd_event: {
-            starts_at: "2017-01-02 10:00",
-            ends_at: "2017-01-02 10:05"
+            day_no: 4,
+            starts_at: "10:00",
+            ends_at: "10:05"
           }
         }
       assert_response :success
@@ -60,8 +61,9 @@ class AhdEventsControllerTest < ActionDispatch::IntegrationTest
         as: :json,
         params: {
           ahd_event: {
-            starts_at: "2017-01-03 10:00",
-            ends_at: "2017-01-03 10:05"
+            day_no: 5,
+            starts_at: "10:00",
+            ends_at: "10:05"
           }
         }
       assert_response :success

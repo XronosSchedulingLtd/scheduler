@@ -17,7 +17,7 @@ var editing_rota_templates = function() {
   var staff_id = myDiv.data('staff-id');
   var base_url = '/ad_hoc_domain_staffs/' + staff_id + '/events'
 
-  function createdOK() {
+  function serverResponded() {
     myDiv.fullCalendar('refetchEvents');
   }
 
@@ -28,10 +28,11 @@ var editing_rota_templates = function() {
     //
     myDiv.fullCalendar('unselect');
     var to_send = {
-      starts_at: starts_at.format("YYYY-MM-DD HH:mm")
+      day_no:    starts_at.day(),
+      starts_at: starts_at.format("HH:mm")
     };
     if (ends_at - starts_at > 300000) {
-      to_send['ends_at'] = ends_at.format("YYYY-MM-DD HH:mm");
+      to_send['ends_at'] = ends_at.format("HH:mm");
     }
     var prepared_data = JSON.stringify({
       ahd_event: to_send
@@ -42,7 +43,7 @@ var editing_rota_templates = function() {
       type: "POST",
       dataType: "json",
       contentType: 'application/json',
-      data: prepared_data}).done(createdOK);
+      data: prepared_data}).done(serverResponded);
   }
 
   function eventClicked(event, jsEvent, view) {
@@ -54,12 +55,12 @@ var editing_rota_templates = function() {
       url: base_url + '/' + event.id,
       type: "DELETE",
       dataType: 'json',
-      contentType: 'application/json'}).done(createdOK);
+      contentType: 'application/json'}).done(serverResponded);
   }
 
   function eventResized(event, delta, revertFunc) {
     var to_send = {
-      ends_at: event.end.format()
+      ends_at: event.end.format("HH:mm")
     };
     var prepared_data = JSON.stringify({
       ahd_event: to_send
@@ -69,7 +70,23 @@ var editing_rota_templates = function() {
       type: "PUT",
       dataType: 'json',
       contentType: 'application/json',
-      data: prepared_data}).done(createdOK);
+      data: prepared_data}).done(serverResponded);
+  }
+
+  function eventDropped(event, delta, revertFunc) {
+    var to_send = {
+      day_no:    event.start.day(),
+      starts_at: event.start.format("HH:mm")
+    };
+    var prepared_data = JSON.stringify({
+      ahd_event: to_send
+    });
+    $.ajax({
+      url: base_url + '/' + event.id,
+      type: "PUT",
+      dataType: 'json',
+      contentType: 'application/json',
+      data: prepared_data}).done(serverResponded);
   }
 
   var fcParams = {
@@ -94,6 +111,7 @@ var editing_rota_templates = function() {
     defaultDate: '2017-01-01',
     eventClick: eventClicked,
     eventResize: eventResized,
+    eventDrop: eventDropped,
     selectable: true,
     selectHelper: true,
     select: handleSelect

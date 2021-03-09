@@ -98,8 +98,20 @@ class RotaSlot < ApplicationRecord
     assign_tod_value(:ends_at, value)
   end
 
-  def applies_on?(date)
-    self.days[date.wday]
+  #
+  #  Check whether this slot applies on a given date or day of the week.
+  #  Can accept a Date-like thing (which responds to wday()) or an integer
+  #  between 0 and 6.
+  #
+  def applies_on?(selector)
+    if selector.respond_to?(:wday)
+      self.days[selector.wday]
+    elsif selector.kind_of?(Integer) &&
+      selector >= 0 && selector <= 6
+      self.days[selector]
+    else
+      nil
+    end
   end
 
   #

@@ -109,10 +109,10 @@ class RotaTemplate < ApplicationRecord
   end
 
   #
-  #  Provide all of our slots which apply on the relevant date.
+  #  Provide all of our slots which apply on the relevant date or wday.
   #
-  def slots_for(date)
-    relevant_slots = self.rota_slots.select{|rs| rs.applies_on?(date)}
+  def slots_for(selector)
+    relevant_slots = self.rota_slots.select{|rs| rs.applies_on?(selector)}
     if block_given?
       relevant_slots.each do |rs|
         yield rs
@@ -145,6 +145,20 @@ class RotaTemplate < ApplicationRecord
     else
       return datetime, datetime
     end
+  end
+
+  #
+  #  Passed a day number (0-6) and a Tod::TimeOfDay we return the
+  #  slot which covers it, or nil if there isn't one.
+  #
+  def covering_slot(wday, tod)
+    slots_for(wday).each do |s|
+      if tod >= s.starts_at_tod &&
+          tod < s.ends_at_tod
+        return s
+      end
+    end
+    return nil
   end
 
   def periods(&block)
@@ -258,16 +272,11 @@ class RotaTemplate < ApplicationRecord
   end
 
   #
-  #  Passed a starting datetime and an ending datetime, add a slot
+  #  Passed a starting and ending Tod::TimeOfDay, add a slot
   #  to suit.  If we already have a slot with the relevant timing, may
   #  just add an extra day to that slot.
   #
-  #  We expect starting and ending to be TimeWithZones.
-  #
-  def add_slot(starting, ending)
-    date = starting.to_date
-    start_tod = Tod::TimeOfDay(starting)
-    end_tod = Tod::TimeOfDay(ending)
+  def add_slot(wday, start_tod, end_tod)
     existing = self.rota_slots.find { |s|
       s.starts_at_tod == start_tod &&
         s.ends_at_tod == end_tod
@@ -276,8 +285,8 @@ class RotaTemplate < ApplicationRecord
       #
       #  Add the indicated day to the existing RotaSlot.
       #
-      unless existing.days[date.wday]
-        existing.days[date.wday] = true
+      unless existing.days[wday]
+        existing.days[wday] = true
         existing.save
       end
     else
@@ -285,10 +294,10 @@ class RotaTemplate < ApplicationRecord
       #  Need to create a new slot with this timing on the indicated day.
       #
       rs = RotaSlot.new
-      rs.starts_at = starting
-      rs.ends_at   = ending
+      rs.starts_at = start_tod
+      rs.ends_at   = end_tod
       days = [false, false, false, false, false, false, false]
-      days[starting.wday] = true
+      days[wday] = true
       rs.days = days
       self.rota_slots << rs
     end
@@ -298,18 +307,141 @@ class RotaTemplate < ApplicationRecord
   #  And just to be wonderfully inconsistent, here we expect an
   #  integer and two strings.
   #
-  def remove_slot(day_no, starting, ending)
+  def remove_slot(wday, start_tod, end_tod)
     existing = self.rota_slots.find { |s|
-      s.starts_at == starting &&
-        s.ends_at == ending
+      s.starts_at_tod == start_tod &&
+        s.ends_at_tod == end_tod
     }
     if existing
-      if existing.days[day_no]
-        existing.days[day_no] = false
+      if existing.days[wday]
+        existing.days[wday] = false
         if existing.days.none?
           existing.destroy
         else
           existing.save
+        end
+      end
+    end
+  end
+
+  def adjust_slot(wday, start_tod, end_tod, params)
+    existing = self.rota_slots.find { |s|
+      s.starts_at_tod == start_tod &&
+        s.ends_at_tod == end_tod
+    }
+    if existing
+      #
+      #  Found the slot.  Now what do we want to do to it?
+      #
+      #  This gets quite interesting because we don't actually store
+      #  individual separate events.  We store times, and then a list of
+      #  the days on which they apply.  If one of our events is to change
+      #  its end time then we need to remove it from its current list
+      #  (and possibly delete that RotaSlot if no other days are left)
+      #  then look for a new matching slot.  If one is found then we just
+      #  add it to the new one, and if not then we create a new RotaSlot.
+      #
+      #  We cope with *either* a new day and start time, *or* a new
+      #  end time.
+      #
+      if params[:ends_at]
+        new_end_tod = Tod::TimeOfDay.parse(params[:ends_at])
+        #
+        #  Has it actually changed?
+        #
+        unless new_end_tod == end_tod
+          #
+          #  Existing RotaSlot is no use to us.
+          #
+          if existing.days[wday]
+            existing.days[wday] = false
+            if existing.days.none?
+              existing.destroy
+            else
+              existing.save
+            end
+          end
+          #
+          #  Can we tag on to another existing one?
+          #
+          existing = self.rota_slots.find { |s|
+            s.starts_at_tod == start_tod &&
+              s.ends_at_tod == new_end_tod
+          }
+          if existing
+            unless existing.days[wday]
+              existing.days[wday] = true
+              existing.save
+            end
+          else
+            #
+            #  Need to create a brand new one.
+            #
+            rs = RotaSlot.new
+            rs.starts_at = start_tod
+            rs.ends_at   = new_end_tod
+            days = [false, false, false, false, false, false, false]
+            days[wday] = true
+            rs.days = days
+            self.rota_slots << rs
+          end
+        end
+      elsif params[:starts_at] && params[:day_no]
+        new_start_tod = Tod::TimeOfDay.parse(params[:starts_at])
+        new_wday = params[:day_no]
+        #
+        #  Has the timing changed?
+        #
+        if new_start_tod == start_tod
+          #
+          #  No change to the timing.  Has the day changed?
+          #
+          unless new_wday == wday
+            existing.days[wday] = false
+            existing.days[new_wday] = true
+            existing.save
+          end
+        else
+          #
+          #  Start time (and thus implicitly end time) has changed.
+          #
+          #  The interface of Tod::TimeOfDay is slightly inconsistent.
+          #  You can subtract one from another, yielding a new Tod::TimeOfDay,
+          #  but you can't add them.  You can only add seconds.
+          #
+          new_end_tod = new_start_tod + (end_tod - start_tod).second_of_day
+          if existing.days[wday]
+            existing.days[wday] = false
+            if existing.days.none?
+              existing.destroy
+            else
+              existing.save
+            end
+          end
+          #
+          #  Can we tag on to another existing one?
+          #
+          existing = self.rota_slots.find { |s|
+            s.starts_at_tod == new_start_tod &&
+              s.ends_at_tod == new_end_tod
+          }
+          if existing
+            unless existing.days[new_wday]
+              existing.days[new_wday] = true
+              existing.save
+            end
+          else
+            #
+            #  Need to create a brand new one.
+            #
+            rs = RotaSlot.new
+            rs.starts_at = new_start_tod
+            rs.ends_at   = new_end_tod
+            days = [false, false, false, false, false, false, false]
+            days[new_wday] = true
+            rs.days = days
+            self.rota_slots << rs
+          end
         end
       end
     end

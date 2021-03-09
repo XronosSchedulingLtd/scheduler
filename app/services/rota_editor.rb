@@ -52,6 +52,13 @@ class RotaEditor
       #  Split an id up into a day number (0 - 6) and a start and
       #  end time (both Tod::TimeOfDays).
       #
+      day_no = id[0].to_i
+      if day_no == 7
+        day_no = 0
+      end
+      start_tod = Tod::TimeOfDay.parse("#{id[1,2]}:#{id[3,2]}")
+      end_tod = Tod::TimeOfDay.parse("#{id[5,2]}:#{id[7,2]}")
+      return day_no, start_tod, end_tod
     end
 
   end
@@ -96,55 +103,51 @@ class RotaEditor
     result
   end
 
-  def add_event(starts_at, ends_at)
+  def add_event(params)
     #
-    #  We are passed strings, straight from the client.  Ideally they
-    #  would look like this:
+    #  params is what we got from the browser.  Should contain.
     #
-    #  "2017-01-02 12:31"
+    #  day_no:   Integer
+    #  starts_at:  "HH:MM"
+    #  ends_at:    "HH:MM"
     #
-    #  There should not be any seconds given.
+    #  Ends_at is optional
     #
-    if ends_at
+    day_no = params[:day_no]
+    if params[:ends_at]
       #
       #  We've been given both times, so just use them.
       #
-      starting = Time.zone.parse(starts_at)
-      ending = Time.zone.parse(ends_at)
+      starting = Tod::TimeOfDay.parse(params[:starts_at])
+      ending = Tod::TimeOfDay.parse(params[:ends_at])
     else
       #
       #  Just got the one, so see whether we can jump to a slot.
-      #  If not, default to zero length event.
+      #  If not, default to a one hour event.
       #
-      starting = Time.zone.parse(starts_at)
-      starting, ending = @template.snap_to_period(starting)
+      starting = Tod::TimeOfDay.parse(params[:starts_at])
+      slot = @template.covering_slot(day_no, starting)
+      if slot
+        starting = slot.starts_at_tod
+        ending   = slot.ends_at_tod
+      else
+        ending = starting + 3600
+      end
     end
-    @rota.add_slot(starting, ending)
+    @rota.add_slot(day_no, starting, ending)
   end
 
-  def adjust_event(id, ends_at)
-    #
-    #  This gets quite interesting because we don't actually store
-    #  individual separate events.  We store times, and then a list of
-    #  the days on which they apply.  If one of our events is to change
-    #  its end time then we need to remove it from its current list
-    #  (and possibly delete that RotaSlot if no other days are left)
-    #  then look for a new matching slot.  If one is found then we just
-    #  add it to the new one, and if not then we create a new RotaSlot.
-    #
+  def adjust_event(id, params)
+    day_no, start_tod, end_tod = RE_Event.split_id(id)
+    @rota.adjust_slot(day_no, start_tod, end_tod, params)
   end
 
   def delete_event(id)
     #
     #  This should be a 9 digit numeric string, which we split up.
     #
-    day_no = id[0].to_i
-    if day_no == 7
-      day_no = 0
-    end
-    start_time = "#{id[1,2]}:#{id[3,2]}"
-    end_time = "#{id[5,2]}:#{id[7,2]}"
-    @rota.remove_slot(day_no, start_time, end_time)
+    day_no, start_tod, end_tod = RE_Event.split_id(id)
+    @rota.remove_slot(day_no, start_tod, end_tod)
   end
 
 end

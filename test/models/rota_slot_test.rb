@@ -44,5 +44,9 @@ class RotaSlotTest < ActiveSupport::TestCase
     assert rs.applies_on?(Date.today.sunday)
     assert_not rs.applies_on?(Date.today.sunday + 1.day)
     assert rs.applies_on?(Date.today.sunday + 2.days)
+    assert rs.applies_on?(0)
+    assert_not rs.applies_on?(1)
+    assert rs.applies_on?(2)
+    assert_not rs.applies_on?(3)
   end
 end

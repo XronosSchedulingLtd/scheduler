@@ -22,7 +22,7 @@ class AhdEventsController < ApplicationController
     re = RotaEditor.new(
       @ad_hoc_domain_staff.rota_template,
       @ad_hoc_domain.default_day_shape)
-    re.add_event(ahd_event_params[:starts_at], ahd_event_params[:ends_at])
+    re.add_event(ahd_event_params)
     respond_to do |format|
       format.json
     end
@@ -42,7 +42,7 @@ class AhdEventsController < ApplicationController
     re = RotaEditor.new(
       @ad_hoc_domain_staff.rota_template,
       @ad_hoc_domain.default_day_shape)
-    re.adjust_event(params[:id], ahd_event_params[:ends_at])
+    re.adjust_event(params[:id], ahd_event_params)
     respond_to do |format|
       format.json
     end
@@ -70,7 +70,7 @@ class AhdEventsController < ApplicationController
   # Never trust parameters from the scary internet, only allow the white list through.
   def ahd_event_params
     params.require(:ahd_event).
-      permit(:starts_at, :ends_at)
+      permit(:day_no, :starts_at, :ends_at)
   end
 
 end

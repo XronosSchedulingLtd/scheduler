@@ -187,4 +187,11 @@ class RotaTemplateTest < ActiveSupport::TestCase
       assert_equal before_last_updated[i], after_last_updated[i]
     end
   end
+
+  test "can find slot for a given time" do
+    rt = FactoryBot.create(:rota_template)
+    assert_not_nil rt.covering_slot(1, Tod::TimeOfDay.parse("11:04"))
+    assert_nil rt.covering_slot(1, Tod::TimeOfDay.parse("12:22"))
+  end
+
 end
