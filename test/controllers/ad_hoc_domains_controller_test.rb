@@ -47,11 +47,11 @@ class AdHocDomainsControllerTest < ActionDispatch::IntegrationTest
     #
     document = Nokogiri::HTML(response.body)
     titles = document.css('li.tab-title')
-    assert_equal 3, titles.count
+    assert_equal 4, titles.count
     assert /active/ =~ titles[1].attributes['class'].value
     assert_equal 1, document.css('li.tab-title.active').count
     bodies = document.css('div.content')
-    assert_equal 3, bodies.count
+    assert_equal 4, bodies.count
     assert /active/ =~ bodies[1].attributes['class'].value
     assert_equal 1, document.css('div.content.active').count
   end
@@ -65,11 +65,11 @@ class AdHocDomainsControllerTest < ActionDispatch::IntegrationTest
     #
     document = Nokogiri::HTML(response.body)
     titles = document.css('li.tab-title')
-    assert_equal 3, titles.count
+    assert_equal 4, titles.count
     assert /active/ =~ titles[0].attributes['class'].value
     assert_equal 1, document.css('li.tab-title.active').count
     bodies = document.css('div.content')
-    assert_equal 3, bodies.count
+    assert_equal 4, bodies.count
     assert /active/ =~ bodies[0].attributes['class'].value
     assert_equal 1, document.css('div.content.active').count
 
@@ -79,11 +79,11 @@ class AdHocDomainsControllerTest < ActionDispatch::IntegrationTest
     #
     document = Nokogiri::HTML(response.body)
     titles = document.css('li.tab-title')
-    assert_equal 3, titles.count
+    assert_equal 4, titles.count
     assert /active/ =~ titles[2].attributes['class'].value
     assert_equal 1, document.css('li.tab-title.active').count
     bodies = document.css('div.content')
-    assert_equal 3, bodies.count
+    assert_equal 4, bodies.count
     assert /active/ =~ bodies[2].attributes['class'].value
     assert_equal 1, document.css('div.content.active').count
   end

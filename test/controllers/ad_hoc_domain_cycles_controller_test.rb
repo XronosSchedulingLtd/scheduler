@@ -74,7 +74,7 @@ class AdHocDomainCyclesControllerTest < ActionDispatch::IntegrationTest
     #  And we should be on tab 0 of three.
     #
     titles = document.css('li.tab-title')
-    assert_equal 3, titles.count
+    assert_equal 4, titles.count
     assert /active/ =~ titles[0].attributes['class'].value
     assert_equal 1, document.css('li.tab-title.active').count
   end

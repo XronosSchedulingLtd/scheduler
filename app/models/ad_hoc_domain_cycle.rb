@@ -44,6 +44,10 @@ class AdHocDomainCycle < ApplicationRecord
 
   has_many :ad_hoc_domain_pupil_courses, through: :ad_hoc_domain_subjects
 
+  has_many :ad_hoc_domain_allocations, dependent: :destroy
+
+  has_many :ad_hoc_domain_subject_staffs, through: :ad_hoc_domain_subjects
+
   validates :name, presence: true
   validates :starts_on, presence: true
   validates :exclusive_end_date, presence: true

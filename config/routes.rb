@@ -19,6 +19,7 @@ Rails.application.routes.draw do
       resources :ad_hoc_domain_staffs, shallow: true do
         resources :ad_hoc_domain_subjects, only: [:create]
       end
+      resources :ad_hoc_domain_allocations, shallow: true
     end
     member do
       get :edit_controllers
@@ -28,6 +29,12 @@ Rails.application.routes.draw do
   end
   resources :ad_hoc_domain_staffs, only: [] do
     resources :events, controller: :ahd_events
+    resources :ad_hoc_domain_allocations, only: [] do
+      member do
+        get :allocate
+        put :save
+      end
+    end
   end
 
   resources :user_profiles do

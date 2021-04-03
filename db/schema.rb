@@ -10,7 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_06_163634) do
+ActiveRecord::Schema.define(version: 2021_03_10_143941) do
+
+  create_table "ad_hoc_domain_allocations", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
+    t.string "name"
+    t.integer "ad_hoc_domain_cycle_id"
+    t.text "allocations", limit: 16777215
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ad_hoc_domain_cycle_id"], name: "index_ad_hoc_domain_allocations_on_ad_hoc_domain_cycle_id"
+  end
 
   create_table "ad_hoc_domain_controllers", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
     t.integer "ad_hoc_domain_id"

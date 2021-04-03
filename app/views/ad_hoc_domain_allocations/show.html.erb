@@ -1,0 +1,29 @@
+<h1>Allocate staff time</h1>
+
+<p>Cycle: <%= @ad_hoc_domain_allocation.ad_hoc_domain_cycle.name %></p>
+<p>Allocation: <%= @ad_hoc_domain_allocation.name %></p>
+
+<table class='zftable'>
+  <thead>
+    <th>Staff</th>
+    <th>Subjects</th>
+    <th>% complete</th>
+    <th></th>
+  </thead>
+  <tbody>
+    <%= render @staffs %>
+  </tbody>
+</table>
+
+<%=
+  link_to(
+    "Done",
+    ad_hoc_domain_path(
+      @ad_hoc_domain_allocation.ad_hoc_domain_cycle.ad_hoc_domain,
+      params: {
+        cycle_id: @ad_hoc_domain_allocation.ad_hoc_domain_cycle_id,
+        tab: 3
+      }
+    ),
+    class: "zfbutton tiny radius button-link")
+  %>

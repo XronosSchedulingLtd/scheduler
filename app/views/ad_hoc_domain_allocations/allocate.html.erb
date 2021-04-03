@@ -1,0 +1,42 @@
+
+<p>Note that editing is local to your web browser.  You must save your
+changes if you want them to persist.</p>
+
+<div id="mainContainer">
+  <div class="row collapse calendarbit">
+    <div class="small-12 columns">
+      <h3>Working on the allocation called <%= @ad_hoc_domain_allocation.name %></h3>
+    </div>
+    <div class="small-4 columns">
+      <p>Lessons slots for <%= @ad_hoc_domain_staff.staff_name %></p>
+      <div id='pending-allocations'>
+        <div class='single-allocation'>
+          Bertie Dinsey
+          <div class='timing'>45 mins</div>
+        </div>
+        <div class='single-allocation'>
+          Goodbye
+          <div class='timing'>30 mins</div>
+        </div>
+        <div class='single-allocation'>
+          Banana
+          <div class='timing'>30 mins</div>
+        </div>
+      </div>
+      <hr>
+      <%= link_to "Finished",
+        ad_hoc_domain_allocation_url(@ad_hoc_domain_allocation),
+        class: "zfbutton tiny radius button-link" %>
+    </div>
+    <div class="small-8 columns">
+      <div id='editing-allocation'>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="allocation-data">
+  <%=
+    @ad_hoc_domain_allocation.to_json(
+      ad_hoc_domain_staff_id: @ad_hoc_domain_staff.id).html_safe %>
+</script>

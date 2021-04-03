@@ -1,0 +1,28 @@
+<tr>
+  <td><%= ad_hoc_domain_allocation.name %></td>
+  <td>0%</td>
+  <td><%=
+    link_to(
+      "Details",
+      ad_hoc_domain_allocation_path(ad_hoc_domain_allocation),
+      class: "zfbutton teensy tiny radius button-link")
+      %></td>
+  <td>Implement</td>
+  <td>Clone</td>
+  <td><%=
+  link_to(
+    "Edit name",
+    edit_ad_hoc_domain_allocation_path(ad_hoc_domain_allocation),
+    class: "zfbutton teensy tiny radius button-link"
+  )
+  %></td>
+  <td><%=
+  link_to "Delete",
+    ad_hoc_domain_allocation,
+    method: :delete,
+    data: {
+      confirm: "Are you sure you want to delete this whole allocation?"
+    },
+    class: "zfbutton teensy tiny radius button-link"
+    %></td>
+</tr>

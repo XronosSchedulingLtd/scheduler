@@ -14,7 +14,8 @@
     {
       ahd_cycles:     "Cycles",
       ahd_by_subject: "By Subject",
-      ahd_by_staff:   "By Staff"
+      ahd_by_staff:   "By Staff",
+      ahd_allocate:   "Allocate"
     }.each_with_index do |(key, value), index|
   %>
   <%= ahd_tab_header(key, value, index == @active_tab) %>
@@ -49,6 +50,9 @@
             })
           %>
       <%= render 'staff_listing' %>
+    </div>
+    <div <%= ahd_tab(:ahd_allocate, @active_tab == 3) %>>
+      <%= render 'allocation_listing' %>
     </div>
   <% else %>
     <div class="content active" id="ahd-cycles">
