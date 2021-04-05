@@ -173,17 +173,42 @@ class Event < ApplicationRecord
   #  to this method of working everywhere.  Sadly it's not how groups
   #  are implemented.
   #
-  scope :beginning, lambda {|date| where("ends_at > ?", date) }
-  scope :until, lambda {|date| where("starts_at < ?", date) }
+  #
+  #  It is important to convert any Date parameters into TimeWithZones
+  #  because otherwise we get false overlaps with DST.  The event
+  #  uses TimeWithZone so an all-day event which one thinks of as
+  #  beginning on the 1st of June, actually starts at 23:00 on the
+  #  31st of May (GMT).  If you for instance pass an end_date to 
+  #  the during function of 1st June, you get a false overlap.  Convert
+  #  the date  to a TimeWithZone though and all works as expected.
+  #
+  #  If the caller passes a TimeWithZone anyway then there's no harm
+  #  done because the at_beginning_of_day method exists there too and
+  #  does nothing.
+  #
+  scope :beginning, lambda {|date| where("ends_at > ?",
+                                         date.beginning_of_day) }
+  scope :until, lambda {|date| where("starts_at < ?",
+                                     date.at_beginning_of_day) }
   #
   #  And these are for specifying events which are over before a given
   #  date, or start after a given date.
   #
-  scope :before, lambda {|date| where("ends_at < ?", date) }
-  scope :after, lambda {|date| where("starts_at > ?", date + 1.day) }
+  scope :before, lambda {|date| where("ends_at < ?",
+                                      date.beginning_of_day) }
+  #
+  #  I wondered for some time about whether to use >= and add a day, 
+  #  or use > and not add anything.  The latter though would come
+  #  out as true if an event merely started at 01:00, so not really
+  #  *after* the indicated day.
+  #
+  scope :after, lambda {|date| where("starts_at >= ?",
+                                     (date + 1.day).beginning_of_day) }
 
   scope :during, lambda {|start_date, end_date|
-    where("ends_at > ? AND starts_at < ?", start_date, end_date)
+    where("ends_at > ? AND starts_at < ?",
+          start_date.at_beginning_of_day,
+          end_date.at_beginning_of_day)
   }
   #
   #  Events in the future.  Today or later.

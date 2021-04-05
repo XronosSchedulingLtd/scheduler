@@ -433,8 +433,31 @@ class ResourceLoadingCalculator
         #
         times = Array.new
         all_events.each do |event|
-          times << event.start_time_on(@date, @wrapping_mins)
-          times << event.end_time_on(@date, @wrapping_mins)
+          #
+          #  A logic error elsewhere meant that we were getting some nil
+          #  times sneaking in here, which in turn caused the upcoming
+          #  sort! to trap and stop the program.
+          #
+          #  That logic error has been fixed, but let's have a bit
+          #  of resilience for the future.  I could just call compact!
+          #  before calling sort!, but it's better to get the problem
+          #  logged.
+          #
+          #  Using puts rather than Rails.logger because this is
+          #  run from a cron job.
+          #
+          atime = event.start_time_on(@date, @wrapping_mins)
+          if atime
+            times << atime
+          else
+            puts "Event #{event.id} generated nil start time."
+          end
+          atime = event.end_time_on(@date, @wrapping_mins)
+          if atime
+            times << atime
+          else
+            puts "Event #{event.id} generated nil end time."
+          end
         end
         times.sort!
         times.uniq!

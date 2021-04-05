@@ -493,6 +493,32 @@ class EventTest < ActiveSupport::TestCase
     assert_nil ts4
   end
 
+  test "during works correctly with dates and DST" do
+    event = FactoryBot.create(:event,
+                              starts_at: Time.zone.parse("2020-05-01"),
+                              ends_at: Time.zone.parse("2020-05-03"),
+                              all_day: true)
+    assert_equal 0, Event.during(Date.parse("2020-04-30"),
+                                 Date.parse("2020-05-01")).count
+  end
+
+  test "until works correctly with dates and DST" do
+    event = FactoryBot.create(:event,
+                              starts_at: Time.zone.parse("2020-05-01"),
+                              ends_at: Time.zone.parse("2020-05-03"),
+                              all_day: true)
+    assert_equal 0, Event.beginning(Date.parse("2020-04-30")).until(Date.parse("2020-05-01")).count
+  end
+
+  test "works correctly with dates and DST" do
+    event = FactoryBot.create(:event,
+                              starts_at: Time.zone.parse("2020-05-01"),
+                              ends_at: Time.zone.parse("2020-05-03"),
+                              all_day: true)
+    assert_equal 1, Event.after(Date.parse("2020-04-30")).
+                          before(Date.parse("2020-05-31")).count
+  end
+
   #
   #  Leave this test at the end.  It needs investigating at some point.
   #
