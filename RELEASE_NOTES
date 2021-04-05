@@ -1,3 +1,30 @@
+v1.13.0   2021-04-05
+
+* Upgrade Rails to 5.2.5
+
+  A licensing problem was discovered in one of the Rails dependencies,
+  in that a BSD-licensed component depended on another library which
+  was under the GNU General Public Licence.  This was not a problem for
+  Scheduler because it too is GPL licensed, but it was a problem for Rails.
+
+* Upgrade redcarpet to 3.5.1
+
+  CVE-2020-26298 affected the version of redcarpet previously used by
+  Scheduler (although not in the way Scheduler used it).  Upgraded to
+  remove the warnings.
+
+* Fix to detection of overlapping events.
+
+  The start and end times of Scheduler's events are stored in the database
+  complete with Time Zone information.  Thus an all day event in the summer
+  starting on the 1st of June is stored as starting at 20XX-05-31 23:00.
+
+  If a query was then issued to the database specifying just a date (and
+  no time) the event would appear to exist in 20XX-05-31.  The relevant
+  code in the Event model has been updated to make sure it always uses
+  a full TimeWithZone to specify the required threshold.
+
+
 v1.12.1   2021-01-01
 
 Three minor fixes/tweaks
