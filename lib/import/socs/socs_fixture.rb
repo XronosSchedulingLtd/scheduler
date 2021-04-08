@@ -104,6 +104,7 @@ class SocsFixture
     XmlField["eventid",        :socs_id,          :data, :integer],
     XmlField["sport",          :sport,            :data, :string],
     XmlField["date",           :date_text,        :data, :string],
+    XmlField["time",           :time_text,        :data, :string],
     XmlField["startdatefull",  :starts_at_text,   :data, :string],
     XmlField["enddatefull",    :ends_at_text,     :data, :string],
     XmlField["team",           :team,             :data, :string],
@@ -176,41 +177,52 @@ class SocsFixture
     #  we've been given.  Currently they are just text, but we want
     #  TimeWithZone objects.
     #
+    #  It turns out we can't just use the startdatefull and enddatefull
+    #  fields because they are filled illogically once other timings
+    #  are entered.
+    #
     @wanted    = true
     @all_day   = false
+    #
+    #  First, let's get a date.
+    #
     if @starts_at_text.blank?
-      if @@options.allow_timeless
-        if @date_text.blank?
-          #
-          #  Can't cope without any date at all.
-          #
-          @wanted = false
-        else
-          @all_day = true
-          @starts_at = Time.zone.parse(@date_text)
-          @ends_at   = @starts_at + 1.day
-        end
-      else
+      if @date_text.blank?
         @wanted = false
+      else
+        @date = Time.zone.parse(@date_text)
       end
     else
-      @starts_at = Time.zone.parse(@starts_at_text)
-      if @ends_at_text.blank?
-        @ends_at = @starts_at + @@options.default_duration.minutes
-      else
-        @ends_at = Time.zone.parse(@ends_at_text)
-      end
+      @date = Time.zone.parse(@starts_at_text).at_beginning_of_day
     end
-    #
-    #  Little check to eliminate a data entry error.
-    #
     if @wanted
-      if @ends_at < @starts_at
-        puts "Negative duration event detected"
-        puts "  Event:  #{event_body}"
-        puts "  Starts: #{@starts_at.to_s}"
-        puts "  Ends:   #{@ends_at.to_s}"
-        @wanted = false
+      #
+      #  Now try for a time.
+      #
+      if @time_text.blank?
+        if @@options.allow_timeless
+          @all_day = true
+          @starts_at = @date
+          @ends_at   = @starts_at + 1.day
+        else
+          @wanted = false
+        end
+      else
+        @starts_at = Time.zone.parse(@time_text, @date)
+        if @starts_at
+          @ends_at = @starts_at + @@options.default_duration.minutes
+        else
+          #
+          #  May be garbage in the time field
+          #
+          if @@options.allow_timeless
+            @all_day = true
+            @starts_at = @date
+            @ends_at   = @starts_at + 1.day
+          else
+            @wanted = false
+          end
+        end
       end
     end
   end
