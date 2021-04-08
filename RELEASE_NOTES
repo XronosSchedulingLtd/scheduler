@@ -1,3 +1,16 @@
+v1.13.1   2021-04-08
+
+* Tweak to event timing in the SOCS feed.
+
+  It transpires that the SOCS feed does something slightly odd once you
+  start adding meet times and the like to an event.
+
+  If you have just a match time, it feeds that through as the time of
+  the event.  Once you add a meet time, it passes that as the time of
+  the event instead.  We thus have to use the explicit fixture time and
+  not the integrated date/time field provided by SOCS.
+
+
 v1.13.0   2021-04-05
 
 * Upgrade Rails to 5.2.5
