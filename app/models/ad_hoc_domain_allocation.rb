@@ -28,7 +28,7 @@ class AdHocDomainAllocation < ApplicationRecord
           id: pupil_course.id,
           pupil_id: pupil_course.pupil_id,
           mins: pupil_course.minutes,
-          name: pupil_course.pupil_name,
+          name: pupil_course.pupil.name,
           subject: pupil_course.ad_hoc_domain_subject.subject_name
         }
         pupils << pupil
@@ -53,7 +53,7 @@ class AdHocDomainAllocation < ApplicationRecord
         end
       end
       result[:availables] = availables
-      result[:dates] =
+      result[:weeks] =
         WeekIdentifier.new(ad_hoc_domain_cycle.starts_on,
                            ad_hoc_domain_cycle.ends_on).dates
       result[:pupils] = pupils
@@ -89,6 +89,7 @@ class AdHocDomainAllocation < ApplicationRecord
       end
       result[:timetables] = timetables
       result[:subjects] = subjects
+      result[:current] = 0
     end
     result
   end

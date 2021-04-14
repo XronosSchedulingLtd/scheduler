@@ -9,20 +9,7 @@ changes if you want them to persist.</p>
     </div>
     <div class="small-4 columns">
       <p>Lessons slots for <%= @ad_hoc_domain_staff.staff_name %></p>
-      <div id='pending-allocations' class='withedit'>
-        <div class='single-allocation'>
-          Bertie Dinsey
-          <div class='timing'>45 mins</div>
-        </div>
-        <div class='single-allocation'>
-          Goodbye
-          <div class='timing'>30 mins</div>
-        </div>
-        <div class='single-allocation draggable-element'>
-          Banana
-          <div class='timing'>30 mins</div>
-        </div>
-      </div>
+      <div id='pending-allocations'></div>
       <hr>
       <%= link_to "Finished",
         ad_hoc_domain_allocation_url(@ad_hoc_domain_allocation),
@@ -39,4 +26,11 @@ changes if you want them to persist.</p>
   <%=
     @ad_hoc_domain_allocation.to_json(
       ad_hoc_domain_staff_id: @ad_hoc_domain_staff.id).html_safe %>
+</script>
+
+<script type="text/template" id="an-allocation">
+  <div class='single-allocation' data-pupil-id='<%%= pupil_id %>'>
+    <p><%%= pupil %></p>
+    <p><%%= subject %></p>
+  </div>
 </script>

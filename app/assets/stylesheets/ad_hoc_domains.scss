@@ -232,10 +232,14 @@
     border-style: solid;
     border-width: 1px;
     border-color: rgb(58,135,173);
-    color: white;
-    font-size: 11.05px;
-    .timing {
-      font-size: 8px;
+    p {
+      color: white;
+      font-size: 11.05px;
+      margin-bottom: 0px;
+      line-height: 16px;
+      .timing {
+        font-size: 8px;
+      }
     }
   }
 }
