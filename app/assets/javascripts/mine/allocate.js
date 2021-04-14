@@ -13,10 +13,9 @@ var editing_allocation = function() {
 
   var that = {};
 
-  var myDiv = $('#editing-allocation');
+  var calDiv = $('#editing-allocation');
+  var viewDiv = $('#pending-allocations');
   var myData = $('#allocation-data');
-  var allocation_id = myDiv.data('allocation-id');
-  var base_url = '/ad_hoc_domain_allocations/' + allocation_id + '/'
   var allocation;
 
   function serverResponded() {
@@ -25,6 +24,12 @@ var editing_allocation = function() {
   var Allocation = Backbone.Model.extend({
   });
 
+  //
+  //  I propose to use the View for the bits where we need to do the
+  //  drawing, but keep FullCalendar mostly outside it.  It can do its
+  //  own drawing.  The view will however trigger FC to refetch its events
+  //  when something interesting happens.
+  //
   var AllocationView = Backbone.View.extend({
     fcParams: {
       schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
@@ -104,7 +109,6 @@ var editing_allocation = function() {
     },
 
     initialize: function(options) {
-      allocation = new Allocation(options.data);
       //
       //  Now we need some info from the model to set up our
       //  parameters to pass to FullCalendar.
@@ -115,7 +119,7 @@ var editing_allocation = function() {
         end:   allocation.get('ends')
       };
       this.fcParams.events = this.generateEvents;
-      myDiv.fullCalendar(this.fcParams)
+      calDiv.fullCalendar(this.fcParams)
     }
   });
 
@@ -124,20 +128,19 @@ var editing_allocation = function() {
     //  We have already checked that our master parent division
     //  exists, otherwise we wouldn't be running at all.
     //
-//    fcParams.eventSources = [{
-//      url: base_url
-//    }];
     var json_data = myData.text();
-    console.log({json_data});
     var data = JSON.parse(json_data);
-    console.log({data});
+    //
+    //  The allocation variable is defined globally in this module.
+    //
+    allocation = new Allocation(data);
+    console.log({allocation});
+
     var av = new AllocationView(
       {
-        el: myDiv,
-        data: data
+        el: viewDiv
       }
     );
-    console.log({av});
   }
 
   return that;
