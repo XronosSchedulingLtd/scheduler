@@ -117,8 +117,11 @@ var editing_allocation = function() {
                 events.push({
                   title: subjects[entry.s],
                   start: date.format('YYYY-MM-DD') + ' ' + entry.b,
-                  end: date.format('YYYY-MM-DD') + ' ' + entry.e
+                  end: date.format('YYYY-MM-DD') + ' ' + entry.e,
+                  color: '#3b9653'
                 });
+                // Amber '#d4a311'
+                // Red   '#db4335'
               });
 
             }
@@ -163,6 +166,7 @@ var editing_allocation = function() {
   var AllocationView = Backbone.View.extend({
     el: '#pending-allocations',
     template: _.template($('#an-allocation').html()),
+    highlighting: 0,
     initialize: function(options) {
       allocation.on("change", this.checkChanges, this);
     },
@@ -175,9 +179,13 @@ var editing_allocation = function() {
     },
     checkChanges: function() {
       //
-      //  We don't want to re-render on every change.  Only if the
-      //  list of allocations has changed.
+      //  We don't want to re-render on every change.
       //
+      var toHighlight = allocation.get("current");
+      if (toHighlight !== this.highlighting) {
+        this.highlighting = toHighlight;
+        this.render();
+      }
     },
     render: function() {
       //
@@ -193,8 +201,15 @@ var editing_allocation = function() {
       //
       var texts = [];
       var that = this;
+      var extraClass;
       allocation.attributes.pupils.forEach(function(item, index) {
+        if (item.pupil_id === that.highlighting) {
+          extraClass = " selected";
+        } else {
+          extraClass = "";
+        }
         texts.push(that.template({
+          extra_class: extraClass,
           pupil_id: item.pupil_id,
           pupil: item.name,
           subject: item.subject
@@ -204,12 +219,14 @@ var editing_allocation = function() {
         texts.join(" ")
       );
       //
-      //  And make them all draggable.
+      //  And make selected draggable.
       //
-      this.$el.find('.single-allocation').each(function(index) {
+      this.$el.find('.single-allocation.selected').each(function(index) {
         $(this).draggable({
           revert: true
         });
+      });
+      this.$el.find('.single-allocation').each(function(index) {
         $(this).click(that.clicked);
       });
     }

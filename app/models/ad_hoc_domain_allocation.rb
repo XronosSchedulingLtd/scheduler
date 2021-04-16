@@ -70,20 +70,22 @@ class AdHocDomainAllocation < ApplicationRecord
         ea = Timetable::EventAssembler.new(pupil.element, Date.today, true)
         timetable = Hash.new
         ea.events_by_day do |week, day_no, event|
-          timetable[week] ||= Array.new
-          timetable[week][day_no] ||= Array.new
-          subject = event.subject
-          if subject
-            subjects[subject.id] ||= subject.name
-            subject_id = subject.id
-          else
-            subject_id = 0
+          if event.eventcategory_id == lesson_category.id
+            timetable[week] ||= Array.new
+            timetable[week][day_no] ||= Array.new
+            subject = event.subject
+            if subject
+              subjects[subject.id] ||= subject.name
+              subject_id = subject.id
+            else
+              subject_id = 0
+            end
+            timetable[week][day_no] << {
+              b: event.starts_at.to_s(:hhmm),
+              e: event.ends_at.to_s(:hhmm),
+              s: subject_id
+            }
           end
-          timetable[week][day_no] << {
-            b: event.starts_at.to_s(:hhmm),
-            e: event.ends_at.to_s(:hhmm),
-            s: subject_id
-          }
         end
         timetables[pupil.id] = timetable
       end
