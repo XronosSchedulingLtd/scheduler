@@ -25,7 +25,7 @@ class AdHocDomainAllocation < ApplicationRecord
       pupils = []
       staff.ad_hoc_domain_pupil_courses.each do |pupil_course|
         pupil = {
-          id: pupil_course.id,
+          pcid: pupil_course.id,
           pupil_id: pupil_course.pupil_id,
           mins: pupil_course.minutes,
           name: pupil_course.pupil.name,
@@ -59,7 +59,9 @@ class AdHocDomainAllocation < ApplicationRecord
       result[:pupils] = pupils
       result[:allocated] = self.allocations[staff.id] || []
       #
-      #  Need to get the timetable for each pupil.
+      #  Need to get the timetable for each pupil.  Note that there
+      #  may be two pupil courses for a single pupil.  Need send only
+      #  one copy of his timetable.
       #
       lesson_category = Eventcategory.cached_category("Lesson")
       timetables = Hash.new
