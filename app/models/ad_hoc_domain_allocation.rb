@@ -22,16 +22,16 @@ class AdHocDomainAllocation < ApplicationRecord
     }
     if options[:ad_hoc_domain_staff_id] &&
       staff = AdHocDomainStaff.find_by(id: options[:ad_hoc_domain_staff_id])
-      pupils = []
+      pcs = []
       staff.ad_hoc_domain_pupil_courses.each do |pupil_course|
-        pupil = {
+        pc = {
           pcid: pupil_course.id,
           pupil_id: pupil_course.pupil_id,
           mins: pupil_course.minutes,
           name: pupil_course.pupil.name,
           subject: pupil_course.ad_hoc_domain_subject.subject_name
         }
-        pupils << pupil
+        pcs << pc
       end
       #
       #  When is this member of staff available?
@@ -56,17 +56,17 @@ class AdHocDomainAllocation < ApplicationRecord
       result[:weeks] =
         WeekIdentifier.new(ad_hoc_domain_cycle.starts_on,
                            ad_hoc_domain_cycle.ends_on).dates
-      result[:pupils] = pupils
+      result[:pcs] = pcs
       result[:allocated] = self.allocations[staff.id] || []
       #
       #  Need to get the timetable for each pupil.  Note that there
       #  may be two pupil courses for a single pupil.  Need send only
-      #  one copy of his timetable.
+      #  one copy of his or her timetable.
       #
       lesson_category = Eventcategory.cached_category("Lesson")
       timetables = Hash.new
       subjects = Hash.new
-      pupil_ids = staff.ad_hoc_domain_pupil_courses.collect(&:pupil_id)
+      pupil_ids = staff.ad_hoc_domain_pupil_courses.collect(&:pupil_id).uniq
       pupils = Pupil.includes(:element).where(id: pupil_ids)
       pupils.each do |pupil|
         ea = Timetable::EventAssembler.new(pupil.element, Date.today, true)

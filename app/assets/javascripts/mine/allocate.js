@@ -60,7 +60,7 @@ var editing_allocation = function() {
       "2021-05-20":"B",
       "2021-05-21":"B"
     },
-    "pupils": [
+    "pcs": [
       {
         "pcid":9,
         "pupil_id":3805,
@@ -371,6 +371,82 @@ var editing_allocation = function() {
   //  Subsidiary items for our dataset.
   //
   //
+  //  The raw timetable is nearly good enough but we want to add
+  //  some helper methods.
+  //
+  var makeTimetable = function(pupil_id, mine) {
+
+    that = mine.timetables[pupil_id];
+    //
+    //  A raw timetable may belong to more than one PupilCourse
+    //  but needs enhancing only once.
+    //
+    if (!that['entriesOn']) {
+      that.entriesOn = function(date) {
+        var week = mine.weeks[date.format('YYYY-MM-DD')];
+        var wday = date.day();
+        var week_entries = this[week];
+
+        if (week_entries) {
+          var entries = week_entries[wday];
+          if (entries) {
+            return entries;
+          }
+        }
+        return [];
+      };
+    }
+
+    return that;
+  };
+
+  var makePupilCourse = function(pc, mine) {
+    var that = {};
+
+    that.pcid      = pc.pcid;
+    that.pupil_id  = pc.pupil_id;
+    that.mins      = pc.mins;
+    that.name      = pc.name;
+    that.subject   = pc.subject;
+    that.timetable = makeTimetable(that.pupil_id, mine);
+    return that;
+  };
+
+  var makePupilCourses = function(spec, mine) {
+    var current;
+    var i;
+    var that = {};
+
+    //
+    //  We're turning an array into a hash.
+    //
+    for (i = 0; i < spec.pcs.length; i++) {
+      current = spec.pcs[i]
+      that[current.pcid] = makePupilCourse(current, mine);
+    }
+    return that;
+  };
+
+  var makeAllocation = function(allocated, mine) {
+    return allocated;  // For now.
+  };
+
+  var makeAllocations = function(spec, mine) {
+    //
+    //  We're handling a list of existing allocations sent down from
+    //  the host.
+    //
+    var allocated = spec.allocated;
+    var i;
+    var allocations = [];
+
+    for (i = 0; i < allocated.length; i++) {
+      allocations.push(makeAllocation(allocated[i], mine));
+    }
+    return allocations;
+  };
+
+  //
   //  An object to hold the complete data set sent down for one
   //  teacher's allocation.
   //
@@ -382,28 +458,84 @@ var editing_allocation = function() {
   //
 
   var makeDataset = function(spec) {
+    //
+    //  Stuff private to this object is saved in local variables.
+    //  Stuff shared with our sub-components goes in "mine".
+    //  Stuff we publicize goes in "that".
+    //
     var that = {};
+    var mine = {};
 
-    that.id   = spec.id;
-    that.name = spec.name;
-    that.start_date = moment(spec.starts);
-    that.end_date   = moment(spec.ends);  // Exclusive
+    //
+    //  Things needed by our subsidiary objects.
+    //
+    mine.weeks       = spec.weeks;
+    mine.timetables  = spec.timetables;
+    mine.allocations = makeAllocations(spec, mine);
+    //
+    //  Private things which we want to keep.
+    //
+    var id         = spec.id;
+    var name       = spec.name;
+    var start_date = moment(spec.starts);
+    var end_date   = moment(spec.ends);  // Exclusive
     //
     //  Things which are already provided in a convenient form we simply
     //  store.
     //
-    that.availables = spec.availables;
-    that.weeks      = spec.weeks;
-    that.pupils     = spec.pupils;
+    var availables = spec.availables;
+    //
+    //  To start with, no PupilCourse is current.
+    //
+    var current = 0;
+
     //
     //  Whilst other things are tweaked to make them easier to manipulate.
     //
+    var pcs        = makePupilCourses(spec, mine);
 
-    that.availables_on = function(date) {
+    that.subjects = spec.subjects;
+
+    //
+    //  And now we add public methods.
+    //
+    //  When is this teacher available on the indicated date?
+    //
+    that.availablesOn = function(date) {
       var wday = date.day();
-      return _.select(that.availables, function(entry) {
+      return _.select(availables, function(entry) {
         return entry.wday === wday;
       });
+    };
+
+    //
+    //  Find the pupil timetable for a given pcid.
+    //
+    that.timetableForPupil = function(pcid) {
+      var pc = pcs[pcid];
+      if (pc) {
+        var timetable = pc.timetable;
+        if (timetable) {
+          return timetable;
+        }
+      }
+      //
+      //  Can't find.  Return a blank timetable.
+      //
+      return {A: [], B: []};
+    };
+
+    //
+    //  What is the duration (in minutes) of the indicated
+    //  Pupil Course.
+    //
+    that.durationOf = function(pcid) {
+      var pc = pcs[pcid];
+      if (pc) {
+        return pc.mins;
+      } else {
+        return 0;
+      }
     };
 
     return that;
@@ -466,10 +598,13 @@ var editing_allocation = function() {
     //  pointer as it was before.  Thus need to clone the
     //  array and set the new clone back.
     //
+    var pcid = $(this).data('pcid');
+
     var allocated = _.clone(allocation.get('allocated'));
     allocated.push({
-      datetime: startsAt.format('YYYY-MM-DD HH:mm'),
-      pcid: $(this).data('pcid')
+      starts_at: startsAt,
+      ends_at: moment(startsAt).add(dataset.durationOf(pcid), 'minutes'),
+      pcid: pcid 
     });
     allocation.set({allocated: allocated});
   }
@@ -486,7 +621,7 @@ var editing_allocation = function() {
       //  Does our model know about any background events which we can
       //  shove in?
       //
-      var availables = dataset.availables_on(date);
+      var availables = dataset.availablesOn(date);
       for (i = 0; i < availables.length; i++) {
         entry = availables[i];
         events.push({
@@ -500,10 +635,7 @@ var editing_allocation = function() {
       //
       //  Try to show a student's calendar.
       //
-      var timetables = allocation.get('timetables');
-      var weeks = allocation.get('weeks');
-      var subjects = allocation.get('subjects');
-      var timetable = timetables[currentlyShowing]
+      var timetable = dataset.timetableForPupil(currentlyShowing);
       if (timetable) {
         //
         //  We have a pointer to the student's timetable.  Now need
@@ -512,33 +644,24 @@ var editing_allocation = function() {
         for (var date = moment(start);
              date.isBefore(end);
              date.add(1, 'days')) {
-          //
-          //  What week is this date?
-          //
-          var week = weeks[date.format('YYYY-MM-DD')];
-          var wday = date.day();
-          var week_entries = timetable[week];
-          if (week_entries) {
-            var entries = week_entries[wday];
-            if (entries) {
-              //
-              //  We finally have an array of entries.  Each of these
-              //  should add one event to our display.
-              //
-              entries.forEach(function(entry) {
-                events.push({
-                  title: subjects[entry.s],
-                  start: date.format('YYYY-MM-DD') + ' ' + entry.b,
-                  end: date.format('YYYY-MM-DD') + ' ' + entry.e,
-                  color: '#3b9653',
-                  timetable: 1,
-                  sort_by: "A"
-                });
-                // Amber '#d4a311'
-                // Red   '#db4335'
+          var entries = timetable.entriesOn(date);
+          if (entries) {
+            //
+            //  We finally have an array of entries.  Each of these
+            //  should add one event to our display.
+            //
+            entries.forEach(function(entry) {
+              events.push({
+                title: dataset.subjects[entry.s],
+                start: date.format('YYYY-MM-DD') + ' ' + entry.b,
+                end: date.format('YYYY-MM-DD') + ' ' + entry.e,
+                color: '#3b9653',
+                timetable: 1,
+                sort_by: "A"
               });
-
-            }
+              // Amber '#d4a311'
+              // Red   '#db4335'
+            });
           }
         }
       }
@@ -546,11 +669,12 @@ var editing_allocation = function() {
     var allocated = allocation.get('allocated');
     if (allocated) {
       allocated.forEach(function(alloc) {
-        var datetime = moment(alloc.datetime);
-        if ((datetime >= start) && (datetime < end)) {
+        var starts_at = alloc.starts_at;
+        if ((starts_at >= start) && (starts_at < end)) {
           events.push({
             title: "Hello",
-            start: alloc.datetime,
+            start: starts_at.format('YYYY-MM-DD HH:mm'),
+            end: alloc.ends_at.format('YYYY-MM-DD HH:mm'),
             timetable: 0,
             sort_by: "B"
           });
@@ -600,8 +724,8 @@ var editing_allocation = function() {
     },
     clicked: function(event) {
       var button = event['currentTarget'];
-      var pupilId = $(button).data('pupil-id');
-      allocation.set("current", pupilId);
+      var pcid = $(button).data('pcid');
+      allocation.set("current", pcid);
     },
     checkChanges: function() {
       var toHighlight = allocation.get("current");
@@ -626,11 +750,11 @@ var editing_allocation = function() {
       var that = this;
       var extraClass;
       var allocated = allocation.get('allocated');
-      allocation.attributes.pupils.forEach(function(item, index) {
+      allocation.attributes.pcs.forEach(function(item, index) {
         if (allocated.find(function (alloc) {
           return alloc.pcid === item.pcid;
         }) === undefined) {
-          if (item.pupil_id === that.highlighting) {
+          if (item.pcid === that.highlighting) {
             extraClass = " selected";
           } else {
             extraClass = "";
