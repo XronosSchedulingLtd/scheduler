@@ -439,17 +439,48 @@ var editing_allocation = function() {
     var allocated = spec.allocated;
     var i;
     var allocations = [];
+    //
+    //  Store allocations by week number.  An array of arrays.
+    //
+    var by_week = [];
+    var that = {};
 
     for (i = 0; i < allocated.length; i++) {
       allocations.push(makeAllocation(allocated[i], mine));
     }
-    return allocations;
+    
+    that.add = function(starts_at, ends_at, pcid) {
+      var week_no = mine.weekOf(starts_at);
+      var entry = {
+        starts_at: starts_at,
+        ends_at: ends_at,
+        pcid: pcid 
+      };
+      if (by_week[week_no]) {
+        by_week[week_no].push(entry);
+      } else {
+        by_week[week_no] = [entry];
+      }
+    };
+
+    that.inWeek = function(week) {
+      var result;
+
+      result = by_week[week];
+      if (result) {
+        return result;
+      } else {
+        return [];
+      }
+    };
+
+    return that;
   };
 
   var makeWeekOf = function(spec) {
     //
     //  Return a function which can calculate a week number given
-    //  a textual date.
+    //  a textual date or a moment object.
     //
     //  Note that we really need to know only the start date to do
     //  this.
@@ -498,6 +529,7 @@ var editing_allocation = function() {
     var name       = spec.name;
     var start_date = moment(spec.starts);
     var end_date   = moment(spec.ends);  // Exclusive
+    var view_date  = moment(spec.starts);
     //
     //  Things which are already provided in a convenient form we simply
     //  store.
@@ -507,6 +539,29 @@ var editing_allocation = function() {
     //  To start with, no PupilCourse is current.
     //
     var current = 0;
+    //
+    //  Who wants to know about interesting changes?
+    //
+    var listeners = [];
+
+    var tellListeners = function(datechange = false) {
+      var i;
+
+      for (i = 0; i < listeners.length; i++) {
+        var current = listeners[i];
+        //
+        //  If it's a datechange then only those who explicitly asked for
+        //  the notification get it.
+        //
+        if (!datechange || current.dates) {
+          if (current.context) {
+            current.callback.apply(current.context, []);
+          } else {
+            current.callback();
+          }
+        }
+      }
+    };
 
     //
     //  Whilst other things are tweaked to make them easier to manipulate.
@@ -567,6 +622,73 @@ var editing_allocation = function() {
 
     };
 
+    that.addAllocation = function(starts_at, ends_at, pcid) {
+      mine.allocations.add(starts_at, ends_at, pcid);
+      tellListeners();
+    };
+
+    that.allocationsInWeek = function(date) {
+      //
+      //  Given a single date, find all allocations in that week.
+      //
+      var week = mine.weekOf(date);
+      return mine.allocations.inWeek(week);
+    };
+
+    that.unallocatedInWeek = function(date) {
+      //
+      //  Given a single date, find all unallocated PupilCourses
+      //  in that week.
+      //
+      var week = mine.weekOf(date);
+      var allocations = mine.allocations.inWeek(week);
+      var allocated_pcids = allocations.map(function(a) { return a.pcid });
+
+      var result = [];
+      for (var pcid in pcs) {
+        if (pcs.hasOwnProperty(pcid)) {
+          if (!allocated_pcids.includes(parseInt(pcid))) {
+            result.push(pcs[pcid]);
+          }
+        }
+      }
+      return result;
+    };
+
+    that.unallocatedInCurrentWeek = function() {
+      return that.unallocatedInWeek(view_date);
+    };
+
+    that.addListener = function(callback, context, dates = false) {
+      listeners.push({callback: callback, context: context, dates: dates});
+    };
+
+    that.setCurrent = function(pcid) {
+      var old_val = current;
+
+      current = pcid;
+      if (current !== old_val) {
+        tellListeners();
+      }
+    };
+
+    that.setViewDate = function(date) {
+      view_date = moment(date);
+      tellListeners(true);
+    };
+
+    that.getCurrent = function() {
+      return current;
+    };
+
+    that.startsForFC = function() {
+      return start_date.format("YYYY-MM-DD");
+    };
+
+    that.endsForFC = function() {
+      return end_date.format("YYYY-MM-DD");
+    };
+
     return that;
   };
 
@@ -576,7 +698,6 @@ var editing_allocation = function() {
   var myData = $('#allocation-data');
   var allocation;
   var dataset;
-  var currentlyShowing;
 
   var fcParams = {
     schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
@@ -640,13 +761,10 @@ var editing_allocation = function() {
     //
     var pcid = $(this).data('pcid');
 
-    var allocated = _.clone(allocation.get('allocated'));
-    allocated.push({
-      starts_at: startsAt,
-      ends_at: moment(startsAt).add(dataset.durationOf(pcid), 'minutes'),
-      pcid: pcid 
-    });
-    allocation.set({allocated: allocated});
+    dataset.addAllocation(
+      startsAt,
+      moment(startsAt).add(dataset.durationOf(pcid), 'minutes'),
+      pcid);
   }
 
   function eventDropped(event, delta, revertFunc) {
@@ -691,6 +809,7 @@ var editing_allocation = function() {
         });
       }
     }
+    var currentlyShowing = dataset.getCurrent();
     if (currentlyShowing !== 0) {
       //
       //  Try to show a student's calendar.
@@ -726,7 +845,7 @@ var editing_allocation = function() {
         }
       }
     }
-    var allocated = allocation.get('allocated');
+    var allocated = dataset.allocationsInWeek(start);
     if (allocated) {
       allocated.forEach(function(alloc) {
         var starts_at = alloc.starts_at;
@@ -744,6 +863,7 @@ var editing_allocation = function() {
       });
     }
     callback(events);
+    dataset.setViewDate(start);
   }
 
   //
@@ -751,25 +871,8 @@ var editing_allocation = function() {
   //  interested in the current pupil.
   //
   function checkChange() {
-    var newCurrent = allocation.get("current");
-//    if (newCurrent !== currentlyShowing) {
-      currentlyShowing = newCurrent;
-      calDiv.fullCalendar('refetchEvents');
- //   }
+    calDiv.fullCalendar('refetchEvents');
   }
-
-  var Allocation = Backbone.Model.extend({
-    //
-    //  The documentation for Backbone is poor but it appears that
-    //  this function is called after the basic initialization has
-    //  been done.  We thus have access to all the attributes
-    //  created from our initialization string, and can do things
-    //  with them.
-    //
-    initialize: function() {
-      var subjects = this.attributes.subjects;
-    }
-  });
 
   //
   //  I propose to use the View for the bits where we need to do the
@@ -782,19 +885,17 @@ var editing_allocation = function() {
     template: _.template($('#an-allocation').html()),
     highlighting: 0,
     initialize: function(options) {
-      allocation.on("change", this.checkChanges, this);
+      dataset.addListener(this.checkChanges, this, true);
     },
     clicked: function(event) {
       var button = event['currentTarget'];
       var pcid = $(button).data('pcid');
-      allocation.set("current", pcid);
+      dataset.setCurrent(pcid);
     },
     checkChanges: function() {
-      var toHighlight = allocation.get("current");
-      //if (toHighlight !== this.highlighting) {
-        this.highlighting = toHighlight;
-        this.render();
-      //}
+      var toHighlight = dataset.getCurrent();
+      this.highlighting = toHighlight;
+      this.render();
     },
     render: function() {
       //
@@ -811,25 +912,23 @@ var editing_allocation = function() {
       var texts = [];
       var that = this;
       var extraClass;
-      var allocated = allocation.get('allocated');
-      allocation.attributes.pcs.forEach(function(item, index) {
-        if (allocated.find(function (alloc) {
-          return alloc.pcid === item.pcid;
-        }) === undefined) {
-          if (item.pcid === that.highlighting) {
-            extraClass = " selected";
-          } else {
-            extraClass = "";
-          }
-          texts.push(that.template({
-            extra_class: extraClass,
-            pcid: item.pcid,
-            pupil_id: item.pupil_id,
-            pupil: item.name,
-            subject: item.subject
-          }));
+      var unallocated = dataset.unallocatedInCurrentWeek();
+      for (var i = 0; i < unallocated.length; i++) {
+        var item = unallocated[i];
+
+        if (item.pcid === that.highlighting) {
+          extraClass = " selected";
+        } else {
+          extraClass = "";
         }
-      });
+        texts.push(that.template({
+          extra_class: extraClass,
+          pcid: item.pcid,
+          pupil_id: item.pupil_id,
+          pupil: item.name,
+          subject: item.subject
+        }));
+      }
       this.$el.html(
         texts.join(" ")
       );
@@ -860,18 +959,16 @@ var editing_allocation = function() {
     //
     //  The allocation variable is defined globally in this module.
     //
-    allocation = new Allocation(data);
     dataset = makeDataset(data);
-    currentlyShowing = allocation.get("current");
 
     //
     //  Now we need some info from the model to set up our
     //  parameters to pass to FullCalendar.
     //
-    fcParams.defaultDate = allocation.get('starts');
+    fcParams.defaultDate = dataset.startsForFC();
     fcParams.validRange = {
-      start: allocation.get('starts'),
-      end:   allocation.get('ends')
+      start: dataset.startsForFC(),
+      end:   dataset.endsForFC()
     };
     fcParams.events = generateEvents;
     calDiv.fullCalendar(fcParams);
@@ -884,7 +981,7 @@ var editing_allocation = function() {
     //  And we need to do things to the Calendar if the current
     //  attribute changes.
     //
-    allocation.on("change", checkChange);
+    dataset.addListener(checkChange);
   }
 
   return that;
