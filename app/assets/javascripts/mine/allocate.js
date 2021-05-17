@@ -446,6 +446,24 @@ var editing_allocation = function() {
     return allocations;
   };
 
+  var makeWeekOf = function(spec) {
+    //
+    //  Return a function which can calculate a week number given
+    //  a textual date.
+    //
+    //  Note that we really need to know only the start date to do
+    //  this.
+    //
+    var start_date = moment(spec.starts);
+    var sunday = moment(start_date).subtract(start_date.day(), "days");
+
+    var calculator = function(date) {
+      var delta = moment(date).diff(sunday, 'days');
+      return Math.floor(delta / 7);
+    };
+    return calculator;
+  };
+
   //
   //  An object to hold the complete data set sent down for one
   //  teacher's allocation.
@@ -469,6 +487,7 @@ var editing_allocation = function() {
     //
     //  Things needed by our subsidiary objects.
     //
+    mine.weekOf      = makeWeekOf(spec);
     mine.weeks       = spec.weeks;
     mine.timetables  = spec.timetables;
     mine.allocations = makeAllocations(spec, mine);
@@ -538,6 +557,16 @@ var editing_allocation = function() {
       }
     };
 
+    that.pupilName = function(pcid) {
+      var pc = pcs[pcid];
+
+      if (pc) {
+        return pc.name;
+      }
+      return "Unknown";
+
+    };
+
     return that;
   };
 
@@ -574,8 +603,18 @@ var editing_allocation = function() {
     selectable: true,
     selectHelper: true,
     eventRender: tweakWidth,
+    //
+    //  These two refer to dropping things from outside on my
+    //  calendar.
+    //
     droppable: true,
-    drop: entryDropped
+    drop: entryDropped,
+    //
+    //  And these two are for moving events around within the
+    //  calendar.
+    //
+    eventDrop: eventDropped,
+    eventResize: eventResized
   };
 
   function tweakWidth(event, element) {
@@ -591,7 +630,8 @@ var editing_allocation = function() {
 
   function entryDropped(startsAt, jsEvent, ui) {
     //
-    //  "this" is the object which was dropped.
+    //  "this" is the object which was dropped.  A student allocation
+    //  has been dropped onto our calendar.
     //
     //  If we simply add an item to the array and set it back,
     //  no change event is triggered because it's the same
@@ -607,6 +647,26 @@ var editing_allocation = function() {
       pcid: pcid 
     });
     allocation.set({allocated: allocated});
+  }
+
+  function eventDropped(event, delta, revertFunc) {
+    //
+    //  This is for when someone has moved an existing allocation
+    //  in the calendar.
+    //
+    console.log({event});
+    revertFunc();
+  }
+
+  function eventResized(event, delta, revertFunc) {
+    //
+    //  And this one is for when they have changed the duration of
+    //  an existing event.
+    //
+    console.log({event});
+    var pcid = event.pcid;
+
+    revertFunc();
   }
 
   function serverResponded() {
@@ -672,11 +732,13 @@ var editing_allocation = function() {
         var starts_at = alloc.starts_at;
         if ((starts_at >= start) && (starts_at < end)) {
           events.push({
-            title: "Hello",
+            title: dataset.pupilName(alloc.pcid),
             start: starts_at.format('YYYY-MM-DD HH:mm'),
             end: alloc.ends_at.format('YYYY-MM-DD HH:mm'),
             timetable: 0,
-            sort_by: "B"
+            sort_by: "B",
+            pcid: alloc.pcid,
+            editable: true
           });
         }
       });
