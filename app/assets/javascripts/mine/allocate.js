@@ -12,368 +12,16 @@ if ($('#editing-allocation').length && $('#allocation-data').length) {
 var editing_allocation = function() {
 
   //
-  //  Some constructors for my objects.  They are inside the function
-  //  in order to avoid giving them global names.
+  //================================================================
   //
-  //  My data from the host look a bit like this. (Delete later.)
+  //  Datastore and subsidiary items.
   //
-  var eric = {
-    "id":3,
-    "name":"S2021P1 try 1",
-    "starts":"2021-04-26",
-    "ends":"2021-05-29",
-    "availables": [
-      {
-        "wday":2,
-        "starts_at":"09:00",
-        "ends_at":"13:00"
-      },
-      {
-        "wday":3,
-        "starts_at":"09:00",
-        "ends_at":"13:00"
-      }
-    ],
-    "weeks": {
-      "2021-04-26":"A",
-      "2021-04-27":"A",
-      "2021-04-28":"A",
-      "2021-04-29":"A",
-      "2021-04-30":"A",
-      "2021-05-10":"A",
-      "2021-05-11":"A",
-      "2021-05-12":"A",
-      "2021-05-13":"A",
-      "2021-05-14":"A",
-      "2021-05-24":"A",
-      "2021-05-25":"A",
-      "2021-05-26":"A",
-      "2021-05-27":"A",
-      "2021-05-28":"A",
-      "2021-05-04":"B",
-      "2021-05-05":"B",
-      "2021-05-06":"B",
-      "2021-05-07":"B",
-      "2021-05-17":"B",
-      "2021-05-18":"B",
-      "2021-05-19":"B",
-      "2021-05-20":"B",
-      "2021-05-21":"B"
-    },
-    "pcs": [
-      {
-        "pcid":9,
-        "pupil_id":3805,
-        "mins":45,
-        "name":"Bertie Dinsey",
-        "subject":"Triangle"
-      },
-      {
-        "pcid":10,
-        "pupil_id":2929,
-        "mins":30,
-        "name":"Adam Coombs",
-        "subject":"Triangle"
-      }
-    ],
-    "allocated": [],
-    "timetables":
-    {
-      "2929": {
-        "A": [
-          null,
-          [
-            {
-              "b":"08:35",
-              "e":"08:50",
-              "s":51
-            },
-            {
-              "b":"09:00",
-              "e":"09:50",
-              "s":25
-            },
-            {
-              "b":"10:00",
-              "e":"10:50",
-              "s":25
-            },
-            {
-              "b":"11:15",
-              "e":"12:10",
-              "s":11
-            },
-            {
-              "b":"12:20",
-              "e":"13:10",
-              "s":38
-            },
-            {
-              "b":"15:05",
-              "e":"16:00",
-              "s":3
-            }
-          ],
-          [
-            {
-              "b":"08:35",
-              "e":"08:50",
-              "s":73
-            },
-            {
-              "b":"11:15",
-              "e":"12:10",
-              "s":3
-            }
-          ],
-          [
-            {
-              "b":"08:35",
-              "e":"08:50",
-              "s":54
-            },
-            {
-              "b":"09:00",
-              "e":"09:50",
-              "s":3
-            },
-            {
-              "b":"10:00",
-              "e":"10:50",
-              "s":25
-            },
-            {
-              "b":"11:15",
-              "e":"12:10",
-              "s":11
-            },
-            {
-              "b":"14:15",
-              "e":"14:45",
-              "s":51
-            }
-          ],
-          [
-            {
-              "b":"08:35",
-              "e":"08:50",
-              "s":51
-            },
-            {
-              "b":"09:00",
-              "e":"09:50",
-              "s":3
-            },
-            {
-              "b":"10:00",
-              "e":"10:50",
-              "s":3
-            },
-            {
-              "b":"13:45",
-              "e":"14:40",
-              "s":25
-            },
-            {
-              "b":"14:50",
-              "e":"15:45",
-              "s":11
-            }
-          ],
-          [
-            {
-              "b":"08:35",
-              "e":"08:50",
-              "s":54
-            },
-            {
-              "b":"09:00",
-              "e":"09:50",
-              "s":11
-            },
-            {
-              "b":"10:00",
-              "e":"10:50",
-              "s":11
-            },
-            {
-              "b":"11:15",
-              "e":"12:10",
-              "s":25
-            },
-            {
-              "b":"12:20",
-              "e":"13:10",
-              "s":38
-            }
-          ]
-        ],
-        "B": [
-          null,
-          [
-            {
-              "b":"08:35",
-              "e":"08:50",
-              "s":51
-            },
-            {
-              "b":"09:00",
-              "e":"09:50",
-              "s":25
-            },
-            {
-              "b":"10:00",
-              "e":"10:50",
-              "s":25
-            },
-            {
-              "b":"11:15",
-              "e":"12:10",
-              "s":11
-            },
-            {
-              "b":"12:20",
-              "e":"13:10",
-              "s":38
-            },
-            {
-              "b":"14:00",
-              "e":"14:55",
-              "s":3
-            }
-          ],
-          [
-            {
-              "b":"08:35",
-              "e":"08:50",
-              "s":53
-            },
-            {
-              "b":"10:00",
-              "e":"10:50",
-              "s":3
-            },
-            {
-              "b":"14:50",
-              "e":"15:45",
-              "s":25
-            }
-          ],
-          [
-            {
-              "b":"08:35",
-              "e":"08:50",
-              "s":51
-            },
-            {
-              "b":"10:00",
-              "e":"10:50",
-              "s":25
-            },
-            {
-              "b":"11:15",
-              "e":"12:10",
-              "s":11
-            },
-            {
-              "b":"13:10",
-              "e":"14:05",
-              "s":3
-            },
-            {
-              "b":"14:15",
-              "e":"14:45",
-              "s":51
-            }
-          ],
-          [
-            {
-              "b":"08:35",
-              "e":"08:50",
-              "s":51
-            },
-            {
-              "b":"11:15",
-              "e":"12:10",
-              "s":3
-            },
-            {
-              "b":"14:50",
-              "e":"15:45",
-              "s":11
-            }
-          ],
-          [
-            {
-              "b":"08:35",
-              "e":"08:50",
-              "s":54
-            },
-            {
-              "b":"09:00",
-              "e":"09:50",
-              "s":11
-            },
-            {
-              "b":"10:00",
-              "e":"10:50",
-              "s":11
-            },
-            {
-              "b":"11:15",
-              "e":"12:10",
-              "s":25
-            },
-            {
-              "b":"12:20",
-              "e":"13:10",
-              "s":38
-            },
-            {
-              "b":"15:05",
-              "e":"16:00",
-              "s":3
-            }
-          ]
-        ]
-      },
-      "3805":{
-        // ...
-      }
-    },
-    "subjects": {
-      "51":"Tutor Period",
-      "25":"Mathematics",
-      "11":"Economics",
-      "38":"Sport",
-      "3":"Chemistry",
-      "73":"Alt Chapel",
-      "54":"Assembly",
-      "53":"Chapel",
-      "20":"History",
-      "82":"Philosophy and Theology",
-      "17":"Geography",
-      "1":"Art",
-      "4":"Ancient History",
-      "8":"Drama",
-      "44":"Physical Education",
-      "18":"German",
-      "12":"English",
-      "36":"Science",
-      "77":"Engineering Science",
-      "28":"PSHCE",
-      "56":"Design \u0026 Technology"
-    },
-    "current":0
-  };
-
-  //
-  //  Subsidiary items for our dataset.
-  //
+  //================================================================
   //
   //  The raw timetable is nearly good enough but we want to add
   //  some helper methods.
   //
+
   var makeTimetable = function(pupil_id, mine) {
 
     that = mine.timetables[pupil_id];
@@ -427,8 +75,38 @@ var editing_allocation = function() {
     return that;
   };
 
-  var makeAllocation = function(allocated, mine) {
-    return allocated;  // For now.
+  var makeAllocation = function(starts_at, ends_at, pcid, mine) {
+    var that = {
+      starts_at: starts_at,
+      ends_at:   ends_at,
+      pcid:      pcid 
+    };
+
+    that.adjustDuration = function(event) {
+      this.ends_at = event.end;
+    };
+
+    that.adjustTiming = function(event) {
+      //
+      //  Note that it is possible to drag an event onto a completely
+      //  different day, in which case the "allocations" object needs
+      //  to update its structures.
+      //
+      var old_date = this.starts_at.format("YYYY-MM-DD");
+      var new_date;
+
+      this.starts_at = event.start;
+      new_date = this.starts_at.format("YYYY-MM-DD");
+      this.ends_at = event.end;
+      //
+      //  Only worried about a change in date.
+      //
+      if (old_date !== new_date) {
+        mine.dateChanged(this, old_date, new_date);
+      }
+    };
+
+    return that;
   };
 
   var makeAllocations = function(spec, mine) {
@@ -443,23 +121,67 @@ var editing_allocation = function() {
     //  Store allocations by week number.  An array of arrays.
     //
     var by_week = [];
+    //
+    //  And by date.  An object containing arrays, indexed by
+    //  date in the form "YYYY-MM-DD".
+    //
+    var by_date = {};
     var that = {};
 
-    for (i = 0; i < allocated.length; i++) {
-      allocations.push(makeAllocation(allocated[i], mine));
-    }
-    
+    //
+    //  Need moment, moment, integer.
+    //
     that.add = function(starts_at, ends_at, pcid) {
       var week_no = mine.weekOf(starts_at);
-      var entry = {
-        starts_at: starts_at,
-        ends_at: ends_at,
-        pcid: pcid 
-      };
+      var entry = makeAllocation(starts_at, ends_at, pcid, mine);
+
+      allocations.push(entry);
       if (by_week[week_no]) {
         by_week[week_no].push(entry);
       } else {
         by_week[week_no] = [entry];
+      }
+      var key = starts_at.format("YYYY-MM-DD");
+      if (by_date[key]) {
+        by_date[key].push(entry);
+      } else {
+        by_date[key] = [entry];
+      }
+    };
+
+    for (i = 0; i < allocated.length; i++) {
+      that.add(
+        moment(allocated[i].starts_at),
+        moment(allocated[i].ends_at),
+        allocated[i].pcid
+      );
+    }
+   
+    //
+    //  We add a function to the "mine" object so that our
+    //  allocations can call us back.
+    //
+    mine.dateChanged = function(allocation, old_date, new_date) {
+      //
+      //  A date can change within a week, but not currently to a
+      //  new week.
+      //
+      var coming_from = by_date[old_date];
+      var going_to = by_date[new_date];
+
+      if (coming_from && Array.isArray(coming_from)) {
+        var index = coming_from.indexOf(allocation);
+        if (index > -1) {
+          coming_from.splice(index, 1);
+        }
+        //
+        //  This may be our first allocation on the new date.
+        //
+        if (going_to && Array.isArray(going_to)) {
+          going_to.push(allocation);
+        } else {
+          by_date[new_date] = [allocation];
+        }
       }
     };
 
@@ -472,6 +194,43 @@ var editing_allocation = function() {
       } else {
         return [];
       }
+    };
+
+    that.byDate = function(date, pcid) {
+      //
+      //  Find an existing allocation on a given date and matching
+      //  a pcid.
+      //
+      var result = null;
+
+      var candidates = by_date[date.format("YYYY-MM-DD")];
+      if (candidates) {
+        result =
+          candidates.find(function(entry) { return entry.pcid === pcid });
+      }
+      return result;
+    };
+
+    that.byWeek = function(date, pcid) {
+      //
+      //  Slightly fuzzier version of the previous.  Given a PCID
+      //  and a date, look for an allocation in the same week.
+      //
+      var result = null;
+
+      var candidates = by_week[mine.weekOf(date)];
+      if (candidates) {
+        result =
+          candidates.find(function(entry) { return entry.pcid === pcid });
+      }
+      return result;
+    };
+
+    that.all = function() {
+      //
+      //  Return an array of all our allocations.
+      //
+      return allocations;
     };
 
     return that;
@@ -526,6 +285,7 @@ var editing_allocation = function() {
     //  Private things which we want to keep.
     //
     var id         = spec.id;
+    var staff_id   = spec.staff_id;
     var name       = spec.name;
     var start_date = moment(spec.starts);
     var end_date   = moment(spec.ends);  // Exclusive
@@ -627,6 +387,14 @@ var editing_allocation = function() {
       tellListeners();
     };
 
+    that.allocationByDate = function(date, pcid) {
+      return mine.allocations.byDate(date, pcid);
+    };
+
+    that.allocationByWeek = function(date, pcid) {
+      return mine.allocations.byWeek(date, pcid);
+    };
+
     that.allocationsInWeek = function(date) {
       //
       //  Given a single date, find all allocations in that week.
@@ -689,14 +457,42 @@ var editing_allocation = function() {
       return end_date.format("YYYY-MM-DD");
     };
 
+    var saveDone = function() {
+      console.log("Save succeeded.");
+    };
+
+    var saveFailed = function() {
+      console.log("Save failed.");
+    };
+
+    that.doSave = function(event) {
+      event.preventDefault();
+      $.ajax({
+        url: '/ad_hoc_domain_staffs/' + staff_id + '/ad_hoc_domain_allocations/' + id + '/save',
+        type: 'PATCH',
+        context: this,
+        dataType: 'json',
+        contentType: 'application/json',
+        data: JSON.stringify({allocations: mine.allocations.all()})
+      }).done(saveDone).
+         fail(saveFailed);
+    };
+
     return that;
   };
+
+  //
+  //================================================================
+  //
+  //  Global (within my module) variables.
+  //
+  //================================================================
+  //
 
   var that = {};
 
   var calDiv = $('#editing-allocation');
   var myData = $('#allocation-data');
-  var allocation;
   var dataset;
 
   var fcParams = {
@@ -738,6 +534,14 @@ var editing_allocation = function() {
     eventResize: eventResized
   };
 
+  //
+  //================================================================
+  //
+  //  FullCalendar-related stuff.
+  //
+  //================================================================
+  //
+
   function tweakWidth(event, element) {
     //
     //  This needs making more specific.  Want to tweak the student
@@ -772,8 +576,18 @@ var editing_allocation = function() {
     //  This is for when someone has moved an existing allocation
     //  in the calendar.
     //
-    console.log({event});
-    revertFunc();
+    //  It's slightly more entertaining because they can be dragged
+    //  from day to day within a week.
+    //
+    var allocation = dataset.allocationByWeek(event.start, event.pcid);
+    if (allocation) {
+      allocation.adjustTiming(event);
+    } else {
+      //
+      //  Can't find it.  Revert.
+      //
+      revertFunc();
+    }
   }
 
   function eventResized(event, delta, revertFunc) {
@@ -781,10 +595,15 @@ var editing_allocation = function() {
     //  And this one is for when they have changed the duration of
     //  an existing event.
     //
-    console.log({event});
-    var pcid = event.pcid;
-
-    revertFunc();
+    var allocation = dataset.allocationByDate(event.start, event.pcid);
+    if (allocation) {
+      allocation.adjustDuration(event);
+    } else {
+      //
+      //  Can't find it.  Revert.
+      //
+      revertFunc();
+    }
   }
 
   function serverResponded() {
@@ -848,6 +667,7 @@ var editing_allocation = function() {
     var allocated = dataset.allocationsInWeek(start);
     if (allocated) {
       allocated.forEach(function(alloc) {
+        console.log("One allocation");
         var starts_at = alloc.starts_at;
         if ((starts_at >= start) && (starts_at < end)) {
           events.push({
@@ -875,6 +695,13 @@ var editing_allocation = function() {
   }
 
   //
+  //================================================================
+  //
+  //  View for the side panel.
+  //
+  //================================================================
+  //
+
   //  I propose to use the View for the bits where we need to do the
   //  drawing, but keep FullCalendar mostly outside it.  It can do its
   //  own drawing.  The view will however trigger FC to refetch its events
@@ -949,6 +776,14 @@ var editing_allocation = function() {
     }
   });
 
+  //
+  //================================================================
+  //
+  //  Initialisation entry point.
+  //
+  //================================================================
+  //
+
   that.init = function() {
     //
     //  We have already checked that our master parent division
@@ -982,6 +817,10 @@ var editing_allocation = function() {
     //  attribute changes.
     //
     dataset.addListener(checkChange);
+    //
+    //  Handle clicks on our save button.
+    //
+    $('#save-button').click(dataset.doSave);
   }
 
   return that;

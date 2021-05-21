@@ -22,6 +22,7 @@ class AdHocDomainAllocation < ApplicationRecord
     }
     if options[:ad_hoc_domain_staff_id] &&
       staff = AdHocDomainStaff.find_by(id: options[:ad_hoc_domain_staff_id])
+      result[:staff_id] = staff.id
       pcs = []
       staff.ad_hoc_domain_pupil_courses.each do |pupil_course|
         pc = {
@@ -96,5 +97,15 @@ class AdHocDomainAllocation < ApplicationRecord
       result[:current] = 0
     end
     result
+  end
+
+  def update_allocations(ad_hoc_domain_staff, allocations)
+    self.allocations[ad_hoc_domain_staff.id] = allocations
+    self.save   # And return result
+  end
+
+  def parameters=(value)
+    Rails.logger.debug("Allocation of parameters")
+    Rails.logger.debug(value.inspect)
   end
 end

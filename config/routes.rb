@@ -32,7 +32,7 @@ Rails.application.routes.draw do
     resources :ad_hoc_domain_allocations, only: [] do
       member do
         get :allocate
-        put :save
+        patch :save
       end
     end
   end

@@ -11,6 +11,10 @@ changes if you want them to persist.</p>
       <p>Lessons slots for <%= @ad_hoc_domain_staff.staff_name %></p>
       <div id='pending-allocations'></div>
       <hr>
+      <%= link_to "Save",
+        "#",
+        class: "zfbutton tiny radius button-link",
+        id: "save-button" %>
       <%= link_to "Finished",
         ad_hoc_domain_allocation_url(@ad_hoc_domain_allocation),
         class: "zfbutton tiny radius button-link" %>
