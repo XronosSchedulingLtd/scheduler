@@ -19,7 +19,11 @@ Rails.application.routes.draw do
       resources :ad_hoc_domain_staffs, shallow: true do
         resources :ad_hoc_domain_subjects, only: [:create]
       end
-      resources :ad_hoc_domain_allocations, shallow: true
+      resources :ad_hoc_domain_allocations, shallow: true do
+        member do
+          post :generate
+        end
+      end
     end
     member do
       get :edit_controllers

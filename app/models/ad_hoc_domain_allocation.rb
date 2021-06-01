@@ -100,7 +100,13 @@ class AdHocDomainAllocation < ApplicationRecord
   end
 
   def update_allocations(ad_hoc_domain_staff, allocations)
-    self.allocations[ad_hoc_domain_staff.id] = allocations
+    #
+    #  What arrives from Rails is an array of HashWithIndifferentAccess.
+    #  Whilst we can save this to the database it's inefficient, and
+    #  I'd like to standardize on using just symbols.  Hence, convert it.
+    #
+    self.allocations[ad_hoc_domain_staff.id] =
+      allocations.collect {|e| e.to_hash.symbolize_keys}
     self.save   # And return result
   end
 

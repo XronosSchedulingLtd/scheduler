@@ -11,7 +11,8 @@ class AdHocDomainAllocationsController < ApplicationController
   before_action :set_ad_hoc_domain_allocation, only: [:edit,
                                                      :update,
                                                      :show,
-                                                     :destroy]
+                                                     :destroy,
+                                                     :generate]
 
   before_action :set_staff_and_allocation, only: [:allocate, :save]
 
@@ -73,6 +74,27 @@ class AdHocDomainAllocationsController < ApplicationController
         tab: 3
       }
     )
+  end
+
+  # POST ad_hoc_domain_allocation/1/generate
+  def generate
+    #
+    #  Generate a set of events to suit this AdHocDomainAllocation,
+    #  keeping any appropriate ones which are already there, but
+    #  deleting any spurious ones which we don't want.
+    #
+    generator = AdHocDomainAllocationGenerator.new(@ad_hoc_domain_allocation)
+    respond_to do |format|
+      if generator.generate
+        #
+        #  Either way we're going to send back just a textual message.
+        #
+        format.js
+      else
+        format.js { render :generation_failed }
+      end
+    end
+
   end
 
   # PATCH ad_hoc_domain_staff/1/ad_hoc_domain_allocation/1/save

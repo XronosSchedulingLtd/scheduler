@@ -7,7 +7,14 @@
       ad_hoc_domain_allocation_path(ad_hoc_domain_allocation),
       class: "zfbutton teensy tiny radius button-link")
       %></td>
-  <td>Implement</td>
+  <td><%=
+    link_to(
+      "Implement",
+      generate_ad_hoc_domain_allocation_path(ad_hoc_domain_allocation),
+      class: "zfbutton teensy tiny radius button-link",
+      method: :post,
+      remote: true)
+      %></td>
   <td>Clone</td>
   <td><%=
   link_to(
