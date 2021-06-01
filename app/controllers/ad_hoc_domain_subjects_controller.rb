@@ -145,6 +145,15 @@ class AdHocDomainSubjectsController < ApplicationController
 
   private
 
+  def authorized?(action = action_name, resource = nil)
+    #
+    #  Note that we allow *any* domain controller access.  This is
+    #  just possibly a security risk, but easier than checking them
+    #  individually.
+    #
+    logged_in? && (current_user.admin || current_user.domain_controller?)
+  end
+
   # Use callbacks to share common setup or constraints between actions.
   def set_progenitors
     #

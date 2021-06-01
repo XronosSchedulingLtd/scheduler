@@ -45,44 +45,70 @@ class AdHocDomainAllocationGenerator
       @element_ids << element_id
     end
 
+    def body
+      "#{@pc.pupil.name} - #{@pc.ad_hoc_domain_subject.subject_name}"
+    end
+
     #
     #  Create a new event to match this allocation.
     #
     def create
       event = @generator.ad_hoc_domain.eventsource.events.create({
-        body: "#{@pc.ad_hoc_domain_subject.subject_name} lesson",
+        body: self.body,
         eventcategory: @generator.ad_hoc_domain.eventcategory,
         starts_at: @starts_at,
         ends_at: @ends_at,
         all_day: false,
         source_id: self.pcid
       })
+      @generator.event_created
       return event
     end
 
     def ensure_details(event)
+      #
+      #  Make sure timings and body text are correct.
+      #
+      do_save = false
+      if event.body != self.body
+        event.body = self.body
+        do_save = true
+      end
+      if event.starts_at != @starts_at
+        event.starts_at = @starts_at
+        do_save = true
+      end
+      if event.ends_at != @ends_at
+        event.ends_at = @ends_at
+        do_save = true
+      end
+      if do_save
+        @generator.event_amended
+        event.save
+      end
     end
 
-    def ensure_resources(event)
+    def ensure_resources(event, brand_new)
+      amended = false
       existing = event.commitments.to_a
       @element_ids.each do |eid|
-        Rails.logger.debug("Ensuring resource #{eid}")
         commitment = existing.detect {|c| c.element_id == eid}
         if commitment
-          Rails.logger.debug("Exists already")
           existing.delete(commitment)
         else
           #
           #  Need to create one.
           #
-          Rails.logger.debug("Creating")
-          event.commitments.create({
-            element_id: eid
-          })
+          event.commitments.create({ element_id: eid })
+          amended = true
         end
       end
       existing.each do |c|
         c.destroy
+        amended = true
+      end
+      if amended && !brand_new
+        @generator.event_amended
       end
     end
 
@@ -90,13 +116,19 @@ class AdHocDomainAllocationGenerator
 
   attr_reader :ad_hoc_domain_allocation,
               :ad_hoc_domain_cycle,
-              :ad_hoc_domain
+              :ad_hoc_domain,
+              :events_created,
+              :events_deleted,
+              :events_amended
 
   def initialize(ad_hoc_domain_allocation)
     @ad_hoc_domain_allocation = ad_hoc_domain_allocation
     @ad_hoc_domain_cycle = @ad_hoc_domain_allocation.ad_hoc_domain_cycle
     @ad_hoc_domain = @ad_hoc_domain_cycle.ad_hoc_domain
     expand_allocations
+    @events_created = 0
+    @events_deleted = 0
+    @events_amended = 0
   end
 
   def generate
@@ -116,6 +148,7 @@ class AdHocDomainAllocationGenerator
       #  Make sure each required one exists.
       #
       allocations.each do |allocation|
+        brand_new = false
         event = existing.detect {|e| e.source_id == allocation.pcid}
         if (event)
           #
@@ -133,17 +166,19 @@ class AdHocDomainAllocationGenerator
           #  Create it
           #
           event = allocation.create
+          brand_new = true
         end
         #
         #  Make sure it has the right resources.
         #
-        allocation.ensure_resources(event)
+        allocation.ensure_resources(event, brand_new)
       end
       #
       #  Get rid of any spurious ones.
       #
       existing.each do |existing|
         existing.destroy
+        event_deleted
       end
       #
       #  And move on to the next day.
@@ -151,6 +186,18 @@ class AdHocDomainAllocationGenerator
       date = date + 1.day
     end
     return true
+  end
+
+  def event_created
+    @events_created += 1
+  end
+
+  def event_deleted
+    @events_deleted += 1
+  end
+
+  def event_amended
+    @events_amended += 1
   end
 
   private
@@ -194,23 +241,23 @@ class AdHocDomainAllocationGenerator
       #  Each instance contains a pcid which is the id of an
       #  AdHocDomainPupilCourse record.
       #
-      #staff = AdHocDomainStaff.find_by(id: key)
       ahd_staff = hashed_ahd_staffs[key]
       if ahd_staff
         instances.each do |instance|
           pc = hashed_pupil_courses[instance[:pcid]]
           if pc
             date = Time.zone.parse(instance[:starts_at]).to_date
-            Rails.logger.debug("Date is #{date}")
             entry = OneEntry.new(self, instance, pc)
             entry.add_resource(ahd_staff.staff)
             entry.add_resource(pc.pupil)
+            if @ad_hoc_domain.connected_property
+              entry.add_resource(@ad_hoc_domain.connected_property)
+            end
             (@by_date[date] ||= Array.new) << entry
           end
         end
       end
     end
-    #Rails.logger.debug(@by_date.inspect)
   end
 
 end

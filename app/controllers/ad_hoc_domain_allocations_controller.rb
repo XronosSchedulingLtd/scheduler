@@ -83,9 +83,9 @@ class AdHocDomainAllocationsController < ApplicationController
     #  keeping any appropriate ones which are already there, but
     #  deleting any spurious ones which we don't want.
     #
-    generator = AdHocDomainAllocationGenerator.new(@ad_hoc_domain_allocation)
+    @generator = AdHocDomainAllocationGenerator.new(@ad_hoc_domain_allocation)
     respond_to do |format|
-      if generator.generate
+      if @generator.generate
         #
         #  Either way we're going to send back just a textual message.
         #
@@ -138,6 +138,15 @@ class AdHocDomainAllocationsController < ApplicationController
   end
 
   private
+
+  def authorized?(action = action_name, resource = nil)
+    #
+    #  Note that we allow *any* domain controller access.  This is
+    #  just possibly a security risk, but easier than checking them
+    #  individually.
+    #
+    logged_in? && (current_user.admin || current_user.domain_controller?)
+  end
 
   def set_ad_hoc_domain_cycle
     @ad_hoc_domain_cycle = AdHocDomainCycle.find(params[:ad_hoc_domain_cycle_id])

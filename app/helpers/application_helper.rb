@@ -323,6 +323,13 @@ module ApplicationHelper
             end
           end
         end
+        if user.domain_controller?
+          m.dropdown('Ad hoc t/ts', '#') do
+            user.ad_hoc_domains.each do |ahd|
+              m.item(ahd.name, ad_hoc_domain_path(ahd))
+            end
+          end
+        end
         if user.create_events?
           m.dropdown(events_menu_text(user), user_events_path(user)) do
             m.dropdown(my_events_menu_text(user),

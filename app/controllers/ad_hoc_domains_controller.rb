@@ -7,7 +7,6 @@
 
 class AdHocDomainsController < ApplicationController
 
-
   before_action :set_ad_hoc_domain,
                 only: [
                   :edit,
@@ -172,6 +171,20 @@ class AdHocDomainsController < ApplicationController
   end
 
   private
+
+  def authorized?(action = action_name, resource = nil)
+    #
+    #  Note that we allow *any* domain controller access.  This is
+    #  just possibly a security risk, but easier than checking them
+    #  individually.
+    #
+    #  Domain controllers can use only :show.
+    #
+    logged_in? &&
+      (current_user.admin ||
+       (current_user.domain_controller? &&
+        action == 'show'))
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_ad_hoc_domain

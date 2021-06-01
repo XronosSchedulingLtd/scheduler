@@ -911,6 +911,13 @@ class User < ApplicationRecord
     self.admin? || !other_user.admin?
   end
 
+  #
+  #  Does this user control any AdHocDomains?
+  #
+  def domain_controller?
+    !self.ad_hoc_domains.empty?
+  end
+
   def controls?(ad_hoc_domain)
     self.ad_hoc_domains.include?(ad_hoc_domain)
   end
