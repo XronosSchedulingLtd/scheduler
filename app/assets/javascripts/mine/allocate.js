@@ -106,6 +106,31 @@ var editing_allocation = function() {
       }
     };
 
+    that.overlapsLesson = function(lesson) {
+      //
+      //  Does this allocation overlap time-wise with the given lesson.
+      //  We have already established that they are on the same day.
+      //  Our allocation has two moment objects giving its timing,
+      //  but the timetable entry is purely textual.
+      //
+      var lesson_starts_at;
+      var lesson_ends_at;
+      var textual_date = this.starts_at.format("YYYY-MM-DD ");
+
+      lesson_starts_at = moment(textual_date + lesson.b);
+      lesson_ends_at   = moment(textual_date + lesson.e);
+      //
+      //  It's easiest to work out the right test if you think about
+      //  the opposite.
+      //
+      if (this.ends_at <= lesson_starts_at ||
+          this.starts_at >= lesson_ends_at) {
+        return false;
+      } else {
+        return true;
+      }
+    };
+
     return that;
   };
 
@@ -233,6 +258,7 @@ var editing_allocation = function() {
       return allocations;
     };
 
+
     return that;
   };
 
@@ -264,6 +290,78 @@ var editing_allocation = function() {
   //  We can also generate a data stream to send back to the host
   //  to update its variables.
   //
+
+  var makeLoadings = function(pcs, mine) {
+    //
+    //  Within "mine" we expect to find the existing allocations and
+    //  timetables.
+    //
+    //  Wherever we have a blank in our data structure, that means the
+    //  loading is 0.
+    //
+    //  We do an initial calculation of all the loadings now, then we
+    //  expect to be informed every time an allocation is changed.
+    //
+    //  Note that we want to do the calculation once for each pupil,
+    //  which is not the same as once for each pupil course.  One pupil may
+    //  have more than one course.
+    //
+    var that = {};
+
+    var i, j;
+    var allocation;
+    var pc;
+    var loadings_by_pid = {};
+    var date;
+    var lesson, lessons;
+    var loadings;
+
+    var allocations = mine.allocations.all();
+
+    for (i = 0; i < allocations.length; i++) {
+      allocation = allocations[i];
+      pc = pcs[allocation.pcid];
+      //
+      //  Now need to find all timetable lessons which clash with this
+      //  allocation.
+      //
+      lessons = pc.timetable.entriesOn(moment(allocation.starts_at));
+      for (j = 0; j < lessons.length; j++) {
+        lesson = lessons[j];
+        if (allocation.overlapsLesson(lesson)) {
+          //
+          //  Find existing loadings for this pupil.  Create a new
+          //  object if not there.
+          //
+          loadings = (loadings_by_pid[pc.pupil_id] ||= {});
+          if (loadings[lesson.s] === undefined) {
+            loadings[lesson.s] = 1;
+          } else {
+            loadings[lesson.s] = loadings[lesson.s] + 1;
+          }
+        }
+      }
+    }
+
+    that.loadingOf = function(sid, pid) {
+      //
+      //  Given a subject id and a pupil id, give the pupil's current
+      //  loading for that subject - i.e. the number of allocations which
+      //  he has already which clash with a lesson in that subject.
+      //
+      var loadings = loadings_by_pid[pid];
+      if (loadings) {
+        var loading = loadings[sid];
+        if (loading) {
+          return loading;
+        }
+      }
+      //return Math.floor(Math.random() * 7);
+      return 0;
+    }
+
+    return that;
+  }
 
   var makeDataset = function(spec) {
     //
@@ -328,6 +426,11 @@ var editing_allocation = function() {
     //
     var pcs        = makePupilCourses(spec, mine);
 
+    //
+    //  And calculate the current loading for each of our pupils.
+    //
+    that.loadings = makeLoadings(pcs, mine);
+
     that.subjects = spec.subjects;
 
     //
@@ -380,6 +483,16 @@ var editing_allocation = function() {
       }
       return "Unknown";
 
+    };
+
+    that.pupilId = function(pcid) {
+      var pc = pcs[pcid];
+
+      if (pc) {
+        return pc.pupil_id;
+      } else {
+        return 0;
+      }
     };
 
     that.addAllocation = function(starts_at, ends_at, pcid) {
@@ -613,6 +726,19 @@ var editing_allocation = function() {
     var i;
     var events = [];
     var entry;
+    var loading;
+    var colour;
+
+    var colours = [   //   R    G    B
+      '#329653',      //  50, 150,  83
+      '#467D43',      //  70, 125,  67
+      '#5A6433',      //  90, 100,  51
+      '#6E4B23',      // 110,  75,  35
+      '#823213',      // 130,  50,  19
+      '#961903',      // 150,  25,   3
+      '#ff0000'       // Very red
+    ];
+
     for (var date = moment(start); date.isBefore(end); date.add(1, 'days')) {
       //
       //  Does our model know about any background events which we can
@@ -649,11 +775,19 @@ var editing_allocation = function() {
             //  should add one event to our display.
             //
             entries.forEach(function(entry) {
+              loading =
+                dataset.loadings.loadingOf(
+                  entry.s,
+                  dataset.pupilId(currentlyShowing));
+              if (loading >= colours.length) {
+                loading = colours.length - 1;
+              }
+              colour = colours[loading];
               events.push({
                 title: dataset.subjects[entry.s],
                 start: date.format('YYYY-MM-DD') + ' ' + entry.b,
                 end: date.format('YYYY-MM-DD') + ' ' + entry.e,
-                color: '#3b9653',
+                color: colour,
                 timetable: 1,
                 sort_by: "A"
               });
@@ -667,7 +801,6 @@ var editing_allocation = function() {
     var allocated = dataset.allocationsInWeek(start);
     if (allocated) {
       allocated.forEach(function(alloc) {
-        console.log("One allocation");
         var starts_at = alloc.starts_at;
         if ((starts_at >= start) && (starts_at < end)) {
           events.push({

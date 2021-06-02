@@ -8,11 +8,14 @@
 class AdHocDomainAllocationsController < ApplicationController
   before_action :set_ad_hoc_domain_cycle, only: [:new, :create]
 
-  before_action :set_ad_hoc_domain_allocation, only: [:edit,
-                                                     :update,
-                                                     :show,
-                                                     :destroy,
-                                                     :generate]
+  before_action :set_ad_hoc_domain_allocation, only: [
+    :edit,
+    :update,
+    :show,
+    :destroy,
+    :generate,
+    :do_clone
+  ]
 
   before_action :set_staff_and_allocation, only: [:allocate, :save]
 
@@ -135,6 +138,23 @@ class AdHocDomainAllocationsController < ApplicationController
     #  No further action required, but this method is actually
     #  used.
     #
+  end
+
+  def do_clone
+    new_allocation = @ad_hoc_domain_allocation.dup
+    new_allocation.name = "Clone of #{@ad_hoc_domain_allocation.name}"
+    new_allocation.save
+    respond_to do |format|
+      format.html {
+        redirect_to ad_hoc_domain_url(
+          @ad_hoc_domain_allocation.ad_hoc_domain_cycle.ad_hoc_domain,
+          params: {
+            cycle_id: @ad_hoc_domain_allocation.ad_hoc_domain_cycle_id,
+            tab: 3
+          }
+        )
+      }
+    end
   end
 
   private

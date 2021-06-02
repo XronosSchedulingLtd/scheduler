@@ -15,7 +15,13 @@
       method: :post,
       remote: true)
       %></td>
-  <td>Clone</td>
+  <td><%=
+    link_to(
+      "Clone",
+      do_clone_ad_hoc_domain_allocation_path(ad_hoc_domain_allocation),
+      class: "zfbutton teensy tiny radius button-link",
+      method: :post)
+      %></td>
   <td><%=
   link_to(
     "Edit name",
