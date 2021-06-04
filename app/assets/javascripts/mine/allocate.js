@@ -21,6 +21,31 @@ var editing_allocation = function() {
   //  The raw timetable is nearly good enough but we want to add
   //  some helper methods.
   //
+  //  A note on the storage of times.  If stored in a Moment object
+  //  then they are stored with DST set as appropriate.  If stored
+  //  as text then they are in current local time.
+  //
+  //  During periods of DST, FC returns them as Moment objects but
+  //  with DST *not* set.  (Not sure how it does this.)  Thus when
+  //  it should return 12:30 DST, it returns 12:30 GMT, but the object
+  //  still formats as "12:30".
+  //
+
+  var massageFcTiming = function(t) {
+    //
+    //  There seems to be a slight bijou bugette in FullCalendar
+    //  in that although it provides us with a Moment object containing
+    //  the event's start time, it ignores DST.  Thus if an event is
+    //  due to start at 12:30 BST, the object coming from FC has
+    //  it as 12:30 GMT (13:30 BST).
+    //
+    //  It only hurts when we start doing comparison of Moment objects.
+    //
+    //  We cope by converting to text and then back again.
+    //
+
+    return moment(t.format("YYYY-MM-DD HH:mm"));
+  };
 
   var makeTimetable = function(pupil_id, mine) {
 
@@ -83,7 +108,8 @@ var editing_allocation = function() {
     };
 
     that.adjustDuration = function(event) {
-      this.ends_at = event.end;
+      this.ends_at = massageFcTiming(event.end);
+      mine.recalculatePupilCourse(pcid);
     };
 
     that.adjustTiming = function(event) {
@@ -95,15 +121,16 @@ var editing_allocation = function() {
       var old_date = this.starts_at.format("YYYY-MM-DD");
       var new_date;
 
-      this.starts_at = event.start;
+      this.starts_at = massageFcTiming(event.start);
       new_date = this.starts_at.format("YYYY-MM-DD");
-      this.ends_at = event.end;
+      this.ends_at = massageFcTiming(event.end);
       //
       //  Only worried about a change in date.
       //
       if (old_date !== new_date) {
         mine.dateChanged(this, old_date, new_date);
       }
+      mine.recalculatePupilCourse(pcid);
     };
 
     that.overlapsLesson = function(lesson) {
@@ -156,7 +183,7 @@ var editing_allocation = function() {
     //
     //  Need moment, moment, integer.
     //
-    that.add = function(starts_at, ends_at, pcid) {
+    var doAdd = function(starts_at, ends_at, pcid) {
       var week_no = mine.weekOf(starts_at);
       var entry = makeAllocation(starts_at, ends_at, pcid, mine);
 
@@ -174,8 +201,16 @@ var editing_allocation = function() {
       }
     };
 
+    //
+    //  Externally visible version which forces a recalculation.
+    //
+    that.add = function(starts_at, ends_at, pcid) {
+      doAdd(starts_at, ends_at, pcid);
+      mine.recalculatePupilCourse(pcid);
+    };
+
     for (i = 0; i < allocated.length; i++) {
-      that.add(
+      doAdd(
         moment(allocated[i].starts_at),
         moment(allocated[i].ends_at),
         allocated[i].pcid
@@ -343,6 +378,46 @@ var editing_allocation = function() {
       }
     }
 
+    that.recalculateLoadingOf = function(pid) {
+      //
+      //  Something has changed for the indicated pupil.  Recalculate
+      //  his or her loading.  Note that said pupil may have one
+      //  or more PupilCourses.
+      //
+      var allocations = mine.allocations.all();
+
+      //
+      //  New blank record for this pupil.
+      //
+      var new_loadings = {};
+
+      for (i = 0; i < allocations.length; i++) {
+        allocation = allocations[i];
+        pc = pcs[allocation.pcid];
+        if (pc.pupil_id === pid) {
+          //
+          //  Now need to find all timetable lessons which clash with this
+          //  allocation.
+          //
+          lessons = pc.timetable.entriesOn(moment(allocation.starts_at));
+          for (j = 0; j < lessons.length; j++) {
+            lesson = lessons[j];
+            if (allocation.overlapsLesson(lesson)) {
+              if (new_loadings[lesson.s] === undefined) {
+                new_loadings[lesson.s] = 1;
+              } else {
+                new_loadings[lesson.s] = new_loadings[lesson.s] + 1;
+              }
+            }
+          }
+        }
+      }
+      //
+      //  And replace the old record for this pupil.
+      //
+      loadings_by_pid[pid] = new_loadings;
+    };
+
     that.loadingOf = function(sid, pid) {
       //
       //  Given a subject id and a pupil id, give the pupil's current
@@ -431,6 +506,15 @@ var editing_allocation = function() {
     //
     that.loadings = makeLoadings(pcs, mine);
 
+    mine.recalculatePupilCourse = function(pcid) {
+      var pc = pcs[pcid];
+
+      if (pc) {
+        that.loadings.recalculateLoadingOf(pc.pupil_id);
+        tellListeners();
+      }
+    };
+
     that.subjects = spec.subjects;
 
     //
@@ -497,7 +581,6 @@ var editing_allocation = function() {
 
     that.addAllocation = function(starts_at, ends_at, pcid) {
       mine.allocations.add(starts_at, ends_at, pcid);
-      tellListeners();
     };
 
     that.allocationByDate = function(date, pcid) {
@@ -678,9 +761,21 @@ var editing_allocation = function() {
     //
     var pcid = $(this).data('pcid');
 
+    //
+    //  There seems to be a slight bijou bugette in FullCalendar
+    //  in that although it provides us with a Moment object containing
+    //  the event's start time, it ignores DST.  Thus if an event is
+    //  due to start at 12:30 BST, the object coming from FC has
+    //  it as 12:30 GMT (13:30 BST).
+    //
+    //  It only hurts when we start doing comparison of Moment objects.
+    //
+    //  We cope by converting to text and then back again.
+    //
+    var starts_at = massageFcTiming(startsAt);
     dataset.addAllocation(
-      startsAt,
-      moment(startsAt).add(dataset.durationOf(pcid), 'minutes'),
+      starts_at,
+      moment(starts_at).add(dataset.durationOf(pcid), 'minutes'),
       pcid);
   }
 

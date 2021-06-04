@@ -22,6 +22,7 @@ Rails.application.routes.draw do
       resources :ad_hoc_domain_allocations, shallow: true do
         member do
           post :generate
+          post :do_clone
         end
       end
     end
