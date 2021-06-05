@@ -37,7 +37,6 @@ var editing_rota_templates = function() {
     var prepared_data = JSON.stringify({
       ahd_event: to_send
     });
-    console.log({prepared_data});
     $.ajax({
       url: base_url,
       type: "POST",

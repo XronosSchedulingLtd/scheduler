@@ -39,9 +39,17 @@ var editing_allocation = function() {
     //  due to start at 12:30 BST, the object coming from FC has
     //  it as 12:30 GMT (13:30 BST).
     //
+    //  Interestingly though, although the Moment object contains
+    //  the date, if you ask it to format the time it gives it as 12:30.
+    //  Must be some setting within the object turning DST off completely.
+    //
     //  It only hurts when we start doing comparison of Moment objects.
     //
-    //  We cope by converting to text and then back again.
+    //  We cope by converting to text and then back again.  The newly
+    //  created moment object then has DST switched on as appropriate.
+    //
+    //  I believe that if the FC bugette is fixed at a later date,
+    //  this approach will continue to work.
     //
 
     return moment(t.format("YYYY-MM-DD HH:mm"));
@@ -49,7 +57,7 @@ var editing_allocation = function() {
 
   var makeTimetable = function(pupil_id, mine) {
 
-    that = mine.timetables[pupil_id];
+    var that = mine.timetables[pupil_id];
     //
     //  A raw timetable may belong to more than one PupilCourse
     //  but needs enhancing only once.
@@ -390,6 +398,7 @@ var editing_allocation = function() {
       //  New blank record for this pupil.
       //
       var new_loadings = {};
+      var i,j;
 
       for (i = 0; i < allocations.length; i++) {
         allocation = allocations[i];
@@ -477,7 +486,7 @@ var editing_allocation = function() {
     //
     var listeners = [];
 
-    var tellListeners = function(datechange = false) {
+    var tellListeners = function(datechange) {
       var i;
 
       for (i = 0; i < listeners.length; i++) {
@@ -511,7 +520,7 @@ var editing_allocation = function() {
 
       if (pc) {
         that.loadings.recalculateLoadingOf(pc.pupil_id);
-        tellListeners();
+        tellListeners(false);
       }
     };
 
@@ -623,7 +632,7 @@ var editing_allocation = function() {
       return that.unallocatedInWeek(view_date);
     };
 
-    that.addListener = function(callback, context, dates = false) {
+    that.addListener = function(callback, context, dates) {
       listeners.push({callback: callback, context: context, dates: dates});
     };
 
@@ -632,7 +641,7 @@ var editing_allocation = function() {
 
       current = pcid;
       if (current !== old_val) {
-        tellListeners();
+        tellListeners(false);
       }
     };
 
@@ -1044,7 +1053,7 @@ var editing_allocation = function() {
     //  And we need to do things to the Calendar if the current
     //  attribute changes.
     //
-    dataset.addListener(checkChange);
+    dataset.addListener(checkChange, null, false);
     //
     //  Handle clicks on our save button.
     //
