@@ -376,7 +376,10 @@ var editing_allocation = function() {
           //  Find existing loadings for this pupil.  Create a new
           //  object if not there.
           //
-          loadings = (loadings_by_pid[pc.pupil_id] ||= {});
+          loadings = loadings_by_pid[pc.pupil_id];
+          if (!loadings) {
+            loadings = (loadings_by_pid[pc.pupil_id] = {});
+          }
           if (loadings[lesson.s] === undefined) {
             loadings[lesson.s] = 1;
           } else {
