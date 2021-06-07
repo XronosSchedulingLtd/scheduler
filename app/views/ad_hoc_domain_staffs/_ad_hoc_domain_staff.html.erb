@@ -1,7 +1,11 @@
 <tr>
   <td><%= ad_hoc_domain_staff.staff_name %></td>
   <td><%= ad_hoc_domain_staff.subjects.collect {|s| s.name}.join(", ") %></td>
-  <td>0%</td>
+  <td class='numeric'><%=
+    as_percentage(
+      @ad_hoc_domain_allocation.percentage_complete(
+        ad_hoc_domain_staff)
+    ) %></td>
   <td><%=
     link_to(
       "Allocate",

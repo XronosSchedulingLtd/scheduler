@@ -1,6 +1,6 @@
 <tr>
   <td><%= ad_hoc_domain_allocation.name %></td>
-  <td>0%</td>
+  <td class='numeric'><%= as_percentage(ad_hoc_domain_allocation.percentage_complete) %></td>
   <td><%=
     link_to(
       "Details",

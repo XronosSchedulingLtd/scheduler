@@ -114,4 +114,49 @@ class AdHocDomainAllocation < ApplicationRecord
     Rails.logger.debug("Allocation of parameters")
     Rails.logger.debug(value.inspect)
   end
+
+  #
+  #  Calculate the percentage completeness for either the whole allocation
+  #  or just one member of staff.
+  #
+  #  Return a float, which may be Infinity.
+  #
+  def percentage_complete(ad_hoc_domain_staff = nil)
+    num_weeks = self.ad_hoc_domain_cycle.num_weeks
+    if ad_hoc_domain_staff
+      #
+      #  Just one.
+      #
+      #  How many lessons does this staff member need to have
+      #  in the cycle?
+      #
+      lessons_per_cycle = ad_hoc_domain_staff.num_real_pupils * num_weeks
+      #
+      #  How many have been allocated?  Could be no entry at all.
+      #
+      entries = self.allocations[ad_hoc_domain_staff.id]
+      if entries
+        num_allocated = entries.size
+      else
+        num_allocated = 0
+      end
+    else
+      #
+      #  The lot.  We can't just iterate through our allocations
+      #  because there could be a member of staff with none allocated
+      #  yet.
+      #
+      lessons_per_cycle = 0
+      num_allocated = 0
+      self.ad_hoc_domain_cycle.ad_hoc_domain_staffs.each do |ad_hoc_domain_staff|
+        lessons_per_cycle += (ad_hoc_domain_staff.num_real_pupils * num_weeks)
+        entries = self.allocations[ad_hoc_domain_staff.id]
+        if entries
+          num_allocated += entries.size
+        end
+      end
+    end
+    num_allocated.to_f / lessons_per_cycle.to_f
+  end
+
 end

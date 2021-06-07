@@ -231,4 +231,24 @@ class AdHocDomainCycle < ApplicationRecord
     total
   end
 
+  #
+  #  Calculate how many weeks this cycle covers.  This gets slightly
+  #  interesting because it's possible for a cycle to start or end
+  #  mid-week, in which case we still count it.  Quite what will happen
+  #  in terms of ad hoc lessons is a bit up in the air if a teacher
+  #  is available for only half a week, but not sure how we can improve
+  #  the calculation.
+  #
+  def num_weeks
+    sundate = self.starts_on - self.starts_on.wday.days
+    duration = (self.exclusive_end_date - sundate).to_i
+    #
+    #  duration = 1 => result 1
+    #  duration = 7 => result 1
+    #  duration = 8 => result 2
+    #  etc.
+    #
+    (duration + 6) / 7
+  end
+
 end

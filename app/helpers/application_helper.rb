@@ -132,6 +132,25 @@ module ApplicationHelper
     end
   end
 
+  def as_percentage(value)
+    #
+    #  Format a percentage value as a string.  Infinity and NaN get "-.-%".
+    #
+    #  Rails boasts a number_to_percentage method as a view helper but
+    #  unfortunately whoever implemented it clearly didn't really
+    #  understand percentages.
+    #
+    #  67.3% == 0.673 so one would expect to be able to pass it 0.673
+    #  and get "67.3%" out.  Sadly you get "0.673%" out.  Thus we need
+    #  to multiply by 100.0 to get a sensible result.
+    #
+    if value.nan? || value.infinite?
+      "-.-%"
+    else
+      number_to_percentage(value * 100.0, precision: 1)
+    end
+  end
+
   def tscb_group(f,
                  parent,
                  field,
