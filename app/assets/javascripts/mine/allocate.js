@@ -710,7 +710,7 @@ var editing_allocation = function() {
     header: {
       left: 'prev,next',
       center: 'title',
-      right: null
+      right: 'agendaWeek,agendaDay'
     },
     views: {
       week: {
@@ -756,9 +756,9 @@ var editing_allocation = function() {
     //  timetable events (which should be first in the sort order)
     //  only.
     //
-    if (element.hasClass("fc-time-grid-event") && (event.timetable === 1)) {
-      element.css("margin-right", "20px");
-    }
+//    if (element.hasClass("fc-time-grid-event") && (event.timetable === 1)) {
+//      element.css("margin-right", "20px");
+//    }
   }
 
   function entryDropped(startsAt, jsEvent, ui) {
