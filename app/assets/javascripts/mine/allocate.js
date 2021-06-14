@@ -14,6 +14,397 @@ var editing_allocation = function() {
   //
   //================================================================
   //
+  //  Things to help with manipulating times and shifts
+  //
+  //================================================================
+  //
+
+  //
+  //  A helper function to convert a Moment object to a number
+  //  of minutes since midnight, ignoring any DST issues.  We
+  //  want 09:00 to be 540 minutes after midnight regardless.
+  //
+  var toMins = function(a_moment) {
+    var bits = a_moment.format('HH:mm').split(':');
+    var mins = (parseInt(bits[0], 10) * 60) + parseInt(bits[1], 10);
+    return mins;
+  };
+
+  var pad = function(input) {
+    //
+    //  Leading zeroes are stupidly difficult in JavaScript.
+    //
+    return ('0' + input).slice(-2);
+  };
+
+  var to_time = function(mins) {
+    var hours = Math.floor(mins / 60);
+    var minutes = mins % 60;
+    return pad(hours) + ':' + pad(minutes);
+  };
+
+  //
+  //  A period of time from b_mins after midnight to e_mins
+  //  after midnight.  Inclusive start, exclusive end.  e_mins
+  //  must be larger than b_mins.
+  //
+  var makeShift = function(b_mins, e_mins) {
+
+    var that = {};
+
+    that.includes = function(instant) {
+      //
+      //  instant is also expressed as minutes after midnight.
+      //
+      return b_mins <= instant && instant < e_mins;
+    };
+
+    that.starts_at = function(instant) {
+      //
+      //  Is this when we start at?
+      //
+      return b_mins === instant;
+    }
+
+    that.ends_at = function(instant) {
+      //
+      //  Is this when we end at?
+      //
+      return e_mins === instant;
+    }
+
+    that.starts_before = function(instant) {
+      //
+      //  Do we start before the indicated time.
+      //
+      return b_mins < instant;
+    }
+
+    that.starts_after = function(instant) {
+      //
+      //  Do we start after the indicated time.
+      //
+      return b_mins > instant;
+    }
+
+    that.ends_before = function(instant) {
+      //
+      //  Do we end after the indicated time.
+      //
+      return e_mins < instant;
+    }
+
+    that.ends_after = function(instant) {
+      //
+      //  Do we end after the indicated time.
+      //
+      return e_mins > instant;
+    }
+
+    //
+    //  abuts returns true if one starts as the other ends.
+    //
+    that.abuts = function(other) {
+      return other.starts_at(e_mins) || other.ends_at(b_mins);
+    };
+
+    that.coterminates = function(other) {
+      //
+      //  Starts or ends at precisely the same time.
+      //
+      return other.starts_at(b_mins) || other.ends_at(e_mins);
+    };
+
+    that.overlaps = function(other) {
+      //
+      //  Shares at least one common time.  May be just an instant,
+      //  but must be internal as end times are exclusive.  If two
+      //  shifts abut then they do not overlap.
+      //
+      return other.ends_after(b_mins) && other.starts_before(e_mins);
+    };
+
+    that.avoids = function(other) {
+      return !that.overlaps(other);
+    };
+
+    that.within = function(ob_mins, oe_mins) {
+      //
+      //  Do we lie entirely within the indicated time.
+      //
+      return b_mins >= ob_mins && e_mins <= oe_mins;
+    };
+
+    that.contains = function(other) {
+      return other.within(b_mins, e_mins);
+    };
+
+    that.equals = function(other) {
+      return other.starts_at(b_mins) && other.ends_at(e_mins);
+    };
+
+    that.duration = function() {
+      //
+      //  Give duration in minutes.
+      //
+      return e_mins - b_mins;
+    };
+
+    that.shiftBefore = function(new_b_mins) {
+      //
+      //  Create a new shift immediately before ourselves with the
+      //  indicated new_b_mins value.
+      //
+      return makeShift(new_b_mins, b_mins);
+    };
+
+    that.shiftAfter = function(new_e_mins) {
+      //
+      //  Create a new shift immediately after ourselves with the
+      //  indicated new_e_mins value.
+      //
+      return makeShift(e_mins, new_e_mins);
+    };
+
+    that.minsAfter = function(other) {
+      //
+      //  How many minutes after the indicated object do we start?
+      //
+      return other.gapBefore(b_mins);
+    };
+
+    that.minsBefore = function(other) {
+      //
+      //  How many minutes before the indicated object do we end?
+      //
+      return other.gapAfter(e_mins);
+    };
+
+    that.subtract = function(other, do_yield) {
+      if (this.overlaps(other)) {
+        if (!other.contains(this)) {
+          //
+          //  There should be something left.
+          //
+          if (other.starts_after(b_mins)) {
+            //
+            //  We start first.  Keep our early part.
+            //
+            do_yield(other.shiftBefore(b_mins));
+          }
+          if (other.ends_before(e_mins)) {
+            //
+            //  We end second.  Keep our late part.
+            //
+            do_yield(other.shiftAfter(e_mins));
+          }
+        }
+      } else {
+        do_yield(this);
+      }
+    };
+
+    that.startMomentOn = function(date) {
+      //
+      //  Passed a moment giving a date, pass pack another moment
+      //  with when we would start on that date.
+      //
+      return moment(date.format("YYYY-MM-DD ") + to_time(b_mins));
+    };
+
+    that.format = function() {
+      //
+      //  Want to produce something of the form "HH:MM - HH:MM".
+      //
+      return to_time(b_mins) + " - " + to_time(e_mins) + " (" + b_mins + " - " + e_mins + ")";
+    };
+
+    return that;
+  };
+
+
+  var makeTimeSlot = function(b_text, e_text) {
+    var bits;
+    
+    bits = b_text.split(':');
+    var b_mins = (parseInt(bits[0], 10) * 60) + parseInt(bits[1], 10);
+    bits = e_text.split(':');
+    var e_mins = (parseInt(bits[0], 10) * 60) + parseInt(bits[1], 10);
+    var that = makeShift(b_mins, e_mins);
+
+    return that;
+  };
+
+  //
+  //  Make an instant object.  We still go via text to avoid issues
+  //  with DST.  We are interested in mins since midnight on a *normal*
+  //  day.
+  //
+  var makeInstant = function(a_moment) {
+    var mins = toMins(a_moment);
+
+    var that = {};
+
+    //
+    //  We emulate a Shift just enough that some of its functions
+    //  will work.
+    //
+
+    that.within = function(ob_mins, oe_mins) {
+      //
+      //  Do we lie entirely within the indicated time.
+      //  Note that if we are the last moment of the slot
+      //  then we don't.
+      //
+      return mins >= ob_mins && mins < oe_mins;
+    };
+
+    //
+    //  By how much are we *before* given_mins?  Answer may be negative
+    //  if we are not before.
+    //
+    that.gapBefore = function(given_mins) {
+      return given_mins - mins;
+    };
+
+    that.gapAfter = function(given_mins) {
+      return mins - given_mins;
+    };
+
+    that.format = function() {
+      //
+      //  Want to produce something of the form "HH:MM".
+      //
+      return to_time(mins);
+    };
+
+    that.mins = function() {
+      return mins;
+    };
+
+    return that;
+  };
+
+  var makeTimeSlotSet = function(b_text, e_text) {
+    //
+    //  A TimeSlotSet only ever represents an ordered set of non-overlapping
+    //  time slots.
+    //
+    //  Start with an array of just one slot.
+    //
+    var slots = [makeTimeSlot(b_text, e_text)];
+
+    var doRemove = function(slot) {
+      var working;
+      var current;
+      var that = this;
+
+      //
+      //  Subtract a time_slot from the space which we occupy, splitting
+      //  things as necessary.
+      //
+      if (slot.duration !== 0) {
+        working = this.slice();
+        this.length = 0;
+        while (current = working.shift()) {
+          if (current.overlaps(slot)) {
+            //
+            //  We might end up chopping current into two parts.
+            //
+            current.subtract(slot, function(remains) {
+              that.push(remains);
+            });
+          } else {
+            this.push(current);
+          }
+        }
+      }
+    };
+
+    var doContainingFor = function(instant, duration) {
+      //
+      //  Go through our time slots looking for one which both
+      //  contains instant and is at least duration long.
+      //
+      //  Return null if not found.
+      //
+      var current;
+      var i;
+
+      for (i = 0; i < this.length; i++) {
+        current = this[i];
+        if (current.contains(instant) &&
+            current.duration() >= duration) {
+          return current;
+        }
+      }
+      return null;
+    };
+
+    var doAfterFor = function(instant, duration) {
+      //
+      //  Go through our time slots looking for one which is
+      //  after instant and is at least duration long.
+      //
+      //  Return null if not found.
+      //
+      var current;
+      var i;
+
+      for (i = 0; i < this.length; i++) {
+        current = this[i];
+        if (current.starts_after(instant.mins()) &&
+            current.duration() >= duration) {
+          return current;
+        }
+      }
+      return null;
+    };
+
+    var doLastingFor = function(duration) {
+      //
+      //  Go through our time slots looking for one which is
+      //  after instant and is at least duration long.
+      //
+      //  Return null if not found.
+      //
+      var current;
+      var i;
+
+      for (i = 0; i < this.length; i++) {
+        current = this[i];
+        if (current.duration() >= duration) {
+          return current;
+        }
+      }
+      return null;
+    };
+
+    var doDup = function() {
+      var new_slots;
+
+      new_slots = this.slice();
+      new_slots.remove = doRemove;
+      new_slots.dup = doDup;
+      new_slots.containingFor = doContainingFor;
+      new_slots.afterFor = doAfterFor;
+      new_slots.lastingFor = doLastingFor;
+      return new_slots;
+    };
+
+    slots.remove = doRemove;
+    slots.dup = doDup;
+    slots.containingFor = doContainingFor;
+    slots.afterFor = doAfterFor;
+    slots.lastingFor = doLastingFor;
+
+    return slots;
+  };
+
+
+  //
+  //================================================================
+  //
   //  Datastore and subsidiary items.
   //
   //================================================================
@@ -166,6 +557,13 @@ var editing_allocation = function() {
       }
     };
 
+    that.shift = function() {
+      //
+      //  Return the timing of this allocation as a shift.
+      //
+      return makeShift(toMins(this.starts_at), toMins(this.ends_at));
+    };
+
     return that;
   };
 
@@ -262,6 +660,18 @@ var editing_allocation = function() {
       } else {
         return [];
       }
+    };
+
+    that.onDate = function(date) {
+      //
+      //  Return all the allocations on a given date.
+      //  Return an empty array if none found.
+      //
+      var result = by_date[date.format("YYYY-MM-DD")];
+      if (!result) {
+        result = [];
+      }
+      return result;
     };
 
     that.byDate = function(date, pcid) {
@@ -450,6 +860,137 @@ var editing_allocation = function() {
     return that;
   }
 
+  var makeMinsOfDay = function(textual) {
+    //
+    //  We are very fussy.  We accept NN:NN, and not much else.
+    //  (One digit in each half is OK.)
+    //
+    var bits = textual.split(':');
+
+    return (parseInt(bits[0], 10) * 60) + parseInt(bits[1], 10);
+  }
+
+  var makeAvailable = function(available, mine) {
+    //
+    //  It is just possible that an allocation cycle could straddle
+    //  the change into or out of DST.  We therefore need to be careful
+    //  to ensure that all our conversions between textual and Moment
+    //  representation occur for the same actual date.  If we did them
+    //  for different dates then one could be in DST and the other not
+    //  and then comparisons would all go wrong.
+    //
+    //  We can however convert textual versions naively to
+    //  "minutes since midnight", which will give us all we need.  Don't
+    //  need to worry about DST, provided we can convert back and get the
+    //  same textual representation again.
+    //
+    //  Normally 08:00 is 480 minutes after midnight (8 * 60).
+    //  On the day DST starts, it is only 420 minutes after midnight
+    //  (because the clocks jumped forward).  However, as long as
+    //  we always convert 08:00 to 480 and always convert 480 to 08:00
+    //  we don't have a problem.
+    //
+    var start_mins   = makeMinsOfDay(available.starts_at);
+    var end_mins     = makeMinsOfDay(available.ends_at);
+    var start_string = available.starts_at;
+    var end_string   = available.ends_at;
+    var wday         = available.wday;
+
+    var slots = makeTimeSlotSet(available.starts_at, available.ends_at);
+
+    var that = makeTimeSlot(available.starts_at, available.ends_at);
+
+    that.happensOn = function(required_wday) {
+      return required_wday === wday;
+    };
+
+    that.startsAtOn = function(date) {
+      return date.format('YYYY-MM-DD ') + start_string;
+    };
+
+    that.endsAtOn = function(date) {
+      return date.format('YYYY-MM-DD ') + end_string;
+    };
+
+    that.asSlotSet = function() {
+      //
+      //  Don't give the caller our original because he will only go
+      //  and mess with it.
+      //
+      return slots.dup();
+    };
+
+    return that;
+  };
+
+  var makeAvailables = function(spec, mine) {
+    var result = [];
+    for (var i = 0; i < spec.availables.length; i++) {
+      result.push(makeAvailable(spec.availables[i]));
+    }
+
+    result.on = function(date) {
+      var wday = date.day();
+      return _.select(this, function(entry) {
+        return entry.happensOn(wday);
+      });
+    };
+
+    result.bestFit = function(when) {
+      //
+      //  Find the best "available" slot for an indicated date and
+      //  time, passed as a moment object.
+      //
+      //  If there are no available slots at all on that day then
+      //  we return null, otherwise we will return the one containing
+      //  the indicated time, or the one nearest.
+      //
+      var slot;
+
+      var candidates = result.on(when);
+      var instant = makeInstant(when);
+      var best;
+      var delta;
+      var i;
+
+      if (candidates && candidates.length > 0) {
+        //
+        //  Go first for one which actually contains the time.
+        //
+        slot =
+          candidates.find(function(entry) { return entry.contains(instant) });
+        if (!slot) {
+          //
+          //  Go for nearest slot after, or if none then the nearest
+          //  slot before.
+          //
+          best = 2000;  // More than there are minutes in a day.
+          for (i = 0; i < candidates.length; i++) {
+            delta = candidates[i].minsAfter(instant);
+            if (delta >= 0 && delta < best) {
+              slot = candidates[i];
+              best = delta;
+            }
+          }
+          if (!slot) {
+            for (i = 0; i < candidates.length; i++) {
+              delta = candidates[i].minsBefore(instant);
+              if (delta >= 0 && delta < best) {
+                slot = candidates[i];
+                best = delta;
+              }
+            }
+          }
+        }
+        return slot;
+      } else {
+        return null;
+      }
+    };
+
+    return result;
+  };
+
   var makeDataset = function(spec) {
     //
     //  Stuff private to this object is saved in local variables.
@@ -479,7 +1020,8 @@ var editing_allocation = function() {
     //  Things which are already provided in a convenient form we simply
     //  store.
     //
-    var availables = spec.availables;
+    that.availables = makeAvailables(spec, mine);
+
     //
     //  To start with, no PupilCourse is current.
     //
@@ -509,6 +1051,19 @@ var editing_allocation = function() {
     };
 
     //
+    //  What is the duration (in minutes) of the indicated
+    //  Pupil Course.
+    //
+    var durationOf = function(pcid) {
+      var pc = pcs[pcid];
+      if (pc) {
+        return pc.mins;
+      } else {
+        return 0;
+      }
+    };
+
+    //
     //  Whilst other things are tweaked to make them easier to manipulate.
     //
     var pcs        = makePupilCourses(spec, mine);
@@ -532,15 +1087,6 @@ var editing_allocation = function() {
     //
     //  And now we add public methods.
     //
-    //  When is this teacher available on the indicated date?
-    //
-    that.availablesOn = function(date) {
-      var wday = date.day();
-      return _.select(availables, function(entry) {
-        return entry.wday === wday;
-      });
-    };
-
     //
     //  Find the pupil timetable for a given pcid.
     //
@@ -556,19 +1102,6 @@ var editing_allocation = function() {
       //  Can't find.  Return a blank timetable.
       //
       return {A: [], B: []};
-    };
-
-    //
-    //  What is the duration (in minutes) of the indicated
-    //  Pupil Course.
-    //
-    that.durationOf = function(pcid) {
-      var pc = pcs[pcid];
-      if (pc) {
-        return pc.mins;
-      } else {
-        return 0;
-      }
     };
 
     that.pupilName = function(pcid) {
@@ -591,7 +1124,66 @@ var editing_allocation = function() {
       }
     };
 
-    that.addAllocation = function(starts_at, ends_at, pcid) {
+    that.addAllocation = function(starts_at, pcid) {
+      //
+      //  We are passed starts_at (a Moment) which came from
+      //  FullCalendar, plus a pcid.  We take the requested
+      //  starts_at as merely indicative.  We will jiggle things
+      //  a bit to try to make the new allocation fit in well.
+      //
+      //  Firstly, find the relevant availability slot.
+      //
+      var duration = durationOf(pcid);
+      var existing;
+      var ends_at;
+      var existing_shifts;
+      var free_times;
+      var i;
+      var instant;
+      var selected;
+
+      var slot = that.availables.bestFit(starts_at);
+      if (slot) {
+        //
+        //  We've found the teacher's best availability slot.  Now,
+        //  how much of it is already taken up?
+        //
+        existing = mine.allocations.onDate(starts_at);
+        //
+        //  The above will find all allocations, not just those which overlap
+        //  but it doesn't matter.
+        //
+        existing_shifts = existing.map(function(a) { return a.shift(); });
+
+        free_times = slot.asSlotSet();
+        for (i = 0; i < existing_shifts.length; i++) {
+          free_times.remove(existing_shifts[i]);
+        }
+        //
+        //  We now have a list (possibly empty) of free times within
+        //  the indicated availability slot.  We need to choose which
+        //  of these to use.
+        //
+        //  Go for the one containing our time, if it's big enough.
+        //  Otherwise go for the first subsequent one which is big enough.
+        //  Otherwise go for the first one which is big enough.
+        //
+        instant = makeInstant(starts_at);
+        selected = free_times.containingFor(instant, duration);
+        if (!selected) {
+          selected = free_times.afterFor(instant, duration);
+        }
+        if (!selected) {
+          selected = free_times.lastingFor(duration);
+        }
+        if (selected) {
+          //
+          //  Put it at the start of this gap.
+          //
+          starts_at = selected.startMomentOn(starts_at);
+        }
+      }
+      ends_at = moment(starts_at).add(duration, 'minutes');
       mine.allocations.add(starts_at, ends_at, pcid);
     };
 
@@ -685,6 +1277,11 @@ var editing_allocation = function() {
       }).done(saveDone).
          fail(saveFailed);
     };
+
+    //var able = makeTimeSlotSet("09:00", "15:00");
+    //var baker = makeTimeSlot("12:15", "13:30");
+
+    //able.remove(baker);
 
     return that;
   };
@@ -785,10 +1382,12 @@ var editing_allocation = function() {
     //  We cope by converting to text and then back again.
     //
     var starts_at = massageFcTiming(startsAt);
-    dataset.addAllocation(
-      starts_at,
-      moment(starts_at).add(dataset.durationOf(pcid), 'minutes'),
-      pcid);
+    //
+    //  We now know the time at which the new allocation has been dropped
+    //  but we need to exercise a bit of intelligence about how exactly
+    //  to interpret this.
+    //
+    dataset.addAllocation(starts_at, pcid);
   }
 
   function eventDropped(event, delta, revertFunc) {
@@ -851,12 +1450,12 @@ var editing_allocation = function() {
       //  Does our model know about any background events which we can
       //  shove in?
       //
-      var availables = dataset.availablesOn(date);
+      var availables = dataset.availables.on(date);
       for (i = 0; i < availables.length; i++) {
         entry = availables[i];
         events.push({
-          start: date.format('YYYY-MM-DD') + ' ' + entry.starts_at,
-          end: date.format('YYYY-MM-DD') + ' ' + entry.ends_at,
+          start: entry.startsAtOn(date),
+          end: entry.endsAtOn(date),
           rendering: 'background'
         });
       }
