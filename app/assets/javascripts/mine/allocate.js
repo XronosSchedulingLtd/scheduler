@@ -52,53 +52,53 @@ var editing_allocation = function() {
 
     var that = {};
 
-    that.includes = function(instant) {
+    that.includes = function(mins) {
       //
-      //  instant is also expressed as minutes after midnight.
+      //  mins is also expressed as minutes after midnight.
       //
-      return b_mins <= instant && instant < e_mins;
+      return b_mins <= mins && mins < e_mins;
     };
 
-    that.starts_at = function(instant) {
+    that.starts_at = function(mins) {
       //
       //  Is this when we start at?
       //
-      return b_mins === instant;
+      return b_mins === mins;
     }
 
-    that.ends_at = function(instant) {
+    that.ends_at = function(mins) {
       //
       //  Is this when we end at?
       //
-      return e_mins === instant;
+      return e_mins === mins;
     }
 
-    that.starts_before = function(instant) {
+    that.starts_before = function(mins) {
       //
       //  Do we start before the indicated time.
       //
-      return b_mins < instant;
+      return b_mins < mins;
     }
 
-    that.starts_after = function(instant) {
+    that.starts_after = function(mins) {
       //
       //  Do we start after the indicated time.
       //
-      return b_mins > instant;
+      return b_mins > mins;
     }
 
-    that.ends_before = function(instant) {
+    that.ends_before = function(mins) {
       //
       //  Do we end after the indicated time.
       //
-      return e_mins < instant;
+      return e_mins < mins;
     }
 
-    that.ends_after = function(instant) {
+    that.ends_after = function(mins) {
       //
       //  Do we end after the indicated time.
       //
-      return e_mins > instant;
+      return e_mins > mins;
     }
 
     //
@@ -180,6 +180,28 @@ var editing_allocation = function() {
       return other.gapAfter(e_mins);
     };
 
+    that.minsFrom = function(other) {
+      //
+      //  Sort of combination of the other two.  How close do we get
+      //  to the indicated thing?
+      //  We never return a negative answer, but might return 0;
+      //
+      var result ;
+
+      if (this.contains(other)) {
+        result = 0;
+      } else {
+        //
+        //  We are either before or after the indicated item.
+        //
+        result = this.minsBefore(other) ;
+        if (result < 0) {
+          result = this.minsAfter(other);
+        }
+      }
+      return result;
+    };
+
     that.subtract = function(other, do_yield) {
       if (this.overlaps(other)) {
         if (!other.contains(this)) {
@@ -216,7 +238,8 @@ var editing_allocation = function() {
       //
       //  Want to produce something of the form "HH:MM - HH:MM".
       //
-      return to_time(b_mins) + " - " + to_time(e_mins) + " (" + b_mins + " - " + e_mins + ")";
+      return to_time(b_mins) + " - " + to_time(e_mins) +
+             " (" + b_mins + " - " + e_mins + ")";
     };
 
     return that;
@@ -239,6 +262,9 @@ var editing_allocation = function() {
   //  Make an instant object.  We still go via text to avoid issues
   //  with DST.  We are interested in mins since midnight on a *normal*
   //  day.
+  //
+  //  Would much prefer to sub-class a simple number, but it seems
+  //  that in JavaScript you can't do that.
   //
   var makeInstant = function(a_moment) {
     var mins = toMins(a_moment);
@@ -1124,6 +1150,41 @@ var editing_allocation = function() {
       }
     };
 
+    function timeWithin(slot, taken_up, instant, duration) {
+
+      var free_times;
+      var i;
+      var selected;
+
+      //
+      //  Given a teacher's availability slot, an array of the
+      //  times already taken, the requested instant and a
+      //  duration, find the best time within the slot to use,
+      //  or nil if none is feasible.
+      //
+      free_times = slot.asSlotSet();
+      for (i = 0; i < taken_up.length; i++) {
+        free_times.remove(taken_up[i]);
+      }
+      //
+      //  We now have a list (possibly empty) of free times within
+      //  the indicated availability slot.  We need to choose which
+      //  of these to use.
+      //
+      //  Go for the one containing our time, if it's big enough.
+      //  Otherwise go for the first subsequent one which is big enough.
+      //  Otherwise go for the first one which is big enough.
+      //
+      selected = free_times.containingFor(instant, duration);
+      if (!selected) {
+        selected = free_times.afterFor(instant, duration);
+      }
+      if (!selected) {
+        selected = free_times.lastingFor(duration);
+      }
+      return selected;
+    };
+
     that.addAllocation = function(starts_at, pcid) {
       //
       //  We are passed starts_at (a Moment) which came from
@@ -1133,55 +1194,56 @@ var editing_allocation = function() {
       //
       //  Firstly, find the relevant availability slot.
       //
+      var instant = makeInstant(starts_at);
       var duration = durationOf(pcid);
-      var existing;
       var ends_at;
-      var existing_shifts;
-      var free_times;
-      var i;
-      var instant;
       var selected;
+      var candidates;
+      var i;
 
+      //
+      //  We may need this more than once so calculate it now.
+      //  The times when this teacher is already teaching on this
+      //  day, as an array of Shifts.
+      //
+      var taken_up =
+        mine.allocations.
+             onDate(starts_at).
+             map(function(a) { return a.shift(); });
+
+      selected = null;
       var slot = that.availables.bestFit(starts_at);
       if (slot) {
         //
         //  We've found the teacher's best availability slot.  Now,
         //  how much of it is already taken up?
         //
-        existing = mine.allocations.onDate(starts_at);
+        selected = timeWithin(slot, taken_up, instant, duration);
+      }
+      if (!selected) {
         //
-        //  The above will find all allocations, not just those which overlap
-        //  but it doesn't matter.
+        //  Haven't got anything yet, either because we didn't get
+        //  a slot, or because there wasn't enough free space within
+        //  the indicated slot.
         //
-        existing_shifts = existing.map(function(a) { return a.shift(); });
-
-        free_times = slot.asSlotSet();
-        for (i = 0; i < existing_shifts.length; i++) {
-          free_times.remove(existing_shifts[i]);
+        //  Try again.
+        //
+        candidates = that.availables.on(starts_at);
+        //
+        //  Consider them in order of how close they are.
+        //
+        candidates.sort(function(a,b) {
+          return a.minsFrom(instant) - b.minsFrom(instant);
+        });
+        for (i = 0; (i < candidates.length) && !selected; i++) {
+          selected = timeWithin(candidates[i], taken_up, instant, duration);
         }
+      }
+      if (selected) {
         //
-        //  We now have a list (possibly empty) of free times within
-        //  the indicated availability slot.  We need to choose which
-        //  of these to use.
+        //  Put it at the start of this gap.
         //
-        //  Go for the one containing our time, if it's big enough.
-        //  Otherwise go for the first subsequent one which is big enough.
-        //  Otherwise go for the first one which is big enough.
-        //
-        instant = makeInstant(starts_at);
-        selected = free_times.containingFor(instant, duration);
-        if (!selected) {
-          selected = free_times.afterFor(instant, duration);
-        }
-        if (!selected) {
-          selected = free_times.lastingFor(duration);
-        }
-        if (selected) {
-          //
-          //  Put it at the start of this gap.
-          //
-          starts_at = selected.startMomentOn(starts_at);
-        }
+        starts_at = selected.startMomentOn(starts_at);
       }
       ends_at = moment(starts_at).add(duration, 'minutes');
       mine.allocations.add(starts_at, ends_at, pcid);
