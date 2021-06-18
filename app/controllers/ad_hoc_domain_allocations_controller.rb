@@ -6,6 +6,8 @@
 #
 
 class AdHocDomainAllocationsController < ApplicationController
+  layout 'allocate', only: [:allocate]
+
   before_action :set_ad_hoc_domain_cycle, only: [:new, :create]
 
   before_action :set_ad_hoc_domain_allocation, only: [

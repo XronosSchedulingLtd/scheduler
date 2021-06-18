@@ -3,11 +3,11 @@
 changes if you want them to persist.</p>
 
 <div id="mainContainer">
-  <div class="row collapse calendarbit">
+  <div class="row collapse allocation">
     <div class="small-12 columns">
       <h3>Working on the allocation called <%= @ad_hoc_domain_allocation.name %></h3>
     </div>
-    <div class="small-4 columns">
+    <div class="small-5 columns">
       <p>Lessons slots for <%= @ad_hoc_domain_staff.staff_name %></p>
       <div id='pending-allocations'></div>
       <hr>
@@ -19,7 +19,7 @@ changes if you want them to persist.</p>
         ad_hoc_domain_allocation_url(@ad_hoc_domain_allocation),
         class: "zfbutton tiny radius button-link" %>
     </div>
-    <div class="small-8 columns">
+    <div class="small-7 columns">
       <div id='editing-allocation'>
       </div>
     </div>
@@ -34,7 +34,9 @@ changes if you want them to persist.</p>
 
 <script type="text/template" id="an-allocation">
   <div class='single-allocation<%%= extra_class %>' data-pupil-id='<%%= pupil_id %>' data-pcid='<%%= pcid %>'>
-    <p><%%= pupil %></p>
-    <p><%%= subject %></p>
+    <span class='pupil-name'><%%= pupil %></span>
+    <span class='duration'><%%= mins %> mins</span>
+    <span class='subject'><%%= subject %></span>
+    <div class='allocation-inner<%%= extra_inner_class %>' data-pupil-id='<%%= pupil_id %>' data-pcid='<%%= pcid %>'></div>
   </div>
 </script>

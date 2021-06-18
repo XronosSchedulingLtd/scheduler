@@ -1289,6 +1289,14 @@ var editing_allocation = function() {
       return that.unallocatedInWeek(view_date);
     };
 
+    that.allPupilCourses = function () {
+      //
+      //  Return all known pupil courses as an array (rather than
+      //  as we have them as a hash).
+      //
+      return _.values(pcs);
+    };
+
     that.addListener = function(callback, context, dates) {
       listeners.push({callback: callback, context: context, dates: dates});
     };
@@ -1620,6 +1628,9 @@ var editing_allocation = function() {
       var pcid = $(button).data('pcid');
       dataset.setCurrent(pcid);
     },
+    unsetCurrent: function(event) {
+      dataset.setCurrent(0);
+    },
     checkChanges: function() {
       var toHighlight = dataset.getCurrent();
       this.highlighting = toHighlight;
@@ -1629,7 +1640,7 @@ var editing_allocation = function() {
       //
       //  Cancel draggability of any existing items.
       //
-      this.$el.find('.single-allocation').each(function(index) {
+      this.$el.find('.single-allocation .allocation-inner').each(function(index) {
         if ($(this).data('ui-draggable')) {
           $(this).draggable("destroy");
         }
@@ -1640,30 +1651,40 @@ var editing_allocation = function() {
       var texts = [];
       var that = this;
       var extraClass;
+      var extraInnerClass;
+      var pcs = dataset.allPupilCourses();
       var unallocated = dataset.unallocatedInCurrentWeek();
-      for (var i = 0; i < unallocated.length; i++) {
-        var item = unallocated[i];
+
+      for (var i = 0; i < pcs.length; i++) {
+        var item = pcs[i];
 
         if (item.pcid === that.highlighting) {
           extraClass = " selected";
         } else {
           extraClass = "";
         }
+        if (unallocated.includes(item)) {
+          extraInnerClass = " present";
+        } else {
+          extraInnerClass = " gone";
+        }
         texts.push(that.template({
           extra_class: extraClass,
           pcid: item.pcid,
           pupil_id: item.pupil_id,
           pupil: item.name,
-          subject: item.subject
+          subject: item.subject,
+          mins: item.mins,
+          extra_inner_class: extraInnerClass
         }));
       }
       this.$el.html(
-        texts.join(" ")
+        texts.join(" ") + " <br/><div class='zfbutton teensy tiny doclear'>Clear timetable</div>"
       );
       //
-      //  And make selected draggable.
+      //  And make blue bits draggable.
       //
-      this.$el.find('.single-allocation.selected').each(function(index) {
+      this.$el.find('.single-allocation .allocation-inner.present').each(function(index) {
         $(this).draggable({
           revert: true,
           cursorAt: { top: 0 },
@@ -1673,6 +1694,9 @@ var editing_allocation = function() {
       });
       this.$el.find('.single-allocation').each(function(index) {
         $(this).click(that.clicked);
+      });
+      this.$el.find('.doclear').each(function(index) {
+        $(this).click(that.unsetCurrent);
       });
     }
   });
