@@ -1017,6 +1017,62 @@ var editing_allocation = function() {
     return result;
   };
 
+  var makeCommitment = function(entry) {
+    var that = {
+      body: entry.body,
+      starts_at: moment(entry.starts_at),
+      ends_at: moment(entry.ends_at),
+    };
+
+    that.shift = function() {
+      //
+      //  Return the timing of this commitment as a shift.
+      //
+      return makeShift(toMins(this.starts_at), toMins(this.ends_at));
+    };
+    return that;
+  };
+
+  var makeCommitments = function(spec) {
+    //
+    //  Assemble the list of existing events for this teacher into
+    //  a convenient form.  Calling them commitments because event
+    //  is kind of used a lot.  This is slightly at odds with what
+    //  we mean by Commitment in the host application.
+    //
+    var entries;
+    var key;
+    var commitment;
+    var that = {};
+    var by_date = {};
+    var i;
+
+    entries = spec.events;
+    if (entries) {
+      for (i = 0; i < entries.length; i++) {
+        commitment = makeCommitment(entries[i]);
+        key = commitment.starts_at.format("YYYY-MM-DD");
+        if (by_date[key]) {
+          by_date[key].push(commitment);
+        } else {
+          by_date[key] = [commitment];
+        }
+      }
+    }
+
+    that.onDate = function(date) {
+      var selected;
+
+      selected = by_date[date.format("YYYY-MM-DD")];
+      if (!selected) {
+        selected = [];
+      }
+      return selected;
+    };
+
+    return that;
+  };
+
   var makeDataset = function(spec) {
     //
     //  Stuff private to this object is saved in local variables.
@@ -1047,6 +1103,11 @@ var editing_allocation = function() {
     //  store.
     //
     that.availables = makeAvailables(spec, mine);
+
+    //
+    //  And existing events for this teacher.
+    //
+    that.commitments = makeCommitments(spec);
 
     //
     //  To start with, no PupilCourse is current.
@@ -1207,8 +1268,8 @@ var editing_allocation = function() {
       //  day, as an array of Shifts.
       //
       var taken_up =
-        mine.allocations.
-             onDate(starts_at).
+        mine.allocations.onDate(starts_at).concat(
+          this.commitments.onDate(starts_at)).
              map(function(a) { return a.shift(); });
 
       selected = null;
@@ -1527,6 +1588,19 @@ var editing_allocation = function() {
           start: entry.startsAtOn(date),
           end: entry.endsAtOn(date),
           rendering: 'background'
+        });
+      }
+      //
+      //  And any existing commitments for our teacher?
+      //
+      var commitments = dataset.commitments.onDate(date);
+      for (i = 0; i < commitments.length; i++) {
+        entry = commitments[i];
+        events.push({
+          title: entry.body,
+          start: entry.starts_at.format("YYYY-MM-DD HH:mm"),
+          end: entry.ends_at.format("YYYY-MM-DD HH:mm"),
+          color: "#000060"
         });
       }
     }
