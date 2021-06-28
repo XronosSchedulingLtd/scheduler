@@ -741,6 +741,70 @@ var editing_allocation = function() {
     return that;
   };
 
+  var makeFixedAllocations = function(spec, mine) {
+    //
+    //  We're handling a list of existing allocations sent down from
+    //  the host.  These however don't belong to us and never get
+    //  changed.
+    //
+    var allocated = spec.other_allocated;
+    var i, j;
+
+    var that = {};
+
+    var by_pupil_id = {};
+
+    var by_date, entries, entry, allocation, key, starts_at, ends_at;
+
+    var pid;
+    var pids = Object.keys(allocated);
+    for (i = 0; i < pids.length; i++) {
+      pid = pids[i];
+      //
+      //  Each key is a Pupil Id.  For each Pupil Id we need to
+      //  store by date.
+      //
+      var by_date = {};
+      var entries = allocated[pid];
+      if (entries) {
+        for (j = 0; j < entries.length; j++) {
+          entry = entries[j];
+          starts_at = moment(entry.starts_at);
+          ends_at = moment(entry.ends_at);
+          allocation =
+            makeAllocation(starts_at, ends_at, entry.pcid, mine);
+          key = starts_at.format("YYYY-MM-DD");
+          if (by_date[key]) {
+            by_date[key].push(allocation);
+          } else {
+            by_date[key] = [allocation];
+          }
+        }
+      }
+      by_pupil_id[pid] = by_date;
+    }
+
+    that.onDate = function(pid, date) {
+      var for_pupil;
+      var result = null;
+
+      for_pupil = by_pupil_id[pid];
+      if (for_pupil) {
+        //
+        //  Return all the allocations for a pid on a given date.
+        //  Return an empty array if none found.
+        //
+        result = for_pupil[date.format("YYYY-MM-DD")];
+      }
+      if (!result) {
+        result = [];
+      }
+      return result;
+    };
+
+    return that;
+  };
+
   var makeWeekOf = function(spec) {
     //
     //  Return a function which can calculate a week number given
@@ -1089,6 +1153,7 @@ var editing_allocation = function() {
     mine.weeks       = spec.weeks;
     mine.timetables  = spec.timetables;
     mine.allocations = makeAllocations(spec, mine);
+    mine.fixed_allocations = makeFixedAllocations(spec, mine);
     //
     //  Private things which we want to keep.
     //
@@ -1177,7 +1242,7 @@ var editing_allocation = function() {
     //
     //  Find the pupil timetable for a given pcid.
     //
-    that.timetableForPupil = function(pcid) {
+    that.timetableForPupilCourse = function(pcid) {
       var pc = pcs[pcid];
       if (pc) {
         var timetable = pc.timetable;
@@ -1348,6 +1413,10 @@ var editing_allocation = function() {
 
     that.unallocatedInCurrentWeek = function() {
       return that.unallocatedInWeek(view_date);
+    };
+
+    that.fixedAllocationsOn = function(pid, date) {
+      return mine.fixed_allocations.onDate(pid, date);
     };
 
     that.allPupilCourses = function () {
@@ -1609,7 +1678,7 @@ var editing_allocation = function() {
       //
       //  Try to show a student's calendar.
       //
-      var timetable = dataset.timetableForPupil(currentlyShowing);
+      var timetable = dataset.timetableForPupilCourse(currentlyShowing);
       if (timetable) {
         //
         //  We have a pointer to the student's timetable.  Now need
@@ -1645,8 +1714,33 @@ var editing_allocation = function() {
               // Red   '#db4335'
             });
           }
+          //
+          //  And does this student have any other allocations
+          //  on this date?  Other AdHoc subject lessons which
+          //  aren't with this teacher.
+          //
+          entries =
+            dataset.fixedAllocationsOn(
+              dataset.pupilId(currentlyShowing),
+              date);
+          if (entries) {
+            for (i = 0; i < entries.length; i++) {
+              entry = entries[i];
+              events.push({
+                title: "Busy",
+                start: entry.starts_at.format('YYYY-MM-DD HH:mm'),
+                end: entry.ends_at.format('YYYY-MM-DD HH:mm'),
+                timetable: 1,
+                color: "#003080"
+              });
+            }
+          }
         }
       }
+      //
+      //  The same pupil may also have some allocations brought over
+      //  from other subject/teachers within the same cycle.
+      //
     }
     var allocated = dataset.allocationsInWeek(start);
     if (allocated) {
