@@ -741,6 +741,86 @@ var editing_allocation = function() {
     return that;
   };
 
+  var makeFixedAllocations = function(spec, mine) {
+    //
+    //  We're handling a list of existing allocations sent down from
+    //  the host.  These however don't belong to us and never get
+    //  changed.
+    //
+    var allocated = spec.other_allocated;
+    var i, j;
+
+    var that = {};
+
+    var by_pupil_id = {};
+
+    var by_date, entries, entry, allocation, key, starts_at, ends_at;
+
+    var pid;
+    var pids = Object.keys(allocated);
+    for (i = 0; i < pids.length; i++) {
+      pid = pids[i];
+      //
+      //  Each key is a Pupil Id.  For each Pupil Id we need to
+      //  store by date.
+      //
+      var by_date = {};
+      var entries = allocated[pid];
+      if (entries) {
+        for (j = 0; j < entries.length; j++) {
+          entry = entries[j];
+          starts_at = moment(entry.starts_at);
+          ends_at = moment(entry.ends_at);
+          allocation =
+            makeAllocation(starts_at, ends_at, entry.pcid, mine);
+          key = starts_at.format("YYYY-MM-DD");
+          if (by_date[key]) {
+            by_date[key].push(allocation);
+          } else {
+            by_date[key] = [allocation];
+          }
+        }
+      }
+      by_pupil_id[pid] = by_date;
+    }
+
+    that.onDate = function(pid, date) {
+      var for_pupil;
+      var result = null;
+
+      for_pupil = by_pupil_id[pid];
+      if (for_pupil) {
+        //
+        //  Return all the allocations for a pid on a given date.
+        //  Return an empty array if none found.
+        //
+        result = for_pupil[date.format("YYYY-MM-DD")];
+      }
+      if (!result) {
+        result = [];
+      }
+      return result;
+    };
+
+    that.each = function(callback) {
+      var i, pid, pids, allocations;
+
+      pids = Object.keys(by_pupil_id);
+      for (i = 0; i < pids.length; i++) {
+        pid = pids[i];
+        //
+        //  What we now have is a hash by date.  Each data item is
+        //  an array.  We just want a single array which is a concatenation
+        //  of all these arrays.
+        //
+        allocations = Object.values(by_pupil_id[pid]).flat();
+        callback(pid, allocations);
+      }
+    };
+
+    return that;
+  };
+
   var makeWeekOf = function(spec) {
     //
     //  Return a function which can calculate a week number given
@@ -824,6 +904,42 @@ var editing_allocation = function() {
         }
       }
     }
+    //
+    //  Now we also need to work through the other allocations - the
+    //  fixed ones which don't belong to us.
+    //
+    mine.fixed_allocations.each(function(pid, allocations) {
+      var i, j;
+      var timetable = mine.timetables[pid];
+      var lessons;
+
+      for (i = 0; i < allocations.length; i++) {
+        var allocation = allocations[i];
+        //
+        //  Now need to find all timetable lessons which clash with this
+        //  allocation.
+        //
+        lessons = timetable.entriesOn(moment(allocation.starts_at));
+        for (j = 0; j < lessons.length; j++) {
+          lesson = lessons[j];
+          if (allocation.overlapsLesson(lesson)) {
+            //
+            //  Find existing loadings for this pupil.  Create a new
+            //  object if not there.
+            //
+            loadings = loadings_by_pid[pid];
+            if (!loadings) {
+              loadings = (loadings_by_pid[pid] = {});
+            }
+            if (loadings[lesson.s] === undefined) {
+              loadings[lesson.s] = 1;
+            } else {
+              loadings[lesson.s] = loadings[lesson.s] + 1;
+            }
+          }
+        }
+      }
+    });
 
     that.recalculateLoadingOf = function(pid) {
       //
@@ -879,7 +995,6 @@ var editing_allocation = function() {
           return loading;
         }
       }
-      //return Math.floor(Math.random() * 7);
       return 0;
     }
 
@@ -1017,6 +1132,62 @@ var editing_allocation = function() {
     return result;
   };
 
+  var makeCommitment = function(entry) {
+    var that = {
+      body: entry.body,
+      starts_at: moment(entry.starts_at),
+      ends_at: moment(entry.ends_at),
+    };
+
+    that.shift = function() {
+      //
+      //  Return the timing of this commitment as a shift.
+      //
+      return makeShift(toMins(this.starts_at), toMins(this.ends_at));
+    };
+    return that;
+  };
+
+  var makeCommitments = function(spec) {
+    //
+    //  Assemble the list of existing events for this teacher into
+    //  a convenient form.  Calling them commitments because event
+    //  is kind of used a lot.  This is slightly at odds with what
+    //  we mean by Commitment in the host application.
+    //
+    var entries;
+    var key;
+    var commitment;
+    var that = {};
+    var by_date = {};
+    var i;
+
+    entries = spec.events;
+    if (entries) {
+      for (i = 0; i < entries.length; i++) {
+        commitment = makeCommitment(entries[i]);
+        key = commitment.starts_at.format("YYYY-MM-DD");
+        if (by_date[key]) {
+          by_date[key].push(commitment);
+        } else {
+          by_date[key] = [commitment];
+        }
+      }
+    }
+
+    that.onDate = function(date) {
+      var selected;
+
+      selected = by_date[date.format("YYYY-MM-DD")];
+      if (!selected) {
+        selected = [];
+      }
+      return selected;
+    };
+
+    return that;
+  };
+
   var makeDataset = function(spec) {
     //
     //  Stuff private to this object is saved in local variables.
@@ -1033,6 +1204,7 @@ var editing_allocation = function() {
     mine.weeks       = spec.weeks;
     mine.timetables  = spec.timetables;
     mine.allocations = makeAllocations(spec, mine);
+    mine.fixed_allocations = makeFixedAllocations(spec, mine);
     //
     //  Private things which we want to keep.
     //
@@ -1047,6 +1219,11 @@ var editing_allocation = function() {
     //  store.
     //
     that.availables = makeAvailables(spec, mine);
+
+    //
+    //  And existing events for this teacher.
+    //
+    that.commitments = makeCommitments(spec);
 
     //
     //  To start with, no PupilCourse is current.
@@ -1116,7 +1293,7 @@ var editing_allocation = function() {
     //
     //  Find the pupil timetable for a given pcid.
     //
-    that.timetableForPupil = function(pcid) {
+    that.timetableForPupilCourse = function(pcid) {
       var pc = pcs[pcid];
       if (pc) {
         var timetable = pc.timetable;
@@ -1206,10 +1383,18 @@ var editing_allocation = function() {
       //  The times when this teacher is already teaching on this
       //  day, as an array of Shifts.
       //
+      //  We also need to take account of any existing fixed allocations
+      //  for the indicated pupil.
+      //
       var taken_up =
-        mine.allocations.
-             onDate(starts_at).
-             map(function(a) { return a.shift(); });
+        mine.allocations.onDate(starts_at).concat(
+          mine.fixed_allocations.onDate(
+            this.pupilId(pcid),
+            starts_at
+          )
+        ).concat(
+          this.commitments.onDate(starts_at)
+        ).map(function(a) { return a.shift(); });
 
       selected = null;
       var slot = that.availables.bestFit(starts_at);
@@ -1287,6 +1472,10 @@ var editing_allocation = function() {
 
     that.unallocatedInCurrentWeek = function() {
       return that.unallocatedInWeek(view_date);
+    };
+
+    that.fixedAllocationsOn = function(pid, date) {
+      return mine.fixed_allocations.onDate(pid, date);
     };
 
     that.allPupilCourses = function () {
@@ -1529,13 +1718,26 @@ var editing_allocation = function() {
           rendering: 'background'
         });
       }
+      //
+      //  And any existing commitments for our teacher?
+      //
+      var commitments = dataset.commitments.onDate(date);
+      for (i = 0; i < commitments.length; i++) {
+        entry = commitments[i];
+        events.push({
+          title: entry.body,
+          start: entry.starts_at.format("YYYY-MM-DD HH:mm"),
+          end: entry.ends_at.format("YYYY-MM-DD HH:mm"),
+          color: "#000060"
+        });
+      }
     }
     var currentlyShowing = dataset.getCurrent();
     if (currentlyShowing !== 0) {
       //
       //  Try to show a student's calendar.
       //
-      var timetable = dataset.timetableForPupil(currentlyShowing);
+      var timetable = dataset.timetableForPupilCourse(currentlyShowing);
       if (timetable) {
         //
         //  We have a pointer to the student's timetable.  Now need
@@ -1571,8 +1773,33 @@ var editing_allocation = function() {
               // Red   '#db4335'
             });
           }
+          //
+          //  And does this student have any other allocations
+          //  on this date?  Other AdHoc subject lessons which
+          //  aren't with this teacher.
+          //
+          entries =
+            dataset.fixedAllocationsOn(
+              dataset.pupilId(currentlyShowing),
+              date);
+          if (entries) {
+            for (i = 0; i < entries.length; i++) {
+              entry = entries[i];
+              events.push({
+                title: "Busy",
+                start: entry.starts_at.format('YYYY-MM-DD HH:mm'),
+                end: entry.ends_at.format('YYYY-MM-DD HH:mm'),
+                timetable: 1,
+                color: "#003080"
+              });
+            }
+          }
         }
       }
+      //
+      //  The same pupil may also have some allocations brought over
+      //  from other subject/teachers within the same cycle.
+      //
     }
     var allocated = dataset.allocationsInWeek(start);
     if (allocated) {
