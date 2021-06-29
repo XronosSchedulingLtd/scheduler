@@ -802,6 +802,22 @@ var editing_allocation = function() {
       return result;
     };
 
+    that.each = function(callback) {
+      var i, pid, pids, allocations;
+
+      pids = Object.keys(by_pupil_id);
+      for (i = 0; i < pids.length; i++) {
+        pid = pids[i];
+        //
+        //  What we now have is a hash by date.  Each data item is
+        //  an array.  We just want a single array which is a concatenation
+        //  of all these arrays.
+        //
+        allocations = Object.values(by_pupil_id[pid]).flat();
+        callback(pid, allocations);
+      }
+    };
+
     return that;
   };
 
@@ -888,6 +904,42 @@ var editing_allocation = function() {
         }
       }
     }
+    //
+    //  Now we also need to work through the other allocations - the
+    //  fixed ones which don't belong to us.
+    //
+    mine.fixed_allocations.each(function(pid, allocations) {
+      var i, j;
+      var timetable = mine.timetables[pid];
+      var lessons;
+
+      for (i = 0; i < allocations.length; i++) {
+        var allocation = allocations[i];
+        //
+        //  Now need to find all timetable lessons which clash with this
+        //  allocation.
+        //
+        lessons = timetable.entriesOn(moment(allocation.starts_at));
+        for (j = 0; j < lessons.length; j++) {
+          lesson = lessons[j];
+          if (allocation.overlapsLesson(lesson)) {
+            //
+            //  Find existing loadings for this pupil.  Create a new
+            //  object if not there.
+            //
+            loadings = loadings_by_pid[pid];
+            if (!loadings) {
+              loadings = (loadings_by_pid[pid] = {});
+            }
+            if (loadings[lesson.s] === undefined) {
+              loadings[lesson.s] = 1;
+            } else {
+              loadings[lesson.s] = loadings[lesson.s] + 1;
+            }
+          }
+        }
+      }
+    });
 
     that.recalculateLoadingOf = function(pid) {
       //
@@ -943,7 +995,6 @@ var editing_allocation = function() {
           return loading;
         }
       }
-      //return Math.floor(Math.random() * 7);
       return 0;
     }
 
