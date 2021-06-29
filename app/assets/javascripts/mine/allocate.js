@@ -1332,10 +1332,18 @@ var editing_allocation = function() {
       //  The times when this teacher is already teaching on this
       //  day, as an array of Shifts.
       //
+      //  We also need to take account of any existing fixed allocations
+      //  for the indicated pupil.
+      //
       var taken_up =
         mine.allocations.onDate(starts_at).concat(
-          this.commitments.onDate(starts_at)).
-             map(function(a) { return a.shift(); });
+          mine.fixed_allocations.onDate(
+            this.pupilId(pcid),
+            starts_at
+          )
+        ).concat(
+          this.commitments.onDate(starts_at)
+        ).map(function(a) { return a.shift(); });
 
       selected = null;
       var slot = that.availables.bestFit(starts_at);
