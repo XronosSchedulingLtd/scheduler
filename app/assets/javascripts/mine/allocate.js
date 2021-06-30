@@ -633,11 +633,48 @@ var editing_allocation = function() {
       }
     };
 
+    var doRemove = function(starts_at, pcid) {
+      var week_no = mine.weekOf(starts_at);
+      var key = starts_at.format("YYYY-MM-DD");
+      var date_entries, week_entries;
+      var selected;
+      var index;
+
+      //
+      //  For starters, we need to find the relevant allocation.
+      //  To do this we need the date on which it was.
+      //
+      date_entries = by_date[key];
+      if (date_entries) {
+        selected = date_entries.find(function(entry) { return entry.pcid === pcid });
+        if (selected) {
+          index = date_entries.indexOf(selected);
+          if (index > -1) {
+            date_entries.splice(index, 1);
+          }
+          week_entries = by_week[week_no];
+          index = week_entries.indexOf(selected);
+          if (index > -1) {
+            week_entries.splice(index, 1);
+          }
+          index = allocations.indexOf(selected);
+          if (index > -1) {
+            allocations.splice(index, 1);
+          }
+        }
+      }
+    };
+
     //
     //  Externally visible version which forces a recalculation.
     //
     that.add = function(starts_at, ends_at, pcid) {
       doAdd(starts_at, ends_at, pcid);
+      mine.recalculatePupilCourse(pcid);
+    };
+
+    that.remove = function(starts_at, pcid) {
+      doRemove(starts_at, pcid);
       mine.recalculatePupilCourse(pcid);
     };
 
@@ -737,7 +774,6 @@ var editing_allocation = function() {
       return allocations;
     };
 
-
     return that;
   };
 
@@ -798,6 +834,20 @@ var editing_allocation = function() {
       }
       if (!result) {
         result = [];
+      }
+      return result;
+    };
+
+    that.forPupil = function(pid) {
+      var for_pupil;
+      var result = [];
+
+      for_pupil = by_pupil_id[pid];
+      if (for_pupil) {
+        //
+        //  Just want all the allocations in a single array.
+        //
+        result = Object.values(for_pupil).flat();
       }
       return result;
     };
@@ -869,33 +919,43 @@ var editing_allocation = function() {
 
     var i, j;
     var allocation;
-    var pc;
     var loadings_by_pid = {};
     var date;
     var lesson, lessons;
-    var loadings;
+    var pc;
 
     var allocations = mine.allocations.all();
 
-    for (i = 0; i < allocations.length; i++) {
-      allocation = allocations[i];
-      pc = pcs[allocation.pcid];
-      //
-      //  Now need to find all timetable lessons which clash with this
-      //  allocation.
-      //
-      lessons = pc.timetable.entriesOn(moment(allocation.starts_at));
+    //
+    //  Ensure an entry for the indicated pid exists in our
+    //  loadings_by_pid structure and return that entry.
+    //
+    function ensureEntry(pid) {
+      var loadings;
+
+      loadings = loadings_by_pid[pid];
+      if (!loadings) {
+        loadings = (loadings_by_pid[pid] = {});
+      }
+      return loadings;
+    }
+
+    //
+    //  Take note of one item in the indicated loadings structure.
+    //
+    //  loadings    The structure in which to note it
+    //  timetable   The timetable to examine
+    //  item        The allocation of which to take note
+    //
+    function noteItem(loadings, timetable, item) {
+      var lesson;
+      var lessons;
+      var j;
+
+      lessons = timetable.entriesOn(moment(item.starts_at));
       for (j = 0; j < lessons.length; j++) {
         lesson = lessons[j];
-        if (allocation.overlapsLesson(lesson)) {
-          //
-          //  Find existing loadings for this pupil.  Create a new
-          //  object if not there.
-          //
-          loadings = loadings_by_pid[pc.pupil_id];
-          if (!loadings) {
-            loadings = (loadings_by_pid[pc.pupil_id] = {});
-          }
+        if (item.overlapsLesson(lesson)) {
           if (loadings[lesson.s] === undefined) {
             loadings[lesson.s] = 1;
           } else {
@@ -904,40 +964,23 @@ var editing_allocation = function() {
         }
       }
     }
+
+    for (i = 0; i < allocations.length; i++) {
+      allocation = allocations[i];
+      pc = pcs[allocation.pcid];
+      //
+      noteItem(ensureEntry(pc.pupil_id), pc.timetable, allocation);
+    }
     //
     //  Now we also need to work through the other allocations - the
     //  fixed ones which don't belong to us.
     //
     mine.fixed_allocations.each(function(pid, allocations) {
-      var i, j;
+      var i;
       var timetable = mine.timetables[pid];
-      var lessons;
 
       for (i = 0; i < allocations.length; i++) {
-        var allocation = allocations[i];
-        //
-        //  Now need to find all timetable lessons which clash with this
-        //  allocation.
-        //
-        lessons = timetable.entriesOn(moment(allocation.starts_at));
-        for (j = 0; j < lessons.length; j++) {
-          lesson = lessons[j];
-          if (allocation.overlapsLesson(lesson)) {
-            //
-            //  Find existing loadings for this pupil.  Create a new
-            //  object if not there.
-            //
-            loadings = loadings_by_pid[pid];
-            if (!loadings) {
-              loadings = (loadings_by_pid[pid] = {});
-            }
-            if (loadings[lesson.s] === undefined) {
-              loadings[lesson.s] = 1;
-            } else {
-              loadings[lesson.s] = loadings[lesson.s] + 1;
-            }
-          }
-        }
+        noteItem(ensureEntry(pid), timetable, allocations[i]);
       }
     });
 
@@ -948,6 +991,7 @@ var editing_allocation = function() {
       //  or more PupilCourses.
       //
       var allocations = mine.allocations.all();
+      var timetable = mine.timetables[pid];
 
       //
       //  New blank record for this pupil.
@@ -959,23 +1003,14 @@ var editing_allocation = function() {
         allocation = allocations[i];
         pc = pcs[allocation.pcid];
         if (pc.pupil_id === pid) {
-          //
-          //  Now need to find all timetable lessons which clash with this
-          //  allocation.
-          //
-          lessons = pc.timetable.entriesOn(moment(allocation.starts_at));
-          for (j = 0; j < lessons.length; j++) {
-            lesson = lessons[j];
-            if (allocation.overlapsLesson(lesson)) {
-              if (new_loadings[lesson.s] === undefined) {
-                new_loadings[lesson.s] = 1;
-              } else {
-                new_loadings[lesson.s] = new_loadings[lesson.s] + 1;
-              }
-            }
-          }
+          noteItem(new_loadings, timetable, allocation);
         }
       }
+      allocations = mine.fixed_allocations.forPupil(pid);
+      for (i = 0; i < allocations.length; i++) {
+        noteItem(new_loadings, timetable, allocations[i]);
+      }
+
       //
       //  And replace the old record for this pupil.
       //
@@ -1434,6 +1469,10 @@ var editing_allocation = function() {
       mine.allocations.add(starts_at, ends_at, pcid);
     };
 
+    that.removeAllocation = function(starts_at, pcid) {
+      mine.allocations.remove(starts_at, pcid);
+    };
+
     that.allocationByDate = function(date, pcid) {
       return mine.allocations.byDate(date, pcid);
     };
@@ -1595,7 +1634,8 @@ var editing_allocation = function() {
     //  calendar.
     //
     eventDrop: eventDropped,
-    eventResize: eventResized
+    eventResize: eventResized,
+    eventDragStop: eventDragged
   };
 
   //
@@ -1647,6 +1687,16 @@ var editing_allocation = function() {
     //  to interpret this.
     //
     dataset.addAllocation(starts_at, pcid);
+  }
+
+  function eventDragged(event, jsEvent) {
+    //alert("Coordinates = " + jsEvent.pageX + ", " + jsEvent.pageY);
+    //alert("Calendar left at " + $('#editing-allocation').parent().position().left);
+    if (jsEvent.pageX < $('#editing-allocation').parent().position().left) {
+      //calDiv.fullCalendar('removeEvents', event.id);
+      jsEvent.preventDefault();
+      dataset.removeAllocation(event.start, event.pcid);
+    }
   }
 
   function eventDropped(event, delta, revertFunc) {
