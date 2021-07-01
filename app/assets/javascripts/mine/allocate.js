@@ -1862,6 +1862,13 @@ var editing_allocation = function() {
     if (allocated) {
       allocated.forEach(function(alloc) {
         var starts_at = alloc.starts_at;
+        var colour;
+
+        if (alloc.pcid == currentlyShowing) {
+          colour = "#007095";   // Normal blue
+        } else {
+          colour = "#505279";    // Similar grey (slightly blue)
+        }
         if ((starts_at >= start) && (starts_at < end)) {
           events.push({
             title: dataset.pupilName(alloc.pcid),
@@ -1870,7 +1877,8 @@ var editing_allocation = function() {
             timetable: 0,
             sort_by: "B",
             pcid: alloc.pcid,
-            editable: true
+            editable: true,
+            color: colour
           });
         }
       });
