@@ -64,7 +64,10 @@ class AdHocDomainAllocation < ApplicationRecord
       #  may be two pupil courses for a single pupil.  Need send only
       #  one copy of his or her timetable.
       #
-      lesson_category = Eventcategory.cached_category("Lesson")
+      categories = [
+        Eventcategory.cached_category("Lesson")&.id,
+        Eventcategory.cached_category("Other half")&.id
+      ].compact
       timetables = Hash.new
       subjects = Hash.new
       pupil_ids = staff.ad_hoc_domain_pupil_courses.collect(&:pupil_id).uniq
@@ -73,7 +76,7 @@ class AdHocDomainAllocation < ApplicationRecord
         ea = Timetable::EventAssembler.new(pupil.element, Date.today, true)
         timetable = Hash.new
         ea.events_by_day do |week, day_no, event|
-          if event.eventcategory_id == lesson_category.id
+          if categories.include?(event.eventcategory_id)
             timetable[week] ||= Array.new
             timetable[week][day_no] ||= Array.new
             subject = event.subject
@@ -83,11 +86,15 @@ class AdHocDomainAllocation < ApplicationRecord
             else
               subject_id = 0
             end
-            timetable[week][day_no] << {
+            entry = {
               b: event.starts_at.to_s(:hhmm),
               e: event.ends_at.to_s(:hhmm),
               s: subject_id
             }
+            if subject_id == 0
+              entry[:body] = event.body
+            end
+            timetable[week][day_no] << entry
           end
         end
         timetables[pupil.id] = timetable

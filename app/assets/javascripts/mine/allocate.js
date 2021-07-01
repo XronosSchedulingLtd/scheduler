@@ -1616,6 +1616,11 @@ var editing_allocation = function() {
     defaultView: "agendaWeek",
     eventOrder: "sort_by",
     snapDuration: "00:05",
+    dragRevertDuration: 0,
+    //
+    //  Abingdon don't want events to resize.
+    //
+    eventDurationEditable: false,
     minTime: "07:00",
     maxTime: "18:30",
     scrollTime: "08:00",
@@ -1743,6 +1748,7 @@ var editing_allocation = function() {
     var entry;
     var loading;
     var colour;
+    var title;
 
     var colours = [   //   R    G    B
       '#329653',      //  50, 150,  83
@@ -1811,8 +1817,13 @@ var editing_allocation = function() {
                 loading = colours.length - 1;
               }
               colour = colours[loading];
+              if (entry.s !== 0) {
+                title = dataset.subjects[entry.s];
+              } else {
+                title = entry.body;
+              }
               events.push({
-                title: dataset.subjects[entry.s],
+                title: title,
                 start: date.format('YYYY-MM-DD') + ' ' + entry.b,
                 end: date.format('YYYY-MM-DD') + ' ' + entry.e,
                 color: colour,
@@ -1846,10 +1857,6 @@ var editing_allocation = function() {
           }
         }
       }
-      //
-      //  The same pupil may also have some allocations brought over
-      //  from other subject/teachers within the same cycle.
-      //
     }
     var allocated = dataset.allocationsInWeek(start);
     if (allocated) {
