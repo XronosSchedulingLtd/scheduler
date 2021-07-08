@@ -26,6 +26,12 @@
   background-color: #007095;
 }
 
+.zfbutton.disabled {
+  background-color: #7D7D7D;
+  color: #ADADAD;
+  cursor: auto;
+}
+
 .zfbutton.radius {
   border-radius: 3px;
 }

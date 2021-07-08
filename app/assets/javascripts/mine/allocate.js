@@ -534,6 +534,7 @@ var editing_allocation = function() {
 
     that.adjustDuration = function(event) {
       this.ends_at = massageFcTiming(event.end);
+      mine.setModified();
       mine.recalculatePupilCourse(pcid);
     };
 
@@ -555,6 +556,7 @@ var editing_allocation = function() {
       if (old_date !== new_date) {
         mine.dateChanged(this, old_date, new_date);
       }
+      mine.setModified();
       mine.recalculatePupilCourse(pcid);
     };
 
@@ -1249,6 +1251,9 @@ var editing_allocation = function() {
     var start_date = moment(spec.starts);
     var end_date   = moment(spec.ends);  // Exclusive
     var view_date  = moment(spec.starts);
+
+    var modified   = false;
+    var and_exit   = false;
     //
     //  Things which are already provided in a convenient form we simply
     //  store.
@@ -1318,6 +1323,10 @@ var editing_allocation = function() {
         that.loadings.recalculateLoadingOf(pc.pupil_id);
         tellListeners(false);
       }
+    };
+
+    mine.setModified = function() {
+      modified = true;
     };
 
     that.subjects = spec.subjects;
@@ -1414,63 +1423,71 @@ var editing_allocation = function() {
       var i;
 
       //
-      //  We may need this more than once so calculate it now.
-      //  The times when this teacher is already teaching on this
-      //  day, as an array of Shifts.
+      //  Check first whether the placement assistance is turned
+      //  on.
       //
-      //  We also need to take account of any existing fixed allocations
-      //  for the indicated pupil.
-      //
-      var taken_up =
-        mine.allocations.onDate(starts_at).concat(
-          mine.fixed_allocations.onDate(
-            this.pupilId(pcid),
-            starts_at
-          )
-        ).concat(
-          this.commitments.onDate(starts_at)
-        ).map(function(a) { return a.shift(); });
+      if ($("#assist-switch").is(":checked")) {
+        //
+        //  We may need this more than once so calculate it now.
+        //  The times when this teacher is already teaching on this
+        //  day, as an array of Shifts.
+        //
+        //  We also need to take account of any existing fixed allocations
+        //  for the indicated pupil.
+        //
+        var taken_up =
+          mine.allocations.onDate(starts_at).concat(
+            mine.fixed_allocations.onDate(
+              this.pupilId(pcid),
+              starts_at
+            )
+          ).concat(
+            this.commitments.onDate(starts_at)
+          ).map(function(a) { return a.shift(); });
 
-      selected = null;
-      var slot = that.availables.bestFit(starts_at);
-      if (slot) {
-        //
-        //  We've found the teacher's best availability slot.  Now,
-        //  how much of it is already taken up?
-        //
-        selected = timeWithin(slot, taken_up, instant, duration);
-      }
-      if (!selected) {
-        //
-        //  Haven't got anything yet, either because we didn't get
-        //  a slot, or because there wasn't enough free space within
-        //  the indicated slot.
-        //
-        //  Try again.
-        //
-        candidates = that.availables.on(starts_at);
-        //
-        //  Consider them in order of how close they are.
-        //
-        candidates.sort(function(a,b) {
-          return a.minsFrom(instant) - b.minsFrom(instant);
-        });
-        for (i = 0; (i < candidates.length) && !selected; i++) {
-          selected = timeWithin(candidates[i], taken_up, instant, duration);
+        selected = null;
+        var slot = that.availables.bestFit(starts_at);
+        if (slot) {
+          //
+          //  We've found the teacher's best availability slot.  Now,
+          //  how much of it is already taken up?
+          //
+          selected = timeWithin(slot, taken_up, instant, duration);
+        }
+        if (!selected) {
+          //
+          //  Haven't got anything yet, either because we didn't get
+          //  a slot, or because there wasn't enough free space within
+          //  the indicated slot.
+          //
+          //  Try again.
+          //
+          candidates = that.availables.on(starts_at);
+          //
+          //  Consider them in order of how close they are.
+          //
+          candidates.sort(function(a,b) {
+            return a.minsFrom(instant) - b.minsFrom(instant);
+          });
+          for (i = 0; (i < candidates.length) && !selected; i++) {
+            selected = timeWithin(candidates[i], taken_up, instant, duration);
+          }
+        }
+        if (selected) {
+          //
+          //  Put it at the start of this gap.
+          //
+          starts_at = selected.startMomentOn(starts_at);
         }
       }
-      if (selected) {
-        //
-        //  Put it at the start of this gap.
-        //
-        starts_at = selected.startMomentOn(starts_at);
-      }
       ends_at = moment(starts_at).add(duration, 'minutes');
+      modified = true;
       mine.allocations.add(starts_at, ends_at, pcid);
     };
 
     that.removeAllocation = function(starts_at, pcid) {
       mine.allocations.remove(starts_at, pcid);
+      modified = true;
     };
 
     that.allocationByDate = function(date, pcid) {
@@ -1555,12 +1572,26 @@ var editing_allocation = function() {
       return end_date.format("YYYY-MM-DD");
     };
 
+    that.beenModified = function() {
+      return modified;
+    };
+
     var saveDone = function() {
-      console.log("Save succeeded.");
+      var href;
+
+      modified = false;
+      if (and_exit) {
+        href = $("#save-exit-button").attr('href');
+        if (href) {
+          window.location.href = href;
+        }
+      } else {
+        tellListeners(true);
+      }
     };
 
     var saveFailed = function() {
-      console.log("Save failed.");
+      alert("Save failed.");
     };
 
     that.doSave = function(event) {
@@ -1574,6 +1605,12 @@ var editing_allocation = function() {
         data: JSON.stringify({allocations: mine.allocations.all()})
       }).done(saveDone).
          fail(saveFailed);
+      and_exit = false;
+    };
+
+    that.doSaveAndExit = function(event) {
+      that.doSave(event);
+      and_exit = true;
     };
 
     //var able = makeTimeSlotSet("09:00", "15:00");
@@ -1640,7 +1677,8 @@ var editing_allocation = function() {
     //
     eventDrop: eventDropped,
     eventResize: eventResized,
-    eventDragStop: eventDragged
+    eventDragStop: eventDragged,
+    eventClick: eventClicked
   };
 
   //
@@ -1694,11 +1732,14 @@ var editing_allocation = function() {
     dataset.addAllocation(starts_at, pcid);
   }
 
+  function eventClicked(event, jsEvent, view) {
+    if (event && event.pcid) {
+      dataset.setCurrent(event.pcid);
+    }
+  }
+
   function eventDragged(event, jsEvent) {
-    //alert("Coordinates = " + jsEvent.pageX + ", " + jsEvent.pageY);
-    //alert("Calendar left at " + $('#editing-allocation').parent().position().left);
     if (jsEvent.pageX < $('#editing-allocation').parent().position().left) {
-      //calDiv.fullCalendar('removeEvents', event.id);
       jsEvent.preventDefault();
       dataset.removeAllocation(event.start, event.pcid);
     }
@@ -1927,6 +1968,23 @@ var editing_allocation = function() {
       var toHighlight = dataset.getCurrent();
       this.highlighting = toHighlight;
       this.render();
+      var saveButton = $('#save-button');
+      var saveExitButton = $('#save-exit-button');
+      if (dataset.beenModified()) {
+        if (saveButton.hasClass('disabled')) {
+          saveButton.removeClass('disabled');
+        }
+        if (saveExitButton.hasClass('disabled')) {
+          saveExitButton.removeClass('disabled');
+        }
+      } else {
+        if (!saveButton.hasClass('disabled')) {
+          saveButton.addClass('disabled');
+        }
+        if (!saveExitButton.hasClass('disabled')) {
+          saveExitButton.addClass('disabled');
+        }
+      }
     },
     render: function() {
       //
@@ -2038,6 +2096,18 @@ var editing_allocation = function() {
     //  Handle clicks on our save button.
     //
     $('#save-button').click(dataset.doSave);
+    $('#save-exit-button').click(dataset.doSaveAndExit);
+    //
+    //  Check if they want to leave.
+    //
+    window.onbeforeunload = function(e) {
+      if (dataset.beenModified()) {
+        e.preventDefault();
+        return "Save data?"
+      } else {
+        return null;
+      }
+    };
   }
 
   return that;
