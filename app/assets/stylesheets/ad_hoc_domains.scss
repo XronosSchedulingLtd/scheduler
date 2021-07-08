@@ -303,3 +303,35 @@ div.row.collapse.allocation {
   }
 }
 
+.allocation-controls {
+  position: relative;
+}
+
+.allocation-controls::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.allocation-buttons {
+  float: left;
+}
+
+.allocation-switch {
+  float: right;
+  margin-right: 10px;
+  .as-legend {
+    height: 100%;
+    position: relative;
+    span {
+      position: relative;
+      bottom: 10px;
+    }
+//    span {
+//      top: 50%;
+//      position: absolute;
+//      transform: translateY(-50%);
+//    }
+  }
+}
+
