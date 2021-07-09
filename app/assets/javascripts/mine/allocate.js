@@ -1486,8 +1486,8 @@ var editing_allocation = function() {
     };
 
     that.removeAllocation = function(starts_at, pcid) {
-      mine.allocations.remove(starts_at, pcid);
       modified = true;
+      mine.allocations.remove(starts_at, pcid);
     };
 
     that.allocationByDate = function(date, pcid) {
