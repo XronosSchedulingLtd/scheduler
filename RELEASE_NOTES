@@ -1,3 +1,18 @@
+v1.14.0   2021-07-09
+
+* Implement support for Peripatetic Music Lessons (and other similar)
+
+  This release adds a major new feature - the ability to organise
+  what it terms Ad Hoc lessons.  The most obvious example of this
+  would be peripatetic music lessons, but it could also be used for
+  learning support lessons and the like - anything where pupils are
+  taken out of normal timetabled lessons for time doing something else.
+
+  Scheduler will assist the organiser of such lessons to ensure the
+  pupil's missed lessons rotate around - avoiding hitting the same timetabled
+  subject more often than is necessary.
+
+
 v1.13.1   2021-04-08
 
 * Tweak to event timing in the SOCS feed.
