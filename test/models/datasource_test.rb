@@ -140,4 +140,10 @@ class DatasourceTest < ActiveSupport::TestCase
     assert_not ds.can_destroy?
   end
 
+  test 'can create basic data sources' do
+    Datasource.create_basics
+    ["Manual", "SchoolBase", "iSAMS"].each do |name|
+      assert_not_nil Datasource.find_by(name: name)
+    end
+  end
 end
