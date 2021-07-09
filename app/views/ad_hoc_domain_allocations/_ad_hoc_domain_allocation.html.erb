@@ -1,0 +1,41 @@
+<tr>
+  <td><%= ad_hoc_domain_allocation.name %></td>
+  <td class='numeric'><%= as_percentage(ad_hoc_domain_allocation.percentage_complete) %></td>
+  <td><%=
+    link_to(
+      "Edit",
+      ad_hoc_domain_allocation_path(ad_hoc_domain_allocation),
+      class: "zfbutton teensy tiny radius button-link")
+      %></td>
+  <td><%=
+    link_to(
+      "Implement",
+      generate_ad_hoc_domain_allocation_path(ad_hoc_domain_allocation),
+      class: "zfbutton teensy tiny radius button-link",
+      method: :post,
+      remote: true)
+      %></td>
+  <td><%=
+    link_to(
+      "Clone",
+      do_clone_ad_hoc_domain_allocation_path(ad_hoc_domain_allocation),
+      class: "zfbutton teensy tiny radius button-link",
+      method: :post)
+      %></td>
+  <td><%=
+  link_to(
+    "Edit name",
+    edit_ad_hoc_domain_allocation_path(ad_hoc_domain_allocation),
+    class: "zfbutton teensy tiny radius button-link"
+  )
+  %></td>
+  <td><%=
+  link_to "Delete",
+    ad_hoc_domain_allocation,
+    method: :delete,
+    data: {
+      confirm: "Are you sure you want to delete this whole allocation?"
+    },
+    class: "zfbutton teensy tiny radius button-link"
+    %></td>
+</tr>

@@ -57,6 +57,8 @@ class Element < ApplicationRecord
   scope :add_directly, -> { where(add_directly: true) }
   scope :viewable, -> { where(viewable: true) }
   scope :staff, -> { where(entity_type: "Staff") }
+  scope :pupil, -> { where(entity_type: "Pupil") }
+  scope :person, -> { where(entity_type: "Pupil").or(Element.where(entity_type: "Staff")) }
   scope :agroup, -> { where(entity_type: "Group") }
 #  scope :aresourcegroup, -> {
 #    joins(:groups).where(entity_type: 'Group').where(groups: {persona_type: 'Resourcegrouppersona'})
@@ -73,6 +75,7 @@ class Element < ApplicationRecord
   }
   scope :property, -> { where(entity_type: "Property") }
   scope :location, -> { where(entity_type: "Location") }
+  scope :subject, -> { where(entity_type: "Subject") }
   scope :mine_or_system, ->(current_user) { where("elements.owner_id IS NULL OR elements.owner_id = :user_id", user_id: current_user.id) }
   scope :mine, ->(current_user) { where(owner_id: current_user.id) }
   scope :owned, -> { where(owned: true) }

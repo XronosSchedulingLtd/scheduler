@@ -1,0 +1,10 @@
+window.ahdUpdate([
+  <%= ahd_update(*@erstwhile_subjects) %>,
+  {
+    action: 'delete_staff',
+    staff_id: <%= @ad_hoc_domain_staff.id %>
+  },
+  {
+    action: 'clear_errors'
+  }
+]);

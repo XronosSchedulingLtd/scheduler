@@ -4,7 +4,11 @@ class RotaTemplatesController < ApplicationController
                                            :edit,
                                            :update,
                                            :destroy,
-                                           :do_clone]
+                                           :do_clone,
+                                           :new_from,
+                                           :slots]
+
+  layout 'schedule', only: [:new_from]
 
   # GET /rota_template_type/:id/rota_templates
   def index
@@ -70,6 +74,22 @@ class RotaTemplatesController < ApplicationController
     @new_template = @rota_template.do_clone
     TemplateManager.flush_all
     redirect_to rota_template_type_rota_templates_path(@rota_template.rota_template_type)
+  end
+
+  # GET /rota_templates/1/new_from
+  def new_from
+    #
+    #  Put the user into an interactive editing session, creating a new
+    #  rota template and using an existing one as a skeleton.
+    #
+  end
+
+  # Get /rota_templates/1/slots
+  #
+  def slots
+    respond_to do |format|
+      format.json { render json: @rota_template.slots }
+    end
   end
 
   private

@@ -1,4 +1,41 @@
 FactoryBot.define do
+  factory :ad_hoc_domain do
+    sequence(:name) { |n| "Ad Hoc Domain #{n}" }
+    eventsource
+    eventcategory
+    association :connected_property, factory: :property
+  end
+
+  factory :ad_hoc_domain_cycle do
+    sequence(:name) { |n| "Ad Hoc Domain Cycle #{n}" }
+    ad_hoc_domain
+    starts_on { Date.today }
+    exclusive_end_date { Date.today + 3.days }
+  end
+
+  factory :ad_hoc_domain_subject do
+    subject
+    ad_hoc_domain_cycle
+  end
+
+  factory :ad_hoc_domain_staff do
+    staff
+    ad_hoc_domain_cycle
+  end
+
+  factory :ad_hoc_domain_subject_staff do
+    transient do
+      ad_hoc_domain_cycle { create(:ad_hoc_domain_cycle) }
+    end
+    ad_hoc_domain_staff { create(:ad_hoc_domain_staff, ad_hoc_domain_cycle: ad_hoc_domain_cycle) }
+    ad_hoc_domain_subject { create(:ad_hoc_domain_subject, ad_hoc_domain_cycle: ad_hoc_domain_cycle) }
+  end
+
+  factory :ad_hoc_domain_pupil_course do
+    ad_hoc_domain_subject_staff
+    pupil
+  end
+
   factory :attachment do
     parent_id { 1 }
     parent_type { "MyString" }
@@ -97,6 +134,7 @@ FactoryBot.define do
 
   factory :subject do
     sequence(:name) { |n| "Subject #{n}" }
+    datasource
   end
 
   factory :user_profile do
@@ -290,6 +328,10 @@ FactoryBot.define do
     user
     element
     colour { 'blue' }
+  end
+
+  factory :datasource do
+    sequence(:name) { |n| "Data source #{n}" }
   end
 
   factory :eventcategory do

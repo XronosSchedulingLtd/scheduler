@@ -47,6 +47,7 @@
   <div class="row collapse">
     <div class="small-9 small-offset-3 columns">
       <%= f.submit @eventcategory.id ? "Update" : "Create", class: "zfbutton tiny radius" %>
+      <%= link_to 'Cancel', eventcategories_path, class: "zfbutton tiny radius button-link" %>
     </div>
   </div>
 <% end %>

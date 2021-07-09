@@ -1243,6 +1243,10 @@ class Event < ApplicationRecord
     end
   end
 
+  def subject
+    self.resources.detect {|r| r.instance_of?(Subject)}
+  end
+
   #
   #  Returns staff initials for this event if it makes any sense.
   #  It doesn't make sense to do it if there are lots of staff

@@ -1,0 +1,46 @@
+<h1>Ad hoc timetabling categories</h1>
+<p id="notice"><%= notice %></p>
+
+<%= link_to "New category", new_ad_hoc_domain_path, class: "zfbutton tiny radius button-link" %>
+
+<table class="zftable">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Source</th>
+      <th>Category</th>
+      <th>Property</th>
+      <th></th>
+      <th>Controllers</th>
+      <th colspan="2"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @ad_hoc_domains.each do |ad_hoc_domain| %>
+      <tr>
+        <td><%= ad_hoc_domain.name %></td>
+        <td><%= ad_hoc_domain.eventsource_name %></td>
+        <td><%= ad_hoc_domain.eventcategory_name %></td>
+        <td><%= ad_hoc_domain.connected_property_element_name %></td>
+        <td><%= link_to 'Edit', edit_ad_hoc_domain_path(ad_hoc_domain),
+                class: "zfbutton tiny teensy radius button-link" %></td>
+        <% if ad_hoc_domain.controllers.size > 0 %>
+          <td title="<%= ad_hoc_domain.controller_list %>"><%= ad_hoc_domain.controllers.size %></td>
+        <% else %>
+          <td>0</td>
+        <% end %>
+        <td><%= link_to 'Change', edit_controllers_ad_hoc_domain_path(ad_hoc_domain),
+                class: "zfbutton tiny teensy radius button-link" %></td>
+        <td><%= link_to 'Destroy', ad_hoc_domain,
+                class: "zfbutton tiny teensy radius button-link",
+                method: :delete, data: {
+                  confirm: "Are you sure you want to delete the category \"#{ad_hoc_domain.name}\" along with all its cycles? This cannot be undone." } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to "New category", new_ad_hoc_domain_path, class: "zfbutton tiny radius button-link" %>

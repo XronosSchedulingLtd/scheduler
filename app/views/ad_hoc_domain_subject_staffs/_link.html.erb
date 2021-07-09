@@ -1,0 +1,67 @@
+<%
+  subject = link.ad_hoc_domain_subject
+  staff   = link.ad_hoc_domain_staff
+%>
+<%
+  #
+  #  This is a slightly horrible way of deciding which tab we are in.
+  #  If ad_hoc_domain_subject is defined, then we are displaying the
+  #  staff for a subject - subject => staff => pupils.
+  #
+  #  If not then it's the other way around.
+  #
+    if defined?(ad_hoc_domain_subject) %>
+  <div id='ahd-nested-staff-<%= subject.id_suffix %><%= staff.id_suffix %>'>
+    <%= ahd_row(
+      contents: {
+        staff_delete: ahd_deletion_link(link),
+        staff: staff.staff_name,
+        pupil_heading: "Pupils",
+        mins_heading:  "Mins"
+      },
+      row_classes: %w(overrule minor)) %>
+    <div id='ahd-staff-pupils-<%= subject.id_suffix %><%= staff.id_suffix %>'>
+      <% if link.ad_hoc_domain_pupil_courses.size == 0 %>
+        <%= ahd_row(contents: { no_pupils: "None defined yet." },
+                    row_classes: %w(placeholder)) %>
+      <% else %>
+    <%=
+      render link.ad_hoc_domain_pupil_courses.sort
+      %>
+      <% end %>
+    </div>
+    <%=
+      ahd_row(
+        contents: {
+          pupil_form: ahd_new_pupil_form(link, staff)
+        })
+    %>
+  </div>
+<% else %>
+  <div id='ahd-nested-subject-<%= subject.id_suffix %><%= staff.id_suffix %>'>
+    <%= ahd_row(
+      contents: {
+        subject_delete: ahd_deletion_link(link),
+        subject: subject.subject_name,
+        pupil_heading: "Pupils",
+        mins_heading:  "Mins"
+      },
+      row_classes: %w(overrule minor)) %>
+    <div id='ahd-subject-pupils-<%= subject.id_suffix %><%= staff.id_suffix %>'>
+      <% if link.ad_hoc_domain_pupil_courses.size == 0 %>
+        <%= ahd_row(contents: { no_pupils: "None defined yet." },
+                    row_classes: %w(placeholder)) %>
+      <% else %>
+    <%=
+      render link.ad_hoc_domain_pupil_courses.sort
+      %>
+      <% end %>
+    </div>
+    <%=
+      ahd_row(
+        contents: {
+          pupil_form: ahd_new_pupil_form(link, subject)
+        })
+    %>
+  </div>
+<% end %>

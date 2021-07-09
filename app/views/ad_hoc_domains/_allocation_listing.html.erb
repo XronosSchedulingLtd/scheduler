@@ -1,0 +1,33 @@
+<div id='ahd-allocation-listing'>
+  <h3>Allocations</h3>
+
+  <p>You can have several draft allocations for a single cycle at the same
+  time - perhaps for the purpose of experimentation - but when
+  you implement one of them (generate the actual lessons) any lessons produced
+  by any of the others will automatically be removed.</p>
+
+  <table class='zftable'>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>% complete</th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render @ad_hoc_domain_cycle.ad_hoc_domain_allocations %>
+    </tbody>
+  </table>
+  <%=
+    link_to(
+      "New allocation",
+      new_ad_hoc_domain_cycle_ad_hoc_domain_allocation_path(
+        @ad_hoc_domain_cycle),
+        class: "zfbutton radius tiny button-link")
+      %>
+</div>
+

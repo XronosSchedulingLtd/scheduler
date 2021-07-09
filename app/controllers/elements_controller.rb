@@ -254,6 +254,10 @@ class ElementsController < ApplicationController
     do_autocomplete(Element.staff, params[:term])
   end
 
+  def autocomplete_pupil_element_name
+    do_autocomplete(Element.pupil, params[:term])
+  end
+
   def autocomplete_group_element_name
     do_autocomplete(Element.agroup, params[:term])
   end
@@ -264,6 +268,10 @@ class ElementsController < ApplicationController
 
   def autocomplete_location_element_name
     do_autocomplete(Element.location, params[:term])
+  end
+
+  def autocomplete_subject_element_name
+    do_autocomplete(Element.subject, params[:term])
   end
 
   def autocomplete_direct_add_element_name

@@ -9,7 +9,15 @@ class Subject < ApplicationRecord
 
   include Elemental
 
+  self.per_page = 15
+
   has_many :teachinggrouppersonae, :dependent => :nullify
+
+  has_many :ad_hoc_domain_subjects, dependent: :destroy
+  has_many :ad_hoc_domain_cycles, through: :ad_hoc_domain_subjects
+  has_many :ad_hoc_domains, through: :ad_hoc_domain_cycles
+
+  belongs_to :datasource
 
   has_and_belongs_to_many :staffs
   before_destroy { staffs.clear }
@@ -41,6 +49,14 @@ class Subject < ApplicationRecord
   #
   def can_destroy?
     self.element.commitments.count == 0
+  end
+
+  def datasource_name
+    if self.datasource
+      self.datasource.name
+    else
+      "None"
+    end
   end
 
 end

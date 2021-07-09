@@ -11,6 +11,8 @@
       <th>Name</th>
       <th>Staff</th>
       <th>Sets</th>
+      <th>Source</th>
+      <th></th>
       <th></th>
     </tr>
   </thead>
@@ -21,13 +23,33 @@
         <td><%= subject.name %></td>
         <td><%= subject.staffs.count %></td>
         <td><%= subject.teachinggrouppersonae.count %></td>
-        <td><%= link_to 'Details', element_path(subject.element) %></td>
+        <td><%= subject.datasource_name %></td>
+        <td>
+          <%=
+            link_to('Details',
+                    element_path(subject.element),
+                    class: 'zfbutton teensy tiny radius button-link')
+                    %>
+        </td>
+        <td>
+          <% if subject.datasource == @manual_datasource %>
+            <%=
+              link_to('Edit',
+                      edit_subject_path(subject),
+                      class: 'zfbutton teensy tiny radius button-link')
+                    %>
+          <% end %>
+        </td>
       </tr>
     <% end %>
   </tbody>
 </table>
 
+
 <div class="apple_pagination">
   <%= will_paginate @subjects %>
 </div>
+<% if @manual_datasource %>
+  <%= link_to 'New Subject', new_subject_path, class: 'zfbutton tiny radius button-link' %>
+<% end %>
 

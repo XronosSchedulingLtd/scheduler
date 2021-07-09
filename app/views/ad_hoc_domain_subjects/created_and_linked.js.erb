@@ -1,0 +1,17 @@
+window.ahdUpdate([
+  <%= ahd_update(@ad_hoc_domain_staff) %>,
+  {
+    action: 'add_subject',
+    position: <%= position %>,
+    cycle_id: <%= @ad_hoc_domain_cycle.id %>,
+    html: '<%=j render object: @ad_hoc_domain_subject, partial: 'ad_hoc_domain_subjects/subject_outer' %>'
+  },
+  {
+    action: 'clear_errors'
+  },
+  {
+    action: 'give_focus',
+    staff_id: <%= @ad_hoc_domain_staff.id %>
+  }
+]);
+

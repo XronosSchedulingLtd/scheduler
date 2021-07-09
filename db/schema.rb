@@ -10,7 +10,85 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_19_074049) do
+ActiveRecord::Schema.define(version: 2021_03_10_143941) do
+
+  create_table "ad_hoc_domain_allocations", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
+    t.string "name"
+    t.integer "ad_hoc_domain_cycle_id"
+    t.text "allocations", limit: 16777215
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ad_hoc_domain_cycle_id"], name: "index_ad_hoc_domain_allocations_on_ad_hoc_domain_cycle_id"
+  end
+
+  create_table "ad_hoc_domain_controllers", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
+    t.integer "ad_hoc_domain_id"
+    t.integer "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ad_hoc_domain_id"], name: "index_ad_hoc_domain_controllers_on_ad_hoc_domain_id"
+    t.index ["user_id"], name: "index_ad_hoc_domain_controllers_on_user_id"
+  end
+
+  create_table "ad_hoc_domain_cycles", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
+    t.integer "ad_hoc_domain_id"
+    t.string "name"
+    t.date "starts_on"
+    t.date "exclusive_end_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ad_hoc_domain_id"], name: "index_ad_hoc_domain_cycles_on_ad_hoc_domain_id"
+  end
+
+  create_table "ad_hoc_domain_pupil_courses", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
+    t.integer "pupil_id"
+    t.integer "ad_hoc_domain_subject_staff_id"
+    t.integer "minutes", default: 30
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ad_hoc_domain_subject_staff_id"], name: "ahd_pupil_staff"
+    t.index ["pupil_id"], name: "index_ad_hoc_domain_pupil_courses_on_pupil_id"
+  end
+
+  create_table "ad_hoc_domain_staffs", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
+    t.integer "staff_id"
+    t.integer "ad_hoc_domain_cycle_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ad_hoc_domain_cycle_id"], name: "index_ad_hoc_domain_staffs_on_ad_hoc_domain_cycle_id"
+    t.index ["staff_id"], name: "index_ad_hoc_domain_staffs_on_staff_id"
+  end
+
+  create_table "ad_hoc_domain_subject_staffs", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
+    t.integer "ad_hoc_domain_subject_id"
+    t.integer "ad_hoc_domain_staff_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ad_hoc_domain_subject_id", "ad_hoc_domain_staff_id"], name: "ad_hoc_habtm"
+  end
+
+  create_table "ad_hoc_domain_subjects", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
+    t.integer "ad_hoc_domain_cycle_id"
+    t.integer "subject_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ad_hoc_domain_cycle_id"], name: "index_ad_hoc_domain_subjects_on_ad_hoc_domain_cycle_id"
+    t.index ["subject_id"], name: "index_ad_hoc_domain_subjects_on_subject_id"
+  end
+
+  create_table "ad_hoc_domains", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
+    t.string "name"
+    t.integer "eventsource_id"
+    t.integer "eventcategory_id"
+    t.integer "connected_property_id"
+    t.integer "default_day_shape_id"
+    t.integer "datasource_id"
+    t.integer "default_lesson_mins", default: 30
+    t.integer "mins_step", default: 15
+    t.integer "default_cycle_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "ahoy_messages", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade do |t|
     t.integer "user_id"
@@ -550,6 +628,8 @@ ActiveRecord::Schema.define(version: 2020_10_19_074049) do
     t.integer "rota_template_type_id"
     t.integer "owner_id"
     t.string "owner_type"
+    t.integer "ad_hoc_domain_staff_id"
+    t.index ["ad_hoc_domain_staff_id"], name: "index_rota_templates_on_ad_hoc_domain_staff_id"
   end
 
   create_table "services", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade do |t|

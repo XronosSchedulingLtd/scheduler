@@ -6,7 +6,9 @@
       <th>Name</th>
       <th>Staff</th>
       <th>Pupils</th>
-      <th colspan="3"></th>
+      <th>Subjects</th>
+      <th>Ad Hoc Domains</th>
+      <th colspan="2"></th>
     </tr>
   </thead>
 
@@ -16,11 +18,12 @@
         <td><%= datasource.name %></td>
         <td><%= datasource.staffs.count %></td>
         <td><%= datasource.pupils.count %></td>
-        <td><%= link_to 'Show', datasource %></td>
-        <td><%= link_to 'Edit', edit_datasource_path(datasource) %></td>
+        <td><%= datasource.subjects.count %></td>
+        <td><%= datasource.ad_hoc_domains.count %></td>
+        <td><%= link_to 'Edit', edit_datasource_path(datasource), class: "tiny teensy zfbutton radius button-link" %></td>
         <td>
           <% if datasource.can_destroy? %>
-            <%= link_to 'Destroy', datasource, method: :delete, data: { confirm: 'Are you sure?' } %>
+            <%= link_to 'Destroy', datasource, method: :delete, class: "tiny teensy zfbutton radius button-link", data: { confirm: 'Are you sure?' } %>
           <% end %>
         </td>
       </tr>
@@ -30,4 +33,4 @@
 
 <br>
 
-<%= link_to 'New data source', new_datasource_path, class: "tiny button radius" %>
+<%= link_to 'New data source', new_datasource_path, class: "tiny zfbutton radius button-link" %>

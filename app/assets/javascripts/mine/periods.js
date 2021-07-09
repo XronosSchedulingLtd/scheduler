@@ -7,7 +7,7 @@
 //  with the back end and needs a Backbone View to drive this.
 //
 
-if ($('#fullcalendar').length) {
+if ($('#fullcalendarzzz').length) {
 
   var periodsHandler = function() {
     var that = {};
