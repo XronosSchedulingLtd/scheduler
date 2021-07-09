@@ -815,12 +815,15 @@ class Seeder
     #
     #  Rota template types.
     #
-    RotaTemplateType.create!({ name: "Invigilation" })
-    RotaTemplateType.create!({ name: "Day shape" })
+    RotaTemplateType.create_basics
     #
     #  User profiles
     #
     UserProfile.ensure_basic_profiles
+    #
+    #  Data sources
+    #
+    Datasource.create_basics
   end
 
   Usefuls = [

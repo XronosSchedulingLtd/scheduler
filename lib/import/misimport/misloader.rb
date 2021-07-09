@@ -238,7 +238,14 @@ class MIS_Loader
     subjects_changed_count   = 0
     subjects_unchanged_count = 0
     subjects_loaded_count    = 0
-    original_subject_count = Subject.current.count
+    #
+    #  Don't want to touch any subjects which we didn't put there in
+    #  the first place.
+    #
+    my_current_subjects =
+      Subject.where(datasource_id: MIS_Record.primary_datasource_id).
+              current
+    original_subject_count = my_current_subjects.count
     @subjects.each do |subject|
       dbrecord = subject.dbrecord
       if dbrecord
@@ -267,9 +274,9 @@ class MIS_Loader
     #  Need to check for subjects which have been deleted.
     #
     subjects_deactivated_count = 0
-    Subject.current.each do |dbsubject|
+    my_current_subjects.each do |dbsubject|
       subject = @subject_hash[dbsubject.source_id]
-      unless subject && dbsubject.datasource_id == subject.datasource_id
+      unless subject
         dbsubject.current = false
         dbsubject.save!
         subjects_deactivated_count += 1

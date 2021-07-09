@@ -1,0 +1,19 @@
+<% links = subject_inner.ad_hoc_domain_subject_staffs %>
+<% if links.size == 0 %>
+  <%= ahd_row(
+    contents: {
+      no_staff: "None defined yet."
+    }) %>
+<% else %>
+  <%= render collection: links.sort,
+    partial: 'ad_hoc_domain_subject_staffs/link',
+    locals: {
+      ad_hoc_domain_subject: subject_inner
+    }
+  %>
+<% end %>
+<%=
+  ahd_row(contents: {
+    staff_form: ahd_new_staff_form(subject_inner.ad_hoc_domain_cycle,
+                                   subject_inner) })
+ %>

@@ -10,6 +10,8 @@
 #
 class WeekIdentifier
 
+  attr_reader :dates
+
   def initialize(start_on = Date.today, end_on = Setting.current_era.ends_on)
     event_category = Eventcategory.cached_category("Week letter")
     @dates = Hash.new(" ")

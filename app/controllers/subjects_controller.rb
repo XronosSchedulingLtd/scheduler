@@ -4,7 +4,8 @@ class SubjectsController < ApplicationController
   # GET /subjects
   # GET /subjects.json
   def index
-    @subjects = Subject.page(params[:page]).order('name')
+    @subjects = Subject.includes(:datasource).page(params[:page]).order('name')
+    @manual_datasource = Datasource.find_by(name: "Manual")
   end
 
   # GET /subjects/1
@@ -14,7 +15,12 @@ class SubjectsController < ApplicationController
 
   # GET /subjects/new
   def new
-    @subject = Subject.new
+    manual_source = Datasource.find_by(name: "Manual")
+    if manual_source
+      @subject = manual_source.subjects.new
+    else
+      @subject = Subject.new
+    end
   end
 
   # GET /subjects/1/edit
@@ -24,7 +30,12 @@ class SubjectsController < ApplicationController
   # POST /subjects
   # POST /subjects.json
   def create
-    @subject = Subject.new(subject_params)
+    manual_source = Datasource.find_by(name: "Manual")
+    if manual_source
+      @subject = manual_source.subjects.new(subject_params)
+    else
+      @subject = Subject.new(subject_params)
+    end
 
     respond_to do |format|
       if @subject.save
@@ -74,6 +85,6 @@ class SubjectsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def subject_params
-      params.require(:subject).permit(:name)
+      params.require(:subject).permit(:name, :current)
     end
 end

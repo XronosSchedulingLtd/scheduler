@@ -11,7 +11,8 @@ class SubjectTest < ActiveSupport::TestCase
   setup do
     @entity_class = Subject
     @valid_params = {
-      name: "A subject"
+      name: "A subject",
+      datasource: datasources(:one)
     }
     @staff1 = FactoryBot.create(:staff)
     @staff2 = FactoryBot.create(:staff)
@@ -27,6 +28,7 @@ class SubjectTest < ActiveSupport::TestCase
     assert subject1.valid?
     subject2 = Subject.create(@valid_params)
     assert subject2.valid?
+    assert_not_equal subject1, subject2
   end
 
   test 'can select just current subjects' do
@@ -100,6 +102,29 @@ class SubjectTest < ActiveSupport::TestCase
     assert subject.can_destroy?
     FactoryBot.create(:commitment, element: subject.element)
     assert_not subject.can_destroy?
+  end
+
+  test "subject can be linked to ad hoc domain cycle" do
+    ahdc = FactoryBot.create(:ad_hoc_domain_cycle)
+    subject = FactoryBot.create(:subject)
+    subject.ad_hoc_domain_subjects.create(ad_hoc_domain_cycle: ahdc)
+    assert_equal 1, subject.ad_hoc_domain_subjects.count
+    assert_equal 1, subject.ad_hoc_domain_cycles.count
+    assert_equal 1, subject.ad_hoc_domains.count
+    #
+    #  Deleting the subject destroys the connection
+    #
+    subject.destroy
+    assert_equal 0, ahdc.ad_hoc_domain_subjects.count
+    assert_equal 0, ahdc.subjects.count
+  end
+
+  test "can sort subjects" do
+    subject1 = FactoryBot.create(:subject, name: "Charlie")
+    subject2 = FactoryBot.create(:subject, name: "Able")
+    subject3 = FactoryBot.create(:subject, name: "Baker")
+    subjects = [subject1, subject2, subject3]
+    assert_equal [subject2, subject3, subject1], subjects.sort
   end
 
 end

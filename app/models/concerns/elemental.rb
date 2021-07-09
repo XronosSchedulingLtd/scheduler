@@ -241,6 +241,9 @@ module Elemental
     result = sort_by_entity_type(other)
     if result == 0
       result = self.name <=> other.name
+      if result == 0
+        result = self.id <=> other.id
+      end
     end
     result
   end

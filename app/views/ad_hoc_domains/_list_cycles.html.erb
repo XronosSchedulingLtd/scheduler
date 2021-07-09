@@ -1,0 +1,27 @@
+<% if @ad_hoc_domain.ad_hoc_domain_cycles.empty? %>
+  <div>None defined yet.</div>
+<% else %>
+  <table class='zftable'>
+    <thead>
+      <tr>
+        <td>Name</td>
+        <td></td>
+        <td>Current</td>
+        <td>Starts on</td>
+        <td>Ends on</td>
+        <td>Subjects</td>
+        <td></td>
+        <td></td>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render @ad_hoc_domain.ad_hoc_domain_cycles.sort.reverse %>
+    </tbody>
+  </table>
+<% end %>
+<%=
+  link_to "New cycle",
+    new_ad_hoc_domain_ad_hoc_domain_cycle_path(@ad_hoc_domain),
+    class: "zfbutton tiny radius button-link"
+  %>
+

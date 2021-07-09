@@ -1,0 +1,8 @@
+window.ahdUpdate([
+  {
+    action: 'show_pupil_error',
+    staff_id: <%= @ad_hoc_domain_staff.id %>,
+    subject_id: <%= @ad_hoc_domain_subject.id %>,
+    error_text: '<%=j ahd_error_texts(@ad_hoc_domain_pupil_course) %>'
+  }
+]);

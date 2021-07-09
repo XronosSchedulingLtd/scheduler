@@ -30,4 +30,18 @@ class PropertyTest < ActiveSupport::TestCase
     assert property.can_lock?
   end
 
+  test "property can be linked to ad hoc domain" do
+    ahd = FactoryBot.create(:ad_hoc_domain)
+    property = FactoryBot.create(:property)
+    property.ad_hoc_domains << ahd
+    ahd.reload
+    assert_not_nil ahd.connected_property
+    #
+    #  And deleting the property should nullify the connection.
+    #
+    property.destroy
+    ahd.reload
+    assert_nil ahd.connected_property
+  end
+
 end

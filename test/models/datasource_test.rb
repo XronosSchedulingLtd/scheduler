@@ -87,6 +87,34 @@ class DatasourceTest < ActiveSupport::TestCase
     assert_nil group2.datasource
   end
 
+  test 'can have subjects' do
+    ds = Datasource.create(@valid_params)
+    ds.subjects << subject1 = FactoryBot.create(:subject)
+    ds.subjects << subject2 = FactoryBot.create(:subject)
+    assert_equal 2, ds.subjects.count
+    ds.destroy
+    assert_not subject1.destroyed?
+    assert_not subject2.destroyed?
+    subject1.reload
+    subject2.reload
+    assert_nil subject1.datasource
+    assert_nil subject2.datasource
+  end
+
+  test 'can have ad hoc domains' do
+    ds = Datasource.create(@valid_params)
+    ds.ad_hoc_domains << ad_hoc_domain1 = FactoryBot.create(:ad_hoc_domain)
+    ds.ad_hoc_domains << ad_hoc_domain2 = FactoryBot.create(:ad_hoc_domain)
+    assert_equal 2, ds.ad_hoc_domains.count
+    ds.destroy
+    assert_not ad_hoc_domain1.destroyed?
+    assert_not ad_hoc_domain2.destroyed?
+    ad_hoc_domain1.reload
+    ad_hoc_domain2.reload
+    assert_nil ad_hoc_domain1.datasource
+    assert_nil ad_hoc_domain2.datasource
+  end
+
   test 'sorts by name' do
     datasources = Array.new
     datasources << ds1 = Datasource.create(@valid_params.merge({name: "Zak"}))
@@ -112,4 +140,10 @@ class DatasourceTest < ActiveSupport::TestCase
     assert_not ds.can_destroy?
   end
 
+  test 'can create basic data sources' do
+    Datasource.create_basics
+    ["Manual", "SchoolBase", "iSAMS"].each do |name|
+      assert_not_nil Datasource.find_by(name: name)
+    end
+  end
 end

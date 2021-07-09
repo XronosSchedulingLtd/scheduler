@@ -1,0 +1,70 @@
+<h1>Arranging <%= @ad_hoc_domain.name %></h1>
+<% if @ad_hoc_domain_cycle %>
+  <h4>Viewing the "<%=
+  @ad_hoc_domain_cycle.name
+  %>" cycle - <%=
+  @ad_hoc_domain_cycle.set_as_default? ? "<span class='ahd-current'>which is current</span>".html_safe : "<span class='ahd-not-current'>not current</span>".html_safe
+  %></h4>
+<% else %>
+  <h4>No cycles defined yet</h4>
+<% end %>
+
+<ul class="tabs" data-tab>
+  <% if @have_cycles
+    {
+      ahd_cycles:     "Cycles",
+      ahd_by_subject: "By Subject",
+      ahd_by_staff:   "By Staff",
+      ahd_allocate:   "Allocate"
+    }.each_with_index do |(key, value), index|
+  %>
+  <%= ahd_tab_header(key, value, index == @active_tab) %>
+  <% end %>
+  <% else %>
+    <li class="tab-title active"><a href="#ahd-cycles">Cycles</a></li>
+  <% end %>
+</ul>
+
+<hr/>
+<div class="tabs-content ahd-listing">
+  <% if @have_cycles %>
+    <div <%= ahd_tab(:ahd_cycles, @active_tab == 0) %>>
+      <%= render 'list_cycles' %>
+    </div>
+    <div <%= ahd_tab(:ahd_by_subject, @active_tab == 1) %>>
+      <%=
+        ahd_row(
+          contents: {
+            subject_heading: "Subject",
+            flipper: ahd_toggle("Show all")
+          })
+      %>
+      <%= render 'subject_listing' %>
+    </div>
+    <div <%= ahd_tab(:ahd_by_staff, @active_tab == 2) %>>
+      <%=
+        ahd_row(
+          contents: {
+            staff_heading: "Staff",
+            flipper: ahd_toggle("Show all")
+            })
+          %>
+      <%= render 'staff_listing' %>
+    </div>
+    <div <%= ahd_tab(:ahd_allocate, @active_tab == 3) %>>
+      <%= render 'allocation_listing' %>
+    </div>
+  <% else %>
+    <div class="content active" id="ahd-cycles">
+      <%= render 'list_cycles' %>
+    </div>
+  <% end %>
+</div>
+
+<script type="text/template" id="ahd-show-mins">
+  <span title='Click to amend'><%%= mins %></span>
+</script>
+
+<script type="text/template" id="ahd-edit-mins">
+  <input type='number' value='<%%= mins %>' step='<%= @ad_hoc_domain.mins_step %>' data-prev-value='<%%= mins %>'>
+</script>

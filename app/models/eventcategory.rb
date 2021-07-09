@@ -39,6 +39,7 @@ class Eventcategory < ApplicationRecord
 
   @@category_cache = {}
   @@non_busy_categories = nil
+  @@busy_categories = nil
 
   FIELD_TITLE_TEXTS = {
       pecking_order:
@@ -104,6 +105,7 @@ class Eventcategory < ApplicationRecord
   def flush_cache
     @@category_cache = {}
     @@non_busy_categories = nil
+    @@busy_categories = nil
   end
 
   def categories_for(user)
@@ -137,6 +139,10 @@ class Eventcategory < ApplicationRecord
   #
   def self.non_busy_categories
     @@non_busy_categories ||= Eventcategory.where(busy: false).to_a
+  end
+
+  def self.busy_categories
+    @@busy_categories ||= Eventcategory.where(busy: true).to_a
   end
 
   def can_destroy?

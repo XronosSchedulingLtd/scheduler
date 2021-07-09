@@ -1,0 +1,41 @@
+<tr>
+  <td><%= ad_hoc_domain_cycle.name %></td>
+  <td><%=
+  ad_hoc_domain_cycle == @ad_hoc_domain_cycle ? "" :
+    link_to(
+      "View",
+      ad_hoc_domain_path(
+        @ad_hoc_domain,
+        params: {
+          cycle_id: ad_hoc_domain_cycle.id,
+          tab: 1
+        } ),
+      class: "zfbutton teensy tiny button-link"
+    )
+  %></td>
+  <td>
+    <%=
+      ad_hoc_domain_cycle.set_as_default? ? "Yes" :
+        link_to(
+          "Set as",
+          set_as_default_ad_hoc_domain_cycle_path(ad_hoc_domain_cycle),
+          method: :put,
+          class: "zfbutton teensy tiny button-link")
+      %></td>
+  <td><%= ad_hoc_domain_cycle.starts_on.to_s(:dmy) %></td>
+  <td><%= ad_hoc_domain_cycle.ends_on.to_s(:dmy) %></td>
+  <td class='numeric'><%= ad_hoc_domain_cycle.ad_hoc_domain_subjects.size %></td>
+  <td><%=
+  link_to "Edit",
+    edit_ad_hoc_domain_cycle_path(ad_hoc_domain_cycle),
+    class: "zfbutton teensy tiny button-link"
+    %></td>
+  <td><%=
+  link_to(
+    "Delete",
+    ad_hoc_domain_cycle,
+    method: :delete,
+    data: { confirm: 'Deleting this cycle will remove all its subsidiary records too.  Continue?' },
+    class: "zfbutton teensy tiny button-link")
+  %></td>
+</tr>

@@ -1,0 +1,48 @@
+<%= form_with(model: [@ad_hoc_domain_cycle, @ad_hoc_domain_allocation], local: true) do |form| %>
+  <% if @ad_hoc_domain_allocation.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@ad_hoc_domain_allocation.errors.count, "error") %> prohibited this allocation from being saved:</h2>
+
+      <ul>
+      <% @ad_hoc_domain_allocation.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :name, class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= form.text_field :name %>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+      A name of your choosing to refer to this proposed allocation.
+    </div>
+  </div>
+
+  <div class="row collapse">
+    <div class="small-9 small-offset-3 columns">
+      <div class="actions">
+        <%=
+          form.submit @ad_hoc_domain_allocation.new_record? ? "Create" : "Update", class: "zfbutton tiny radius"
+        %>
+        <%=
+          link_to(
+            "Cancel",
+            ad_hoc_domain_path(
+              @ad_hoc_domain_allocation.ad_hoc_domain_cycle.ad_hoc_domain,
+              params: {
+                cycle_id: @ad_hoc_domain_allocation.ad_hoc_domain_cycle.id,
+                tab: 3
+              }
+            ),
+            class: "zfbutton tiny radius button-link")
+        %>
+      </div>
+    </div>
+  </div>
+<% end %>
+

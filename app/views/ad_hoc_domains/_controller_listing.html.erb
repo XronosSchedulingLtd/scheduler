@@ -1,0 +1,10 @@
+<% if controller_listing.controllers.empty? %>
+  <p>None</p>
+<% else %>
+  <ul>
+    <% controller_listing.controllers.order(:name).each do |c| %>
+      <li><%= c.name %></li>
+    <% end %>
+  </ul>
+<% end %>
+

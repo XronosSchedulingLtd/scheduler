@@ -6,3 +6,5 @@ invigilation:
 dayshape:
   name: "Day shape"
 
+adhoc:
+  name: "AdHocAvailability"

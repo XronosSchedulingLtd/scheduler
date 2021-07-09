@@ -1,0 +1,60 @@
+
+<p>Note that editing is local to your web browser.  You must save your
+changes if you want them to persist.</p>
+
+<div id="mainContainer">
+  <div class="row collapse allocation">
+    <div class="small-12 columns">
+      <h3>Working on the allocation called "<%= @ad_hoc_domain_allocation.name %>"</h3>
+    </div>
+    <div class="small-5 columns">
+      <hr/>
+      <div class="allocation-controls">
+        <span class="allocation-buttons">
+          <%= link_to "Save",
+            "#",
+            class: "zfbutton tiny radius button-link disabled",
+            id: "save-button" %>
+          <%= link_to "Save & exit",
+            ad_hoc_domain_allocation_url(@ad_hoc_domain_allocation),
+            class: "zfbutton tiny radius button-link disabled",
+            id: "save-exit-button" %>
+          <%= link_to "Exit",
+            ad_hoc_domain_allocation_url(@ad_hoc_domain_allocation),
+            class: "zfbutton tiny radius button-link" %>
+        </span>
+        <span class="allocation-switch">
+          <span class="as-legend"><span>Assist placing:</span></span>
+          <label class="switch">
+            <input type="checkbox" id="assist-switch" checked>
+            <span class="slider round"></span>
+          </label>
+        </span>
+      </div>
+      <br/>
+      <p>Proposed lessons for <%= @ad_hoc_domain_staff.staff_name %></p>
+      <hr/>
+      <div id='pending-allocations'></div>
+    </div>
+    <div class="small-7 columns">
+      <div id='editing-allocation'>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="allocation-data">
+  <%=
+    @ad_hoc_domain_allocation.to_json(
+      ad_hoc_domain_staff_id: @ad_hoc_domain_staff.id).html_safe %>
+</script>
+
+<script type="text/template" id="an-allocation">
+  <div class='single-allocation<%%= extra_class %>' data-pupil-id='<%%= pupil_id %>' data-pcid='<%%= pcid %>'>
+    <span class='pupil-name'><%%= pupil %></span>
+    <br/>
+    <span class='duration'><%%= mins %> mins</span>
+    <span class='subject'><%%= subject %></span>
+    <div class='allocation-inner<%%= extra_inner_class %>' data-pupil-id='<%%= pupil_id %>' data-pcid='<%%= pcid %>'></div>
+  </div>
+</script>

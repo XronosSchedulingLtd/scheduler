@@ -1,0 +1,337 @@
+// Place all the styles related to the AdHocDomains controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+.ahd-listing {
+  //
+  //  Tempting to use a class of simply "row" here, but that then
+  //  clashes with Zurb Foundation.
+  //
+
+  %staff-shared {
+    grid-column: staff;
+  }
+
+  #ahd-by-subject {
+    .arow {
+      display: grid;
+      grid-template-columns: 1em 5fr 1px 1em 5fr 1em 5fr 2fr 3em 6em;
+      grid-template-areas: "subjectx subject filler staffx staff pupilx pupil pupil pupil flipper";
+    }
+
+    .subject-heading {
+      font-weight: bold;
+      grid-column: 2;
+    }
+
+    .subject-form {
+      grid-column: 2;
+    }
+
+    .subject {
+      grid-column: 2;
+      font-weight: bold;
+    }
+
+    .no-subject {
+      grid-column: subject;
+    }
+
+    .num-staff {
+      @extend %staff-shared;
+    }
+
+    .staff {
+      @extend %staff-shared;
+    }
+
+  }
+
+  #ahd-by-staff {
+    .arow {
+      display: grid;
+      grid-template-columns: 1em 4fr 2fr 1em 4fr 1em 5fr 2fr 3em 6em;
+      grid-template-areas: "staffx staff availability subjectx subject pupilx pupil pupil pupil flipper";
+    }
+
+    .staff-heading {
+      @extend %staff-shared;
+      font-weight: bold;
+    }
+
+    .staff {
+      @extend %staff-shared;
+      font-weight: bold;
+    }
+
+    .num-subjects {
+      grid-column: subject;
+    }
+
+    .subject {
+      grid-column: subject;
+    }
+
+    .subject-form {
+      grid-column: subject;
+    }
+
+    .no-subject {
+      grid-column: subject;
+    }
+
+    .availability {
+      grid-column: availability;
+    }
+
+  }
+
+  .sub-grid {
+    display: grid;
+    grid-template-columns: 5fr 2fr 3em;
+  }
+
+  .subject-delete {
+    grid-column: subjectx;
+  }
+
+  .staff-delete {
+    grid-column: staffx;
+  }
+
+  .no-staff {
+    @extend %staff-shared;
+    font-style: italic;
+  }
+
+  .no-subject {
+    font-style: italic;
+  }
+
+  .staff-form {
+    @extend %staff-shared;
+  }
+
+  .pupil-delete {
+    grid-column: 6;
+  }
+
+  %pupil-shared {
+    grid-column: 7;
+  }
+
+  .num-pupils {
+    @extend %pupil-shared;
+  }
+
+  .no-pupils {
+    @extend %pupil-shared;
+    font-style: italic;
+  }
+
+  .pupil-heading {
+    @extend %pupil-shared;
+    font-weight: bold;
+  }
+
+  .pupil-form {
+//    grid-column: 6 / span 3;
+    grid-column: pupil;
+  }
+
+  .pupil {
+    @extend %pupil-shared;
+  }
+
+  .mins-heading {
+    grid-column: 8;
+    font-weight: bold;
+  }
+
+  .mins {
+    grid-column: 8;
+  }
+
+  .num-mins {
+    grid-column: 8;
+  }
+
+  .edit_pupil {
+    grid-column: 9;
+  }
+
+  .flipper {
+    grid-column: flipper;
+  }
+
+  .underrule {
+    border-bottom-style: solid;
+    border-width: 1px;
+    border-color: black;
+    margin-bottom: 2px;
+    &.minor {
+      border-width: 1px;
+      border-color: #C0C0C0;
+    }
+  }
+
+  .overrule {
+    border-top-style: solid;
+    border-width: 1px;
+    border-color: black;
+    padding-top: 2px;
+    &.minor {
+      border-width: 1px;
+      border-color: #C0C0C0;
+    }
+  }
+
+  .errors {
+    color: red;
+  }
+
+  .folded {
+    display: none;
+  }
+
+  input {
+    margin-bottom: 2px;
+    height: 24px;
+  }
+}
+
+.ahd-slider-container {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.ahd-current {
+  background-color: darkseagreen;
+  padding-left: 3px;
+  padding-right: 3px;
+  border-radius: 3px;
+}
+
+.ahd-not-current {
+  background-color: indianred;
+  padding-left: 3px;
+  padding-right: 3px;
+  border-radius: 3px;
+}
+
+div.row.collapse.allocation {
+  padding-left: 10px;
+}
+
+#pending-allocations {
+  .single-allocation {
+    font-size: 11px;
+    display: inline-block;
+    /* box-sizing border-box has been set elsewhere. */
+    width: 111px;
+    height: 58px;
+    margin: 4px;
+    padding: 2px;
+    padding-left: 5px;
+    background-color: white;
+    border-radius: 4px;
+    border-style: solid;
+    border-width: 2px;
+    border-color: rgb(200,200,200);
+    position: relative;
+    line-height: 12px;
+
+    &.selected {
+      border-color: rgb(50, 150, 83);
+    }
+
+    .pupil-name {
+      float: left;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .duration {
+      float: left;
+      width: 45px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .subject {
+      float: right;
+      width: 45px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    div.allocation-inner {
+      background-color: rgb(58, 135, 173);
+      width: 94px;
+      height: 21px;
+      position: absolute;
+      top: 30px;
+      left: 7px;
+      padding-left: 2px;
+      padding-top: 3px;
+      cursor: move;
+      border-radius: 2px;
+      border-style: solid;
+      border-color: rgb(58, 135, 173);
+      border-width: 1px;
+      z-index: 10;
+      color: rgb(120, 200, 255);
+      font-size: 9px;
+      text-align: center;
+
+      &:before {
+        content: "Drag me"
+      }
+
+      &.gone {
+        background-color: white;
+        border-color: rgb(200, 200, 200);
+        cursor: auto;
+        color: transparent;
+
+        &:before {
+          content: "";
+        }
+      }
+    }
+
+  }
+}
+
+.allocation-controls {
+  position: relative;
+}
+
+.allocation-controls::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+.allocation-buttons {
+  float: left;
+}
+
+.allocation-switch {
+  float: right;
+  margin-right: 10px;
+  .as-legend {
+    height: 100%;
+    position: relative;
+    span {
+      position: relative;
+      bottom: 10px;
+    }
+//    span {
+//      top: 50%;
+//      position: absolute;
+//      transform: translateY(-50%);
+//    }
+  }
+}
+

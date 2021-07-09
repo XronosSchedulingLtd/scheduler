@@ -1,0 +1,9 @@
+<% pupil_courses = staff_pupils.pupils_for(ad_hoc_domain_subject) %>
+<% if pupil_courses.size == 0 %>
+  <%= ahd_row(
+    contents: {
+      no_pupils: "None defined yet."
+    }) %>
+<% end %>
+<%= render pupil_courses.sort %>
+

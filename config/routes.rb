@@ -1,5 +1,47 @@
 Rails.application.routes.draw do
 
+  resources :ad_hoc_domain_subject_staffs, only: [:destroy], shallow: true do
+    resources :ad_hoc_domain_pupil_courses, only: [:create, :update, :destroy]
+  end
+
+  resources :ad_hoc_domains do
+    resources :ad_hoc_domain_cycles, shallow: true do
+      member do
+        put :set_as_default
+      end
+      resources :ad_hoc_domain_subjects, shallow: true do
+        resources :ad_hoc_domain_staffs, only: [:create] do
+          member do
+            get :edit_availability
+          end
+        end
+      end
+      resources :ad_hoc_domain_staffs, shallow: true do
+        resources :ad_hoc_domain_subjects, only: [:create]
+      end
+      resources :ad_hoc_domain_allocations, shallow: true do
+        member do
+          post :generate
+          post :do_clone
+        end
+      end
+    end
+    member do
+      get :edit_controllers
+      patch :add_controller
+      patch :remove_controller
+    end
+  end
+  resources :ad_hoc_domain_staffs, only: [] do
+    resources :events, controller: :ahd_events
+    resources :ad_hoc_domain_allocations, only: [] do
+      member do
+        get :allocate
+        patch :save
+      end
+    end
+  end
+
   resources :user_profiles do
     resources :users
     member do
@@ -26,7 +68,7 @@ Rails.application.routes.draw do
     resources :comments, shallow: true
   end
 
-  resources :periods, only: [:index]
+#  resources :periods, only: [:index]
 
   resources :notifiers
 
@@ -75,6 +117,8 @@ Rails.application.routes.draw do
     resources :rota_slots
     member do
       post :do_clone
+      get :new_from
+      get :slots
     end
   end
 
@@ -259,9 +303,11 @@ Rails.application.routes.draw do
     collection do
       get :autocomplete_element_name
       get :autocomplete_staff_element_name
+      get :autocomplete_pupil_element_name
       get :autocomplete_group_element_name
       get :autocomplete_property_element_name
       get :autocomplete_location_element_name
+      get :autocomplete_subject_element_name
       get :autocomplete_direct_add_element_name
       get :autocomplete_viewable_element_name
       get :autocomplete_tutorgroup_element_name

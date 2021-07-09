@@ -218,6 +218,89 @@ module Timetable
   end
 
   #
+  #  An object which does the actual work of assembling a set of an
+  #  elements events for a timetable.
+  #
+  class EventAssembler
+    attr_reader :startdate
+
+    def initialize(element, date = Date.today, preload_all = false)
+      #
+      #  Need all the events for this element (including via groups
+      #  as on the indicated date) from the configured timetable
+      #  interval.
+      #
+      effective_groups = element.groups(date)
+      #
+      #  Note that effective_groups is a selector of groups (not their
+      #  elements) and element is an element.  Happily the commitment
+      #  finding code can handle an array containing a mixture.
+      #
+      together = [element] + effective_groups.includes(:element).to_a
+      #
+      #  Dates come from the system settings.
+      #
+      @startdate = Setting.tt_store_start
+      enddate   = @startdate + Setting.tt_cycle_weeks.weeks - 1.day
+      eventcategories = Eventcategory.timetable.to_a
+      if eventcategories.empty?
+        @commitments = []
+      else
+        #
+        #  What we get here is not yet an array but a constructed
+        #  database query.  It gets executed only when the events()
+        #  method is called.
+        #
+        if preload_all
+          @commitments =
+            Commitment.commitments_on(
+              startdate:     @startdate,
+              enddate:       enddate,
+              eventcategory: eventcategories,
+              resource:      together).includes(event: {commitments: :element})
+        else
+          @commitments =
+            Commitment.commitments_on(
+              startdate:     @startdate,
+              enddate:       enddate,
+              eventcategory: eventcategories,
+              resource:      together).includes(:event)
+        end
+      end
+    end
+
+    def events
+      @events ||= @commitments.collect(&:event)
+    end
+
+    def events_by_day
+      #
+      #  Expect a block to be passed, to which we will yield all the
+      #  events in chronological order, specifying for each the week
+      #  and day number.
+      #
+      #  A, 1, event
+      #  A, 1, event
+      #  A, 1, event
+      #  A, 2, event
+      #  ...
+      #  B, 1, event
+      #  etc.
+      #
+      self.events.sort.each do |event|
+        offset = (event.starts_at.to_date - @startdate).to_i
+        if offset < 7
+          week_letter = 'A'
+        else
+          week_letter = 'B'
+        end
+        day_no = offset % 7
+        yield week_letter, day_no, event
+      end
+    end
+  end
+
+  #
   #  A class to hold the whole of one element's timetable.
   #
   class Contents
@@ -226,7 +309,6 @@ module Timetable
 
     def initialize(element, date, background_periods = nil)
       @element_name = element.name
-      date ||= Date.today
       @days = Array.new
       #
       #  Need some way of specifying the length of a timetable cycle.
@@ -264,42 +346,15 @@ module Timetable
           end
         end
       end
-      #
-      #  Need all the events for this element (including via groups
-      #  as on the indicated date) from the configured timetable
-      #  interval.
-      #
-      effective_groups = element.groups(date)
-      #
-      #  Note that effective_groups is a selector of groups (not their
-      #  elements) and element is an element.  Happily the commitment
-      #  finding code can handle an array containing a mixture.
-      #
-      together = [element] + effective_groups.includes(:element).to_a
-      #
-      #  Dates hard coded for now.
-      #
-      startdate = Setting.tt_store_start
-      enddate =   startdate + Setting.tt_cycle_weeks.weeks - 1.day
-      eventcategories = Eventcategory.timetable.to_a
-      if eventcategories.empty?
-        @commitments = []
-      else
-        @commitments =
-          Commitment.commitments_on(
-            startdate:     startdate,
-            enddate:       enddate,
-            eventcategory: eventcategories,
-            resource:      together).includes(:event).to_a
-      end
-      #puts "Found #{@commitments.size} commitments"
+      ea = EventAssembler.new(element, date)
+      events = ea.events.sort
       #
       #  Now sort them into days.
       #
-      @commitments.sort.each do |commitment|
-        offset = (commitment.event.starts_at.to_date - startdate).to_i
+      events.each do |event|
+        offset = (event.starts_at.to_date - ea.startdate).to_i
         if offset >= 0 && offset < 14
-          @days[offset] << commitment.event
+          @days[offset] << event
         end
       end
       @days.insert(7, WeekGap.new)

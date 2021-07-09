@@ -1,0 +1,18 @@
+<div id='ahd-subject-<%= subject_outer.id_suffix %>'>
+  <%= ahd_row(
+    contents: {
+      subject_delete: ahd_deletion_link(subject_outer),
+      subject: subject_outer.subject_name,
+      num_staff: "#{subject_outer.num_real_staff} staff",
+      num_pupils: "#{subject_outer.num_real_pupils} pupils",
+      num_mins: "#{mins_to_str(subject_outer.total_mins)}",
+      flipper: ahd_toggle( @folded ? "Show" : "Hide")
+    },
+    row_classes: %w(overrule)) %>
+  <div id='ahd-subject-staff-<%= subject_outer.id_suffix %>' class='foldable<%= @folded ? " folded" : "" %>'>
+    <%=
+      render object: subject_outer,
+        partial: 'ad_hoc_domain_subjects/subject_inner'
+      %>
+  </div>
+</div>

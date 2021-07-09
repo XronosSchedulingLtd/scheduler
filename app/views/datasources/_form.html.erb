@@ -20,6 +20,7 @@
     </div>
   </div>
   <div class="small-9 small-offset-3 columns">
-    <%= f.submit %>
+    <%= f.submit @datasource.new_record? ? "Create" : "Update", class: "zfbutton tiny radius" %>
+    <%= link_to "Cancel", datasources_path, class: "zfbutton tiny radius button-link" %>
   </div>
 <% end %>

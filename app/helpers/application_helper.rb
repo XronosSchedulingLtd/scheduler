@@ -112,6 +112,45 @@ module ApplicationHelper
     result.join("\n").html_safe
   end
 
+  def mins_to_str(mins)
+    hours = mins / 60
+    left  = mins % 60
+    if hours == 0
+      hours_bit = ""
+    else
+      hours_bit = "#{hours} #{"hr".pluralize(hours)}"
+    end
+    mins_bit = "#{left} #{"min".pluralize(left)}"
+    if hours_bit.blank?
+      mins_bit
+    else
+      if left == 0
+        hours_bit
+      else
+        "#{hours_bit} #{mins_bit}"
+      end
+    end
+  end
+
+  def as_percentage(value)
+    #
+    #  Format a percentage value as a string.  Infinity and NaN get "-.-%".
+    #
+    #  Rails boasts a number_to_percentage method as a view helper but
+    #  unfortunately whoever implemented it clearly didn't really
+    #  understand percentages.
+    #
+    #  67.3% == 0.673 so one would expect to be able to pass it 0.673
+    #  and get "67.3%" out.  Sadly you get "0.673%" out.  Thus we need
+    #  to multiply by 100.0 to get a sensible result.
+    #
+    if value.nan? || value.infinite?
+      "-.-%"
+    else
+      number_to_percentage(value * 100.0, precision: 1)
+    end
+  end
+
   def tscb_group(f,
                  parent,
                  field,
@@ -148,6 +187,18 @@ module ApplicationHelper
   def preserve_line_breaks(text)
     h(text).gsub("\n", '<br/>').html_safe
   end
+
+  #
+  #  In ruby we tend to use underscores in symbols and strings whilst
+  #  CSS classes conventionally use hyphens.  Convert.
+  #
+  #  Also accepts symbols.
+  #
+  def to_css_class(org)
+    org.to_s.gsub("_", "-")
+  end
+
+  alias tcc to_css_class
 
   #
   #  Returns an appropriate path for listing pending items relating
@@ -263,6 +314,11 @@ module ApplicationHelper
             m.dropdown('Settings', settings_path) do
               m.item('Pre-requisites', pre_requisites_path)
             end
+            m.dropdown('Ad hoc t/ts', ad_hoc_domains_path) do
+              AdHocDomain.all.each do |ahd|
+                m.item(ahd.name, ad_hoc_domain_path(ahd))
+              end
+            end
             m.item('Imports', imports_index_path)
             m.item('Day shape',
                     rota_template_type_rota_templates_path(
@@ -283,6 +339,13 @@ module ApplicationHelper
           m.dropdown('Allocate') do
             user.owned_resources.each do |owned|
               m.item(owned.name, schedule_group_path(owned.entity))
+            end
+          end
+        end
+        if user.domain_controller?
+          m.dropdown('Ad hoc t/ts', '#') do
+            user.ad_hoc_domains.each do |ahd|
+              m.item(ahd.name, ad_hoc_domain_path(ahd))
             end
           end
         end
