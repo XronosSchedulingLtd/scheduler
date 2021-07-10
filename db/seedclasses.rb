@@ -355,8 +355,12 @@ class Seeder
   class SeedSubject
     attr_reader :dbrecord
 
-    def initialize(name)
-      @dbrecord = Subject.create!({name: name, current: true})
+    def initialize(datasource, name)
+      @dbrecord = Subject.create!({
+        datasource: datasource,
+        name: name,
+        current: true
+      })
       @dbrecord.reload
 
     end
@@ -824,6 +828,10 @@ class Seeder
     #  Data sources
     #
     Datasource.create_basics
+    #
+    #  And one more just for the demo system
+    #
+    @our_datasource = Datasource.create!({name: "Demo data"})
   end
 
   Usefuls = [
@@ -983,7 +991,7 @@ class Seeder
   end
 
   def subject(id, name)
-    @subjects[id] = SeedSubject.new(name)
+    @subjects[id] = SeedSubject.new(@our_datasource, name)
   end
 
   def new_staff(
