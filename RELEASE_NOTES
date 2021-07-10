@@ -1,3 +1,21 @@
+v1.14.1   2021-07-10
+
+* Bump up versions of packages to fix vulnerabilities
+
+  Rails goes up to 5.2.6 to fix CVE-2021-22904
+
+  Nokogiri goes up to 1.11.7 to fix a number of CVEs
+
+  Puma goes up to 4.3.8 to fix CVE-2019-16779
+
+  Two redundant packages - json and grunt - were removed entirely.
+
+* Tweak seed data for demo system
+
+  The seed data for the demo system was tweaked to work with
+  the new AdHoc lessons feature.
+
+
 v1.14.0   2021-07-09
 
 * Implement support for Peripatetic Music Lessons (and other similar)
