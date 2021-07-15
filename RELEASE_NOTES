@@ -1,3 +1,16 @@
+v1.14.2   2021-07-15
+
+* Fix a permissions bug
+
+  Ordinary Ad Hoc Domain Controllers (not admin) could not edit the
+  availability schedule for Ad Hoc staff.
+
+* Add more seed data for the demo system
+
+  The demo system is used to create the documentation.  More seed data
+  has been added to facilitate this.
+
+
 v1.14.1   2021-07-10
 
 * Bump up versions of packages to fix vulnerabilities
