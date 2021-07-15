@@ -58,6 +58,8 @@ seeder.create_usefuls
 #
 #============================================================================
 
+seeder.create_demo_basics
+
 seeder.configure_periods(
   [
     ["09:00", "09:20"],         # 0 - Assembly
@@ -85,6 +87,24 @@ seeder.subject(:pe,        "Physical Education")
 seeder.subject(:spanish,   "Spanish")
 seeder.subject(:sport,     "Sport")
 
+#
+#  And some for Ad Hoc music lessons
+#
+seeder.subject(:bagpipes,  "Bagpipes")
+seeder.subject(:bassoon,   "Bassoon")
+seeder.subject(:brass,     "Brass")
+seeder.subject(:cello,     "Cello")
+seeder.subject(:clarinet,  "Clarinet")
+seeder.subject(:drum,      "Drum")
+seeder.subject(:flute,     "Flute")
+seeder.subject(:guitar,    "Guitar")
+seeder.subject(:harp,      "Harp")
+seeder.subject(:horn,      "Horn")
+seeder.subject(:piano,     "Piano")
+seeder.subject(:saxophone, "Saxophone")
+seeder.subject(:viola,     "Viola")
+seeder.subject(:violin,    "Violin")
+
 sjp = seeder.new_staff("Mr",
                        "Simon",
                        "Philpotts",
@@ -99,6 +119,7 @@ catering = seeder.new_service("Catering")
 sjp_user =
   seeder.new_user(sjp, 'f9c4317f-97d8-48ae-abae-dc7b52b63a11').
          deselect(seeder.properties[:calendarproperty])
+seeder.make_controller(sjp_user)
 sjps_file = sjp_user.add_user_file(Rails.root.join('support', 'Rowing.jpg'))
 ced_user = seeder.new_user(ced).
        controls(seeder.properties[:calendarproperty]).
@@ -127,6 +148,15 @@ nlt = seeder.new_staff("Ms",  "Nina",      "Tatchell",  "NLT", [:spanish])
 efl = seeder.new_staff("Mr",  "Edward",    "Lawson",    "EFL", [:sport])
 srn = seeder.new_staff("Mrs", "Sarah",     "Nunn",      "SRN", [:drama])
 afg = seeder.new_staff("Ms",  "Alex",      "Greene",    "AFG", [:english])
+
+#
+#  Some peripatetic music teachers
+#
+seeder.new_staff("Mr",  "Wolfgang", "Mozart",           "WAM", [])
+seeder.new_staff("Mr",  "Johann",   "Bach",             "JSB", [])
+seeder.new_staff("Mr",  "Ralph",    "Vaughan Williams", "RVW", [])
+seeder.new_staff("Mr",  "Ludwig",   "Beethoven",        "LVB", [])
+seeder.new_staff("Mr",  "Benjamin", "Britten",          "BB", [])
 
 allstaff = seeder.new_group(:allstaff,
                             "All staff",
@@ -389,6 +419,13 @@ seeder.add_event(:weekletter,
                  :five_days)
 
 #
+#  Music group
+#
+seeder.add_event(:lesson,
+                 "Opera Group",
+                 :tuesday,
+                 ["09:30", "11:00"]).involving(seeder.staff[:wam])
+#
 #  Now some simple timetable stuff.
 #
 
@@ -522,6 +559,11 @@ sp = seeder.pupil(11, "James", "Greenwood")
 seeder.new_user(sp)
 
 #
+#  And another one for music lessons
+#
+sp2 = seeder.pupil(10, "Peter", "Elliott")
+
+#
 #  4 pupils to go in both 11Mat4 and the Geography group
 #
 #  Note we are passing an array of things to populate, one of which
@@ -586,6 +628,7 @@ seeder.add_to(:pepupils,  seeder.groups[:g11pe2])
 seeder.add_to(:sptpupils, seeder.groups[:g11sport])
 
 tg11.sample << sp
+tg10[0] << sp2
 seeder.add_to(:allpupils,    sp)
 seeder.add_to(:year11,       sp)
 seeder.add_special(:g11mat3,
@@ -604,6 +647,30 @@ seeder.add_to(:g11his4,      sp)
 seeder.add_to(:g11ita1,      sp)
 seeder.add_to(:g11pe2,       sp)
 seeder.add_to(:g11sport,     sp)
+
+#
+#  And some for year 10
+#
+seeder.teaching_group(:g10dra1,   "10 Dra1",   :drama)
+seeder.teaching_group(:g10eng3,   "10 Eng3",   :english)
+seeder.teaching_group(:g10mat3,   "10 Mat3",   :maths)
+seeder.teaching_group(:g10fre2,   "10 Fre2",   :french)
+seeder.teaching_group(:g10geo4,   "10 Geo4",   :geography)
+seeder.teaching_group(:g10ger2,   "10 Ger2",   :german)
+seeder.teaching_group(:g10his4,   "10 His4",   :history)
+seeder.teaching_group(:g10ita1,   "10 Ita1",   :italian)
+seeder.teaching_group(:g10pe2,    "10 PE2",    :pe)
+seeder.teaching_group(:g10sport,  "10 Sport",  :sport)
+seeder.add_to(:g10dra1,     sp2)
+seeder.add_to(:g10eng3,     sp2)
+seeder.add_to(:g10geo4,     sp2)
+seeder.add_to(:g10ger2,     sp2)
+seeder.add_to(:g10his4,     sp2)
+seeder.add_to(:g10ita1,     sp2)
+seeder.add_to(:g10pe2,      sp2)
+seeder.add_to(:g10sport,    sp2)
+seeder.add_to(:g10mat3,     sp2)
+seeder.add_to(:g10fre2,     sp2)
 
 seeder.lesson(:dlj, :g11dra1,   :l102, :monday, 1)
 seeder.lesson(:afg, :g11eng3,   :l103, :monday, 2)
@@ -639,6 +706,49 @@ seeder.lesson(:dlj, :g11dra1,   :l102, :friday, 4)
 seeder.lesson(:prw, :g11his4,   :l106, :friday, 6)
 
 #
+#  Year 10.  Just rotated by a day.
+#
+seeder.lesson(:dpr, :g10ger2,   :l102, :monday, 1)
+seeder.lesson(:afg, :g10eng3,   :l103, :monday, 2)
+seeder.lesson(:dpr, :g10ita1,   :l102, :monday, 3, {non_existent: true})
+seeder.lesson(:dlj, :g10dra1,   :l102, :monday, 4)
+seeder.lesson(:prw, :g10his4,   :l106, :monday, 6)
+seeder.lesson(:dlj, :g10mat3,   :l106, :monday, 7)
+
+seeder.lesson(:dlj, :g10dra1,   :l102, :tuesday, 1)
+seeder.lesson(:afg, :g10eng3,   :l103, :tuesday, 2)
+seeder.lesson(:psl, :g10geo4,   :l104, :tuesday, 3)
+seeder.lesson(:dpr, :g10ger2,   :l105, :tuesday, 4)
+seeder.lesson(:prw, :g10his4,   :l106, :tuesday, 6)
+seeder.lesson(:dlj, :g10mat3,   :l106, :tuesday, 7)
+
+seeder.lesson(:dpr, :g10ita1,   :l102, :wednesday, 1)
+seeder.lesson(:efl, :g10pe2,    :sportshall,   :wednesday, 2)
+seeder.lesson(:dlj, :g10mat3,   :l106, :wednesday, 3)
+seeder.lesson(:prw, :g10his4,   :l106, :wednesday, 4)
+seeder.lesson(:prw, :g10fre2,   :l106, :wednesday, 5)
+seeder.lesson(:dlj, :g10dra1,   :l102, :wednesday, 6)
+
+seeder.lesson(:dpr, :g10ger2,   :l102, :thursday, 1)
+seeder.lesson(:afg, :g10eng3,   :l103, :thursday, 2)
+seeder.lesson(:prw, :g10fre2,   :l106, :thursday, 3)
+seeder.lesson(:dpr, :g10ita1,   :l102, :thursday, 4)
+seeder.add_event(:lesson,
+             "Year 10 sport",
+             :thursday,
+             ["14:00", "17:00"],
+             nil,
+             :efl).
+       involving(seeder.groups[:g10sport])
+
+seeder.lesson(:psl, :g10geo4,   :l104, :friday, 1)
+seeder.lesson(:dlj, :g10mat3,   :l106, :friday, 2)
+seeder.lesson(:prw, :g10his4,   :l106, :friday, 3)
+seeder.lesson(:efl, :g10pe2 ,   :sportshall,   :friday, 4)
+seeder.lesson(:dlj, :g10dra1,   :l102, :friday, 5)
+seeder.lesson(:prw, :g10fre2,   :l106, :friday, 6)
+
+#
 #  And now some suspended lessons to represent an exam day.
 #
 seeder.lesson(:sjp, :g9mat1,   :l101, :nextmonday, 1)
@@ -656,6 +766,33 @@ seeder.lesson(:afg, :g11eng3,   :l103, :nextmonday, 2, {non_existent: true})
 seeder.lesson(:psl, :g11geo4,   :l104, :nextmonday, 3, {non_existent: true})
 seeder.lesson(:dpr, :g11ger2,   :l105, :nextmonday, 4, {non_existent: true})
 seeder.lesson(:prw, :g11his4,   :l106, :nextmonday, 6, {non_existent: true})
+
+seeder.lesson(:dpr, :g11ita1,   :l102, :nexttuesday, 1)
+seeder.lesson(:efl, :g11pe2,    :sportshall,   :nexttuesday, 2)
+seeder.lesson(:prw, :g11his4,   :l106, :nexttuesday, 4)
+seeder.lesson(:dlj, :g11dra1,   :l102, :nexttuesday, 6)
+
+seeder.lesson(:dpr, :g11ger2,   :l102, :nextwednesday, 1)
+seeder.lesson(:afg, :g11eng3,   :l103, :nextwednesday, 2)
+seeder.lesson(:dpr, :g11ita1,   :l102, :nextwednesday, 4)
+seeder.add_event(:lesson,
+             "Year 11 sport",
+             :nextwednesday,
+             ["14:00", "17:00"],
+             nil,
+             :efl).
+       involving(seeder.groups[:g11sport])
+
+seeder.lesson(:psl, :g11geo4,   :l104, :nextthursday, 1)
+seeder.lesson(:prw, :g11his4,   :l106, :nextthursday, 3)
+seeder.lesson(:efl, :g11pe2 ,   :sportshall,   :nextthursday, 4)
+seeder.lesson(:dlj, :g11dra1,   :l102, :nextthursday, 5)
+
+seeder.lesson(:dpr, :g11ger2,   :l102, :nextfriday, 1)
+seeder.lesson(:afg, :g11eng3,   :l103, :nextfriday, 2)
+seeder.lesson(:dpr, :g11ita1,   :l102, :nextfriday, 3)
+seeder.lesson(:dlj, :g11dra1,   :l102, :nextfriday, 4)
+seeder.lesson(:prw, :g11his4,   :l106, :nextfriday, 6)
 
 #
 #  These are the same as the periods, but with the gaps filled in.

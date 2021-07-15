@@ -139,6 +139,7 @@ class Seeder
       @dbrecord.subjects << subject.dbrecord
       self
     end
+
   end
 
   class SeedUser
@@ -697,6 +698,23 @@ class Seeder
     @weekdates[:nextfriday]    = sunday + 12.days
     @weekdates[:nextsaturday]  = sunday + 13.days
 
+    @ttdates = Hash.new
+    ttsun = Date.parse("2006-01-01")
+    @ttdates[:sunday]     = ttsun
+    @ttdates[:monday]     = ttsun + 1.day
+    @ttdates[:tuesday]    = ttsun + 2.days
+    @ttdates[:wednesday]  = ttsun + 3.days
+    @ttdates[:thursday]   = ttsun + 4.days
+    @ttdates[:friday]     = ttsun + 5.days
+    @ttdates[:saturday]   = ttsun + 6.days
+    @ttdates[:nextmonday]    = ttsun + 8.days
+    @ttdates[:nexttuesday]   = ttsun + 9.days
+    @ttdates[:nextwednesday] = ttsun + 10.days
+    @ttdates[:nextthursday]  = ttsun + 11.days
+    @ttdates[:nextfriday]    = ttsun + 12.days
+    @ttdates[:nextsaturday]  = ttsun + 13.days
+
+
     #
     #  What academic year are we notionally in?
     #
@@ -773,7 +791,8 @@ class Seeder
     #
     @eventcategories[:lesson] =
       Eventcategory.create!(ECH.new({name: "Lesson",
-                                     clashcheck: true}).hash)
+                                     clashcheck: true,
+                                     timetable: true}).hash)
     @eventcategories[:weekletter] =
       Eventcategory.create!(ECH.new({name: "Week letter",
                                      schoolwide: true,
@@ -828,11 +847,45 @@ class Seeder
     #  Data sources
     #
     Datasource.create_basics
+  end
+
+  def create_demo_basics
     #
     #  And one more just for the demo system
     #
     @our_datasource = Datasource.create!({name: "Demo data"})
+    @demo_eventsource = Eventsource.create!({name: "Ad Hoc Music Lessons"})
+    rt = DayShapeManager.template_type.rota_templates.create!({
+      name: "Music teacher times"
+    })
+    rt.rota_slots.create!({
+      starts_at: "09:00",
+      ends_at:   "12:30",
+      days:      [false, true, true, true, true, true, false]
+    })
+    rt.rota_slots.create!({
+      starts_at: "14:00",
+      ends_at:   "16:00",
+      days:      [false, true, true, true, true, true, false]
+    })
+    property = Property.create!({name: "Music lesson"})
+    @ad_hoc_music_lessons = AdHocDomain.create!({
+      name:               "Music Lessons",
+      eventsource:        @demo_eventsource,
+      eventcategory:      @eventcategories[:lesson],
+      datasource:         @our_datasource,
+      connected_property: property,
+      default_day_shape:  rt
+    })
   end
+
+  #
+  #  Make a staff member a controller of our AdHoc domain.
+  #
+  def make_controller(seed_user)
+    @ad_hoc_music_lessons.controllers << seed_user.dbrecord
+  end
+
 
   Usefuls = [
     {id: :datecrucial,
@@ -1093,6 +1146,12 @@ class Seeder
                    @weekdates[dayid],
                    @periods[period],
                    more)
+    SeedLesson.new(@eventsources[:thisfile],
+                   @staff[staffid],
+                   @groups[groupid],
+                   @locations[roomid],
+                   @ttdates[dayid],
+                   @periods[period])
   end
 
 
