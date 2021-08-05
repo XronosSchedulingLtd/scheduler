@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2021 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 require 'test_helper'
 
 class CommitmentTest < ActiveSupport::TestCase
@@ -350,6 +357,25 @@ class CommitmentTest < ActiveSupport::TestCase
     commitment2.revert_and_save!
     @event.reload
     assert_not @event.locked?
+  end
+
+  test 'can detect and list simple clashes' do
+    #
+    #  Original event defaults to 1 hour long.
+    #
+    other_event = FactoryBot.create(:event,
+                                    starts_at: @event.starts_at + 30.minutes,
+                                    ends_at: @event.ends_at + 30.minutes)
+    commitment1 = Commitment.create(@valid_params1)
+    assert commitment1.valid?
+    assert_not commitment1.has_simple_clash?
+    commitment2 = Commitment.create(@valid_params1.merge({event: other_event}))
+    assert commitment2.valid?
+    assert commitment1.has_simple_clash?
+    assert_equal "#{other_event.body} (#{other_event.duration_or_all_day_string})", commitment1.text_of_clashes
+    clashing_commitments = commitment1.clashing_commitments
+    assert clashing_commitments.include?(commitment2)
+    assert_equal 1, clashing_commitments.size
   end
 
 end

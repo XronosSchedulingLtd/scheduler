@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2021 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 module CommitmentsHelper
 
   def approval_table_header
@@ -281,6 +288,26 @@ module CommitmentsHelper
   def blank_icon(enabled)
     approvals_image(action: "blank",
                     enabled: enabled).html_safe
+  end
+
+  #
+  #  Called after we have established that the commitment *does* have clashes
+  #  and thus has a cached copy of them in memory.
+  #
+  def list_clashes(commitment, link_target)
+    clashing_commitments = commitment.clashing_commitments
+    if clashing_commitments.blank?
+      ""
+    else
+      result = ["<ul class='clash-listing'>"]
+      clashing_commitments.each do |cc|
+        text = "#{cc.event.starts_at.to_s(:hhmm)} #{cc.event.owners_initials}"
+        link = link_to(text, link_target)
+        result << "<li class='#{cc.status} reflects-#{cc.id}' title='#{h "#{cc.event.duration_string} - #{cc.event.body}"}'>#{link}</li>"
+      end
+      result << "</ul>"
+      result.join("\n").html_safe
+    end
   end
 
 end
