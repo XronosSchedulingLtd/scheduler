@@ -406,6 +406,10 @@ class User < ApplicationRecord
     @owned_elements
   end
 
+  def owns_elements?
+    !self.owned_elements.empty?
+  end
+
   #
   #  A subset of owned elements.  Elements which we own and which can have
   #  requests made on them.

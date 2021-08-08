@@ -2325,6 +2325,18 @@ class Event < ApplicationRecord
     !self.event_collection_id.nil?
   end
 
+  #
+  #  Are we a member of the indicated collection?
+  #
+  def in_collection?(ec)
+    #
+    #  Need the first check because if the event collection doesn't
+    #  yet have an id *AND* we aren't a member of a collection then
+    #  the second test would return true.
+    #
+    !ec.id.blank? && (self.event_collection_id == ec.id)
+  end
+
   def just_one_day?
     if self.all_day
       self.starts_at.midnight? &&
