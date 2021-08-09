@@ -163,7 +163,7 @@ class EventRepeater
             element.commitments_during(
               start_time: starts_at,
               end_time: ends_at,
-              and_by_group: false).to_a
+              and_by_group: true).to_a
           commitments.each do |commitment|
             #
             #  Not interested in the commitment to our existing event,
