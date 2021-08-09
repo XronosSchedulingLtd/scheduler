@@ -97,8 +97,9 @@ class ClashDetector
   #
   def detect_clashes
     result = []
+    event_elements = @event.all_atomic_resources.collect {|r| r.element}
     @user.owned_elements.each do |element|
-      if @event.involves?(element, true)
+      if event_elements.include?(element)
         clash_set = ClashSet.new(element)
         EventRepeater.test_for_clashes(@event_collection,
                                        @event,
