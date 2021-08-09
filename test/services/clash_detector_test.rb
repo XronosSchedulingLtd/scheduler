@@ -9,6 +9,13 @@ require 'test_helper'
 
 class ClashDetectorTest < ActiveSupport::TestCase
 
+  setup do
+    @event_collection = FactoryBot.create(:event_collection)
+    @event = FactoryBot.create(:event)
+    @user = FactoryBot.create(:user)
+  end
+
+
   #
   #  It is surprisingly difficult to write a test which will produce
   #  a failure rather than a run-time error if the class is not defined.
@@ -31,8 +38,7 @@ class ClashDetectorTest < ActiveSupport::TestCase
   #
   test "another way" do
     begin
-      able = ClashDetector.new(FactoryBot.create(:event_collection),
-                               FactoryBot.create(:user))
+      able = ClashDetector.new(@event_collection, @event, @user)
       assert true   # Just to keep the numbers consistent.
     rescue NameError
       assert false, "ClashDetector not defined"

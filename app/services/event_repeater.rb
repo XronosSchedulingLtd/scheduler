@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2018 John Winters
+# Copyright (C) 2009-2021 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -164,7 +164,6 @@ class EventRepeater
               start_time: starts_at,
               end_time: ends_at,
               and_by_group: false).to_a
-          Rails.logger.debug("Got #{commitments.size} commitments}")
           commitments.each do |commitment|
             #
             #  Not interested in the commitment to our existing event,

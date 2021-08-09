@@ -26,6 +26,22 @@ class ClashDetector
       "#{event.starts_at.to_s(:dmy)} - #{event.duration_or_all_day_string} - #{event.body}"
     end
 
+    def date
+      @commitment.event.starts_at.to_s(:dmy)
+    end
+
+    def duration
+      @commitment.event.duration_or_all_day_string
+    end
+
+    def initials
+      @commitment.event.owners_initials
+    end
+
+    def body
+      @commitment.event.body
+    end
+
     def to_partial_path
       'clash_message'
     end
@@ -89,7 +105,6 @@ class ClashDetector
         #
         #  We have an apparent clash.
         #
-        Rails.logger.debug("An apparent clash")
         clash_set << ClashMessage.new(commitment)
       end
       unless clash_set.empty?
