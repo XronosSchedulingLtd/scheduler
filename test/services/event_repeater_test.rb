@@ -12,9 +12,41 @@ class EventRepeaterTest < ActiveSupport::TestCase
   setup do
     @user = FactoryBot.create(:user)
     #
+    #  A couple of locations for the user to own
+    #
+    @location1 = FactoryBot.create(:location, owner: @user)
+    @location2 = FactoryBot.create(:location, owner: @user)
+    #
     #  Event defaults to starting now and lasting 1 hour.
     #
     @event = FactoryBot.create(:event)
+    #
+    #  And some clashing events.
+    #
+    @clashing_event1 =
+      FactoryBot.create(:event,
+                        starts_at: Date.tomorrow,
+                        ends_at: Date.tomorrow + 1.day,
+                        all_day: true,
+                        commitments_to: [@location1])
+    @clashing_event2 =
+      FactoryBot.create(:event,
+                        starts_at: Date.tomorrow,
+                        ends_at: Date.tomorrow + 1.day,
+                        all_day: true,
+                        commitments_to: [@location2])
+    @past_clashing_event1 =
+      FactoryBot.create(:event,
+                        starts_at: Date.yesterday,
+                        ends_at: Date.today,
+                        all_day: true,
+                        commitments_to: [@location1])
+    @past_clashing_event2 =
+      FactoryBot.create(:event,
+                        starts_at: Date.yesterday,
+                        ends_at: Date.today,
+                        all_day: true,
+                        commitments_to: [@location2])
     #
     #  Event collection defaults to starting today and going on for
     #  a month.  This gives us an unpredictable number of events because
@@ -31,44 +63,9 @@ class EventRepeaterTest < ActiveSupport::TestCase
     @event_collection.events << @event
     #
     #  And let's create some week letter definitions.
-    #  Start today and run each for 7 days.
+    #  They start today and run for 7 days each.
     #
-    base_date = Date.today
-    @weekA1 =
-      FactoryBot.create(
-        :event,
-        starts_at: base_date,
-        ends_at: base_date + 7.days,
-        all_day: true,
-        eventcategory: Eventcategory.cached_category("Week letter"),
-        body: "Week A")
-    @weekB1 =
-      FactoryBot.create(
-        :event,
-        starts_at: base_date + 7.days,
-        ends_at: base_date + 14.days,
-        all_day: true,
-        eventcategory: Eventcategory.cached_category("Week letter"),
-        body: "Week B")
-    #
-    #  1 week gap.  Half term?
-    #
-    @weekA2 =
-      FactoryBot.create(
-        :event,
-        starts_at: base_date + 21.days,
-        ends_at: base_date + 28.days,
-        all_day: true,
-        eventcategory: Eventcategory.cached_category("Week letter"),
-        body: "Week A")
-    @weekB2 =
-      FactoryBot.create(
-        :event,
-        starts_at: base_date + 28.days,
-        ends_at: base_date + 35.days,
-        all_day: true,
-        eventcategory: Eventcategory.cached_category("Week letter"),
-        body: "Week B")
+    create_week_letters
   end
 
   test "can do basic repetition" do
@@ -146,13 +143,114 @@ class EventRepeaterTest < ActiveSupport::TestCase
       assert EventRepeater.effect_repetition(@user, @event_collection, @event)
       @event_collection.reload
       #
-      #  Our original event will have been deleted because it was in
-      #  Week A.
+      #  Our original event may or may not be included depending on
+      #  whether today is a Monday/Wednesday or not.
       #
-      assert_not @event_collection.events.include?(@event)
+      wday = Date.today.wday
+      if [1,3].include?(wday)
+        assert @event_collection.events.include?(@event)
+      else
+        assert_not @event_collection.events.include?(@event)
+      end
       assert_equal 4, @event_collection.events.size
     end
+  end
 
+  #
+  #  Note that it is not necessary for our seed event to involve a
+  #  given resource for our clash detection code to work at this
+  #  level.  This level of code simply checks for clashes with
+  #  the element which it is told about.  It's the next level up
+  #  which decides which ones are actually relevant before invoking
+  #  this level of code.
+  #
+  test "can detect clashes" do
+    clashing_commitments = []
+    EventRepeater.test_for_clashes(
+      @event_collection,
+      @event,
+      @location1.element) do |commitment|
+      clashing_commitments << commitment
+    end
+    assert_equal 1, clashing_commitments.size
+    clashing_commitments.each do |cc|
+      assert_equal @location1.element, cc.element
+    end
+  end
+
+  test "can detect clashes for two resources" do
+    #
+    #  We have a clash for location1
+    #
+    clashing_commitments = []
+    EventRepeater.test_for_clashes(
+      @event_collection,
+      @event,
+      @location1.element) do |commitment|
+      clashing_commitments << commitment
+    end
+    assert_equal 1, clashing_commitments.size
+    clashing_commitments.each do |cc|
+      assert_equal @location1.element, cc.element
+    end
+    #
+    #  And one for location2
+    #
+    clashing_commitments = []
+    EventRepeater.test_for_clashes(
+      @event_collection,
+      @event,
+      @location2.element) do |commitment|
+      clashing_commitments << commitment
+    end
+    assert_equal 1, clashing_commitments.size
+    clashing_commitments.each do |cc|
+      assert_equal @location2.element, cc.element
+    end
+  end
+
+  test "takes account of historical record flag when checking for clashes" do
+    #
+    #  Defaults to ignoring the past, even if it has a start date in the past.
+    #
+    @event_collection.repetition_start_date = Date.yesterday
+    clashing_commitments = []
+    EventRepeater.test_for_clashes(
+      @event_collection,
+      @event,
+      @location1.element) do |commitment|
+      clashing_commitments << commitment
+    end
+    assert_equal 1, clashing_commitments.size
+    clashing_commitments.each do |cc|
+      assert_equal @location1.element, cc.element
+    end
+    #
+    #  Now let's flag past ones too.
+    #
+    clashing_commitments = []
+    @event_collection.preserve_historical = false
+    EventRepeater.test_for_clashes(
+      @event_collection,
+      @event,
+      @location1.element) do |commitment|
+      clashing_commitments << commitment
+    end
+    assert_equal 2, clashing_commitments.size
+    clashing_commitments.each do |cc|
+      assert_equal @location1.element, cc.element
+    end
+  end
+
+  test "can detect no events at all" do
+    assert EventRepeater.would_have_events?(@event_collection)
+    #
+    #  The coming 7 days are all week A, so specify that time
+    #  period and week B.
+    #
+    @event_collection.weeks = ["B"]
+    @event_collection.repetition_end_date = Date.today + 6.days
+    assert_not EventRepeater.would_have_events?(@event_collection)
   end
 
 end

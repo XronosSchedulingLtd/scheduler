@@ -98,17 +98,19 @@ class ClashDetector
   def detect_clashes
     result = []
     @user.owned_elements.each do |element|
-      clash_set = ClashSet.new(element)
-      EventRepeater.test_for_clashes(@event_collection,
-                                     @event,
-                                     element) do |commitment|
-        #
-        #  We have an apparent clash.
-        #
-        clash_set << ClashMessage.new(commitment)
-      end
-      unless clash_set.empty?
-        result << clash_set
+      if @event.involves?(element, true)
+        clash_set = ClashSet.new(element)
+        EventRepeater.test_for_clashes(@event_collection,
+                                       @event,
+                                       element) do |commitment|
+          #
+          #  We have an apparent clash.
+          #
+          clash_set << ClashMessage.new(commitment)
+        end
+        unless clash_set.empty?
+          result << clash_set
+        end
       end
     end
     return result

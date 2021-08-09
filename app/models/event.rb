@@ -1644,8 +1644,6 @@ class Event < ApplicationRecord
     self.body = new_value
   end
 
-  private
-
   #
   #  Is the indicated item (element or entity) involved in the event
   #  in any way - by either a commitment or a request?
@@ -1670,8 +1668,6 @@ class Event < ApplicationRecord
       !!self.requests.detect {|r| r.element_id == resource.id }
     end
   end
-
-  public
 
   def involves_any?(list, even_tentative = false)
 #    Rails.logger.debug("Entering involves_any? to check:")
