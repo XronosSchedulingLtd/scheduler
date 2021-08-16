@@ -56,7 +56,7 @@ class Setting < ApplicationRecord
     less_than_or_equal_to: 6
   }
 
-  enum auth_type: [:google_auth, :google_demo_auth]
+  enum auth_type: [:google_auth, :google_demo_auth, :azure_auth]
 
   enum datepicker_type: [:dp_jquery, :dp_native]
 
