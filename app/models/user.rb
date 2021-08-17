@@ -1,8 +1,9 @@
 #
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2019 John Winters
+# Copyright (C) 2009-2021 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
+#
 
 class User < ApplicationRecord
 
@@ -1084,13 +1085,21 @@ class User < ApplicationRecord
                     include_nonexistent)
   end
 
-  def find_matching_resources
+  def find_matching_resources(staff = nil)
     if self.email && !self.known?
       got_something = false
-      if Setting.auth_type == "google_demo_auth"
-        staff = Staff.first
-      else
-        staff = Staff.active.current.find_by_email(self.email)
+      #
+      #  We pass a staff record in to this function only when
+      #  messing about with the system.  The facility is not
+      #  used by any of the normal code, but enables easy setup
+      #  of a cross-threaded user.
+      #
+      unless (staff)
+        if Setting.auth_type == "google_demo_auth"
+          staff = Staff.first
+        else
+          staff = Staff.active.current.find_by_email(self.email)
+        end
       end
       if staff
         got_something = true
@@ -1185,17 +1194,43 @@ class User < ApplicationRecord
   #  Create a new user record to match an omniauth authentication.
   #
   #  Anyone can have a user record, but only people with some sort
-  #  of Staff or Pupil record get futher than that.
+  #  of Staff or Pupil record get further than that.
   #
   def self.create_from_omniauth(auth)
-    new_user = create! do |user|
+    #
+    #  We are being asked to create an appropriate user record but it's
+    #  possible that we already have one but we have changed our idea
+    #  of who the authentication provider is.
+    #
+    #  Note that this change can be done only by the system administrator.
+    #  The users can't chop and change who they use.  If however the
+    #  administrator has taken a decision to change provider then it makes
+    #  sense to update our existing user records accordingly.
+    #
+    user = User.find_by(email: auth["info"]["email"].downcase)
+    if user && user.provider != auth["provider"]
+      #
+      #  We would appear to have an out-of-date record.
+      #  Adjust it for the new provider and then
+      #  return it.
+      #
+      #  The next time the user tries to log in with this new
+      #  authentication provider the record will be found directly.
+      #
       user.provider = auth["provider"]
       user.uid      = auth["uid"]
-      user.name     = auth["info"]["name"]
-      user.email    = auth["info"]["email"].downcase
-      user.user_profile = UserProfile.guest_profile
+      user.save
+      new_user = user
+    else
+      new_user = create! do |user|
+        user.provider = auth["provider"]
+        user.uid      = auth["uid"]
+        user.name     = auth["info"]["name"]
+        user.email    = auth["info"]["email"].downcase
+        user.user_profile = UserProfile.guest_profile
+      end
+      new_user.find_matching_resources
     end
-    new_user.find_matching_resources
     new_user
   end
 
