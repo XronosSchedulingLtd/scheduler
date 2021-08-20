@@ -1,1 +1,1 @@
-SOFTWARE_VERSION = "Version 1.14.2 + azure"
+SOFTWARE_VERSION = "Version 1.14.3"

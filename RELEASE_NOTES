@@ -1,3 +1,16 @@
+v1.14.3   2021-08-20
+
+* Add the option to do authentication with Microsoft Azure
+
+  The Scheduler application relies on an external service to do user
+  authentication.  Up until now this has always been Google's authentication
+  service but this release adds the option to use Microsoft's Azure
+  instead.
+
+  Full documentation on how to do this will be found in the installation
+  guide.
+
+
 v1.14.2   2021-07-15
 
 * Fix a permissions bug
