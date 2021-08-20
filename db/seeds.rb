@@ -37,7 +37,8 @@ UserProfile.destroy_all
 seeder = Seeder.new(
   public_title:    "Xronos Scheduler",
   internal_title:  "Scheduler - Lorem Ipsum Academy",
-  dns_domain_name: "schedulerdemo.xronos.uk"
+  dns_domain_name: "schedulerdemo.xronos.uk",
+  auth_type:       Setting.auth_types[:google_auth]
 )
 
 #

@@ -136,6 +136,8 @@ GEM
     omniauth (1.9.0)
       hashie (>= 3.4.6, < 3.7.0)
       rack (>= 1.6.2, < 3)
+    omniauth-azure-activedirectory-v2 (0.1.1)
+      omniauth-oauth2
     omniauth-google-oauth2 (0.6.1)
       jwt (>= 2.0)
       omniauth (>= 1.1.1)
@@ -256,6 +258,7 @@ DEPENDENCIES
   nanoid
   nokogiri
   omniauth
+  omniauth-azure-activedirectory-v2
   omniauth-google-oauth2 (~> 0.6.0)
   puma
   rails (= 5.2.6)
