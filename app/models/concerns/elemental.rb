@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2020 John Winters
+# Copyright (C) 2009-2021 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -39,6 +39,22 @@ module Elemental
     unless defined?(DISPLAY_COLUMNS)
       DISPLAY_COLUMNS = [:direct_groups, :indirect_groups, :dummy]
     end
+
+    #
+    #  An entity may have a database field called "multicover" which leads
+    #  to the creation of a method multicover?  We need to make sure we
+    #  don't override it.
+    #
+    #  Other similar items further down this file (like can_have_requests)
+    #  don't need to be defined in such a convoluted way because they
+    #  don't refer to database columns.
+    #
+    unless self.column_names.include?("multicover")
+      def multicover?
+        false
+      end
+    end
+
   end
 
   module ClassMethods
@@ -331,6 +347,10 @@ module Elemental
     #  Generally we are given nothing, so it defaults to "true".
     #
     @new_viewable = new_value
+  end
+
+  def scan_for_clashes?
+    false
   end
 
   private
