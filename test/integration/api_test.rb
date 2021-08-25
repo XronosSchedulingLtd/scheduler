@@ -876,7 +876,12 @@ class ApiTest < ActionDispatch::IntegrationTest
 
   test 'but not of a non-existent note' do
     do_valid_login
-    get @api_paths.note_path(999), params: { format: :json }
+    #
+    #  Previously had 999 here, but one day the IDs did coincidentally
+    #  get to that number.  999999 will take longer but may eventually
+    #  give a false failure again.
+    #
+    get @api_paths.note_path(999999), params: { format: :json }
     assert_response :missing
   end
 
