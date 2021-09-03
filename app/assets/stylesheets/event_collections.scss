@@ -3,3 +3,17 @@
     display: none;
   }
 }
+
+#clash_listing {
+  li {
+    margin-left: 10px;
+  }
+  ul li ul li div.columnar {
+    display: grid;
+    grid-template-columns: 7em 8em 4em 100%;
+    div {
+      flex: auto;
+    }
+  }
+}
+

@@ -502,15 +502,15 @@ class Element < ApplicationRecord
   #  generating a warning?
   #
   def multicover?
-    if entity.respond_to?(:multicover)
-      entity.multicover
-    else
-      false
-    end
+    entity.multicover?
   end
 
   def can_have_requests?
     entity.can_have_requests?
+  end
+
+  def scan_for_clashes?
+    entity.scan_for_clashes?
   end
 
   #

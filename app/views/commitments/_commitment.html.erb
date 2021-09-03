@@ -39,4 +39,11 @@
     <td></td>
   <% end %>
   <td class="form-status"><%= commitment_form_status(commitment) %></td>
+  <td><%=
+  commitment.has_simple_clash? ?
+    list_clashes(commitment,
+                 schedule_show_path(date: commitment.event.jump_date_text,
+                                    element_id: commitment.element_id))
+    : ""
+  %></td>
 </tr>

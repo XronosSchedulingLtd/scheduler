@@ -282,7 +282,9 @@ class MIS_Loader
         subjects_deactivated_count += 1
       end
     end
-    final_subject_count = Subject.current.count
+    final_subject_count =
+      Subject.where(datasource_id: MIS_Record.primary_datasource_id).
+        current.count
     if @verbose || subjects_changed_count > 0
       puts "#{subjects_changed_count} subject record(s) amended."
     end

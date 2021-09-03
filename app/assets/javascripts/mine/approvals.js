@@ -1,4 +1,15 @@
 "use strict";
+//
+// Xronos Scheduler - structured scheduling program.
+// Copyright (C) 2009-2021 John Winters
+// See COPYING and LICENCE in the root directory of the application
+// for more information.
+//
+//
+//  N.B.  This code is for the tabular version of the approvals method,
+//  where all the relevant commitments are shown in a table for the
+//  user to approve or otherwise.
+//
 
 //
 //  If we seem to be on the right page, then we initialize ourselves
@@ -17,6 +28,15 @@ window.approvalsHandler = function () {
   var baseURL = "/commitments/";
   var that = {}
 
+  //
+  //  Update any reflections for the specified commitment id with
+  //  the new state.
+  //
+  var updateReflections = function(id, state) {
+    $('.reflects-' + id).removeClass('confirmed requested rejected noted').
+                         addClass(state);
+  }
+
   var approveSucceeded = function(data, textStatus, jqXHR) {
     var chunks;
 
@@ -32,6 +52,7 @@ window.approvalsHandler = function () {
       if (data.formStatus.length) {
         this.formStatus.html(data.formStatus);
       }
+      updateReflections(this.commitmentId, 'confirmed');
       window.triggerCountsUpdate();
     } else {
       alert("Approval request rejected.");
@@ -78,6 +99,7 @@ window.approvalsHandler = function () {
       if (data.formStatus.length) {
         this.formStatus.html(data.formStatus);
       }
+      updateReflections(this.commitmentId, 'rejected');
       window.triggerCountsUpdate();
     } else {
       alert("Rejection request rejected.");
@@ -120,6 +142,7 @@ window.approvalsHandler = function () {
       if (data.formStatus.length) {
         this.formStatus.html(data.formStatus);
       }
+      updateReflections(this.commitmentId, 'noted');
       window.triggerCountsUpdate();
     } else {
       alert("Noted request rejected.");

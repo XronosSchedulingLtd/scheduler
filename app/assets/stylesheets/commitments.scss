@@ -1,0 +1,23 @@
+ul.clash-listing {
+  margin-bottom: 0px;
+  li.rejected {
+    a {
+      color: #c03d33;
+    }
+  }
+  li.confirmed {
+    a {
+      color: #3b8735;
+    }
+  }
+  li.noted {
+    a {
+      color: #496595;
+    }
+  }
+  li.requested {
+    a {
+      color: #eca63b;
+    }
+  }
+}

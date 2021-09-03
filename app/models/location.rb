@@ -115,6 +115,13 @@ class Location < ApplicationRecord
   end
 
   #
+  #  Hard coded for now.  May make it a database column at some point.
+  #
+  def scan_for_clashes?
+    true
+  end
+
+  #
   #  Locations are sometimes presented to users with a compound name.
   #  For instance, we have "GICT", which has an alias of "Greening
   #  Wing ICT", and is presented as "GICT / Greening Wing ICT".

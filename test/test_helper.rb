@@ -20,11 +20,55 @@ class ActiveSupport::TestCase
     assert_select '.field_with_errors'
   end
 
-#  module FailingTest
-#    def test_it_fails
-#      assert false, "See - told you it fails"
-#    end
-#  end
+  #
+  #  This method sets up some week letter events for us, for testing
+  #  things which rely on them.  It works with 5 weeks, starting
+  #  today.
+  #
+  #  Week A
+  #  Week B
+  #  Blank week - half term?
+  #  Week A
+  #  Week B
+  #
+  def create_week_letters
+    base_date = Date.today
+    @weekA1 =
+      FactoryBot.create(
+        :event,
+        starts_at: base_date,
+        ends_at: base_date + 7.days,
+        all_day: true,
+        eventcategory: Eventcategory.cached_category("Week letter"),
+        body: "Week A")
+    @weekB1 =
+      FactoryBot.create(
+        :event,
+        starts_at: base_date + 7.days,
+        ends_at: base_date + 14.days,
+        all_day: true,
+        eventcategory: Eventcategory.cached_category("Week letter"),
+        body: "Week B")
+    #
+    #  1 week gap.  Half term?
+    #
+    @weekA2 =
+      FactoryBot.create(
+        :event,
+        starts_at: base_date + 21.days,
+        ends_at: base_date + 28.days,
+        all_day: true,
+        eventcategory: Eventcategory.cached_category("Week letter"),
+        body: "Week A")
+    @weekB2 =
+      FactoryBot.create(
+        :event,
+        starts_at: base_date + 28.days,
+        ends_at: base_date + 35.days,
+        all_day: true,
+        eventcategory: Eventcategory.cached_category("Week letter"),
+        body: "Week B")
+  end
 
   #
   #  This module contains tests which all entities (things which have
