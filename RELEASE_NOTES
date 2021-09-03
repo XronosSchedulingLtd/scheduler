@@ -1,3 +1,51 @@
+v1.14.4   2021-09-03
+
+* Add extra column to resource approvals screen
+
+  Some resources (e.g. rooms) within the system have one or more administrators
+  appointed and requests for those resources need to be approved by an
+  administrator.  This can be done either from the main calendar event view
+  or from a screen showing a textual listing of events.
+
+  This release adds an extra column to the latter screen so that the
+  administrator can immediately see what events clash in their requests
+  for a given resource.
+
+* Add a check button to the event repetition screen
+
+  Administrators of a resource can enter events for that resource directly
+  without needing approval.  This can lead to problems when someone asks
+  for a repeating event in a given room (e.g. every Thursday of week B from
+  14:00 to 14:30).  Previously the administrator had to check each of the
+  projected booking slots manually.
+
+  Now there is an additional button for administrators (labelled "Check")
+  which they can use to see whether the proposed booking clashes with
+  anything else.  This can be used before the event is repeated and it's
+  then up to the administrator to decide whether to continue with the booking
+  or not.
+
+* Fix a problem counting subjects in the MIS importer
+
+  The MIS importer was counting all subjects (not just those it had imported)
+  when deciding whether the number had changed in the course of an import.
+  This led to an erroneous message saying that the number had gone up even
+  when it hadn't.
+
+* Bump addressable gem to 2.8.0.
+
+  A bug was found in the addressable gem - CVE-2021-32740.  Although it did
+  not affect Scheduler, the gem has been bumped up to a fixed version.
+
+* New flag in user profile
+
+  An immediate future piece of work will be to add a batch job which checks
+  for clashes between manually entered events and those coming from the MIS
+  in controlled resources.  In preparation for this, a flag has been added
+  to the user profile to allow resource administrators to decide whether
+  they want to receive these e-mails or not.
+
+
 v1.14.3   2021-08-20
 
 * Add the option to do authentication with Microsoft Azure
