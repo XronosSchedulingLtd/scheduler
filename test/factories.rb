@@ -107,8 +107,26 @@ FactoryBot.define do
   end
 
   factory :location do
+    transient do
+      owner { nil }
+    end
+
     sequence(:name) { |n| "Location number #{n}" }
     active { true }
+    after(:create) do |location, evaluator|
+      if evaluator.owner
+        #
+        #  The requester would like this to be an owned location,
+        #  which means creating a Concern linking it to the indicated
+        #  owner.
+        #
+        location.element.concerns.create!({
+          user: evaluator.owner,
+          owns: true,
+          colour: evaluator.owner.free_colour
+        })
+      end
+    end
   end
 
   factory :locationalias do

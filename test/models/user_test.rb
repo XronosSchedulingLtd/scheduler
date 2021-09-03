@@ -399,6 +399,21 @@ class UserTest < ActiveSupport::TestCase
     assert ff.valid?
   end
 
+  test "can set resource notification flags" do
+    assert @staff_user.email_notification?
+    assert_not @staff_user.immediate_notification?
+    assert @staff_user.loading_notification?
+    assert_not @staff_user.resource_clash_notification?
+    @staff_user.email_notification = false
+    @staff_user.immediate_notification = true
+    @staff_user.loading_notification = false
+    @staff_user.resource_clash_notification = true
+    assert_not @staff_user.email_notification?
+    assert @staff_user.immediate_notification?
+    assert_not @staff_user.loading_notification?
+    assert @staff_user.resource_clash_notification?
+  end
+
   private
 
   def check_yes(value)

@@ -1644,8 +1644,6 @@ class Event < ApplicationRecord
     self.body = new_value
   end
 
-  private
-
   #
   #  Is the indicated item (element or entity) involved in the event
   #  in any way - by either a commitment or a request?
@@ -1670,8 +1668,6 @@ class Event < ApplicationRecord
       !!self.requests.detect {|r| r.element_id == resource.id }
     end
   end
-
-  public
 
   def involves_any?(list, even_tentative = false)
 #    Rails.logger.debug("Entering involves_any? to check:")
@@ -2323,6 +2319,18 @@ class Event < ApplicationRecord
 
   def repeating_event?
     !self.event_collection_id.nil?
+  end
+
+  #
+  #  Are we a member of the indicated collection?
+  #
+  def in_collection?(ec)
+    #
+    #  Need the first check because if the event collection doesn't
+    #  yet have an id *AND* we aren't a member of a collection then
+    #  the second test would return true.
+    #
+    !ec.id.blank? && (self.event_collection_id == ec.id)
   end
 
   def just_one_day?

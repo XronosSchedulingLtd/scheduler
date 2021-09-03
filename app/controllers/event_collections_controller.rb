@@ -5,6 +5,7 @@
 #
 
 class EventCollectionsController < ApplicationController
+  
   before_action :set_event, except: [:index, :destroy, :show, :reset]
 
   # GET /events/1/repeats/new
@@ -55,31 +56,44 @@ class EventCollectionsController < ApplicationController
   end
 
   def create
+    #raise params.inspect
     try_again = false
     @event_collection = EventCollection.new(event_collection_params)
     if EventRepeater.would_have_events?(@event_collection)
-      if @event_collection.save
-        @event_collection.events << @event
-        request_notifier = RequestNotifier.new(@event.body)
-        EventRepeater.effect_repetition(current_user,
-                                        @event_collection,
-                                        @event) do |action, item|
-          #
-          #  The only action which makes any sense here is :added.
-          #
-          if action == :added
-            case item
-            when Commitment
-              set_appropriate_approval_status(item)
-              request_notifier.batch_commitment_added(item)
-            when Request
-              request_notifier.batch_request_added(item)
+      if params[:commit] == "Check"
+        try_again = true
+        #
+        #  The user has asked not to do the actual event propagation
+        #  but to check whether it would cause clashes for any resources
+        #  which he or she owns.
+        #
+        @clashes =
+          ClashDetector.new(@event_collection, @event, current_user).
+                        detect_clashes
+      else
+        if @event_collection.save
+          @event_collection.events << @event
+          request_notifier = RequestNotifier.new(@event.body)
+          EventRepeater.effect_repetition(current_user,
+                                          @event_collection,
+                                          @event) do |action, item|
+            #
+            #  The only action which makes any sense here is :added.
+            #
+            if action == :added
+              case item
+              when Commitment
+                set_appropriate_approval_status(item)
+                request_notifier.batch_commitment_added(item)
+              when Request
+                request_notifier.batch_request_added(item)
+              end
             end
           end
+          request_notifier.send_batch_notifications(current_user)
+        else
+          try_again = true
         end
-        request_notifier.send_batch_notifications(current_user)
-      else
-        try_again = true
       end
     else
       @event_collection.errors[:base] <<
@@ -127,52 +141,65 @@ class EventCollectionsController < ApplicationController
   end
 
   def update
+    #raise params.inspect
     if current_user.can_repeat?(@event)
       @event_collection = EventCollection.find(params[:id])
       try_again = false
-      if @event_collection.safe_update(event_collection_params)
-        if EventRepeater.would_have_events?(@event_collection)
-          request_notifier = RequestNotifier.new(@event.body)
-          EventRepeater.effect_repetition(current_user,
-                                          @event_collection,
-                                          @event) do |action, item|
-            #
-            #  As we're updating, we may get add, adjust or remove.
-            #
-            case action
+      if params[:commit] == "Check"
+        try_again = true
+        #
+        #  The user has asked not to do the actual event propagation
+        #  but to check whether it would cause clashes for any resources
+        #  which he or she owns.
+        #
+        @clashes =
+          ClashDetector.new(@event_collection, @event, current_user).
+                        detect_clashes
+      else
+        if @event_collection.safe_update(event_collection_params)
+          if EventRepeater.would_have_events?(@event_collection)
+            request_notifier = RequestNotifier.new(@event.body)
+            EventRepeater.effect_repetition(current_user,
+                                            @event_collection,
+                                            @event) do |action, item|
+              #
+              #  As we're updating, we may get add, adjust or remove.
+              #
+              case action
 
-            when :added
-              case item
-              when Commitment
-                set_appropriate_approval_status(item)
-                request_notifier.batch_commitment_added(item)
-              when Request
-                request_notifier.batch_request_added(item)
+              when :added
+                case item
+                when Commitment
+                  set_appropriate_approval_status(item)
+                  request_notifier.batch_commitment_added(item)
+                when Request
+                  request_notifier.batch_request_added(item)
+                end
+
+              when :adjusted
+                if item.instance_of?(Request)
+                  request_notifier.batch_request_amended(item)
+                end
+
+              when :removed
+                case item
+                when Commitment
+                  request_notifier.batch_commitment_removed(item)
+                when Request
+                  request_notifier.batch_request_removed(item)
+                end
               end
 
-            when :adjusted
-              if item.instance_of?(Request)
-                request_notifier.batch_request_amended(item)
-              end
-
-            when :removed
-              case item
-              when Commitment
-                request_notifier.batch_commitment_removed(item)
-              when Request
-                request_notifier.batch_request_removed(item)
-              end
             end
-
+            request_notifier.send_batch_notifications(current_user)
+          else
+            @event_collection.errors[:base] <<
+              "The specified criteria would result in no events at all - not even this one."
+            try_again = true
           end
-          request_notifier.send_batch_notifications(current_user)
         else
-          @event_collection.errors[:base] <<
-            "The specified criteria would result in no events at all - not even this one."
           try_again = true
         end
-      else
-        try_again = true
       end
       if try_again
         respond_to do |format|
@@ -298,4 +325,14 @@ class EventCollectionsController < ApplicationController
                   weeks: [],
                   days_of_week: [])
   end
+
+  #
+  #  Although within the class and thus with access to @event_collection
+  #  and current_user, we'll pass them in as parameters so that this
+  #  function could be hoiked off elsewhere at a later date.
+  #
+  #  Returns an array of objects, each describing collections
+  def assemble_clashes(event_collection, user)
+  end
+
 end

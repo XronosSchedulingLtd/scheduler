@@ -316,7 +316,7 @@ class Commitment < ApplicationRecord
         start_time:        self.event.starts_at,
         end_time:          self.event.ends_at,
         and_by_group:      false,
-        excluded_category: non_busy_categories).to_a
+        excluded_category: non_busy_categories).includes(:event).to_a
       @clashing_commitments = contenders - [self]
       @clashing_commitments.size > 0
     end
@@ -334,6 +334,10 @@ class Commitment < ApplicationRecord
     else
       ""
     end
+  end
+
+  def clashing_commitments
+    @clashing_commitments
   end
 
   #

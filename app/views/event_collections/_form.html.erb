@@ -90,18 +90,35 @@
             [@event, @event_collection],
             method: :delete,
             remote: true,
-            class: "zfbutton tiny radius flip-button pw-action button-link",
+            class: "zfbutton tiny radius right pw-action button-link unfriendly",
             title: "Delete all the repeating events in this series.",
             data: { confirm: "Are you sure you want to delete this whole set of repeating events?" }
           %>
         <% end %>
         <%= f.submit @action_button_text, class: "zfbutton tiny radius pw-action" %>
         <%= link_to "Cancel", canceledit_event_path(@event), :remote => true, :class => 'zfbutton tiny radius button-link' %>
+        <% if current_user.owns_elements? %>
+          <%= f.submit "Check", class: "zfbutton tiny radius pw-action right", title: "Check for clashes" %>
+        <% end %>
       </div>
       <div class="pw-the-message pw-hidden">
         <p>Please wait...</p>
       </div>
     </div>
 <% end %>
+    <% if @clashes %>
+      <div class="small-12 columns">
+        <% if @clashes.empty? %>
+          <h5>No apparent clashes</h5>
+        <% else %>
+          <div id="clash_listing">
+            <h5>Clashes detected</h5>
+            <ul>
+              <%= render @clashes %>
+            </ul>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 </div>
