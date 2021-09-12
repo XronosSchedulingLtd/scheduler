@@ -973,8 +973,6 @@ var editing_allocation = function() {
       //
       if (pc) {
         noteItem(ensureEntry(pc.pupil_id), pc.timetable, allocation);
-      } else {
-        console.log({allocation});
       }
     }
     //
