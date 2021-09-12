@@ -1,3 +1,10 @@
+v1.14.6   2021-09-12
+
+* Remove spurious console.log message from JavaScript
+
+  ...which used a JS6 feature and thus prevented pre-compilation.
+
+
 v1.14.5   2021-09-12
 
 Two bug fixes
