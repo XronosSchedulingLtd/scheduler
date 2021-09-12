@@ -1,3 +1,32 @@
+v1.14.5   2021-09-12
+
+Two bug fixes
+
+* Cope with the deletion of a student after music lesson allocation has started
+
+  A problem was found in the code for peripatetic music lessons in that if
+  allocation of a teacher's lessons had started and then one of the
+  students was deleted from that teacher's list - after at least one
+  lesson had been scheduled for that student - then the host sent down
+  slightly inconsistent JSON data to the front end at the next attempted
+  allocation session and the user ender up with a blank screen.
+
+  Two fixes have been implemented.  The host now checks the JSON data
+  for this circumstance and ensures the data actually sent are consistent -
+  no references to non-existent records.  The front end JavaScript code
+  now also copes if such a reference exists.
+
+* Clip very long student names so they don't overflow
+
+  In the lesson allocation screen, very long student names were overflowing
+  out of their intended space.  This was because, although the containing
+  element had been set to clip overflow, its size had been left to float
+  and so the element itself increased to be wider than its parent.
+
+  The element now has an explicit width of 100% (of its parents width) and
+  so the student name clips as intended.
+
+
 v1.14.4   2021-09-03
 
 * Add extra column to resource approvals screen
