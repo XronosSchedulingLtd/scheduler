@@ -971,7 +971,11 @@ var editing_allocation = function() {
       allocation = allocations[i];
       pc = pcs[allocation.pcid];
       //
-      noteItem(ensureEntry(pc.pupil_id), pc.timetable, allocation);
+      if (pc) {
+        noteItem(ensureEntry(pc.pupil_id), pc.timetable, allocation);
+      } else {
+        console.log({allocation});
+      }
     }
     //
     //  Now we also need to work through the other allocations - the

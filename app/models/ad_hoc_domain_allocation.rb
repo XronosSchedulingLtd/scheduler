@@ -24,6 +24,7 @@ class AdHocDomainAllocation < ApplicationRecord
       staff = AdHocDomainStaff.find_by(id: options[:ad_hoc_domain_staff_id])
       result[:staff_id] = staff.id
       pcs = []
+      known_pcids = []
       staff.ad_hoc_domain_pupil_courses.each do |pupil_course|
         pc = {
           pcid: pupil_course.id,
@@ -33,6 +34,7 @@ class AdHocDomainAllocation < ApplicationRecord
           subject: pupil_course.ad_hoc_domain_subject.subject_name
         }
         pcs << pc
+        known_pcids << pupil_course.id
       end
       #
       #  When is this member of staff available?
@@ -58,7 +60,19 @@ class AdHocDomainAllocation < ApplicationRecord
         WeekIdentifier.new(ad_hoc_domain_cycle.starts_on,
                            ad_hoc_domain_cycle.ends_on).dates
       result[:pcs] = pcs
-      result[:allocated] = self.allocations[staff.id] || []
+      #
+      #  It is possible that there are orphaned allocations in our
+      #  list belonging to pupil courses which have been deleted.  It's
+      #  important that we don't send down an inconsistent data set,
+      #  so filter them now.
+      #
+      #  Note the use of the safe navigation operator so that the
+      #  first time we go for a particular staff id we don't try to
+      #  invoke select() on nil
+      #
+      result[:allocated] =
+        self.allocations[staff.id]&.
+             select {|alloc| known_pcids.include? alloc[:pcid]} || []
       #
       #  Need to get the timetable for each pupil.  Note that there
       #  may be two pupil courses for a single pupil.  Need send only
