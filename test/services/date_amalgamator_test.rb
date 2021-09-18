@@ -27,6 +27,7 @@ class DateAmalgamatorTest < ActiveSupport::TestCase
       Time.zone.parse("2021-03-28 12:23"),
       Time.zone.parse("2021-03-29 12:23")
     ]
+    @da = DateAmalgamator.new(@dates)
   end
 
   test "can format as text" do
@@ -41,6 +42,8 @@ class DateAmalgamatorTest < ActiveSupport::TestCase
       "XX XX      Mon 29th"
     assert_equal expected,
       DateAmalgamator.format(@dates, wrap_width: 40, prefix: "XX XX ")
+    assert_equal expected,
+      @da.as_text(wrap_width: 40, prefix: "XX XX ")
 #    puts DateAmalgamator.format(@dates, wrap_width: 72)
     expected =
       "Jan: Sun 3rd, Mon 4th, Tue 5th, Wed 6th, Thu 7th, Fri 8th, Sat 9th\n" +
@@ -49,6 +52,7 @@ class DateAmalgamatorTest < ActiveSupport::TestCase
       "Mar: Wed 3rd, Thu 4th, Fri 5th, 12th, 19th, 26th, Sat 27th, Sun 28th\n" +
       "     Mon 29th"
     assert_equal expected, DateAmalgamator.format(@dates, wrap_width: 72)
+    assert_equal expected, @da.as_text(wrap_width: 72)
   end
 
   test "can format as html" do
@@ -67,6 +71,7 @@ class DateAmalgamatorTest < ActiveSupport::TestCase
       "<div class='da-month-dates'>Wed 3rd, Thu 4th, Fri 5th, 12th, 19th, 26th, Sat 27th, Sun 28th, Mon 29th</div>\n" +
       "</div>"
     assert_equal expected, DateAmalgamator.format(@dates, html: true)
+    assert_equal expected, @da.as_html
 
   end
 
