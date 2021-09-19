@@ -323,6 +323,23 @@ class Commitment < ApplicationRecord
   end
 
   #
+  #  Does this commitment overlap in timing with another one passed
+  #  in.  This may look a bit like duplicate functionality when compared
+  #  with the last one.  Their purposes however are slightly different.
+  #  The previous one is for detecting whether a given commitment
+  #  clashes with anything.  It involves a database hit.  This one
+  #  is intended for use when you've already loaded a collection
+  #  of commitments into memory and you want to detect clashes.  You
+  #  don't want a fresh database hit for each one.
+  #
+  #  We delegate the work to the event models.  If you want efficient
+  #  processing, preload them when you load the commitments.
+  #
+  def overlaps?(other)
+    self.event.overlaps?(other.event)
+  end
+
+  #
   #  Should only be called after previous function has returned true,
   #  and cached the list of clashing commitments.
   #

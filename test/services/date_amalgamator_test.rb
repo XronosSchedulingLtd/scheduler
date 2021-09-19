@@ -75,4 +75,22 @@ class DateAmalgamatorTest < ActiveSupport::TestCase
 
   end
 
+  test "can have month name after" do
+    expected =
+      "<div class='da-month'>\n" +
+      "<div class='da-month-dates'>Sun 3rd, Mon 4th, Tue 5th, Wed 6th, Thu 7th, Fri 8th, Sat 9th, Mon 11th, Tue 12th, Wed 13th</div>\n" +
+      "<div class='da-month-name'>Jan</div>\n" +
+      "</div>\n" +
+      "<div class='da-month'>\n" +
+      "<div class='da-month-dates'>Wed 3rd, Thu 4th, Fri 5th</div>\n" +
+      "<div class='da-month-name'>Feb</div>\n" +
+      "</div>\n" +
+      "<div class='da-month'>\n" +
+      "<div class='da-month-dates'>Wed 3rd, Thu 4th, Fri 5th, 12th, 19th, 26th, Sat 27th, Sun 28th, Mon 29th</div>\n" +
+      "<div class='da-month-name'>Mar</div>\n" +
+      "</div>"
+    assert_equal expected, @da.as_html(month_name_after: true)
+
+  end
+
 end

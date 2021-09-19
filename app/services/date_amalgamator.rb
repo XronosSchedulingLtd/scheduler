@@ -39,10 +39,12 @@ class DateAmalgamator
       @dates << date
     end
 
-    def as_html(prefix)
+    def as_html(prefix, month_name_after = false)
       result = []
       result << "<div class='#{prefix}month'>"
-      result << "<div class='#{prefix}month-name'>#{@name}</div>"
+      unless month_name_after
+        result << "<div class='#{prefix}month-name'>#{@name}</div>"
+      end
       current_wday = -1
       date_texts = []
       @dates.each do |date|
@@ -54,6 +56,9 @@ class DateAmalgamator
         end
       end
       result << "<div class='#{prefix}month-dates'>#{date_texts.join(", ")}</div>"
+      if month_name_after
+        result << "<div class='#{prefix}month-name'>#{@name}</div>"
+      end
       result << "</div>"
       return result.join("\n")
     end
@@ -118,10 +123,10 @@ class DateAmalgamator
     end
   end
 
-  def as_html(prefix: "da-")
+  def as_html(prefix: "da-", month_name_after: false)
     result = []
     @months.each do |month|
-      result << month.as_html(prefix)
+      result << month.as_html(prefix, month_name_after)
     end
     return result.join("\n")
   end

@@ -1,0 +1,12 @@
+The following resources in Scheduler seem to have clashing events
+scheduled for them.
+
+<% @queues.each do |queue| %>
+<%= queue.element.name %>
+<%   queue.each do |resource_clash| %>
+
+  <%= resource_clash.description %>
+<%= resource_clash.as_text("    ") %>
+
+<%   end %>
+<% end %>

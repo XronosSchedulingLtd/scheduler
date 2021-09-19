@@ -266,6 +266,14 @@ class UserMailer < ActionMailer::Base
          subject: "Pending event approvals")
   end
 
+  def resource_clash_email(email, queues)
+    @queues = queues
+    @um_functional_styling = true
+    mail(to: email,
+         from: Setting.from_email_address,
+         subject: "Possible clashing events")
+  end
+
   def predicted_absences_email(email, event_notes)
     @subject = 'Predicted absences'
     texts = Array.new

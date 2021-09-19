@@ -127,6 +127,29 @@
           }
         }
       }
+      &.one-clashing-resource {
+        text-align: left;
+        div.date-listing {
+          margin-left: 20px;
+          div.da-month {
+            margin-top: 0px;
+            padding-top: 0px;
+            display: flex;
+            div.da-month-name {
+              margin-top: 0px;
+              padding-top: 0px;
+              width: 3em;
+              &::after {
+                content: ": "
+              }
+            }
+            div.da-month-dates {
+              margin-top: 0px;
+              padding-top: 0px;
+            }
+          }
+        }
+      }
     }
   }
 }
