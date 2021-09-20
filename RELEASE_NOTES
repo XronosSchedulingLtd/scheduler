@@ -1,3 +1,16 @@
+v1.14.7   2021-09-20
+
+* Add a daily check for clashes in controlled locations
+
+  When a location has one or more controllers, they can control most of
+  the events which get added to those locations.  However, events can
+  still arrive directly from the school's MIS and end up clashing with
+  events entered manually.
+
+  This release adds code to do an off-line check for such clashes and to
+  e-mail such controllers as choose to receive those e-mails.
+
+
 v1.14.6   2021-09-12
 
 * Remove spurious console.log message from JavaScript

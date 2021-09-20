@@ -2455,6 +2455,91 @@ class Event < ApplicationRecord
     end
   end
 
+  #
+  #  If two events clash, we need some way to identify that clash uniquely,
+  #  regardless of which event we started with.  This method generates
+  #  that id.
+  #
+  #  Note, it has nothing to do with clash detection.  It will generate
+  #  such an id for any pair of events.  It's up to the calling code to
+  #  work out clashes.
+  #
+  #  Pass in an other event
+  #
+  def clash_id(other)
+    ids = [self.id, other.id].sort
+    "#{ids[0]}v#{ids[1]}"
+  end
+
+  #
+  #  Intended to identify when two instances of an event in the database
+  #  come from exactly the same place.
+  #
+  #  For manually entered events, we want events in the same EventCollection.
+  #
+  def origin_hash
+    if self.manual?
+      if self.event_collection_id
+        #
+        #  Will match any other event in the same collection.
+        #
+        "MC#{self.event_collection_id}"
+      else
+        #
+        #  Won't match anything except ourself.
+        #
+        "MU#{self.id}"
+      end
+    else
+      #
+      #  Will match another event from the same bit of the same source.
+      #
+      "NM#{self.eventsource_id}/#{self.source_id}/#{self.source_hash}"
+    end
+  end
+
+  def same_origin?(other)
+    self.origin_hash == other.origin_hash
+  end
+
+  #
+  #  The above functions are all very well, but from the user's point of
+  #  view they probably go too far.  All a user is going to look at is the
+  #  name of the event and when it's happening.  If these two match on
+  #  different days, the average user is going to consider them different
+  #  instances of the same event regardless of where they came from.
+  #
+  def naive_identifier
+    if self.all_day?
+      "AD-#{self.body}"
+    else
+      "#{self.starts_at.to_s(:hhmm)}-#{self.ends_at.to_s(:hhmm)}-#{self.body}"
+    end
+  end
+
+  def naive_match?(other)
+    self.naive_identifier == other.naive_identifier
+  end
+
+  #
+  #  For two events already in memory, check whether they overlap
+  #  in time.
+  #
+  #  This is always a surprising test.  Think of the opposite - for
+  #  them not to overlap, one must end before the other starts.
+  #  We allow "or equal" in this case because end times are exclusive.
+  #
+  #  !(a.ends_at <= b.starts_at || b.ends_at <= a.starts_at)
+  #
+  #  and expanding the brackets gives:
+  #
+  #  a.ends_at > b.starts_at && b.ends_at > a.starts_at
+  #
+  #
+  def overlaps?(other)
+    self.ends_at > other.starts_at && other.ends_at > self.starts_at
+  end
+
   private
 
   def become_all_day

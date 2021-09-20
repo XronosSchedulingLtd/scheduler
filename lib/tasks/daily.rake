@@ -5,6 +5,11 @@ namespace :daily do
     ApprovalNotifier.new.scan_elements.send_emails
   end
 
+  desc 'Check for clashes in controlled resources.'
+  task check_resource_clashes: :environment do
+    ResourceClashNotifier.new.scan_elements.send_emails
+  end
+
   desc 'Report on resource loading.'
   task report_loadings: :environment do
     LoadingNotifier.new.scan_elements.send_emails

@@ -6,8 +6,10 @@
 #
 
 #
-#  And object which can work out possible clashes for an EventCollection
+#  An object which can work out possible clashes for an EventCollection
 #  and the resources controlled by a user.
+#
+#  Specifically deals with repeating events before they are created.
 #
 
 class ClashDetector

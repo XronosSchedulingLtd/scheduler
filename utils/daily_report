@@ -3,6 +3,7 @@
 . ~/etc/whichsystem
 cd $SCHEDULER_DIR
 ~/.rvm/wrappers/scheduler/rake daily:check_approvals
+~/.rvm/wrappers/scheduler/rake daily:check_resource_clashes
 ~/.rvm/wrappers/scheduler/rake daily:report_loadings
 ~/.rvm/wrappers/scheduler/rake daily:prompt_for_forms
 ~/.rvm/wrappers/scheduler/rake daily:prompt_for_reconfirmation
