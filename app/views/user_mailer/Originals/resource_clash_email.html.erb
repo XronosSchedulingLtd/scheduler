@@ -1,0 +1,19 @@
+<p>
+  The following resources in Scheduler seem to have clashing events
+  scheduled for them.
+</p>
+<% @queues.each do |queue| %>
+<div class='resource-chunk one-clashing-resource'>
+<h3>
+  <%= queue.element.name %>
+</h3>
+<%   queue.each do |resource_clash| %>
+  <div>
+  <%= resource_clash.description %>
+  </div>
+  <div class='date-listing'>
+    <%= resource_clash.as_html.html_safe %>
+  </div>
+<%   end %>
+</div>
+<% end %>

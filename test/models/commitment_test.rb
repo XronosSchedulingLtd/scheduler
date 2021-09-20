@@ -378,6 +378,28 @@ class CommitmentTest < ActiveSupport::TestCase
     assert_equal 1, clashing_commitments.size
   end
 
+  test "passes through overlaps? correctly" do
+    base_time = Time.zone.now
+    event1 = FactoryBot.create(:event,
+                               starts_at: base_time,
+                               ends_at: base_time + 10.minutes)
+    commitment1 = FactoryBot.create(:commitment, event: event1)
+    event2 = FactoryBot.create(:event,
+                               starts_at: base_time + 5.minutes,
+                               ends_at: base_time + 15.minutes)
+    commitment2 = FactoryBot.create(:commitment, event: event2)
+    event3 = FactoryBot.create(:event,
+                               starts_at: base_time + 10.minutes,
+                               ends_at: base_time + 20.minutes)
+    commitment3 = FactoryBot.create(:commitment, event: event3)
+    assert commitment1.overlaps?(commitment2)
+    assert commitment2.overlaps?(commitment1)
+    assert commitment2.overlaps?(commitment3)
+    assert commitment3.overlaps?(commitment2)
+    assert_not commitment1.overlaps?(commitment3)
+    assert_not commitment3.overlaps?(commitment1)
+  end
+
 end
 
 

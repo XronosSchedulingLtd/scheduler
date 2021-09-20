@@ -519,6 +519,34 @@ class EventTest < ActiveSupport::TestCase
                           before(Date.parse("2020-05-31")).count
   end
 
+  test "implements clash_id correctly" do
+    event1 = FactoryBot.create(:event)
+    event2 = FactoryBot.create(:event)
+    ids = [event1.id, event2.id].sort
+    required_id = "#{ids[0]}v#{ids[1]}"
+    assert_equal required_id, event1.clash_id(event2)
+    assert_equal required_id, event2.clash_id(event1)
+  end
+
+  test "implements overlaps? correctly" do
+    base_time = Time.zone.now
+    event1 = FactoryBot.create(:event,
+                               starts_at: base_time,
+                               ends_at: base_time + 10.minutes)
+    event2 = FactoryBot.create(:event,
+                               starts_at: base_time + 5.minutes,
+                               ends_at: base_time + 15.minutes)
+    event3 = FactoryBot.create(:event,
+                               starts_at: base_time + 10.minutes,
+                               ends_at: base_time + 20.minutes)
+    assert event1.overlaps?(event2)
+    assert event2.overlaps?(event1)
+    assert event2.overlaps?(event3)
+    assert event3.overlaps?(event2)
+    assert_not event1.overlaps?(event3)
+    assert_not event3.overlaps?(event1)
+  end
+
   #
   #  Leave this test at the end.  It needs investigating at some point.
   #
