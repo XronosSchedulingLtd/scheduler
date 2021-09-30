@@ -82,6 +82,10 @@ class AdHocDomainAllocationGenerator
         event.ends_at = @ends_at
         do_save = true
       end
+      if event.eventcategory != @generator.ad_hoc_domain.eventcategory
+        event.eventcategory = @generator.ad_hoc_domain.eventcategory
+        do_save = true
+      end
       if do_save
         @generator.event_amended
         event.save
