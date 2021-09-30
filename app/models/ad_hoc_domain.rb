@@ -66,4 +66,8 @@ class AdHocDomain < ApplicationRecord
     self.connected_property_element = Element.find_by(id: id)
   end
 
+  def connected_property_element_id
+    connected_property&.element ? connected_property.element.id : ""
+  end
+
 end
