@@ -1,4 +1,5 @@
 /home/scheduler/Work/Coding/scheduler/log/production.log
+/home/scheduler/Work/Coding/scheduler/log/delayed_job.log
 /home/scheduler/Work/Coding/scheduler/shared/log/puma.stderr.log
 /home/scheduler/Work/Coding/scheduler/shared/log/puma.stdout.log
  {

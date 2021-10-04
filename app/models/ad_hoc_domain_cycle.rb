@@ -54,6 +54,18 @@ class AdHocDomainCycle < ApplicationRecord
 
   validates_with AdHocDomainCycleValidator
 
+  enum update_status: [
+    :idle,
+    :queued,
+    :processing,
+    :completed,
+    :failed
+  ]
+
+  belongs_to :active_allocation,
+    class_name: "AdHocDomainAllocation",
+    optional: true
+
   #
   #  Temporary stores for information about copying from another domain cycle.
   #
@@ -251,4 +263,95 @@ class AdHocDomainCycle < ApplicationRecord
     (duration + 6) / 7
   end
 
+  #  A function to note that an update is being queued.  It checks
+  #  the status and does a locking update of the record.
+  #
+  def note_queued(allocation)
+    result = false
+    if can_queue_update?
+      self.update_status     = :queued
+      self.active_allocation = allocation
+      self.queued_at         = Time.zone.now
+      self.started_at        = nil
+      self.finished_at       = nil
+      self.num_created       = 0
+      self.num_deleted       = 0
+      self.num_amended       = 0
+      #
+      #  Saving this may result in an error.
+      #
+      begin
+        result = self.save
+      rescue ActiveRecord::StaleObjectError
+        #
+        #  Don't actually need to do anything.
+        #  result is already false.
+        #
+      end
+    end
+    return result
+  end
+
+  #
+  #  These too might conceivably get a StaleObjectError, but it shouldn't
+  #  happen in the course of normal processing.  If it does, then try again.
+  #
+  def persistently_do
+    done = false
+    attempts = 0
+    while !done && attempts < 5
+      begin
+        yield
+        done = true
+      rescue ActiveRecord::StaleObjectError
+        attempts += 1
+        self.reload
+      end
+    end
+  end
+
+  def note_started
+    persistently_do {
+      self.update_status = :processing
+      self.started_at = Time.zone.now
+      self.save
+    }
+  end
+
+  def note_finished
+    persistently_do {
+      self.update_status = :completed
+      self.finished_at = Time.zone.now
+      self.save
+    }
+  end
+
+  def note_failed
+    persistently_do {
+      self.update_status = :failed
+      self.finished_at = Time.zone.now
+      self.save
+    }
+  end
+
+  def update_counts(created, deleted, amended)
+    persistently_do {
+      self.num_created = created
+      self.num_deleted = deleted
+      self.num_amended = amended
+      self.save
+    }
+  end
+
+  private
+
+  def can_queue_update?
+    #
+    #  We can queue something as long as we don't have anything
+    #  queued or processing.
+    #
+    self.idle? || self.completed? || self.failed?
+  end
+
+  #
 end
