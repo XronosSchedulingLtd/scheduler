@@ -193,7 +193,6 @@ class AdHocDomainAllocationGenerator
       #
       date = date + 1.day
       days_done += 1
-      sleep 1
       #
       #  Every 5 seconds we update our caller.
       #
