@@ -1,0 +1,5 @@
+#!/bin/bash
+. /etc/profile
+. ~/etc/whichsystem
+cd $SCHEDULER_DIR
+bin/delayed_job start
