@@ -73,6 +73,41 @@ class AdHocDomainCycle < ApplicationRecord
   attr_writer :copy_what
 
   #
+  #  For returning our job status in a convenient object.
+  #
+  JobStatus = Struct.new(
+    :cycle_id,
+    :allocation_name,
+    :status,
+    :relevant_time,
+    :created,
+    :deleted,
+    :amended,
+    :percentage,
+    :can_queue
+  ) do
+
+    def to_partial_path
+      'ad_hoc_domains/job_status'
+    end
+
+    def as_json(options = {})
+      {
+        cycle_id:        cycle_id,
+        allocation_name: allocation_name,
+        status:          status,
+        relevant_time:   relevant_time,
+        created:         created,
+        deleted:         deleted,
+        amended:         amended,
+        percentage:      sprintf("%.1f%%", percentage * 100.0),
+        can_queue:       can_queue
+      }
+    end
+
+  end
+
+  #
   #  Slight frig.  When anyone asks from outside what our copy_what
   #  value is, we say 2.  This is the default for the dialogue.  However
   #  we access the real value internally, which is set by the above writer.
@@ -266,6 +301,14 @@ class AdHocDomainCycle < ApplicationRecord
   #  A function to note that an update is being queued.  It checks
   #  the status and does a locking update of the record.
   #
+  def can_queue_update?
+    #
+    #  We can queue something as long as we don't have anything
+    #  queued or processing.
+    #
+    self.idle? || self.completed? || self.failed?
+  end
+
   def note_queued(allocation)
     result = false
     if can_queue_update?
@@ -277,6 +320,7 @@ class AdHocDomainCycle < ApplicationRecord
       self.num_created       = 0
       self.num_deleted       = 0
       self.num_amended       = 0
+      self.percentage_done   = 0.0
       #
       #  Saving this may result in an error.
       #
@@ -334,24 +378,45 @@ class AdHocDomainCycle < ApplicationRecord
     }
   end
 
-  def update_counts(created, deleted, amended)
+  def update_counts(created, deleted, amended, percentage)
     persistently_do {
-      self.num_created = created
-      self.num_deleted = deleted
-      self.num_amended = amended
+      self.num_created     = created
+      self.num_deleted     = deleted
+      self.num_amended     = amended
+      self.percentage_done = percentage
       self.save
     }
   end
 
-  private
-
-  def can_queue_update?
-    #
-    #  We can queue something as long as we don't have anything
-    #  queued or processing.
-    #
-    self.idle? || self.completed? || self.failed?
+  def active_allocation_name
+    if active_allocation
+      active_allocation.name
+    else
+      "<none>"
+    end
   end
 
-  #
+  def job_status
+    case self.update_status
+    when "idle"
+      relevant_time = "n/a"
+    when "queued"
+      relevant_time = self.queued_at.to_s(:hmsdmy)
+    when "processing"
+      relevant_time = self.started_at.to_s(:hmsdmy)
+    else
+      relevant_time = self.finished_at.to_s(:hmsdmy)
+    end
+    JobStatus.new(
+      self.id,
+      active_allocation_name,
+      update_status,
+      relevant_time,
+      num_created,
+      num_deleted,
+      num_amended,
+      percentage_done,
+      can_queue_update?)
+  end
+
 end
