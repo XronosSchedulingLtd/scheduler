@@ -46,6 +46,7 @@ ActiveRecord::Schema.define(version: 2021_10_04_092405) do
     t.integer "num_created", default: 0
     t.integer "num_deleted", default: 0
     t.integer "num_amended", default: 0
+    t.float "percentage_done", default: 0.0
     t.index ["ad_hoc_domain_id"], name: "index_ad_hoc_domain_cycles_on_ad_hoc_domain_id"
   end
 

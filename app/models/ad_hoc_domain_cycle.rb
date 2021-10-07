@@ -83,7 +83,7 @@ class AdHocDomainCycle < ApplicationRecord
     :created,
     :deleted,
     :amended,
-    :percentage,
+    :raw_percentage,
     :can_queue
   ) do
 
@@ -92,17 +92,9 @@ class AdHocDomainCycle < ApplicationRecord
     end
 
     def as_json(options = {})
-      {
-        cycle_id:        cycle_id,
-        allocation_name: allocation_name,
-        status:          status,
-        relevant_time:   relevant_time,
-        created:         created,
-        deleted:         deleted,
-        amended:         amended,
-        percentage:      sprintf("%.1f%%", percentage * 100.0),
-        can_queue:       can_queue
-      }
+      super(options).merge({
+        percentage: sprintf("%.1f%%", raw_percentage * 100.0)
+      })
     end
 
   end

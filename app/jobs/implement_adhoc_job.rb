@@ -58,9 +58,9 @@ class ImplementAdhocJob < ApplicationJob
     @cycle = allocation.ad_hoc_domain_cycle
     @cycle.note_started
     generator = AdHocDomainAllocationGenerator.new(allocation)
-    generator.generate do |created, deleted, amended|
+    generator.generate do |created, deleted, amended, percentage|
       Rails.logger.debug "Created: #{created}, deleted: #{deleted}, amended: #{amended}"
-      @cycle.update_counts(created, deleted, amended)
+      @cycle.update_counts(created, deleted, amended, percentage)
     end
     @cycle.note_finished
   end

@@ -8,10 +8,13 @@
 class AdHocDomainCyclesController < ApplicationController
   before_action :set_ad_hoc_domain, only: [:new, :create]
 
-  before_action :set_ad_hoc_domain_cycle, only: [:edit,
-                                                 :update,
-                                                 :destroy,
-                                                 :set_as_default]
+  before_action :set_ad_hoc_domain_cycle, only: [
+    :edit,
+    :update,
+    :destroy,
+    :set_as_default,
+    :poll
+  ]
 
   def new
     @existing_cycles = @ad_hoc_domain.ad_hoc_domain_cycles.sort.reverse
@@ -67,6 +70,10 @@ class AdHocDomainCyclesController < ApplicationController
     @ad_hoc_domain.default_cycle = @ad_hoc_domain_cycle
     @ad_hoc_domain.save
     redirect_to ad_hoc_domain_path(@ad_hoc_domain, params: { tab: 1 })
+  end
+
+  def poll
+    @job_status = @ad_hoc_domain_cycle.job_status
   end
 
   private

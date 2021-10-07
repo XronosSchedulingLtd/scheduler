@@ -9,5 +9,6 @@ class EnhanceCycle < ActiveRecord::Migration[5.2]
     add_column :ad_hoc_domain_cycles, :num_created, :integer, default: 0
     add_column :ad_hoc_domain_cycles, :num_deleted, :integer, default: 0
     add_column :ad_hoc_domain_cycles, :num_amended, :integer, default: 0
+    add_column :ad_hoc_domain_cycles, :percentage_done, :float, default: 0.0
   end
 end

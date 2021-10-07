@@ -68,3 +68,13 @@
 <script type="text/template" id="ahd-edit-mins">
   <input type='number' value='<%%= mins %>' step='<%= @ad_hoc_domain.mins_step %>' data-prev-value='<%%= mins %>'>
 </script>
+
+<script type="text/template" id="ahd-job-status-template">
+  <h3>Background job status</h3>
+  <p>Allocation: <%%= allocation_name %></p>
+  <p>Status:     <%%= status %> at <%%= relevant_time %></p>
+  <p><%%= created %> lessons created</p>
+  <p><%%= deleted %> lessons deleted</p>
+  <p><%%= amended %> lessons amended</p>
+  <p><%%= percentage %> complete</p>
+</script>
