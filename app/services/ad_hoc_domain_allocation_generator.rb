@@ -194,9 +194,9 @@ class AdHocDomainAllocationGenerator
       date = date + 1.day
       days_done += 1
       #
-      #  Every 5 seconds we update our caller.
+      #  Every 2 seconds we update our caller.
       #
-      if block_given? && Time.zone.now > last_checkpoint + 5.seconds
+      if block_given? && Time.zone.now > last_checkpoint + 2.seconds
         yield @events_created, @events_deleted, @events_amended, (days_done / num_days)
         last_checkpoint = Time.zone.now
       end

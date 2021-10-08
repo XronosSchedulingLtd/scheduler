@@ -2,4 +2,4 @@
 . /etc/profile
 . ~/etc/whichsystem
 cd $SCHEDULER_DIR
-bin/delayed_job start
+~/.rvm/wrappers/scheduler/bundle exec bin/delayed_job start
