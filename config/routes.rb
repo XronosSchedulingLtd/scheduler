@@ -8,6 +8,7 @@ Rails.application.routes.draw do
     resources :ad_hoc_domain_cycles, shallow: true do
       member do
         put :set_as_default
+        get :poll
       end
       resources :ad_hoc_domain_subjects, shallow: true do
         resources :ad_hoc_domain_staffs, only: [:create] do

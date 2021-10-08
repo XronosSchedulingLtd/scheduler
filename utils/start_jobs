@@ -1,0 +1,5 @@
+#!/bin/bash
+. /etc/profile
+. ~/etc/whichsystem
+cd $SCHEDULER_DIR
+~/.rvm/wrappers/scheduler/bundle exec bin/delayed_job start

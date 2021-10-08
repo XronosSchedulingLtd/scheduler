@@ -1,0 +1,7 @@
+  <h3>Background job status</h3>
+  <p>Allocation: <%= job_status.allocation_name %></p>
+  <p>Status:     <%= job_status.status %> at <%= job_status.relevant_time %></p>
+  <p><%= job_status.created %> lessons created</p>
+  <p><%= job_status.deleted %> lessons deleted</p>
+  <p><%= job_status.amended %> lessons amended</p>
+  <p><%= sprintf('%.1f%%', job_status.percentage * 100.0) %> complete</p>

@@ -99,6 +99,11 @@ class AdHocDomainsController < ApplicationController
                          ]).find_by(id: cycle_id)
 
       @folded = true
+      #
+      #  And some extra bits for the last tab.
+      #
+      @implement_buttons_active = @ad_hoc_domain_cycle.can_queue_update?
+      @job_status = @ad_hoc_domain_cycle.job_status
     end
   end
 
