@@ -328,11 +328,14 @@ div.row.collapse.allocation {
       position: relative;
       bottom: 10px;
     }
-//    span {
-//      top: 50%;
-//      position: absolute;
-//      transform: translateY(-50%);
-//    }
+  }
+}
+
+#ahd-allocation-listing {
+  #ahd-allocation-inner {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    grid-gap: 50px;
   }
 }
 

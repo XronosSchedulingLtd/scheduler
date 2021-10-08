@@ -141,7 +141,11 @@ class AdHocDomainAllocationGenerator
     #  specified in the ad_hoc_domain_cycle.
     #
     #
+    last_checkpoint = Time.zone.now
     date = @ad_hoc_domain_cycle.starts_on
+    num_days = (@ad_hoc_domain_cycle.exclusive_end_date -
+                @ad_hoc_domain_cycle.starts_on).to_f
+    days_done = 0
     while date < @ad_hoc_domain_cycle.exclusive_end_date
       #
       #  Process one day.
@@ -188,6 +192,20 @@ class AdHocDomainAllocationGenerator
       #  And move on to the next day.
       #
       date = date + 1.day
+      days_done += 1
+      #
+      #  Every 2 seconds we update our caller.
+      #
+      if block_given? && Time.zone.now > last_checkpoint + 2.seconds
+        yield @events_created, @events_deleted, @events_amended, (days_done / num_days)
+        last_checkpoint = Time.zone.now
+      end
+    end
+    #
+    #  One final time
+    #
+    if block_given?
+      yield @events_created, @events_deleted, @events_amended, 1
     end
     return true
   end

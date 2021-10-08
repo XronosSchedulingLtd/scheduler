@@ -88,18 +88,18 @@ class AdHocDomainAllocationsController < ApplicationController
     #  keeping any appropriate ones which are already there, but
     #  deleting any spurious ones which we don't want.
     #
-    @generator = AdHocDomainAllocationGenerator.new(@ad_hoc_domain_allocation)
+    #  Due to a deficiency in the design of ActiveJob, it is not
+    #  easy to pass back a result from the enqueuing operation.
+    #  This is a bit of a frig.
+    #
+    result = []
+    @ad_hoc_domain_cycle = @ad_hoc_domain_allocation.ad_hoc_domain_cycle
+    ImplementAdhocJob.perform_later(@ad_hoc_domain_allocation, result)
+    @queued = result.empty?
+    @job_status = @ad_hoc_domain_cycle.job_status
     respond_to do |format|
-      if @generator.generate
-        #
-        #  Either way we're going to send back just a textual message.
-        #
-        format.js
-      else
-        format.js { render :generation_failed }
-      end
+      format.json
     end
-
   end
 
   # PATCH ad_hoc_domain_staff/1/ad_hoc_domain_allocation/1/save

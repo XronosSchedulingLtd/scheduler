@@ -26,6 +26,8 @@ module Scheduler
 
     config.autoload_paths += %W(#{config.root}/engines/public_api/lib)
 
+    config.active_job.queue_adapter = :delayed_job
+
     config.before_initialize do
       PublicApi::Engine.instance.initializers.map {|e| e.run Rails.application }
     end

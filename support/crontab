@@ -52,3 +52,7 @@
 #
 30 6 * * * /home/scheduler/Work/Coding/scheduler/utils/daily_maintenance
 
+#
+#  Start a background job to run background tasks
+#
+@reboot /home/scheduler/Work/Coding/scheduler/utils/start_jobs
