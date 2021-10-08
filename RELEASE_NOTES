@@ -1,3 +1,35 @@
+v1.14.9   2021-10-08
+
+* Run AdHoc lesson implementation jobs in the background
+
+  It was found that on slow systems the implementation of a large set
+  of AdHoc lessons could take 10 minutes or more, causing the browser
+  front end to time out whilst waiting.
+
+  This release switches to processing such jobs in the background.  The
+  user initiating the task will get immediate feedback that the job
+  has been queued and then the user's screen will update every 5 seconds
+  with progress information until the job completes.  The user can
+  even navigate away from that screen and come back later to see how
+  the job is doing.
+
+  Some additional steps are required when installing this release,
+  specifically:
+
+    The Scheduler user's crontab needs an extra line at the end to
+    start the background job processor.  See support/crontab
+
+    The system file /etc/logrotate.d/scheduler needs an extra file
+    adding to it.  See support/logrotate
+
+* Fix to the date fields in the ICS import screen
+
+  A problem was found in the ICS import screen (dating from November last
+  year) in that the date fields were being filled by default with nonsense
+  instead of the dates found in the import file.  This problem has been
+  fixed.
+
+
 v1.14.8   2021-09-30
 
 * Provide some visual feedback when a user Implements an AdHoc Cycle
