@@ -75,13 +75,13 @@
     <tr>
       <td>Start date:</td>
       <td>
-      <%= configured_date_field_tag(:first_date) %>
+      <%= configured_date_field_tag(:first_date, @earliest_date) %>
       </td>
     </tr>
     <tr>
       <td>End date:</td>
       <td>
-      <%= configured_date_field_tag(:last_date) %>
+      <%= configured_date_field_tag(:last_date, @latest_date) %>
       </td>
     </tr>
     <tr>

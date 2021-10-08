@@ -221,7 +221,21 @@ module ApplicationHelper
     end
   end
 
-  def configured_date_field_tag(selector, **options)
+  def configured_date_field_tag(selector, contents, **options)
+    #
+    #  We exercise a bit of intelligence with contents.
+    #
+    #  nil or a string just gets passed through.
+    #  anything else we assume can convert to dd/mm/yyyy
+    #
+    case contents
+    when nil
+      actual = nil
+    when String
+      actual = contents
+    else
+      actual = contents.to_s(:dmy)
+    end
     if Setting.current.dp_jquery?
       #
       #  We want to add a class of datepicker to the options.
@@ -242,9 +256,9 @@ module ApplicationHelper
         options[:class] = :datepicker
       end
       options[:autocomplete] = :off
-      text_field_tag(selector, options)
+      text_field_tag(selector, actual, options)
     else
-      date_field_tag(selector, options)
+      date_field_tag(selector, actual, options)
     end
   end
 
