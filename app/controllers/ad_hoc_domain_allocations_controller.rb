@@ -19,7 +19,10 @@ class AdHocDomainAllocationsController < ApplicationController
     :do_clone
   ]
 
-  before_action :set_staff_and_allocation, only: [:allocate, :save]
+  before_action :set_staff_and_allocation, only: [
+    :allocate,
+    :autoallocate,
+    :save]
 
   def new
     @ad_hoc_domain_allocation =
@@ -112,7 +115,6 @@ class AdHocDomainAllocationsController < ApplicationController
     #  than one subject then we handle all their allocations
     #  together.
     #
-    Rails.logger.debug(ad_hoc_domain_allocation_params[:allocations].inspect)
     respond_to do |format|
       if @ad_hoc_domain_allocation.update_allocations(
           @ad_hoc_domain_staff,
@@ -120,6 +122,32 @@ class AdHocDomainAllocationsController < ApplicationController
         format.json
       else
         format.json { render :save_failed, status: 99 }
+      end
+    end
+  end
+
+  # PATCH ad_hoc_domain_staff/1/ad_hoc_domain_allocation/1/autoallocate
+  #
+  def autoallocate
+    #
+    #  We are receiving a list of allocations for one staff member
+    #  within an ad_hoc_allocation.  Note it's for one staff member,
+    #  not for one subject.  If a single staff member teaches more
+    #  than one subject then we handle all their allocations
+    #  together.
+    #
+    @allocator =
+      AutoAllocator.new(
+        @ad_hoc_domain_allocation,
+        @ad_hoc_domain_staff,
+        auto_allocate_params[:allocations],
+        auto_allocate_params[:sundate])
+    respond_to do |format|
+      @allocation_set = @allocator.allocation_set
+      if @allocator.do_allocation
+        format.json
+      else
+        format.json { render :autoallocate_failed, status: 99 }
       end
     end
   end
@@ -190,6 +218,24 @@ class AdHocDomainAllocationsController < ApplicationController
   def ad_hoc_domain_allocation_params
     params.require(:ad_hoc_domain_allocation).
       permit(:name, allocations: [:starts_at, :ends_at, :pcid])
+  end
+
+  def auto_allocate_params
+    #
+    #  Strong parameters really don't work when you're trying simply
+    #  to pass data from the client to the host, rather than trying to
+    #  do mass assignments to a model.  We're receiving some data which we
+    #  will process and send back without doing any kind of update to
+    #  the database at this end.
+    #
+    #  Various help documents say you can still use strong parameters
+    #  by adding the relevant attr_accessor to your model but from
+    #  experimentation this does not seem to be the case.  The code which
+    #  does initial manipulation of the received data still drops the
+    #  required field.
+    #  
+    #  
+    request.parameters.slice(:sundate, :allocations)
   end
 
 end

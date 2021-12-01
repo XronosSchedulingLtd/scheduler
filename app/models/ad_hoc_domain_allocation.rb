@@ -7,6 +7,8 @@
 
 class AdHocDomainAllocation < ApplicationRecord
 
+  attr_accessor :sundate
+
   belongs_to :ad_hoc_domain_cycle
 
   validates :name, presence: true
@@ -14,12 +16,14 @@ class AdHocDomainAllocation < ApplicationRecord
   serialize :allocations, Hash
 
   def as_json(options = {})
+    Rails.logger.debug("Entering as_json")
     result = {
       id:   self.id,
       name: self.name,
       starts: ad_hoc_domain_cycle.starts_on.iso8601,
       ends: ad_hoc_domain_cycle.exclusive_end_date.iso8601
     }
+    Rails.logger.debug("Result so far: #{result.inspect}")
     if options[:ad_hoc_domain_staff_id] &&
       staff = AdHocDomainStaff.find_by(id: options[:ad_hoc_domain_staff_id])
       result[:staff_id] = staff.id
@@ -192,6 +196,7 @@ class AdHocDomainAllocation < ApplicationRecord
       result[:events] = events
       result[:current] = 0
     end
+    Rails.logger.debug("Leaving as_json")
     result
   end
 

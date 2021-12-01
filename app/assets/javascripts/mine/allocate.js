@@ -20,12 +20,26 @@ var editing_allocation = function() {
   //
 
   //
-  //  A helper function to convert a Moment object to a number
-  //  of minutes since midnight, ignoring any DST issues.  We
-  //  want 09:00 to be 540 minutes after midnight regardless.
+  //  Function to convert either a moment or a string to a number
+  //  of minutes since midnight, ignoring DST.
+  //  We want 09:00 to be 540 minutes after midnight regardless.
   //
-  var toMins = function(a_moment) {
-    var bits = a_moment.format('HH:mm').split(':');
+  var toMinsOfDay = function(input) {
+
+    var textual;
+    //
+    //  Don't you just love JavaScript?  Two distinct kinds of string!
+    //
+    if (typeof input === 'string' || input instanceof String) {
+      textual = input;
+    } else {
+      //
+      //  Must be a moment, or at least something which can respond
+      //  to .format().
+      //
+      textual = input.format('HH:mm');
+    }
+    var bits = textual.split(':');
     var mins = (parseInt(bits[0], 10) * 60) + parseInt(bits[1], 10);
     return mins;
   };
@@ -267,7 +281,7 @@ var editing_allocation = function() {
   //  that in JavaScript you can't do that.
   //
   var makeInstant = function(a_moment) {
-    var mins = toMins(a_moment);
+    var mins = toMinsOfDay(a_moment);
 
     var that = {};
 
@@ -589,7 +603,7 @@ var editing_allocation = function() {
       //
       //  Return the timing of this allocation as a shift.
       //
-      return makeShift(toMins(this.starts_at), toMins(this.ends_at));
+      return makeShift(toMinsOfDay(this.starts_at), toMinsOfDay(this.ends_at));
     };
 
     return that;
@@ -599,6 +613,11 @@ var editing_allocation = function() {
     //
     //  We're handling a list of existing allocations sent down from
     //  the host.
+    //
+    //  All we require of "spec" is that it has an attribute "allocated"
+    //  consisting of an array of raw allocations.  They might have come
+    //  from the initial page, or from the response to a request sent
+    //  to the host.
     //
     var allocated = spec.allocated;
     var i;
@@ -691,6 +710,10 @@ var editing_allocation = function() {
     //
     //  We add a function to the "mine" object so that our
     //  allocations can call us back.
+    //
+    //  Note that if our constructor is called a second time
+    //  it will overwrite this function.  This is desired because
+    //  we want it to be invoked in our new context.
     //
     mine.dateChanged = function(allocation, old_date, new_date) {
       //
@@ -873,6 +896,10 @@ var editing_allocation = function() {
     return that;
   };
 
+  var sundayOf = function(a_moment) {
+    return a_moment.subtract(a_moment.day(), "days");
+  };
+
   var makeWeekOf = function(spec) {
     //
     //  Return a function which can calculate a week number given
@@ -886,6 +913,7 @@ var editing_allocation = function() {
 
     var calculator = function(date) {
       var delta = moment(date).diff(sunday, 'days');
+      //console.log("weekOf returning " + Math.floor(delta / 7));
       return Math.floor(delta / 7);
     };
     return calculator;
@@ -1040,16 +1068,6 @@ var editing_allocation = function() {
     return that;
   }
 
-  var makeMinsOfDay = function(textual) {
-    //
-    //  We are very fussy.  We accept NN:NN, and not much else.
-    //  (One digit in each half is OK.)
-    //
-    var bits = textual.split(':');
-
-    return (parseInt(bits[0], 10) * 60) + parseInt(bits[1], 10);
-  }
-
   var makeAvailable = function(available, mine) {
     //
     //  It is just possible that an allocation cycle could straddle
@@ -1070,8 +1088,8 @@ var editing_allocation = function() {
     //  we always convert 08:00 to 480 and always convert 480 to 08:00
     //  we don't have a problem.
     //
-    var start_mins   = makeMinsOfDay(available.starts_at);
-    var end_mins     = makeMinsOfDay(available.ends_at);
+    var start_mins   = toMinsOfDay(available.starts_at);
+    var end_mins     = toMinsOfDay(available.ends_at);
     var start_string = available.starts_at;
     var end_string   = available.ends_at;
     var wday         = available.wday;
@@ -1182,7 +1200,7 @@ var editing_allocation = function() {
       //
       //  Return the timing of this commitment as a shift.
       //
-      return makeShift(toMins(this.starts_at), toMins(this.ends_at));
+      return makeShift(toMinsOfDay(this.starts_at), toMinsOfDay(this.ends_at));
     };
     return that;
   };
@@ -1536,6 +1554,15 @@ var editing_allocation = function() {
       return mine.fixed_allocations.onDate(pid, date);
     };
 
+    //
+    //  Completely replace our set of allocations with a new lot
+    //  supplied by the host.
+    //
+    that.replaceAllocations = function(response) {
+      mine.allocations = makeAllocations(response, mine);
+      that.loadings = makeLoadings(pcs, mine);
+    };
+
     that.allPupilCourses = function () {
       //
       //  Return all known pupil courses as an array (rather than
@@ -1596,6 +1623,26 @@ var editing_allocation = function() {
       alert("Save failed.");
     };
 
+    var allocateDone =function(response, textStatus, jqXHR) {
+      var href;
+
+//      console.log({response});
+      //
+      //  At this point we need to unpack the response and update our idea
+      //  of the current allocations.  Note that the server has merely
+      //  performed an isolated service for us.  It has not updated its
+      //  own stored copy of the allocations.  It's up to our user to save
+      //  them if required.
+      //
+      dataset.replaceAllocations(response);
+      modified = true;
+      tellListeners(false);
+    };
+
+    var allocateFailed = function() {
+      alert("Auto-allocation failed.");
+    };
+
     that.doSave = function(event) {
       event.preventDefault();
       $.ajax({
@@ -1613,6 +1660,23 @@ var editing_allocation = function() {
     that.doSaveAndExit = function(event) {
       that.doSave(event);
       and_exit = true;
+    };
+
+    that.doAutoAllocate = function(event) {
+      event.preventDefault();
+//      console.log("Auto allocation requested");
+      $.ajax({
+        url: '/ad_hoc_domain_staffs/' + staff_id + '/ad_hoc_domain_allocations/' + id + '/autoallocate',
+        type: 'PATCH',
+        context: this,
+        dataType: 'json',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          sundate: sundayOf(view_date).format('YYYY-MM-DD'),
+          allocations: mine.allocations.all()
+        })
+      }).done(allocateDone).
+         fail(allocateFailed);
     };
 
     //var able = makeTimeSlotSet("09:00", "15:00");
@@ -2095,10 +2159,11 @@ var editing_allocation = function() {
     //
     dataset.addListener(checkChange, null, false);
     //
-    //  Handle clicks on our save button.
+    //  Handle clicks on our various buttons.
     //
     $('#save-button').click(dataset.doSave);
     $('#save-exit-button').click(dataset.doSaveAndExit);
+    $('#auto-allocate-button').click(dataset.doAutoAllocate);
     //
     //  Check if they want to leave.
     //
