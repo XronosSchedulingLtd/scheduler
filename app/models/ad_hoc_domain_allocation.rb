@@ -92,30 +92,35 @@ class AdHocDomainAllocation < ApplicationRecord
       pupils = Pupil.includes(:element).where(id: pupil_ids)
       pupils.each do |pupil|
         ea = Timetable::EventAssembler.new(pupil.element, Date.today, true)
-        timetable = Hash.new
-        ea.events_by_day do |week, day_no, event|
-          if categories.include?(event.eventcategory_id)
-            timetable[week] ||= Array.new
-            timetable[week][day_no] ||= Array.new
-            subject = event.subject
-            if subject
-              subjects[subject.id] ||= subject.name
-              subject_id = subject.id
-            else
-              subject_id = 0
+        timetables[pupil.id] =
+          Rails.cache.fetch("pupil#{pupil.id}tt",
+                            expires_in: 6.hours,
+                            race_condition_ttl: 10.seconds) do
+          timetable = Hash.new
+          ea.events_by_day do |week, day_no, event|
+            if categories.include?(event.eventcategory_id)
+              timetable[week] ||= Array.new
+              timetable[week][day_no] ||= Array.new
+              subject = event.subject
+              if subject
+                subjects[subject.id] ||= subject.name
+                subject_id = subject.id
+              else
+                subject_id = 0
+              end
+              entry = {
+                b: event.starts_at.to_s(:hhmm),
+                e: event.ends_at.to_s(:hhmm),
+                s: subject_id
+              }
+              if subject_id == 0
+                entry[:body] = event.body
+              end
+              timetable[week][day_no] << entry
             end
-            entry = {
-              b: event.starts_at.to_s(:hhmm),
-              e: event.ends_at.to_s(:hhmm),
-              s: subject_id
-            }
-            if subject_id == 0
-              entry[:body] = event.body
-            end
-            timetable[week][day_no] << entry
           end
+          timetable
         end
-        timetables[pupil.id] = timetable
       end
       result[:timetables] = timetables
       result[:subjects] = subjects
