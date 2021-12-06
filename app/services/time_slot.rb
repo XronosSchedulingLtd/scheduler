@@ -174,4 +174,12 @@ class TimeSlot < TodShift
   def to_partial_path
     'time_slot'
   end
+
+  def mins
+    #
+    #  Return our duration in minutes.  The underlying TodShift prefers
+    #  seconds.
+    #
+    self.duration / 60
+  end
 end

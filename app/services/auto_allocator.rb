@@ -112,6 +112,20 @@ class AutoAllocator
       self.values.collect(&:mins).tally.sort_by{|key,value| value}[-1][0]
     end
 
+    def total_duration
+      #
+      #  The sum of all our lesson lengths, in minutes.
+      #
+      self.values.collect(&:mins).sum
+    end
+
+    def slack(slots)
+      #
+      #  Calculate the slack given the indicated slots.
+      #
+      slots.collect(&:mins).sum - self.total_duration
+    end
+
   end
 
   class Loadings
@@ -292,6 +306,7 @@ class AutoAllocator
     @availables = Availables.new(dataset[:availables])
     @pupil_courses = PupilCourses.new(dataset[:pcs])
     Rails.logger.debug("Modal lesson length is #{@pupil_courses.modal_lesson_length} minutes")
+    Rails.logger.debug("Total lesson length is #{@pupil_courses.total_duration} minutes")
     @timetables = transform_timetables(dataset[:timetables])
     #@other_allocations =
     #  AllocationSet.new(@staff, dataset[:other_allocated], @start_sunday)
@@ -339,6 +354,7 @@ class AutoAllocator
           effective_availables += @availables.on(date)
         end
         Rails.logger.debug("We have #{effective_availables.size} effectively available slots.")
+        Rails.logger.debug("Slack is #{@pupil_courses.slack(effective_availables)} minutes.")
         Rails.logger.debug("#{@pupil_courses.size} pupil courses with #{@loadings.unallocated_in_week(@sundate).size} unallocated")
         #
         #  Have to process things one day at a time because that's how
@@ -373,7 +389,7 @@ class AutoAllocator
               #
               #  For now take the any unallocated ones which will fit.
               #
-              available_mins = ts.duration / 60
+              available_mins = ts.mins
               offset_mins = 0
               unallocated.each do |ua|
                 if ua.mins <= available_mins
