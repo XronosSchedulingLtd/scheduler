@@ -17,6 +17,41 @@
 
 class AutoAllocator
 
+  class OtherEngagements < Array
+    #
+    #  Record other occasions when this member of staff is busy.
+    #
+
+    class OtherEngagement
+      attr_reader :body, :starts_at, :ends_at, :date, :time_slot
+
+      def initialize(item)
+        @body = item[:body]
+        @starts_at = Time.zone.parse(item[:starts_at])
+        @ends_at   = Time.zone.parse(item[:ends_at])
+        @date      = @starts_at.to_date
+        @time_slot = TimeSlot.new(@starts_at.to_s(:hhmm),
+                                  @ends_at.to_s(:hhmm))
+      end
+
+    end
+
+    def initialize(items)
+      super()
+      items.each do |item|
+        self << OtherEngagement.new(item)
+      end
+    end
+
+    def on(date)
+      #
+      #  Return an array of OtherEngagements on a given date.
+      #
+      self.select {|oe| oe.date == date}
+    end
+
+  end
+
   class Availables < Array
 
     class Available < TimeSlot
@@ -305,12 +340,14 @@ class AutoAllocator
     #
     @availables = Availables.new(dataset[:availables])
     @pupil_courses = PupilCourses.new(dataset[:pcs])
-    Rails.logger.debug("Modal lesson length is #{@pupil_courses.modal_lesson_length} minutes")
-    Rails.logger.debug("Total lesson length is #{@pupil_courses.total_duration} minutes")
+    #Rails.logger.debug("Modal lesson length is #{@pupil_courses.modal_lesson_length} minutes")
+    #Rails.logger.debug("Total lesson length is #{@pupil_courses.total_duration} minutes")
     @timetables = transform_timetables(dataset[:timetables])
     #@other_allocations =
     #  AllocationSet.new(@staff, dataset[:other_allocated], @start_sunday)
-    @staff_commitments = dataset[:events]
+    @other_engagements = OtherEngagements.new(dataset[:events])
+    #Rails.logger.debug("Staff commitments")
+    #Rails.logger.debug(@other_engagements.inspect)
     #
     #=============================================================
     #  Potentially dynamic stuff.
@@ -375,6 +412,12 @@ class AutoAllocator
           #
           @allocation_set.allocations_on(date).each do |alloc|
             time_slots -= alloc.time_slot
+          end
+          #
+          #  And other engagements for this staff member.
+          #
+          @other_engagements.on(date).each do |oe|
+            time_slots -= oe.time_slot
           end
           Rails.logger.debug("Available times on #{date}:")
           time_slots.each do |ts|
