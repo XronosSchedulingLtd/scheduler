@@ -17,6 +17,51 @@
 
 class AutoAllocator
 
+  class OtherAllocations < Hash
+
+    class OtherAllocation
+      attr_reader :starts_at, :ends_at, :date, :time_slot
+
+      def initialize(item)
+        @starts_at = Time.zone.parse(item[:starts_at])
+        @ends_at   = Time.zone.parse(item[:ends_at])
+        @date      = @starts_at.to_date
+        @time_slot = TimeSlot.new(@starts_at.to_s(:hhmm),
+                                  @ends_at.to_s(:hhmm))
+      end
+    end
+
+    class PupilOtherAllocations < Array
+      attr_reader :pid
+
+      #
+      #  A set of other allocations for one individual pupil.
+      #
+      def initialize(pid, allocations)
+        super()
+        @pid = pid
+        allocations.each do |item|
+          self << OtherAllocation.new(item)
+        end
+      end
+    end
+
+    #
+    #  Record other allocations which we can't change but have to
+    #  work around.
+    #
+    def initialize(raw_data)
+      super()
+      #
+      #  We expect to receive a hash, indexed by pupil id.
+      #
+      raw_data.each do |pid, allocations|
+        self[pid] = PupilOtherAllocations.new(pid, allocations)
+      end
+    end
+
+  end
+
   class OtherEngagements < Array
     #
     #  Record other occasions when this member of staff is busy.
@@ -177,13 +222,14 @@ class AutoAllocator
     #  and the existing Allocations - e.g. give me all the unallocated
     #  PupilCourses in a given week.
     #
-    def initialize(pcs, allocated)
+    def initialize(pcs, allocated, other_allocations)
       #
       #  Currently pcs is a PupilCourses object whilst allocated is
       #  an AllocationSet object.
       #
       @pupil_courses = pcs
       @allocated = allocated
+      @other_allocations = other_allocations
     end
 
     def allocated_in_week(date)
@@ -343,8 +389,10 @@ class AutoAllocator
     #Rails.logger.debug("Modal lesson length is #{@pupil_courses.modal_lesson_length} minutes")
     #Rails.logger.debug("Total lesson length is #{@pupil_courses.total_duration} minutes")
     @timetables = transform_timetables(dataset[:timetables])
-    #@other_allocations =
-    #  AllocationSet.new(@staff, dataset[:other_allocated], @start_sunday)
+    Rails.logger.debug("Raw other allocations")
+    Rails.logger.debug(dataset[:other_allocated].inspect)
+    @other_allocations =
+      OtherAllocations.new(dataset[:other_allocated])
     @other_engagements = OtherEngagements.new(dataset[:events])
     #Rails.logger.debug("Staff commitments")
     #Rails.logger.debug(@other_engagements.inspect)
@@ -367,7 +415,8 @@ class AutoAllocator
     #  We will also need some sort of record for calculated loadings.
     #  May create later.
     #
-    @loadings = Loadings.new(@pupil_courses, @allocation_set)
+    @loadings =
+      Loadings.new(@pupil_courses, @allocation_set, @other_allocations)
   end
 
   def do_allocation
