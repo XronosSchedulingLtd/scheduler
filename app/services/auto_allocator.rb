@@ -98,6 +98,20 @@ class AutoAllocator
       self.values.select {|pc| !pcids.include?(pc.pcid)}
     end
 
+    def modal_lesson_length
+      #
+      #  Returns the modal lesson length in minutes.
+      #
+      #  Sadly, at the time of writing we're still using Ruby 2.6 so
+      #  Enumerable#tally is not available to us.
+      #
+      #  Tally gives us a hash of durations and counts and then
+      #  we sort to put the largest count last, select the last
+      #  pair with [-1], then pick the duration with [0]
+      #  
+      self.values.collect(&:mins).tally.sort_by{|key,value| value}[-1][0]
+    end
+
   end
 
   class Loadings
@@ -277,6 +291,7 @@ class AutoAllocator
     #
     @availables = Availables.new(dataset[:availables])
     @pupil_courses = PupilCourses.new(dataset[:pcs])
+    Rails.logger.debug("Modal lesson length is #{@pupil_courses.modal_lesson_length} minutes")
     @timetables = transform_timetables(dataset[:timetables])
     #@other_allocations =
     #  AllocationSet.new(@staff, dataset[:other_allocated], @start_sunday)
