@@ -412,6 +412,12 @@ class AutoAllocator
       end
       unallocated = chosen
       #
+      #  Could any of these do better elsewhere?
+      #  Note this is not just "better in our slot", but anywhere better
+      #  in the whole of what's left.
+      #
+
+      #
       #  And return the first of what's left, if any.
       #
       if unallocated.first
@@ -440,7 +446,7 @@ class AutoAllocator
         lessons = timetable.entries_on(date)
         lessons.each do |lesson|
           if slot.overlaps?(lesson.time_slot)
-            cost += loadings[lesson.subject_id]
+            cost += (loadings[lesson.subject_id] + 1)
           end
         end
       end
