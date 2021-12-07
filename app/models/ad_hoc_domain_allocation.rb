@@ -91,19 +91,20 @@ class AdHocDomainAllocation < ApplicationRecord
       pupil_ids = staff.ad_hoc_domain_pupil_courses.collect(&:pupil_id).uniq
       pupils = Pupil.includes(:element).where(id: pupil_ids)
       pupils.each do |pupil|
-        ea = Timetable::EventAssembler.new(pupil.element, Date.today, true)
-        timetables[pupil.id] =
+        timetables[pupil.id], tmpsubjects =
           Rails.cache.fetch("pupil#{pupil.id}tt",
                             expires_in: 6.hours,
                             race_condition_ttl: 10.seconds) do
           timetable = Hash.new
+          innersubjects = Hash.new
+          ea = Timetable::EventAssembler.new(pupil.element, Date.today, true)
           ea.events_by_day do |week, day_no, event|
             if categories.include?(event.eventcategory_id)
               timetable[week] ||= Array.new
               timetable[week][day_no] ||= Array.new
               subject = event.subject
               if subject
-                subjects[subject.id] ||= subject.name
+                innersubjects[subject.id] ||= subject.name
                 subject_id = subject.id
               else
                 subject_id = 0
@@ -119,8 +120,12 @@ class AdHocDomainAllocation < ApplicationRecord
               timetable[week][day_no] << entry
             end
           end
-          timetable
+          #
+          #  This is what our block returns and what potentially gets cached.
+          #
+          [timetable, innersubjects]
         end
+        subjects.merge!(tmpsubjects)
       end
       result[:timetables] = timetables
       result[:subjects] = subjects
