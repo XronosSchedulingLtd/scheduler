@@ -113,4 +113,17 @@ class AllocationSet
     (date - @start_sunday).to_i / 7
   end
 
+  def each
+    @allocations.each do |allocation|
+      yield allocation
+    end
+  end
+
+  def for_pupil_course(pcid)
+    #
+    #  Return all the allocations for the indicated pupil course.
+    #
+    @allocations.select {|a| a.pcid == pcid}
+  end
+
 end

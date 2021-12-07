@@ -223,6 +223,64 @@ class AutoAllocator
 
   end
 
+  class Timetables < Hash
+
+    class Timetable
+
+      class OneLesson
+
+        attr_reader :time_slot, :subject_id
+
+        def initialize(slot)
+          @time_slot = TimeSlot.new(slot[:b], slot[:e])
+          @subject_id = slot[:s]
+        end
+      end
+
+      def initialize(pupil_timetable, week_identifier)
+        #
+        #  We are passed a raw pupil timetable, which itself should
+        #  consist of two week timetables as a hash, indexed by A and B.
+        #
+        @week_identifier = week_identifier
+        @data = pupil_timetable.transform_values do |week_timetable|
+          week_timetable.collect do |day_timetable|
+            if day_timetable.nil?
+              nil
+            else
+              day_timetable.collect do |slot|
+                OneLesson.new(slot)
+              end
+            end
+          end
+        end
+      end
+
+      def entries_on(date)
+        week_letter = @week_identifier.week_letter(date)
+        week_entries = @data[week_letter]
+        if week_entries
+          week_entries[date.wday]
+        else
+          []
+        end
+      end
+
+    end
+
+    def initialize(raw_timetables, cycle)
+      @week_identifier = WeekIdentifier.new(cycle.starts_on, cycle.ends_on)
+      #
+      #  We are passed a hash of raw timetables, indexed by pupil_id
+      #
+      super()
+      raw_timetables.each do |pid, pupil_timetable|
+        self[pid] = Timetable.new(pupil_timetable, @week_identifier)
+      end
+    end
+
+  end
+
   class Loadings
     #
     #  An object to hold a set of loadings and recalculate
@@ -237,14 +295,43 @@ class AutoAllocator
     #  and the existing Allocations - e.g. give me all the unallocated
     #  PupilCourses in a given week.
     #
-    def initialize(pcs, allocated, other_allocations)
+    def initialize(pcs, allocated, other_allocations, timetables)
       #
       #  Currently pcs is a PupilCourses object whilst allocated is
       #  an AllocationSet object.
       #
-      @pupil_courses = pcs
-      @allocated = allocated
+      @pupil_courses     = pcs
+      @allocated         = allocated
       @other_allocations = other_allocations
+      @timetables        = timetables
+      #
+      #  Something to hold all my calculated loadings.
+      #
+      #  A hash indexed by pupil id and each value in that
+      #  hash is itself a hash indexed by subject id.
+      #
+      #  Note that other half things all have a subject id of 0.  May
+      #  need to implement special processing there and index by
+      #  body instead.
+      #
+      #  Interesting oddity of default values for hashes in Ruby.
+      #  See https://stackoverflow.com/questions/2698460/strange-unexpected-behavior-disappearing-changing-values-when-using-hash-defa
+      #
+      #  To avoid our outer hash getting the *same* hash again and again
+      #  for each entry we have to construct the inner one in a block.
+      #
+      #  If we just write:
+      #
+      #    Hash.new(Hash.new(0))
+      #
+      #  then a single inner hash is used for all apparent entries in
+      #  the outer hash - and it never gets assigned to being an entry
+      #  in the outer hash.
+      #
+      @loadings_by_pid = Hash.new { |h,k| h[k] = Hash.new(0) }
+      calculate_all
+      Rails.logger.debug("Initial loadings")
+      Rails.logger.debug(@loadings_by_pid.inspect)
     end
 
     def allocated_in_week(date)
@@ -272,6 +359,7 @@ class AutoAllocator
       #  Passed via us so we can update our idea of the loadings.
       #
       @allocated.add(starts_at, ends_at, pcid)
+      recalculate(pcid)
     end
 
     def best_choice_for(date, time_slot)
@@ -303,9 +391,140 @@ class AutoAllocator
         !@other_allocations[ua.pupil_id]&.any_clashes_with?(date, time_slot)
       }
       #
+      #  Now we want to select all the lowest cost ones.
+      #
+      lowest_cost = 999
+      chosen = []
+      unallocated.each do |ua|
+        cost = cost_for(ua, date, time_slot)
+        if cost < lowest_cost
+          #
+          #  We have a new lowest cost
+          #
+          lowest_cost = cost
+          chosen = [ua]
+        elsif cost == lowest_cost
+          #
+          #  Add one to our selection
+          #
+          chosen << ua
+        end
+      end
+      unallocated = chosen
+      #
       #  And return the first of what's left, if any.
       #
+      if unallocated.first
+        Rails.logger.debug("Cost of #{cost_for(unallocated.first, date, time_slot)}")
+      end
       unallocated.first
+    end
+
+    private
+   
+    def cost_for(pc, date, target_slot)
+      #
+      #  Calculate the cost for the pupil of putting an allocation for
+      #  this pupil course at this proposed time.
+      #
+      #  Note - we don't attempt to check it fits in the indicated
+      #  slot.  We use the duration of the allocation.  Calling code
+      #  should have already checked whether it fits.
+      #
+      cost = 0
+      slot = TimeSlot.new(target_slot.beginning,
+                          target_slot.beginning + pc.mins.minutes)
+      timetable = @timetables[pc.pupil_id]
+      loadings = @loadings_by_pid[pc.pupil_id]
+      if timetable
+        lessons = timetable.entries_on(date)
+        lessons.each do |lesson|
+          if slot.overlaps?(lesson.time_slot)
+            cost += loadings[lesson.subject_id]
+          end
+        end
+      end
+      cost
+    end
+
+    def calculate_all
+      #
+      #  Do a loading calculation for all the students
+      #
+      #  First our allocations
+      #
+      @allocated.each do |allocation|
+        pc = @pupil_courses[allocation.pcid]
+        if pc
+          timetable = @timetables[pc.pupil_id]
+          if timetable
+            lessons = timetable.entries_on(allocation.date)
+            lessons.each do |lesson|
+              if allocation.time_slot.overlaps?(lesson.time_slot)
+                @loadings_by_pid[pc.pupil_id][lesson.subject_id] += 1
+              end
+            end
+          end
+        end
+      end
+      #
+      #  Then all the fixed allocations.
+      #
+      @other_allocations.each do |pid, pupil_allocations|
+        timetable = @timetables[pid]
+        if timetable
+          pupil_allocations.each do |allocation|
+            lessons = timetable.entries_on(allocation.date)
+            lessons.each do |lesson|
+              if allocation.time_slot.overlaps?(lesson.time_slot)
+                @loadings_by_pid[pid][lesson.subject_id] += 1
+              end
+            end
+          end
+        end
+      end
+    end
+
+    def recalculate(pcid)
+      #
+      #  Recalculate the loading for one pupil, indicated by a PupilCourse id.
+      #
+      pc = @pupil_courses[pcid]
+      if pc
+        pid = pc.pupil_id
+        timetable = @timetables[pid]
+        if timetable
+          #
+          #  Expunge our previous values for this pupil.
+          #
+          @loadings_by_pid[pid] = Hash.new(0)
+          #
+          #  Dynamic allocations
+          #
+          @allocated.for_pupil_course(pcid).each do |allocation|
+            lessons = timetable.entries_on(allocation.date)
+            lessons.each do |lesson|
+              if allocation.time_slot.overlaps?(lesson.time_slot)
+                @loadings_by_pid[pc.pupil_id][lesson.subject_id] += 1
+              end
+            end
+          end
+          #
+          #  Fixed allocations
+          #
+          others = @other_allocations[pid]
+          if others
+            others.each do |allocation|
+              lessons = timetable.entries_on(allocation.date)
+              lessons.each do |lesson|
+                if allocation.time_slot.overlaps?(lesson.time_slot)
+                  @loadings_by_pid[pid][lesson.subject_id] += 1
+                end
+              end
+            end
+          end
+        end
+      end
     end
 
   end
@@ -424,12 +643,6 @@ class AutoAllocator
     @start_sunday = @start_date - @start_date.wday.days
     @exclusive_end_date = Date.parse(dataset[:ends])
     #
-    #  There is a hash of dates in the dataset, but better to create
-    #  our own WeekIdentifier.
-    #
-    @week_identifier = WeekIdentifier.new(@cycle.starts_on, @cycle.ends_on)
-    Rails.logger.debug("We start in week #{@week_identifier.week_letter(@start_date)}")
-    #
     #  A full list of all the relevant pupil timetables has been assembled
     #  for us.  Put them into an easily accessible form.
     #
@@ -437,7 +650,7 @@ class AutoAllocator
     @pupil_courses = PupilCourses.new(dataset[:pcs])
     #Rails.logger.debug("Modal lesson length is #{@pupil_courses.modal_lesson_length} minutes")
     #Rails.logger.debug("Total lesson length is #{@pupil_courses.total_duration} minutes")
-    @timetables = transform_timetables(dataset[:timetables])
+    @timetables = Timetables.new(dataset[:timetables], @cycle)
     #Rails.logger.debug("Raw other allocations")
     #Rails.logger.debug(dataset[:other_allocated].inspect)
     @other_allocations =
@@ -465,7 +678,10 @@ class AutoAllocator
     #  May create later.
     #
     @loadings =
-      Loadings.new(@pupil_courses, @allocation_set, @other_allocations)
+      Loadings.new(@pupil_courses,
+                   @allocation_set,
+                   @other_allocations,
+                   @timetables)
   end
 
   def do_allocation
@@ -478,7 +694,6 @@ class AutoAllocator
       effective_dates = @cycle.date_range & our_week
       if effective_dates
         Rails.logger.debug("Going to process #{effective_dates}")
-        Rails.logger.debug("Week #{@week_identifier.week_letter(effective_dates.start_date + 1.day)}")
         #Rails.logger.debug("Week number #{@allocation_set.week_of(effective_dates.start_date)}")
         #
         #  What availability slots does our staff member have in this
@@ -564,9 +779,6 @@ class AutoAllocator
       #  To be implemented later.
       #
     end
-    #
-    #  For now this does nothing.
-    #
     true
   end
 
