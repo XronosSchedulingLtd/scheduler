@@ -44,6 +44,14 @@ class AutoAllocator
           self << OtherAllocation.new(item)
         end
       end
+
+      def any_clashes_with?(date, time_slot)
+        !self.select {|oa|
+          oa.date == date &&
+            oa.time_slot.overlaps?(time_slot)
+        }.empty?
+      end
+
     end
 
     #
@@ -99,16 +107,18 @@ class AutoAllocator
 
   class Availables < Array
 
-    class Available < TimeSlot
+    class Available
       #
       #  params should be a hash with:
       #    wday:      integer
       #    starts_at: time string
       #    ends_at:   time string
       #
+      attr_reader :time_slot
+
       def initialize(params)
         @wday = params[:wday]
-        super(params[:starts_at], params[:ends_at])
+        @time_slot = TimeSlot.new(params[:starts_at], params[:ends_at])
       end
 
       def happens_on?(wday)
@@ -120,7 +130,7 @@ class AutoAllocator
       #  caller is then free to modify.
       #
       def slot_set
-        TimeSlotSet.new(self)
+        TimeSlotSet.new(self.time_slot)
       end
 
     end
@@ -135,6 +145,11 @@ class AutoAllocator
       wday = date.wday
       self.select {|a| a.happens_on?(wday)}
     end
+
+    def slots_on(date)
+      self.on(date).collect {|a| a.time_slot}
+    end
+
   end
 
   class PupilCourses < Hash
@@ -257,6 +272,40 @@ class AutoAllocator
       #  Passed via us so we can update our idea of the loadings.
       #
       @allocated.add(starts_at, ends_at, pcid)
+    end
+
+    def best_choice_for(date, time_slot)
+      unallocated = unallocated_in_week(date)
+      #
+      #  "unallocated" is the initial list of pupil courses which we
+      #  might consider for this slot.  Need to score them.  Algorithm
+      #  is as follows:
+      #
+      #  0. Eliminate any which are too big to fit here.
+      #  1. Eliminate any which have a clashing other allocation.
+      #  2. Calculate the cost of each in this slot.
+      #  3. Take only those with the lowest cost, whatever that is.
+      #  4. Eliminate all those which have a lower cost elsewhere.
+      #  5. Choose the one with the lowest number of other slots
+      #     with the same cost.
+      #
+      #  Note that we might end up eliminating everyone and thus provide
+      #  no-one for this slot.  This should be dealt with later because
+      #  either the unallocated will get allocated somewhere else at lower
+      #  cost, or we'll come back to this slot once those lower cost
+      #  points have been eliminated.
+      #
+      unallocated = unallocated.select {|ua| ua.mins <= time_slot.mins}
+      #
+      #  Does any student have a clashing "other commitment"?
+      #
+      unallocated = unallocated.select {|ua|
+        !@other_allocations[ua.pupil_id]&.any_clashes_with?(date, time_slot)
+      }
+      #
+      #  And return the first of what's left, if any.
+      #
+      unallocated.first
     end
 
   end
@@ -389,8 +438,8 @@ class AutoAllocator
     #Rails.logger.debug("Modal lesson length is #{@pupil_courses.modal_lesson_length} minutes")
     #Rails.logger.debug("Total lesson length is #{@pupil_courses.total_duration} minutes")
     @timetables = transform_timetables(dataset[:timetables])
-    Rails.logger.debug("Raw other allocations")
-    Rails.logger.debug(dataset[:other_allocated].inspect)
+    #Rails.logger.debug("Raw other allocations")
+    #Rails.logger.debug(dataset[:other_allocated].inspect)
     @other_allocations =
       OtherAllocations.new(dataset[:other_allocated])
     @other_engagements = OtherEngagements.new(dataset[:events])
@@ -437,7 +486,7 @@ class AutoAllocator
         #
         effective_availables = []
         effective_dates.each do |date|
-          effective_availables += @availables.on(date)
+          effective_availables += @availables.slots_on(date)
         end
         Rails.logger.debug("We have #{effective_availables.size} effectively available slots.")
         Rails.logger.debug("Slack is #{@pupil_courses.slack(effective_availables)} minutes.")
@@ -475,30 +524,38 @@ class AutoAllocator
           #
           #  Now try to fill these slots.
           #
+          jump_by = @pupil_courses.modal_lesson_length
           time_slots.each do |ts|
-            unallocated = @loadings.unallocated_in_week(@sundate)
-            unless unallocated.empty?
-              #
-              #  For now take the any unallocated ones which will fit.
-              #
-              available_mins = ts.mins
-              offset_mins = 0
-              unallocated.each do |ua|
-                if ua.mins <= available_mins
-                  starts_at =
-                    Time.zone.parse("#{isodate} #{ts.beginning + (offset_mins * 60)}")
-                  ends_at = starts_at + ua.mins.minutes
-                  @loadings.add_allocation(starts_at, ends_at, ua.pcid)
-                  offset_mins += ua.mins
-                  available_mins -= ua.mins
+            finished_slot = false
+            considering = ts
+            while (!finished_slot &&
+                   chosen = @loadings.best_choice_for(date,
+                                                      considering))
+              if chosen
+                starts_at =
+                  Time.zone.parse("#{isodate} #{considering.beginning}")
+                ends_at = starts_at + chosen.mins.minutes
+                @loadings.add_allocation(starts_at, ends_at, chosen.pcid)
+                #Rails.logger.debug(considering.inspect)
+                #Rails.logger.debug(chosen.inspect)
+                considering = considering.pretruncate(chosen.mins.minutes)
+              else
+                #
+                #  Skip forward and try again.  Give up if out of slot.
+                #
+                if considering.mins > jump_by
+                  considering = considering.pretruncate(jump_by.minutes)
+                else
+                  #
+                  #  All we can do on this slot for now.
+                  #  Really want a sort of double-break, but I don't think
+                  #  Ruby has such a thing.
+                  #
+                  finished_slot = true
                 end
               end
             end
           end
-
-          #while (unallocated = @loadings.unallocated_in_week(@sundate)).size > 0)
-         
-          #end
         end
       end
     else
