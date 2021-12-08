@@ -332,6 +332,16 @@ class AutoAllocator
       calculate_all
       Rails.logger.debug("Initial loadings")
       Rails.logger.debug(@loadings_by_pid.inspect)
+      #
+      #  This one is a hash index by pupil id, with each data
+      #  item being a hash indexed by loading value, telling you
+      #  how many slots are available with that loading value.
+      #
+      #  The default value of 0 for the inner means that if we
+      #  have no entry for a given loading value then the number
+      #  of slots available is 0.
+      #
+      @potentials_by_pid = Hash.new { |h,k| h[k] = Hash.new(0) }
     end
 
     def allocated_in_week(date)
@@ -354,12 +364,25 @@ class AutoAllocator
       @pupil_courses.except(allocated_pcids)
     end
 
+    def all_allocated_in_week?(date)
+      unallocated_in_week(date).empty?
+    end
+
     def add_allocation(starts_at, ends_at, pcid)
       #
       #  Passed via us so we can update our idea of the loadings.
       #
       @allocated.add(starts_at, ends_at, pcid)
       recalculate(pcid)
+    end
+
+    def best_possible_score(pc)
+      #
+      #  What's the best possible score for the indicated pupil
+      #  course, given the current state of our @potentials_by_pid
+      #  information?
+      #
+      @potentials_by_pid[pc.pupil_id].keys.min
     end
 
     def best_choice_for(date, time_slot)
@@ -388,7 +411,9 @@ class AutoAllocator
       #  Does any student have a clashing "other commitment"?
       #
       unallocated = unallocated.select {|ua|
-        !@other_allocations[ua.pupil_id]&.any_clashes_with?(date, time_slot)
+        would_use = time_slot.trim_to(ua.mins.minutes)
+        !@other_allocations[ua.pupil_id]&.any_clashes_with?(date,
+                                                            would_use)
       }
       #
       #  Now we want to select all the lowest cost ones.
@@ -416,14 +441,95 @@ class AutoAllocator
       #  Note this is not just "better in our slot", but anywhere better
       #  in the whole of what's left.
       #
-
+      unallocated = unallocated.select { |pc|
+        best_possible_score(pc) >= cost_for(pc, date, time_slot)
+      }
       #
       #  And return the first of what's left, if any.
       #
       if unallocated.first
         Rails.logger.debug("Cost of #{cost_for(unallocated.first, date, time_slot)}")
+      else
+        Rails.logger.debug("Didn't pick anyone")
       end
       unallocated.first
+    end
+
+    def calculate_potentials(all_availables, other_engagements, date_range, jump_by)
+      #
+      #  Work out when the teacher is available in this date range
+      #
+      Rails.logger.debug("Calculating potentials")
+      #
+      #  Reset our accumulator.
+      #
+      @potentials_by_pid = Hash.new { |h,k| h[k] = Hash.new(0) }
+      #
+      #  Now, what pupil courses do we need to consider?
+      #
+      unallocated = unallocated_in_week(date_range.start_date)
+      #
+      #  This following loop is very similar to the one used for
+      #  actual allocation, but unfortunately this needs to be
+      #  done separately because we have to calculate all of
+      #  these before we can do any allocation.
+      #
+      #  Note that we're going to consider all our unallocated
+      #  pupil courses for each potential slot.
+      #
+      date_range.each do |date|
+        isodate = date.iso8601
+        availables = all_availables.on(date)
+        #
+        #  What time slots are available?
+        #
+        time_slots = TimeSlotSet.new
+        availables.each do |ea|
+          time_slots |= ea.slot_set
+        end
+        #
+        #  Remove all existing allocations.
+        #
+        @allocated.allocations_on(date).each do |alloc|
+          time_slots -= alloc.time_slot
+        end
+        #
+        #  And other engagements for this staff member.
+        #
+        other_engagements.on(date).each do |oe|
+          time_slots -= oe.time_slot
+        end
+        #
+        #  
+        #
+        time_slots.each do |ts|
+          considering = ts
+          while considering
+            #
+            #  See whether each lesson would fit here.
+            #
+            unallocated.select { |pc|
+              pc.mins <= considering.mins
+            }.select { |pc|
+              would_use = considering.trim_to(pc.mins.minutes)
+              !@other_allocations[pc.pupil_id]&.any_clashes_with?(date,
+                                                                  would_use)
+            }.each do |pc|
+              @potentials_by_pid[pc.pupil_id][cost_for(pc, date, considering)] += 1
+            end
+            #
+            #  And move on if possible.
+            #
+            if considering.mins > jump_by
+              considering = considering.pretruncate(jump_by.minutes)
+            else
+              considering = nil
+            end
+          end
+        end
+      end
+      Rails.logger.debug("Potentials")
+      Rails.logger.debug(@potentials_by_pid.inspect)
     end
 
     private
@@ -698,6 +804,8 @@ class AutoAllocator
     if (@sundate)
       our_week = DateRange.new(@sundate, 7.days)
       effective_dates = @cycle.date_range & our_week
+      jump_by = @pupil_courses.modal_lesson_length
+      all_allocated = false
       if effective_dates
         Rails.logger.debug("Going to process #{effective_dates}")
         #Rails.logger.debug("Week number #{@allocation_set.week_of(effective_dates.start_date)}")
@@ -705,75 +813,88 @@ class AutoAllocator
         #  What availability slots does our staff member have in this
         #  date range?
         #
-        effective_availables = []
-        effective_dates.each do |date|
-          effective_availables += @availables.slots_on(date)
-        end
-        Rails.logger.debug("We have #{effective_availables.size} effectively available slots.")
-        Rails.logger.debug("Slack is #{@pupil_courses.slack(effective_availables)} minutes.")
         Rails.logger.debug("#{@pupil_courses.size} pupil courses with #{@loadings.unallocated_in_week(@sundate).size} unallocated")
-        #
-        #  Have to process things one day at a time because that's how
-        #  time slots work.
-        #
-        effective_dates.each do |date|
-          isodate = date.iso8601
-          availables = @availables.on(date)
+        got_something = true
+        while got_something && !all_allocated do
+          got_something = false
           #
-          #  What time slots are available?
+          #  Initial calculation of potential student loadings
           #
-          time_slots = TimeSlotSet.new
-          availables.each do |ea|
-            time_slots |= ea.slot_set
-          end
+          @loadings.calculate_potentials(@availables,
+                                         @other_engagements,
+                                         effective_dates,
+                                         jump_by)
           #
-          #  Remove all existing allocations.
+          #  Now work through all our dates, trying to allocate something.
           #
-          @allocation_set.allocations_on(date).each do |alloc|
-            time_slots -= alloc.time_slot
-          end
-          #
-          #  And other engagements for this staff member.
-          #
-          @other_engagements.on(date).each do |oe|
-            time_slots -= oe.time_slot
-          end
-          Rails.logger.debug("Available times on #{date}:")
-          time_slots.each do |ts|
-            Rails.logger.debug("  #{ts}")
-          end
-          #
-          #  Now try to fill these slots.
-          #
-          jump_by = @pupil_courses.modal_lesson_length
-          time_slots.each do |ts|
-            finished_slot = false
-            considering = ts
-            while (!finished_slot &&
-                   chosen = @loadings.best_choice_for(date,
-                                                      considering))
-              if chosen
-                starts_at =
-                  Time.zone.parse("#{isodate} #{considering.beginning}")
-                ends_at = starts_at + chosen.mins.minutes
-                @loadings.add_allocation(starts_at, ends_at, chosen.pcid)
-                #Rails.logger.debug(considering.inspect)
-                #Rails.logger.debug(chosen.inspect)
-                considering = considering.pretruncate(chosen.mins.minutes)
-              else
-                #
-                #  Skip forward and try again.  Give up if out of slot.
-                #
-                if considering.mins > jump_by
-                  considering = considering.pretruncate(jump_by.minutes)
+          effective_dates.each do |date|
+            isodate = date.iso8601
+            availables = @availables.on(date)
+            #
+            #  What time slots are available?
+            #
+            time_slots = TimeSlotSet.new
+            availables.each do |ea|
+              time_slots |= ea.slot_set
+            end
+            #
+            #  Remove all existing allocations.
+            #
+            @allocation_set.allocations_on(date).each do |alloc|
+              time_slots -= alloc.time_slot
+            end
+            #
+            #  And other engagements for this staff member.
+            #
+            @other_engagements.on(date).each do |oe|
+              time_slots -= oe.time_slot
+            end
+            unless time_slots.empty?
+              Rails.logger.debug("Available times on #{date}:")
+              time_slots.each do |ts|
+                Rails.logger.debug("  #{ts}")
+              end
+            end
+            #
+            #  Now try to fill something.
+            #
+            time_slots.each do |ts|
+              considering = ts
+              next_slot = false
+              while !got_something && !next_slot && !all_allocated
+                chosen = @loadings.best_choice_for(date, considering)
+                if chosen
+                  starts_at =
+                    Time.zone.parse("#{isodate} #{considering.beginning}")
+                  ends_at = starts_at + chosen.mins.minutes
+                  @loadings.add_allocation(starts_at, ends_at, chosen.pcid)
+                  got_something = true
+                  Rails.logger.debug("Added allocation")
+                  all_allocated = @loadings.all_allocated_in_week?(date)
                 else
                   #
-                  #  All we can do on this slot for now.
-                  #  Really want a sort of double-break, but I don't think
-                  #  Ruby has such a thing.
+                  #  Skip forward and try again.  Give up if out of slot.
                   #
-                  finished_slot = true
+                  if considering.mins > jump_by
+                    Rails.logger.debug("Moving forward")
+                    considering = considering.pretruncate(jump_by.minutes)
+                  else
+                    #
+                    #  All we can do on this slot for now.
+                    #  Really want a sort of double-break, but I don't think
+                    #  Ruby has such a thing.
+                    #
+                    next_slot = true
+                  end
                 end
+              end
+              #
+              #  If we got something in this time slot then we need
+              #  to break out in order to recalculate all the student
+              #  potential loadings.
+              #
+              if got_something
+                break
               end
             end
           end

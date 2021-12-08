@@ -142,4 +142,12 @@ class TimeSlotTest < ActiveSupport::TestCase
     assert_equal "08:00 - 09:00", ts1.to_s
   end
 
+  test "can trim variously" do
+    ts = TimeSlot.new("08:00 - 12:00")
+    assert_equal 240, ts.mins
+    assert_equal 60, ts.trim_to(1.hour).mins
+    assert_equal 90, ts.trim_to(90.minutes).mins
+    assert_equal 240, ts.trim_to(5.hours).mins
+  end
+
 end

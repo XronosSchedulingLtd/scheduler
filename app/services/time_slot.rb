@@ -193,4 +193,13 @@ class TimeSlot < TodShift
     #
     self.duration / 60
   end
+
+  def trim_to(new_duration)
+    if self.duration > new_duration
+      TimeSlot.new(self.beginning, self.beginning + new_duration)
+    else
+      TimeSlot.new(self.beginning, self.ending)
+    end
+  end
+
 end
