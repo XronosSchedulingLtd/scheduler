@@ -452,7 +452,7 @@ class AutoAllocator
       else
         Rails.logger.debug("Didn't pick anyone")
       end
-      unallocated.first
+      least_flexible(unallocated, lowest_cost)
     end
 
     def calculate_potentials(all_availables, other_engagements, date_range, jump_by)
@@ -533,7 +533,26 @@ class AutoAllocator
     end
 
     private
-   
+
+    def least_flexible(unallocated, cost)
+      #
+      #  Pick the unallocated pupil course which has the fewest available
+      #  slots at the indicated cost.
+      #
+      #  N.B.  "unallocated" array may be empty.
+      #
+      fewest = 999
+      chosen = nil
+      unallocated.each do |pc|
+        possibilities = @potentials_by_pid[pc.pupil_id][cost]
+        if possibilities < fewest
+          fewest = possibilities
+          chosen = pc
+        end
+      end
+      chosen
+    end
+
     def cost_for(pc, date, target_slot)
       #
       #  Calculate the cost for the pupil of putting an allocation for
