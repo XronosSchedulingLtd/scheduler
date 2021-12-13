@@ -457,8 +457,26 @@ class EventAssembler
   def call
 #    raise params.inspect
     resulting_events = []
-    if @current_user && @current_user.known?
-      concern_id = @params[:cid].to_i
+    cid = @params[:cid]
+    #
+    #  Special case first if the caller knows the UUID of an element.
+    #
+    if cid && (splut = cid.match(/\AUUE-(.*)\z/))
+      #
+      #  Direct request for an element via UUID.
+      #
+      element = Element.find_by(uuid: splut[1])
+      if element &&
+        resulting_events +=
+          element.events_on(@start_date,
+                            @end_date,
+                            Eventcategory.visible.to_a).collect {|e|
+            ScheduleEvent.new(@start_date,
+                              e, nil, nil, '#3A87AD')
+          }
+      end
+    elsif @current_user && @current_user.known?
+      concern_id = cid.to_i
       if concern_id == 0
         #
         #  For this particular request, we make a note of the start
@@ -669,7 +687,7 @@ class EventAssembler
       #  We also might be passed no ID at all, in which case we
       #  return just the breakthrough events.
       #
-      fake_id = @params[:cid]
+      fake_id = cid
       if fake_id =~ /^E\d+$/
         element_id = fake_id[1..-1].to_i
         element = Element.find_by(id: element_id)
