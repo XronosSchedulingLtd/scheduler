@@ -16,7 +16,7 @@
       <%= f.label :name, class: "right inline" %>
     </div>
     <div class="small-6 columns">
-      <%= f.text_field :name %>
+      <%= f.text_field :name, disabled: !@all_fields %>
     </div>
     <div class="small-3 columns">
     </div>
@@ -26,7 +26,17 @@
       <%= f.label :current, class: "right inline" %>
     </div>
     <div class="small-6 columns">
-      <%= f.check_box :current %>
+      <%= f.check_box :current, disabled: !@all_fields %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
+      <%= f.label :missable, class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.check_box :missable %>
     </div>
     <div class="small-3 columns">
     </div>
