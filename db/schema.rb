@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_10_04_092405) do
+ActiveRecord::Schema.define(version: 2021_12_10_102150) do
 
   create_table "ad_hoc_domain_allocations", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name"
@@ -18,6 +18,7 @@ ActiveRecord::Schema.define(version: 2021_10_04_092405) do
     t.text "allocations", limit: 16777215
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "scores", limit: 16777215
     t.index ["ad_hoc_domain_cycle_id"], name: "index_ad_hoc_domain_allocations_on_ad_hoc_domain_cycle_id"
   end
 
@@ -98,6 +99,7 @@ ActiveRecord::Schema.define(version: 2021_10_04_092405) do
     t.integer "default_cycle_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "missable_threshold", default: 6
   end
 
   create_table "ahoy_messages", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade do |t|
@@ -744,6 +746,7 @@ ActiveRecord::Schema.define(version: 2021_10_04_092405) do
     t.integer "source_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean "missable", default: false
   end
 
   create_table "taggrouppersonae", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade do |t|

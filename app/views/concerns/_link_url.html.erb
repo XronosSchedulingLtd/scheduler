@@ -1,0 +1,25 @@
+<div class="row collapse">
+  <label><%= link_url.title %></label>
+  <div class="large-12 columns">
+    <div class="row collapse ical-row">
+      <div class="small-9 columns">
+        <input id='link-link-<%= link_url.linkid %>'
+             type='text'
+             value='<%= link_url.url %>'/>
+      </div>
+      <div class="small-1 column">
+        <a class="clip-button zfbutton postfix"
+           data-clipboard-target='#link-link-<%= link_url.linkid %>'
+           title="Copy to clipboard"
+           aria-label="Hello">
+        <img src="/images/clippy.png" />
+        </a>
+      </div>
+      <div class="small-1 columns">
+        <div class="copied-text invisible">Copied</div>
+      </div>
+      <div class="small-1 columns">
+      </div>
+    </div>
+  </div>
+</div>

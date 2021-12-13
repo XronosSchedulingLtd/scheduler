@@ -60,6 +60,21 @@ class ConcernsController < ApplicationController
 
   end
 
+  class LinkUrl
+    attr_reader :title, :url, :linkid
+
+    def initialize(title, element, id, agenda = false)
+      @title = title
+      @url = "#{Setting.protocol_prefix}://#{Setting.dns_domain_name}#{Setting.port_no}/#{ agenda ? "agenda" : ""}?tt=UUE-#{element.uuid}"
+      @linkid = id.to_s
+    end
+
+    def to_partial_path
+      "link_url"
+    end
+
+  end
+
   before_action :set_concern, only: [:edit, :update]
 
   # POST /concerns
@@ -283,8 +298,10 @@ class ConcernsController < ApplicationController
       #
       if @concern.element.uuid.blank?
         @urls = nil
+        @links = nil
       else
         @urls = construct_urls
+        @links = construct_links
       end
       @proforma = @concern.owns && !@concern.equality
       @message = ""
@@ -522,6 +539,13 @@ class ConcernsController < ApplicationController
                           everything: true)
       result << set4
     end
+    result
+  end
+
+  def construct_links
+    result = []
+    result << LinkUrl.new("Calendar view", @concern.element, 0)
+    result << LinkUrl.new("Agenda view", @concern.element, 1, true)
     result
   end
 

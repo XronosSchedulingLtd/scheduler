@@ -5,7 +5,7 @@ module DisplaySettings
   #
   def setvars_for_lhs(user)
     @concerns     = Array.new
-    if user && user.known?
+    if user && user.known? && !@required_tt
       @user         = user
       @with_edit    = user.create_events?
       @selector_box = user.can_add_concerns
@@ -45,20 +45,40 @@ module DisplaySettings
       @my_events    = false
       @third_column = false
       @first_day    = 0
-      Property.public_ones.each do |p|
-        fake_id = "E#{p.element.id}"
-        @concerns << Concern.new({
-          element: p.element,
-          colour: p.element.preferred_colour,
-          fake_id: fake_id,
-          #
-          #  This next line looks a trifle weird, but we want the case
-          #  of no entry at all in the session to cause it to be set
-          #  to true.  Only if it's actively been given a false
-          #  value do we make it invisible.
-          #
-          visible: session[fake_id] != false
-        })
+      if @required_tt
+        #
+        #  The request is to view the timetable for one specific element,
+        #  specified by UUID.  Users can do this whether or not they are
+        #  logged on, but we behave as if they're not logged on.
+        #
+        #  If the UUID given is invalid, you see nothing.
+        #
+        element = Element.find_by(uuid: @required_tt)
+        if element
+          fake_id = "UUE-#{@required_tt}"
+          @concerns << Concern.new({
+            element: element,
+            colour: element.preferred_colour,
+            fake_id: fake_id,
+            visible: true
+          })
+        end
+      else
+        Property.public_ones.each do |p|
+          fake_id = "E#{p.element.id}"
+          @concerns << Concern.new({
+            element: p.element,
+            colour: p.element.preferred_colour,
+            fake_id: fake_id,
+            #
+            #  This next line looks a trifle weird, but we want the case
+            #  of no entry at all in the session to cause it to be set
+            #  to true.  Only if it's actively been given a false
+            #  value do we make it invisible.
+            #
+            visible: session[fake_id] != false
+          })
+        end
       end
     end
   end
