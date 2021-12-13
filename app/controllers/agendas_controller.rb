@@ -12,6 +12,19 @@ class AgendasController < ApplicationController
   #
   def show
     #
+    #  Whose agenda should we show?
+    #  A specified one overrides the logged in one.
+    #
+    if params[:tt]
+      #
+      #  The user may have sent something invalid, but if they do
+      #  then they'll see nothing.
+      #
+      @uuid = params[:tt]
+    else
+      @uuid = "UUE-#{current_user&.own_element&.uuid}"
+    end
+    #
     #  Do we want zoom links?
     #
     @default_date = Date.today.strftime("%Y-%m-%d")
@@ -40,7 +53,7 @@ class AgendasController < ApplicationController
   private
 
   def authorized?(action = action_name, resource = nil)
-    known_user?
+    known_user? || params.has_key?(:tt)
   end
 
 end

@@ -257,7 +257,6 @@ class EventAssembler
         result[:prefix] = @prefix
       end
       if @include_zoom_id
-        Rails.logger.debug("Trying to include zoom id")
         rszi = @event.relevant_single_zoom_id
         unless rszi.blank?
           result[:zoomId] = rszi
@@ -736,86 +735,48 @@ class EventAssembler
   #  as breakthrough - typically the week letters.
   #
   def agenda_events
-    if @current_user && @current_user.known?
-      #
-      #  First the schoolwide events
-      #
-      schoolwide_categories = Eventcategory.schoolwide.to_a
-      if schoolwide_categories.empty?
-        schoolwide_events = []
-      else
-        schoolwide_events =
-          Event.events_on(
-            @start_date,
-            @end_date,
-            schoolwide_categories
-          ).collect { |e|
-            ScheduleEvent.new(
-              @start_date,      # View start
-              e,                # Event
-              nil,              # Via element
-              @current_user     # Current user
-            )
-          }
-      end
-      #
-      #  And now events relating to the current user.
-      #
-      concern = @current_user.concerns.detect {|c| c.equality?}
-      if concern
-        element = concern.element
-        selector = Eventcategory.not_schoolwide.visible
-        unless @current_user.suppressed_eventcategories.empty?
-          selector =
-            selector.exclude(@current_user.suppressed_eventcategories)
-        end
+    result = []
+    tt = @params[:tt]
+    if tt && (splut = tt.match(/\AUUE-(.*)\z/))
+      element = Element.find_by(uuid: splut[1])
+      if element
         #
-        #  The .to_a forces the lambda to be evaluated now.  We don't
-        #  want the database being queried again and again for the
-        #  same answer.
+        #  First the schoolwide events
         #
-        event_categories = selector.to_a
-        #
-        #  Does the user have any extra event categories listed?
-        #
-        #  Note that we make no attempt here to check whether the
-        #  user is allowed to have any extra - that's done at
-        #  the stage of updating the user's record.
-        #
-        unless @current_user.extra_eventcategories.empty?
-          extra_categories =
-            Eventcategory.where(id: @current_user.extra_eventcategories)
-          unless extra_categories.empty?
-            event_categories = (event_categories + extra_categories).uniq
-          end
-        end
-        if event_categories.empty?
-          #
-          #  If the user has suppressed all his event categories
-          #  then the underlying code would treat an empty array
-          #  as meaning "no restriction" and you'd be back to seeing
-          #  them all again.
-          #
-          element_events = []
+        schoolwide_categories = Eventcategory.schoolwide.to_a
+        if schoolwide_categories.empty?
+          schoolwide_events = []
         else
-          selector =
-            element.commitments_on(startdate:           @start_date,
-                                   enddate:             @end_date,
-                                   eventcategory:       event_categories,
-                                   include_nonexistent: true)
-          if concern.list_teachers
-            selector = selector.preload(event: {staff_elements: :entity})
-          else
-            selector = selector.preload(:event)
-          end
+          schoolwide_events =
+            Event.events_on(
+              @start_date,
+              @end_date,
+              schoolwide_categories
+            ).collect { |e|
+              ScheduleEvent.new(
+                @start_date,      # View start
+                e,                # Event
+                nil,              # Via element
+                @current_user     # Current user
+              )
+            }
+        end
+        #
+        #  And now events relating to the indicated element.
+        #
+        list_teachers = element.entity_type == "Pupil"
+        selector =
+          element.commitments_on(
+            startdate:           @start_date,
+            enddate:             @end_date,
+            eventcategory:       Eventcategory.not_schoolwide.visible,
+            include_nonexistent: true
+          ).preload(
+            event: {staff_elements: :entity}
+          )
           element_events =
                     selector.
-                    select { |c|
-                      !c.tentative? ||
-                      concern.owns? ||
-                      c.event.owner_id == @current_user.id ||
-                      (@current_user.can_view_unconfirmed? && !c.rejected?)
-                    }.
+                    select { |c| !c.tentative? }.
                     collect {|c| c.event}.
                     uniq.
                     collect {|e|
@@ -823,15 +784,15 @@ class EventAssembler
                                         e,
                                         element,
                                         @current_user,
-                                        concern.colour,
-                                        concern.equality,
-                                        concern.list_teachers,
+                                        '#3A87AD',
+                                        true,
+                                        list_teachers,
                                         true)
                     }
-        end
+        result = schoolwide_events + element_events
       end
     end
-    return schoolwide_events + element_events
+    return result
   end
 
   #
