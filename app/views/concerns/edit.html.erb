@@ -13,6 +13,9 @@
   <% if @urls %>
     <li class="tab-title"><a href="#concern-feeds">Feeds</a></li>
   <% end %>
+  <% if @links %>
+    <li class="tab-title"><a href="#concern-links">Links</a></li>
+  <% end %>
   <li class="tab-title"><a href="#concern-report">Report</a></li>
   <% if @proforma %>
     <li class="tab-title"><a href="#concern-proforma">Forms</a></li>
@@ -32,6 +35,14 @@
 <% if @urls %>
   <div class="content" id="concern-feeds">
     <%= render @urls %>
+  </div>
+<% end %>
+<% if @links %>
+  <div class="content" id="concern-links">
+    <h3>Direct links</h3>
+    <p>These links will give direct access to the entity's calendar
+    or agenda without any need to log in.</p>
+    <%= render @links %>
   </div>
 <% end %>
   <div class="content" id="concern-report">
