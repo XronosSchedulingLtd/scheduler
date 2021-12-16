@@ -985,11 +985,17 @@ var editing_allocation = function() {
       lessons = timetable.entriesOn(moment(item.starts_at));
       for (j = 0; j < lessons.length; j++) {
         lesson = lessons[j];
-        if (item.overlapsLesson(lesson)) {
-          if (loadings[lesson.s] === undefined) {
-            loadings[lesson.s] = 1;
-          } else {
-            loadings[lesson.s] = loadings[lesson.s] + 1;
+        //
+        //  lesson.m === 1 means the lesson is missable and so we
+        //  don't need to keep a score for it.
+        //
+        if (lesson.m !== 1) {
+          if (item.overlapsLesson(lesson)) {
+            if (loadings[lesson.s] === undefined) {
+              loadings[lesson.s] = 1;
+            } else {
+              loadings[lesson.s] = loadings[lesson.s] + 1;
+            }
           }
         }
       }
