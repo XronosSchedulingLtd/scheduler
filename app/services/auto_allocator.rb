@@ -155,12 +155,13 @@ class AutoAllocator
   class PupilCourses < Hash
 
     class PupilCourse
-      attr_reader :pcid, :pupil_id, :mins
+      attr_reader :pcid, :pupil_id, :mins, :can_miss
 
       def initialize(raw_pc)
         @pcid =     raw_pc[:pcid]
         @pupil_id = raw_pc[:pupil_id]
         @mins =     raw_pc[:mins]
+        @can_miss = raw_pc[:cm]
       end
 
     end
@@ -229,11 +230,12 @@ class AutoAllocator
 
       class OneLesson
 
-        attr_reader :time_slot, :subject_id
+        attr_reader :time_slot, :subject_id, :missable
 
         def initialize(slot)
           @time_slot = TimeSlot.new(slot[:b], slot[:e])
           @subject_id = slot[:s]
+          @missable = (slot[:m] == 1)
         end
       end
 
@@ -418,6 +420,11 @@ class AutoAllocator
       #
       #  Now we want to select all the lowest cost ones.
       #
+      #  Note here that sixth formers' academic lessons have a cost of
+      #  1000, so they will never slip under the lowest_cost threshold
+      #  of 999.  All sixth formers with an academic clash are thus
+      #  discarded at this point.
+      #
       lowest_cost = 999
       chosen = []
       unallocated.each do |ua|
@@ -444,15 +451,13 @@ class AutoAllocator
       unallocated = unallocated.select { |pc|
         best_possible_score(pc) >= cost_for(pc, date, time_slot)
       }
-      #
-      #  And return the first of what's left, if any.
-      #
-      if unallocated.first
-        Rails.logger.debug("Cost of #{cost_for(unallocated.first, date, time_slot)}")
+      chosen = least_flexible(unallocated, lowest_cost)
+      if chosen
+        Rails.logger.debug("Chose #{chosen.pupil_id} at a cost of #{cost_for(chosen, date, time_slot)}")
       else
         Rails.logger.debug("Didn't pick anyone")
       end
-      least_flexible(unallocated, lowest_cost)
+      chosen
     end
 
     def calculate_potentials(all_availables, other_engagements, date_range, jump_by)
@@ -539,15 +544,33 @@ class AutoAllocator
       #  Pick the unallocated pupil course which has the fewest available
       #  slots at the indicated cost.
       #
+      #  Sixth formers take priority, even if they are not the
+      #  least flexible.  Once we've chosen one, only another less
+      #  flexible sixth former can usurp the slot.
+      #
+      #  E.g. a sixth former has 3 slots with a cost of 0, whilst
+      #  a middle schooler has only 1 slot with a cost of 0, but other
+      #  possibilities available.
+      #
       #  N.B.  "unallocated" array may be empty.
       #
       fewest = 999
       chosen = nil
+      chosen_inflexible_one = false
       unallocated.each do |pc|
-        possibilities = @potentials_by_pid[pc.pupil_id][cost]
-        if possibilities < fewest
-          fewest = possibilities
-          chosen = pc
+        #
+        #  If we have already chosen an inflexible pupil and this latest
+        #  one is flexible then we don't consider him or her.
+        #
+        unless chosen_inflexible_one && pc.can_miss
+          possibilities = @potentials_by_pid[pc.pupil_id][cost]
+          if possibilities < fewest
+            fewest = possibilities
+            chosen = pc
+            if !pc.can_miss
+              chosen_inflexible_one = true
+            end
+          end
         end
       end
       chosen
@@ -571,7 +594,23 @@ class AutoAllocator
         lessons = timetable.entries_on(date)
         lessons.each do |lesson|
           if slot.overlaps?(lesson.time_slot)
-            cost += (loadings[lesson.subject_id] + 1)
+            #
+            #  Is this student allowed to miss this lesson?
+            #
+            if pc.can_miss
+              #
+              #  This student is allowed to miss academic lessons
+              #
+              cost += (loadings[lesson.subject_id] + 1)
+            else
+              #
+              #  This student is not allowed to miss academic
+              #  lessons.  Is this lesson missable?
+              #
+              unless lesson.missable
+                cost += 1000
+              end
+            end
           end
         end
       end
