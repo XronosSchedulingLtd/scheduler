@@ -15,8 +15,11 @@ class AdHocDomainAllocation < ApplicationRecord
 
   serialize :allocations, Hash
 
+  serialize :scores, Hash
+
   def as_json(options = {})
     Rails.logger.debug("Entering as_json")
+    threshold = ad_hoc_domain_cycle.ad_hoc_domain.missable_threshold
     result = {
       id:   self.id,
       name: self.name,
@@ -35,7 +38,11 @@ class AdHocDomainAllocation < ApplicationRecord
           pupil_id: pupil_course.pupil_id,
           mins: pupil_course.minutes,
           name: pupil_course.pupil.name,
-          subject: pupil_course.ad_hoc_domain_subject.subject_name
+          subject: pupil_course.ad_hoc_domain_subject.subject_name,
+          #
+          #  cm stands for Can Miss (Academic Lessons)
+          #
+          cm: (threshold == 0 || pupil_course.pupil.year_group < threshold)
         }
         pcs << pc
         known_pcids << pupil_course.id
@@ -106,13 +113,16 @@ class AdHocDomainAllocation < ApplicationRecord
               if subject
                 innersubjects[subject.id] ||= subject.name
                 subject_id = subject.id
+                missable = subject.missable ? 1 : 0
               else
                 subject_id = 0
+                missable = 1
               end
               entry = {
                 b: event.starts_at.to_s(:hhmm),
                 e: event.ends_at.to_s(:hhmm),
-                s: subject_id
+                s: subject_id,
+                m: missable
               }
               if subject_id == 0
                 entry[:body] = event.body
