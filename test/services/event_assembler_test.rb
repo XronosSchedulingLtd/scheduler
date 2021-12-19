@@ -78,7 +78,7 @@ class EventAssemblerTest < ActiveSupport::TestCase
     @basic_params = {
       start: "2020-04-01",
       end:   "2020-04-03",
-      cid:   @concern.id
+      cid:   "#{@concern.id}"
     }
   end
 
