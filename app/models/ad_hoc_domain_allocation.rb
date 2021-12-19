@@ -220,14 +220,100 @@ class AdHocDomainAllocation < ApplicationRecord
     result
   end
 
-  def update_allocations(ad_hoc_domain_staff, allocations)
+  def update_allocations(ad_hoc_domain_staff, staff_allocations, loadings)
     #
     #  What arrives from Rails is an array of HashWithIndifferentAccess.
     #  Whilst we can save this to the database it's inefficient, and
     #  I'd like to standardize on using just symbols.  Hence, convert it.
     #
+    #  We also want to receive the "clashes" information, but not save
+    #  it to the database since it is transitory.
+    #
+    staff_allocations = staff_allocations.collect { |e|
+      e.to_hash.symbolize_keys
+    }
     self.allocations[ad_hoc_domain_staff.id] =
-      allocations.collect {|e| e.to_hash.symbolize_keys}
+      staff_allocations.collect { |e| e.except(:clashes) }
+    if loadings
+      #
+      #  If we've been given some loadings then update the scores
+      #  for this staff member's entry as well.
+      #
+      #self.scores[ad_hoc_domain_staff.id] =
+      #
+      #  loadings is a HashWithIndifferentAccess which means that :foo
+      #  and "foo" are the same as keys.  Unfortunately it doesn't do the
+      #  same for 12 and "12".  All our keys are currently strings and we
+      #  want them to be integers in order to be able to use them.
+      #
+      loadings = to_integer_keys(loadings.to_hash)
+      Rails.logger.debug("Staff allocations")
+      Rails.logger.debug(staff_allocations.inspect)
+      Rails.logger.debug("Loadings")
+      Rails.logger.debug(loadings.inspect)
+      #
+      #  All the allocations contain PupilCourseIds (pcids) but the loadings
+      #  are by PupilID (pid) because a pupil may have more than one PupilCourse
+      #  but all the loadings go together.  We thus need to be able to
+      #  convert between the two.  Load them all in one go from the d/b.
+      #
+      id_converter = {}
+      target = 0
+      increment = ad_hoc_domain_cycle.num_weeks
+      threshold = ad_hoc_domain_staff.ad_hoc_domain.missable_threshold
+      ad_hoc_domain_staff.ad_hoc_domain_pupil_courses.each do |pc|
+        id_converter[pc.id] = pc.pupil_id
+        if threshold == 0 || pc.pupil.year_group < threshold
+          target += increment
+        end
+      end
+      #
+      #  And now the calculation.
+      #
+      staff_scores = Hash.new { |h,k| h[k] = Array.new }
+      staff_allocations.each do |allocation|
+        pcid = allocation[:pcid]
+        Rails.logger.debug("pcid is #{pcid}")
+        #
+        #  Guard against gash input.
+        #
+        if pcid && (pcid.is_a? Integer)
+          pid = id_converter[pcid]
+          Rails.logger.debug("pid is #{pid}")
+          if pid && (pid.is_a? Integer)
+            #
+            #  We have enough to make an entry, although it still
+            #  may be zero.
+            #
+            score = 0
+            clashes = allocation[:clashes]
+            if clashes
+              #
+              #  Clashes should be an array of integers, each of which is
+              #  a subject id.
+              #
+              pupil_loadings = loadings[pid]
+              if pupil_loadings
+                clashes.each do |clash|
+                  clash_score = pupil_loadings[clash]
+                  if clash_score
+                    Rails.logger.debug("Adding #{clash_score}")
+                    score += clash_score
+                  end
+                end
+              end
+            end
+            staff_scores[pcid] << score
+          end
+        end
+      end
+      Rails.logger.debug("Calculated staff scores")
+      Rails.logger.debug(staff_scores.inspect)
+      self.scores[ad_hoc_domain_staff.id] = {
+        target: target,
+        individual: staff_scores
+      }
+    end
     self.save   # And return result
   end
 
@@ -243,6 +329,49 @@ class AdHocDomainAllocation < ApplicationRecord
   #  Return a float, which may be Infinity.
   #
   def percentage_complete(ad_hoc_domain_staff = nil)
+    num_allocated, lessons_per_cycle = counts_for(ad_hoc_domain_staff)
+    num_allocated.to_f / lessons_per_cycle.to_f
+  end
+
+  def to_do(ad_hoc_domain_staff = nil)
+    num_allocated, lessons_per_cycle = counts_for(ad_hoc_domain_staff)
+    return lessons_per_cycle - num_allocated
+  end
+
+  #
+  #  A note on scores.  The scores attribute is a hash, indexed by
+  #  AdHocDomainStaff id.  Each entry is then a hash, indexed by
+  #  AdHocDomainPupilCourse id.  Each entry then is just an array of
+  #  loadings - e.g. [1,1,1,2,2]
+  #
+  def score_for(ad_hoc_domain_staff)
+    staff_scores = scores[ad_hoc_domain_staff.id]
+    if staff_scores
+      denominator = staff_scores[:target] || "-"
+      values = (staff_scores[:individual] || {}).values.flatten
+      numerator = values.sum
+#      denominator =
+#        ad_hoc_domain_staff.num_middle_pupils * ad_hoc_domain_cycle.num_weeks
+      #
+      #  For a realistic score, the denominator should show only how many
+      #  have been allocated - not how many are needed in total.
+      #
+      #denominator = allocations[ad_hoc_domain_staff.id].count
+      #
+      #  Ah now - that's not right either.  We really want to count
+      #  just the number of middle school lessons which have been allocated.
+      #  The target score for a sixth form lesson is 0.
+      #
+      max = values.max || "-"
+      "#{numerator}/#{denominator} (#{max})"
+    else
+      "-/- (-)"
+    end
+  end
+
+  private
+
+  def counts_for(ad_hoc_domain_staff = nil)
     num_weeks = self.ad_hoc_domain_cycle.num_weeks
     if ad_hoc_domain_staff
       #
@@ -277,7 +406,27 @@ class AdHocDomainAllocation < ApplicationRecord
         end
       end
     end
-    num_allocated.to_f / lessons_per_cycle.to_f
+    return num_allocated, lessons_per_cycle
+  end
+
+  def to_integer_keys(hash)
+    #
+    #  Given an input hash which has strings as keys, return a new hash
+    #  which has integers as keys.
+    #
+    result = {}
+    hash.each do |key, value|
+      newkey = key.to_i
+      if value.is_a? Hash
+        #
+        #  Work recursively.
+        #
+        result[newkey] = to_integer_keys(value)
+      else
+        result[newkey] = value
+      end
+    end
+    result
   end
 
 end

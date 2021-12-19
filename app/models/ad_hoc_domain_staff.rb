@@ -68,6 +68,17 @@ class AdHocDomainStaff < ApplicationRecord
     self.ad_hoc_domain_pupil_courses.size
   end
 
+  def num_middle_pupils
+    threshold = self.ad_hoc_domain.missable_threshold
+    if threshold == 0
+      num_real_pupils
+    else
+      self.ad_hoc_domain_pupil_courses.select { |pc|
+        pc.pupil.year_group < threshold
+      }.size
+    end
+  end
+
   def num_real_subjects
     self.ad_hoc_domain_subject_staffs.size
   end

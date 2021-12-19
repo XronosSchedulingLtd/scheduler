@@ -118,7 +118,8 @@ class AdHocDomainAllocationsController < ApplicationController
     respond_to do |format|
       if @ad_hoc_domain_allocation.update_allocations(
           @ad_hoc_domain_staff,
-          ad_hoc_domain_allocation_params.to_h[:allocations])
+          ad_hoc_domain_allocation_params.to_h[:allocations],
+          loadings_params)
         format.json
       else
         format.json { render :save_failed, status: 99 }
@@ -217,7 +218,9 @@ class AdHocDomainAllocationsController < ApplicationController
   # Never trust parameters from the scary internet, only allow the white list through.
   def ad_hoc_domain_allocation_params
     params.require(:ad_hoc_domain_allocation).
-      permit(:name, allocations: [:starts_at, :ends_at, :pcid])
+      permit(:name,
+             :loadings_by_pid,
+             allocations: [:starts_at, :ends_at, :pcid, clashes: []])
   end
 
   def auto_allocate_params
@@ -238,5 +241,13 @@ class AdHocDomainAllocationsController < ApplicationController
     request.parameters.slice(:sundate, :allocations)
   end
 
+  def loadings_params
+    our_bit = request.parameters.slice(:loadings_by_pid)
+    if our_bit
+      our_bit[:loadings_by_pid]
+    else
+      nil
+    end
+  end
 end
 

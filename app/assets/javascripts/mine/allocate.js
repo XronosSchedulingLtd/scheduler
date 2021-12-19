@@ -982,6 +982,7 @@ var editing_allocation = function() {
       var lessons;
       var j;
 
+      item.clashes = [];
       lessons = timetable.entriesOn(moment(item.starts_at));
       for (j = 0; j < lessons.length; j++) {
         lesson = lessons[j];
@@ -996,6 +997,7 @@ var editing_allocation = function() {
             } else {
               loadings[lesson.s] = loadings[lesson.s] + 1;
             }
+            item.clashes.push(lesson.s);
           }
         }
       }
@@ -1053,6 +1055,7 @@ var editing_allocation = function() {
       //  And replace the old record for this pupil.
       //
       loadings_by_pid[pid] = new_loadings;
+      //console.log({loadings_by_pid});
     };
 
     that.loadingOf = function(sid, pid) {
@@ -1069,6 +1072,25 @@ var editing_allocation = function() {
         }
       }
       return 0;
+    }
+
+    that.all = function() {
+      return loadings_by_pid;
+    }
+
+    that.scores = function() {
+      //
+      //  Calculate our current set of scores to return to the host.
+      //  We generate a hash, keyed by pupil course id.
+      //
+      var scores = {};
+      var allocations = mine.allocations.all();
+      for (i = 0; i < allocations.length; i++) {
+        allocation = allocations[i];
+        pc = pcs[allocation.pcid];
+
+      }
+      return scores;
     }
 
     return that;
@@ -1657,7 +1679,10 @@ var editing_allocation = function() {
         context: this,
         dataType: 'json',
         contentType: 'application/json',
-        data: JSON.stringify({allocations: mine.allocations.all()})
+        data: JSON.stringify({
+          allocations: mine.allocations.all(),
+          loadings_by_pid: that.loadings.all()
+        })
       }).done(saveDone).
          fail(saveFailed);
       and_exit = false;
