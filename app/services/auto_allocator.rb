@@ -155,13 +155,14 @@ class AutoAllocator
   class PupilCourses < Hash
 
     class PupilCourse
-      attr_reader :pcid, :pupil_id, :mins, :can_miss
+      attr_reader :pcid, :pupil_id, :mins, :can_miss, :name
 
       def initialize(raw_pc)
         @pcid =     raw_pc[:pcid]
         @pupil_id = raw_pc[:pupil_id]
         @mins =     raw_pc[:mins]
         @can_miss = raw_pc[:cm]
+        @name     = raw_pc[:name]
       end
 
     end
@@ -453,7 +454,7 @@ class AutoAllocator
       }
       chosen = least_flexible(unallocated, lowest_cost)
       if chosen
-        Rails.logger.debug("Chose #{chosen.pupil_id} at a cost of #{cost_for(chosen, date, time_slot)}")
+        Rails.logger.debug("Chose #{chosen.name} (#{chosen.pupil_id}) at a cost of #{cost_for(chosen, date, time_slot)}")
       else
         Rails.logger.debug("Didn't pick anyone")
       end
@@ -557,7 +558,13 @@ class AutoAllocator
       fewest = 999
       chosen = nil
       chosen_inflexible_one = false
-      unallocated.each do |pc|
+      #
+      #  Try sorting the candidates in a random order before selection
+      #  to give everyone a chance.
+      #
+      #  Don't like this - it means the result is indeterminate.
+      #
+      unallocated.shuffle.each do |pc|
         #
         #  If we have already chosen an inflexible pupil and this latest
         #  one is flexible then we don't consider him or her.
@@ -934,8 +941,8 @@ class AutoAllocator
                   #  Skip forward and try again.  Give up if out of slot.
                   #
                   if considering.mins > jump_by
-                    Rails.logger.debug("Moving forward")
                     considering = considering.pretruncate(jump_by.minutes)
+                    Rails.logger.debug("Moving forward to #{considering}")
                   else
                     #
                     #  All we can do on this slot for now.
