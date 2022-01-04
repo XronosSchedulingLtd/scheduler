@@ -564,7 +564,8 @@ class AutoAllocator
       #
       #  Don't like this - it means the result is indeterminate.
       #
-      unallocated.shuffle.each do |pc|
+      #unallocated.shuffle.each do |pc|
+      unallocated.each do |pc|
         #
         #  If we have already chosen an inflexible pupil and this latest
         #  one is flexible then we don't consider him or her.
