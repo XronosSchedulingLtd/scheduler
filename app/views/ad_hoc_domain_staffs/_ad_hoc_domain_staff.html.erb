@@ -6,15 +6,27 @@
       @ad_hoc_domain_allocation.percentage_complete(
         ad_hoc_domain_staff)
     ) %></td>
+  <td class='numeric'><%=
+    @ad_hoc_domain_allocation.to_do(ad_hoc_domain_staff)
+    %></td>
   <td><%=
     link_to(
-      "Allocate",
+      "Manual",
       allocate_ad_hoc_domain_staff_ad_hoc_domain_allocation_path(
         ad_hoc_domain_staff,
         @ad_hoc_domain_allocation),
         class: "zfbutton radius tiny teensy button-link"
     )
 
+    %></td>
+  <td><%=
+    link_to(
+      "Automatic", "#", class: "zfbutton radius tiny teensy button-link disabled"
+    )
+
+    %></td>
+  <td class='numeric'><%=
+    @ad_hoc_domain_allocation.score_for(ad_hoc_domain_staff)
     %></td>
 
 </tr>

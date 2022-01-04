@@ -25,6 +25,8 @@ class SubjectsController < ApplicationController
 
   # GET /subjects/1/edit
   def edit
+    manual_source = Datasource.find_by(name: "Manual")
+    @all_fields = @subject.datasource == manual_source
   end
 
   # POST /subjects
@@ -85,6 +87,6 @@ class SubjectsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def subject_params
-      params.require(:subject).permit(:name, :current)
+      params.require(:subject).permit(:name, :current, :missable)
     end
 end

@@ -310,4 +310,28 @@ class TodShiftTest < ActiveSupport::TestCase
     assert shift.exclude_end?
   end
 
+  test "pretruncate handles numbers of seconds" do
+    beginning_expected = Tod::TimeOfDay.new 11, 30
+    ending_expected = Tod::TimeOfDay.new 16, 00
+
+    beginning  = Tod::TimeOfDay.new 10
+    ending  = Tod::TimeOfDay.new 16
+    shift = TodShift.new(beginning, ending).pretruncate(5400)
+
+    assert_equal beginning_expected, shift.beginning
+    assert_equal ending_expected, shift.ending
+  end
+
+  test "pretruncate handles ActiveSupport::Duration" do
+    beginning_expected = Tod::TimeOfDay.new 11, 30
+    ending_expected = Tod::TimeOfDay.new 16, 00
+
+    beginning  = Tod::TimeOfDay.new 10
+    ending  = Tod::TimeOfDay.new 16
+    shift = TodShift.new(beginning, ending).pretruncate(90.minutes)
+
+    assert_equal beginning_expected, shift.beginning
+    assert_equal ending_expected, shift.ending
+  end
+
 end
