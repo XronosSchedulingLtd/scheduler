@@ -1,3 +1,35 @@
+v1.15.0   2022-01-04
+
+* Implement direct links for element schedules
+
+  A requirement has arisen for some staff to be able to view their
+  schedules within Scheduler without actually logging on.  This has
+  long been possible by way of an external calendaring program, by
+  taking an ical feed from Scheduler into that program.  It can now
+  also be done directly within Scheduler by use of an appropriate
+  link.  The necessary links can be found within Scheduler in the same
+  place where ical feeds are provided.
+
+  The most obvious immediate use is to allow peripatetic music teachers
+  who don't normally use Scheduler to get a quick view of their scheduled
+  lessons.
+
+* Implement scoring for peripatetic music lesson sets
+
+  Scheduler now automatically calculates a score for each peripapetic
+  music teacher's schedule, giving an overall rating and an indication
+  of the worst (as in most lessons missed) individual score.
+
+* Implement auto-allocation of  peripatetic music lessons
+
+  The process of finding times for students to take music lessons outside
+  their academic timetable is a laborious one.  This release adds a facility
+  whereby Scheduler will draw up a proposed schedule automatically, taking
+  account of students who are not allowed to miss academic lessons, and for
+  those who are allowed to miss them, minimizing the number of times they
+  miss any particular subject.
+
+
 v1.14.9   2021-10-08
 
 * Run AdHoc lesson implementation jobs in the background
