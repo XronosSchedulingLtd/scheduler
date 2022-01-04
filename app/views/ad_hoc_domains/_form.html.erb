@@ -155,6 +155,20 @@
   </div>
 
   <div class="row collapse">
+    <div class="small-3 columns">
+      <%= form.label :missable_threshold, "Missable threshold", class: "right inline" %>
+    </div>
+    <div class="small-4 columns">
+      <%= form.number_field(:missable_threshold) %>
+    </div>
+    <div class="small-4 offset-1 columns annotation">
+      Some students are regarded as unable to miss academic lessons for
+      ad hoc lessons.  Any pupil in this year or above will not be
+      allowed to miss academic lessons in auto-allocation.  (0 disables)
+    </div>
+  </div>
+
+  <div class="row collapse">
     <div class="small-9 small-offset-3 columns">
       <div class="actions">
         <%=

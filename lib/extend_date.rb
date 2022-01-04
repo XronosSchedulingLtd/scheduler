@@ -24,4 +24,10 @@ class Date
     default
   end
 
+  #
+  #  The date of the Sunday before (or on) the given date.
+  #
+  def sundate
+    self - self.wday
+  end
 end

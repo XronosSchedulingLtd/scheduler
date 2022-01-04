@@ -149,7 +149,7 @@ if ($('#personal-agenda').length) {
         defaultView: 'listWeek',
         defaultDate: that.myDiv.data("defaultdate"),
         eventSources: [{
-          url: '/agenda/events'
+          url: '/agenda/events?tt=' + that.myDiv.data("uuid")
         }],
         viewRender: startingToRender,
         eventStartEditable: false,

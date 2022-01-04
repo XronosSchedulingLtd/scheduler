@@ -411,4 +411,8 @@ class AdHocDomainCycle < ApplicationRecord
       can_queue_update?)
   end
 
+  def date_range
+    @date_range ||= DateRange.new(self.starts_on, self.exclusive_end_date)
+  end
+
 end

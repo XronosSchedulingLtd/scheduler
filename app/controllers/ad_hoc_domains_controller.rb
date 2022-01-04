@@ -224,7 +224,8 @@ class AdHocDomainsController < ApplicationController
                   :connected_property_element_name,
                   :default_day_shape_id,
                   :default_lesson_mins,
-                  :mins_step)
+                  :mins_step,
+                  :missable_threshold)
   end
 
 end

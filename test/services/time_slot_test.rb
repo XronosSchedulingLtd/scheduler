@@ -7,13 +7,13 @@ class TimeSlotTest < ActiveSupport::TestCase
   setup do
   end
 
-  test "must pass 1 or two parameters" do
+  test "must pass one to three parameters" do
     err = assert_raise(ArgumentError) {
       ts = TimeSlot.new
     }
     assert_match /Wrong number of arguments/, err.message
-    assert_raise(ArgumentError) {
-      ts = TimeSlot.new("10:00", "11:00", "12:00")
+    err = assert_raise(ArgumentError) {
+      ts = TimeSlot.new("10:00", "11:00", "12:00", "13:00")
     }
     assert_match /Wrong number of arguments/, err.message
   end
@@ -89,6 +89,12 @@ class TimeSlotTest < ActiveSupport::TestCase
     assert_not_nil ts
   end
 
+  test "can invoke as if for a raw TodShift" do
+    time1 = Tod::TimeOfDay.parse("10:00")
+    time2 = Tod::TimeOfDay.parse("11:15")
+    ts = TimeSlot.new(time1, time2, true)
+    assert_not_nil ts
+  end
 
   test "can't be backwards" do
     err = assert_raise(ArgumentError) {
@@ -134,6 +140,14 @@ class TimeSlotTest < ActiveSupport::TestCase
     ts1 = TimeSlot.new("8", "9")
     assert_not_nil ts1
     assert_equal "08:00 - 09:00", ts1.to_s
+  end
+
+  test "can trim variously" do
+    ts = TimeSlot.new("08:00 - 12:00")
+    assert_equal 240, ts.mins
+    assert_equal 60, ts.trim_to(1.hour).mins
+    assert_equal 90, ts.trim_to(90.minutes).mins
+    assert_equal 240, ts.trim_to(5.hours).mins
   end
 
 end

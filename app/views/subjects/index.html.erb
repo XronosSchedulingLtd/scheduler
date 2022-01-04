@@ -32,13 +32,11 @@
                     %>
         </td>
         <td>
-          <% if subject.datasource == @manual_datasource %>
-            <%=
-              link_to('Edit',
-                      edit_subject_path(subject),
-                      class: 'zfbutton teensy tiny radius button-link')
-                    %>
-          <% end %>
+          <%=
+            link_to('Edit',
+                    edit_subject_path(subject),
+                    class: 'zfbutton teensy tiny radius button-link')
+                  %>
         </td>
       </tr>
     <% end %>

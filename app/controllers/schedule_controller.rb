@@ -120,12 +120,21 @@ class ScheduleController < ApplicationController
       end
       redirect_to :root
     else
+      @required_tt = nil
+      if params[:tt]
+        #
+        #  Must be "UUE-<whatever>"
+        #
+        splut = params[:tt].match(/\AUUE-(.*)\z/)
+        if splut
+          @required_tt = splut[1]
+        end
+      end
       #
       #  We should decide here what exactly gets shown in the way
       #  of columns, user information and concerns - *not* in the view.
       #
-      if known_user? ||
-         Property.public_ones.count > 1
+      if (known_user? || Property.public_ones.count > 1) && !@required_tt
         @show_lhs     = true
       else
         #

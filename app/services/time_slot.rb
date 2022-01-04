@@ -65,6 +65,17 @@ class TimeSlot < TodShift
       time1 = params[1].instance_of?(Tod::TimeOfDay) ?
         params[1] :
         Tod::TimeOfDay.parse(params[1])
+    elsif params.size == 3
+      #
+      #  It was a bit of a stylistic error to have this class derive
+      #  from TodShift but then re-define the constructor.  As a dead
+      #  minimum, we need to accept anything which the original
+      #  constructor would have accepted.
+      #
+      #  We have to assume that they're the right params for a raw TodShift
+      #
+      time0 = params[0]
+      time1 = params[1]
     else
       raise ArgumentError.new("Wrong number of arguments")
     end
@@ -174,4 +185,21 @@ class TimeSlot < TodShift
   def to_partial_path
     'time_slot'
   end
+
+  def mins
+    #
+    #  Return our duration in minutes.  The underlying TodShift prefers
+    #  seconds.
+    #
+    self.duration / 60
+  end
+
+  def trim_to(new_duration)
+    if self.duration > new_duration
+      TimeSlot.new(self.beginning, self.beginning + new_duration)
+    else
+      TimeSlot.new(self.beginning, self.ending)
+    end
+  end
+
 end

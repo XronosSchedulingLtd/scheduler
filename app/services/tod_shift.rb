@@ -1,6 +1,6 @@
 #
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2020 John Winters
+# Copyright (C) 2009-2021 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 #
@@ -132,6 +132,10 @@ class TodShift
 
   def slide(seconds)
     self.class.new(@beginning + seconds, @ending + seconds, @exclude_end)
+  end
+
+  def pretruncate(seconds)
+    self.class.new(@beginning + seconds, @ending, @exclude_end)
   end
 
   def exclude_end?
