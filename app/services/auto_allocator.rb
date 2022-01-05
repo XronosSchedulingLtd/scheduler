@@ -263,7 +263,10 @@ class AutoAllocator
         week_letter = @week_identifier.week_letter(date)
         week_entries = @data[week_letter]
         if week_entries
-          week_entries[date.wday]
+          #
+          #  Our callers always expect to get an array, even if empty.
+          #
+          week_entries[date.wday] || []
         else
           []
         end
