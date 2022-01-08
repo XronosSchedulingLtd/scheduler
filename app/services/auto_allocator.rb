@@ -17,6 +17,82 @@
 
 class AutoAllocator
 
+  class Potential
+    attr_reader :date, :time_slot, :cost
+
+    #
+    #  A potential slot for one student.
+    #
+    def initialize(date, time_slot, cost)
+      @date      = date
+      @time_slot = time_slot
+      @cost      = cost
+    end
+
+  end
+
+  class PupilPotentials < Array
+    #
+    #  An enhanced array to store all the current potential slots
+    #  for one student.
+    #
+    attr_reader :pid, :name
+
+    def initialize(pc)
+      super()
+      @pid  = pc.pupil_id
+      @name = pc.name
+    end
+
+    def add_entry(date, time_slot, cost)
+      self << Potential.new(date, time_slot, cost)
+    end
+
+    def count_slots_at(cost)
+      self.select {|p| p.cost == cost}.count
+    end
+
+    def summary
+      #
+      #  Return a summary hash, mimicking what we had before we created
+      #  these structures.
+      #
+      result = Hash.new { |h,k| h[k] = Hash.new(0) }
+      self.each do |potential|
+        result[potential.cost] += 1
+      end
+      result
+    end
+
+    def best_score
+      self.collect(&:cost).min
+    end
+
+  end
+
+  class AllPotentials < Hash
+    #
+    #  All our current potentials, indexed by pupil id.
+    #
+    def initialize
+      super()
+    end
+
+    def add_entry(pc, date, time_slot, cost)
+      pupil_potentials = self[pc.pupil_id] ||= PupilPotentials.new(pc)
+      pupil_potentials.add_entry(date, time_slot, cost)
+    end
+
+    def best_score_for(pid)
+      pupil_potentials = self[pid]
+      if pupil_potentials
+        pupil_potentials.best_score
+      else
+        9999
+      end
+    end
+  end
+
   class OtherAllocations < Hash
 
     class OtherAllocation
@@ -339,15 +415,9 @@ class AutoAllocator
       Rails.logger.debug("Initial loadings")
       Rails.logger.debug(@loadings_by_pid.inspect)
       #
-      #  This one is a hash index by pupil id, with each data
-      #  item being a hash indexed by loading value, telling you
-      #  how many slots are available with that loading value.
+      #  Empty for now.
       #
-      #  The default value of 0 for the inner means that if we
-      #  have no entry for a given loading value then the number
-      #  of slots available is 0.
-      #
-      @potentials_by_pid = Hash.new { |h,k| h[k] = Hash.new(0) }
+      @all_potentials = AllPotentials.new
     end
 
     def allocated_in_week(date)
@@ -385,10 +455,10 @@ class AutoAllocator
     def best_possible_score(pc)
       #
       #  What's the best possible score for the indicated pupil
-      #  course, given the current state of our @potentials_by_pid
+      #  course, given the current state of our @all_potentials
       #  information?
       #
-      @potentials_by_pid[pc.pupil_id].keys.min
+      @all_potentials.best_score_for(pc.pupil_id)
     end
 
     def best_choice_for(date, time_slot)
@@ -468,11 +538,11 @@ class AutoAllocator
       #
       #  Work out when the teacher is available in this date range
       #
-      Rails.logger.debug("Calculating potentials")
+      #Rails.logger.debug("Calculating potentials")
       #
       #  Reset our accumulator.
       #
-      @potentials_by_pid = Hash.new { |h,k| h[k] = Hash.new(0) }
+      @all_potentials = AllPotentials.new
       #
       #  Now, what pupil courses do we need to consider?
       #
@@ -524,7 +594,8 @@ class AutoAllocator
               !@other_allocations[pc.pupil_id]&.any_clashes_with?(date,
                                                                   would_use)
             }.each do |pc|
-              @potentials_by_pid[pc.pupil_id][cost_for(pc, date, considering)] += 1
+              @all_potentials.add_entry(
+                pc, date, considering, cost_for(pc, date, considering))
             end
             #
             #  And move on if possible.
@@ -538,7 +609,17 @@ class AutoAllocator
         end
       end
       Rails.logger.debug("Potentials")
-      Rails.logger.debug(@potentials_by_pid.inspect)
+      Rails.logger.debug(@all_potentials.inspect)
+    end
+
+    def dump_potentials(pupil_identifier)
+      Rails.logger.debug("Candidates:")
+      @all_potentials.each do |pid, possibilities|
+        Rails.logger.debug("  #{pid} #{pupil_identifier.call(pid)}")
+        possibilities.each do |cost, count|
+          Rails.logger.debug("    #{count} slots at cost #{cost}")
+        end
+      end
     end
 
     private
@@ -574,7 +655,7 @@ class AutoAllocator
         #  one is flexible then we don't consider him or her.
         #
         unless chosen_inflexible_one && pc.can_miss
-          possibilities = @potentials_by_pid[pc.pupil_id][cost]
+          possibilities = @all_potentials[pc.pupil_id].count_slots_at(cost)
           if possibilities < fewest
             fewest = possibilities
             chosen = pc
@@ -750,6 +831,7 @@ class AutoAllocator
     @allocation = allocation
     @cycle = allocation.ad_hoc_domain_cycle
     @staff = staff
+    @pid_cache = {}
     #
     #  To be absolutely sure that we have the date of a Sunday, we
     #  re-calculate it.
@@ -893,6 +975,7 @@ class AutoAllocator
                                          @other_engagements,
                                          effective_dates,
                                          jump_by)
+          @loadings.dump_potentials(method(:pupil_identifier))
           #
           #  Now work through all our dates, trying to allocate something.
           #
@@ -1017,6 +1100,24 @@ class AutoAllocator
         end
       end
     end
+  end
+
+  def pupil_identifier(pid)
+    #
+    #  Cacheing method to enable conversion of a pid to a name in a
+    #  relatively efficient way.  Used only for debug code.
+    #
+    name = @pid_cache[pid]
+    unless name
+      pupil = Pupil.find_by(id: pid)
+      if pupil
+        @pid_cache[pid] = pupil.name
+      else
+        @pid_cache[pid] = "<unknown>"
+      end
+      name = @pid_cache[pid]
+    end
+    name
   end
 
 end
