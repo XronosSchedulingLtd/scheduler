@@ -1,6 +1,7 @@
 <tr>
   <td><%= ad_hoc_domain_staff.staff_name %></td>
   <td><%= ad_hoc_domain_staff.subjects.collect {|s| s.name}.join(", ") %></td>
+  <td class='numeric'><%= ad_hoc_domain_staff.slack %></td>
   <td class='numeric'><%=
     as_percentage(
       @ad_hoc_domain_allocation.percentage_complete(
@@ -21,7 +22,12 @@
     %></td>
   <td><%=
     link_to(
-      "Automatic", "#", class: "zfbutton radius tiny teensy button-link disabled"
+      "Automatic",
+      autoallocate_ad_hoc_domain_staff_ad_hoc_domain_allocation_path(
+        ad_hoc_domain_staff,
+        @ad_hoc_domain_allocation),
+      method: :patch,
+      class: "zfbutton radius tiny teensy button-link"
     )
 
     %></td>
