@@ -220,20 +220,9 @@ class AdHocDomainAllocation < ApplicationRecord
     result
   end
 
-  def update_allocations(ad_hoc_domain_staff, staff_allocations, loadings)
-    #
-    #  What arrives from Rails is an array of HashWithIndifferentAccess.
-    #  Whilst we can save this to the database it's inefficient, and
-    #  I'd like to standardize on using just symbols.  Hence, convert it.
-    #
-    #  We also want to receive the "clashes" information, but not save
-    #  it to the database since it is transitory.
-    #
-    staff_allocations = staff_allocations.collect { |e|
-      e.to_hash.symbolize_keys
-    }
+  def update_allocations(ad_hoc_domain_staff, staff_allocations, loadings= nil)
     self.allocations[ad_hoc_domain_staff.id] =
-      staff_allocations.collect { |e| e.except(:clashes) }
+      massage_allocations(staff_allocations)
     if loadings
       #
       #  If we've been given some loadings then update the scores
@@ -285,6 +274,7 @@ class AdHocDomainAllocation < ApplicationRecord
             #  We have enough to make an entry, although it still
             #  may be zero.
             #
+            Rails.logger.debug("Got an integer")
             score = 0
             clashes = allocation[:clashes]
             if clashes
@@ -424,6 +414,70 @@ class AdHocDomainAllocation < ApplicationRecord
         result[newkey] = to_integer_keys(value)
       else
         result[newkey] = value
+      end
+    end
+    result
+  end
+
+  def massage_allocations(staff_allocations)
+    #
+    #  Several bits of massaging to do.  What we get may have come
+    #  from the front end or it may have come from the local auto-allocator.
+    #  What they send is broadly the same but with the odd difference
+    #  which we want to eliminate.
+    #
+    #  What arrives via Rails from the front end is an array of
+    #  HashWithIndifferentAccess. Whilst we can save this to the
+    #  database it's inefficient, and I'd like to standardize on
+    #  using just symbols.  Hence, convert it.
+    #
+    #  We also receive the "clashes" information from the front end but
+    #  we don't save it to the database since it is transitory.
+    #
+    #  Finally, we want standardise all the date/time fields as
+    #  strings in the form "YYYY-mm-DDTHH:MMZ".  We try to be versatile
+    #  about what we accept, but that's always what we save.
+    #
+    #  We also want to ensure that invalid entries are never saved
+    #  to the database.
+    #
+    #Rails.logger.debug("Before massaging")
+    #Rails.logger.debug(staff_allocations.inspect)
+    #Rails.logger.debug("staff_allocations is a #{staff_allocations.class}")
+    result = staff_allocations.collect { |e|
+      #Rails.logger.debug("e is a #{e.class}")
+      h = e.to_hash.symbolize_keys.except(:clashes)
+      h[:starts_at] = fix_format(h[:starts_at])
+      h[:ends_at] = fix_format(h[:ends_at])
+      h
+    }.select { |h|
+      #Rails.logger.debug("h is a #{h.class}")
+      (h[:starts_at].is_a? String) && (h[:ends_at].is_a? String)
+    }
+    #Rails.logger.debug("After massaging")
+    #Rails.logger.debug(result.inspect)
+    result
+  end
+
+  def fix_format(input)
+    #
+    #  Input must be a string comprehensible as a time (or something
+    #  which produces such a string).
+    #
+    #  Because we process stuff from the outside world, we have to
+    #  make sure we handle any old garbage with reasonable grace.
+    #
+    result = nil
+    if input.respond_to?(:to_s)
+      #
+      #  If it was a string to start with, then to_s does nothing.
+      #
+      time = Time.zone.parse(input.to_s)
+      #
+      #  If it was an invalid time, then the parser returns nil.
+      #
+      if time
+        result = time.gmtime.strftime("%Y-%m-%dT%H:%MZ")
       end
     end
     result

@@ -2,12 +2,12 @@
   <td><%= ad_hoc_domain_staff.staff_name %></td>
   <td><%= ad_hoc_domain_staff.subjects.collect {|s| s.name}.join(", ") %></td>
   <td class='numeric'><%= ad_hoc_domain_staff.slack %></td>
-  <td class='numeric'><%=
+  <td class='numeric' id='ad-percent-<%= ad_hoc_domain_staff.id %>'><%=
     as_percentage(
       @ad_hoc_domain_allocation.percentage_complete(
         ad_hoc_domain_staff)
     ) %></td>
-  <td class='numeric'><%=
+  <td class='numeric' id='ad-todo-<%= ad_hoc_domain_staff.id %>'><%=
     @ad_hoc_domain_allocation.to_do(ad_hoc_domain_staff)
     %></td>
   <td><%=
@@ -26,12 +26,13 @@
       autoallocate_ad_hoc_domain_staff_ad_hoc_domain_allocation_path(
         ad_hoc_domain_staff,
         @ad_hoc_domain_allocation),
-      method: :patch,
-      class: "zfbutton radius tiny teensy button-link"
+        method: :patch,
+        remote: true,
+      class: "zfbutton radius tiny teensy button-link automatic-button"
     )
 
     %></td>
-  <td class='numeric'><%=
+  <td class='numeric' id='ad-score-<%= ad_hoc_domain_staff.id %>'><%=
     @ad_hoc_domain_allocation.score_for(ad_hoc_domain_staff)
     %></td>
 

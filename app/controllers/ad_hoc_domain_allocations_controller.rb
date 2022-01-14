@@ -146,9 +146,25 @@ class AdHocDomainAllocationsController < ApplicationController
     respond_to do |format|
       @allocation_set = @allocator.allocation_set
       if @allocator.do_allocation
+        #
+        #  Rails seems to get confused between format.js and format.json,
+        #  in that it will try to service a js request using the json
+        #  option.  However, it appears that if you put the js first
+        #  then that will service your actual Ajax requests (where we
+        #  send back a snippet of JavaScript) and the json one will get
+        #  the genuine json requests.
+        #
+        format.js
         format.json
+        format.html {
+          redirect_to @ad_hoc_domain_allocation
+        }
       else
+        format.js
         format.json { render :autoallocate_failed, status: 99 }
+        format.html {
+          redirect_to @ad_hoc_domain_allocation
+        }
       end
     end
   end
