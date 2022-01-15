@@ -32,6 +32,21 @@
     )
 
     %></td>
+  <td><%=
+    link_to(
+      "Reset",
+      reset_ad_hoc_domain_staff_ad_hoc_domain_allocation_path(
+        ad_hoc_domain_staff,
+        @ad_hoc_domain_allocation),
+        method: :patch,
+        remote: true,
+        data: {
+          confirm: "Are you sure you want to delete all the existing time allocations for #{ad_hoc_domain_staff.staff.name}'s lessons?",
+        },
+      class: "zfbutton radius tiny teensy button-link"
+    )
+
+    %></td>
   <td class='numeric' id='ad-score-<%= ad_hoc_domain_staff.id %>'><%=
     @ad_hoc_domain_allocation.score_for(ad_hoc_domain_staff)
     %></td>

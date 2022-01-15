@@ -22,6 +22,7 @@ class AdHocDomainAllocationsController < ApplicationController
   before_action :set_staff_and_allocation, only: [
     :allocate,
     :autoallocate,
+    :reset,
     :save]
 
   def new
@@ -165,6 +166,18 @@ class AdHocDomainAllocationsController < ApplicationController
         format.html {
           redirect_to @ad_hoc_domain_allocation
         }
+      end
+    end
+  end
+
+  def reset
+    respond_to do |format|
+      if @ad_hoc_domain_allocation.update_allocations(
+          @ad_hoc_domain_staff,
+          {}, {})
+        format.js
+      else
+        format.js
       end
     end
   end
