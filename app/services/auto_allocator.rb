@@ -346,7 +346,11 @@ class AutoAllocator
       #  we sort to put the largest count last, select the last
       #  pair with [-1], then pick the duration with [0]
       #  
-      self.values.collect(&:mins).tally.sort_by{|key,value| value}[-1][0]
+      if self.empty?
+        5
+      else
+        self.values.collect(&:mins).tally.sort_by{|key,value| value}[-1][0]
+      end
     end
 
     def total_duration
