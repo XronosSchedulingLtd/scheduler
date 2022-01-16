@@ -259,7 +259,7 @@ class AdHocDomainAllocation < ApplicationRecord
       #
       #  And now the calculation.
       #
-      staff_scores = Hash.new { |h,k| h[k] = Array.new }
+      individual_scores = Hash.new { |h,k| h[k] = Array.new }
       staff_allocations.each do |allocation|
         pcid = allocation[:pcid]
         Rails.logger.debug("pcid is #{pcid}")
@@ -275,7 +275,6 @@ class AdHocDomainAllocation < ApplicationRecord
             #  may be zero.
             #
             Rails.logger.debug("Got an integer")
-            score = 0
             clashes = allocation[:clashes]
             if clashes
               #
@@ -288,20 +287,19 @@ class AdHocDomainAllocation < ApplicationRecord
                   clash_score = pupil_loadings[clash]
                   if clash_score
                     Rails.logger.debug("Adding #{clash_score}")
-                    score += clash_score
+                    individual_scores[pcid] << clash_score
                   end
                 end
               end
             end
-            staff_scores[pcid] << score
           end
         end
       end
-      Rails.logger.debug("Calculated staff scores")
-      Rails.logger.debug(staff_scores.inspect)
+      Rails.logger.debug("Calculated individual scores")
+      Rails.logger.debug(individual_scores.inspect)
       self.scores[ad_hoc_domain_staff.id] = {
         target: target,
-        individual: staff_scores
+        individual: individual_scores
       }
     end
     self.save   # And return result
