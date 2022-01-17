@@ -40,6 +40,7 @@ Rails.application.routes.draw do
         get :allocate
         patch :save
         patch :autoallocate
+        patch :reset
       end
     end
   end

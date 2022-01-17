@@ -98,6 +98,14 @@ class AdHocDomainStaff < ApplicationRecord
     self.ad_hoc_domain_pupil_courses.map(&:minutes).reduce(0, :+)
   end
 
+  def slack
+    if rota_template
+      rota_template.total_minutes - total_mins
+    else
+      0 - total_mins
+    end
+  end
+
   def <=>(other)
     if other.instance_of?(AdHocDomainStaff)
       #
