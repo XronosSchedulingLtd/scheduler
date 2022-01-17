@@ -1,3 +1,63 @@
+v1.15.1   2022-01-17
+
+* Implement auto-allocation of staff lessons for a whole cycle
+
+  This release enables another button in the AdHoc lesson auto-allocation
+  area.  Instead of clicking for one week at a time in a staff member's
+  area you can click and get the whole cycle allocated for that staff
+  member.
+
+* Improve auto-allocation algorithm
+
+  In testing the previous change it became apparent that in some
+  pathological cases (typically where a staff member has no slack
+  in his or her schedule) the algorithm could be improved.  This
+  has been done, although doubtless a lot more improvements will
+  come to light in the future.
+
+* Simplify expression of algorithm
+
+  The actual implementation of the algorithm has been simplified
+  almost to the point of being a Domain Specific Language (DSL), which
+  makes it much easier to tweak in the future.
+
+* Fix problem with empty allocation
+
+  If a staff member had an empty allocation - no lessons - then clicking
+  the auto-allocate button led to an error.  This has now been fixed.
+
+* Add statistics
+
+  In order to be able to judge how well the auto-allocation algorithm
+  has performed, statistics have been added to the display.  These consist
+  of a ratio and a max score - like this, "12/23   2".
+
+  The denominator of the ratio is the number of middle school (not sixth
+  form) lessons which need to be allocated.
+
+  The numerator of the ratio is the sum of all the clash scores.  The
+  value shown here of 12 could mean that 12 lessons have each hit a subject
+  once, or that 8 lessons have hit a subject once, and 2 lessons have
+  hit a subject twice (8 * 1 + 2 * 2).  Etc.
+
+  For a good allocation, the numerator should be less than the denominator.
+
+  The final number - the 2 - gives the maximum clash score which a lesson
+  has achieved.  This may well change in a future release to the maximum
+  number of hits which a subject as received per student (potentially a
+  smaller number).
+
+* Fix to cope with blank pupil timetables
+
+  The auto-allocation algorithm also failed to cope when a student had
+  no other timetable at all.  Fixed.
+
+* Change "Implement" to "Publish"
+
+  The "Implement" button has been renamed as "Publish" to make it more
+  clear what it does.
+
+
 v1.15.0   2022-01-04
 
 * Implement direct links for element schedules
