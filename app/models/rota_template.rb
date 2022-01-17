@@ -167,6 +167,10 @@ class RotaTemplate < ApplicationRecord
     end
   end
 
+  def total_minutes
+    self.rota_slots.sum(&:minutes)
+  end
+
   #
   #  Methods to allow the set of slots to be read and altered all in one
   #  go.

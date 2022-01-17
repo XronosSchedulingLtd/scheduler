@@ -151,6 +151,15 @@ class RotaSlot < ApplicationRecord
     self[:ends_at] - self[:starts_at]
   end
 
+  def num_days
+    self.days.count(true)
+  end
+
+  def minutes
+    ((self[:ends_at].second_of_day -
+      self[:starts_at].second_of_day) / 60) * num_days
+  end
+
   private
 
   def assign_tod_value(field, value)

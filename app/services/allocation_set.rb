@@ -23,10 +23,36 @@ class AllocationSet
       @ends_at   = ends_at
       @pcid      = pcid
       @time_slot = TimeSlot.new(@starts_at.to_s(:hhmm), @ends_at.to_s(:hhmm))
+      #
+      #  An array of subject ids with which this allocation clashes.
+      #
+      @clashes = []
     end
 
     def date
       @starts_at.to_date
+    end
+
+    def reset_clashes
+      @clashes = []
+    end
+
+    def note_clashing_subject(subject_id)
+      @clashes << subject_id
+    end
+
+    #
+    #  Behave a bit like a hash.
+    #
+    def [](key)
+      case key
+      when :pcid
+        @pcid
+      when :clashes
+        @clashes
+      else
+        nil
+      end
     end
 
   end
@@ -43,9 +69,19 @@ class AllocationSet
     @by_week = {}
     @by_date = {}
     @original_allocations.each do |allocation|
-      self << OneAllocation.new(Time.zone.parse(allocation[:starts_at]),
-                                Time.zone.parse(allocation[:ends_at]),
-                                allocation[:pcid])
+      if (allocation[:starts_at].is_a? String) &&
+         (allocation[:ends_at].is_a? String)
+        starts_at = Time.zone.parse(allocation[:starts_at])
+        ends_at = Time.zone.parse(allocation[:ends_at])
+        #
+        #  If a string is invalid as a time, the parser returns nil.
+        #
+        if starts_at && ends_at
+          self << OneAllocation.new(Time.zone.parse(allocation[:starts_at]),
+                                    Time.zone.parse(allocation[:ends_at]),
+                                    allocation[:pcid])
+        end
+      end
     end
   end
 
@@ -117,6 +153,20 @@ class AllocationSet
     @allocations.each do |allocation|
       yield allocation
     end
+  end
+
+  def collect
+    result = []
+    @allocations.each do |allocation|
+      hash = {
+        starts_at: allocation.starts_at.gmtime.strftime("%Y-%m-%dT%H:%MZ"),
+        ends_at: allocation.ends_at.gmtime.strftime("%Y-%m-%dT%H:%MZ"),
+        pcid: allocation.pcid
+      }
+      value = yield hash
+      result << value
+    end
+    result
   end
 
   def for_pupil_course(pcid)
