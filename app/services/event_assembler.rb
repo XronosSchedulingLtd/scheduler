@@ -417,7 +417,13 @@ class EventAssembler
         @request_id = 0
         @editable   = false
         unless element.add_directly?
-          @colour     = 'red'
+          maintenance_element = Setting.maintenance_property_element
+          if maintenance_element &&
+              commitment.event.involves?(maintenance_element)
+            @colour = 'red'
+          else
+            @colour     = '#a4d2c7'
+          end
         end
       end
       @hover_text       = hover_text_for(commitment.event)

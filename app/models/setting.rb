@@ -27,6 +27,7 @@ class Setting < ApplicationRecord
   belongs_to :default_free_finder_day_shape, class_name: :RotaTemplate, optional: true
 
   belongs_to :prep_property_element, class_name: :Element, optional: true
+  belongs_to :maintenance_property_element, class_name: :Element, optional: true
 
   before_save :update_html
   after_save :flush_cache
@@ -107,6 +108,16 @@ class Setting < ApplicationRecord
   end
 
   def prep_property_element_name=(name)
+    #
+    #  Do nothing with it.
+    #
+  end
+
+  def maintenance_property_element_name
+    maintenance_property_element ? maintenance_property_element.name : ""
+  end
+
+  def maintenance_property_element_name=(name)
     #
     #  Do nothing with it.
     #
@@ -441,6 +452,15 @@ class Setting < ApplicationRecord
     @@setting ||= Setting.first
     if @@setting
       @@setting.prep_property_element
+    else
+      true
+    end
+  end
+
+  def self.maintenance_property_element
+    @@setting ||= Setting.first
+    if @@setting
+      @@setting.maintenance_property_element
     else
       true
     end
