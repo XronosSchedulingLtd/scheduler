@@ -125,7 +125,6 @@ if ($('#groupschedule').length) {
     };
 
     that.handleDrop = function(event, delta, revertFunc) {
-      console.log({event});
       var requestId = event.requestId;
       if (requestId == 0) {
         //
