@@ -100,6 +100,8 @@ class SettingsController < ApplicationController
                     :ordinalize_years,
                     :prep_property_element_name,
                     :prep_property_element_id,
+                    :maintenance_property_element_name,
+                    :maintenance_property_element_id,
                     :max_quick_buttons,
                     :first_tt_day,
                     :last_tt_day,

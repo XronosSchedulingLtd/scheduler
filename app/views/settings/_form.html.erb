@@ -331,6 +331,24 @@
   </div>
   <div class="row collapse">
     <div class="small-3 columns">
+      <%=
+        f.label :maintenance_property_element_name,
+                "Maintenance property",
+                class: "right inline" %>
+    </div>
+    <div class="small-6 columns">
+      <%= f.autocomplete_field :maintenance_property_element_name,
+                               autocomplete_property_element_name_elements_path,
+                               :id_element => '#setting_maintenance_property_element_id',
+                               :placeholder => "Property indicating a maintenance activity",
+                               "data-auto-focus" => true %>
+      <%= f.text_field :maintenance_property_element_id, :type => :hidden %>
+    </div>
+    <div class="small-3 columns">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 columns">
       <%= f.label :max_quick_buttons, class: "right" %>
     </div>
     <div class="small-6 columns">

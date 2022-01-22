@@ -125,13 +125,43 @@ if ($('#groupschedule').length) {
     };
 
     that.handleDrop = function(event, delta, revertFunc) {
+      console.log({event});
       var requestId = event.requestId;
       if (requestId == 0) {
         //
-        //  This particular displayed event does not relate to a request
-        //  and therefore it makes no sense to drag it.  Put things back.
+        //  We may be able to interpret this sensibly.  Although it
+        //  does not relate to a request we may be able to change the
+        //  element which a commitment references.
         //
-        revertFunc();
+        var commitmentId = event.commitmentId;
+        if (Number.isInteger(commitmentId)) {
+          jQuery.ajax({
+            url: "/commitments/" + commitmentId + "/dragged",
+            type: "PUT",
+            dataType: "json",
+            data: {
+              element_id: event.resourceId
+            },
+            success: function(data, textStatus, jqXHR) {
+              if (data.message) {
+                alert(data.message);
+                revertFunc();
+              } else {
+                that.myDiv.fullCalendar('refetchEvents');
+                window.triggerCountsUpdate();
+              }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              alert("Failed: " + textStatus);
+              revertFunc();
+            }
+          });
+        } else {
+          //
+          //  Nothing we can do.
+          //
+          revertFunc();
+        }
       } else {
         //
         //  Need to establish where it has been dropped, and pass that

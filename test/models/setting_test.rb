@@ -60,6 +60,54 @@ class SettingTest < ActiveSupport::TestCase
     assert_equal [1,2,3], @setting.ft_default_days
   end
 
+  test "can have prep element" do
+    property = FactoryBot.create(:property, name: "Prep")
+    @setting.prep_property_element = property.element
+    @setting.save
+    assert @setting.valid?
+    assert_equal property, @setting.prep_property_element.entity
+  end
+
+  test "can have maintenance element" do
+    property = FactoryBot.create(:property, name: "Maintenance")
+    @setting.maintenance_property_element = property.element
+    @setting.save
+    assert @setting.valid?
+    assert_equal property, @setting.maintenance_property_element.entity
+  end
+
+  test "can get cached property element" do
+    property = FactoryBot.create(:property, name: "Prep")
+    @setting.prep_property_element = property.element
+    @setting.save
+    element = Setting.prep_property_element
+    assert_equal property, element.entity
+  end
+
+  test "can get cached maintenance element" do
+    property = FactoryBot.create(:property, name: "Maintenance")
+    @setting.maintenance_property_element = property.element
+    @setting.save
+    element = Setting.maintenance_property_element
+    assert_equal property, element.entity
+  end
+
+  test "can get prep property element name" do
+    property = FactoryBot.create(:property, name: "Prep")
+    @setting.prep_property_element = property.element
+    @setting.save
+    name = @setting.prep_property_element_name
+    assert_equal property.name, name
+  end
+
+  test "can get maintenance property element name" do
+    property = FactoryBot.create(:property, name: "Maintenance")
+    @setting.maintenance_property_element = property.element
+    @setting.save
+    name = @setting.maintenance_property_element_name
+    assert_equal property.name, name
+  end
+
   private
 
   def check_range(field, min, max)

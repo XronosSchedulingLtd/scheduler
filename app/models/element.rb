@@ -25,6 +25,10 @@ class Element < ApplicationRecord
            class_name: "Setting",
            foreign_key: :prep_property_element_id,
            dependent: :nullify
+  has_one  :maintenance_element_setting,
+           class_name: "Setting",
+           foreign_key: :maintenance_property_element_id,
+           dependent: :nullify
   #
   #  Interesting question about what happens to journal entries if
   #  the element goes away.  Elements aren't meant to go away

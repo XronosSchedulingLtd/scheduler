@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_12_10_102150) do
+ActiveRecord::Schema.define(version: 2022_01_17_100339) do
 
   create_table "ad_hoc_domain_allocations", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name"
@@ -702,6 +702,7 @@ ActiveRecord::Schema.define(version: 2021_12_10_102150) do
     t.time "ft_default_day_starts_at", default: "2000-01-01 08:30:00"
     t.time "ft_default_day_ends_at", default: "2000-01-01 17:30:00"
     t.integer "ft_default_duration", default: 60
+    t.integer "maintenance_property_element_id"
   end
 
   create_table "staffs", id: :integer, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4", force: :cascade do |t|
