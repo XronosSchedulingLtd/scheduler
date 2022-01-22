@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2019 John Winters
+# Copyright (C) 2009-2022 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -11,7 +11,8 @@ class CommitmentsController < ApplicationController
                                         :ajaxnoted,
                                         :noted,
                                         :destroy,
-                                        :view]
+                                        :view,
+                                        :dragged]
 
   class ConcernWithRequests
 
@@ -311,22 +312,100 @@ class CommitmentsController < ApplicationController
     end
   end
 
+  def dragged
+    #
+    #  The meaning of this flag is perhaps slightly surprising.
+    #  It controls whether we return an error code at the communications
+    #  level.  We reserve these for when the processing has gone horribly
+    #  wrong.  If we simply want to tell the user a reason why we haven't
+    #  done what they want, then we need to return success at the comms
+    #  level so we can pass a message in the data.
+    #
+    success = false
+    message = nil
+    if current_user.can_edit?(@commitment.event)
+      #
+      #  Our commitment may have been dragged onto a new element.
+      #  If it has then we change the element which our commitment
+      #  points to.
+      #
+      #  params[:element_id] tells us what it has been dragged onto
+      #
+      #  The target element might be a ResourceGroup, in which case we
+      #  reject the attempt because it doesn't make any sense.  It has
+      #  to have been dragged onto a new element.
+      #
+      element_id = params[:element_id]
+      if element_id
+        element = Element.find_by(id: element_id)
+        #
+        #  Note that we allow this drag only if the newly selected
+        #  item is *not* a group.  On the relevant user screen, the
+        #  targets are other resources in the group (which we do allow)
+        #  or the group itself (which would be interpreted for a request
+        #  as deallocating the item).  Since we are dealing with a
+        #  commitment which is not related to a request, the latter case
+        #  doesn't make any sense for us.  We definitely don't want to
+        #  turn an existing commitment to one item in the group
+        #  into a commitment to the whole group.
+        #
+        if element
+          unless element.entity.is_a?(Group)
+            old_element = @commitment.element
+            @commitment.element = element
+            if @commitment.save
+              @commitment.event.journal_resource_changed(current_user,
+                                                         old_element,
+                                                         element)
+            else
+              message = "Save failed"
+            end
+          end
+          success = true
+        end
+      end
+    else
+      success = true
+      message = "You do not have permission to change this allocation."
+    end
+    respond_to do |format|
+      format.json do
+        if success
+          #
+          #  If we succeeded then we don't really have any information
+          #  to pass back apart from the success, but the other end is
+          #  expecting some valid JSON-structured data.
+          #
+          if message
+            render json: {message: message}
+          else
+            render json: ["OK"]
+          end
+        else
+          render json: ["Failed"], status: :bad_request
+        end
+      end
+    end
+  end
+
   private
-    def authorized?(action = action_name, resource = nil)
-      logged_in? && (current_user.create_events? ||
-                     (current_user.element_owner &&
-                      (action == "index" ||
-                       action == "approve" ||
-                       action == "reject")))
-    end
 
-    # Use callbacks to share common setup or constraints between actions.
-    def set_commitment
-      @commitment = Commitment.find(params[:id])
-    end
+  def authorized?(action = action_name, resource = nil)
+    logged_in? && (current_user.create_events? ||
+                   (current_user.element_owner &&
+                    (action == "index" ||
+                     action == "approve" ||
+                     action == "reject")))
+  end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def commitment_params
-      params.require(:commitment).permit(:event_id, :element_id, :element_name)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_commitment
+    @commitment = Commitment.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def commitment_params
+    params.require(:commitment).permit(:event_id, :element_id, :element_name)
+  end
+
 end

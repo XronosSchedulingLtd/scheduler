@@ -35,7 +35,8 @@ class JournalEntry < ApplicationRecord
     :resource_request_allocated,
     :resource_request_deallocated,
     :resource_request_reconfirmed,
-    :resource_request_adjusted
+    :resource_request_adjusted,
+    :resource_changed
   ]
   NEATER_TEXTS = [
     "Event created",
@@ -66,7 +67,8 @@ class JournalEntry < ApplicationRecord
     "Resource allocated",
     "Resource deallocated",
     "Resource request reconfirmed",
-    "Resource request quantity changed"
+    "Resource request quantity changed",
+    "Resource changed"
   ]
   ELEMENT_TEXTS = {
     resource_added:      "Added",

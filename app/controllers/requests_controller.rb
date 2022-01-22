@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2022 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 class RequestsController < ApplicationController
   #
   #  We need the set_request to run *before* our authorized? method
@@ -136,7 +143,7 @@ class RequestsController < ApplicationController
     message = nil
     if current_user.can_allocate_to?(@request)
       #
-      #  params[:item_id] tells us what has ben dragged
+      #  params[:item_id] tells us what has been dragged
       #  params[:element_id] tells us what it has been dragged onto
       #
       #  The target element might be a ResourceGroup, in which case we
@@ -176,7 +183,7 @@ class RequestsController < ApplicationController
               end
             else
               success = true
-              message = "Not a suitable resoure for the request"
+              message = "Not a suitable resource for the request"
             end
           else
             #

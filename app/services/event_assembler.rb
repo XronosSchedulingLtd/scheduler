@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2020 John Winters
+# Copyright (C) 2009-2022 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -407,6 +407,7 @@ class EventAssembler
       @all_day          = commitment.event.all_day?
       @resource_id      = element.id
       @event_id         = commitment.event_id
+      @commitment_id    = commitment.id
       if commitment.request
         @request_id = commitment.request.id
         @editable   = true
@@ -415,9 +416,15 @@ class EventAssembler
         end
       else
         @request_id = 0
-        @editable   = false
+        @editable   = true
         unless element.add_directly?
-          @colour     = 'red'
+          maintenance_element = Setting.maintenance_property_element
+          if maintenance_element &&
+              commitment.event.involves?(maintenance_element)
+            @colour = 'red'
+          else
+            @colour     = '#a4d2c7'
+          end
         end
       end
       @hover_text       = hover_text_for(commitment.event)
@@ -425,17 +432,18 @@ class EventAssembler
 
     def as_json(options = {})
       result = {
-        id:         @id,
-        title:      @title,
-        start:      @starts_at_for_fc,
-        end:        @ends_at_for_fc,
-        allDay:     @all_day,
-        recurring:  false,
-        editable:   @editable,
-        resourceId: @resource_id,
-        requestId:  @request_id,
-        eventId:    @event_id,
-        hoverText:  @hover_text
+        id:           @id,
+        title:        @title,
+        start:        @starts_at_for_fc,
+        end:          @ends_at_for_fc,
+        allDay:       @all_day,
+        recurring:    false,
+        editable:     @editable,
+        resourceId:   @resource_id,
+        requestId:    @request_id,
+        commitmentId: @commitment_id,
+        eventId:      @event_id,
+        hoverText:    @hover_text
       }
       if @colour
         result[:color] = @colour
