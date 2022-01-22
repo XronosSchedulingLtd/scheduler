@@ -1,3 +1,11 @@
+v1.15.3   2022-01-22
+
+* Remove spurious debug line
+
+  A line of debug code had been left in the JavaScript which prevented
+  it running on production servers.
+
+
 v1.15.2   2022-01-22
 
 * Flag unavailable resources with red events
