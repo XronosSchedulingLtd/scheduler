@@ -2252,6 +2252,11 @@ class Event < ApplicationRecord
     self.journal.resource_request_reconfirmed(request, by_user)
   end
 
+  def journal_resource_changed(by_user, old_element, new_element)
+    ensure_journal
+    self.journal.resource_changed(by_user, old_element, new_element)
+  end
+
   def format_timing
     format_timings(self.starts_at, self.ends_at, self.all_day)
   end

@@ -323,6 +323,17 @@ class Journal < ApplicationRecord
                       false)
   end
 
+  def resource_changed(by_user, old_element, new_element)
+    self.journal_entries.create({
+      event:      self.event,
+      user:       by_user,
+      entry_type: :resource_changed,
+      repeating:  false,
+      element:    new_element,
+      details:    "Previously #{old_element.name}"
+    })
+  end
+
   def format_timing
     format_timings(self.event_starts_at, self.event_ends_at, self.event_all_day)
   end
