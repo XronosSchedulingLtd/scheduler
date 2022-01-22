@@ -1,3 +1,24 @@
+v1.15.2   2022-01-22
+
+* Flag unavailable resources with red events
+
+  In the Resource Group allocation code (for mini-buses and the like)
+  it is now possible to flag individual resources as being unavailable
+  by creating an event involving them and adding a nominated property
+  to that event.  The relevant property is under the control of the
+  system administrator.
+
+  Such events will then appear in red on the resource allocation screen.
+
+* Change item in use by dragging for non-request items
+
+  Similarly in the resource allocation screen, it is now possible to
+  change which item is involved in an ordinary event (not involving
+  a resource request) via dragging the event.  It appears to be doing
+  the same thing from the point of view of the user, although the
+  behind the scenes processing is quite different.
+
+
 v1.15.1   2022-01-17
 
 * Implement auto-allocation of staff lessons for a whole cycle
