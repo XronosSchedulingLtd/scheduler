@@ -1,6 +1,6 @@
 ###*
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2017 John Winters
+# Copyright (C) 2009-2022 John Winters
 # Licensed under the GNU GPL, version 2.
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
