@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2017 John Winters
+# Copyright (C) 2009-2022 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -128,6 +128,23 @@ class ScheduleController < ApplicationController
         splut = params[:tt].match(/\AUUE-(.*)\z/)
         if splut
           @required_tt = splut[1]
+        end
+      end
+      @required_view = 'agendaWeek'
+      required_view = params[:view]
+      if required_view && (required_view.is_a? String)
+        #
+        #  Convert to strings as required by FullCalendar.
+        #
+        case required_view.downcase
+        when 'month'
+          @required_view = 'month'
+        when 'day'
+          @required_view = 'agendaDay'
+        when 'daylist'
+          @required_view = 'basicDay'
+        when 'list'
+          @required_view = 'listMonth'
         end
       end
       #
