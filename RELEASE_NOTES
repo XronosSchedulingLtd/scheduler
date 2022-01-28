@@ -1,3 +1,19 @@
+v1.15.4   2022-01-28
+
+* Allow the calendar view to be specified in the URL.
+
+  An additional parameter has been added to the ones understood on
+  the main page of the application, allowing the initial view to
+  be specified.  By adding "?view=<choice>" to the URL, the view
+  can be set to something other than the default week view.  Valid
+  values for <choice> are: week, month, day, daylist and list.
+
+* Fix missing "require" in mail storage.
+
+  A require statement was missing which prevented access to stored
+  e-mails.
+
+
 v1.15.3   2022-01-22
 
 * Remove spurious debug line
