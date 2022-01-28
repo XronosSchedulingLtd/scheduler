@@ -107,7 +107,7 @@ $(document).ready ->
         titleFormat: 'ddd Do MMM, YYYY'
     timeFormat: 'H:mm'
     nowIndicator: true
-    defaultView: "agendaWeek"
+    defaultView: $('#fullcalendar').data("view")
     eventOrder: "sort_by"
     firstDay: $('#fullcalendar').data("firstday")
     defaultDate: $('#fullcalendar').data("defaultdate")
