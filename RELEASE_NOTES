@@ -1,3 +1,34 @@
+v1.15.5   2022-03-30
+
+* Add checks to prevent accidental Markdown in auto-generated notes.
+
+  A really surprising circumstance arose.  The system does checks
+  to identify clashing events for students and then adds notes to
+  events indicating when students will be away.  E.g. if there is a
+  geography field trip then each affected lesson will be annotated
+  with a list of the students who will be absent.
+
+  In doing this, it includes the body text of the clashing event in
+  the annotation, *but* someone created an event which included some
+  text in square brackets - [].  These have a special meaning to Markdown
+  and so that part of the note got turned into a URL, which another part
+  of the note processing code fell over because it wasn't a valid URL.
+
+  Two fixes have been implemented.
+
+    * The note post-processing code no longer fails if it finds an
+      invalid URL in a note.
+
+    * The note generation code in the clash checker now escapes any
+      characters which have special significance in Markdown so
+      the above-mentioned event no longer generates a URL at all.
+
+* Update Rails to 5.2.6.3 (from 5.2.6)
+
+  There have been several minor point releases of Rails.  This
+  brings Scheduler up to date within the Rails 5 tree.
+
+
 v1.15.4   2022-01-28
 
 * Allow the calendar view to be specified in the URL.
