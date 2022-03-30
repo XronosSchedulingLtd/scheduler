@@ -97,7 +97,13 @@ class ClashChecker
     result = Array.new
     all_clashers = Array.new
     clashing_events.each do |ce|
-      result << "##### #{ce.body} (#{ce.duration_or_all_day_string})"
+      #
+      #  Since the eventual text will be interpreted as Markdown we need
+      #  to escape the text which isn't intended to be interpreted as
+      #  such.  Note also that we use "\\(" and "\\)" for the same
+      #  reason.
+      #
+      result << "##### #{Note.escape_for_markdown(ce.body)} \\(#{ce.duration_or_all_day_string}\\)"
       ce_resources =
         ce.all_atomic_resources.select { |r|
           CLASSES_TO_CHECK.include?(r.class)
