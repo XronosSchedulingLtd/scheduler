@@ -145,35 +145,49 @@ class Note < ApplicationRecord
       #
       should_link_to = Array.new
       unless self.formatted_contents.blank?
-        doc = Nokogiri::HTML::DocumentFragment.parse(self.formatted_contents)
-        doc.css('a').each do |link|
-          #
-          #  Is this a link to a file within our system?  If so, then
-          #  we need to create a corresponding attachment record.
-          #
-          uri = URI.parse(link[:href])
-          #
-          #  Is it on our host?
-          #
-          if uri.relative? || uri.host == Setting.dns_domain_name
+        begin
+          doc = Nokogiri::HTML::DocumentFragment.parse(self.formatted_contents)
+          doc.css('a').each do |link|
             #
-            #  Seems to be our host at least.
-            #  Is it a link to a user file?
+            #  Is this a link to a file within our system?  If so, then
+            #  we need to create a corresponding attachment record.
             #
-            if uri.path =~ /^\/user_files\//
+            uri = URI.parse(link[:href])
+            #
+            #  Is it on our host?
+            #
+            if uri.relative? || uri.host == Setting.dns_domain_name
               #
-              #  Looking hopeful.  Now need to extract the last part.
+              #  Seems to be our host at least.
+              #  Is it a link to a user file?
               #
-              leaf = Pathname.new(uri.path).basename.to_s
-              #
-              #  And does that match one of our files?
-              #
-              user_file = UserFile.find_by(nanoid: leaf)
-              if user_file
-                should_link_to << user_file
+              if uri.path =~ /^\/user_files\//
+                #
+                #  Looking hopeful.  Now need to extract the last part.
+                #
+                leaf = Pathname.new(uri.path).basename.to_s
+                #
+                #  And does that match one of our files?
+                #
+                user_file = UserFile.find_by(nanoid: leaf)
+                if user_file
+                  should_link_to << user_file
+                end
               end
             end
           end
+        rescue URI::InvalidURIError
+          #
+          #  Our parent might be an event or a commitment.
+          #
+          if self.parent_type == "Event"
+            event_id = self.parent_id
+          elsif self.parent_type == "Commitment"
+            event_id = self.parent.event_id
+          else
+            event_id = 0
+          end
+          Rails.logger.warn("Invalid URI detected in note on event #{event_id}")
         end
       end
       #
@@ -282,6 +296,36 @@ class Note < ApplicationRecord
     Note.where(formatted_contents: nil).each do |note|
       note.save
     end
+  end
+
+  def self.escape_for_markdown(original)
+    #
+    #  A list of all the special characters in Markdown,
+    #  with backslash repeated because that's special in Ruby
+    #  too.
+    #
+    markdown_specials = '\\`*_{}[]()#+-.!'
+
+    #
+    #  BUT!  Some of them are special in a regexp as well, so escape
+    #  that list to make it suitable for processing by the regexp code.
+    #
+    escaped_md_specials = Regexp.escape(markdown_specials)
+
+    #
+    #  And wrap those up in [] (meaning "any character from") then ()
+    #  (meaning "this is one term for later use") and turn it into a Regexp.
+    #
+    regex = Regexp.new("([#{escaped_md_specials}])")
+    #
+    #  Five backslashes?  What we actually want to end up with is
+    #
+    #    "\#{original term}"
+    #
+    #  The original term is expressed with "\1" and then the four others
+    #  get processed twice (ruby and regexp) to reduce them to one.
+    #
+    original.gsub(regex, '\\\\\1')
   end
 
 end
