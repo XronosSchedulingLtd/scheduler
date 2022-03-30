@@ -66,6 +66,11 @@ class NoteTest < ActiveSupport::TestCase
       note.formatted_contents
   end
 
+  test 'can escape contents' do
+    escaped = Note.escape_for_markdown("[escape]{and this}(and this)*")
+    assert_equal "\\[escape\\]\\{and this\\}\\(and this\\)\\*", escaped
+  end
+
   test 'blank notes still get formatted contents' do
     note = Note.create({
       parent: @event,
