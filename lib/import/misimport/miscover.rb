@@ -296,6 +296,8 @@ class MIS_Cover
         puts "Covered: #{@staff_covered.name}"
         puts "Starts at: #{@starts_at}"
         puts "Ends at: #{@ends_at}"
+        puts "Date: #{@date}"
+        puts "Source hash: #{@lesson_source_hash}"
       end
     elsif candidates.size == 1
       cover_commitment = candidates[0]

@@ -1,5 +1,5 @@
 # Xronos Scheduler - structured scheduling program.
-# Copyright (C) 2009-2017 John Winters
+# Copyright (C) 2009-2022 John Winters
 # See COPYING and LICENCE in the root directory of the application
 # for more information.
 
@@ -434,6 +434,7 @@ class ElementsController < ApplicationController
       do_clip       = false
       do_lm         = false    # Provide "last modified" datetime.
       do_zulu       = false    # Provide start and end times as GMT
+      do_dummy_loc  = false    # Give a LOCATION: field even if no locations
       prefix = "notset"
       calendar_name = "notset"
       calendar_description = "notset"
@@ -564,6 +565,10 @@ class ElementsController < ApplicationController
       if params.has_key?(:zulu)
         any_params = true
         do_zulu = true
+      end
+      if params.has_key?(:dummyloc)
+        any_params = true
+        do_dummy_loc = true
       end
       #
       #  That concludes processing relating to modifiers to the
@@ -730,6 +735,15 @@ class ElementsController < ApplicationController
             locations = dbevent.locations_for_ical(spread)
             if locations.size > 0
               event.location = locations.collect {|l| l.friendly_name}.join(",")
+            elsif do_dummy_loc
+              #
+              #  Unbelievable as it may seem, one buggy client will
+              #  make up its own list of locations if it doesn't get
+              #  an explicit location field for an event.  The authors
+              #  of the client are clueless and apparently unable to
+              #  fix it so...
+              #
+              event.location = ""
             end
             event.uid = "e#{dbevent.id}@#{Setting.hostname}"
             #
