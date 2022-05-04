@@ -1,3 +1,45 @@
+v1.15.6   2022-05-04
+
+* Add an extra option on ical feeds for a broken client program
+
+  An extra option - dummyloc - has been added to the ical feed URLs
+  to accommodate one broken client program which adds random
+  incorrect locations to events which don't specify any.
+
+  If you add "?dummyloc" to the end of your ical feed URL then every
+  event will have a LOCATION: field, even if empty.
+
+* More debug information for invalid cover from iSAMS
+
+  The iSAMS MIS seems to lack integrity checking in various areas.
+  In particular, if a lesson with cover is deleted the cover record
+  doesn't get deleted with it.  The Scheduler importer copes fine
+  with this but a little bit more debug information has been added
+  to help in tracking down instances.
+
+* Dependent packages updated
+
+  The following packages have been updated:
+
+    moment.js   2.29.3
+    Rails       5.2.7.1
+    Nokogiri    1.13.4
+    Puma        5.6.4
+
+  to fix the following vulnerabilities:
+
+    CVE-2022-24790
+    CVE-2022-24836
+    CVE-2022-23437
+    CVE-2022-24839
+    CVE-2022-22577
+
+    and a directory traversal vulnerability in moment.js
+
+  The update to Puma means it is essential to completely stop
+  the web server whilst applying this update.
+
+
 v1.15.5   2022-03-30
 
 * Add checks to prevent accidental Markdown in auto-generated notes.
