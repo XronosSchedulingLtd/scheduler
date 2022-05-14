@@ -1,3 +1,14 @@
+v1.15.7   2022-05-14
+
+* Add further functionality to dummyloc
+
+  The previous frig wasn't enough to make the broken client work.  If
+  it gets LOCATION: with nothing after it it still sometimes adds a
+  random location to its display.
+
+  You can now add a string to dummyloc - "?dummyloc=None" - or whatever.
+
+
 v1.15.6   2022-05-04
 
 * Add an extra option on ical feeds for a broken client program

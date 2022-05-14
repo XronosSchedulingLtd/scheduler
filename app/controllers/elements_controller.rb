@@ -569,6 +569,14 @@ class ElementsController < ApplicationController
       if params.has_key?(:dummyloc)
         any_params = true
         do_dummy_loc = true
+        #
+        #  Has anything been specified?  If not then return an empty
+        #  string.
+        #
+        dummyloc = params[:dummyloc]
+        if dummyloc.nil?
+          dummyloc=""
+        end
       end
       #
       #  That concludes processing relating to modifiers to the
@@ -743,7 +751,7 @@ class ElementsController < ApplicationController
               #  of the client are clueless and apparently unable to
               #  fix it so...
               #
-              event.location = ""
+              event.location = dummyloc
             end
             event.uid = "e#{dbevent.id}@#{Setting.hostname}"
             #
