@@ -221,7 +221,7 @@ GEM
     tiny_tds (0.7.0)
       mini_portile (= 0.6.2)
     tod (2.2.0)
-    tzinfo (1.2.9)
+    tzinfo (1.2.10)
       thread_safe (~> 0.1)
     uglifier (3.2.0)
       execjs (>= 0.3.0, < 3)
