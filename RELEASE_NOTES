@@ -1,3 +1,8 @@
+v1.15.9   2022-08-09
+
+* Upgrade rails-html-sanitizer
+
+
 v1.15.8   2022-08-09
 
 * Upgrade Rails to 5.2.8.1
