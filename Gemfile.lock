@@ -172,8 +172,8 @@ GEM
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
       nokogiri (>= 1.6)
-    rails-html-sanitizer (1.0.4)
-      loofah (~> 2.2, >= 2.2.2)
+    rails-html-sanitizer (1.4.3)
+      loofah (~> 2.3)
     rails-jquery-autocomplete (1.0.5)
       rails (>= 3.2)
     rails-observers (0.1.5)
@@ -263,7 +263,7 @@ DEPENDENCIES
   puma
   rails (= 5.2.8.1)
   rails-controller-testing
-  rails-html-sanitizer (~> 1.0.4)
+  rails-html-sanitizer (~> 1.4.3)
   rails-jquery-autocomplete
   rails-observers
   redcarpet
