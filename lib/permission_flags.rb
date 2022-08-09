@@ -1,3 +1,10 @@
+#
+# Xronos Scheduler - structured scheduling program.
+# Copyright (C) 2009-2022 John Winters
+# See COPYING and LICENCE in the root directory of the application
+# for more information.
+#
+
 class PermissionFlags < Hash
 
   KNOWN_PERMISSIONS = [
@@ -112,5 +119,9 @@ class PermissionFlags < Hash
   def self.nicer_text(key)
     NICER_TEXT[key]
   end
+end
+
+class ShadowPermissionFlags < PermissionFlags
+  @DEFAULT_VALUE = PERMISSION_DONT_CARE
 end
 

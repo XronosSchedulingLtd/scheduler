@@ -1,3 +1,12 @@
+v1.15.8   2022-08-09
+
+* Upgrade Rails to 5.2.8.1
+
+  This gives us a range of security fixes.  Also upgraded other contributory
+  gems.  It was necessary to re-arrange the initialisation of the app to
+  pass new more stringent security checks in Rails.
+
+
 v1.15.7   2022-05-14
 
 * Add further functionality to dummyloc
