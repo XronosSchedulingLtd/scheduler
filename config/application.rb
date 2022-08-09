@@ -2,6 +2,14 @@ require_relative 'boot'
 
 require 'rails/all'
 
+#
+#  This really doesn't seem to be the right place to put this
+#  but it needs to be included before we specify them as being serializable,
+#  and there doesn't seem to be a logical position early enough in the 
+#  Rails boot sequence.
+#
+require_relative '../lib/permission_flags'
+
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
@@ -31,5 +39,11 @@ module Scheduler
     config.before_initialize do
       PublicApi::Engine.instance.initializers.map {|e| e.run Rails.application }
     end
+
+    config.active_record.yaml_column_permitted_classes = [
+      Symbol,
+      PermissionFlags,
+      ShadowPermissionFlags
+    ]
   end
 end
