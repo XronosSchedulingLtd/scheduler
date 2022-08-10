@@ -13,7 +13,8 @@ class Options
               :do_convert,
               :check_recurring,
               :activities,
-              :cover
+              :cover,
+              :dont_do
 
   #
   #  These next two are intended to be over-ridden by MIS-specific
@@ -39,6 +40,7 @@ class Options
     @start_date      = nil
     @ahead           = 0
     @do_convert      = false
+    @dont_do         = []
     more_defaults
     OptionParser.new do |opts|
       opts.banner = "Usage: misimport.rb [options]"
@@ -114,6 +116,20 @@ class Options
       opts.on("--convert",
               "Convert record IDs from a previous MIS") do |c|
         @do_convert = c
+      end
+
+      opts.on("-n", "--no [THINGS]", String,
+              "Specify things not to do/load",
+              "Currently just \"setlists\".") do |things|
+        broken = things.split(",")
+        broken.each do |thing|
+          case thing.upcase
+          when "SETLISTS"
+            @dont_do << :setlists unless @dont_do.include? :setlists
+          else
+            puts "Don't understand \"#{thing}\" as something not to do."
+          end
+        end
       end
 
       more_options(opts)

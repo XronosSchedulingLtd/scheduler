@@ -50,7 +50,9 @@ class MIS_Group < MIS_Record
   #  Ensure this group is correctly represented in the
   #  database.
   #
-  def ensure_db(loader)
+  #  By default we will populate the group but we can be told not to.
+  #
+  def ensure_db(loader, populate = true)
     loaded_count           = 0
     changed_count          = 0
     unchanged_count        = 0
@@ -116,7 +118,7 @@ class MIS_Group < MIS_Record
         loaded_count += 1
       end
     end
-    if @dbrecord
+    if @dbrecord && populate
       #
       #  And now sort out the members for this group.
       #  Note that we handle only members who seem to have originated

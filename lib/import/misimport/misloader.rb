@@ -491,7 +491,7 @@ class MIS_Loader
     end
   end
 
-  def do_teachinggroups
+  def do_teachinggroups(populate = true)
     tg_changed_count      = 0
     tg_unchanged_count    = 0
     tg_loaded_count       = 0
@@ -517,7 +517,7 @@ class MIS_Loader
       unchanged,
       member_loaded,
       member_removed,
-      member_unchanged = tg.ensure_db(self)
+      member_unchanged = tg.ensure_db(self, populate)
       tg_loaded_count          += loaded
       tg_reincarnated_count    += reincarnated
       tg_changed_count         += changed
