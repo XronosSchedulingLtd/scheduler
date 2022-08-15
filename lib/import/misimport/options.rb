@@ -13,8 +13,7 @@ class Options
               :do_convert,
               :check_recurring,
               :activities,
-              :cover,
-              :dont_do
+              :cover
 
   #
   #  These next two are intended to be over-ridden by MIS-specific
@@ -121,11 +120,11 @@ class Options
       opts.on("-n", "--no [THINGS]", String,
               "Specify things not to do/load",
               "Currently just \"setlists\".") do |things|
-        broken = things.split(",")
-        broken.each do |thing|
-          case thing.upcase
-          when "SETLISTS"
-            @dont_do << :setlists unless @dont_do.include? :setlists
+        allowed = [:setlists]
+        things.split(",").each do |thing|
+          candidate = thing.strip.downcase.to_sym
+          if allowed.include? candidate
+            dont_do candidate
           else
             puts "Don't understand \"#{thing}\" as something not to do."
           end
@@ -135,6 +134,16 @@ class Options
       more_options(opts)
 
     end.parse!
+  end
+
+  def do?(item)
+    !@dont_do.include?(item)
+  end
+
+  private
+
+  def dont_do(item)
+    @dont_do << item unless @dont_do.include? item
   end
 
 end
