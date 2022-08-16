@@ -1,3 +1,23 @@
+v1.15.10  2022-08-16
+
+* Allow import from iSAMS without populating sets
+
+  A requirement has arisen to prevent students from knowing which sets
+  they are in prior to the start of term.  A new switch has been added
+  to the importer to allow this.  Passing "--no=setlists" to the
+  importer utility will cause the sets themselves to be created (and
+  thus allow the timetable to be loaded) but won't populate them with
+  pupils.  As soon as this option is removed, the next run of the importer
+  will populate the sets.
+
+* Allow extreme case of lesson merging
+
+  A problem was discovered where a very large number of iSAMS timetable
+  events were merged to a single logical event in Scheduler.  The
+  identifying string got too long for the database field.  The string
+  is now limited so as not to get too long.
+
+
 v1.15.9   2022-08-09
 
 * Upgrade rails-html-sanitizer
