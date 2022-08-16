@@ -16,4 +16,9 @@ SCHEDULER_DIR=/home/scheduler/Work/Coding/scheduler
 #
 RAILS_ENV=development
 
-export RAILS_ENV SCHEDULER_DIR
+#
+#  What options should be used when importing?
+#
+IMPORT_OPTS=( --quiet --email )
+
+export RAILS_ENV SCHEDULER_DIR IMPORT_OPTS

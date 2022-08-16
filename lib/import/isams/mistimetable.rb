@@ -244,7 +244,11 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
       #  the lessons haven't.  Sort them into numerical order to
       #  cope with this.
       #
-      "Lessons #{@isams_ids.sort.join(",")}"
+      #  It's just possible we will get a ludicrous number of lessons
+      #  merged, taking us over the 255 character string length limit.
+      #  The first 240 will do to identify it unambiguously.
+      #
+      "Lessons #{@isams_ids.sort.join(",")}".truncate(240)
     end
   end
 

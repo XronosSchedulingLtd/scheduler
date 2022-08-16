@@ -275,7 +275,11 @@ begin
         finished(options, "locations")
         loader.do_tutorgroups
         finished(options, "tutor groups")
-        loader.do_teachinggroups
+        #
+        #  By default we do populate the teaching groups but we may have
+        #  had a command line option telling us not to.
+        #
+        loader.do_teachinggroups(options.do?(:setlists))
         finished(options, "teaching groups")
         if options.activities
           loader.do_otherhalfgroups
