@@ -39,6 +39,7 @@ class Options
     @start_date      = nil
     @ahead           = 0
     @do_convert      = false
+    @dont_do         = []
     more_defaults
     OptionParser.new do |opts|
       opts.banner = "Usage: misimport.rb [options]"
@@ -116,9 +117,33 @@ class Options
         @do_convert = c
       end
 
+      opts.on("-n", "--no [THINGS]", String,
+              "Specify things not to do/load",
+              "Currently just \"setlists\".") do |things|
+        allowed = [:setlists]
+        things.split(",").each do |thing|
+          candidate = thing.strip.downcase.to_sym
+          if allowed.include? candidate
+            dont_do candidate
+          else
+            puts "Don't understand \"#{thing}\" as something not to do."
+          end
+        end
+      end
+
       more_options(opts)
 
     end.parse!
+  end
+
+  def do?(item)
+    !@dont_do.include?(item)
+  end
+
+  private
+
+  def dont_do(item)
+    @dont_do << item unless @dont_do.include? item
   end
 
 end
