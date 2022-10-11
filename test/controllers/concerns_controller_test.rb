@@ -28,6 +28,8 @@ class ConcernsControllerTest < ActionController::TestCase
 
     @user_form = FactoryBot.create(:user_form)
     @user_form.elements << @property.element
+    @element_property = FactoryBot.create(:property)
+    @element = @element_property.element
   end
 
   test "should get edit" do
@@ -53,5 +55,41 @@ class ConcernsControllerTest < ActionController::TestCase
       assert_equal @today.end_of_month.to_s(:dmy), fields.first['value']
     end
   end
+
+  test "can create concern" do
+    assert_difference('Concern.count') do
+      post(
+        :create,
+        params: {
+          concern: {
+            element_id: @element.id
+          }
+        },
+        xhr: true
+      )
+    end
+  end
+
+  test "concern inherits list flags" do
+    @user.list_rooms = true
+    @user.list_teachers = false
+    @user.save
+    assert_difference('Concern.count') do
+      post(
+        :create,
+        params: {
+          concern: {
+            element_id: @element.id
+          }
+        },
+        xhr: true
+      )
+    end
+    concern = Concern.last
+    assert concern.list_rooms?
+    assert_not concern.list_teachers
+
+  end
+
 
 end

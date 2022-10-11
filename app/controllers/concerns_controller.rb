@@ -98,6 +98,7 @@ class ConcernsController < ApplicationController
       if admin_user? && @user
         @concern = @user.concerns.new(concern_params)
         @concern.list_teachers = @user.list_teachers
+        @concern.list_rooms    = @user.list_rooms
         if @concern.element && @concern.element.preferred_colour
           @concern.colour = @concern.element.preferred_colour
         else
@@ -118,6 +119,7 @@ class ConcernsController < ApplicationController
       @concern = current_user.concerns.new(concern_params)
       @concern.concern_set = current_user.current_concern_set
       @concern.list_teachers = current_user.list_teachers
+      @concern.list_rooms    = current_user.list_rooms
       if @concern.element &&
          @concern.element.preferred_colour
         @concern.colour = @concern.element.preferred_colour
@@ -433,7 +435,9 @@ class ConcernsController < ApplicationController
       {field: :visible,
        annotation: "Should this resource's events be visible currently?"},
       {field: :list_teachers,
-       annotation: "Do you want teachers' initials listed with the event title?"}]
+       annotation: "Do you want teachers' initials listed with the event title?"},
+      {field: :list_rooms,
+       annotation: "Do you want rooms listed with the event title?"}]
     if (current_user.editor? && current_user.can_add_resources?) ||
        current_user.admin
       options_flags <<
@@ -569,6 +573,7 @@ class ConcernsController < ApplicationController
                     :subedit_any,
                     :skip_permissions,
                     :list_teachers,
+                    :list_rooms,
                     :assistant_to)
     else
       params.require(:concern).
@@ -579,7 +584,8 @@ class ConcernsController < ApplicationController
                     :auto_add,
                     :owns,
                     :seek_permission,
-                    :list_teachers)
+                    :list_teachers,
+                    :list_rooms)
     end
   end
 end

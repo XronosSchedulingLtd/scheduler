@@ -16,6 +16,7 @@ class Concern < ApplicationRecord
     :skip_permissions,
     :seek_permission,
     :list_teachers,
+    :list_rooms,
     :assistant_to
   ]
   TITLES = {
@@ -28,6 +29,7 @@ class Concern < ApplicationRecord
     skip_permissions: "Skip permissions",
     seek_permission:  "Seek permission",
     list_teachers:    "List teachers",
+    list_rooms:       "List rooms",
     assistant_to:     "See confidential"
   }
   EXPLANATIONS = {
@@ -40,6 +42,7 @@ class Concern < ApplicationRecord
     skip_permissions: "Can this user skip the permissions process for this resource?",
     seek_permission:  "Set to put requests through the permissions process regardless.",
     list_teachers:    "When viewing events for this resource, should teachers be listed?",
+    list_rooms:       "When viewing events for this resource, should rooms be listed?",
     assistant_to:     "When viewing events for this resource, can the user see the body text of the event even when it is confidential?"
   }
   belongs_to :user

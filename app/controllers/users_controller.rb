@@ -264,6 +264,7 @@ class UsersController < ApplicationController
                       :can_roam,
                       :firstday,
                       :list_teachers,
+                      :list_rooms,
                       :warn_no_resources,
                       :show_pre_requisites,
                       :preferred_event_category_id,
@@ -277,6 +278,7 @@ class UsersController < ApplicationController
         params.require(:user).
                permit(:firstday,
                       :list_teachers,
+                      :list_rooms,
                       :warn_no_resources,
                       :show_pre_requisites,
                       :email_notification,
@@ -298,6 +300,7 @@ class UsersController < ApplicationController
         params.require(:user).
                permit(:firstday,
                       :list_teachers,
+                      :list_rooms,
                       :warn_no_resources,
                       :show_pre_requisites,
                       :colour_not_involved,

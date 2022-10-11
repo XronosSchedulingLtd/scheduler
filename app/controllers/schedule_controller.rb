@@ -81,6 +81,7 @@ class ScheduleController < ApplicationController
               current_user.concerns.create({
                 element:       element,
                 list_teachers: current_user.list_teachers,
+                list_rooms:    current_user.list_rooms,
                 colour:        element.preferred_colour ?
                                element.preferred_colour :
                                current_user.free_colour,
