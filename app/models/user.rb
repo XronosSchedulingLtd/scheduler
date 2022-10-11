@@ -448,7 +448,10 @@ class User < ApplicationRecord
       (item.user_id == self.id) || self.admin
     elsif item.instance_of?(Note)
       (item.owner_id == self.id ||
-       (item.parent_type == "Commitment" && self.owns?(item.parent.element))) &&
+       (item.parent_type == "Commitment" && self.owns?(item.parent.element)) ||
+       false
+       # self.admin?
+      ) &&
        !item.read_only
     elsif item.instance_of?(Promptnote)
       self.owns?(item.element)
@@ -594,9 +597,13 @@ class User < ApplicationRecord
       #  If they're attached to commitments, you have to
       #  delete the commitment instead.
       #
-      item.owner_id == self.id &&
+      #  If you're an admin, you can delete notes attached to events
+      #  regardless.
+      #
       item.parent_type == "Event" &&
-      self.can_add_notes?
+      ((item.owner_id == self.id &&
+        self.can_add_notes?) ||
+       self.admin?)
     elsif item.instance_of?(Commitment)
       #
       #  With edit permission you can generally delete a commitment
