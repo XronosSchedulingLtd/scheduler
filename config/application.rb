@@ -43,7 +43,8 @@ module Scheduler
     config.active_record.yaml_column_permitted_classes = [
       Symbol,
       PermissionFlags,
-      ShadowPermissionFlags
+      ShadowPermissionFlags,
+      ActiveSupport::HashWithIndifferentAccess
     ]
   end
 end

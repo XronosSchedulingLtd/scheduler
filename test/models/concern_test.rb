@@ -201,6 +201,12 @@ class ConcernTest < ActiveSupport::TestCase
       owns: true
     })
     assert c.valid?
+    #
+    #  It is possible that the in-memory copy of the user record
+    #  has been updated but it hasn't been saved to the database.
+    #  (This actually happened.)
+    #
+    @user1.reload
     assert @user1.element_owner?
   end
 
@@ -227,6 +233,7 @@ class ConcernTest < ActiveSupport::TestCase
     assert c.valid?
     assert @user1.element_owner?
     c.destroy
+    @user1.reload
     assert_not @user1.element_owner?
   end
 
@@ -260,10 +267,13 @@ class ConcernTest < ActiveSupport::TestCase
       owns: true
     })
     assert c2.valid?
+    @user1.reload
     assert @user1.element_owner?
     c1.destroy
+    @user1.reload
     assert @user1.element_owner?
     c2.destroy
+    @user1.reload
     assert_not @user1.element_owner?
   end
 

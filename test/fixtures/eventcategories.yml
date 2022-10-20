@@ -82,3 +82,22 @@ weekletter:
   public: false
   for_users: false
   unimportant: false
+
+activity:
+  name: Activity
+  pecking_order: 1
+  schoolwide: false
+  publish: true
+  public: false
+  for_users: false
+  unimportant: false
+
+schoolwide:
+  name: School wide
+  pecking_order: 1
+  schoolwide: true
+  publish: true
+  public: false
+  for_users: false
+  unimportant: false
+
