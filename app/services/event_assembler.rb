@@ -62,18 +62,23 @@ class EventAssembler
 
     include ColourManipulation
 
+    attr_reader :title
+
     def redden(colour)
       "#ff7070"
     end
 
-    def initialize(view_start,
-                   event,
-                   via_element,
-                   current_user = nil,
-                   colour = nil,
-                   mine = false,
-                   list_teachers = false,
-                   include_zoom_id = false)
+    def initialize(
+      view_start:,
+      event:,
+      via_element:     nil,
+      current_user:    nil,
+      colour:          nil,
+      mine:            false,
+      list_teachers:   false,
+      list_rooms:      false,
+      include_zoom_id: false
+    )
       @event   = event
       @event_id = event.id
       @include_zoom_id = include_zoom_id
@@ -210,6 +215,15 @@ class EventAssembler
         staff = event.staff_entities
         if staff.size > 0
           @title += " - #{staff.collect {|s| s.initials}.join(", ")}"
+        end
+      end
+      if list_rooms
+        rooms = event.room_entities
+        if rooms.size > 0
+          #
+          #  We list only short names.
+          #
+          @title += " - #{rooms.collect {|r| r.name}.join(", ")}"
         end
       end
       @all_day = event.all_day? || event.multi_day_timed?
@@ -478,8 +492,11 @@ class EventAssembler
           element.events_on(@start_date,
                             @end_date,
                             Eventcategory.visible.to_a).collect {|e|
-            ScheduleEvent.new(@start_date,
-                              e, nil, nil, '#3A87AD')
+            #puts "Invocation 1"
+            ScheduleEvent.new(
+              view_start: @start_date,
+              event:      e,
+              colour:     '#3A87AD')
           }
       end
     elsif @current_user && @current_user.known?
@@ -553,17 +570,19 @@ class EventAssembler
         end
         resulting_events =
           my_events.collect {|e|
-            ScheduleEvent.new(@start_date,
-                              e,
-                              nil,
-                              @current_user,
-                              @current_user.colour_not_involved)
+            #puts "Invocation 2"
+            ScheduleEvent.new(
+              view_start:   @start_date,
+              event:        e,
+              current_user: @current_user,
+              colour:       @current_user.colour_not_involved)
           } +
           schoolwide_events.collect {|e|
-            ScheduleEvent.new(@start_date,
-                              e,
-                              nil,
-                              @current_user)
+            #puts "Invocation 3"
+            ScheduleEvent.new(
+              view_start:   @start_date,
+              event:        e,
+              current_user: @current_user)
           }
         if @current_user && @current_user.day_shape
           resulting_events +=
@@ -650,9 +669,21 @@ class EventAssembler
                                      eventcategory:       event_categories,
                                      include_nonexistent: true)
             if concern.list_teachers
-              selector = selector.preload(event: {staff_elements: :entity})
+              if concern.list_rooms
+                selector = selector.preload(
+                  event: [
+                    {staff_elements: :entity},
+                    {room_elements: :entity}
+                  ])
+              else
+                selector = selector.preload(event: {staff_elements: :entity})
+              end
             else
-              selector = selector.preload(:event)
+              if concern.list_rooms
+                selector = selector.preload(event: {room_elements: :entity})
+              else
+                selector = selector.preload(:event)
+              end
             end
             resulting_events =
                       selector.
@@ -665,13 +696,16 @@ class EventAssembler
                       collect {|c| c.event}.
                       uniq.
                       collect {|e|
-                        ScheduleEvent.new(@start_date,
-                                          e,
-                                          element,
-                                          @current_user,
-                                          concern.colour,
-                                          concern.equality,
-                                          concern.list_teachers)
+                        #puts "Invocation 4"
+                        ScheduleEvent.new(
+                          view_start:    @start_date,
+                          event:         e,
+                          via_element:   element,
+                          current_user:  @current_user,
+                          colour:        concern.colour,
+                          mine:          concern.equality,
+                          list_teachers: concern.list_teachers,
+                          list_rooms:    concern.list_rooms)
                       }
           end
           #
@@ -717,20 +751,27 @@ class EventAssembler
               element.events_on(@start_date,
                                 @end_date,
                                 Eventcategory.not_schoolwide.visible.to_a).collect {|e|
-                ScheduleEvent.new(@start_date,
-                                  e, nil, nil, element.preferred_colour)
+                #puts "Invocation 5"
+                ScheduleEvent.new(
+                  view_start: @start_date,
+                  event:      e,
+                  colour:     element.preferred_colour)
               }
           end
         end
       elsif fake_id.blank?
         @session[:last_start_date] = @start_date
         resulting_events =
-         Event.events_on(
-           @start_date,
-           @end_date,
-           Eventcategory.schoolwide.visible.to_a).collect {|e|
-             ScheduleEvent.new(@start_date,
-                               e, nil, nil)}
+          Event.events_on(
+            @start_date,
+            @end_date,
+            Eventcategory.schoolwide.visible.to_a).
+            collect {|e|
+              #puts "Invocation 6"
+              ScheduleEvent.new(
+                view_start: @start_date,
+                event:      e)
+            }
       end
     end
     return resulting_events
@@ -761,11 +802,11 @@ class EventAssembler
               @end_date,
               schoolwide_categories
             ).collect { |e|
+              #puts "Invocation 7"
               ScheduleEvent.new(
-                @start_date,      # View start
-                e,                # Event
-                nil,              # Via element
-                @current_user     # Current user
+                view_start:   @start_date,
+                event:        e,
+                current_user: @current_user
               )
             }
         end
@@ -788,14 +829,16 @@ class EventAssembler
                     collect {|c| c.event}.
                     uniq.
                     collect {|e|
-                      ScheduleEvent.new(@start_date,
-                                        e,
-                                        element,
-                                        @current_user,
-                                        '#3A87AD',
-                                        true,
-                                        list_teachers,
-                                        true)
+                      #puts "Invocation 8"
+                      ScheduleEvent.new(
+                        view_start:      @start_date,
+                        event:           e,
+                        via_element:     element,
+                        current_user:    @current_user,
+                        colour:          '#3A87AD',
+                        mine:            true,
+                        list_teachers:   list_teachers,
+                        include_zoom_id: true)
                     }
         result = schoolwide_events + element_events
       end

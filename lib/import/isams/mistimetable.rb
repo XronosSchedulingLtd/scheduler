@@ -1184,7 +1184,7 @@ class MIS_Timetable
     @week_allocations = ISAMS_WeekAllocation.construct(isams_data)
     @week_allocations_hash = Hash.new
     @week_allocations.each do |wa|
-      @week_allocations_hash["#{wa.year}/#{wa.week}"] = wa
+      (@week_allocations_hash["#{wa.year}/#{wa.week}"] ||= []) << wa
       week = @week_hash[wa.timetableweek_id]
       if week
         week.set_part_time
@@ -1271,12 +1271,14 @@ class MIS_Timetable
     #  Note that more than one week may be extant on the indicated date.
     #
     weeks = []
-    week_allocation =
+    week_allocations =
       @week_allocations_hash["#{date.year}/#{date.loony_isams_cweek}"]
-    if week_allocation
-      week = @week_hash[week_allocation.timetableweek_id]
-      if week
-        weeks << week
+    if week_allocations
+      week_allocations.each do |week_allocation|
+        week = @week_hash[week_allocation.timetableweek_id]
+        if week
+          weeks << week
+        end
       end
     elsif
       #

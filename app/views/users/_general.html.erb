@@ -142,7 +142,10 @@
                  [
                    {field: :list_teachers,
                     prompt: "List teachers",
-                    annotation: "Should newly created concerns default to listing teachers' initials in events?"}
+                    annotation: "Should newly created concerns default to listing teachers' initials in events?"},
+                   {field: :list_rooms,
+                    prompt: "List rooms",
+                    annotation: "Should newly created concerns default to listing rooms in events?"}
                  ]) %>
 <% if current_user.create_events? %>
   <%= flag_group(f, 12, 6, "Creating events",
