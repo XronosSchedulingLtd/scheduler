@@ -1,3 +1,50 @@
+v1.15.11  2022-10-20
+
+* Add HashWithIndifferentAccess to serializable
+
+  A new security feature in the latest version of Rails requires all
+  objects which are to be serialised to the database to be declared
+  as such.  The previous release missed out HashWithIndifferentAccess
+  from this list.
+
+* Fix error in setting of element_owner flag
+
+  The User model tries to keep track of whether each user owns (controls)
+  at least one item (Element) in the system.  The code for doing this
+  was flawed and several users were not correctly recorded as owning
+  elements.  The flawed code has been fixed and a maintenance method
+  has been added to allow all affected User records to be corrected.
+
+* Allow an admin user to delete any note
+
+  The test for deleting notes has been updated to allow any admin user
+  to delete any note.
+
+* Cope with multiple week sets arriving from iSAMS
+
+  Scheduler has no limits on how many sets of week definitions it can cope
+  with.  Until recently, iSAMS could cope with only one definition of
+  A/B weeks.  iSAMS has been enhanced to cope with multiple sets which
+  exposed an error in the Scheduler import code for iSAMS data which
+  implicitly assumed there would be only one set.  This release removes
+  that pinch-point in the import processing.
+
+* Add list_rooms flag to mimic existing list_teachers
+
+  A request arose to include details of the rooms for lessons in the
+  general schedule display.  It has long been possible to list the staff
+  involved in lessons in this display and this is the default for students
+  using the system.  The display is controlled by a flag in the Concern
+  record, so users can choose for each item which they are looking at whether
+  to list staff or not.
+
+  An additional flag has been added - list_rooms - so now they can choose
+  whether to have rooms listed as well.
+
+  There is also a list_rooms flag on the User record so the user can choose
+  what is the default setting for newly created Concerns.
+
+
 v1.15.10  2022-08-16
 
 * Allow import from iSAMS without populating sets
