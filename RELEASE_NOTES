@@ -1,3 +1,24 @@
+v1.15.12  2022-11-13
+
+* Upgrade Nokogiri and Omniauth
+
+  These two packages have been updated for security fixes.
+
+* Update user details at login
+
+  Scheduler learns each user's name etc. from the chosen authentication
+  server, but historically has not updated this information when it changed.
+  Scheduler will now update its idea of the user's details if the information
+  coming from the authenticator changes.
+
+* New API call to amend existing events
+
+  As the first step in some API enhancements, and to check that we're all
+  talking the same language, a new API call has been added to allow the
+  information relating to an existing event - like title or organiser - to
+  be amended.
+
+
 v1.15.11  2022-10-20
 
 * Add HashWithIndifferentAccess to serializable
