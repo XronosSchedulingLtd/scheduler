@@ -14,7 +14,7 @@ PublicApi::Engine.routes.draw do
     resources :commitments, only: [:index]
   end
 
-  resources :events, only: [:show, :create, :destroy] do
+  resources :events, only: [:show, :create, :update, :destroy] do
     resources :notes, shallow: true
     member do
       post :add
