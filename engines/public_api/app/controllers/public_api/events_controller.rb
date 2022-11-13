@@ -7,7 +7,7 @@ module PublicApi
 
   class EventsController < PublicApi::ApplicationController
 
-    before_action :set_event, only: [:show, :add, :destroy]
+    before_action :set_event, only: [:show, :add, :update, :destroy]
 
     # GET /api/events/1.json
     #
@@ -112,6 +112,43 @@ module PublicApi
       end
       if failures
         json_result[:failures] = mh.summary_from(failures, event)
+      end
+      if message
+        json_result[:message] = message
+      end
+      render json: json_result, status: status
+    end
+
+    # PATCH /api/events/1
+    def update
+      #
+      #  Modify fields in existing event.
+      #
+      status   = :ok
+      failures = nil
+      message  = nil
+      #
+      #  We don't need a RequestNotifier because we aren't changing any
+      #  attached items.
+      #
+      if current_user.can_edit?(@event)
+        @event.ensure_journal
+        if @event.update(event_params)
+          @event.journal_event_updated(current_user)
+          @event.check_timing_changes(current_user)
+        else
+          status = :unprocessable_entity
+        end
+      else
+        status = :forbidden
+      end
+      mh = ModelHasher.new
+      json_result = {
+        status: status_text(status)
+      }
+      json_result[:event] = mh.summary_from(@event)
+      if failures
+        json_result[:failures] = mh.summary_from(failures, @event)
       end
       if message
         json_result[:message] = message

@@ -1245,6 +1245,39 @@ class User < ApplicationRecord
     new_user
   end
 
+  #
+  #  For use at subsequent logins.  We have found the user's record using
+  #  the authentication provider's id - has their name or e-mail address
+  #  changed?
+  #
+  #  Should this not be a bit more defensive?  Firstly against causing
+  #  a run-time error and secondly against saving gash data.
+  #
+  def update_from_omniauth(auth)
+    do_save = false
+    info = auth["info"]
+    if info && info.respond_to?(:has_key?)
+      name = info["name"]
+      unless name.blank?
+        if self.name != info["name"]
+          self.name = info["name"]
+          do_save = true
+        end
+      end
+      raw_email = info["email"]
+      unless raw_email.blank?
+        email = raw_email.downcase
+        if self.email != email
+          self.email = email
+          do_save = true
+        end
+      end
+    end
+    if do_save
+      self.save
+    end
+  end
+
   def initials
     if self.corresponding_staff
       self.corresponding_staff.initials

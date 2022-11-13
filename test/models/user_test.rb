@@ -430,6 +430,130 @@ class UserTest < ActiveSupport::TestCase
     assert @staff_user.resource_clash_notification?
   end
 
+  test "can create user from omniauth" do
+    auth = {
+      "provider" => "Google",
+      "uid"      => "12345",
+      "info" => {
+        "name"  =>  "Able Baker Charlie",
+        "email" =>  "able.baker@charlie.org"
+      }
+    }
+    assert_difference('User.count', 1) do
+      user = User.create_from_omniauth(auth)
+      assert user.valid?
+      assert_equal user.user_profile, UserProfile.guest_profile
+    end
+  end
+
+  test "can pick up staff profile" do
+    auth = {
+      "provider" => "Google",
+      "uid"      => "12345",
+      "info" => {
+        "name"  =>  "Able Baker Charlie",
+        "email" =>  "able.baker@charlie.org"
+      }
+    }
+    FactoryBot.create(:staff, email: "able.baker@charlie.org")
+    assert_difference('User.count', 1) do
+      user = User.create_from_omniauth(auth)
+      assert user.valid?
+      assert_equal user.user_profile, UserProfile.staff_profile
+    end
+  end
+
+  test "can pick up pupil profile" do
+    auth = {
+      "provider" => "Google",
+      "uid"      => "12345",
+      "info" => {
+        "name"  =>  "Able Baker Charlie",
+        "email" =>  "able.baker@charlie.org"
+      }
+    }
+    FactoryBot.create(:pupil, email: "able.baker@charlie.org")
+    assert_difference('User.count', 1) do
+      user = User.create_from_omniauth(auth)
+      assert user.valid?
+      assert_equal user.user_profile, UserProfile.pupil_profile
+    end
+  end
+
+  test "can change provider through omniauth" do
+    auth = {
+      "provider" => "Microsoft",
+      "uid"      => "6789",
+      "info" => {
+        "name"  =>  "Able Baker Charlie",
+        "email" =>  "able.baker@charlie.org"
+      }
+    }
+    existing_user = FactoryBot.create(
+      :user,
+      email: "able.baker@charlie.org",
+      provider: "Google",
+      uid: "12345"
+    )
+
+    assert_difference('User.count', 0) do
+      user = User.create_from_omniauth(auth)
+      assert user.valid?
+      assert_equal auth["provider"], user.provider
+      assert_equal auth["uid"], user.uid
+    end
+  end
+
+  test "can update existing users name at login" do
+    auth = {
+      "provider" => "Google",
+      "uid"      => "12345",
+      "info" => {
+        "name"  =>  "Able Baker Charlie",
+        "email" =>  "able.baker@charlie.org"
+      }
+    }
+    user = nil
+    assert_difference('User.count', 1) do
+      user = User.create_from_omniauth(auth)
+      assert user.valid?
+      assert_equal user.user_profile, UserProfile.guest_profile
+    end
+    auth["info"]["name"] = "Got married"
+    auth["info"]["email"] = "ANC@de.f"
+    assert_difference('User.count', 0) do
+      user.update_from_omniauth(auth)
+      user.reload # To make sure change has been persisted
+      assert_equal "Got married", user.name
+      assert_equal "anc@de.f", user.email
+    end
+  end
+
+  test "but wont blank things out" do
+    auth = {
+      "provider" => "Google",
+      "uid"      => "12345",
+      "info" => {
+        "name"  =>  "Able Baker Charlie",
+        "email" =>  "able.baker@charlie.org"
+      }
+    }
+    user = nil
+    assert_difference('User.count', 1) do
+      user = User.create_from_omniauth(auth)
+      assert user.valid?
+      assert_equal user.user_profile, UserProfile.guest_profile
+    end
+    auth["info"]["name"] = ""
+    auth["info"]["email"] = nil
+    assert_difference('User.count', 0) do
+      user.update_from_omniauth(auth)
+      user.reload # To make sure change has been persisted
+      assert_equal "Able Baker Charlie", user.name
+      assert_equal "able.baker@charlie.org", user.email
+    end
+  end
+
   private
 
   def check_yes(value)
