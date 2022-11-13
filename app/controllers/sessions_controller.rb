@@ -34,6 +34,7 @@ class SessionsController < ApplicationController
     user = User.find_by(provider: auth["provider"],
                         uid:      auth["uid"])
     if user
+      user.update_from_omniauth(auth)
       unless user.known?
         #
         #  If a user is not known, we check each time to see whether

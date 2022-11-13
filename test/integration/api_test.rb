@@ -39,6 +39,8 @@ class ApiTest < ActionDispatch::IntegrationTest
         email: "ordinary_user@myschool.org.uk")
     @staff1 = FactoryBot.create(
       :staff, {name: "Able Baker Charlie", initials: "ABC"})
+    @staff2 = FactoryBot.create(
+      :staff, {name: "Dean Edward Franks", initials: "DEF"})
     @pupil1 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Maximus")
     @pupil2 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Major")
     @pupil3 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Minor")
@@ -64,6 +66,12 @@ class ApiTest < ActionDispatch::IntegrationTest
       starts_at_text: @event_start_time.strftime("%d/%m/%Y %H:%M"),
       ends_at_text:   @event_end_time.strftime("%d/%m/%Y %H:%M"),
       eventcategory_id: @eventcategory.id
+    }
+    @rename_event = {
+      body:  'Renamed event'
+    }
+    @change_organiser = {
+      organiser_id: @staff2.element.id
     }
     @elements_to_add = [
       @staff1.element,
@@ -457,6 +465,53 @@ class ApiTest < ActionDispatch::IntegrationTest
     response_data = unpack_response(response, 'OK')
     event = response_data['event']
     assert_instance_of Hash, event
+  end
+
+  test 'can rename an existing event' do
+    do_valid_login
+    patch @api_paths.event_path(
+      @existing_event,
+      event: @rename_event
+    ), params: { format: :json }
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    event = response_data['event']
+    assert_instance_of Hash, event
+    assert_equal @rename_event[:body], event['body']
+    #
+    #  And check that it was saved to the database, not just returned
+    #  in my response.
+    #
+    check_db_event_detail(@existing_event.id, 'body', @rename_event[:body])
+  end
+
+  test 'can change organiser of an existing event' do
+    do_valid_login
+    patch @api_paths.event_path(
+      @existing_event,
+      event: @change_organiser
+    ), params: { format: :json }
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    event = response_data['event']
+    assert_instance_of Hash, event
+    #
+    #  And check that it was saved to the database, not just returned
+    #  in my response.
+    #
+    check_db_event_detail(
+      @existing_event.id,
+      ['organiser', 'id'],
+      @change_organiser[:organiser_id])
+  end
+
+  test 'cannot update if wrong user' do
+    do_valid_login(@other_api_user)
+    patch @api_paths.event_path(
+      @existing_event,
+      event: @event_modifiers
+    ), params: { format: :json }
+    assert_response :forbidden
   end
 
   test 'querying non-existent event returns correct status' do
@@ -1253,6 +1308,25 @@ class ApiTest < ActionDispatch::IntegrationTest
     assert_instance_of Array, failures
     assert_empty failures
     return event
+  end
+
+  def check_db_event_detail(event_id, selector, value)
+    get @api_paths.event_path(event_id), params: { format: :json }
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    event = response_data['event']
+    assert_instance_of Hash, event
+    if selector.instance_of?(Array)
+      currently = event
+      selector.each do |s|
+        currently = currently[s]
+        assert_not_nil currently
+      end
+      data_item = currently
+    else
+      data_item = event[selector]
+    end
+    assert_equal value, data_item
   end
 
 end
