@@ -41,12 +41,17 @@ class ApiTest < ActionDispatch::IntegrationTest
       :staff, {name: "Able Baker Charlie", initials: "ABC"})
     @staff2 = FactoryBot.create(
       :staff, {name: "Dean Edward Franks", initials: "DEF"})
+    @staff3 = FactoryBot.create(
+      :staff, {name: "Grahame Harold Indigo", initials: "GHI"})
     @pupil1 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Maximus")
     @pupil2 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Major")
     @pupil3 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Minor")
     @pupil4 = FactoryBot.create(:pupil, name: "Fotheringay-Smith Minimus")
     @group1 = FactoryBot.create(:group)
     @location1 = FactoryBot.create(:location)
+    @location2 = FactoryBot.create(:location, name: "L02")
+    @location3 = FactoryBot.create(:location, name: "L03")
+    @location4 = FactoryBot.create(:location, name: "L04")
     @property1 = FactoryBot.create(:property)
     @service1 = FactoryBot.create(:service)
     @subject1 = FactoryBot.create(:subject)
@@ -685,7 +690,16 @@ class ApiTest < ActionDispatch::IntegrationTest
     do_valid_login
     event1 = generate_event_on(Date.today,          @staff1.element)
     event2 = generate_event_on(Date.today + 1.day,  @staff1.element)
-    event3 = generate_event_on(Date.today + 2.days, @staff1.element)
+    event3 = generate_event_on(
+      Date.today + 2.days,
+      [
+        @staff1.element,
+        @staff2.element,
+        @staff3.element,
+        @location2.element,
+        @location3.element
+      ]
+    )
     #
     #  Try for all 3 days.
     #
@@ -723,6 +737,33 @@ class ApiTest < ActionDispatch::IntegrationTest
     commitments = response_data['commitments']
     assert_instance_of Array, commitments
     assert_equal 1, commitments.size
+    #
+    #  And can we get ancillary info?
+    #
+    get @api_paths.element_commitments_path(
+      @staff1.element,
+      start_date: (Date.today + 2.days).strftime("%Y-%m-%d"),
+      end_date: (Date.today + 2.days).strftime("%Y-%m-%d"),
+      include: "staff,locations"
+    ), params: { format: :json }
+    assert_response :success
+    response_data = unpack_response(response, 'OK')
+    commitments = response_data['commitments']
+    assert_instance_of Array, commitments
+    assert_equal 1, commitments.size
+    event = commitments[0]["event"]
+    assert_not_nil event
+    staff = event["staff"]
+    assert_not_nil staff
+    split = staff.split(",")
+    assert split.include?("ABC")
+    assert split.include?("DEF")
+    assert split.include?("GHI")
+    locations = event["locations"]
+    assert_not_nil locations
+    split = locations.split(",")
+    assert split.include?("L02")
+    assert split.include?("L03")
   end
 
   test 'should be able to delete a commitment' do

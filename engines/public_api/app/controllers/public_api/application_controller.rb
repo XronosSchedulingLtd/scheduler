@@ -30,6 +30,10 @@ module PublicApi
       #  We might in the future add the means to request extra fields.
       #
 
+      def initialize(extras = {})
+        @extras = extras
+      end
+
       def summary_from(data, context = nil)
         if data.respond_to?(:collect)
           data.collect {|item| item_summary(item, context)}
@@ -112,6 +116,31 @@ module PublicApi
             hash[:commitments] = self.summary_from(item.commitments, item)
             hash[:requests] = self.summary_from(item.requests, item)
           end
+          #
+          #  But the caller might want to know about teachers and/or rooms
+          #
+          if @extras[:staff]
+            #
+            #  Don't use staff_elements because we didn't do our database
+            #  hit with that and so it will cause another hit.
+            #
+            hash[:staff] = item.commitments.collect { |c|
+              if c.element.entity_type == "Staff"
+                c.element.entity.initials
+              else
+                nil
+              end
+            }.compact.join(",")
+          end
+          if @extras[:locations]
+            hash[:locations] = item.commitments.collect { |c|
+              if c.element.entity_type == "Location"
+                c.element.entity.name
+              else
+                nil
+              end
+            }.compact.join(",")
+          end
         when Eventcategory
           hash = {
             id:   item.id,
@@ -166,7 +195,15 @@ module PublicApi
           #  Item is some sort of model, or a FailureRecord.
           #
           if item.respond_to?(:valid?)
-            valid = item.valid?
+            #
+            #  Checking validity can involve a number of database
+            #  queries.  Avoid them if possible.
+            #
+            if item.persisted? && !item.changed?
+              valid = true
+            else
+              valid = item.valid?
+            end
             hash[:valid] = valid
             unless valid
               hash[:errors] = item.errors
