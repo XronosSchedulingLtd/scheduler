@@ -99,6 +99,17 @@ class ApiTest < ActionDispatch::IntegrationTest
   end
 
   #
+  #  Version number.  Does not require login.
+  #
+  test "can query version number" do
+    get @api_paths.version_path, params: { format: :json }
+    assert_response :success
+    data = unpack_response(response, 'OK')
+    expected_version = SOFTWARE_VERSION.split(' ')[-1]
+    assert_equal expected_version, data['version']
+  end
+
+  #
   #  Basic login and logout
   #
   test "login requests must be json" do
