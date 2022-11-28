@@ -81,6 +81,8 @@ class PropertiesController < ApplicationController
                                        :auto_pupils,
                                        :feed_as_category,
                                        :edit_preferred_colour,
+                                       :force_colour,
+                                       :force_weight,
                                        :locking)
     end
 end
