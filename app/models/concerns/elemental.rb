@@ -143,7 +143,7 @@ module Elemental
           creation_hash[:force_colour] = @new_force_colour
         end
         if instance_variable_defined?(:@new_force_weight)
-          creation_hash[:force_colour] = @new_force_weight
+          creation_hash[:force_weight] = @new_force_weight
         end
         if @preferred_uuid
           creation_hash[:preferred_uuid] = @preferred_uuid
@@ -172,6 +172,7 @@ module Elemental
         end
       end
     end
+    true
   end
 
   def display_columns
