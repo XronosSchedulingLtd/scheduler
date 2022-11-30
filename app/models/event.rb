@@ -150,6 +150,8 @@ class Event < ApplicationRecord
 
   belongs_to :proto_event, optional: true
 
+  serialize :preferred_colours, PCSet
+
   validates :body, presence: true
   validates :starts_at, presence: true
   validates_with DurationValidator
@@ -305,7 +307,9 @@ class Event < ApplicationRecord
   def update_from_contributors(
     contributor_tentative,
     contributor_constraining,
-    contributor_locking = false)
+    contributor_locking = false,
+    element = nil,
+    deleting = false)
 
     unless @being_destroyed || self.destroyed? || @informing_contributors
       do_save = false
@@ -363,10 +367,46 @@ class Event < ApplicationRecord
           end
         end
       end
+      #
+      #  Any colour information?
+      #
+      if element
+        if deleting
+          if element.force_colour
+            self.preferred_colours.remove_from(element.id)
+            do_save = true
+          end
+        else
+          if element.force_colour
+            self.preferred_colours.add(element.id,
+                                       element.force_weight,
+                                       element.preferred_colour)
+            do_save = true
+          end
+        end
+      end
+      #
+      #  And did we change anything?
+      #
       if do_save
         self.save!
       end
     end
+  end
+
+  def colour_info_updated(element)
+    #
+    #  Something about the indicated element, which is one attached
+    #  to this event by a commitment, has changed.
+    #
+    if element.force_colour
+      self.preferred_colours.add(element.id,
+                                 element.force_weight,
+                                 element.preferred_colour)
+    else
+      self.preferred_colours.remove_from(element.id)
+    end
+    self.save!
   end
 
   #
