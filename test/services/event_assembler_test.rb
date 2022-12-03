@@ -94,6 +94,15 @@ class EventAssemblerTest < ActiveSupport::TestCase
       eventcategory: @schoolwide_category)
 
     #
+    #  A property to force the colour of an event.
+    #
+    @colouring_property = FactoryBot.create(
+      :property,
+      name: "Colouring property",
+      edit_preferred_colour: "#abcdef",
+      force_colour: true
+    )
+    #
     #  Stuff for our EventAssembler
     #
     @pseudo_session = Hash.new
@@ -215,6 +224,30 @@ class EventAssemblerTest < ActiveSupport::TestCase
     assert_equal 1, found.size
     assert_match /ABC/, found[0].title
     assert_match /DEF/, found[0].title
+  end
+
+  test "can force change the colour of an existing event" do
+    #
+    #  This is a separate test from those dedicated to the setting and
+    #  adjustment of preferred colours.  It is intended to ensure that
+    #  the event_assembler respects preferred colours when they're there.
+    #
+    assert @colouring_property.element.force_colour
+    found = EventAssembler.new(@pseudo_session, @user, @with_stuff_params).call
+    assert_equal 1, found.size
+    assert_not_equal @colouring_property.element.preferred_colour,
+      found[0].colour
+    #
+    #  Now add the extra property.
+    #
+    FactoryBot.create(
+      :commitment,
+      event: @inclusion_event,
+      element: @colouring_property.element)
+    found = EventAssembler.new(@pseudo_session, @user, @with_stuff_params).call
+    assert_equal 1, found.size
+    assert_equal @colouring_property.element.preferred_colour,
+      found[0].colour
   end
 
 end

@@ -62,7 +62,7 @@ class EventAssembler
 
     include ColourManipulation
 
-    attr_reader :title
+    attr_reader :title, :colour
 
     def redden(colour)
       "#ff7070"
@@ -101,6 +101,13 @@ class EventAssembler
            (event.covered_by?(current_user.own_element) ||
             event.eventcategory_id == Event.invigilation_category.id)
           @colour = "red"
+        elsif preferred_colour = event.preferred_colours.current
+          #
+          #  If the event itself has a preferred colour, use that
+          #  instead.  The function returns nil if there is no
+          #  preferred colour.
+          #
+          @colour = preferred_colour
         end
       elsif event.eventcategory_id == Event.weekletter_category.id
         @colour = "pink"

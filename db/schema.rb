@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_10_11_093949) do
+ActiveRecord::Schema.define(version: 2022_11_22_140547) do
 
   create_table "ad_hoc_domain_allocations", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name"
@@ -222,6 +222,8 @@ ActiveRecord::Schema.define(version: 2022_10_11_093949) do
     t.integer "user_form_id"
     t.boolean "add_directly", default: true
     t.boolean "viewable", default: true
+    t.boolean "force_colour", default: false
+    t.integer "force_weight", default: 0
     t.index ["entity_id"], name: "index_elements_on_entity_id"
     t.index ["entity_type", "entity_id"], name: "index_elements_on_entity_type_and_entity_id"
     t.index ["owner_id"], name: "index_elements_on_owner_id"
@@ -308,6 +310,7 @@ ActiveRecord::Schema.define(version: 2022_10_11_093949) do
     t.integer "event_collection_id"
     t.boolean "confidential", default: false
     t.boolean "locked", default: false
+    t.text "preferred_colours"
     t.index ["complete"], name: "index_events_on_complete"
     t.index ["ends_at"], name: "index_events_on_ends_at"
     t.index ["event_collection_id"], name: "index_events_on_event_collection_id"

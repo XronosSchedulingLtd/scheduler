@@ -44,4 +44,50 @@ class PropertyTest < ActiveSupport::TestCase
     assert_nil ahd.connected_property
   end
 
+  test "can set and change a preferred colour" do
+    property = Property.create(
+      @valid_params.merge(
+        {
+          edit_preferred_colour: "green"
+        }
+      )
+    )
+    assert property.valid?
+    assert_equal "green", property.element.preferred_colour
+    property.edit_preferred_colour = "red"
+    property.save
+    assert_equal "red", property.element.preferred_colour
+    #
+    #  And make sure the change got saved.
+    #
+    property.element.reload
+    assert_equal "red", property.element.preferred_colour
+  end
+
+  test "can set and change a forced colour" do
+    property = Property.create(
+      @valid_params.merge(
+        {
+          edit_preferred_colour: "green",
+          force_colour: true
+        }
+      )
+    )
+    assert property.valid?
+    assert_equal "green", property.element.preferred_colour
+    assert property.element.force_colour
+    property.edit_preferred_colour = "red"
+    property.force_colour = false
+    property.save
+    assert_equal "red", property.element.preferred_colour
+    assert_not property.element.force_colour
+    #
+    #  And make sure the change got saved.
+    #
+    property.element.reload
+    assert_equal "red", property.element.preferred_colour
+    assert_not property.element.force_colour
+  end
+
+
 end
