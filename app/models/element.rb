@@ -88,7 +88,10 @@ class Element < ApplicationRecord
 
   before_create :add_uuid
   before_destroy :being_destroyed
+
+  before_save :check_for_colour_changes
   after_save :rename_affected_events
+  after_save :update_colours
 
   SORT_ORDER_HASH = {
     "Property" => 1,
@@ -541,6 +544,35 @@ class Element < ApplicationRecord
         end
       end
     end
+    true
+  end
+
+  def check_for_colour_changes
+    if preferred_colour_changed? ||
+        force_colour_changed? ||
+        force_weight_changed?
+      @colour_stuff_updated = true
+    else
+      @colour_stuff_update = false
+    end
+    true
+  end
+
+  def update_colours
+    #
+    #  Has anything about our colour effects changed?
+    #
+    if @colour_stuff_updated
+      #
+      #  Colour dictation happens only through direct connections.
+      #
+      self.commitments.
+           includes(event: [:eventsource, :eventcategory]).
+           find_each do |commitment|
+        commitment.event.colour_info_updated(self)
+      end
+    end
+    true
   end
 
   def self.copy_current
@@ -615,6 +647,7 @@ class Element < ApplicationRecord
         generate_uuid
       end
     end
+    true
   end
 
   def self.generate_uuids

@@ -98,6 +98,14 @@ module Elemental
             do_save = true
           end
         end
+        if instance_variable_defined?(:@new_force_colour)
+          self.element.force_colour = @new_force_colour
+          do_save = true
+        end
+        if instance_variable_defined?(:@new_force_weight)
+          self.element.force_weight = @new_force_weight
+          do_save = true
+        end
         if instance_variable_defined?(:@new_viewable)
           self.element.viewable = @new_viewable
           do_save = true
@@ -131,6 +139,12 @@ module Elemental
         if @new_preferred_colour
           creation_hash[:preferred_colour] = @new_preferred_colour
         end
+        if instance_variable_defined?(:@new_force_colour)
+          creation_hash[:force_colour] = @new_force_colour
+        end
+        if instance_variable_defined?(:@new_force_weight)
+          creation_hash[:force_weight] = @new_force_weight
+        end
         if @preferred_uuid
           creation_hash[:preferred_uuid] = @preferred_uuid
         end
@@ -158,6 +172,7 @@ module Elemental
         end
       end
     end
+    true
   end
 
   def display_columns
@@ -335,6 +350,22 @@ module Elemental
     end
   end
 
+  def force_colour
+    element_force_colour
+  end
+
+  def force_colour=(new_value)
+    @new_force_colour = new_value
+  end
+
+  def force_weight
+    element_force_weight
+  end
+
+  def force_weight=(new_value)
+    @new_force_weight = new_value
+  end
+
   def edit_viewable
     element_viewable
   end
@@ -361,6 +392,14 @@ module Elemental
     else
       nil
     end
+  end
+
+  def element_force_colour
+    self.element ? self.element.force_colour : false
+  end
+
+  def element_force_weight
+    self.element ? self.element.force_weight : 0
   end
 
   def element_viewable

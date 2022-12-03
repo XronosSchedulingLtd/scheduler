@@ -50,6 +50,11 @@
                      field: :locking,
                      prompt: "Locking",
                      annotation: "If a request for this property is approved, should that then lock the parent event?"
+                   },
+                   {
+                     field: :force_colour,
+                     prompt: "Force colour",
+                     annotation: "Should this property force its preferred colour onto events?"
                    }
       ])
     %>
@@ -60,6 +65,8 @@
                        :id => :colour_picker,
                        "data-default-colour" => @property.edit_preferred_colour,
                        "data-allow-empty" => true) %>
+      <%= f.label :force_weight, "Weight of colour", title: "If more than one colour is forced, the weightiest wins out." %>
+      <%= f.number_field(:force_weight, min: 0, max: 999, title: "If more than one colour is forced, the weightiest wins out.") %>
     </div>
   </div>
   <div class="actions">

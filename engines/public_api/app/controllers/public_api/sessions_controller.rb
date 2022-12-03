@@ -82,6 +82,18 @@ module PublicApi
       end
     end
 
+    def version
+      #
+      #  The SOFTWARE VERSION variable contains something like:
+      #
+      #  "Version 1.15.13".
+      #
+      #  We want only the last bit.
+      #
+      version = SOFTWARE_VERSION.split(' ')[-1]
+      render json: { status: 'OK', version: version }
+    end
+
     private
 
     def authorized?(action = action_name, resource = nil)
@@ -89,10 +101,13 @@ module PublicApi
       #  We only tolerate json requests, and we can log you in
       #  or out.  If you are not logged in, you can still logout.
       #
+      #  You are also allowed to query the version regardless.
+      #
       request.format == 'json' &&
       (
         action == 'login' ||
         action == 'logout' ||
+        action == 'version' ||
         (
           known_user? &&
           we_can_api? &&

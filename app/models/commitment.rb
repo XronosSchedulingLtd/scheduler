@@ -977,13 +977,18 @@ class Commitment < ApplicationRecord
     if self.event
       self.event.update_from_contributors(self.tentative?,
                                           self.constraining?,
-                                          self.locking?)
+                                          self.locking?,
+                                          self.element)
     end
   end
 
   def update_event_after_destroy
     if self.event
-      self.event.update_from_contributors(false, false, false)
+      self.event.update_from_contributors(false,
+                                          false,
+                                          false,
+                                          self.element,
+                                          true)
     end
   end
 

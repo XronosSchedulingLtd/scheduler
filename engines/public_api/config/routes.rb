@@ -1,6 +1,7 @@
 PublicApi::Engine.routes.draw do
   get '/login', to: 'sessions#login'
   get '/logout', to: 'sessions#logout'
+  get '/version', to: 'sessions#version'
 
   resources :sessions, only: [:update] do
     member do

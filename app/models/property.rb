@@ -26,27 +26,6 @@ class Property < ApplicationRecord
     name
   end
 
-  #
-  #  I think - but am not sure - that these next three are redundant.
-  #  The functionality has been added to app/models/concerns/elemental.rb
-  #  and these don't seem to be used any more.
-  #
-  #  TODO: Check and remove
-  #
-  def preferred_colour
-    @preferred_colour
-  end
-
-  def preferred_colour=(colour)
-    @preferred_colour = colour
-  end
-
-  def adjust_element_creation_hash(creation_hash)
-    if @preferred_colour
-      creation_hash[:preferred_colour] = @preferred_colour
-    end
-  end
-
   def owners_initials
     self.element.owners.collect {|o| o.initials}.join(", ")
   end
