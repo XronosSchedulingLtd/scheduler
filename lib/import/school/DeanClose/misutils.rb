@@ -21,7 +21,7 @@ module MIS_Utils
   alias local_yeargroup_text_pupils local_yeargroup_text
 
   def local_effective_start_year(era, nc_year, ahead = 0)
-    era.starts_on.year + 1 - (nc_year + ahead)
+    era.starts_on.year + 1 - (local_yeargroup(nc_year) + ahead)
   end
 
   def local_wanted(nc_year)

@@ -41,6 +41,7 @@ class SB_Staff
 end
 
 class SB_Pupil
+  include MIS_Utils
   attr_accessor :pupil_ident,
                 :current,
                 :forename,
@@ -51,21 +52,21 @@ class SB_Pupil
                 :email
 
 
-  def initialize(mis_pupil, year_hash)
+  def initialize(mis_pupil)
     self.pupil_ident = mis_pupil.sb_id
     self.current     = true
     self.forename    = mis_pupil.forename
     self.known_as    = mis_pupil.known_as
     self.surname     = mis_pupil.surname
     self.name        = mis_pupil.full_name
-    self.year_ident  = year_hash[mis_pupil.nc_year].year_ident
+    self.year_ident  = local_yeargroup(mis_pupil.nc_year)
     self.email       = mis_pupil.email
   end
 
-  def self.dump(mis_pupils, year_hash)
+  def self.dump(mis_pupils)
     pupil_list = Array.new
     mis_pupils.each do |mis_pupil|
-      pupil_list << SB_Pupil.new(mis_pupil, year_hash)
+      pupil_list << SB_Pupil.new(mis_pupil)
     end
     File.open(Rails.root.join(IMPORT_DIR, "ForMarkbook", "pupils.yml"), "w") do |file|
       file.puts YAML::dump(pupil_list)
@@ -79,7 +80,7 @@ end
 #  linking to one of them.  The way to do it is via his NC year, which
 #  matches year_num in this record.  We need some background information
 #  in order to calculate the start_year for each record.  year_ident is
-#  arbitrary (but unique).
+#  arbitrary (but unique).  We use the local yeargroup.
 #
 class SB_Year
   attr_accessor :year_ident, :start_year, :year_num
@@ -176,6 +177,7 @@ end
 
 
 class SB_Group
+  include MIS_Utils
   attr_accessor :group_ident,
                 :subject_ident,
                 :name,
@@ -188,11 +190,7 @@ class SB_Group
       self.subject_ident = mis_group.subject.isams_id
     end
     self.name          = mis_group.name
-    if mis_group.year_id == 15
-      self.year_ident = 5
-    else
-      self.year_ident = mis_group.year_id - 6
-    end
+    self.year_ident    = local_yeargroup(mis_group.year_id)
     self.records = Array.new
     mis_group.pupils.each do |pupil|
       self.records << SB_AcademicRecord.new(pupil)
@@ -386,11 +384,7 @@ class MIS_Loader
   def local_processing(options)
     SB_Staff.dump(@staff)
     years = SB_Year.construct
-    year_hash = Hash.new
-    years.each do |year|
-      year_hash[year.year_num] = year
-    end
-    SB_Pupil.dump(@pupils, year_hash)
+    SB_Pupil.dump(@pupils)
     SB_Tutorgroup.dump(@tutorgroups)
     SB_Subject.dump(@subjects)
     SB_Group.dump(@teachinggroups, @timetable, self)

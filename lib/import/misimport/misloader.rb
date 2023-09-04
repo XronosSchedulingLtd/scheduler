@@ -918,11 +918,15 @@ class MIS_Loader
                       Pupil.current.to_a,
                       Pupil)
     pupils_by_year = Hash.new
+    #
+    #  Since the mapping of NC year to our years is not necessarily linear,
+    #  do the conversion before the grouping.
+    #
     @pupils.each do |pupil|
-      (pupils_by_year[pupil.nc_year] ||= Array.new) << pupil.dbrecord
+      (pupils_by_year[local_yeargroup(pupil.nc_year)] ||= Array.new) << pupil.dbrecord
     end
-    pupils_by_year.each do |nc_year, pupils|
-      ensure_membership("#{local_yeargroup_text_pupils(local_yeargroup(nc_year))}",
+    pupils_by_year.each do |local_year, pupils|
+      ensure_membership("#{local_yeargroup_text_pupils(local_year)}",
                         pupils,
                         Pupil)
     end
@@ -942,18 +946,18 @@ class MIS_Loader
         #
         pupils_by_year = Hash.new
         house.pupils.each do |pupil|
-          (pupils_by_year[pupil.nc_year] ||= Array.new) << pupil.dbrecord
+          (pupils_by_year[local_yeargroup(pupil.nc_year)] ||= Array.new) << pupil.dbrecord
         end
         #
         #  For some houses it doesn't make sense to stratify by year, but
         #  this is decided individually by each school.
         #
         if local_stratify_house?(house)
-          pupils_by_year.each do |nc_year, pupils|
+          pupils_by_year.each do |local_year, pupils|
             if Setting.ordinalize_years?
-              year_bit = "#{local_yeargroup(nc_year).ordinalize} year"
+              year_bit = "#{local_year.ordinalize} year"
             else
-              year_bit = "year #{local_yeargroup(nc_year)}"
+              year_bit = "year #{local_year}"
             end
             ensure_membership("#{local_format_house_name(house)} #{year_bit}",
                               pupils,
