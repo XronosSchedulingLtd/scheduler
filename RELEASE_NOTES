@@ -1,3 +1,12 @@
+v1.15.16  2023-10-27
+
+* Fix a problem with manually creating new subject records
+
+In implementing the AdHoc lessons functionality a bug was introduced which
+prevented the dialogue for creating Subject records manually from working
+correctly.  This release fixes that problem.
+
+
 v1.15.15  2023-09-04
 
 * Cope with SHSK girls in Abingdon feed
