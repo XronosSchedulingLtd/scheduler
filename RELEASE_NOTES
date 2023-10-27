@@ -1,3 +1,14 @@
+v1.15.15  2023-09-04
+
+* Cope with SHSK girls in Abingdon feed
+
+  Abingdon school has added some SHSK girls into their iSAMS database
+  using National Curriculum years 16 and 17 because iSAMS can't cope
+  with different cohorts of pupils.
+
+  Imported enhanced to cope with this.
+
+
 v1.15.14  2022-12-04
 
 * Allow the display colour of events to be forced by a property
