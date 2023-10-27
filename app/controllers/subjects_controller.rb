@@ -21,6 +21,7 @@ class SubjectsController < ApplicationController
     else
       @subject = Subject.new
     end
+    @all_fields = true
   end
 
   # GET /subjects/1/edit

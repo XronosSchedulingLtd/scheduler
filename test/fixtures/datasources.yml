@@ -5,3 +5,10 @@ one:
 
 two:
   name: MyString
+
+manual:
+  name: Manual
+
+schoolmis:
+  name: School MIS
+
