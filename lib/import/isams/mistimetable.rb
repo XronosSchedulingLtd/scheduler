@@ -204,7 +204,7 @@ class ISAMS_TimetableEntry < MIS_ScheduleEntry
     #  It assumes that the data coming from iSAMS will be correct.
     #  Needs reinforcing.
     #
-    group = loader.tegs_by_name_hash[@code]
+    group = loader.tegs_by_code_hash[@code]
     if group
       @groups << group
       @subject = group.subject

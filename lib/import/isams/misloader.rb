@@ -55,7 +55,7 @@ class MIS_Loader
 
   attr_reader :secondary_staff_hash,
               :secondary_location_hash,
-              :tegs_by_name_hash,
+              :tegs_by_code_hash,
               :tugs_by_name_hash,
               :pupils_by_school_id_hash,
               :subjects_by_name_hash
@@ -90,9 +90,9 @@ class MIS_Loader
     #  provide no means to link the relevant sets.  For now we're
     #  frigging it a bit and using names.
     #
-    @tegs_by_name_hash = Hash.new
+    @tegs_by_code_hash = Hash.new
     @teachinggroups.each do |teg|
-      @tegs_by_name_hash[teg.name] = teg
+      @tegs_by_code_hash[teg.set_code] = teg
     end
     @tugs_by_name_hash = Hash.new
     @tutorgroups.each do |tug|
@@ -107,24 +107,6 @@ class MIS_Loader
       #  Only now can we populate the other half groups.
       #
       MIS_Otherhalfgroup.populate(self)
-    end
-    #
-    #  Here we should really have finished, but we need to cope with
-    #  iSAMS's broken API.  There are more groups which are simply
-    #  missing from their data.
-    #
-    #  Now it gets messy.
-    #
-    proposed_extra_group_names =
-      @timetable.list_missing_teaching_groups(self)
-    proposed_extra_group_names.each do |name|
-      tg = @tugs_by_name_hash[name.split[0]]
-      if tg
-        extra_group =
-          ISAMS_FakeTeachinggroup.new(name, tg, @subjects_by_name_hash)
-        @teachinggroups << extra_group
-        @tegs_by_name_hash[extra_group.name] = extra_group
-      end
     end
   end
 end

@@ -23,6 +23,7 @@ class MIS_Teachinggroup
     IsamsField["Id",        :isams_id,         :attribute, :integer],
     IsamsField["SubjectId", :isams_subject_id, :attribute, :integer],
     IsamsField["YearId",    :year_id,          :attribute, :integer],
+    IsamsField["SetCode",   :set_code,         :data,      :string],
     IsamsField["Name",      :name,             :data,      :string]
   ]
 
