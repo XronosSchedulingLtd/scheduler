@@ -85,7 +85,7 @@ class MIS_Loader
       end
     end
     if self.respond_to?(:mis_specific_preparation)
-      self.mis_specific_preparation
+      self.mis_specific_preparation(whatever)
     end
     #
     #  And now there should be enough to build the actual timetable
