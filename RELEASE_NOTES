@@ -1,3 +1,29 @@
+v1.15.17  2024-01-19
+
+* Fix a problem importing sets from iSAMS where name and id differ.
+
+The set records arriving from iSAMS give each set both a SetId and a Name.
+Usually these are the same but they can be different.  For historical
+reasons (see next item) we were linking them up to the timetable by Name
+but it should have been by SetId.  Fixed.
+
+* Remove frig code added to cope with broken iSAMS data.
+
+Way back in the mists of time when the module for importing data from
+iSAMS was first added (mid 2016) there was an error in the design of the
+iSAMS data output which meant it was impossible to link a lesson involving
+a tutorgroup (TeachingForm in iSAMS terminology) to the matching tutorgroup.
+
+iSAMS refused point-blank to investigate or even acknowledge the problem
+and so a workaround was implemented using external knowledge and mapping
+by set name.
+
+About 8 months later they quietly fixed the problem (which they had previously
+insisted did not exist) but the code here never got changed.  As it led
+recently to the issue mentioned above it has now been removed entirely
+and such lessons link correctly to the relevant tutor groups.
+
+
 v1.15.16  2023-10-27
 
 * Fix a problem with manually creating new subject records
