@@ -17,6 +17,43 @@ class ISAMS_SetMembership
 
 end
 
+#
+#  This next is an iSAMS-specific thing.  It's a database record which lets
+#  them link a tutorgroup (Form) to a lesson.  Scheduler has no need of
+#  such a thing because we don't restrict how things can be linked, but
+#  we need to read it in to discover which tutorgroup they want linked to
+#  the lesson.
+#
+class MIS_TeachingForm
+  SELECTOR = "TeachingManager TeachingForms TeachingForm"
+  REQUIRED_FIELDS = [
+    IsamsField["Id",            :isams_id,             :attribute, :integer],
+    IsamsField["FormCode",      :isams_form_code,      :data,      :string],
+    IsamsField["TimetableCode", :isams_timetable_code, :data,      :string],
+    IsamsField["SubjectId",     :isams_subject_id,     :data,      :integer]
+  ]
+
+  include Creator
+
+  attr_reader :subject
+
+  def initialize(entry)
+  end
+
+  def note_subject(subject_hash)
+    @subject = subject_hash[self.isams_subject_id]
+  end
+
+  def self.construct(loader, isams_data)
+    tfs = self.slurp(isams_data.xml, false)
+    tfs.each do |tf|
+      tf.note_subject(loader.subject_hash)
+    end
+    tfs
+  end
+end
+
+
 class MIS_Teachinggroup
   SELECTOR = "TeachingManager Sets Set"
   REQUIRED_FIELDS = [
@@ -110,115 +147,4 @@ class MIS_Teachinggroup
     tgs
   end
 end
-
-
-#
-#  We'd really like to create this group by sub-classing MIS_Teachinggroup,
-#  but we've already extended it above, and we don't want that - we want
-#  it how it was before it got its iSAMS-specific extensions.  For now
-#  we just re-implement the required methods, but I suppose they could
-#  be pulled into a module TeachinggroupIsh or something like that, and
-#  then both things could require it.
-#
-class ISAMS_FakeTeachinggroup < MIS_Group
-
-  DB_CLASS = Teachinggroup
-
-  add_fields(:FIELDS_TO_CREATE, [:subject_id, :yeargroup])
-  add_fields(:FIELDS_TO_UPDATE, [:subject_id, :yeargroup])
-
-  SUBJECT_CODES = {
-    "Bi"  => "Biology",
-    "BtB" => "Be the Best",
-    "En"  => "English",
-    "Fr"  => "French",
-    "Gg"  => "Geography",
-    "Hi"  => "History",
-    "La"  => "Latin",
-    "Li"  => "Reading & Research",
-    "Ma"  => "Mathematics",
-    "Mu"  => "Music",
-    "PE"  => "Physical Education",
-    "RS"  => "Religious Studies",
-    "Sc"  => "Science"
-  }
-
-  attr_reader :datasource_id,
-              :current,
-              :subject,
-              :pupils,
-              :name,
-              :isams_id,
-              :subject_id,
-              :year_id
-
-  def initialize(proposed_name, tutor_group, subject_hash)
-    super()
-    @pupils = tutor_group.pupils
-    @teachers = Array.new
-    @current = true
-    @datasource_id = @@primary_datasource_id
-    @name = proposed_name
-    @isams_id = proposed_name
-    @year_id = tutor_group.year_id
-    @tutor_group = tutor_group
-    @subject = nil
-    splut = proposed_name.split
-    if splut.size == 2
-      if /^[12]/ =~ splut[0]
-        subject_name = SUBJECT_CODES[splut[1]]
-        if subject_name
-          @subject = subject_hash[subject_name]
-          unless @subject
-            puts "Failed to find subject #{subject_name}."
-          end
-        end
-      end
-    end
-  end
-
-  def source_id_str
-    @isams_id
-  end
-
-  def start_year
-    local_effective_start_year(@era, @year_id)
-  end
-
-  def yeargroup
-    local_yeargroup(@year_id)
-  end
-
-  def members
-    @pupils
-  end
-
-  def find_subject_id
-    if @subject && @subject.dbrecord
-      @subject_id = @subject.dbrecord.id
-    end
-  end
-
-  def note_teacher(staff)
-    if staff.instance_of?(Array)
-      staffa = staff
-    else
-      staffa = [staff]
-    end
-    staffa.each do |s|
-      unless @teachers.include?(s)
-        @teachers << s
-      end
-    end
-  end
-
-  def ensure_staff
-    if @dbrecord
-      staff = @teachers.collect {|t| t.dbrecord}.compact.uniq
-      @dbrecord.staffs = staff
-    end
-  end
-
-end
-
 

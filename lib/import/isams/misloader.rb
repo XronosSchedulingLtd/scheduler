@@ -56,15 +56,17 @@ class MIS_Loader
   attr_reader :secondary_staff_hash,
               :secondary_location_hash,
               :tegs_by_code_hash,
-              :tugs_by_name_hash,
               :pupils_by_school_id_hash,
-              :subjects_by_name_hash
+              :subjects_by_name_hash,
+              :teaching_forms_by_timetable_code_hash,
+              :tugs_by_name_hash
+
 
   def prepare(options)
     ISAMS_Data.new(self, options)
   end
 
-  def mis_specific_preparation
+  def mis_specific_preparation(whatever)
     @pupils_by_school_id_hash = Hash.new
     @pupils.each do |pupil|
       @pupils_by_school_id_hash[pupil.school_id] = pupil
@@ -85,18 +87,21 @@ class MIS_Loader
     @locations.each do |location|
       @secondary_location_hash[location.name] = location
     end
-    #
-    #  Likewise, the schedule records are a bit broken, in that they
-    #  provide no means to link the relevant sets.  For now we're
-    #  frigging it a bit and using names.
-    #
     @tegs_by_code_hash = Hash.new
     @teachinggroups.each do |teg|
       @tegs_by_code_hash[teg.set_code] = teg
     end
+    #
+    #  Also need to be able to read in the TeachingForm records.
+    #
+    @teaching_forms = MIS_TeachingForm.construct(self, whatever)
+    @teaching_forms_by_timetable_code_hash = Hash.new
+    @teaching_forms.each do |tf|
+      @teaching_forms_by_timetable_code_hash[tf.isams_timetable_code] = tf
+    end
     @tugs_by_name_hash = Hash.new
-    @tutorgroups.each do |tug|
-      @tugs_by_name_hash[tug.name] = tug
+    @tutorgroups.each do |tg|
+      @tugs_by_name_hash[tg.name] = tg
     end
     @subjects_by_name_hash = Hash.new
     @subjects.each do |subject|
