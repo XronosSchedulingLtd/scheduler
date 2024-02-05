@@ -1,3 +1,20 @@
+v1.16.0   2024-02-05
+
+* Update various ancillary packages
+
+There have been vulnerability warnings on a number of the ancillary packages
+used by Scheduler.  This release pulls in fixed versions of the packages.
+See the git log for full details of which ones.
+
+* Allow more flexible import of CSV/ICS calendars
+
+Scheduler has the means to import existing calendars from other systems
+by way of CSV or ICS files.  This was originally intended for existing public
+calendars and so the import would be done against a Property in Scheduler.
+A need arose to import a set of room bookings so the linking has been
+loosened up to allow them to be imported against any resource.
+
+
 v1.15.17  2024-01-19
 
 * Fix a problem importing sets from iSAMS where name and id differ.
