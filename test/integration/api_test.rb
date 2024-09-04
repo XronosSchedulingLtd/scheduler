@@ -1276,6 +1276,7 @@ class ApiTest < ActionDispatch::IntegrationTest
     #  be there.
     #
     assert element_data.key?('name')
+    assert element_data.key?('uuid')
     assert element_data.key?('entity_type')
     assert element_data.key?('entity_id')
     assert element_data.key?('current')
