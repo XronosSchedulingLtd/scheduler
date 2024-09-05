@@ -236,6 +236,7 @@ module PublicApi
           hash = {
             id:          item.id,
             name:        item.name,
+            uuid:        item.uuid,
             entity_type: item.entity_type,
             entity_id:   item.entity_id,
             current:     item.current
