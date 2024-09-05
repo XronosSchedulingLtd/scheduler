@@ -1,3 +1,13 @@
+v1.16.1   2024-09-05
+
+* Add an extra field to element display call in API
+
+  At the request of Abingdon school an extra field containing the element's
+  UUID has been added to the element display call in the API.
+
+  Code by Kevin Ramadhan
+
+
 v1.16.0   2024-02-05
 
 * Update various ancillary packages
