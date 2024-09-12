@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require_relative '../../config/environment'
 
 require_relative 'common/xmlimport'
@@ -15,21 +16,6 @@ location_engine = LocationEngine.new
 property_engine = PropertyEngine.new
 options = Options.new
 DUMMY_SOURCE_ID_VALUE = 111111
-
-# Function to fetch email (for pupil or staff) from API
-def get_email(id)
-  base_url = "https://my.abingdon.org.uk/ma-api/scheduler-api/getEmail/486f74"
-  url = URI("#{base_url}/#{id}")
-
-  response = Net::HTTP.get_response(url)
-  if response.is_a?(Net::HTTPSuccess)
-    json_response = JSON.parse(response.body)
-    return json_response['email'] # Assuming API returns email in this format
-  else
-    puts "Failed to fetch email for id #{id}"
-    return nil
-  end
-end
 
 # Find event source for Music
 eventsource = Eventsource.find_by(name: "SOCS MUSIC")
@@ -94,6 +80,9 @@ else
       # Find existing event by source ID (lesson_id)
       existing_event = existing_events.detect { |e| e.source_id == fixture.lesson_id }
 
+      # Initialize element_ids array
+      element_ids = []
+
       if existing_event
         # Update existing event
         do_save = false
@@ -147,13 +136,10 @@ else
         existing_event = new_event
       end
 
-      # Fetch pupil email and handle pupil element
-      pupil_email = get_email(fixture.pupil_id)
-      next unless pupil_email
-
-      pupil = Pupil.find_by(email: pupil_email)
+      # Fetch pupil and handle pupil element
+      pupil = Pupil.find_by(school_id: fixture.pupil_id)
       unless pupil
-        puts "Pupil with email #{pupil_email} not found, skipping."
+        puts "Pupil with school ID #{fixture.pupil_id} not found, skipping."
         next
       end
 
@@ -163,13 +149,13 @@ else
         puts "Created Element for Pupil #{pupil.name}"
       end
 
-      # Fetch staff email and handle staff element
-      staff_email = get_email(fixture.staff_id)
-      next unless staff_email
+      # Add pupil element to element_ids array
+      element_ids << pupil_element.id if pupil_element
 
-      staff = Staff.find_by(email: staff_email)
+      # Fetch staff and handle staff element
+      staff = Staff.find_by(user_code: fixture.staff_id)
       unless staff
-        puts "Staff with email #{staff_email} not found, skipping."
+        puts "Staff with user code #{fixture.staff_id} not found, skipping."
         next
       end
 
@@ -179,28 +165,35 @@ else
         puts "Created Element for Staff #{staff.name}"
       end
 
+      # Add staff element to element_ids array
+      element_ids << staff_element.id if staff_element
+
       # Handle subject element
       instrument_name = fixture.instrument.strip.downcase
 
       # Special case: If the instrument name is Violin/Viola, we should map it to Violin
-     if instrument_name == 'violin/viola'
-      instrument_name = 'violin'
-     end
+      if instrument_name == 'violin/viola'
+        instrument_name = 'violin'
+      end
+
+      if instrument_name == 'drums'
+        instrument_name = 'drum'
+      end
 
       subject = Subject.find_by('LOWER(name) = ?', instrument_name)
       unless subject
         puts "Subject with name '#{instrument_name}' not found, skipping subject association."
-        next
-      end
-
-      subject_element = subject.element  # Assuming each subject has an associated element record
-      unless subject_element
-        subject_element = Element.create!(entity: subject)
-        puts "Created Element for Subject #{subject.name}"
+      else
+        subject_element = subject.element  # Assuming each subject has an associated element record
+        unless subject_element
+          subject_element = Element.create!(entity: subject)
+          puts "Created Element for Subject #{subject.name}"
+        end
+        # Add subject element to element_ids array if subject_element is valid
+        element_ids << subject_element.id if subject_element
       end
 
       # *** Begin Property Integration ***
-      # Assuming "Music lesson" is the property you want to assign to all events
       property = Property.find_by(name: 'Music lesson')
       unless property
         puts "Property 'Music lesson' not found, skipping."
@@ -212,10 +205,11 @@ else
         property_element = Element.create!(entity: property)
         puts "Created Element for Property #{property.name}"
       end
-      # *** End Property Integration ***
 
-      # Collect element IDs for pupil, staff, subject, and property
-      element_ids = [pupil_element.id, staff_element.id, subject_element.id, property_element.id]
+      # Add property element to element_ids array
+      element_ids << property_element.id if property_element
+
+      # *** End Property Integration ***
 
       # Identify commitments to destroy
       commitments_to_destroy = []
@@ -255,7 +249,6 @@ else
   end
 
   puts "#{events_created} events created and #{events_deleted} events deleted." if options.verbose
-  # location_engine.list_missing if options.list_missing
 end
 
 exit 0
