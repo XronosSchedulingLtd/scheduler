@@ -1,3 +1,12 @@
+v1.17.0   2024-09-14
+
+* Add extra id fields for staff and pupils
+
+  A requirement has arisen to identify pupils and staff using IDs which are
+  common between iSAMS and SOCS.  This update adds those fields to the
+  staff and pupil records and then populates them in the iSAMS importer.
+
+
 v1.16.1   2024-09-05
 
 * Add an extra field to element display call in API
