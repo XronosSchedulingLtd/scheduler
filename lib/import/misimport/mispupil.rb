@@ -19,7 +19,8 @@ class MIS_Pupil < MIS_Record
     :email,
     :house_name,
     :current,
-    :datasource_id
+    :datasource_id,
+    :school_id
   ]
 
   FIELDS_TO_UPDATE = [
@@ -29,7 +30,8 @@ class MIS_Pupil < MIS_Record
     :known_as,
     :email,
     :house_name,
-    :current
+    :current,
+    :school_id
   ]
 
   def force_save
