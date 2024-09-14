@@ -14,7 +14,8 @@ class MIS_Staff < MIS_Record
                       :email,
                       :active,
                       :current,
-                      :datasource_id]
+                      :datasource_id,
+                      :user_code]
   FIELDS_TO_UPDATE = [:name,
                       :initials,
                       :surname,
@@ -22,7 +23,8 @@ class MIS_Staff < MIS_Record
                       :forename,
                       :email,
                       :active,
-                      :current]
+                      :current,
+                      :user_code]
 
   #
   #  The MIS-specific code should override everything below here.
