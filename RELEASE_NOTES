@@ -1,3 +1,13 @@
+v1.17.1   2024-09-19
+
+* Propagate changes to organiser in repeating events
+
+  In a collection of repeating events it is possible to edit one event
+  and then propagate the changes to all the others in the set.  The
+  code to do this was missing out the organiser field from the propagation.
+  Now fixed.
+
+
 v1.17.0   2024-09-14
 
 * Add extra id fields for staff and pupils
