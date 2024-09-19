@@ -1954,6 +1954,13 @@ class Event < ApplicationRecord
       self.eventcategory = donor_event.eventcategory
       do_save = true
     end
+    #
+    #  And the organiser?
+    #
+    if donor_event.organiser_id != self.organiser_id
+      self.organiser = donor_event.organiser
+      do_save = true
+    end
     if do_save
       self.save
       self.journal_event_updated(by_user, true)

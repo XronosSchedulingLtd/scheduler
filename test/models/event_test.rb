@@ -184,6 +184,36 @@ class EventTest < ActiveSupport::TestCase
     assert new_event.commitments.empty?
   end
 
+  test "make_to_match updates event title" do
+    event = FactoryBot.create(:event, body: "Title to copy")
+    user = FactoryBot.create(:user)
+    new_event = event.clone_and_save(user, {})
+    assert new_event.valid?
+    assert_equal event.body, new_event.body
+    new_event.body = "A different title"
+    new_event.save
+    new_event.reload
+    assert_not_equal event.body, new_event.body
+    new_event.make_to_match(user, event)
+    assert_equal event.body, new_event.body
+  end
+
+  test "make_to_match updates organiser" do
+    first_organiser = FactoryBot.create(:staff)
+    second_organiser = FactoryBot.create(:staff)
+    event = FactoryBot.create(:event, organiser: first_organiser.element)
+    user = FactoryBot.create(:user)
+    new_event = event.clone_and_save(user, {})
+    assert new_event.valid?
+    assert_equal event.organiser, new_event.organiser
+    new_event.organiser = second_organiser.element
+    new_event.save
+    new_event.reload
+    assert_not_equal event.organiser, new_event.organiser
+    new_event.make_to_match(user, event)
+    assert_equal event.organiser, new_event.organiser
+  end
+
   test "make_to_match brings over new commitments" do
     event = FactoryBot.create(:event)
     staff1 = FactoryBot.create(:staff)
