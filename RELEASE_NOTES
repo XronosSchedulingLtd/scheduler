@@ -1,3 +1,16 @@
+v1.17.2   2024-10-15
+
+* Don't allow users who can't add resources to set organiser
+
+  There are some users - typically pupils - who can create events but
+  can't add arbitrary resources to them.  They just create events
+  involving themselves.  A small wrinkle arose in that one such user
+  discovered he could still set the "Organiser" field on his event and
+  set it to be a member of staff who was then a bit surprised to see it.
+
+  For such users, the "Organiser" field is now disabled as well.
+
+
 v1.17.1   2024-09-19
 
 * Propagate changes to organiser in repeating events

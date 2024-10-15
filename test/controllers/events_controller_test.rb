@@ -27,6 +27,9 @@ class EventsControllerTest < ActionController::TestCase
       #
       ends_at: @all_day_end + 1.day
     )
+    @other_users_event = FactoryBot.create(
+      :event,
+      owner: @other_user)
   end
 
   test "should get index" do
@@ -84,6 +87,29 @@ class EventsControllerTest < ActionController::TestCase
     assert_select '#event_ends_at_text' do |fields|
       assert_equal 1, fields.count
       assert_equal @event.ends_at.strftime(@format_dt), fields.first['value']
+    end
+    assert_select '#event_organiser_name' do |organiser_name_field|
+      assert_not organiser_name_field.attr('disabled').present?
+    end
+  end
+
+  test "lesser user cant add resources" do
+    session[:user_id] = @other_user.id
+    get :edit, params: { id: @other_users_event }
+    assert_response :success
+    assert_select "form.edit_event" do |forms|
+      assert_equal "/events/#{@other_users_event.id}", forms[0]['action']
+    end
+    assert_select '#event_starts_at_text' do |fields|
+      assert_equal 1, fields.count
+      assert_equal @other_users_event.starts_at.strftime(@format_dt), fields.first['value']
+    end
+    assert_select '#event_ends_at_text' do |fields|
+      assert_equal 1, fields.count
+      assert_equal @other_users_event.ends_at.strftime(@format_dt), fields.first['value']
+    end
+    assert_select '#event_organiser_name' do |organiser_name_field|
+      assert organiser_name_field.attr('disabled').present?
     end
   end
 
