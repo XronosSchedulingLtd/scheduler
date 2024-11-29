@@ -1,0 +1,87 @@
+#!/bin/bash
+. /etc/profile
+. ~/etc/socsauth
+. ~/etc/whichsystem
+. ~/.rvm/environments/scheduler
+
+if [ "a$SCHEDULER_DIR" == "a" ]; then
+  echo "SCHEDULER_DIR environment variable needs to be set."
+  exit 1
+fi
+if [ ! -d $SCHEDULER_DIR/import/socsmusic ]; then
+  echo "$SCHEDULER_DIR/import/socs does not seem to be a directory."
+  exit 2
+fi
+
+# Use today's date as the start date
+STARTDATE=$(date "+%d %b %y")
+# Set the end date to 14 days after the start date (2 weeks)
+ENDDATE=$(date --date='+14 days' "+%d %b %y")
+
+cd $SCHEDULER_DIR/import/socsmusic
+rm -f Incoming/*
+
+if [ -f PreFetched/data.xml ]; then
+  echo "Using pre-fetched data.xml"
+  cp PreFetched/data.xml Incoming
+else
+  if [ "a$SOCS_MUSIC_API_URL" == "a" ]; then
+    echo "SOCS_MUSIC_API_URL environment variable needs to be set."
+    exit 3
+  fi
+  if [ "a$SOCS_MUSIC_APIKEY" == "a" ]; then
+    echo "SOCS_MUSIC_APIKEY environment variable needs to be set."
+    exit 4
+  fi
+
+  # Initialize or empty the data.xml file
+  echo "<root>" > Incoming/data.xml
+
+  # Loop through each date from start date to end date
+  CURRENTDATE="$STARTDATE"
+
+  while [ "$(date -d "$CURRENTDATE" "+%s")" -le "$(date -d "$ENDDATE" "+%s")" ]; do
+
+    # Manually encode the startdate (replace spaces with %20)
+    ENCODED_STARTDATE=$(echo "$CURRENTDATE" | sed 's/ /%20/g')
+
+    FULL_URL="$SOCS_MUSIC_API_URL?ID=2&key=$SOCS_MUSIC_APIKEY&data=musiclessons&startdate=$ENCODED_STARTDATE"
+    #echo "Full URL: $FULL_URL"
+
+    # Fetch data for the current date
+    curl -G --silent "$FULL_URL" --output Incoming/tmp_data.xml 2> curl_errors.log
+
+    if [ $? -ne 0 ]; then
+      echo "Failed to fetch SOCS API data for $CURRENTDATE."
+      cat curl_errors.log
+      exit 5
+    fi
+
+    # Print the API response for debugging
+    #echo "Response from API for $CURRENTDATE:"
+    #cat Incoming/tmp_data.xml
+
+    # Append the fetched data to the main data.xml file
+    cat Incoming/tmp_data.xml >> Incoming/data.xml
+
+    # Move to the next day
+    CURRENTDATE=$(date --date="$CURRENTDATE +1 day" "+%d %b %y")
+  done
+
+  # Close the root tag in the data.xml file
+  echo "</root>" >> Incoming/data.xml
+  rm -f Incoming/tmp_data.xml
+fi
+
+# Move and archive the data files
+rm -f Current/*
+mv Incoming/* Current
+TARGET_DIR="Archive/$(date +%Y/%m/%d)"
+mkdir -p "$TARGET_DIR"
+cp Current/* "$TARGET_DIR"
+bzip2 -f "$TARGET_DIR"/*.xml
+
+# Import the new data into Scheduler
+$SCHEDULER_DIR/lib/import/socsmusicimport.rb --start_date="$STARTDATE" --end_date="$ENDDATE" | tee import.log
+cp import.log "$TARGET_DIR"
+bzip2 -f "$TARGET_DIR/import.log"
